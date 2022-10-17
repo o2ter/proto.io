@@ -25,7 +25,17 @@
 
 import _ from 'lodash';
 import { Decimal } from 'decimal.js';
-import { EJSON, Double, Long, Int32, Decimal128, ObjectId, UUID } from 'bson';
+import {
+  serialize as _serialize,
+  deserialize as _deserialize,
+  EJSON,
+  Double,
+  Long,
+  Int32,
+  Decimal128,
+  ObjectId,
+  UUID
+} from 'bson';
 
 export { ObjectId, UUID };
 export type IONumber = number | Decimal | BigInt;
@@ -65,5 +75,8 @@ const decodeEJSON = (x: EJSON.SerializableTypes): SerializableTypes => {
   return _.mapValues(x, decodeEJSON);
 }
 
-export const serialize = (x: SerializableTypes, space?: string | number) => EJSON.stringify(encodeEJSON(x), undefined, space, { relaxed: false });
-export const deserialize = (buffer: string) => decodeEJSON(EJSON.parse(buffer, { relaxed: false }));
+export const serialize_json = (x: SerializableTypes, space?: string | number) => EJSON.stringify(encodeEJSON(x), undefined, space, { relaxed: false });
+export const deserialize_json = (buffer: string) => decodeEJSON(EJSON.parse(buffer, { relaxed: false }));
+
+export const serialize = (x: SerializableTypes) => _serialize(EJSON.serialize(encodeEJSON(x), { relaxed: false }));
+export const deserialize = (buffer: Buffer | ArrayBufferView | ArrayBuffer) => decodeEJSON(EJSON.deserialize(_deserialize(buffer), { relaxed: false }));
