@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { Decimal } from 'decimal.js';
-import { EJSON, Double, Long, Int32, Decimal128, ObjectId } from 'bson';
+import { EJSON, Double, Long, Int32, Decimal128, ObjectId, UUID } from 'bson';
 
 export type IONumber = number | Decimal | BigInt;
 export type Primitive = ObjectId | string | IONumber | boolean | null;
@@ -59,6 +59,7 @@ const decodeEJSON = (x: EJSON.SerializableTypes): SerializableTypes => {
   if (_.isNil(x) || _.isBoolean(x) || _.isString(x) || x instanceof ObjectId) return x;
   if (isBsonNumber(x)) return decodeNumber(x);
   if (_.isArray(x)) return x.map(decodeEJSON);
+  if (x instanceof UUID) return x.toHexString(true);
   return _.mapValues(x, decodeEJSON);
 }
 
