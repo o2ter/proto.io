@@ -27,8 +27,9 @@ import _ from 'lodash';
 import { Decimal } from 'decimal.js';
 import { EJSON, Double, Long, Int32, Decimal128, ObjectId, UUID } from 'bson';
 
+export { ObjectId, UUID };
 export type IONumber = number | Decimal | BigInt;
-export type Primitive = ObjectId | string | IONumber | boolean | null;
+export type Primitive = ObjectId | UUID | string | IONumber | boolean | null;
 export type SerializableTypes = { [x: string]: SerializableTypes } | SerializableTypes[] | Primitive;
 
 type BsonNumber = number | Double | Long | Decimal128;
@@ -49,17 +50,18 @@ const decodeNumber = (x: BsonNumber) => {
 }
 
 const encodeEJSON = (x: SerializableTypes): EJSON.SerializableTypes => {
-  if (_.isNil(x) || _.isBoolean(x) || _.isString(x) || x instanceof ObjectId) return x;
+  if (_.isNil(x) || _.isBoolean(x) || _.isString(x)) return x;
+  if (x instanceof ObjectId || x instanceof UUID) return x;
   if (isNumber(x)) return encodeNumber(x);
   if (_.isArray(x)) return x.map(encodeEJSON);
   return _.mapValues(x, encodeEJSON);
 }
 
 const decodeEJSON = (x: EJSON.SerializableTypes): SerializableTypes => {
-  if (_.isNil(x) || _.isBoolean(x) || _.isString(x) || x instanceof ObjectId) return x;
+  if (_.isNil(x) || _.isBoolean(x) || _.isString(x)) return x;
+  if (x instanceof ObjectId || x instanceof UUID) return x;
   if (isBsonNumber(x)) return decodeNumber(x);
   if (_.isArray(x)) return x.map(decodeEJSON);
-  if (x instanceof UUID) return x.toHexString(true);
   return _.mapValues(x, decodeEJSON);
 }
 
