@@ -39,7 +39,7 @@ import {
 
 export { ObjectId, UUID };
 export type IONumber = number | Decimal | BigInt;
-export type Primitive = ObjectId | UUID | string | IONumber | boolean | null;
+export type Primitive = ObjectId | UUID | Date | string | IONumber | boolean | null;
 export type SerializableTypes = { [x: string]: SerializableTypes } | SerializableTypes[] | Primitive;
 
 type BsonNumber = number | Double | Long | Decimal128;
@@ -60,7 +60,7 @@ const decodeNumber = (x: BsonNumber) => {
 }
 
 const encodeEJSON = (x: SerializableTypes): EJSON.SerializableTypes => {
-  if (_.isNil(x) || _.isBoolean(x) || _.isString(x)) return x;
+  if (_.isNil(x) || _.isBoolean(x) || _.isString(x) || _.isDate(x)) return x;
   if (x instanceof ObjectId || x instanceof UUID) return x;
   if (isNumber(x)) return encodeNumber(x);
   if (_.isArray(x)) return x.map(encodeEJSON);
@@ -68,7 +68,7 @@ const encodeEJSON = (x: SerializableTypes): EJSON.SerializableTypes => {
 }
 
 const decodeEJSON = (x: EJSON.SerializableTypes): SerializableTypes => {
-  if (_.isNil(x) || _.isBoolean(x) || _.isString(x)) return x;
+  if (_.isNil(x) || _.isBoolean(x) || _.isString(x) || _.isDate(x)) return x;
   if (x instanceof ObjectId || x instanceof UUID) return x;
   if (isBsonNumber(x)) return decodeNumber(x);
   if (_.isArray(x)) return x.map(decodeEJSON);
