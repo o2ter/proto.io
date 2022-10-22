@@ -1,5 +1,5 @@
 //
-//  index.js
+//  api.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2022 O2ter Limited. All rights reserved.
@@ -25,6 +25,20 @@
 
 import _ from 'lodash';
 import axios from 'axios';
+import { IOSerializable, serialize_json, deserialize_json } from '../codec';
 
-export * from '../codec';
+export const run = async (
+  api: string,
+  name: string,
+  data?: IOSerializable,
+) => {
 
+  const res = await axios.post(`${api}/cloud/functions/${name}`, serialize_json(data ?? null));
+
+  if (res.status !== 200) {
+    const error = JSON.parse(res.data);
+    throw new Error(error.message, { cause: error });
+  }
+
+  return deserialize_json(res.data);
+}

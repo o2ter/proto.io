@@ -40,7 +40,7 @@ export const ApiRoute = (options: ApiRouteOptions) => {
   router.use(cookieParser() as any);
   router.use(express.json());
 
-  router.post('functions/:name', async (req, res) => {
+  router.post('/cloud/functions/:name', async (req, res) => {
 
     const { name } = req.params;
     const func = options.functions[name];
