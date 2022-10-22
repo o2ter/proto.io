@@ -23,5 +23,41 @@
 //  THE SOFTWARE.
 //
 
+import _ from 'lodash';
+import axios from 'axios';
+import { IOSerializable, serialize_json, deserialize_json } from '../codec';
+
 export * from '../codec';
 
+type Options = {
+  api: string;
+}
+
+export default class {
+
+  options: Options;
+
+  constructor(options: Options) {
+    this.options = options;
+  }
+
+  async run(
+    name: string,
+    data?: IOSerializable,
+  ) {
+    
+    const res = await axios.request({
+      method: 'post',
+      url: `${this.options.api}/cloud/functions/${name}`,
+      data: serialize_json(data ?? null),
+    });
+
+    if (res.status !== 200) {
+      const error = JSON.parse(res.data);
+      throw new Error(error.message, { cause: error });
+    }
+
+    return deserialize_json(res.data);
+  }
+
+}
