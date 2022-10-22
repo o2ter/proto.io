@@ -34,7 +34,7 @@ type ApiRouteOptions = {
   functions: Record<string, (request: { data: IOSerializable; }) => IOSerializable | Promise<IOSerializable>>;
 };
 
-export const ApiRoute = (options: ApiRouteOptions) => {
+export const ProtoRoute = (options: ApiRouteOptions) => {
 
   const router = express.Router();
   router.use(cookieParser() as any);
