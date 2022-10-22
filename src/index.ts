@@ -1,5 +1,5 @@
 //
-//  index.js
+//  index.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2022 O2ter Limited. All rights reserved.
@@ -23,4 +23,52 @@
 //  THE SOFTWARE.
 //
 
+import _ from 'lodash';
+import express from 'express';
+import cookieParser from 'cookie-parser';
+import { IOSerializable, serialize_json, deserialize_json } from './codec';
+
 export * from './codec';
+
+type ApiRouteOptions = {
+  functions: Record<string, (request: { data: IOSerializable; }) => IOSerializable | Promise<IOSerializable>>;
+};
+
+export const ApiRoute = (options: ApiRouteOptions) => {
+
+  const router = express.Router();
+  router.use(cookieParser() as any);
+  router.use(express.json());
+
+  router.post('functions/:name', async (req, res) => {
+
+    const { name } = req.params;
+    const func = options.functions[name];
+
+    if (!_.isFunction(func)) {
+      res.status(404).json({ message: `Function ${name} not found.` });
+      return;
+    }
+
+    try {
+
+      const data = deserialize_json(req.body);
+      const result = await func({ data });
+
+      res.json(serialize_json(result));
+
+    } catch (error) {
+
+      if (error instanceof String) {
+        res.status(400).json({ message: error });
+      } else if (error instanceof Error) {
+        res.status(400).json({ message: error.message });
+      } else {
+        res.status(400).json(error);
+      }
+    }
+
+  });
+
+  return router;
+}
