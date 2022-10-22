@@ -5,8 +5,6 @@ import babel from '@rollup/plugin-babel';
 import json from '@rollup/plugin-json';
 import dts from 'rollup-plugin-dts';
 
-const packageJson = require('./package.json');
-
 const rollupPlugins = [
   typescript(),
   babel({
@@ -20,48 +18,57 @@ const rollupPlugins = [
   json(),
 ];
 
-const rollupConfig = {
-  input: 'src/index',
-  external: [
-    /node_modules/
-  ],
-};
-
-export default [
+const rollupOutputs = (name) => [
   {
-    ...rollupConfig,
+    input: `src/${name}`,
+    external: [
+      /node_modules/
+    ],
     output: [
       {
-        file: packageJson.main + '.js',
+        file: `dist/${name}.js`,
         format: 'cjs',
         sourcemap: true,
       },
       {
-        file: packageJson.main + '.mjs',
+        file: `dist/${name}.mjs`,
         format: 'esm',
         sourcemap: true,
       },
     ],
     plugins: [
       resolve({
-        extensions: ['.ts', '.tsx', '.mjs', '.js']
+        extensions: [
+          '.web.ts', '.web.tsx', '.web.mjs', '.web.js',
+          '.ts', '.tsx', '.mjs', '.js',
+        ]
       }),
       ...rollupPlugins
     ],
-  },
-  {
-    ...rollupConfig,
+  },{
+    input: `src/${name}`,
+    external: [
+      /node_modules/
+    ],
     output: [
       {
-        file: 'dist/index.d.ts',
+        file: `dist/${name}.d.ts`,
         format: 'es',
       },
     ],
     plugins: [
       resolve({
-        extensions: ['.ts', '.tsx', '.mjs', '.js']
+        extensions: [
+          '.web.ts', '.web.tsx', '.web.mjs', '.web.js',
+          '.ts', '.tsx', '.mjs', '.js',
+        ]
       }),
       dts()
     ],
   },
+];
+
+export default [
+  ...rollupOutputs('index'),
+  ...rollupOutputs('client'),
 ];
