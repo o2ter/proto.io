@@ -37,7 +37,7 @@ import {
   UUID
 } from 'bson';
 
-export { ObjectId, UUID };
+export { ObjectId, UUID, Decimal };
 export type IONumber = number | Decimal | BigInt;
 export type Primitive = ObjectId | UUID | Date | string | IONumber | boolean | null;
 export type SerializableTypes = { [x: string]: SerializableTypes } | SerializableTypes[] | Primitive;
