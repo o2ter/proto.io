@@ -39,8 +39,8 @@ import {
 
 export { ObjectId, UUID, Decimal };
 export type IONumber = number | Decimal | BigInt;
-export type Primitive = ObjectId | UUID | Date | string | IONumber | boolean | null;
-export type SerializableTypes = { [x: string]: SerializableTypes } | SerializableTypes[] | Primitive;
+export type IOPrimitive = ObjectId | UUID | Date | string | IONumber | boolean | null;
+export type IOSerializable = { [x: string]: IOSerializable } | IOSerializable[] | IOPrimitive;
 
 type BsonNumber = number | Double | Long | Decimal128;
 
@@ -59,7 +59,7 @@ const decodeNumber = (x: BsonNumber) => {
   return x;
 }
 
-const encodeEJSON = (x: SerializableTypes): EJSON.SerializableTypes => {
+const encodeEJSON = (x: IOSerializable): EJSON.SerializableTypes => {
   if (_.isNil(x) || _.isBoolean(x) || _.isString(x) || _.isDate(x)) return x;
   if (x instanceof ObjectId || x instanceof UUID) return x;
   if (isNumber(x)) return encodeNumber(x);
@@ -67,7 +67,7 @@ const encodeEJSON = (x: SerializableTypes): EJSON.SerializableTypes => {
   return _.mapValues(x, encodeEJSON);
 }
 
-const decodeEJSON = (x: EJSON.SerializableTypes): SerializableTypes => {
+const decodeEJSON = (x: EJSON.SerializableTypes): IOSerializable => {
   if (_.isNil(x) || _.isBoolean(x) || _.isString(x) || _.isDate(x)) return x;
   if (x instanceof ObjectId || x instanceof UUID) return x;
   if (isBsonNumber(x)) return decodeNumber(x);
@@ -75,8 +75,8 @@ const decodeEJSON = (x: EJSON.SerializableTypes): SerializableTypes => {
   return _.mapValues(x, decodeEJSON);
 }
 
-export const serialize_json = (x: SerializableTypes, space?: string | number) => EJSON.stringify(encodeEJSON(x), undefined, space, { relaxed: false });
+export const serialize_json = (x: IOSerializable, space?: string | number) => EJSON.stringify(encodeEJSON(x), undefined, space, { relaxed: false });
 export const deserialize_json = (buffer: string) => decodeEJSON(EJSON.parse(buffer, { relaxed: false }));
 
-export const serialize = (x: SerializableTypes) => _serialize(EJSON.serialize(encodeEJSON(x), { relaxed: false }));
+export const serialize = (x: IOSerializable) => _serialize(EJSON.serialize(encodeEJSON(x), { relaxed: false }));
 export const deserialize = (buffer: Buffer | ArrayBufferView | ArrayBuffer) => decodeEJSON(EJSON.deserialize(_deserialize(buffer), { relaxed: false }));
