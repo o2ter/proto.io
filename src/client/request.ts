@@ -29,7 +29,7 @@ import { XSRF_COOKIE_NAME, XSRF_HEADER_NAME } from '../router/token/const';
 
 const service = axios.create({ withCredentials: true });
 
-export const request = async <D>(config: AxiosRequestConfig<D>): Promise<AxiosResponse> => {
+export const request = async <T = any, D = any>(config: AxiosRequestConfig<D>): Promise<AxiosResponse<T, D>> => {
 
   config = {
     xsrfCookieName: XSRF_COOKIE_NAME,
