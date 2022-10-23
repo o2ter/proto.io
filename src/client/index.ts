@@ -25,6 +25,7 @@
 
 import _ from 'lodash';
 import { request } from './request';
+import axios, { CancelToken } from 'axios';
 import { IOSerializable, serialize_json, deserialize_json } from '../codec';
 
 export * from '../codec';
@@ -32,6 +33,8 @@ export * from '../codec';
 type Options = {
   endpoint: string;
 }
+
+export const CancelTokenSource = axios.CancelToken.source;
 
 export default class {
 
@@ -44,6 +47,9 @@ export default class {
   async run(
     name: string,
     data?: IOSerializable,
+    options?: {
+      cancelToken?: CancelToken
+    },
   ) {
 
     const res = await request({
@@ -51,6 +57,7 @@ export default class {
       url: `functions/${name}`,
       baseURL: this.options.endpoint,
       data: serialize_json(data ?? null),
+      ...(options ?? {})
     });
 
     if (res.status !== 200) {
