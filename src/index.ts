@@ -30,46 +30,53 @@ import { IOSerializable, serialize_json, deserialize_json } from './codec';
 
 export * from './codec';
 
-type ApiRouteOptions = {
+type Options = {
   token: string;
-  functions: Record<string, (request: { data: IOSerializable; }) => IOSerializable | Promise<IOSerializable>>;
+  functions?: Record<string, (request: {
+    data: IOSerializable;
+  }) => IOSerializable | Promise<IOSerializable>>;
 };
 
-export const ApiRoute = (options: ApiRouteOptions) => {
+export default (options: Options) => {
+
+  const { functions } = options;
 
   const router = express.Router();
   router.use(cookieParser() as any);
   router.use(express.json());
 
-  router.post('/functions/:name', async (req, res) => {
+  if (!_.isNil(functions)) {
 
-    const { name } = req.params;
-    const func = options.functions[name];
+    router.post('/functions/:name', async (req, res) => {
 
-    if (!_.isFunction(func)) {
-      res.status(404).json({ message: `Function ${name} not found.` });
-      return;
-    }
+      const { name } = req.params;
+      const func = functions[name];
 
-    try {
-
-      const data = deserialize_json(req.body);
-      const result = await func({ data });
-
-      res.json(serialize_json(result));
-
-    } catch (error) {
-
-      if (error instanceof String) {
-        res.status(400).json({ message: error });
-      } else if (error instanceof Error) {
-        res.status(400).json({ message: error.message });
-      } else {
-        res.status(400).json(error);
+      if (!_.isFunction(func)) {
+        res.status(404).json({ message: `Function ${name} not found.` });
+        return;
       }
-    }
 
-  });
+      try {
+
+        const data = deserialize_json(req.body);
+        const result = await func({ data });
+
+        res.json(serialize_json(result));
+
+      } catch (error) {
+
+        if (error instanceof String) {
+          res.status(400).json({ message: error });
+        } else if (error instanceof Error) {
+          res.status(400).json({ message: error.message });
+        } else {
+          res.status(400).json(error);
+        }
+      }
+
+    });
+  }
 
   return router;
 }
