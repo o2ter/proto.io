@@ -27,8 +27,9 @@ import _ from 'lodash';
 import { RequestHandler } from 'express';
 import csrf from 'csrf';
 
-const COOKIE_NAME = 'XSRF-TOKEN';
-const HEADER_NAME = 'X-XSRF-TOKEN';
+export const XSRF_COOKIE_NAME = 'XSRF-TOKEN';
+export const XSRF_HEADER_NAME = 'X-XSRF-TOKEN';
+
 const _csrf = new csrf();
 
 export default (token?: string): RequestHandler => (req, res, next) => {
@@ -37,9 +38,9 @@ export default (token?: string): RequestHandler => (req, res, next) => {
 
   const xsrfToken = _csrf.create(token);
   res.locals.xsrfToken = xsrfToken;
-  res.cookie(COOKIE_NAME, xsrfToken);
+  res.cookie(XSRF_COOKIE_NAME, xsrfToken);
 
-  const header_token = req.get(HEADER_NAME);
+  const header_token = req.get(XSRF_HEADER_NAME);
   if (!_.isNil(header_token) && _csrf.verify(token, header_token)) return next();
 
   res.sendStatus(412);

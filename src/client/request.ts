@@ -25,18 +25,23 @@
 
 import _ from 'lodash';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
+import { XSRF_COOKIE_NAME, XSRF_HEADER_NAME } from '../router/token';
 
 const read_cookie = (name: string) => {
   const match = document.cookie.match(new RegExp('(^|;\\s*)(' + name + ')=([^;]*)'));
   return (match ? decodeURIComponent(match[3]) : null);
 }
 
-const check_token = () => _.isString(read_cookie('XSRF-TOKEN'));
+const check_token = () => _.isString(read_cookie(XSRF_COOKIE_NAME));
 
 export const request = async <D>(config: AxiosRequestConfig<D>): Promise<AxiosResponse> => {
 
   const has_token = check_token();
-  const res = await axios.request(config);
+  const res = await axios.request({
+    xsrfCookieName: XSRF_COOKIE_NAME,
+    xsrfHeaderName: XSRF_HEADER_NAME,
+    ...config,
+  });
 
   if (!has_token && res.status === 412) {
     if (check_token()) return await request(config);
