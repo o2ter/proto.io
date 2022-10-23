@@ -48,7 +48,9 @@ class Payload {
 
   async run(name: string, data?: IOSerializable) {
     const func = this.options.functions?.[name];
-    const payload = Object.setPrototypeOf({ data: data ?? null }, this);
+    const payload = Object.setPrototypeOf({
+      data: data ?? null,
+    }, this);
     return _.isFunction(func) ? func(payload) : null;
   }
 }
@@ -81,7 +83,11 @@ export default (options: Options) => {
         try {
 
           const data = deserialize_json(req.body);
-          const result = await payload.run(name, data);
+          const _payload = Object.setPrototypeOf({
+            ...req,
+            data: data ?? null,
+          }, payload);
+          const result = await func(_payload);
 
           res.json(serialize_json(result));
 
