@@ -1,5 +1,5 @@
 //
-//  index.ts
+//  request.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2022 O2ter Limited. All rights reserved.
@@ -24,41 +24,23 @@
 //
 
 import _ from 'lodash';
-import { request } from './request';
-import { IOSerializable, serialize_json, deserialize_json } from '../codec';
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
-export * from '../codec';
-
-type Options = {
-  endpoint: string;
+const read_cookie = (name: string) => {
+  const match = document.cookie.match(new RegExp('(^|;\\s*)(' + name + ')=([^;]*)'));
+  return (match ? decodeURIComponent(match[3]) : null);
 }
 
-export default class {
+const check_token = () => _.isString(read_cookie('XSRF-TOKEN'));
 
-  options: Options;
+export const request = async <D>(config: AxiosRequestConfig<D>): Promise<AxiosResponse> => {
 
-  constructor(options: Options) {
-    this.options = options;
+  const has_token = check_token();
+  const res = await axios.request(config);
+
+  if (!has_token && res.status === 412) {
+    if (check_token()) return await request(config);
   }
 
-  async run(
-    name: string,
-    data?: IOSerializable,
-  ) {
-
-    const res = await request({
-      method: 'post',
-      url: `functions/${name}`,
-      baseURL: this.options.endpoint,
-      data: serialize_json(data ?? null),
-    });
-
-    if (res.status !== 200) {
-      const error = JSON.parse(res.data);
-      throw new Error(error.message, { cause: error });
-    }
-
-    return deserialize_json(res.data);
-  }
-
+  return res;
 }
