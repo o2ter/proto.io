@@ -31,6 +31,7 @@ import { IOSerializable, serialize_json, deserialize_json } from './codec';
 export * from './codec';
 
 type ApiRouteOptions = {
+  token: string;
   functions: Record<string, (request: { data: IOSerializable; }) => IOSerializable | Promise<IOSerializable>>;
 };
 

@@ -30,7 +30,8 @@ import { IOSerializable, serialize_json, deserialize_json } from '../codec';
 export * from '../codec';
 
 type Options = {
-  api: string;
+  endpoint: string;
+  token: string;
 }
 
 export default class {
@@ -48,7 +49,7 @@ export default class {
     
     const res = await axios.request({
       method: 'post',
-      url: `${this.options.api}/functions/${name}`,
+      url: `${this.options.endpoint}/functions/${name}`,
       data: serialize_json(data ?? null),
     });
 
