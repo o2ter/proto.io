@@ -1,5 +1,5 @@
 //
-//  index.ts
+//  functionRoute.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2022 O2ter Limited. All rights reserved.
@@ -24,48 +24,51 @@
 //
 
 import _ from 'lodash';
-import { request } from './request';
-import axios, { CancelToken } from 'axios';
-import { IOSerializable, serialize_json, deserialize_json } from '../utils/codec';
+import express, { Router } from 'express';
+import { Payload } from './types';
+import { serialize_json, deserialize_json } from './codec';
 
-export * from '../utils/codec';
+export default (router: Router, payload: Payload) => {
 
-type Options = {
-  endpoint: string;
-}
+  const { functions } = payload.options;
+  if (_.isNil(functions)) return router;
 
-export const CancelTokenSource = axios.CancelToken.source;
+  router.post(
+    '/functions/:name',
+    express.text({ type: '*/*' }),
+    async (req, res) => {
 
-export default class {
+      const { name } = req.params;
+      const func = functions[name];
 
-  options: Options;
+      if (!_.isFunction(func)) {
+        res.sendStatus(404);
+        return;
+      }
 
-  constructor(options: Options) {
-    this.options = options;
-  }
+      try {
 
-  async run(
-    name: string,
-    data?: IOSerializable,
-    options?: {
-      cancelToken?: CancelToken
-    },
-  ) {
+        const data = deserialize_json(req.body);
+        const _payload = Object.setPrototypeOf({
+          ..._.omit(req, 'body'),
+          data: data ?? null,
+        }, payload);
+        const result = await func(_payload);
 
-    const res = await request({
-      method: 'post',
-      url: `functions/${name}`,
-      baseURL: this.options.endpoint,
-      data: serialize_json(data ?? null),
-      ...(options ?? {})
-    });
+        res.json(serialize_json(result));
 
-    if (res.status !== 200) {
-      const error = JSON.parse(res.data);
-      throw new Error(error.message, { cause: error });
+      } catch (error) {
+
+        if (error instanceof String) {
+          res.status(400).json({ message: error });
+        } else if (error instanceof Error) {
+          res.status(400).json({ message: error.message });
+        } else {
+          res.status(400).json(error);
+        }
+      }
     }
+  );
 
-    return deserialize_json(res.data);
-  }
-
+  return router;
 }

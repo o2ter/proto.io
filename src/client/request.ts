@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { XSRF_COOKIE_NAME, XSRF_HEADER_NAME } from '../router/token/const';
+import { XSRF_COOKIE_NAME, XSRF_HEADER_NAME } from '../utils/token/const';
 
 const service = axios.create({ withCredentials: true });
 

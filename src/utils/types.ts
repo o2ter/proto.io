@@ -1,5 +1,5 @@
 //
-//  index.ts
+//  types.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2022 O2ter Limited. All rights reserved.
@@ -24,48 +24,28 @@
 //
 
 import _ from 'lodash';
-import { request } from './request';
-import axios, { CancelToken } from 'axios';
-import { IOSerializable, serialize_json, deserialize_json } from '../utils/codec';
+import { IOSerializable } from './codec';
 
-export * from '../utils/codec';
+export type Options = {
+  token?: string;
+  functions?: Record<string, (request: Payload & {
+    data: IOSerializable;
+  }) => IOSerializable | Promise<IOSerializable>>;
+};
 
-type Options = {
-  endpoint: string;
-}
-
-export const CancelTokenSource = axios.CancelToken.source;
-
-export default class {
+export class Payload {
 
   options: Options;
 
   constructor(options: Options) {
-    this.options = options;
+    this.options = options
   }
 
-  async run(
-    name: string,
-    data?: IOSerializable,
-    options?: {
-      cancelToken?: CancelToken
-    },
-  ) {
-
-    const res = await request({
-      method: 'post',
-      url: `functions/${name}`,
-      baseURL: this.options.endpoint,
-      data: serialize_json(data ?? null),
-      ...(options ?? {})
-    });
-
-    if (res.status !== 200) {
-      const error = JSON.parse(res.data);
-      throw new Error(error.message, { cause: error });
-    }
-
-    return deserialize_json(res.data);
+  async run(name: string, data?: IOSerializable) {
+    const func = this.options.functions?.[name];
+    const payload = Object.setPrototypeOf({
+      data: data ?? null,
+    }, this);
+    return _.isFunction(func) ? func(payload) : null;
   }
-
 }
