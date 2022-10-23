@@ -33,10 +33,25 @@ export * from './codec';
 
 type Options = {
   token?: string;
-  functions?: Record<string, (request: {
+  functions?: Record<string, (request: Payload & {
     data: IOSerializable;
   }) => IOSerializable | Promise<IOSerializable>>;
 };
+
+class Payload {
+
+  options: Options;
+
+  constructor(options: Options) {
+    this.options = options
+  }
+
+  async run(name: string, data?: IOSerializable) {
+    const func = this.options.functions?.[name];
+    const payload = Object.setPrototypeOf({ data: data ?? null }, this);
+    return _.isFunction(func) ? func(payload) : null;
+  }
+}
 
 export default (options: Options) => {
 
@@ -45,6 +60,8 @@ export default (options: Options) => {
   const router = express.Router()
     .use(cookieParser() as any)
     .use(tokenHandler(token));
+
+  const payload = new Payload(options);
 
   if (!_.isNil(functions)) {
 
@@ -64,7 +81,7 @@ export default (options: Options) => {
         try {
 
           const data = deserialize_json(req.body);
-          const result = await func({ data });
+          const result = await payload.run(name, data);
 
           res.json(serialize_json(result));
 
