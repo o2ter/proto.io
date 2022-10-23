@@ -84,7 +84,7 @@ export default (options: Options) => {
 
           const data = deserialize_json(req.body);
           const _payload = Object.setPrototypeOf({
-            ...req,
+            ..._.omit(req, 'body'),
             data: data ?? null,
           }, payload);
           const result = await func(_payload);
