@@ -48,7 +48,7 @@ export default class {
     
     const res = await axios.request({
       method: 'post',
-      url: `${this.options.api}/cloud/functions/${name}`,
+      url: `${this.options.api}/functions/${name}`,
       data: serialize_json(data ?? null),
     });
 
