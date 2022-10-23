@@ -1,5 +1,5 @@
 //
-//  request.ts
+//  index.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2022 O2ter Limited. All rights reserved.
@@ -23,29 +23,5 @@
 //  THE SOFTWARE.
 //
 
-import _ from 'lodash';
-import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { XSRF_COOKIE_NAME, XSRF_HEADER_NAME } from '../router/token/const';
-
-const read_cookie = (name: string) => {
-  const match = document.cookie.match(new RegExp('(^|;\\s*)(' + name + ')=([^;]*)'));
-  return (match ? decodeURIComponent(match[3]) : null);
-}
-
-const check_token = () => _.isString(read_cookie(XSRF_COOKIE_NAME));
-
-export const request = async <D>(config: AxiosRequestConfig<D>): Promise<AxiosResponse> => {
-
-  const has_token = check_token();
-  const res = await axios.request({
-    xsrfCookieName: XSRF_COOKIE_NAME,
-    xsrfHeaderName: XSRF_HEADER_NAME,
-    ...config,
-  });
-
-  if (!has_token && res.status === 412) {
-    if (check_token()) return await request(config);
-  }
-
-  return res;
-}
+export const XSRF_COOKIE_NAME = 'XSRF-TOKEN';
+export const XSRF_HEADER_NAME = 'X-XSRF-TOKEN';

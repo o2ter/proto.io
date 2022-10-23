@@ -1,5 +1,5 @@
 //
-//  token.ts
+//  index.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2022 O2ter Limited. All rights reserved.
@@ -27,8 +27,7 @@ import _ from 'lodash';
 import { RequestHandler } from 'express';
 import csrf from 'csrf';
 
-export const XSRF_COOKIE_NAME = 'XSRF-TOKEN';
-export const XSRF_HEADER_NAME = 'X-XSRF-TOKEN';
+import { XSRF_COOKIE_NAME, XSRF_HEADER_NAME } from './const';
 
 const _csrf = new csrf();
 
