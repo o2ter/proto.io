@@ -1,5 +1,5 @@
 //
-//  index.ts
+//  token.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2022 O2ter Limited. All rights reserved.
@@ -24,40 +24,23 @@
 //
 
 import _ from 'lodash';
-import axios from 'axios';
-import { IOSerializable, serialize_json, deserialize_json } from '../codec';
+import { RequestHandler } from 'express';
+import csrf from 'csrf';
 
-export * from '../codec';
+const COOKIE_NAME = 'XSRF-TOKEN';
+const HEADER_NAME = 'X-XSRF-TOKEN';
+const _csrf = new csrf();
 
-type Options = {
-  endpoint: string;
-}
+export default (token?: string): RequestHandler => (req, res, next) => {
 
-export default class {
+  if (_.isNil(token)) return next();
 
-  options: Options;
+  const xsrfToken = _csrf.create(token);
+  res.locals.xsrfToken = xsrfToken;
+  res.cookie(COOKIE_NAME, xsrfToken);
 
-  constructor(options: Options) {
-    this.options = options;
-  }
+  const header_token = req.get(HEADER_NAME);
+  if (!_.isNil(header_token) && _csrf.verify(token, header_token)) return next();
 
-  async run(
-    name: string,
-    data?: IOSerializable,
-  ) {
-
-    const res = await axios.request({
-      method: 'post',
-      url: `${this.options.endpoint}/functions/${name}`,
-      data: serialize_json(data ?? null),
-    });
-
-    if (res.status !== 200) {
-      const error = JSON.parse(res.data);
-      throw new Error(error.message, { cause: error });
-    }
-
-    return deserialize_json(res.data);
-  }
-
-}
+  res.sendStatus(412);
+};

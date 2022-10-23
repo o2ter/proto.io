@@ -27,11 +27,12 @@ import _ from 'lodash';
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import { IOSerializable, serialize_json, deserialize_json } from './codec';
+import tokenHandler from './router/token';
 
 export * from './codec';
 
 type Options = {
-  clientKey?: string;
+  token?: string;
   functions?: Record<string, (request: {
     data: IOSerializable;
   }) => IOSerializable | Promise<IOSerializable>>;
@@ -39,11 +40,12 @@ type Options = {
 
 export default (options: Options) => {
 
-  const { functions } = options;
+  const { token, functions } = options;
 
-  const router = express.Router();
-  router.use(cookieParser() as any);
-  router.use(express.text());
+  const router = express.Router()
+    .use(cookieParser() as any)
+    .use(express.text())
+    .use(tokenHandler(token));
 
   if (!_.isNil(functions)) {
 
@@ -53,7 +55,7 @@ export default (options: Options) => {
       const func = functions[name];
 
       if (!_.isFunction(func)) {
-        res.status(404).json({ message: `Function ${name} not found.` });
+        res.sendStatus(404);
         return;
       }
 
