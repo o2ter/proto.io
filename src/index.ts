@@ -48,35 +48,38 @@ export default (options: Options) => {
 
   if (!_.isNil(functions)) {
 
-    router.post('/functions/:name', express.text({ type: '*/*' }), async (req, res) => {
+    router.post(
+      '/functions/:name',
+      express.text({ type: '*/*' }),
+      async (req, res) => {
 
-      const { name } = req.params;
-      const func = functions[name];
+        const { name } = req.params;
+        const func = functions[name];
 
-      if (!_.isFunction(func)) {
-        res.sendStatus(404);
-        return;
-      }
+        if (!_.isFunction(func)) {
+          res.sendStatus(404);
+          return;
+        }
 
-      try {
+        try {
 
-        const data = deserialize_json(req.body);
-        const result = await func({ data });
+          const data = deserialize_json(req.body);
+          const result = await func({ data });
 
-        res.json(serialize_json(result));
+          res.json(serialize_json(result));
 
-      } catch (error) {
+        } catch (error) {
 
-        if (error instanceof String) {
-          res.status(400).json({ message: error });
-        } else if (error instanceof Error) {
-          res.status(400).json({ message: error.message });
-        } else {
-          res.status(400).json(error);
+          if (error instanceof String) {
+            res.status(400).json({ message: error });
+          } else if (error instanceof Error) {
+            res.status(400).json({ message: error.message });
+          } else {
+            res.status(400).json(error);
+          }
         }
       }
-
-    });
+    );
   }
 
   return router;
