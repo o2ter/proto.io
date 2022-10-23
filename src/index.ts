@@ -43,6 +43,7 @@ export default (options: Options) => {
 
   const router = express.Router();
   router.use(cookieParser() as any);
+  router.use(express.text());
 
   if (!_.isNil(functions)) {
 
