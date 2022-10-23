@@ -31,7 +31,7 @@ import { IOSerializable, serialize_json, deserialize_json } from './codec';
 export * from './codec';
 
 type Options = {
-  token: string;
+  clientKey?: string;
   functions?: Record<string, (request: {
     data: IOSerializable;
   }) => IOSerializable | Promise<IOSerializable>>;

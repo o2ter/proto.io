@@ -31,7 +31,7 @@ export * from '../codec';
 
 type Options = {
   endpoint: string;
-  token: string;
+  clientKey?: string;
 }
 
 export default class {
