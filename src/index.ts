@@ -44,8 +44,8 @@ export default (options: Options) => {
 
   const router = express.Router()
     .use(cookieParser() as any)
-    .use(express.text())
-    .use(tokenHandler(token));
+    .use(tokenHandler(token))
+    .use(express.text());
 
   if (!_.isNil(functions)) {
 
