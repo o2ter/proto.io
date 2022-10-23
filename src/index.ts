@@ -44,12 +44,11 @@ export default (options: Options) => {
 
   const router = express.Router()
     .use(cookieParser() as any)
-    .use(tokenHandler(token))
-    .use(express.text());
+    .use(tokenHandler(token));
 
   if (!_.isNil(functions)) {
 
-    router.post('/functions/:name', async (req, res) => {
+    router.post('/functions/:name', express.text({ type: '*/*' }), async (req, res) => {
 
       const { name } = req.params;
       const func = functions[name];
