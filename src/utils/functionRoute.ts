@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import express, { Router } from 'express';
 import { Payload } from './types';
-import { serialize_json, deserialize_json } from './codec';
+import { serialize, deserialize } from './codec';
 
 export default (router: Router, payload: Payload) => {
 
@@ -48,14 +48,14 @@ export default (router: Router, payload: Payload) => {
 
       try {
 
-        const data = deserialize_json(req.body);
+        const data = deserialize(req.body);
         const _payload = Object.setPrototypeOf({
           ..._.omit(req, 'body'),
           data: data ?? null,
         }, payload);
         const result = await func(_payload);
 
-        res.json(serialize_json(result));
+        res.json(serialize(result));
 
       } catch (error) {
 

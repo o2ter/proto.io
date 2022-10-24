@@ -72,8 +72,5 @@ const decodeEJSON = (x: EJSON.SerializableTypes, escaped: boolean = false): IOSe
   return obj;
 }
 
-export const serialize_json = (x: IOSerializable, space?: string | number) => EJSON.stringify(encodeEJSON(x, true), undefined, space, { relaxed: false });
-export const deserialize_json = (buffer: string) => decodeEJSON(EJSON.parse(buffer, { relaxed: false }), true);
-
-export const serialize = (x: IOSerializable) => _serialize(EJSON.serialize(encodeEJSON(x), { relaxed: false }));
-export const deserialize = (buffer: Buffer | ArrayBufferView | ArrayBuffer) => decodeEJSON(EJSON.deserialize(_deserialize(buffer), { relaxed: false }));
+export const serialize = (x: IOSerializable, space?: string | number) => EJSON.stringify(encodeEJSON(x, true), undefined, space, { relaxed: false });
+export const deserialize = (buffer: string) => decodeEJSON(EJSON.parse(buffer, { relaxed: false }), true);

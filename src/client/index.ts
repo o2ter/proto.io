@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { request } from './request';
 import axios, { CancelToken } from 'axios';
-import { IOSerializable, serialize_json, deserialize_json } from '../utils/codec';
+import { IOSerializable, serialize, deserialize } from '../utils/codec';
 
 export * from '../utils/codec';
 
@@ -56,7 +56,7 @@ export default class {
       method: 'post',
       url: `functions/${name}`,
       baseURL: this.options.endpoint,
-      data: serialize_json(data ?? null),
+      data: serialize(data ?? null),
       ...(options ?? {})
     });
 
@@ -65,7 +65,7 @@ export default class {
       throw new Error(error.message, { cause: error });
     }
 
-    return deserialize_json(res.data);
+    return deserialize(res.data);
   }
 
 }
