@@ -62,7 +62,7 @@ export default (router: Router, payload: Payload) => {
         if (error instanceof String) {
           res.status(400).json({ message: error });
         } else if (error instanceof Error) {
-          res.status(400).json({ message: error.message });
+          res.status(400).json({ ...error, message: error.message });
         } else {
           res.status(400).json(error);
         }
