@@ -39,6 +39,8 @@ export default (token?: string): RequestHandler => (req, res, next) => {
   res.locals.xsrfToken = xsrfToken;
   res.cookie(XSRF_COOKIE_NAME, xsrfToken);
 
+  if (req.is('application/json')) return next();
+
   const header_token = req.get(XSRF_HEADER_NAME);
   if (!_.isNil(header_token) && _csrf.verify(token, header_token)) return next();
 
