@@ -51,7 +51,7 @@ const encodeEJSON = (x: IOSerializable, escaped: boolean = false): EJSON.Seriali
   if (_.isArray(x)) return x.map(e => encodeEJSON(e, escaped));
 
   const obj = _.mapValues(x, e => encodeEJSON(e, escaped));
-  if (escaped && Object.keys(obj).length === 1) {
+  if (escaped) {
     return _.mapKeys(obj, (_v, k) => k.startsWith('$') ? `$${k}` : k);
   }
   return obj;
@@ -66,7 +66,7 @@ const decodeEJSON = (x: EJSON.SerializableTypes, escaped: boolean = false): IOSe
   if (_.isArray(x)) return x.map(e => decodeEJSON(e, escaped));
 
   const obj = _.mapValues(x, e => decodeEJSON(e, escaped));
-  if (escaped && Object.keys(obj).length === 1) {
+  if (escaped) {
     return _.mapKeys(obj, (_v, k) => k.startsWith('$') ? k.substring(1) : k);
   }
   return obj;
