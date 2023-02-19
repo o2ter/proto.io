@@ -18,20 +18,49 @@ const rollupPlugins = [
   json(),
 ];
 
-const rollupOutputs = (name) => [
+const rollupTypes = (name) => ({
+  input: `src/${name}`,
+  external: [
+    /node_modules/
+  ],
+  output: [
+    {
+      file: `dist/${name}.d.ts`,
+      format: 'es',
+    },
+  ],
+  plugins: [
+    resolve({
+      extensions: [
+        '.web.ts', '.web.tsx', '.web.mjs', '.web.js',
+        '.ts', '.tsx', '.mjs', '.js',
+      ]
+    }),
+    dts()
+  ],
+});
+
+export default [
   {
-    input: `src/${name}`,
+    input: {
+      index: 'src/index',
+      client: 'src/client',
+    },
     external: [
       /node_modules/
     ],
     output: [
       {
-        file: `dist/${name}.js`,
+        entryFileNames: '[name].js',
+        chunkFileNames: 'internals/[name]-[hash].js',
+        dir: './dist',
         format: 'cjs',
         sourcemap: true,
       },
       {
-        file: `dist/${name}.mjs`,
+        entryFileNames: '[name].mjs',
+        chunkFileNames: 'internals/[name]-[hash].mjs',
+        dir: './dist',
         format: 'esm',
         sourcemap: true,
       },
@@ -45,30 +74,7 @@ const rollupOutputs = (name) => [
       }),
       ...rollupPlugins
     ],
-  },{
-    input: `src/${name}`,
-    external: [
-      /node_modules/
-    ],
-    output: [
-      {
-        file: `dist/${name}.d.ts`,
-        format: 'es',
-      },
-    ],
-    plugins: [
-      resolve({
-        extensions: [
-          '.web.ts', '.web.tsx', '.web.mjs', '.web.js',
-          '.ts', '.tsx', '.mjs', '.js',
-        ]
-      }),
-      dts()
-    ],
   },
-];
-
-export default [
-  ...rollupOutputs('index'),
-  ...rollupOutputs('client'),
+  rollupTypes('index'),
+  rollupTypes('client'),
 ];
