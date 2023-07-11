@@ -54,4 +54,8 @@ export class Payload {
     }, this);
     return _.isFunction(func) ? func(payload) : null;
   }
+
+  get functions(): RouteOptions['functions'] {
+    return this.#options.functions;
+  }
 }

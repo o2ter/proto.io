@@ -30,8 +30,8 @@ import { serialize, deserialize } from './codec';
 
 export default (router: Router, payload: Payload) => {
 
-  const { functions } = payload.options;
-  if (_.isNil(functions)) return router;
+  const { functions } = payload;
+  if (_.isEmpty(functions)) return router;
 
   router.post(
     '/functions/:name',
