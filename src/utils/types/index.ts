@@ -23,29 +23,5 @@
 //  THE SOFTWARE.
 //
 
-import _ from 'lodash';
-import { IOSerializable } from './codec';
-
-export type Options = {
-  token?: string;
-  functions?: Record<string, (request: Payload & {
-    data: IOSerializable;
-  }) => IOSerializable | Promise<IOSerializable>>;
-};
-
-export class Payload {
-
-  options: Options;
-
-  constructor(options: Options) {
-    this.options = options
-  }
-
-  async run(name: string, data?: IOSerializable) {
-    const func = this.options.functions?.[name];
-    const payload = Object.setPrototypeOf({
-      data: data ?? null,
-    }, this);
-    return _.isFunction(func) ? func(payload) : null;
-  }
-}
+export * from './Payload';
+export * from './RouteOptions';

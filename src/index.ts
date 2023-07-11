@@ -26,13 +26,13 @@
 import _ from 'lodash';
 import express from 'express';
 import cookieParser from 'cookie-parser';
-import { Options, Payload } from './utils/types';
+import { Payload, RouteOptions } from './utils/types';
 import tokenHandler from './utils/token';
 import functionRoute from './utils/functionRoute';
 
 export * from './utils/codec';
 
-export default (options: Options) => {
+export default (options: RouteOptions) => {
 
   const { token } = options;
 
