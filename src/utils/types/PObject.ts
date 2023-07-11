@@ -77,4 +77,8 @@ export class PObject {
   set(key: string, value: any) {
     this.#mutated[key] = [UpdateOperation.set, value];
   }
+
+  get isDirty(): boolean {
+    return !_.isEmpty(this.#mutated);
+  }
 }
