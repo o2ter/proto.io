@@ -32,7 +32,7 @@ export * from './PObject';
 
 export type RouteOptions = {
   token?: string;
-  schema: Schema;
+  schema: Record<string, Schema>;
   storage: Storage;
   functions?: Record<string, (request: Payload & {
     data: IOSerializable;
