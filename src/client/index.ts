@@ -29,6 +29,7 @@ import axios, { CancelToken } from 'axios';
 import { IOSerializable, serialize, deserialize } from '../utils/codec';
 
 export * from '../utils/codec';
+export { PObject } from '../utils/types';
 
 type Options = {
   endpoint: string;
