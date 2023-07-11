@@ -22,3 +22,35 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
 //
+
+import _ from 'lodash';
+
+export class PObject {
+
+  className: string;
+  #attributes: Record<string, any>;
+
+  constructor(
+    className: string,
+    attributes?: Record<string, any>,
+  ) {
+    this.className = className;
+    this.#attributes = attributes ?? {};
+  }
+
+  get attributes(): Record<string, any> {
+    return this.#attributes;
+  }
+
+  get objectId(): string | undefined {
+    return this.#attributes._id;
+  }
+
+  get createdAt(): Date | undefined {
+    return this.#attributes._created_at;
+  }
+
+  get updatedAt(): Date | undefined {
+    return this.#attributes._updated_at;
+  }
+}

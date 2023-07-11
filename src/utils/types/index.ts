@@ -26,6 +26,8 @@
 import _ from 'lodash';
 import { IOSerializable } from '../codec';
 
+export * from './PObject';
+
 export type RouteOptions = {
   token?: string;
   functions?: Record<string, (request: Payload & {

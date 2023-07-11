@@ -35,12 +35,13 @@ import {
   Decimal128,
   UUID
 } from 'bson';
+import { PObject } from './types';
 
 export { UUID, Decimal };
 export type IONumber = number | Decimal | BigInt;
 export type IOPrimitive = UUID | Date | string | IONumber | boolean | null;
 export type IODictionary = { [x: string]: IOSerializable };
-export type IOSerializable = IODictionary | IOSerializable[] | IOPrimitive;
+export type IOSerializable = IODictionary | IOSerializable[] | IOPrimitive | PObject;
 
 const encodeEJSON = (x: IOSerializable): EJSON.SerializableTypes => {
   if (_.isNumber(x) || _.isNil(x) || _.isBoolean(x) || _.isString(x) || _.isDate(x)) return x;
@@ -48,6 +49,12 @@ const encodeEJSON = (x: IOSerializable): EJSON.SerializableTypes => {
   if (x instanceof BigInt) return Number(x);
   if (x instanceof Decimal) return Decimal128.fromString(x.toString());
   if (_.isArray(x)) return x.map(encodeEJSON);
+  if (x instanceof PObject) return {
+    $object: {
+      className: x.className,
+      attributes: _.mapValues(x.attributes, v => encodeEJSON(v)),
+    }
+  };
   return _.transform(x, (r, v, k) => { r[k.startsWith('$') ? `$${k}` : k] = encodeEJSON(v); }, {} as IODictionary);
 }
 
@@ -57,6 +64,10 @@ const decodeEJSON = (x: EJSON.SerializableTypes): IOSerializable => {
   if (x instanceof Double || x instanceof Int32) return x.valueOf();
   if (x instanceof Decimal128 || Long.isLong(x)) return new Decimal(x.toString());
   if (_.isArray(x)) return x.map(decodeEJSON);
+  if (x.$object) {
+    const { className, attributes } = x.$object;
+    return new PObject(className, _.mapValues(attributes, v => decodeEJSON(v)));
+  }
   return _.transform(x, (r, v, k) => { r[k.startsWith('$') ? k.substring(1) : k] = decodeEJSON(v); }, {} as IODictionary);
 }
 
