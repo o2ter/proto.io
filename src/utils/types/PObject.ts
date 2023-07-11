@@ -25,10 +25,24 @@
 
 import _ from 'lodash';
 
+enum UpdateOperation {
+  set,
+  increment,
+  multiply,
+  max,
+  min,
+  push,
+  removeAll,
+  popFirst,
+  popLast,
+}
+
 export class PObject {
 
   className: string;
   #attributes: Record<string, any>;
+
+  #mutated: Record<string, [UpdateOperation, any]> = {};
 
   constructor(
     className: string,
@@ -52,5 +66,15 @@ export class PObject {
 
   get updatedAt(): Date | undefined {
     return this.#attributes._updated_at;
+  }
+
+  get(key: string): any {
+    if (_.isNil(this.#mutated[key])) return this.#attributes[key];
+    const [op, value] = this.#mutated[key];
+    return op === UpdateOperation.set ? value : this.#attributes[key];
+  }
+
+  set(key: string, value: any) {
+    this.#mutated[key] = [UpdateOperation.set, value];
   }
 }
