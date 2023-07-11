@@ -33,19 +33,18 @@ import {
   Long,
   Int32,
   Decimal128,
-  ObjectId,
   UUID
 } from 'bson';
 
-export { ObjectId, UUID, Decimal };
+export { UUID, Decimal };
 export type IONumber = number | Decimal | BigInt;
-export type IOPrimitive = ObjectId | UUID | Date | string | IONumber | boolean | null;
+export type IOPrimitive = UUID | Date | string | IONumber | boolean | null;
 export type IODictionary = { [x: string]: IOSerializable };
 export type IOSerializable = IODictionary | IOSerializable[] | IOPrimitive;
 
 const encodeEJSON = (x: IOSerializable): EJSON.SerializableTypes => {
   if (_.isNumber(x) || _.isNil(x) || _.isBoolean(x) || _.isString(x) || _.isDate(x)) return x;
-  if (x instanceof ObjectId || x instanceof UUID) return x;
+  if (x instanceof UUID) return x;
   if (x instanceof BigInt) return Number(x);
   if (x instanceof Decimal) return Decimal128.fromString(x.toString());
   if (_.isArray(x)) return x.map(encodeEJSON);
@@ -54,7 +53,7 @@ const encodeEJSON = (x: IOSerializable): EJSON.SerializableTypes => {
 
 const decodeEJSON = (x: EJSON.SerializableTypes): IOSerializable => {
   if (_.isNumber(x) || _.isNil(x) || _.isBoolean(x) || _.isString(x) || _.isDate(x)) return x;
-  if (x instanceof ObjectId || x instanceof UUID) return x;
+  if (x instanceof UUID) return x;
   if (x instanceof Double || x instanceof Int32) return x.valueOf();
   if (x instanceof Decimal128 || Long.isLong(x)) return new Decimal(x.toString());
   if (_.isArray(x)) return x.map(decodeEJSON);
