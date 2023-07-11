@@ -1,5 +1,5 @@
 //
-//  types.ts
+//  Schema.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -24,34 +24,7 @@
 //
 
 import _ from 'lodash';
-import { IOSerializable } from '../codec';
-import { Schema } from './Schema';
-import { Storage } from './Storage';
 
-export * from './PObject';
+export interface Schema {
 
-export type RouteOptions = {
-  token?: string;
-  schema: Schema;
-  storage: Storage;
-  functions?: Record<string, (request: Payload & {
-    data: IOSerializable;
-  }) => IOSerializable | Promise<IOSerializable>>;
-};
-
-export class Payload {
-
-  options: RouteOptions;
-
-  constructor(options: RouteOptions) {
-    this.options = options;
-  }
-
-  async run(name: string, data?: IOSerializable) {
-    const func = this.options.functions?.[name];
-    const payload = Object.setPrototypeOf({
-      data: data ?? null,
-    }, this);
-    return _.isFunction(func) ? func(payload) : null;
-  }
 }
