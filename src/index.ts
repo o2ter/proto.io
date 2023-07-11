@@ -32,6 +32,8 @@ import functionRoute from './utils/functionRoute';
 
 export * from './utils/codec';
 
+export { PObject } from './utils/types';
+
 export default (options: RouteOptions) => {
 
   const { token } = options;
