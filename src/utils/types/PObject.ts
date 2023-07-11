@@ -1,5 +1,5 @@
 //
-//  types.ts
+//  PObject.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -22,30 +22,3 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
 //
-
-import _ from 'lodash';
-import { IOSerializable } from '../codec';
-
-export type RouteOptions = {
-  token?: string;
-  functions?: Record<string, (request: Payload & {
-    data: IOSerializable;
-  }) => IOSerializable | Promise<IOSerializable>>;
-};
-
-export class Payload {
-
-  options: RouteOptions;
-
-  constructor(options: RouteOptions) {
-    this.options = options;
-  }
-
-  async run(name: string, data?: IOSerializable) {
-    const func = this.options.functions?.[name];
-    const payload = Object.setPrototypeOf({
-      data: data ?? null,
-    }, this);
-    return _.isFunction(func) ? func(payload) : null;
-  }
-}
