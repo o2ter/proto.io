@@ -57,6 +57,7 @@ const decodeEJSON = (x: EJSON.SerializableTypes): IOSerializable => {
   if (x instanceof ObjectId || x instanceof UUID) return x;
   if (x instanceof Double || x instanceof Int32) return x.valueOf();
   if (x instanceof Decimal128 || Long.isLong(x)) return new Decimal(x.toString());
+  if (_.isArray(x)) return x.map(decodeEJSON);
   return _.transform(x, (r, v, k) => { r[k.startsWith('$') ? k.substring(1) : k] = decodeEJSON(v); }, {} as IODictionary);
 }
 
