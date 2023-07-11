@@ -41,14 +41,14 @@ export type RouteOptions = {
 
 export class Payload {
 
-  options: RouteOptions;
+  #options: RouteOptions;
 
   constructor(options: RouteOptions) {
-    this.options = options;
+    this.#options = options;
   }
 
   async run(name: string, data?: IOSerializable) {
-    const func = this.options.functions?.[name];
+    const func = this.#options.functions?.[name];
     const payload = Object.setPrototypeOf({
       data: data ?? null,
     }, this);
