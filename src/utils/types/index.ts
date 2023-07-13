@@ -35,9 +35,7 @@ export type RouteOptions = {
   token?: string;
   schema: Record<string, Schema>;
   storage: Storage;
-  functions?: Record<string, (request: Payload & {
-    data: IOSerializable;
-  }) => IOSerializable | Promise<IOSerializable>>;
+  functions?: Record<string, (request: Payload & { data: IOSerializable; }) => IOSerializable | Promise<IOSerializable>>;
 };
 
 export class Payload {
@@ -50,9 +48,7 @@ export class Payload {
 
   async run(name: string, data?: IOSerializable) {
     const func = this.#options.functions?.[name];
-    const payload = Object.setPrototypeOf({
-      data: data ?? null,
-    }, this);
+    const payload = Object.setPrototypeOf({ data: data ?? null }, this);
     return _.isFunction(func) ? func(payload) : null;
   }
 
