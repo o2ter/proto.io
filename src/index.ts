@@ -33,13 +33,15 @@ import functionRoute from './utils/functionRoute';
 export * from './utils/codec';
 export { PObject } from './utils/types';
 
-export default (options: RouteOptions) => {
+export default async (options: RouteOptions) => {
 
   const { token } = options;
 
   const router = express.Router()
     .use(cookieParser() as any)
     .use(tokenHandler(token));
+
+  await options.storage.prepare(options.schema);
 
   const payload = new Payload(options);
 

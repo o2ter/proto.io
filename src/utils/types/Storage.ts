@@ -24,7 +24,10 @@
 //
 
 import _ from 'lodash';
+import { Schema } from './Schema';
 
 export interface Storage {
+
+  prepare(schema: Schema): Promise<void>;
 
 }
