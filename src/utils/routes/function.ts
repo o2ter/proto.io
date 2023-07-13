@@ -25,8 +25,8 @@
 
 import _ from 'lodash';
 import express, { Router } from 'express';
-import { Payload } from './types';
-import { serialize, deserialize } from './codec';
+import { Payload } from '../types';
+import { serialize, deserialize } from '../codec';
 
 export default (router: Router, payload: Payload) => {
 

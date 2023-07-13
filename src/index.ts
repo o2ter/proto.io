@@ -28,7 +28,7 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import { Payload, RouteOptions } from './utils/types';
 import tokenHandler from './utils/token';
-import functionRoute from './utils/functionRoute';
+import functionRoute from './utils/routes/function';
 
 export * from './utils/codec';
 export { PObject, PUser } from './utils/types';
