@@ -1,5 +1,5 @@
 //
-//  index.ts
+//  PUser.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -24,28 +24,8 @@
 //
 
 import _ from 'lodash';
-import express from 'express';
-import cookieParser from 'cookie-parser';
-import { Payload, RouteOptions } from './utils/types';
-import tokenHandler from './utils/token';
-import functionRoute from './utils/functionRoute';
+import { PObject } from './PObject';
 
-export * from './utils/codec';
-export { PObject, PUser } from './utils/types';
+export class PUser extends PObject {
 
-export default async (options: RouteOptions) => {
-
-  const { token } = options;
-
-  const router = express.Router()
-    .use(cookieParser() as any)
-    .use(tokenHandler(token));
-
-  await options.storage.prepare(options.schema);
-
-  const payload = new Payload(options);
-
-  functionRoute(router, payload);
-
-  return router;
 }

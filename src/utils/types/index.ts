@@ -29,6 +29,7 @@ import { Schema } from './Schema';
 import { Storage } from './Storage';
 
 export * from './PObject';
+export * from './PUser';
 
 export type RouteOptions = {
   token?: string;
