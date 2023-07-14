@@ -26,26 +26,26 @@
 import _ from 'lodash';
 import express from 'express';
 import cookieParser from 'cookie-parser';
-import { Payload, RouteOptions } from './utils/types';
+import { Proto } from './utils/types';
 import tokenHandler from './utils/token';
 import functionRoute from './utils/routes/function';
 
 export * from './utils/codec';
 export { PObject, PUser } from './utils/types';
 
-export default async (options: RouteOptions) => {
+export default async (options: {
+  token?: string;
+  proto: Proto;
+}) => {
 
-  const { token } = options;
+  const { token, proto } = options;
 
   const router = express.Router()
     .use(cookieParser() as any)
     .use(tokenHandler(token));
 
-  await options.storage.prepare(options.schema);
-
-  const payload = new Payload(options);
-
-  functionRoute(router, payload);
+  await proto._prepare();
+  functionRoute(router, proto);
 
   return router;
 }

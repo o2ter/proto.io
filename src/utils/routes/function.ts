@@ -25,10 +25,10 @@
 
 import _ from 'lodash';
 import express, { Router } from 'express';
-import { Payload } from '../types';
+import { Proto } from '../types';
 import { serialize, deserialize } from '../codec';
 
-export default (router: Router, payload: Payload) => {
+export default (router: Router, payload: Proto) => {
 
   const { functions } = payload;
   if (_.isEmpty(functions)) return router;
