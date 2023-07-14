@@ -31,9 +31,7 @@ import tokenHandler from './utils/token';
 import functionRoute from './utils/routes/function';
 
 export * from './utils/codec';
-export { PObject, PUser } from './utils/types';
-
-export { Proto };
+export * from './utils/types';
 
 export default async (options: {
   token?: string;
