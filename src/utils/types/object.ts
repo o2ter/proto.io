@@ -1,5 +1,5 @@
 //
-//  Storage.ts
+//  object.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -24,10 +24,61 @@
 //
 
 import _ from 'lodash';
-import { Schema } from './Schema';
 
-export interface Storage {
+enum UpdateOperation {
+  set,
+  increment,
+  multiply,
+  max,
+  min,
+  push,
+  removeAll,
+  popFirst,
+  popLast,
+}
 
-  prepare(schema: Schema): Promise<void>;
+export class PObject {
 
+  className: string;
+  #attributes: Record<string, any>;
+
+  #mutated: Record<string, [UpdateOperation, any]> = {};
+
+  constructor(
+    className: string,
+    attributes?: Record<string, any>,
+  ) {
+    this.className = className;
+    this.#attributes = attributes ?? {};
+  }
+
+  get attributes(): Record<string, any> {
+    return this.#attributes;
+  }
+
+  get objectId(): string | undefined {
+    return this.#attributes._id;
+  }
+
+  get createdAt(): Date | undefined {
+    return this.#attributes._created_at;
+  }
+
+  get updatedAt(): Date | undefined {
+    return this.#attributes._updated_at;
+  }
+
+  get(key: string): any {
+    if (_.isNil(this.#mutated[key])) return this.#attributes[key];
+    const [op, value] = this.#mutated[key];
+    return op === UpdateOperation.set ? value : this.#attributes[key];
+  }
+
+  set(key: string, value: any) {
+    this.#mutated[key] = [UpdateOperation.set, value];
+  }
+
+  get isDirty(): boolean {
+    return !_.isEmpty(this.#mutated);
+  }
 }

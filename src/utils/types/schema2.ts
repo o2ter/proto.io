@@ -1,5 +1,5 @@
 //
-//  PUser.ts
+//  schema.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -24,8 +24,7 @@
 //
 
 import _ from 'lodash';
-import { PObject } from './PObject';
 
-export class PUser extends PObject {
+export interface Schema {
 
 }

@@ -1,5 +1,5 @@
 //
-//  types.ts
+//  proto.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -23,6 +23,44 @@
 //  THE SOFTWARE.
 //
 
-export * from './proto';
-export * from './object';
-export * from './user';
+import _ from 'lodash';
+import { IOSerializable } from '../codec';
+import { Schema } from './schema';
+import { Storage } from './storage2';
+
+export type ProtoOptions = {
+  schema: Record<string, Schema>;
+  storage: Storage;
+  functions?: Record<string, (request: Proto & { data: IOSerializable; }) => IOSerializable | Promise<IOSerializable>>;
+};
+
+export class Proto {
+
+  #options: ProtoOptions;
+
+  constructor(options: ProtoOptions) {
+    this.#options = options;
+  }
+
+  async run(name: string, data?: IOSerializable) {
+    const func = this.#options.functions?.[name];
+    const payload = Object.setPrototypeOf({ data: data ?? null }, this);
+    return _.isFunction(func) ? func(payload) : null;
+  }
+
+  async _prepare() {
+    await this.storage.prepare(this.schema);
+  }
+
+  get schema(): ProtoOptions['schema'] {
+    return this.#options.schema;
+  }
+
+  get storage(): ProtoOptions['storage'] {
+    return this.#options.storage;
+  }
+
+  get functions(): ProtoOptions['functions'] {
+    return this.#options.functions;
+  }
+}
