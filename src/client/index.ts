@@ -37,7 +37,7 @@ type Options = {
 
 export const CancelTokenSource = axios.CancelToken.source;
 
-export default class {
+export class Proto {
 
   options: Options;
 
@@ -70,3 +70,5 @@ export default class {
   }
 
 }
+
+export default Proto;
