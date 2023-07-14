@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { IOSerializable } from '../codec';
 import { Schema } from './schema';
-import { Storage } from './storage2';
+import { Storage } from './storage';
 
 export type ProtoOptions = {
   schema: Record<string, Schema>;
