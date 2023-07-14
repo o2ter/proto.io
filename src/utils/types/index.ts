@@ -26,3 +26,5 @@
 export * from './proto';
 export * from './object';
 export * from './user';
+export * from './schema';
+export * from './storage';
