@@ -25,16 +25,16 @@
 
 import _ from 'lodash';
 import { IOSerializable } from '../codec';
-import { Storage } from './storage';
-import { Schema } from './schema';
+import { PStorage } from './storage';
+import { PSchema } from './schema';
 
 export type ProtoFunction = (
   request: Proto & { data: IOSerializable; }
 ) => IOSerializable | PromiseLike<IOSerializable>;
 
 export type ProtoOptions = {
-  schema: Schema;
-  storage: Storage;
+  schema: Record<string, PSchema>;
+  storage: PStorage;
   functions?: Record<string, ProtoFunction>;
 };
 

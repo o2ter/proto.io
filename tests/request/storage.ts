@@ -24,15 +24,13 @@
 //
 
 import _ from 'lodash';
-import { PObject, Storage } from '../../src';
+import { PStorage, PSchema } from '../../src';
 
-type Schema = Record<string, {}>;
+export class MemoryStorage implements PStorage {
 
-export class MemoryStorage implements Storage {
-
-  schema: Schema = {};
+  schema: Record<string, PSchema> = {};
   
-  async prepare(schema: Schema) {
+  async prepare(schema: Record<string, PSchema>) {
     this.schema = schema;
   }
 

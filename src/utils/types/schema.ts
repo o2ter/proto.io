@@ -23,6 +23,6 @@
 //  THE SOFTWARE.
 //
 
-export interface Schema {
+export interface PSchema {
   
 }

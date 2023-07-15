@@ -26,14 +26,14 @@
 import _ from 'lodash';
 import { PObject } from './object';
 import { PQuery } from './query';
-import { Schema } from './schema';
+import { PSchema } from './schema';
 
 type FindOptions = Omit<PQuery.Options, 'returning'> & { model: string; };
 type FindOneOptions = Omit<PQuery.Options, 'skip' | 'limit'> & { model: string; };
 
-export interface Storage {
+export interface PStorage {
 
-  prepare(schema: Schema): PromiseLike<void>;
+  prepare(schema: Record<string, PSchema>): PromiseLike<void>;
   models(): PromiseLike<string[]>;
 
   count(query: FindOptions): PromiseLike<number>;
