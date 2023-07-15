@@ -37,9 +37,9 @@ export interface Storage<Schema> {
 
   find(query: PQuery, user?: PUser): [PObject];
 
-  update(filter: any, update: any, user?: PUser): PObject;
-  insert(attrs: any, user?: PUser): PObject;
-  upsert(filter: any, update: any, setOnInsert: any, user?: PUser): PObject;
-  delete(filter: any, user?: PUser): PObject;
+  updateOne(model: string, filter: any, update: any, user?: PUser): PObject;
+  insertOne(model: string, attrs: any, user?: PUser): PObject;
+  upsertOne(model: string, filter: any, update: any, setOnInsert: any, user?: PUser): PObject;
+  deleteOne(model: string, filter: any, user?: PUser): PObject;
 
 }
