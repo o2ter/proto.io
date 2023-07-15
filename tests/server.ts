@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import express from 'express';
-import protoRoute from '../src/index';
+import { ProtoRoute } from '../src/index';
 import { beforeAll, afterAll } from '@jest/globals';
 
 let httpServer: any;
@@ -34,7 +34,7 @@ beforeAll(async () => {
 
   const app = express();
   
-  app.use(await protoRoute({
+  app.use(await ProtoRoute({
     proto: {
       schema: {},
       storage: {

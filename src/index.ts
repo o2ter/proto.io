@@ -33,7 +33,7 @@ import functionRoute from './utils/routes/function';
 export * from './utils/codec';
 export * from './utils/types';
 
-export default async (options: {
+export const ProtoRoute = async (options: {
   token?: string;
   proto: Proto | ProtoOptions;
 }) => {
@@ -50,3 +50,5 @@ export default async (options: {
 
   return router;
 }
+
+export default ProtoRoute;
