@@ -27,6 +27,7 @@ import _ from 'lodash';
 import express from 'express';
 import { ProtoRoute } from '../../src/index';
 import { beforeAll, afterAll } from '@jest/globals';
+import { MemoryStorage } from './storage';
 
 let httpServer: any;
 
@@ -37,37 +38,7 @@ beforeAll(async () => {
   app.use(await ProtoRoute({
     proto: {
       schema: {},
-      storage: {
-        prepare: async () => {
-        },
-        roles: async (user) => {
-          throw new Error('Function not implemented.');
-        },
-        models: async (user) => {
-          throw new Error('Function not implemented.');
-        },
-        count: async (query, user) => {
-          throw new Error('Function not implemented.');
-        },
-        find: async (query, user) => {
-          throw new Error('Function not implemented.');
-        },
-        insert: async (model, attrs, user) => {
-          throw new Error('Function not implemented.');
-        },
-        findOneAndUpdate: async (query, update, user) => {
-          throw new Error('Function not implemented.');
-        },
-        findOneAndUpsert: async (query, update, setOnInsert, user) => {
-          throw new Error('Function not implemented.');
-        },
-        findOneAndDelete: async (query, user) => {
-          throw new Error('Function not implemented.');
-        },
-        findAndDelete: async (query, user) => {
-          throw new Error('Function not implemented.');
-        }
-      },
+      storage: new MemoryStorage(),
       functions: {
         echo: (req) => {
           return req.data;

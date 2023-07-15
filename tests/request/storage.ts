@@ -24,40 +24,52 @@
 //
 
 import _ from 'lodash';
-import { PUser } from './user';
-import { PObject } from './object';
+import { PObject, Storage } from '../../src';
 
-type CommonFindOptions = {
-  model: string;
-  filter: any;
-  sort?: Record<string, number>;
-  includes?: String[];
-}
+type Schema = Record<string, {}>;
 
-type FindOptions = CommonFindOptions & {
-  skip?: number;
-  limit?: number;
-}
+export class MemoryStorage implements Storage<Schema> {
 
-type FindOneOptions = CommonFindOptions & {
-  returning?: 'old' | 'new';
-}
+  schema: Schema = {};
+  
+  async prepare(schema: Schema) {
+    this.schema = schema;
+  }
 
-export interface Storage<Schema> {
+  async roles() {
+    return [];
+  }
 
-  prepare(schema: Schema): PromiseLike<void>;
+  async models() {
+    return Object.keys(this.schema);
+  }
 
-  roles(user?: PUser): PromiseLike<string[]>;
-  models(user?: PUser): PromiseLike<string[]>;
+  async count() {
+    return 0;
+  }
 
-  count(query: FindOptions, user?: PUser): PromiseLike<number>;
-  find(query: FindOptions, user?: PUser): PromiseLike<PObject[]>;
+  async find() {
+    return [];
+  }
 
-  insert(model: string, attrs: any, user?: PUser): PromiseLike<PObject | undefined>;
+  async insert() {
+    return undefined;
+  }
 
-  findOneAndUpdate(query: FindOneOptions, update: any, user?: PUser): PromiseLike<PObject | undefined>;
-  findOneAndUpsert(query: FindOneOptions, update: any, setOnInsert: any, user?: PUser): PromiseLike<PObject | undefined>;
-  findOneAndDelete(query: FindOneOptions, user?: PUser): PromiseLike<PObject | undefined>;
+  async findOneAndUpdate() {
+    return undefined;
+  }
 
-  findAndDelete(query: FindOptions, user?: PUser): PromiseLike<number>;
-}
+  async findOneAndUpsert() {
+    return undefined;
+  }
+
+  async findOneAndDelete() {
+    return undefined;
+  }
+
+  async findAndDelete() {
+    return 0;
+  }
+  
+};
