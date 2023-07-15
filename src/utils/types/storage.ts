@@ -24,14 +24,14 @@
 //
 
 import _ from 'lodash';
-import { PUser } from './user';
 import { PObject } from './object';
 import { PQuery } from './query';
+import { Schema } from './schema';
 
 type FindOptions = Omit<PQuery.Options, 'returning'> & { model: string; };
 type FindOneOptions = Omit<PQuery.Options, 'skip' | 'limit'> & { model: string; };
 
-export interface Storage<Schema> {
+export interface Storage {
 
   prepare(schema: Schema): PromiseLike<void>;
   models(): PromiseLike<string[]>;

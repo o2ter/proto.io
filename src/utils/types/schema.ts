@@ -1,5 +1,5 @@
 //
-//  index.ts
+//  schema.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -23,32 +23,6 @@
 //  THE SOFTWARE.
 //
 
-import _ from 'lodash';
-import express from 'express';
-import cookieParser from 'cookie-parser';
-import { Proto, ProtoOptions } from './utils/types';
-import tokenHandler from './utils/token';
-import functionRoute from './utils/routes/function';
-
-export * from './utils/codec';
-export * from './utils/types';
-
-export const ProtoRoute = async (options: {
-  token?: string;
-  proto: Proto | ProtoOptions;
-}) => {
-
-  const { token, proto: protoOtps } = options;
-
-  const router = express.Router()
-    .use(cookieParser() as any)
-    .use(tokenHandler(token));
-
-  const proto = protoOtps instanceof Proto ? protoOtps : new Proto(protoOtps);
-  await proto._prepare();
-  functionRoute(router, proto);
-
-  return router;
+export interface Schema {
+  
 }
-
-export default ProtoRoute;

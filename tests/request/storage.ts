@@ -28,7 +28,7 @@ import { PObject, Storage } from '../../src';
 
 type Schema = Record<string, {}>;
 
-export class MemoryStorage implements Storage<Schema> {
+export class MemoryStorage implements Storage {
 
   schema: Schema = {};
   
