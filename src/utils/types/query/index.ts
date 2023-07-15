@@ -34,7 +34,7 @@ export namespace PQuery {
   export interface Options {
     filter?: PQuery.Filter;
     sort?: Record<string, number>;
-    includes?: String[];
+    includes?: string[];
     skip?: number;
     limit?: number;
     returning?: 'old' | 'new';
@@ -50,4 +50,30 @@ export class PQuery {
     this.model = model;
     this.options = options;
   }
+
+  sort(sort: Record<string, number>) {
+    this.options.sort = sort;
+    return this;
+  }
+
+  includes(...includes: string[]) {
+    this.options.includes = this.options.includes ? [...this.options.includes, ...includes] : includes;
+    return this;
+  }
+
+  skip(skip: number) {
+    this.options.skip = skip;
+    return this;
+  }
+
+  limit(limit: number) {
+    this.options.limit = limit;
+    return this;
+  }
+
+  returning(returning: 'old' | 'new') {
+    this.options.returning = returning;
+    return this;
+  }
+
 }
