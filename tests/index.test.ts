@@ -25,7 +25,7 @@
 
 import './server';
 import _ from 'lodash';
-import { Proto, Decimal } from '../src/client';
+import { Proto, Decimal, UUID } from '../src/client';
 import { expect, test } from '@jest/globals';
 
 const proto = new Proto({
@@ -44,6 +44,7 @@ test('test codec', async () => {
     $array: [1, 2, null, { string: '' }],
     decimal: new Decimal('10.05'),
     date: new Date(),
+    uuid: new UUID(),
   }
 
   const result = await proto.run('echo', obj);
