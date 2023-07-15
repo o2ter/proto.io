@@ -46,10 +46,10 @@ export class PObject {
 
   constructor(
     className: string,
-    attributes?: Record<string, any>,
+    attributes?: Record<string, any> | ((self: PObject) => Record<string, any>),
   ) {
     this.className = className;
-    this.#attributes = attributes ?? {};
+    this.#attributes = _.isFunction(attributes) ? attributes(this) : attributes ?? {};
   }
 
   get attributes(): Record<string, any> {

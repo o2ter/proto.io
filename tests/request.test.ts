@@ -1,5 +1,5 @@
 //
-//  index.ts
+//  request.test.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -24,9 +24,10 @@
 //
 
 import './server';
-import _ from 'lodash';
-import { Proto, Decimal, UUID } from '../src/client';
-import { expect, test } from '@jest/globals';
+import { test, expect } from '@jest/globals';
+import { UUID } from 'bson';
+import Decimal from 'decimal.js';
+import Proto from '../src/client';
 
 const proto = new Proto({
   endpoint: 'http://localhost:8080'
@@ -34,9 +35,8 @@ const proto = new Proto({
 
 test('echo', async () => {
   const result = await proto.run('echo', 'hello, world');
-  expect(result).toBe('hello, world');
+  expect(result).toStrictEqual('hello, world');
 });
-
 test('test codec', async () => {
 
   const obj = {
@@ -45,8 +45,8 @@ test('test codec', async () => {
     decimal: new Decimal('10.05'),
     date: new Date(),
     uuid: new UUID(),
-  }
+  };
 
   const result = await proto.run('echo', obj);
-  expect(result).toEqual(obj);
+  expect(result).toStrictEqual(obj);
 });

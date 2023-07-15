@@ -43,36 +43,54 @@ export type IOPrimitive = UUID | Date | string | IONumber | boolean | null;
 export type IODictionary<Extends = never> = { [x: string]: IOSerializable<Extends> };
 export type IOSerializable<Extends = never> = IODictionary<Extends> | IOSerializable<Extends>[] | IOPrimitive | Extends;
 
-const encodeEJSON = (x: IOSerializable<PObject>): EJSON.SerializableTypes => {
+const encodeEJSON = (x: IOSerializable<PObject>, stack: any[]): EJSON.SerializableTypes => {
   if (_.isNumber(x) || _.isNil(x) || _.isBoolean(x) || _.isString(x) || _.isDate(x)) return x;
   if (x instanceof UUID) return x;
   if (x instanceof BigInt) return Number(x);
   if (x instanceof Decimal) return Decimal128.fromString(x.toString());
-  if (_.isArray(x)) return x.map(encodeEJSON);
+
+  const found = _.indexOf(stack, x);
+  if (found !== -1) return { $stack: found };
+
+  if (_.isArray(x)) return x.map(v => encodeEJSON(v, [...stack, x]));
   if (x instanceof PObject) return {
     $object: {
       className: x.className,
-      attributes: _.mapValues(x.attributes, v => encodeEJSON(v)),
+      attributes: _.mapValues(x.attributes, v => encodeEJSON(v, [...stack, x])),
     }
   };
-  return _.transform(x, (r, v, k) => { r[k.startsWith('$') ? `$${k}` : k] = encodeEJSON(v); }, {} as IODictionary<PObject>);
+
+  return _.transform(x, (r, v, k) => {
+    r[k.startsWith('$') ? `$${k}` : k] = encodeEJSON(v, [...stack, x]);
+  }, {} as IODictionary<PObject>);
 }
 
-const decodeEJSON = (x: EJSON.SerializableTypes): IOSerializable<PObject> => {
+const decodeEJSON = (x: EJSON.SerializableTypes, stack: any[]): IOSerializable<PObject> => {
   if (_.isNumber(x) || _.isNil(x) || _.isBoolean(x) || _.isString(x) || _.isDate(x)) return x;
   if (x instanceof UUID) return x;
   if (x instanceof Double || x instanceof Int32) return x.valueOf();
   if (x instanceof Decimal128 || Long.isLong(x)) return new Decimal(x.toString());
-  if (_.isArray(x)) return x.map(decodeEJSON);
+
+  if (_.isArray(x)) {
+    return _.transform(x, (r, v) => {
+      r.push(decodeEJSON(v, [...stack, r]));
+    }, [] as IOSerializable<PObject>[]);
+  }
+
+  if (x.$stack) return stack[x.$stack];
+
   if (x.$object) {
     const { className, attributes } = x.$object;
-    return new PObject(className, _.mapValues(attributes, v => decodeEJSON(v)));
+    return new PObject(className, (self) => _.mapValues(attributes, v => decodeEJSON(v, [...stack, self])));
   }
-  return _.transform(x, (r, v, k) => { r[k.startsWith('$') ? k.substring(1) : k] = decodeEJSON(v); }, {} as IODictionary<PObject>);
+
+  return _.transform(x, (r, v, k) => {
+    r[k.startsWith('$') ? k.substring(1) : k] = decodeEJSON(v, [...stack, r]);
+  }, {} as IODictionary<PObject>);
 }
 
 export const serialize = (
   x: IOSerializable<PObject>,
   space?: string | number,
-) => EJSON.stringify(encodeEJSON(x), undefined, space, { relaxed: false });
-export const deserialize = (buffer: string) => decodeEJSON(EJSON.parse(buffer, { relaxed: false }));
+) => EJSON.stringify(encodeEJSON(x, []), undefined, space, { relaxed: false });
+export const deserialize = (buffer: string) => decodeEJSON(EJSON.parse(buffer, { relaxed: false }), []);
