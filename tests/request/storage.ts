@@ -29,12 +29,12 @@ import { PStorage, PSchema } from '../../src';
 export class MemoryStorage implements PStorage {
 
   schema: Record<string, PSchema> = {};
-  
-  async prepare(schema: Record<string, PSchema>) {
+
+  prepare(schema: Record<string, PSchema>) {
     this.schema = schema;
   }
 
-  async models() {
+  models() {
     return Object.keys(this.schema);
   }
 
@@ -65,5 +65,5 @@ export class MemoryStorage implements PStorage {
   async findAndDelete() {
     return 0;
   }
-  
+
 };
