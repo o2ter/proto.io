@@ -10,5 +10,7 @@ jobs:
           node-version: '16.x'
           registry-url: 'https://registry.npmjs.org'
       - run: yarn install
+      - name: Test rollup
+        run: yarn rollup
       - name: Run tests
         run: yarn test
