@@ -1,5 +1,5 @@
 //
-//  index.ts
+//  server.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -25,28 +25,34 @@
 
 import _ from 'lodash';
 import express from 'express';
-import cookieParser from 'cookie-parser';
-import { Proto, ProtoOptions } from './utils/types';
-import tokenHandler from './utils/token';
-import functionRoute from './utils/routes/function';
+import protoRoute from '../src/index';
+import { beforeAll, afterAll } from '@jest/globals';
 
-export * from './utils/codec';
-export * from './utils/types';
+let httpServer: any;
 
-export default async (options: {
-  token?: string;
-  proto: Proto | ProtoOptions;
-}) => {
+beforeAll(async () => {
 
-  const { token, proto: protoOtps } = options;
+  const app = express();
+  
+  app.use(await protoRoute({
+    proto: {
+      schema: {},
+      storage: {
+        prepare: async () => {
+        }
+      },
+      functions: {
+        echo: (req) => {
+          return req.data;
+        }
+      }
+    }
+  }));
+  
+  httpServer = require('http-shutdown')(require('http').createServer(app));
+  httpServer.listen(8080, () => console.log('listening on port 8080'));
+});
 
-  const router = express.Router()
-    .use(cookieParser() as any)
-    .use(tokenHandler(token));
-
-  const proto = protoOtps instanceof Proto ? protoOtps : new Proto(protoOtps);
-  await proto._prepare();
-  functionRoute(router, proto);
-
-  return router;
-}
+afterAll(() => new Promise<void>((res) => {
+  httpServer.shutdown(res);
+}));

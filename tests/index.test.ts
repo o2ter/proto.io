@@ -23,30 +23,16 @@
 //  THE SOFTWARE.
 //
 
+import './server';
 import _ from 'lodash';
-import express from 'express';
-import cookieParser from 'cookie-parser';
-import { Proto, ProtoOptions } from './utils/types';
-import tokenHandler from './utils/token';
-import functionRoute from './utils/routes/function';
+import { Proto } from '../src/client';
+import { expect, test } from '@jest/globals';
 
-export * from './utils/codec';
-export * from './utils/types';
+const proto = new Proto({
+  endpoint: 'http://localhost:8080'
+});
 
-export default async (options: {
-  token?: string;
-  proto: Proto | ProtoOptions;
-}) => {
-
-  const { token, proto: protoOtps } = options;
-
-  const router = express.Router()
-    .use(cookieParser() as any)
-    .use(tokenHandler(token));
-
-  const proto = protoOtps instanceof Proto ? protoOtps : new Proto(protoOtps);
-  await proto._prepare();
-  functionRoute(router, proto);
-
-  return router;
-}
+test('echo', async () => {
+  const result = await proto.run('echo', 'hello, world');
+  expect(result).toBe('hello, world');
+});
