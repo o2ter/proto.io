@@ -36,10 +36,6 @@ export class MemoryStorage implements Storage<Schema> {
     this.schema = schema;
   }
 
-  async roles() {
-    return [];
-  }
-
   async models() {
     return Object.keys(this.schema);
   }

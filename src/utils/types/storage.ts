@@ -34,8 +34,6 @@ type FindOneOptions = Omit<PQuery.Options, 'skip' | 'limit'> & { model: string; 
 export interface Storage<Schema> {
 
   prepare(schema: Schema): PromiseLike<void>;
-
-  roles(): PromiseLike<string[]>;
   models(): PromiseLike<string[]>;
 
   count(query: FindOptions): PromiseLike<number>;
