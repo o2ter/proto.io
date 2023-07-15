@@ -35,17 +35,17 @@ export interface Storage<Schema> {
 
   prepare(schema: Schema): PromiseLike<void>;
 
-  roles(user?: PUser): PromiseLike<string[]>;
-  models(user?: PUser): PromiseLike<string[]>;
+  roles(): PromiseLike<string[]>;
+  models(): PromiseLike<string[]>;
 
-  count(query: FindOptions, user?: PUser): PromiseLike<number>;
-  find(query: FindOptions, user?: PUser): PromiseLike<PObject[]>;
+  count(query: FindOptions): PromiseLike<number>;
+  find(query: FindOptions): PromiseLike<PObject[]>;
 
-  insert(model: string, attrs: any, user?: PUser): PromiseLike<PObject | undefined>;
+  insert(model: string, attrs: any): PromiseLike<PObject | undefined>;
 
-  findOneAndUpdate(query: FindOneOptions, update: any, user?: PUser): PromiseLike<PObject | undefined>;
-  findOneAndUpsert(query: FindOneOptions, update: any, setOnInsert: any, user?: PUser): PromiseLike<PObject | undefined>;
-  findOneAndDelete(query: FindOneOptions, user?: PUser): PromiseLike<PObject | undefined>;
+  findOneAndUpdate(query: FindOneOptions, update: any): PromiseLike<PObject | undefined>;
+  findOneAndUpsert(query: FindOneOptions, update: any, setOnInsert: any): PromiseLike<PObject | undefined>;
+  findOneAndDelete(query: FindOneOptions): PromiseLike<PObject | undefined>;
 
-  findAndDelete(query: FindOptions, user?: PUser): PromiseLike<number>;
+  findAndDelete(query: FindOptions): PromiseLike<number>;
 }
