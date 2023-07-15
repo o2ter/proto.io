@@ -90,6 +90,7 @@ test('test object recursive', async () => {
 
   const result: any = deserialize(serialize(obj));
 
+  expect(result.get('self') instanceof PObject).toBeTruthy();
   expect(result.get('self')).toBe(result);
 
 });
