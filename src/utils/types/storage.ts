@@ -35,6 +35,7 @@ export interface Storage<Schema> {
   roles(user?: PUser): [string];
   models(user?: PUser): [string];
 
+  count(query: PQuery, user?: PUser): number;
   find(query: PQuery, user?: PUser): [PObject];
 
   updateOne(model: string, filter: any, update: any, user?: PUser): PObject;
