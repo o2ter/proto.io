@@ -43,6 +43,7 @@ test('test codec', async () => {
     hello: 'world',
     $array: [1, 2, null, { string: '' }],
     decimal: new Decimal('10.05'),
+    date: new Date(),
   }
 
   const result = await proto.run('echo', obj);
