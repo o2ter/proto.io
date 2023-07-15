@@ -24,7 +24,7 @@
 //
 
 export namespace PSchema {
-  export type ACL = string[];
+  export type ACL = Record<string, boolean>;
   export type Primitive = 'boolean' | 'number' | 'decimal' | 'string' | 'date' | 'object' | 'array' | 'file';
   export type Relation = 'pointer' | 'relation';
   export type DataType = Primitive | { type: Primitive } | { type: Relation, target: string };
@@ -32,6 +32,7 @@ export namespace PSchema {
 
 export interface PSchema {
   fields: Record<string, PSchema.DataType>;
+  fieldLevelPermissions: Record<string, PSchema.ACL>;
   classLevelPermissions: {
     find: PSchema.ACL;
     get: PSchema.ACL;
