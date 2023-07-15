@@ -33,7 +33,7 @@ export namespace PQuery {
 
   export interface Options {
     filter?: PQuery.Filter[];
-    sort?: Record<string, number>;
+    sort?: Record<string, 1 | -1>;
     includes?: string[];
     skip?: number;
     limit?: number;
@@ -56,7 +56,7 @@ export class PQuery {
     return this;
   }
 
-  sort(sort: Record<string, number>) {
+  sort(sort: Record<string, 1 | -1>) {
     this.options.sort = sort;
     return this;
   }
