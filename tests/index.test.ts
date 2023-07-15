@@ -25,7 +25,7 @@
 
 import './server';
 import _ from 'lodash';
-import { Proto } from '../src/client';
+import { Proto, Decimal } from '../src/client';
 import { expect, test } from '@jest/globals';
 
 const proto = new Proto({
@@ -35,4 +35,16 @@ const proto = new Proto({
 test('echo', async () => {
   const result = await proto.run('echo', 'hello, world');
   expect(result).toBe('hello, world');
+});
+
+test('test codec', async () => {
+
+  const obj = {
+    hello: 'world',
+    $array: [1, 2, null, { string: '' }],
+    decimal: new Decimal('10.05'),
+  }
+
+  const result = await proto.run('echo', obj);
+  expect(result).toEqual(obj);
 });
