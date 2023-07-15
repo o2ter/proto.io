@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import express from 'express';
-import { ProtoRoute } from '../src/index';
+import { ProtoRoute } from '../../src/index';
 import { beforeAll, afterAll } from '@jest/globals';
 
 let httpServer: any;

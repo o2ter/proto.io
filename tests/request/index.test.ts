@@ -27,7 +27,7 @@ import './server';
 import { test, expect } from '@jest/globals';
 import { UUID } from 'bson';
 import Decimal from 'decimal.js';
-import Proto from '../src/client';
+import Proto from '../../src/client';
 
 const proto = new Proto({
   endpoint: 'http://localhost:8080'

@@ -23,8 +23,8 @@
 //  THE SOFTWARE.
 //
 
-import { PObject } from '../src/utils/types/object';
-import { serialize, deserialize, Decimal } from '../src/utils/codec';
+import { PObject } from '../../src/utils/types/object';
+import { serialize, deserialize, Decimal } from '../../src/utils/codec';
 import { expect, test } from '@jest/globals';
 
 test('test serialize', async () => {
