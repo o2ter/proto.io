@@ -26,22 +26,38 @@
 import _ from 'lodash';
 import { PUser } from './user';
 import { PObject } from './object';
-import { PQuery } from './query';
+
+type CommonFindOptions = {
+  model: string;
+  filter: any;
+  sort?: Record<string, number>;
+  includes?: String[];
+}
+
+type FindOptions = CommonFindOptions & {
+  skip?: number;
+  limit?: number;
+}
+
+type FindOneOptions = CommonFindOptions & {
+  returning?: 'old' | 'new';
+}
 
 export interface Storage<Schema> {
 
   prepare(schema: Schema): PromiseLike<void>;
 
-  roles(user?: PUser): [string];
-  models(user?: PUser): [string];
+  roles(user?: PUser): PromiseLike<[string]>;
+  models(user?: PUser): PromiseLike<[string]>;
 
-  count(query: PQuery, user?: PUser): number;
-  find(query: PQuery, user?: PUser): [PObject];
+  count(query: FindOptions, user?: PUser): PromiseLike<number>;
+  find(query: FindOptions, user?: PUser): PromiseLike<[PObject]>;
 
-  updateOne(model: string, filter: any, update: any, user?: PUser): PObject;
-  insertOne(model: string, attrs: any, user?: PUser): PObject;
-  upsertOne(model: string, filter: any, update: any, setOnInsert: any, user?: PUser): PObject;
-  deleteOne(model: string, filter: any, user?: PUser): PObject;
+  insert(model: string, attrs: any, user?: PUser): PromiseLike<PObject | undefined>;
 
-  deleteAll(model: string, filter: any, user?: PUser): PObject;
+  findOneAndUpdate(query: FindOneOptions, update: any, user?: PUser): PromiseLike<PObject | undefined>;
+  findOneAndUpsert(query: FindOneOptions, update: any, setOnInsert: any, user?: PUser): PromiseLike<PObject | undefined>;
+  findOneAndDelete(query: FindOneOptions, user?: PUser): PromiseLike<PObject | undefined>;
+
+  findAndDelete(query: FindOptions, user?: PUser): PromiseLike<number>;
 }
