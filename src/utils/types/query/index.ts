@@ -44,9 +44,10 @@ export namespace PQuery {
 export class PQuery {
 
   model: string;
-  options: PQuery.Options = {};
+  options: PQuery.Options;
 
-  constructor(model: string) {
+  constructor(model: string, options: PQuery.Options = {}) {
     this.model = model;
+    this.options = options;
   }
 }
