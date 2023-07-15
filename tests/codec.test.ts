@@ -52,7 +52,7 @@ test('test deserialize', async () => {
 test('test keywords', async () => {
 
   const obj = {
-    $stack: 0,
+    $ref: 0,
     $object: {},
   };
 

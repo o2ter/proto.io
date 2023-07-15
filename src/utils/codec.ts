@@ -50,7 +50,7 @@ const encodeEJSON = (x: IOSerializable<PObject>, stack: any[]): EJSON.Serializab
   if (x instanceof Decimal) return Decimal128.fromString(x.toString());
 
   const found = _.indexOf(stack, x);
-  if (found !== -1) return { $stack: found };
+  if (found !== -1) return { $ref: found };
 
   if (_.isArray(x)) return x.map(v => encodeEJSON(v, [...stack, x]));
   if (x instanceof PObject) return {
@@ -77,7 +77,7 @@ const decodeEJSON = (x: EJSON.SerializableTypes, stack: any[]): IOSerializable<P
     }, [] as IOSerializable<PObject>[]);
   }
 
-  if (x.$stack) return stack[x.$stack];
+  if (x.$ref) return stack[x.$ref];
 
   if (x.$object) {
     const { className, attributes } = x.$object;
