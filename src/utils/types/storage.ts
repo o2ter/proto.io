@@ -42,4 +42,5 @@ export interface Storage<Schema> {
   upsertOne(model: string, filter: any, update: any, setOnInsert: any, user?: PUser): PObject;
   deleteOne(model: string, filter: any, user?: PUser): PObject;
 
+  deleteAll(model: string, filter: any, user?: PUser): PObject;
 }
