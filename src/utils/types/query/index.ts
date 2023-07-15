@@ -32,7 +32,7 @@ export namespace PQuery {
   }
 
   export interface Options {
-    filter?: PQuery.Filter;
+    filter?: PQuery.Filter[];
     sort?: Record<string, number>;
     includes?: string[];
     skip?: number;
@@ -49,6 +49,11 @@ export class PQuery {
   constructor(model: string, options: PQuery.Options = {}) {
     this.model = model;
     this.options = options;
+  }
+
+  filter(...filter: PQuery.Filter[]) {
+    this.options.filter = this.options.filter ? [...this.options.filter, ...filter] : filter;
+    return this;
   }
 
   sort(sort: Record<string, number>) {
