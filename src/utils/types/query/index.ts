@@ -51,8 +51,8 @@ export class PQuery {
     this.options = options;
   }
 
-  filter(...filter: PQuery.Filter[]) {
-    this.options.filter = this.options.filter ? [...this.options.filter, ...filter] : filter;
+  filter(filter: PQuery.Filter) {
+    this.options.filter = this.options.filter ? [...this.options.filter, filter] : [filter];
     return this;
   }
 
