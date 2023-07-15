@@ -49,57 +49,46 @@ test('test deserialize', async () => {
   
 });
 
-test('test recursive serialize', async () => {
+test('test keywords', async () => {
+
+  const obj = {
+    $stack: 0,
+    $object: {},
+  };
+
+  const result = deserialize(serialize(obj));
+
+  expect(result).toStrictEqual(obj);
+
+});
+
+test('test recursive', async () => {
 
   const obj: any = {};
   obj.self = obj;
 
-  const result = serialize(obj);
-
-  expect(result).toStrictEqual('{"self":{"$stack":{"$numberInt":"0"}}}');
-
-});
-
-test('test recursive deserialize', async () => {
-
-  const result: any = deserialize('{"self":{"$stack":{"$numberInt":"0"}}}');
+  const result: any = deserialize(serialize(obj));
 
   expect(result.self).toBe(result);
 
 });
 
-test('test array recursive serialize', async () => {
+test('test array recursive', async () => {
 
   const array: any[] = [];
   array[0] = { self: array };
 
-  const result = serialize(array);
-
-  expect(result).toStrictEqual('[{\"self\":{\"$stack\":{\"$numberInt\":\"0\"}}}]');
-
-});
-
-test('test array recursive deserialize', async () => {
-
-  const result: any = deserialize('[{\"self\":{\"$stack\":{\"$numberInt\":\"0\"}}}]');
+  const result: any = deserialize(serialize(array));
 
   expect(result[0].self).toBe(result);
 
 });
 
-test('test object recursive serialize', async () => {
+test('test object recursive', async () => {
 
   const obj = new PObject('test', (self) => ({ self }));
 
-  const result = serialize(obj);
-
-  expect(result).toStrictEqual('{\"$object\":{\"className\":\"test\",\"attributes\":{\"self\":{\"$stack\":{\"$numberInt\":\"0\"}}}}}');
-
-});
-
-test('test object recursive deserialize', async () => {
-
-  const result: any = deserialize('{\"$object\":{\"className\":\"test\",\"attributes\":{\"self\":{\"$stack\":{\"$numberInt\":\"0\"}}}}}');
+  const result: any = deserialize(serialize(obj));
 
   expect(result.get('self')).toBe(result);
 
