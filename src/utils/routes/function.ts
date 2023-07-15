@@ -28,7 +28,7 @@ import express, { Router } from 'express';
 import { Proto } from '../types';
 import { serialize, deserialize } from '../codec';
 
-export default (router: Router, payload: Proto) => {
+export default <Schema>(router: Router, payload: Proto<Schema>) => {
 
   const { functions } = payload;
   if (_.isEmpty(functions)) return router;

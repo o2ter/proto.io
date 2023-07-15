@@ -25,20 +25,23 @@
 
 import _ from 'lodash';
 import { IOSerializable } from '../codec';
-import { Schema } from './schema';
 import { Storage } from './storage';
 
-export type ProtoOptions = {
-  schema: Record<string, Schema>;
-  storage: Storage;
-  functions?: Record<string, (request: Proto & { data: IOSerializable; }) => IOSerializable | Promise<IOSerializable>>;
+export type ProtoFunction<Schema> = (
+  request: Proto<Schema> & { data: IOSerializable; }
+) => IOSerializable | PromiseLike<IOSerializable>;
+
+export type ProtoOptions<Schema> = {
+  schema: Schema;
+  storage: Storage<Schema>;
+  functions?: Record<string, ProtoFunction<Schema>>;
 };
 
-export class Proto {
+export class Proto<Schema> {
 
-  #options: ProtoOptions;
+  #options: ProtoOptions<Schema>;
 
-  constructor(options: ProtoOptions) {
+  constructor(options: ProtoOptions<Schema>) {
     this.#options = options;
   }
 
@@ -52,15 +55,15 @@ export class Proto {
     await this.storage.prepare(this.schema);
   }
 
-  get schema(): ProtoOptions['schema'] {
+  get schema(): ProtoOptions<Schema>['schema'] {
     return this.#options.schema;
   }
 
-  get storage(): ProtoOptions['storage'] {
+  get storage(): ProtoOptions<Schema>['storage'] {
     return this.#options.storage;
   }
 
-  get functions(): ProtoOptions['functions'] {
+  get functions(): ProtoOptions<Schema>['functions'] {
     return this.#options.functions;
   }
 }

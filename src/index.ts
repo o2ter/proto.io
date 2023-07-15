@@ -33,9 +33,9 @@ import functionRoute from './utils/routes/function';
 export * from './utils/codec';
 export * from './utils/types';
 
-export const ProtoRoute = async (options: {
+export const ProtoRoute = async <Schema>(options: {
   token?: string;
-  proto: Proto | ProtoOptions;
+  proto: Proto<Schema> | ProtoOptions<Schema>;
 }) => {
 
   const { token, proto: protoOtps } = options;
