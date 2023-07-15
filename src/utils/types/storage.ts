@@ -26,22 +26,10 @@
 import _ from 'lodash';
 import { PUser } from './user';
 import { PObject } from './object';
+import { PQuery } from './query';
 
-type CommonFindOptions = {
-  model: string;
-  filter: any;
-  sort?: Record<string, number>;
-  includes?: String[];
-}
-
-type FindOptions = CommonFindOptions & {
-  skip?: number;
-  limit?: number;
-}
-
-type FindOneOptions = CommonFindOptions & {
-  returning?: 'old' | 'new';
-}
+type FindOptions = Omit<PQuery.Options, 'returning'> & { model: string; };
+type FindOneOptions = Omit<PQuery.Options, 'skip' | 'limit'> & { model: string; };
 
 export interface Storage<Schema> {
 

@@ -25,6 +25,28 @@
 
 import _ from 'lodash';
 
+export namespace PQuery {
+
+  export interface Filter {
+
+  }
+
+  export interface Options {
+    filter?: PQuery.Filter;
+    sort?: Record<string, number>;
+    includes?: String[];
+    skip?: number;
+    limit?: number;
+    returning?: 'old' | 'new';
+  }
+}
+
 export class PQuery {
 
+  model: string;
+  options: PQuery.Options = {};
+
+  constructor(model: string) {
+    this.model = model;
+  }
 }
