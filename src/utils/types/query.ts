@@ -1,5 +1,5 @@
 //
-//  storage.ts
+//  proto.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -24,22 +24,7 @@
 //
 
 import _ from 'lodash';
-import { PUser } from './user';
-import { PObject } from './object';
-import { PQuery } from './query';
 
-export interface Storage<Schema> {
-
-  prepare(schema: Schema): PromiseLike<void>;
-
-  roles(user?: PUser): [string];
-  models(user?: PUser): [string];
-
-  find(query: PQuery, user?: PUser): [PObject];
-
-  update(filter: any, update: any, user?: PUser): PObject;
-  insert(attrs: any, user?: PUser): PObject;
-  upsert(filter: any, update: any, setOnInsert: any, user?: PUser): PObject;
-  delete(filter: any, user?: PUser): PObject;
+export class PQuery {
 
 }
