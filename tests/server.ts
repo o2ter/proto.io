@@ -39,6 +39,33 @@ beforeAll(async () => {
       schema: {},
       storage: {
         prepare: async () => {
+        },
+        roles: async (user) => {
+          throw new Error('Function not implemented.');
+        },
+        models: async (user) => {
+          throw new Error('Function not implemented.');
+        },
+        count: async (query, user) => {
+          throw new Error('Function not implemented.');
+        },
+        find: async (query, user) => {
+          throw new Error('Function not implemented.');
+        },
+        insert: async (model, attrs, user) => {
+          throw new Error('Function not implemented.');
+        },
+        findOneAndUpdate: async (query, update, user) => {
+          throw new Error('Function not implemented.');
+        },
+        findOneAndUpsert: async (query, update, setOnInsert, user) => {
+          throw new Error('Function not implemented.');
+        },
+        findOneAndDelete: async (query, user) => {
+          throw new Error('Function not implemented.');
+        },
+        findAndDelete: async (query, user) => {
+          throw new Error('Function not implemented.');
         }
       },
       functions: {
