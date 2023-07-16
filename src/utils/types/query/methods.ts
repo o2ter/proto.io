@@ -51,17 +51,12 @@ export const queryMethods = (query: Query, storage: PStorage, acls: string[]) =>
     },
     then: {
       get() {
-        return new Promise<PObject[]>(async (resolve, reject) => {
-          try {
-            const result: PObject[] = [];
-            for await (const obj of _find()) {
-              result.push(obj)
-            }
-            resolve(result);
-          } catch (e) {
-            reject(e);
-          }
-        }).then;
+        const result = (async () => {
+          const array: PObject[] = [];
+          for await (const obj of _find()) array.push(obj);
+          return array;
+        })();
+        return result.then;
       },
     },
   };
