@@ -38,7 +38,7 @@ export interface PStorage {
   models(): string[] | PromiseLike<string[]>;
 
   count(query: FindOptions): PromiseLike<number>;
-  find(query: FindOptions): PromiseLike<PObject[]>;
+  find(query: FindOptions): AsyncIterable<PObject>;
 
   insert(model: string, attrs: any): PromiseLike<PObject | undefined>;
 
