@@ -27,22 +27,22 @@ import _ from 'lodash';
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import { Proto, ProtoOptions } from './utils/types';
-import tokenHandler from './utils/token';
+import csrfHandler from './utils/csrf';
 import functionRoute from './utils/routes/function';
 
 export * from './utils/codec';
 export * from './utils/types';
 
 export const ProtoRoute = async (options: {
-  token?: string;
+  csrfToken?: string;
   proto: Proto | ProtoOptions;
 }) => {
 
-  const { token, proto: protoOtps } = options;
+  const { csrfToken: token, proto: protoOtps } = options;
 
   const router = express.Router()
     .use(cookieParser() as any)
-    .use(tokenHandler(token));
+    .use(csrfHandler(token));
 
   const proto = protoOtps instanceof Proto ? protoOtps : new Proto(protoOtps);
   await proto._prepare();
