@@ -27,6 +27,7 @@ import _ from 'lodash';
 import { IOSerializable } from '../codec';
 import { PStorage } from './storage';
 import { PSchema } from './schema';
+import { Query } from './query';
 
 export type ProtoFunction = (
   request: Proto & { data: IOSerializable; }
@@ -46,14 +47,8 @@ export class Proto {
     this.#options = options;
   }
 
-  async run(name: string, data?: IOSerializable) {
-    const func = this.#options.functions?.[name];
-    const payload = Object.setPrototypeOf({ data: data ?? null }, this);
-    return _.isFunction(func) ? func(payload) : null;
-  }
-
-  async _prepare() {
-    await this.storage.prepare(this.schema);
+  query(model: string): Query {
+    return new Query(model);
   }
 
   get schema(): ProtoOptions['schema'] {
@@ -67,4 +62,15 @@ export class Proto {
   get functions(): ProtoOptions['functions'] {
     return this.#options.functions;
   }
+
+  async _prepare() {
+    await this.storage.prepare(this.schema);
+  }
+
+  async run(name: string, data?: IOSerializable) {
+    const func = this.#options.functions?.[name];
+    const payload = Object.setPrototypeOf({ data: data ?? null }, this);
+    return _.isFunction(func) ? func(payload) : null;
+  }
+
 }

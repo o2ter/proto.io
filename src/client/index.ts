@@ -27,6 +27,7 @@ import _ from 'lodash';
 import { request } from './request';
 import axios, { CancelToken } from 'axios';
 import { IOSerializable, serialize, deserialize } from '../utils/codec';
+import { Query } from '../utils/types/query';
 
 export * from '../utils/codec';
 export { PObject } from '../utils/types';
@@ -43,6 +44,10 @@ export class Proto {
 
   constructor(options: Options) {
     this.options = options;
+  }
+
+  query(model: string): Query {
+    return new Query(model);
   }
 
   async run(

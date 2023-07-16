@@ -25,14 +25,14 @@
 
 import _ from 'lodash';
 
-export namespace PQuery {
+export namespace Query {
 
   export interface Filter {
 
   }
 
   export interface Options {
-    filter?: PQuery.Filter[];
+    filter?: Query.Filter[];
     sort?: Record<string, 1 | -1>;
     includes?: string[];
     skip?: number;
@@ -41,17 +41,17 @@ export namespace PQuery {
   }
 }
 
-export class PQuery {
+export class Query {
 
   model: string;
-  options: PQuery.Options;
+  options: Query.Options;
 
-  constructor(model: string, options: PQuery.Options = {}) {
+  constructor(model: string, options: Query.Options = {}) {
     this.model = model;
     this.options = options;
   }
 
-  filter(filter: PQuery.Filter) {
+  filter(filter: Query.Filter) {
     this.options.filter = this.options.filter ? [...this.options.filter, filter] : [filter];
     return this;
   }

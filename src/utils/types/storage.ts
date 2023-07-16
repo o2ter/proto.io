@@ -25,12 +25,12 @@
 
 import _ from 'lodash';
 import { PObject } from './object';
-import { PQuery } from './query';
+import { Query } from './query';
 import { PSchema } from './schema';
 
 type CommonFindOptions = { model: string; acls: string[]; };
-type FindOptions = CommonFindOptions & Omit<PQuery.Options, 'returning'>;
-type FindOneOptions = CommonFindOptions & Omit<PQuery.Options, 'skip' | 'limit'>;
+type FindOptions = CommonFindOptions & Omit<Query.Options, 'returning'>;
+type FindOneOptions = CommonFindOptions & Omit<Query.Options, 'skip' | 'limit'>;
 
 export interface PStorage {
 
