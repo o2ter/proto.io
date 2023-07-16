@@ -44,11 +44,6 @@ export const queryMethods = (query: Query, storage: PStorage, acls: string[]) =>
   });
 
   const props = {
-    [Symbol.asyncIterator]: {
-      get() {
-        return _find()[Symbol.asyncIterator];
-      },
-    },
     then: {
       get() {
         const result = (async () => {
@@ -57,6 +52,11 @@ export const queryMethods = (query: Query, storage: PStorage, acls: string[]) =>
           return array;
         })();
         return result.then;
+      },
+    },
+    [Symbol.asyncIterator]: {
+      get() {
+        return _find()[Symbol.asyncIterator];
       },
     },
   };
