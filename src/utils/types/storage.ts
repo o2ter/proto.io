@@ -28,8 +28,9 @@ import { PObject } from './object';
 import { PQuery } from './query';
 import { PSchema } from './schema';
 
-type FindOptions = Omit<PQuery.Options, 'returning'> & { model: string; };
-type FindOneOptions = Omit<PQuery.Options, 'skip' | 'limit'> & { model: string; };
+type CommonFindOptions = { model: string; acls: string[]; };
+type FindOptions = CommonFindOptions & Omit<PQuery.Options, 'returning'>;
+type FindOneOptions = CommonFindOptions & Omit<PQuery.Options, 'skip' | 'limit'>;
 
 export interface PStorage {
 
