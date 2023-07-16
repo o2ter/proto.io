@@ -39,13 +39,17 @@ export const ProtoRoute = async (options: {
   proto: Proto | ProtoOptions;
 }) => {
 
-  const { csrfToken: token, proto: protoOtps } = options;
+  const {
+    jwtToken,
+    csrfToken,
+    proto: _proto,
+  } = options;
 
   const router = express.Router()
     .use(cookieParser() as any)
-    .use(csrfHandler(token));
+    .use(csrfHandler(csrfToken));
 
-  const proto = protoOtps instanceof Proto ? protoOtps : new Proto(protoOtps);
+  const proto = _proto instanceof Proto ? _proto : new Proto(_proto);
   await proto._prepare();
   functionRoute(router, proto);
 
