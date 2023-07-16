@@ -47,7 +47,8 @@ export class Proto {
   }
 
   query(model: string): Query {
-    return new Query(model);
+    const query = new Query(model);
+    return query;
   }
 
   async run(
