@@ -24,32 +24,4 @@
 //
 
 import _ from 'lodash';
-import express from 'express';
-import cookieParser from 'cookie-parser';
-import { Proto, ProtoOptions } from './utils/types';
-import csrfHandler from './utils/csrf';
-import functionRoute from './utils/routes/function';
-
-export * from './utils/codec';
-export * from './utils/types';
-
-export const ProtoRoute = async (options: {
-  jwtToken: string;
-  csrfToken?: string;
-  proto: Proto | ProtoOptions;
-}) => {
-
-  const { csrfToken: token, proto: protoOtps } = options;
-
-  const router = express.Router()
-    .use(cookieParser() as any)
-    .use(csrfHandler(token));
-
-  const proto = protoOtps instanceof Proto ? protoOtps : new Proto(protoOtps);
-  await proto._prepare();
-  functionRoute(router, proto);
-
-  return router;
-}
-
-export default ProtoRoute;
+import jwt from 'jsonwebtoken';
