@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import express from 'express';
+import express, { RequestHandler } from 'express';
 import cookieParser from 'cookie-parser';
 import { Proto, ProtoOptions } from './utils/types';
 import csrfHandler from './utils/csrf';
@@ -36,21 +36,26 @@ export * from './utils/types';
 export const ProtoRoute = async (options: {
   jwtToken: string;
   csrfToken?: string;
+  adapters?: ((proto: Proto) => RequestHandler)[],
   proto: Proto | ProtoOptions;
 }) => {
 
   const {
     jwtToken,
     csrfToken,
+    adapters,
     proto: _proto,
   } = options;
 
-  const router = express.Router()
-    .use(cookieParser() as any)
-    .use(csrfHandler(csrfToken));
-
   const proto = _proto instanceof Proto ? _proto : new Proto(_proto);
   await proto._prepare();
+
+  const router = express.Router().use(
+    cookieParser() as any,
+    csrfHandler(csrfToken),
+    ..._.map(adapters, x => x(proto)),
+  );
+
   functionRoute(router, proto);
 
   return router;
