@@ -30,22 +30,40 @@ import { PObject } from '../object';
 
 declare module './index' {
   export interface Query {
+    then: Promise<PObject>['then']
     [Symbol.asyncIterator]: AsyncIterator<PObject>;
   }
 }
 
 export const queryMethods = (query: Query, storage: PStorage, acls: string[]) => {
 
+  const _find = () => storage.find({
+    acls,
+    model: query.model,
+    ...query.options,
+  });
+
   const props = {
     [Symbol.asyncIterator]: {
       get() {
-        return storage.find({
-          acls,
-          model: query.model,
-          ...query.options,
-        })[Symbol.asyncIterator];
+        return _find()[Symbol.asyncIterator];
       },
     },
+    then: {
+      get() {
+        return new Promise<PObject[]>(async (resolve, reject) => {
+          try {
+            const result: PObject[] = [];
+            for await (const obj of _find()) {
+              result.push(obj)
+            }
+            resolve(result);
+          } catch (e) {
+            reject(e);
+          }
+        }).then;
+      },
+    }
   };
 
   Object.defineProperties(query, props);
