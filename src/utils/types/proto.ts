@@ -28,6 +28,7 @@ import { IOSerializable } from '../codec';
 import { PStorage } from './storage';
 import { PSchema } from './schema';
 import { Query } from './query';
+import { queryMethods } from './query/methods';
 
 export type ProtoFunction = (
   request: Proto & { data: IOSerializable; }
@@ -49,6 +50,7 @@ export class Proto {
 
   query(model: string): Query {
     const query = new Query(model);
+    queryMethods(query, this.storage, []);
     return query;
   }
 

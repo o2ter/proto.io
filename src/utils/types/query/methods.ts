@@ -1,5 +1,5 @@
 //
-//  storage.ts
+//  methods.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -24,46 +24,29 @@
 //
 
 import _ from 'lodash';
-import { PStorage, PSchema } from '../../src';
+import { Query } from './index';
+import { PStorage } from '../storage';
+import { PObject } from '../object';
 
-export class MemoryStorage implements PStorage {
-
-  schema: Record<string, PSchema> = {};
-
-  prepare(schema: Record<string, PSchema>) {
-    this.schema = schema;
+declare module './index' {
+  export interface Query {
+    [Symbol.asyncIterator]: AsyncIterator<PObject>;
   }
+}
 
-  models() {
-    return Object.keys(this.schema);
-  }
+export const queryMethods = (query: Query, storage: PStorage, acls: string[]) => {
 
-  async count() {
-    return 0;
-  }
+  const props = {
+    [Symbol.asyncIterator]: {
+      get() {
+        return storage.find({
+          acls,
+          model: query.model,
+          ...query.options,
+        })[Symbol.asyncIterator];
+      },
+    },
+  };
 
-  async* find() {
-    return [];
-  }
-
-  async insert() {
-    return undefined;
-  }
-
-  async findOneAndUpdate() {
-    return undefined;
-  }
-
-  async findOneAndUpsert() {
-    return undefined;
-  }
-
-  async findOneAndDelete() {
-    return undefined;
-  }
-
-  async findAndDelete() {
-    return 0;
-  }
-
-};
+  Object.defineProperties(query, props);
+}
