@@ -1,5 +1,5 @@
 //
-//  proto.ts
+//  index.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -24,14 +24,14 @@
 //
 
 import _ from 'lodash';
-import { IOSerializable } from '../codec';
-import { IOStorage } from './storage';
-import { IOSchema } from './schema';
-import { Query } from './query';
-import { IOObject } from './object';
-import { objectMethods, queryMethods } from './query/methods';
-import { IOUser } from './user';
-import { PVK } from './private';
+import { IOSerializable } from '../utils/codec';
+import { IOStorage } from '../utils/types/storage';
+import { IOSchema } from '../utils/types/schema';
+import { Query } from '../utils/types/query';
+import { IOObject } from '../utils/types/object';
+import { objectMethods, queryMethods } from './query';
+import { IOUser } from '../utils/types/user';
+import { PVK } from '../utils/types/private';
 
 type Callback<T, R> = (request: Proto & T) => R | PromiseLike<R>;
 type ProtoFunction = Callback<{ data: IOSerializable; }, IOSerializable>;

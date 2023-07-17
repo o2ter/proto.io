@@ -25,7 +25,8 @@
 
 import _ from 'lodash';
 import pg, { IInitOptions, IConnectionOptions, IDatabase } from 'pg-promise';
-import { IOSchema, IOStorage } from '../../utils/types';
+import { IOStorage } from '../../utils/types/storage';
+import { IOSchema } from '../../utils/types/schema';
 
 export class PostgresStorage implements IOStorage {
 

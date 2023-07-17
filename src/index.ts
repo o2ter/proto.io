@@ -26,13 +26,13 @@
 import _ from 'lodash';
 import express, { RequestHandler } from 'express';
 import cookieParser from 'cookie-parser';
-import { Proto, ProtoOptions } from './utils/types';
+import { Proto, ProtoOptions } from './server';
 import csrfHandler from './utils/csrf';
-import classesRoute from './utils/routes/classes';
-import functionRoute from './utils/routes/function';
+import classesRoute from './server/routes/classes';
+import functionRoute from './server/routes/function';
 
 export * from './utils/codec';
-export * from './utils/types';
+export * from './server';
 
 export const ProtoRoute = async (options: {
   jwtToken: string;

@@ -1,5 +1,5 @@
 //
-//  types.ts
+//  common.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -23,6 +23,38 @@
 //  THE SOFTWARE.
 //
 
-export * from './proto';
-export * from './storage';
-export * from './schema';
+import _ from 'lodash';
+import { Response } from 'express';
+import { IOSerializable, serialize } from '../../utils/codec';
+import { IOObject } from '../../utils/types/object';
+import { objectMethods } from '../../server/query';
+import { Proto } from '../../server';
+
+export const response = async <T extends IOSerializable<IOObject>>(
+  res: Response,
+  callback: () => Promise<T | undefined>,
+) => {
+
+  try {
+
+    const data = await callback();
+    res.type('application/json').send(serialize(data ?? null));
+
+  } catch (error) {
+
+    if (error instanceof String) {
+      res.status(400).json({ message: error });
+    } else if (error instanceof Error) {
+      res.status(400).json({ ...error, message: error.message });
+    } else {
+      res.status(400).json(error);
+    }
+  }
+}
+
+export const applyIOObjectMethods = (data: IOSerializable<IOObject>, proto: Proto): IOSerializable<IOObject> => {
+  if (data instanceof IOObject) return objectMethods(data, proto) as IOObject;
+  if (_.isArray(data)) return _.map(data, x => applyIOObjectMethods(x, proto));
+  if (_.isPlainObject(data)) return _.mapValues(data as any, x => applyIOObjectMethods(x, proto));
+  return data;
+}

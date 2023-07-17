@@ -25,7 +25,8 @@
 
 import _ from 'lodash';
 import { MongoClient, MongoClientOptions } from 'mongodb';
-import { IOSchema, IOStorage } from '../../utils/types';
+import { IOStorage } from '../../utils/types/storage';
+import { IOSchema } from '../../utils/types/schema';
 
 export class MongoStorage implements IOStorage {
 

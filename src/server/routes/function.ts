@@ -1,5 +1,5 @@
 //
-//  common.ts
+//  function.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -24,37 +24,35 @@
 //
 
 import _ from 'lodash';
-import { Response } from 'express';
-import { IOSerializable, serialize } from '../codec';
-import { Proto } from '../types';
-import { IOObject } from '../types/object';
-import { objectMethods } from '../types/query/methods';
+import express, { Router } from 'express';
+import { Proto } from '../../server';
+import { deserialize } from '../../utils/codec';
+import { applyIOObjectMethods, response } from './common';
 
-export const response = async <T extends IOSerializable<IOObject>>(
-  res: Response,
-  callback: () => Promise<T | undefined>,
-) => {
+export default (router: Router, payload: Proto) => {
 
-  try {
+  const { functions } = payload;
+  if (_.isEmpty(functions)) return router;
 
-    const data = await callback();
-    res.type('application/json').send(serialize(data ?? null));
+  router.post(
+    '/functions/:name',
+    express.text({ type: '*/*' }),
+    async (req, res) => {
 
-  } catch (error) {
+      const { name } = req.params;
+      if (_.isNil(functions[name])) return res.sendStatus(404);
 
-    if (error instanceof String) {
-      res.status(400).json({ message: error });
-    } else if (error instanceof Error) {
-      res.status(400).json({ ...error, message: error.message });
-    } else {
-      res.status(400).json(error);
+      await response(res, async () => {
+
+        const _payload = Object.setPrototypeOf({
+          ..._.omit(req, 'body'),
+        }, payload);
+        _payload.data = applyIOObjectMethods(deserialize(req.body), _payload);
+
+        return _payload._run(name);
+      });
     }
-  }
-}
+  );
 
-export const applyIOObjectMethods = (data: IOSerializable<IOObject>, proto: Proto): IOSerializable<IOObject> => {
-  if (data instanceof IOObject) return objectMethods(data, proto) as IOObject;
-  if (_.isArray(data)) return _.map(data, x => applyIOObjectMethods(x, proto));
-  if (_.isPlainObject(data)) return _.mapValues(data as any, x => applyIOObjectMethods(x, proto));
-  return data;
+  return router;
 }
