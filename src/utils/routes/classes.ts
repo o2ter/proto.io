@@ -61,8 +61,6 @@ export default (router: Router, payload: Proto) => {
 
       await response(res, async () => {
 
-        const data = deserialize(req.body);
-
       });
     }
   );
@@ -79,7 +77,6 @@ export default (router: Router, payload: Proto) => {
 
       await response(res, async () => {
 
-        const data = deserialize(req.body);
 
       });
     }
