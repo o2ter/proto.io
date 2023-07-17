@@ -38,12 +38,12 @@ enum UpdateOperation {
   popLast,
 }
 
-export interface PObject {
+export interface IOObject {
   save: (master?: boolean) => PromiseLike<void>;
   destory: (master?: boolean) => PromiseLike<void>;
 }
 
-export class PObject {
+export class IOObject {
 
   [privateKey]: {
     className: string;  
@@ -53,7 +53,7 @@ export class PObject {
 
   constructor(
     className: string,
-    attributes?: Record<string, any> | ((self: PObject) => Record<string, any>),
+    attributes?: Record<string, any> | ((self: IOObject) => Record<string, any>),
   ) {
     this[privateKey] = {
       className,

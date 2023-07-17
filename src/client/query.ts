@@ -25,11 +25,11 @@
 
 import _ from 'lodash';
 import { Query } from '../utils/types/query';
-import { PObject } from '../utils/types/object';
+import { IOObject } from '../utils/types/object';
 import Proto from './index';
 
 export const objectMethods = (
-  object: PObject,
+  object: IOObject,
   proto: Proto,
 ) => {
 
@@ -81,7 +81,7 @@ export const queryMethods = (query: Query, proto: Proto) => {
         const result = await proto._request({
           operation: 'find',
           ...options(),
-        }, requestOpt) as PObject[];
+        }, requestOpt) as IOObject[];
 
         for (const object of result) yield object;
       },

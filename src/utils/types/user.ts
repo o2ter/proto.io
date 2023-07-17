@@ -24,8 +24,8 @@
 //
 
 import _ from 'lodash';
-import { PObject } from './object';
+import { IOObject } from './object';
 
-export class PUser extends PObject {
+export class IOUser extends IOObject {
 
 }

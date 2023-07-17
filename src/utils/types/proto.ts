@@ -28,9 +28,9 @@ import { IOSerializable } from '../codec';
 import { IOStorage } from './storage';
 import { IOSchema } from './schema';
 import { Query } from './query';
-import { PObject } from './object';
+import { IOObject } from './object';
 import { objectMethods, queryMethods } from './query/methods';
-import { PUser } from './user';
+import { IOUser } from './user';
 import { privateKey } from './private';
 
 type Callback<T, R> = (request: Proto & T) => R | PromiseLike<R>;
@@ -48,10 +48,10 @@ export type ProtoOptions = {
   storage: IOStorage;
   functions?: Record<string, ProtoFunction | { callback: ProtoFunction; validator?: Validator }>;
   triggers?: {
-    beforeSave?: Record<string, Callback<{ object: PObject; }, void>>;
-    afterSave?: Record<string, Callback<{ object: PObject; }, void>>;
-    beforeDelete?: Record<string, Callback<{ object: PObject; }, void>>;
-    afterDelete?: Record<string, Callback<{ object: PObject; }, void>>;
+    beforeSave?: Record<string, Callback<{ object: IOObject; }, void>>;
+    afterSave?: Record<string, Callback<{ object: IOObject; }, void>>;
+    beforeDelete?: Record<string, Callback<{ object: IOObject; }, void>>;
+    afterDelete?: Record<string, Callback<{ object: IOObject; }, void>>;
   },
 };
 
@@ -72,14 +72,14 @@ export class Proto {
   }
 
   object(model: string) {
-    return objectMethods(new PObject(model), this);
+    return objectMethods(new IOObject(model), this);
   }
 
   query(model: string, master?: boolean): Query {
     return queryMethods(new Query(model), this, master ?? false);
   }
 
-  get user(): PUser | undefined {
+  get user(): IOUser | undefined {
     return;
   }
 

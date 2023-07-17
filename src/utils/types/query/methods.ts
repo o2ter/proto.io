@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { Query } from './index';
 import { Proto } from '../proto';
-import { PObject } from '../object';
+import { IOObject } from '../object';
 import { IOSchema } from '../schema';
 
 const validateCLPs = (
@@ -48,7 +48,7 @@ const asyncIterableToArray = async <T>(asyncIterable: AsyncIterable<T>) => {
 }
 
 export const objectMethods = (
-  object: PObject | undefined,
+  object: IOObject | undefined,
   proto: Proto,
 ) => object ? Object.defineProperties(object, {
   save: {
@@ -108,7 +108,7 @@ export const queryMethods = (
         const afterSave = proto.triggers?.afterSave?.[query.model];
         if (!master && !_validateCLPs('create')) throw new Error('No permission');
 
-        const object = objectMethods(new PObject(query.model, _.omit(attrs, '_id', '_created_at', '_updated_at')), proto) as PObject;
+        const object = objectMethods(new IOObject(query.model, _.omit(attrs, '_id', '_created_at', '_updated_at')), proto) as IOObject;
         if (_.isFunction(beforeSave)) await beforeSave(Object.setPrototypeOf({ object }, proto));
 
         const result = objectMethods(
@@ -155,7 +155,7 @@ export const queryMethods = (
         const afterDelete = proto.triggers?.afterDelete?.[query.model];
         if (!master && !_validateCLPs('delete')) throw new Error('No permission');
 
-        let result: PObject | undefined;
+        let result: IOObject | undefined;
 
         if (_.isFunction(beforeDelete)) {
 
@@ -196,7 +196,7 @@ export const queryMethods = (
           const objects = _.map(
             await asyncIterableToArray(proto.storage.find(options())),
             x => objectMethods(x, proto),
-          ) as PObject[];
+          ) as IOObject[];
           if (_.isEmpty(objects)) return 0;
 
           if (_.isFunction(beforeDelete)) {

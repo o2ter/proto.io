@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { FilterQuery } from './filter';
-import { PObject } from '../object';
+import { IOObject } from '../object';
 
 export namespace Query {
   export interface Options {
@@ -40,13 +40,13 @@ export namespace Query {
 
 export interface Query {
   count: () => PromiseLike<number>;
-  then: Promise<PObject[]>['then'];
-  [Symbol.asyncIterator]: () => AsyncIterator<PObject>;
-  insert: (attrs: any) => PromiseLike<PObject | undefined>;
-  findOneAndUpdate: (update: Record<string, any>) => PromiseLike<PObject | undefined>;
-  findOneAndUpsert: (update: Record<string, any>, setOnInsert: Record<string, any>) => PromiseLike<PObject | undefined>;
-  findOneAndDelete: () => PromiseLike<PObject | undefined>;
-  findAndDelete: () => PromiseLike<PObject | undefined>;
+  then: Promise<IOObject[]>['then'];
+  [Symbol.asyncIterator]: () => AsyncIterator<IOObject>;
+  insert: (attrs: any) => PromiseLike<IOObject | undefined>;
+  findOneAndUpdate: (update: Record<string, any>) => PromiseLike<IOObject | undefined>;
+  findOneAndUpsert: (update: Record<string, any>, setOnInsert: Record<string, any>) => PromiseLike<IOObject | undefined>;
+  findOneAndDelete: () => PromiseLike<IOObject | undefined>;
+  findAndDelete: () => PromiseLike<IOObject | undefined>;
 }
 
 export class Query {

@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { PObject } from './object';
+import { IOObject } from './object';
 import { Query } from './query';
 import { IOSchema } from './schema';
 
@@ -38,13 +38,13 @@ export interface IOStorage {
   models(): string[] | PromiseLike<string[]>;
 
   count(query: FindOptions): PromiseLike<number>;
-  find(query: FindOptions): AsyncIterable<PObject>;
+  find(query: FindOptions): AsyncIterable<IOObject>;
 
-  insert(model: string, attrs: any): PromiseLike<PObject | undefined>;
+  insert(model: string, attrs: any): PromiseLike<IOObject | undefined>;
 
-  findOneAndUpdate(query: FindOneOptions, update: any): PromiseLike<PObject | undefined>;
-  findOneAndUpsert(query: FindOneOptions, update: any, setOnInsert: any): PromiseLike<PObject | undefined>;
-  findOneAndDelete(query: FindOneOptions): PromiseLike<PObject | undefined>;
+  findOneAndUpdate(query: FindOneOptions, update: any): PromiseLike<IOObject | undefined>;
+  findOneAndUpsert(query: FindOneOptions, update: any, setOnInsert: any): PromiseLike<IOObject | undefined>;
+  findOneAndDelete(query: FindOneOptions): PromiseLike<IOObject | undefined>;
 
   findAndDelete(query: FindOptions): PromiseLike<number>;
 }

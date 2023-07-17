@@ -23,7 +23,7 @@
 //  THE SOFTWARE.
 //
 
-import { PObject } from '../../src/utils/types/object';
+import { IOObject } from '../../src/utils/types/object';
 import { serialize, deserialize, Decimal } from '../../src/utils/codec';
 import { expect, test } from '@jest/globals';
 
@@ -86,11 +86,11 @@ test('test array recursive', async () => {
 
 test('test object recursive', async () => {
 
-  const obj = new PObject('test', (self) => ({ self }));
+  const obj = new IOObject('test', (self) => ({ self }));
 
   const result: any = deserialize(serialize(obj));
 
-  expect(result.get('self') instanceof PObject).toBeTruthy();
+  expect(result.get('self') instanceof IOObject).toBeTruthy();
   expect(result.get('self')).toBe(result);
 
 });

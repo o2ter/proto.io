@@ -29,7 +29,7 @@ import axios, { CancelToken } from 'axios';
 import { IOSerializable, serialize, deserialize } from '../utils/codec';
 import { Query } from '../utils/types/query';
 import { objectMethods, queryMethods } from './query';
-import { PObject } from '../utils/types/object';
+import { IOObject } from '../utils/types/object';
 
 export * from '../utils/codec';
 
@@ -39,10 +39,10 @@ type Options = {
 
 export const CancelTokenSource = axios.CancelToken.source;
 
-const applyPObjectMethods = (data: IOSerializable<PObject>, proto: Proto): IOSerializable<PObject> => {
-  if (data instanceof PObject) return objectMethods(data, proto);
-  if (_.isArray(data)) return _.map(data, x => applyPObjectMethods(x, proto));
-  if (_.isPlainObject(data)) return _.mapValues(data as any, x => applyPObjectMethods(x, proto));
+const applyIOObjectMethods = (data: IOSerializable<IOObject>, proto: Proto): IOSerializable<IOObject> => {
+  if (data instanceof IOObject) return objectMethods(data, proto);
+  if (_.isArray(data)) return _.map(data, x => applyIOObjectMethods(x, proto));
+  if (_.isPlainObject(data)) return _.mapValues(data as any, x => applyIOObjectMethods(x, proto));
   return data;
 }
 
@@ -55,7 +55,7 @@ export class Proto {
   }
 
   object(model: string) {
-    return objectMethods(new PObject(model), this);
+    return objectMethods(new IOObject(model), this);
   }
 
   query(model: string): Query {
@@ -76,7 +76,7 @@ export class Proto {
       throw new Error(error.message, { cause: error });
     }
 
-    return applyPObjectMethods(deserialize(res.data), this);
+    return applyIOObjectMethods(deserialize(res.data), this);
   }
 
   async run(

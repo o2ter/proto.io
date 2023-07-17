@@ -27,10 +27,10 @@ import _ from 'lodash';
 import { Response } from 'express';
 import { IOSerializable, serialize } from '../codec';
 import { Proto } from '../types';
-import { PObject } from '../types/object';
+import { IOObject } from '../types/object';
 import { objectMethods } from '../types/query/methods';
 
-export const response = async <T extends IOSerializable<PObject>>(
+export const response = async <T extends IOSerializable<IOObject>>(
   res: Response,
   callback: () => Promise<T | undefined>,
 ) => {
@@ -52,9 +52,9 @@ export const response = async <T extends IOSerializable<PObject>>(
   }
 }
 
-export const applyPObjectMethods = (data: IOSerializable<PObject>, proto: Proto): IOSerializable<PObject> => {
-  if (data instanceof PObject) return objectMethods(data, proto) as PObject;
-  if (_.isArray(data)) return _.map(data, x => applyPObjectMethods(x, proto));
-  if (_.isPlainObject(data)) return _.mapValues(data as any, x => applyPObjectMethods(x, proto));
+export const applyIOObjectMethods = (data: IOSerializable<IOObject>, proto: Proto): IOSerializable<IOObject> => {
+  if (data instanceof IOObject) return objectMethods(data, proto) as IOObject;
+  if (_.isArray(data)) return _.map(data, x => applyIOObjectMethods(x, proto));
+  if (_.isPlainObject(data)) return _.mapValues(data as any, x => applyIOObjectMethods(x, proto));
   return data;
 }
