@@ -69,6 +69,11 @@ export const queryMethods = (query: Query, storage: PStorage, acls: string[]) =>
         return storage.find(options())[Symbol.asyncIterator];
       },
     },
+    insert: {
+      value: (attrs: any) => {
+        return storage.insert(query.model, attrs);
+      },
+    },
     findOneAndUpdate: {
       value: (update: any) => {
         return storage.findOneAndUpdate(options(), update);

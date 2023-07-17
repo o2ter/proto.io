@@ -57,10 +57,6 @@ export class Proto {
     return queryMethods(new Query(model), this.storage, []);
   }
 
-  insert(model: string, attrs: any): PromiseLike<PObject | undefined> {
-    return this.storage.insert(model, attrs);
-  }
-
   get schema(): ProtoOptions['schema'] {
     return this.#options.schema;
   }
