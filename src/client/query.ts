@@ -36,7 +36,7 @@ export const objectMethods = (
 
   const query = () => proto.query(object.className).filter({ _id: object.objectId });
 
-  const props = {
+  return Object.defineProperties(object, {
     save: {
       value: async () => {
         await query().findOneAndUpdate(object[privateKey].mutated);
@@ -47,9 +47,7 @@ export const objectMethods = (
         await query().findOneAndDelete();
       },
     },
-  }
-
-  return Object.defineProperties(object, props);
+  });
 }
 
 export const queryMethods = (query: Query, proto: Proto) => {

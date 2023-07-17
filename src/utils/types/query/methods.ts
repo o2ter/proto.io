@@ -54,6 +54,7 @@ export const objectMethods = (
 ) => object ? Object.defineProperties(object, {
   save: {
     value: async (master?: boolean) => {
+      await proto.query(object.className, master).findOneAndUpdate(object[privateKey].mutated);
     },
   },
   destory: {
