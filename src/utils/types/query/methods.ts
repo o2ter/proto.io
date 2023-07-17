@@ -104,6 +104,7 @@ export const queryMethods = (query: Query, proto: Proto, acls: string[]) => {
     },
     findOneAndUpdate: {
       value: async (update: any) => {
+        const beforeSave = proto.triggers?.beforeSave?.[query.model];
         const afterSave = proto.triggers?.afterSave?.[query.model];
         if (!_validateCLPs('update')) throw new Error('No permission');
 
@@ -114,6 +115,7 @@ export const queryMethods = (query: Query, proto: Proto, acls: string[]) => {
     },
     findOneAndUpsert: {
       value: async (update: any, setOnInsert: any) => {
+        const beforeSave = proto.triggers?.beforeSave?.[query.model];
         const afterSave = proto.triggers?.afterSave?.[query.model];
         if (!_validateCLPs('create', 'update')) throw new Error('No permission');
 
@@ -124,7 +126,8 @@ export const queryMethods = (query: Query, proto: Proto, acls: string[]) => {
     },
     findOneAndDelete: {
       value: async () => {
-        const afterDelete = proto.triggers?.afterSave?.[query.model];
+        const beforeDelete = proto.triggers?.beforeDelete?.[query.model];
+        const afterDelete = proto.triggers?.afterDelete?.[query.model];
         if (!_validateCLPs('delete')) throw new Error('No permission');
 
         const result = await proto.storage.findOneAndDelete(options());
