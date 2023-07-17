@@ -30,7 +30,7 @@ import { PObject } from '../object';
 
 declare module './index' {
   export interface Query {
-    then: Promise<PObject[]>['then']
+    then: Promise<PObject[]>['then'];
     [Symbol.asyncIterator]: AsyncIterator<PObject>;
   }
 }
