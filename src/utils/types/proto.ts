@@ -40,6 +40,8 @@ export type ProtoOptions = {
   triggers?: {
     beforeSave: Record<string, Callback<{ object: PObject; }, void>>;
     afterSave: Record<string, Callback<{ object: PObject; }, void>>;
+    beforeDelete: Record<string, Callback<{ object: PObject; }, void>>;
+    afterDelete: Record<string, Callback<{ object: PObject; }, void>>;
   },
 };
 
