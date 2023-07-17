@@ -49,6 +49,10 @@ export class Proto {
     this.#options = options;
   }
 
+  models(): string[] | PromiseLike<string[]> {
+    return this.storage.models();
+  }
+
   query(model: string): Query {
     const query = new Query(model);
     queryMethods(query, this.storage, []);

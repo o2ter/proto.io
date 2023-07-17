@@ -1,5 +1,5 @@
 //
-//  function.ts
+//  restapi.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -30,40 +30,68 @@ import { serialize, deserialize } from '../codec';
 
 export default (router: Router, payload: Proto) => {
 
-  const { functions } = payload;
-  if (_.isEmpty(functions)) return router;
-
   router.post(
-    '/functions/:name',
+    '/classes/:name',
+    express.text({ type: '*/*' }),
+    async (req, res) => {
+      
+      const { name } = req.params;
+      const models = await payload.models();
+
+      if (!_.includes(models, name)) return res.sendStatus(404);
+
+    }
+  );
+
+  router.get(
+    '/classes/:name',
+    express.text({ type: '*/*' }),
+    async (req, res) => {
+      
+      const { name } = req.params;
+      const models = await payload.models();
+
+      if (!_.includes(models, name)) return res.sendStatus(404);
+
+    }
+  );
+
+  router.get(
+    '/classes/:name/:id',
     express.text({ type: '*/*' }),
     async (req, res) => {
 
-      const { name } = req.params;
-      const func = functions[name];
+      const { name, id } = req.params;
+      const models = await payload.models();
 
-      if (!_.isFunction(func)) return res.sendStatus(404);
+      if (!_.includes(models, name)) return res.sendStatus(404);
 
-      try {
+    }
+  );
 
-        const data = deserialize(req.body);
-        const _payload = Object.setPrototypeOf({
-          ..._.omit(req, 'body'),
-          data: data ?? null,
-        }, payload);
-        const result = await func(_payload);
+  router.put(
+    '/classes/:name/:id',
+    express.text({ type: '*/*' }),
+    async (req, res) => {
+      
+      const { name, id } = req.params;
+      const models = await payload.models();
 
-        res.json(serialize(result));
+      if (!_.includes(models, name)) return res.sendStatus(404);
 
-      } catch (error) {
+    }
+  );
 
-        if (error instanceof String) {
-          res.status(400).json({ message: error });
-        } else if (error instanceof Error) {
-          res.status(400).json({ ...error, message: error.message });
-        } else {
-          res.status(400).json(error);
-        }
-      }
+  router.delete(
+    '/classes/:name/:id',
+    express.text({ type: '*/*' }),
+    async (req, res) => {
+      
+      const { name, id } = req.params;
+      const models = await payload.models();
+
+      if (!_.includes(models, name)) return res.sendStatus(404);
+
     }
   );
 
