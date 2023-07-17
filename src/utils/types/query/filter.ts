@@ -23,15 +23,18 @@
 //  THE SOFTWARE.
 //
 
+type AnyArray<T> = T[] | readonly T[];
+type Unpacked<T> = T extends AnyArray<infer U> ? U : T;
+
 type QuerySelector<T> = {
   $eq?: T;
   $gt?: T;
   $gte?: T;
-  $in?: T[];
+  $in?: T[] extends AnyArray<any> ? Unpacked<T>[] : T[];
   $lt?: T;
   $lte?: T;
   $ne?: T;
-  $nin?: T[];
+  $nin?: T[] extends AnyArray<any> ? Unpacked<T>[] : T[];
   $not?: T extends string ? QuerySelector<T> | RegExp : QuerySelector<T>;
   $exists?: boolean;
   $expr?: any;
