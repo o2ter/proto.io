@@ -98,22 +98,28 @@ export const queryMethods = (query: Query, proto: Proto, acls: string[]) => {
         if (_.isFunction(beforeSave)) await beforeSave(Object.setPrototypeOf({ object }, proto));
 
         const result = await proto.storage.insert(query.model, _.fromPairs(object.keys().map(k => [k, object.get(k)])));
-
         if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result }, proto));
-
         return result;
       },
     },
     findOneAndUpdate: {
-      value: (update: any) => {
+      value: async (update: any) => {
+        const afterSave = proto.triggers?.afterSave?.[query.model];
         if (!_validateCLPs('update')) throw new Error('No permission');
-        return proto.storage.findOneAndUpdate(options(), update);
+
+        const result = await proto.storage.findOneAndUpdate(options(), update);
+        if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result }, proto));
+        return result;
       },
     },
     findOneAndUpsert: {
-      value: (update: any, setOnInsert: any) => {
+      value: async (update: any, setOnInsert: any) => {
+        const afterSave = proto.triggers?.afterSave?.[query.model];
         if (!_validateCLPs('create', 'update')) throw new Error('No permission');
-        return proto.storage.findOneAndUpsert(options(), update, setOnInsert);
+
+        const result = await proto.storage.findOneAndUpsert(options(), update, setOnInsert);
+        if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result }, proto));
+        return result;
       },
     },
     findOneAndDelete: {
