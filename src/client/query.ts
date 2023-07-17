@@ -79,13 +79,7 @@ export const queryMethods = (query: Query, proto: Proto) => {
     },
     [Symbol.asyncIterator]: {
       value: async function* () {
-
-        const result = await proto._request({
-          operation: 'find',
-          ...options(),
-        }, requestOpt) as IOObject[];
-
-        for (const object of result) yield object;
+        for (const object of await query) yield object;
       },
     },
     insert: {
