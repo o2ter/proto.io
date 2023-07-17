@@ -101,19 +101,19 @@ export class IOObject {
     return !_.isEmpty(this[privateKey].mutated);
   }
 
-  increment(key: string, value: any) {
+  increment(key: string, value: number) {
     this[privateKey].mutated[key] = [UpdateOperation.increment, value];
   }
 
-  decrement(key: string, value: any) {
+  decrement(key: string, value: number) {
     this[privateKey].mutated[key] = [UpdateOperation.increment, -value];
   }
 
-  multiply(key: string, value: any) {
+  multiply(key: string, value: number) {
     this[privateKey].mutated[key] = [UpdateOperation.multiply, value];
   }
 
-  divide(key: string, value: any) {
+  divide(key: string, value: number) {
     this[privateKey].mutated[key] = [UpdateOperation.multiply, 1 / value];
   }
 
