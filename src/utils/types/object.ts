@@ -32,6 +32,7 @@ export enum UpdateOperation {
   multiply = 'mul',
   max = 'max',
   min = 'min',
+  addToSet = 'addToSet',
   push = 'push',
   removeAll = 'removeAll',
   popFirst = 'popFirst',
@@ -124,12 +125,16 @@ export class IOObject {
     this[privateKey].mutated[key] = [UpdateOperation.min, value];
   }
 
-  push(key: string, value: any) {
-    this[privateKey].mutated[key] = [UpdateOperation.push, value];
+  addToSet(key: string, values: any[]) {
+    this[privateKey].mutated[key] = [UpdateOperation.addToSet, values];
   }
 
-  removeAll(key: string, value: any) {
-    this[privateKey].mutated[key] = [UpdateOperation.removeAll, value];
+  push(key: string, values: any[]) {
+    this[privateKey].mutated[key] = [UpdateOperation.push, values];
+  }
+
+  removeAll(key: string, values: any[]) {
+    this[privateKey].mutated[key] = [UpdateOperation.removeAll, values];
   }
 
   popFirst(key: string) {
