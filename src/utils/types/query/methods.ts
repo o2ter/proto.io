@@ -63,24 +63,25 @@ const asyncIterableToArray = async <T>(asyncIterable: AsyncIterable<T>) => {
 export const queryMethods = (
   query: Query,
   proto: Proto,
-  acls: string[],
   master: boolean,
 ) => {
 
+  const acls = () => _.map(proto.roles(), x => `role:${x}`);
+
   const options = () => ({
-    acls, master,
+    acls: acls(), master,
     model: query.model,
     ...query.options,
   });
 
   const _validateCLPs = (...keys: (keyof PSchema.CLPs)[]) => validateCLPs(
     proto.schema[query.model]?.classLevelPermissions ?? {},
-    keys, acls,
+    keys, acls(),
   );
 
   const props = {
     count: {
-      value: () => {
+      value: async () => {
         if (!master && !_validateCLPs('count')) throw new Error('No permission');
         return proto.storage.count(options());
       },
@@ -90,11 +91,9 @@ export const queryMethods = (
         return asyncIterableToArray(query).then;
       },
     },
-    [Symbol.asyncIterator]: {
-      get() {
-        if (!master && !_validateCLPs('find')) throw new Error('No permission');
-        return proto.storage.find(options())[Symbol.asyncIterator];
-      },
+    async *[Symbol.asyncIterator]() {
+      if (!master && !_validateCLPs('find')) throw new Error('No permission');
+      for await (const object of proto.storage.find(options())) yield object;
     },
     insert: {
       value: async (attrs: any) => {

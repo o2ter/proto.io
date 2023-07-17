@@ -32,11 +32,19 @@ import { PObject } from './object';
 import { queryMethods } from './query/methods';
 
 type Callback<T, R> = (request: Proto & T) => R | PromiseLike<R>;
+type ProtoFunction = Callback<{ data: IOSerializable; }, IOSerializable>;
+
+type Validator = {
+  requireUser?: boolean;
+  requireMaster?: boolean;
+  requireAnyUserRoles?: string[];
+  requireAllUserRoles?: string[];
+};
 
 export type ProtoOptions = {
   schema: Record<string, PSchema>;
   storage: PStorage;
-  functions?: Record<string, Callback<{ data: IOSerializable; }, IOSerializable>>;
+  functions?: Record<string, ProtoFunction | { callback: ProtoFunction; validator?: Validator }>;
   triggers?: {
     beforeSave?: Record<string, Callback<{ object: PObject; }, void>>;
     afterSave?: Record<string, Callback<{ object: PObject; }, void>>;
@@ -58,7 +66,11 @@ export class Proto {
   }
 
   query(model: string, master?: boolean): Query {
-    return queryMethods(new Query(model), this, [], master ?? false);
+    return queryMethods(new Query(model), this, master ?? false);
+  }
+
+  roles(): string[] {
+    return []
   }
 
   get schema(): ProtoOptions['schema'] {
@@ -81,10 +93,18 @@ export class Proto {
     await this.storage.prepare(this.schema);
   }
 
-  async run(name: string, data?: IOSerializable) {
+  async run(name: string, data?: IOSerializable, master?: boolean) {
+
     const func = this.#options.functions?.[name];
     const payload = Object.setPrototypeOf({ data: data ?? null }, this);
-    return _.isFunction(func) ? func(payload) : null;
+
+    if (_.isFunction(func)) return func(payload);
+
+    const { callback, validator } = func ?? {};
+
+    if (!!validator?.requireMaster && !master) throw new Error('No permission');
+
+    return _.isFunction(callback) ? callback(payload) : null;
   }
 
 }
