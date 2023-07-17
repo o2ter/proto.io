@@ -33,6 +33,7 @@ declare module './index' {
     count: () => PromiseLike<number>;
     then: Promise<PObject[]>['then'];
     [Symbol.asyncIterator]: AsyncIterator<PObject>;
+    insert: (attrs: any) => PromiseLike<PObject | undefined>;
     findOneAndUpdate: (update: any) => PromiseLike<PObject | undefined>;
     findOneAndUpsert: (update: any, setOnInsert: any) => PromiseLike<PObject | undefined>;
     findOneAndDelete: () => PromiseLike<PObject | undefined>;

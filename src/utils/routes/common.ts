@@ -29,13 +29,13 @@ import { PObject } from '../types';
 
 export const response = async <T extends IOSerializable<PObject>>(
   res: Response,
-  callback: () => Promise<T>,
+  callback: () => Promise<T | undefined>,
 ) => {
 
   try {
 
     const data = await callback();
-    res.type('application/json').send(serialize(data));
+    res.type('application/json').send(serialize(data ?? null));
 
   } catch (error) {
 

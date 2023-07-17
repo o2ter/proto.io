@@ -32,6 +32,7 @@ declare module './index' {
   export interface Query {
     count: () => PromiseLike<number>;
     then: Promise<PObject[]>['then'];
+    insert: (attrs: any) => PromiseLike<PObject | undefined>;
     findOneAndUpdate: (update: any) => PromiseLike<PObject | undefined>;
     findOneAndUpsert: (update: any, setOnInsert: any) => PromiseLike<PObject | undefined>;
     findOneAndDelete: () => PromiseLike<PObject | undefined>;
@@ -68,7 +69,7 @@ export const queryMethods = (query: Query, proto: Proto) => {
     insert: {
       value: (attrs: any) => proto._request({
         operation: 'insert',
-        attrs,
+        attributes: attrs,
       }, requestOpt),
     },
     findOneAndUpdate: {

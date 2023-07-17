@@ -35,7 +35,7 @@ export default (router: Router, payload: Proto) => {
     '/classes/:name',
     express.text({ type: '*/*' }),
     async (req, res) => {
-      
+
       const { name } = req.params;
       const models = await payload.models();
 
@@ -43,8 +43,27 @@ export default (router: Router, payload: Proto) => {
 
       await response(res, async () => {
 
-        const data = deserialize(req.body);
+        const {
+          operation = 'insert',
+          attributes,
+          update,
+          setOnInsert,
+          ...options
+        }: any = deserialize(req.body);
 
+        const query = payload.query(name);
+        query.options = options;
+
+        switch (operation) {
+          case 'count': return query.count();
+          case 'find': return await query;
+          case 'insert': return query.insert(attributes);
+          case 'findOneAndUpdate': return query.findOneAndUpdate(update);
+          case 'findOneAndUpsert': return query.findOneAndUpsert(update, setOnInsert);
+          case 'findOneAndDelete': return query.findOneAndDelete();
+          case 'findAndDelete': return query.findAndDelete();
+          default: throw new Error('Invalid operation');
+        }
       });
     }
   );
@@ -53,7 +72,7 @@ export default (router: Router, payload: Proto) => {
     '/classes/:name',
     express.text({ type: '*/*' }),
     async (req, res) => {
-      
+
       const { name } = req.params;
       const models = await payload.models();
 
@@ -86,7 +105,7 @@ export default (router: Router, payload: Proto) => {
     '/classes/:name/:id',
     express.text({ type: '*/*' }),
     async (req, res) => {
-      
+
       const { name, id } = req.params;
       const models = await payload.models();
 
@@ -104,7 +123,7 @@ export default (router: Router, payload: Proto) => {
     '/classes/:name/:id',
     express.text({ type: '*/*' }),
     async (req, res) => {
-      
+
       const { name, id } = req.params;
       const models = await payload.models();
 
