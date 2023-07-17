@@ -97,6 +97,10 @@ export class IOObject {
     this[privateKey].mutated[key] = [UpdateOperation.set, value];
   }
 
+  unset(key: string) {
+    this[privateKey].mutated[key] = [UpdateOperation.set, null];
+  }
+
   get isDirty(): boolean {
     return !_.isEmpty(this[privateKey].mutated);
   }
