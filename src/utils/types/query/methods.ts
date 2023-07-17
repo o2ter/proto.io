@@ -48,24 +48,19 @@ const asyncIterableToArray = async <T>(asyncIterable: AsyncIterable<T>) => {
 }
 
 export const objectMethods = (
-  object: PObject,
+  object: PObject | undefined,
   proto: Proto,
-) => {
-
-  const props = {
-    save: {
-      value: async (master?: boolean) => {
-      },
+) => object ? Object.defineProperties(object, {
+  save: {
+    value: async (master?: boolean) => {
     },
-    destory: {
-      value: async (master?: boolean) => {
-        await proto.query(object.className, master).filter({ _id: object.objectId }).findOneAndDelete();
-      },
+  },
+  destory: {
+    value: async (master?: boolean) => {
+      await proto.query(object.className, master).filter({ _id: object.objectId }).findOneAndDelete();
     },
-  }
-
-  return Object.defineProperties(object, props);
-}
+  },
+}) : undefined;
 
 export const queryMethods = (
   query: Query,
@@ -102,7 +97,7 @@ export const queryMethods = (
       },
     },
     [Symbol.asyncIterator]: {
-      value: async function*() {
+      value: async function* () {
         if (!master && !_validateCLPs('find')) throw new Error('No permission');
         for await (const object of proto.storage.find(options())) yield objectMethods(object, proto);
       },
@@ -113,10 +108,13 @@ export const queryMethods = (
         const afterSave = proto.triggers?.afterSave?.[query.model];
         if (!master && !_validateCLPs('create')) throw new Error('No permission');
 
-        const object = new PObject(query.model, _.omit(attrs, '_id', '_created_at', '_updated_at'));
+        const object = objectMethods(new PObject(query.model, _.omit(attrs, '_id', '_created_at', '_updated_at')), proto) as PObject;
         if (_.isFunction(beforeSave)) await beforeSave(Object.setPrototypeOf({ object }, proto));
 
-        const result = await proto.storage.insert(query.model, _.fromPairs(object.keys().map(k => [k, object.get(k)])));
+        const result = objectMethods(
+          await proto.storage.insert(query.model, _.fromPairs(object.keys().map(k => [k, object.get(k)]))),
+          proto,
+        );
         if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result }, proto));
         return result;
       },
@@ -128,7 +126,10 @@ export const queryMethods = (
         const afterSave = proto.triggers?.afterSave?.[query.model];
         if (!master && !_validateCLPs('update')) throw new Error('No permission');
 
-        const result = await proto.storage.findOneAndUpdate(options(), update);
+        const result = objectMethods(
+          await proto.storage.findOneAndUpdate(options(), update),
+          proto,
+        );
         if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result }, proto));
         return result;
       },
@@ -140,7 +141,10 @@ export const queryMethods = (
         const afterSave = proto.triggers?.afterSave?.[query.model];
         if (!master && !_validateCLPs('create', 'update')) throw new Error('No permission');
 
-        const result = await proto.storage.findOneAndUpsert(options(), update, setOnInsert);
+        const result = objectMethods(
+          await proto.storage.findOneAndUpsert(options(), update, setOnInsert),
+          proto,
+        );
         if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result }, proto));
         return result;
       },
@@ -155,17 +159,26 @@ export const queryMethods = (
 
         if (_.isFunction(beforeDelete)) {
 
-          const [object] = await asyncIterableToArray(proto.storage.find({ ...options(), limit: 1 }));
+          const [object] = _.map(
+            await asyncIterableToArray(proto.storage.find({ ...options(), limit: 1 })),
+            x => objectMethods(x, proto),
+          );
           if (!object) return undefined;
           await beforeDelete(Object.setPrototypeOf({ object }, proto));
 
-          result = await proto.storage.findOneAndDelete({
-            ...options(),
-            filter: { _id: object.objectId },
-          });
+          result = objectMethods(
+            await proto.storage.findOneAndDelete({
+              ...options(),
+              filter: { _id: object.objectId },
+            }),
+            proto,
+          );
 
         } else {
-          result = await proto.storage.findOneAndDelete(options());
+          result = objectMethods(
+            await proto.storage.findOneAndDelete(options()),
+            proto,
+          );
         }
 
         if (result && _.isFunction(afterDelete)) await afterDelete(Object.setPrototypeOf({ object: result }, proto));
@@ -180,7 +193,10 @@ export const queryMethods = (
 
         if (_.isFunction(beforeDelete) || _.isFunction(afterDelete)) {
 
-          const objects = await asyncIterableToArray(proto.storage.find(options()));
+          const objects = _.map(
+            await asyncIterableToArray(proto.storage.find(options())),
+            x => objectMethods(x, proto),
+          );
           if (_.isEmpty(objects)) return 0;
 
           if (_.isFunction(beforeDelete)) {
