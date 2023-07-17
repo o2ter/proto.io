@@ -50,8 +50,8 @@ export type ProtoOptions = {
   triggers?: {
     beforeSave?: Record<string, Callback<{ object: IOObject; context: object; }, void>>;
     afterSave?: Record<string, Callback<{ object: IOObject; context: object; }, void>>;
-    beforeDelete?: Record<string, Callback<{ object: IOObject; }, void>>;
-    afterDelete?: Record<string, Callback<{ object: IOObject; }, void>>;
+    beforeDelete?: Record<string, Callback<{ object: IOObject; context: object; }, void>>;
+    afterDelete?: Record<string, Callback<{ object: IOObject; context: object; }, void>>;
   },
 };
 

@@ -173,6 +173,7 @@ export const queryMethods = (
         const afterDelete = proto.triggers?.afterDelete?.[query.className];
         if (!master && !_validateCLPs('delete')) throw new Error('No permission');
 
+        const context = {};
         let result: IOObject | undefined;
 
         if (_.isFunction(beforeDelete)) {
@@ -180,7 +181,7 @@ export const queryMethods = (
           const object = objectMethods(_.first(await asyncIterableToArray(proto.storage.find({ ...options(), limit: 1 }))), proto);
           if (!object) return undefined;
 
-          await beforeDelete(Object.setPrototypeOf({ object }, proto));
+          await beforeDelete(Object.setPrototypeOf({ object, context }, proto));
 
           result = objectMethods(
             await proto.storage.findOneAndDelete({
@@ -197,7 +198,7 @@ export const queryMethods = (
           );
         }
 
-        if (result && _.isFunction(afterDelete)) await afterDelete(Object.setPrototypeOf({ object: result }, proto));
+        if (result && _.isFunction(afterDelete)) await afterDelete(Object.setPrototypeOf({ object: result, context }, proto));
         return result;
       },
     },
@@ -212,8 +213,14 @@ export const queryMethods = (
           const objects = objectMethods(await asyncIterableToArray(proto.storage.find(options())), proto);
           if (_.isEmpty(objects)) return 0;
 
+          const context: Record<string, any> = {};
+          objects.forEach(x => context[x.objectId as string] = {});
+
           if (_.isFunction(beforeDelete)) {
-            await Promise.all(_.map(objects, object => beforeDelete(Object.setPrototypeOf({ object }, proto))));
+            await Promise.all(_.map(objects, object => beforeDelete(Object.setPrototypeOf({
+              object,
+              context: context[object.objectId as string],
+            }, proto))));
           }
 
           await proto.storage.findAndDelete({
@@ -222,7 +229,10 @@ export const queryMethods = (
           });
 
           if (_.isFunction(afterDelete)) {
-            await Promise.all(_.map(objects, object => afterDelete(Object.setPrototypeOf({ object }, proto))));
+            await Promise.all(_.map(objects, object => afterDelete(Object.setPrototypeOf({
+              object,
+              context: context[object.objectId as string],
+            }, proto))));
           }
 
           return objects.length;
