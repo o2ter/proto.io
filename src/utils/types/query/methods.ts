@@ -123,10 +123,23 @@ export const queryMethods = (
     },
     findOneAndUpdate: {
       value: async (update: Record<string, any>) => {
-        //FIXME: beforeSave does not implement yet.
         const beforeSave = proto.triggers?.beforeSave?.[query.className];
         const afterSave = proto.triggers?.afterSave?.[query.className];
         if (!master && !_validateCLPs('update')) throw new Error('No permission');
+
+        if (_.isFunction(beforeSave)) {
+
+          const [object] = _.map(
+            await asyncIterableToArray(proto.storage.find({ ...options(), limit: 1 })),
+            x => objectMethods(x, proto),
+          );
+
+          if (!object) return undefined;
+          object[privateKey].mutated = update;
+          await beforeSave(Object.setPrototypeOf({ object }, proto));
+
+          update = object[privateKey].mutated;
+        }
 
         const result = objectMethods(
           await proto.storage.findOneAndUpdate(options(), update),
