@@ -55,6 +55,10 @@ export class Proto {
     this.options = options;
   }
 
+  object(model: string) {
+    return objectMethods(new PObject(model), this);
+  }
+
   query(model: string): Query {
     return queryMethods(new Query(model), this);
   }
