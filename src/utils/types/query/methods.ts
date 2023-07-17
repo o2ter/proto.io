@@ -42,7 +42,7 @@ declare module './index' {
   }
 }
 
-const validateCLPs = (clps: PSchema.CLPs, acls: string[]) => {
+const validateCLPs = (clps: PSchema.CLPs, keys: (keyof PSchema.CLPs)[], acls: string[]) => {
   return true;
 }
 
@@ -54,22 +54,23 @@ export const queryMethods = (query: Query, proto: Proto, acls: string[]) => {
     ...query.options,
   });
 
-  const _validateCLPs = () => validateCLPs(
+  const _validateCLPs = (...keys: (keyof PSchema.CLPs)[]) => validateCLPs(
     proto.schema[query.model]?.classLevelPermissions ?? {},
+    keys,
     acls,
   );
 
   const props = {
     count: {
       value: () => {
-        if (!_validateCLPs()) throw new Error('No permission');
+        if (!_validateCLPs('count')) throw new Error('No permission');
         return proto.storage.count(options());
       },
     },
     then: {
       get() {
         const result = (async () => {
-          if (!_validateCLPs()) throw new Error('No permission');
+          if (!_validateCLPs('find')) throw new Error('No permission');
           const array: PObject[] = [];
           for await (const obj of proto.storage.find(options())) array.push(obj);
           return array;
@@ -79,37 +80,37 @@ export const queryMethods = (query: Query, proto: Proto, acls: string[]) => {
     },
     [Symbol.asyncIterator]: {
       get() {
-        if (!_validateCLPs()) throw new Error('No permission');
+        if (!_validateCLPs('find')) throw new Error('No permission');
         return proto.storage.find(options())[Symbol.asyncIterator];
       },
     },
     insert: {
       value: (attrs: any) => {
-        if (!_validateCLPs()) throw new Error('No permission');
+        if (!_validateCLPs('create')) throw new Error('No permission');
         return proto.storage.insert(query.model, attrs);
       },
     },
     findOneAndUpdate: {
       value: (update: any) => {
-        if (!_validateCLPs()) throw new Error('No permission');
+        if (!_validateCLPs('update')) throw new Error('No permission');
         return proto.storage.findOneAndUpdate(options(), update);
       },
     },
     findOneAndUpsert: {
       value: (update: any, setOnInsert: any) => {
-        if (!_validateCLPs()) throw new Error('No permission');
+        if (!_validateCLPs('create', 'update')) throw new Error('No permission');
         return proto.storage.findOneAndUpsert(options(), update, setOnInsert);
       },
     },
     findOneAndDelete: {
       value: () => {
-        if (!_validateCLPs()) throw new Error('No permission');
+        if (!_validateCLPs('delete')) throw new Error('No permission');
         return proto.storage.findOneAndDelete(options());
       },
     },
     findAndDelete: {
       value: () => {
-        if (!_validateCLPs()) throw new Error('No permission');
+        if (!_validateCLPs('delete')) throw new Error('No permission');
         return proto.storage.findAndDelete(options());
       },
     },

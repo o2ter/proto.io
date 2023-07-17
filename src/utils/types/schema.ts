@@ -30,7 +30,6 @@ export namespace PSchema {
   export type DataType = Primitive | { type: Primitive } | { type: Relation, target: string };
   export type CLPs = {
     find?: PSchema.ACL;
-    get?: PSchema.ACL;
     count?: PSchema.ACL;
     create?: PSchema.ACL;
     update?: PSchema.ACL;
