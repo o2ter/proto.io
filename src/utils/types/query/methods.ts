@@ -30,6 +30,7 @@ import { PObject } from '../object';
 
 declare module './index' {
   export interface Query {
+    count: () => PromiseLike<number>;
     then: Promise<PObject[]>['then'];
     [Symbol.asyncIterator]: AsyncIterator<PObject>;
   }
@@ -44,6 +45,11 @@ export const queryMethods = (query: Query, storage: PStorage, acls: string[]) =>
   });
 
   const props = {
+    count: {
+      value: () => {
+        return storage.count(options());
+      },
+    },
     then: {
       get() {
         const result = (async () => {
