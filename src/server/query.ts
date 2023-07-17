@@ -114,14 +114,16 @@ export const queryMethods = (
         const afterSave = proto.triggers?.afterSave?.[query.className];
         if (!master && !_validateCLPs('create')) throw new Error('No permission');
 
+        const context = {};
+
         const object = objectMethods(new IOObject(query.className, _.omit(attrs, '_id', '_created_at', '_updated_at')), proto);
-        if (_.isFunction(beforeSave)) await beforeSave(Object.setPrototypeOf({ object }, proto));
+        if (_.isFunction(beforeSave)) await beforeSave(Object.setPrototypeOf({ object, context }, proto));
 
         const result = objectMethods(
           await proto.storage.insert(query.className, _.fromPairs(object.keys().map(k => [k, object.get(k)]))),
           proto,
         );
-        if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result }, proto));
+        if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, proto));
         return result;
       },
     },
@@ -131,13 +133,15 @@ export const queryMethods = (
         const afterSave = proto.triggers?.afterSave?.[query.className];
         if (!master && !_validateCLPs('update')) throw new Error('No permission');
 
+        const context = {};
+
         if (_.isFunction(beforeSave)) {
 
           const object = objectMethods(_.first(await asyncIterableToArray(proto.storage.find({ ...options(), limit: 1 }))), proto);
           if (!object) return undefined;
 
           object[PVK].mutated = update;
-          await beforeSave(Object.setPrototypeOf({ object }, proto));
+          await beforeSave(Object.setPrototypeOf({ object, context }, proto));
 
           update = object[PVK].mutated;
         }
@@ -146,7 +150,7 @@ export const queryMethods = (
           await proto.storage.findOneAndUpdate(options(), update),
           proto,
         );
-        if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result }, proto));
+        if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, proto));
         return result;
       },
     },

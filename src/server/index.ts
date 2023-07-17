@@ -48,8 +48,8 @@ export type ProtoOptions = {
   storage: IOStorage;
   functions?: Record<string, ProtoFunction | { callback: ProtoFunction; validator?: Validator }>;
   triggers?: {
-    beforeSave?: Record<string, Callback<{ object: IOObject; }, void>>;
-    afterSave?: Record<string, Callback<{ object: IOObject; }, void>>;
+    beforeSave?: Record<string, Callback<{ object: IOObject; context: object; }, void>>;
+    afterSave?: Record<string, Callback<{ object: IOObject; context: object; }, void>>;
     beforeDelete?: Record<string, Callback<{ object: IOObject; }, void>>;
     afterDelete?: Record<string, Callback<{ object: IOObject; }, void>>;
   },
