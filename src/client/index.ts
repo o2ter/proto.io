@@ -30,6 +30,7 @@ import { IOSerializable, serialize, deserialize } from '../utils/codec';
 import { Query } from '../utils/types/query';
 import { objectMethods, queryMethods } from './query';
 import { IOObject } from '../utils/types/object';
+import { IOUser } from '../utils/types/user';
 
 export * from '../utils/codec';
 
@@ -55,7 +56,7 @@ export class Proto {
   }
 
   object(className: string) {
-    return objectMethods(new IOObject(className), this);
+    return objectMethods(className === '_User' ? new IOUser : new IOObject(className), this);
   }
 
   query(className: string): Query {

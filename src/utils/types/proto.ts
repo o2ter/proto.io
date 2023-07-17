@@ -72,7 +72,7 @@ export class Proto {
   }
 
   object(className: string) {
-    return objectMethods(new IOObject(className), this);
+    return objectMethods(className === '_User' ? new IOUser : new IOObject(className), this);
   }
 
   query(className: string, master?: boolean): Query {

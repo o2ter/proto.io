@@ -28,4 +28,9 @@ import { IOObject } from './object';
 
 export class IOUser extends IOObject {
 
+  constructor(
+    attributes?: Record<string, any> | ((self: IOObject) => Record<string, any>),
+  ) {
+    super('_User', attributes);
+  }
 }
