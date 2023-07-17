@@ -107,7 +107,10 @@ export class Proto {
 
     const { callback, validator } = func ?? {};
 
+    if (!!validator?.requireUser && !this.user) throw new Error('No permission');
     if (!!validator?.requireMaster && !master) throw new Error('No permission');
+    if (!_.find(validator?.requireAnyUserRoles, x => _.includes(this.roles, x))) throw new Error('No permission');
+    if (_.find(validator?.requireAllUserRoles, x => !_.includes(this.roles, x))) throw new Error('No permission');
 
     return _.isFunction(callback) ? callback(payload) : null;
   }
