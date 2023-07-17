@@ -46,7 +46,7 @@ export interface IOObject {
 export class IOObject {
 
   [privateKey]: {
-    className: string;  
+    className: string;
     attributes: Record<string, any>;
     mutated: Record<string, [UpdateOperation, any]>;
   };
@@ -99,4 +99,37 @@ export class IOObject {
   get isDirty(): boolean {
     return !_.isEmpty(this[privateKey].mutated);
   }
+
+  increment(key: string, value: any) {
+    this[privateKey].mutated[key] = [UpdateOperation.increment, value];
+  }
+
+  multiply(key: string, value: any) {
+    this[privateKey].mutated[key] = [UpdateOperation.multiply, value];
+  }
+
+  max(key: string, value: any) {
+    this[privateKey].mutated[key] = [UpdateOperation.max, value];
+  }
+
+  min(key: string, value: any) {
+    this[privateKey].mutated[key] = [UpdateOperation.min, value];
+  }
+
+  push(key: string, value: any) {
+    this[privateKey].mutated[key] = [UpdateOperation.push, value];
+  }
+
+  removeAll(key: string, value: any) {
+    this[privateKey].mutated[key] = [UpdateOperation.removeAll, value];
+  }
+
+  popFirst(key: string, value: any) {
+    this[privateKey].mutated[key] = [UpdateOperation.popFirst, null];
+  }
+
+  popLast(key: string, value: any) {
+    this[privateKey].mutated[key] = [UpdateOperation.popLast, null];
+  }
+
 }
