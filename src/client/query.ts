@@ -81,13 +81,9 @@ export const queryMethods = (query: Query, proto: Proto) => {
         const result = await proto._request({
           operation: 'find',
           ...options(),
-        }, requestOpt);
+        }, requestOpt) as PObject[];
 
-        if (_.isArray(result)) {
-          for (const object of result) yield object;
-        } else {
-          yield result;
-        }
+        for (const object of result) yield object;
       },
     },
     insert: {
