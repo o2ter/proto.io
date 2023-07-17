@@ -54,12 +54,12 @@ export class Proto {
     this.options = options;
   }
 
-  object(model: string) {
-    return objectMethods(new IOObject(model), this);
+  object(className: string) {
+    return objectMethods(new IOObject(className), this);
   }
 
-  query(model: string): Query {
-    return queryMethods(new Query(model), this);
+  query(className: string): Query {
+    return queryMethods(new Query(className), this);
   }
 
   async _request(data?: IOSerializable, options?: any) {

@@ -54,7 +54,7 @@ export class MongoStorage implements IOStorage {
     this.schema = schema;
   }
 
-  models() {
+  classes() {
     return Object.keys(this.schema);
   }
 

@@ -67,16 +67,16 @@ export class Proto {
     };
   }
 
-  models(): string[] | PromiseLike<string[]> {
-    return this.storage.models();
+  classes(): string[] | PromiseLike<string[]> {
+    return this.storage.classes();
   }
 
-  object(model: string) {
-    return objectMethods(new IOObject(model), this);
+  object(className: string) {
+    return objectMethods(new IOObject(className), this);
   }
 
-  query(model: string, master?: boolean): Query {
-    return queryMethods(new Query(model), this, master ?? false);
+  query(className: string, master?: boolean): Query {
+    return queryMethods(new Query(className), this, master ?? false);
   }
 
   get user(): IOUser | undefined {

@@ -34,7 +34,7 @@ export class MemoryStorage implements IOStorage {
     this.schema = schema;
   }
 
-  models() {
+  classes() {
     return Object.keys(this.schema);
   }
 

@@ -55,13 +55,13 @@ export const objectMethods = (
 export const queryMethods = (query: Query, proto: Proto) => {
 
   const options = () => ({
-    model: query.model,
-    ...query.options,
+    className: query[privateKey].className,
+    ...query[privateKey].options,
   }) as any;
 
   const requestOpt = {
     method: 'post',
-    url: `classes/${query.model}`,
+    url: `classes/${query.className}`,
   };
 
   const props = {

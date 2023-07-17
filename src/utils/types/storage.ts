@@ -28,19 +28,19 @@ import { IOObject } from './object';
 import { Query } from './query';
 import { IOSchema } from './schema';
 
-type CommonFindOptions = { model: string; acls: string[]; master: boolean; };
+type CommonFindOptions = { className: string; acls: string[]; master: boolean; };
 type FindOptions = CommonFindOptions & Omit<Query.Options, 'returning'>;
 type FindOneOptions = CommonFindOptions & Omit<Query.Options, 'skip' | 'limit'>;
 
 export interface IOStorage {
 
   prepare(schema: Record<string, IOSchema>): void | PromiseLike<void>;
-  models(): string[] | PromiseLike<string[]>;
+  classes(): string[] | PromiseLike<string[]>;
 
   count(query: FindOptions): PromiseLike<number>;
   find(query: FindOptions): AsyncIterable<IOObject>;
 
-  insert(model: string, attrs: any): PromiseLike<IOObject | undefined>;
+  insert(className: string, attrs: any): PromiseLike<IOObject | undefined>;
 
   findOneAndUpdate(query: FindOneOptions, update: any): PromiseLike<IOObject | undefined>;
   findOneAndUpsert(query: FindOneOptions, update: any, setOnInsert: any): PromiseLike<IOObject | undefined>;

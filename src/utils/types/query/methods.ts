@@ -28,6 +28,7 @@ import { Query } from './index';
 import { Proto } from '../proto';
 import { IOObject } from '../object';
 import { IOSchema } from '../schema';
+import { privateKey } from '../private';
 
 const validateCLPs = (
   clps: IOSchema.CLPs,
@@ -75,12 +76,12 @@ export const queryMethods = (
 
   const options = () => ({
     acls: acls(), master,
-    model: query.model,
-    ...query.options,
+    className: query.className,
+    ...query[privateKey].options,
   });
 
   const _validateCLPs = (...keys: (keyof IOSchema.CLPs)[]) => validateCLPs(
-    proto.schema[query.model]?.classLevelPermissions ?? {},
+    proto.schema[query.className]?.classLevelPermissions ?? {},
     keys, acls(),
   );
 
@@ -104,15 +105,15 @@ export const queryMethods = (
     },
     insert: {
       value: async (attrs: any) => {
-        const beforeSave = proto.triggers?.beforeSave?.[query.model];
-        const afterSave = proto.triggers?.afterSave?.[query.model];
+        const beforeSave = proto.triggers?.beforeSave?.[query.className];
+        const afterSave = proto.triggers?.afterSave?.[query.className];
         if (!master && !_validateCLPs('create')) throw new Error('No permission');
 
-        const object = objectMethods(new IOObject(query.model, _.omit(attrs, '_id', '_created_at', '_updated_at')), proto) as IOObject;
+        const object = objectMethods(new IOObject(query.className, _.omit(attrs, '_id', '_created_at', '_updated_at')), proto) as IOObject;
         if (_.isFunction(beforeSave)) await beforeSave(Object.setPrototypeOf({ object }, proto));
 
         const result = objectMethods(
-          await proto.storage.insert(query.model, _.fromPairs(object.keys().map(k => [k, object.get(k)]))),
+          await proto.storage.insert(query.className, _.fromPairs(object.keys().map(k => [k, object.get(k)]))),
           proto,
         );
         if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result }, proto));
@@ -122,8 +123,8 @@ export const queryMethods = (
     findOneAndUpdate: {
       value: async (update: Record<string, any>) => {
         //FIXME: beforeSave does not implement yet.
-        const beforeSave = proto.triggers?.beforeSave?.[query.model];
-        const afterSave = proto.triggers?.afterSave?.[query.model];
+        const beforeSave = proto.triggers?.beforeSave?.[query.className];
+        const afterSave = proto.triggers?.afterSave?.[query.className];
         if (!master && !_validateCLPs('update')) throw new Error('No permission');
 
         const result = objectMethods(
@@ -137,8 +138,8 @@ export const queryMethods = (
     findOneAndUpsert: {
       value: async (update: Record<string, any>, setOnInsert: Record<string, any>) => {
         //FIXME: beforeSave does not implement yet.
-        const beforeSave = proto.triggers?.beforeSave?.[query.model];
-        const afterSave = proto.triggers?.afterSave?.[query.model];
+        const beforeSave = proto.triggers?.beforeSave?.[query.className];
+        const afterSave = proto.triggers?.afterSave?.[query.className];
         if (!master && !_validateCLPs('create', 'update')) throw new Error('No permission');
 
         const result = objectMethods(
@@ -151,8 +152,8 @@ export const queryMethods = (
     },
     findOneAndDelete: {
       value: async () => {
-        const beforeDelete = proto.triggers?.beforeDelete?.[query.model];
-        const afterDelete = proto.triggers?.afterDelete?.[query.model];
+        const beforeDelete = proto.triggers?.beforeDelete?.[query.className];
+        const afterDelete = proto.triggers?.afterDelete?.[query.className];
         if (!master && !_validateCLPs('delete')) throw new Error('No permission');
 
         let result: IOObject | undefined;
@@ -187,8 +188,8 @@ export const queryMethods = (
     },
     findAndDelete: {
       value: async () => {
-        const beforeDelete = proto.triggers?.beforeDelete?.[query.model];
-        const afterDelete = proto.triggers?.afterDelete?.[query.model];
+        const beforeDelete = proto.triggers?.beforeDelete?.[query.className];
+        const afterDelete = proto.triggers?.afterDelete?.[query.className];
         if (!master && !_validateCLPs('delete')) throw new Error('No permission');
 
         if (_.isFunction(beforeDelete) || _.isFunction(afterDelete)) {

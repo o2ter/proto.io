@@ -29,6 +29,7 @@ import queryType from 'query-types';
 import { Proto } from '../types';
 import { deserialize } from '../codec';
 import { response } from './common';
+import { privateKey } from '../types/private';
 
 export default (router: Router, payload: Proto) => {
 
@@ -38,9 +39,9 @@ export default (router: Router, payload: Proto) => {
     async (req, res) => {
 
       const { name } = req.params;
-      const models = await payload.models();
+      const classes = await payload.classes();
 
-      if (!_.includes(models, name)) return res.sendStatus(404);
+      if (!_.includes(classes, name)) return res.sendStatus(404);
 
       await response(res, async () => {
 
@@ -56,7 +57,7 @@ export default (router: Router, payload: Proto) => {
           ..._.omit(req, 'body'),
         }, payload);
         const query = _payload.query(name);
-        query.options = options;
+        query[privateKey].options = options;
 
         switch (operation) {
           case 'count': return query.count();
@@ -79,9 +80,9 @@ export default (router: Router, payload: Proto) => {
     async (req, res) => {
 
       const { name } = req.params;
-      const models = await payload.models();
+      const classes = await payload.classes();
 
-      if (!_.includes(models, name)) return res.sendStatus(404);
+      if (!_.includes(classes, name)) return res.sendStatus(404);
 
       const query = payload.query(name);
 
@@ -96,12 +97,12 @@ export default (router: Router, payload: Proto) => {
           returning,
         } = req.query;
 
-        query.options.filter = _.isEmpty(filter) && _.isString(filter) ? _.castArray(deserialize(filter)) as any : [];
-        query.options.sort = _.isPlainObject(sort) && _.every(_.values(sort), _.isNumber) ? sort as any : undefined;
-        query.options.includes = _.isArray(includes) && _.every(includes, _.isString) ? includes as any : undefined;
-        query.options.skip = _.isNumber(skip) ? skip : undefined;
-        query.options.limit = _.isNumber(limit) ? limit : undefined;
-        query.options.returning = _.includes(['old', 'new'], returning) ? returning as any : undefined;
+        query[privateKey].options.filter = _.isEmpty(filter) && _.isString(filter) ? _.castArray(deserialize(filter)) as any : [];
+        query[privateKey].options.sort = _.isPlainObject(sort) && _.every(_.values(sort), _.isNumber) ? sort as any : undefined;
+        query[privateKey].options.includes = _.isArray(includes) && _.every(includes, _.isString) ? includes as any : undefined;
+        query[privateKey].options.skip = _.isNumber(skip) ? skip : undefined;
+        query[privateKey].options.limit = _.isNumber(limit) ? limit : undefined;
+        query[privateKey].options.returning = _.includes(['old', 'new'], returning) ? returning as any : undefined;
 
         return await query;
       });
@@ -116,9 +117,9 @@ export default (router: Router, payload: Proto) => {
       if (!_.isEmpty(req.body)) return res.sendStatus(400);
 
       const { name, id } = req.params;
-      const models = await payload.models();
+      const classes = await payload.classes();
 
-      if (!_.includes(models, name)) return res.sendStatus(404);
+      if (!_.includes(classes, name)) return res.sendStatus(404);
 
       const _payload = Object.setPrototypeOf({
         ..._.omit(req, 'body'),
@@ -138,9 +139,9 @@ export default (router: Router, payload: Proto) => {
     async (req, res) => {
 
       const { name, id } = req.params;
-      const models = await payload.models();
+      const classes = await payload.classes();
 
-      if (!_.includes(models, name)) return res.sendStatus(404);
+      if (!_.includes(classes, name)) return res.sendStatus(404);
 
       const _payload = Object.setPrototypeOf({
         ..._.omit(req, 'body'),
@@ -159,9 +160,9 @@ export default (router: Router, payload: Proto) => {
       if (!_.isEmpty(req.body)) return res.sendStatus(400);
 
       const { name, id } = req.params;
-      const models = await payload.models();
+      const classes = await payload.classes();
 
-      if (!_.includes(models, name)) return res.sendStatus(404);
+      if (!_.includes(classes, name)) return res.sendStatus(404);
 
       const _payload = Object.setPrototypeOf({
         ..._.omit(req, 'body'),

@@ -26,6 +26,7 @@
 import _ from 'lodash';
 import { FilterQuery } from './filter';
 import { IOObject, UpdateOperation } from '../object';
+import { privateKey } from '../private';
 
 export namespace Query {
   export interface Options {
@@ -51,41 +52,49 @@ export interface Query {
 
 export class Query {
 
-  model: string;
-  options: Query.Options;
+  [privateKey]: {
+    className: string;
+    options: Query.Options;
+  }
 
-  constructor(model: string, options: Query.Options = {}) {
-    this.model = model;
-    this.options = options;
+  constructor(className: string, options: Query.Options = {}) {
+    this[privateKey] = {
+      className,
+      options,
+    };
+  }
+
+  get className(): string {
+    return this[privateKey].className;
   }
 
   filter<T>(filter: FilterQuery<T>) {
-    this.options.filter = this.options.filter ? [..._.castArray(this.options.filter), filter] : filter;
+    this[privateKey].options.filter = this[privateKey].options.filter ? [..._.castArray(this[privateKey].options.filter), filter] : filter;
     return this;
   }
 
   sort(sort: Record<string, 1 | -1>) {
-    this.options.sort = sort;
+    this[privateKey].options.sort = sort;
     return this;
   }
 
   includes(...includes: string[]) {
-    this.options.includes = this.options.includes ? [...this.options.includes, ...includes] : includes;
+    this[privateKey].options.includes = this[privateKey].options.includes ? [...this[privateKey].options.includes, ...includes] : includes;
     return this;
   }
 
   skip(skip: number) {
-    this.options.skip = skip;
+    this[privateKey].options.skip = skip;
     return this;
   }
 
   limit(limit: number) {
-    this.options.limit = limit;
+    this[privateKey].options.limit = limit;
     return this;
   }
 
   returning(returning: 'old' | 'new') {
-    this.options.returning = returning;
+    this[privateKey].options.returning = returning;
     return this;
   }
 
