@@ -28,6 +28,7 @@ import express, { RequestHandler } from 'express';
 import cookieParser from 'cookie-parser';
 import { Proto, ProtoOptions } from './utils/types';
 import csrfHandler from './utils/csrf';
+import classesRoute from './utils/routes/classes';
 import functionRoute from './utils/routes/function';
 
 export * from './utils/codec';
@@ -56,6 +57,7 @@ export const ProtoRoute = async (options: {
     ..._.map(adapters, x => x(proto)),
   );
 
+  classesRoute(router, proto);
   functionRoute(router, proto);
 
   return router;
