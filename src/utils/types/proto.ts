@@ -30,6 +30,7 @@ import { PSchema } from './schema';
 import { Query } from './query';
 import { PObject } from './object';
 import { queryMethods } from './query/methods';
+import { PUser } from './user';
 
 type Callback<T, R> = (request: Proto & T) => R | PromiseLike<R>;
 type ProtoFunction = Callback<{ data: IOSerializable; }, IOSerializable>;
@@ -69,8 +70,12 @@ export class Proto {
     return queryMethods(new Query(model), this, master ?? false);
   }
 
+  get user(): PUser | undefined {
+    return;
+  }
+
   roles(): string[] {
-    return []
+    return [];
   }
 
   get schema(): ProtoOptions['schema'] {

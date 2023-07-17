@@ -66,7 +66,10 @@ export const queryMethods = (
   master: boolean,
 ) => {
 
-  const acls = () => _.map(proto.roles(), x => `role:${x}`);
+  const acls = () => [
+    ..._.map(proto.roles(), x => `role:${x}`),
+    proto.user?.objectId,
+  ].filter(Boolean) as string[];
 
   const options = () => ({
     acls: acls(), master,
