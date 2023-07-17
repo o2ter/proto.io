@@ -51,19 +51,12 @@ export class Proto {
     return queryMethods(new Query(model), this);
   }
 
-  async run(
-    name: string,
-    data?: IOSerializable,
-    options?: {
-      cancelToken?: CancelToken
-    },
-  ) {
+  async _request(data?: IOSerializable, options?: any) {
 
     const res = await request({
-      method: 'post',
-      url: `functions/${name}`,
       baseURL: this.options.endpoint,
       data: serialize(data ?? null),
+      responseType: 'text',
       ...(options ?? {})
     });
 
@@ -73,6 +66,21 @@ export class Proto {
     }
 
     return deserialize(res.data);
+  }
+
+  async run(
+    name: string,
+    data?: IOSerializable,
+    options?: {
+      cancelToken?: CancelToken
+    },
+  ) {
+
+    return this._request(data, {
+      method: 'post',
+      url: `functions/${name}`,
+      ...(options ?? {})
+    });
   }
 
 }

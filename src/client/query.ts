@@ -24,9 +24,6 @@
 //
 
 import _ from 'lodash';
-import { request } from './request';
-import axios, { CancelToken } from 'axios';
-import { IOSerializable, serialize, deserialize } from '../utils/codec';
 import { Query } from '../utils/types/query';
 import { PObject } from '../utils/types';
 import Proto from './index';
@@ -46,38 +43,54 @@ export const queryMethods = (query: Query, proto: Proto) => {
   const options = () => ({
     model: query.model,
     ...query.options,
-  });
+  }) as any;
+
+  const requestOpt = {
+    method: 'post',
+    url: `classes/${query.model}`,
+  };
 
   const props = {
     count: {
-      value: () => {
-        
-      },
+      value: () => proto._request({
+        operation: 'count',
+        ...options(),
+      }, requestOpt),
     },
     then: {
       get() {
-        
+        return proto._request({
+          operation: 'find',
+          ...options(),
+        }, requestOpt);
       },
     },
     findOneAndUpdate: {
-      value: (update: any) => {
-        
-      },
+      value: (update: any) => proto._request({
+        operation: 'findOneAndUpdate',
+        update,
+        ...options(),
+      }, requestOpt),
     },
     findOneAndUpsert: {
-      value: (update: any, setOnInsert: any) => {
-        
-      },
+      value: (update: any, setOnInsert: any) => proto._request({
+        operation: 'findOneAndUpsert',
+        update,
+        setOnInsert,
+        ...options(),
+      }, requestOpt),
     },
     findOneAndDelete: {
-      value: () => {
-        
-      },
+      value: () => proto._request({
+        operation: 'findOneAndDelete',
+        ...options(),
+      }, requestOpt),
     },
     findAndDelete: {
-      value: () => {
-        
-      },
+      value: () => proto._request({
+        operation: 'findAndDelete',
+        ...options(),
+      }, requestOpt),
     },
   };
 
