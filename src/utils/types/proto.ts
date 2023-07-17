@@ -38,10 +38,10 @@ export type ProtoOptions = {
   storage: PStorage;
   functions?: Record<string, Callback<{ data: IOSerializable; }, IOSerializable>>;
   triggers?: {
-    beforeSave: Record<string, Callback<{ object: PObject; }, void>>;
-    afterSave: Record<string, Callback<{ object: PObject; }, void>>;
-    beforeDelete: Record<string, Callback<{ object: PObject; }, void>>;
-    afterDelete: Record<string, Callback<{ object: PObject; }, void>>;
+    beforeSave?: Record<string, Callback<{ object: PObject; }, void>>;
+    afterSave?: Record<string, Callback<{ object: PObject; }, void>>;
+    beforeDelete?: Record<string, Callback<{ object: PObject; }, void>>;
+    afterDelete?: Record<string, Callback<{ object: PObject; }, void>>;
   },
 };
 

@@ -25,8 +25,8 @@
 
 import _ from 'lodash';
 import { Query } from './index';
-import { PObject } from '../object';
 import { Proto } from '../proto';
+import { PObject } from '../object';
 import { PSchema } from '../schema';
 
 declare module './index' {
@@ -89,9 +89,19 @@ export const queryMethods = (query: Query, proto: Proto, acls: string[]) => {
       },
     },
     insert: {
-      value: (attrs: any) => {
+      value: async (attrs: any) => {
+        const beforeSave = proto.triggers?.beforeSave?.[query.model];
+        const afterSave = proto.triggers?.afterSave?.[query.model];
         if (!_validateCLPs('create')) throw new Error('No permission');
-        return proto.storage.insert(query.model, attrs);
+
+        const object = new PObject(query.model, _.omit(attrs, '_id', '_created_at', '_created_at'));
+        if (_.isFunction(beforeSave)) await beforeSave(Object.setPrototypeOf({ object }, proto));
+
+        const result = await proto.storage.insert(query.model, attrs);
+
+        if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result }, proto));
+
+        return result;
       },
     },
     findOneAndUpdate: {
