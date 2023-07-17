@@ -24,12 +24,27 @@
 //
 
 import _ from 'lodash';
-import pg from 'pg-promise';
+import pg, { IInitOptions, IConnectionOptions, IDatabase } from 'pg-promise';
 import { IOSchema, IOStorage } from '../../utils/types';
 
-export class MongoStorage implements IOStorage {
+export class PostgresStorage implements IOStorage {
 
+  connection: IDatabase<{}>;
   schema: Record<string, IOSchema> = {};
+
+  constructor(uri: string, options?: IInitOptions) {
+    this.connection = pg(options ?? {})(uri);
+  }
+
+  async connect(options?: IConnectionOptions) {
+    await this.connection.connect(options);
+    return this;
+  }
+
+  static async connect(uri: string, options?: IInitOptions) {
+    const storage = new PostgresStorage(uri, options);
+    return storage.connect();
+  }
 
   prepare(schema: Record<string, IOSchema>) {
     this.schema = schema;
@@ -69,4 +84,4 @@ export class MongoStorage implements IOStorage {
 
 }
 
-export default MongoStorage;
+export default PostgresStorage;
