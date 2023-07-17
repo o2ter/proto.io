@@ -24,58 +24,66 @@
 //
 
 import _ from 'lodash';
-import { FilterQuery } from './filter';
+import { MongoClient, MongoClientOptions } from 'mongodb';
+import { PSchema, PStorage } from '../../utils/types';
 
-export namespace Query {
+export class MongoStorage implements PStorage {
 
-  export interface Options {
-    filter?: FilterQuery<any>[];
-    sort?: Record<string, 1 | -1>;
-    includes?: string[];
-    skip?: number;
-    limit?: number;
-    returning?: 'old' | 'new';
-  }
-}
+  connection: MongoClient;
+  schema: Record<string, PSchema> = {};
 
-export class Query {
-
-  model: string;
-  options: Query.Options;
-
-  constructor(model: string, options: Query.Options = {}) {
-    this.model = model;
-    this.options = options;
+  constructor(uri: string, options?: MongoClientOptions) {
+    this.connection = new MongoClient(uri, options);
   }
 
-  filter<T>(filter: FilterQuery<T>) {
-    this.options.filter = this.options.filter ? [...this.options.filter, filter] : [filter];
+  async connect() {
+    await this.connection.connect();
     return this;
   }
 
-  sort(sort: Record<string, 1 | -1>) {
-    this.options.sort = sort;
-    return this;
+  async close(force?: boolean) {
+    await this.connection.close(force);
   }
 
-  includes(...includes: string[]) {
-    this.options.includes = this.options.includes ? [...this.options.includes, ...includes] : includes;
-    return this;
+  static async connect(uri: string, options?: MongoClientOptions) {
+    const storage = new MongoStorage(uri, options);
+    return storage.connect();
   }
 
-  skip(skip: number) {
-    this.options.skip = skip;
-    return this;
+  prepare(schema: Record<string, PSchema>) {
+    this.schema = schema;
   }
 
-  limit(limit: number) {
-    this.options.limit = limit;
-    return this;
+  models() {
+    return Object.keys(this.schema);
   }
 
-  returning(returning: 'old' | 'new') {
-    this.options.returning = returning;
-    return this;
+  async count() {
+    return 0;
+  }
+
+  async* find() {
+    return [];
+  }
+
+  async insert() {
+    return undefined;
+  }
+
+  async findOneAndUpdate() {
+    return undefined;
+  }
+
+  async findOneAndUpsert() {
+    return undefined;
+  }
+
+  async findOneAndDelete() {
+    return undefined;
+  }
+
+  async findAndDelete() {
+    return 0;
   }
 
 }

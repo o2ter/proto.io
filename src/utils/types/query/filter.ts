@@ -1,5 +1,5 @@
 //
-//  index.ts
+//  filter.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -23,59 +23,27 @@
 //  THE SOFTWARE.
 //
 
-import _ from 'lodash';
-import { FilterQuery } from './filter';
-
-export namespace Query {
-
-  export interface Options {
-    filter?: FilterQuery<any>[];
-    sort?: Record<string, 1 | -1>;
-    includes?: string[];
-    skip?: number;
-    limit?: number;
-    returning?: 'old' | 'new';
-  }
+type QuerySelector<T> = {
+  $eq?: T;
+  $gt?: T;
+  $gte?: T;
+  $in?: [T];
+  $lt?: T;
+  $lte?: T;
+  $ne?: T;
+  $nin?: [T];
+  $not?: T extends string ? QuerySelector<T> | RegExp : QuerySelector<T>;
+  $exists?: boolean;
+  $expr?: any;
+  $regex?: T extends string ? RegExp | string : never;
 }
 
-export class Query {
+type RootQuerySelector<T> = {
+  $and?: Array<FilterQuery<T>>;
+  $nor?: Array<FilterQuery<T>>;
+  $or?: Array<FilterQuery<T>>;
+};
 
-  model: string;
-  options: Query.Options;
-
-  constructor(model: string, options: Query.Options = {}) {
-    this.model = model;
-    this.options = options;
-  }
-
-  filter<T>(filter: FilterQuery<T>) {
-    this.options.filter = this.options.filter ? [...this.options.filter, filter] : [filter];
-    return this;
-  }
-
-  sort(sort: Record<string, 1 | -1>) {
-    this.options.sort = sort;
-    return this;
-  }
-
-  includes(...includes: string[]) {
-    this.options.includes = this.options.includes ? [...this.options.includes, ...includes] : includes;
-    return this;
-  }
-
-  skip(skip: number) {
-    this.options.skip = skip;
-    return this;
-  }
-
-  limit(limit: number) {
-    this.options.limit = limit;
-    return this;
-  }
-
-  returning(returning: 'old' | 'new') {
-    this.options.returning = returning;
-    return this;
-  }
-
-}
+export type FilterQuery<T> = {
+  [P in keyof T]?: QuerySelector<T[P]>;
+} & RootQuerySelector<T>;
