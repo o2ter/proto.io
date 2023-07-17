@@ -175,9 +175,7 @@ export const queryMethods = (
           if (_.isEmpty(objects)) return 0;
 
           if (_.isFunction(beforeDelete)) {
-            for (const object of objects) {
-              await beforeDelete(Object.setPrototypeOf({ object }, proto));
-            }
+            await Promise.all(_.map(objects, object => beforeDelete(Object.setPrototypeOf({ object }, proto))));
           }
 
           await proto.storage.findAndDelete({
@@ -186,9 +184,7 @@ export const queryMethods = (
           });
 
           if (_.isFunction(afterDelete)) {
-            for (const object of objects) {
-              await afterDelete(Object.setPrototypeOf({ object }, proto));
-            }
+            await Promise.all(_.map(objects, object => afterDelete(Object.setPrototypeOf({ object }, proto))));
           }
 
           return objects.length;
