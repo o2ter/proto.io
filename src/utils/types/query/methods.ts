@@ -37,7 +37,7 @@ declare module './index' {
 
 export const queryMethods = (query: Query, storage: PStorage, acls: string[]) => {
 
-  const _find = () => storage.find({
+  const options = () => ({
     acls,
     model: query.model,
     ...query.options,
@@ -48,7 +48,7 @@ export const queryMethods = (query: Query, storage: PStorage, acls: string[]) =>
       get() {
         const result = (async () => {
           const array: PObject[] = [];
-          for await (const obj of _find()) array.push(obj);
+          for await (const obj of storage.find(options())) array.push(obj);
           return array;
         })();
         return result.then;
@@ -56,7 +56,7 @@ export const queryMethods = (query: Query, storage: PStorage, acls: string[]) =>
     },
     [Symbol.asyncIterator]: {
       get() {
-        return _find()[Symbol.asyncIterator];
+        return storage.find(options())[Symbol.asyncIterator];
       },
     },
   };
