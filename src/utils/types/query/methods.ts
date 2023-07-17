@@ -33,6 +33,10 @@ declare module './index' {
     count: () => PromiseLike<number>;
     then: Promise<PObject[]>['then'];
     [Symbol.asyncIterator]: AsyncIterator<PObject>;
+    findOneAndUpdate: (update: any) => PromiseLike<PObject | undefined>;
+    findOneAndUpsert: (update: any, setOnInsert: any) => PromiseLike<PObject | undefined>;
+    findOneAndDelete: () => PromiseLike<PObject | undefined>;
+    findAndDelete: () => PromiseLike<PObject | undefined>;
   }
 }
 
@@ -63,6 +67,26 @@ export const queryMethods = (query: Query, storage: PStorage, acls: string[]) =>
     [Symbol.asyncIterator]: {
       get() {
         return storage.find(options())[Symbol.asyncIterator];
+      },
+    },
+    findOneAndUpdate: {
+      value: (update: any) => {
+        return storage.findOneAndUpdate(options(), update);
+      },
+    },
+    findOneAndUpsert: {
+      value: (update: any, setOnInsert: any) => {
+        return storage.findOneAndUpsert(options(), update, setOnInsert);
+      },
+    },
+    findOneAndDelete: {
+      value: () => {
+        return storage.findOneAndDelete(options());
+      },
+    },
+    findAndDelete: {
+      value: () => {
+        return storage.findAndDelete(options());
       },
     },
   };
