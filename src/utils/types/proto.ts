@@ -31,15 +31,15 @@ import { Query } from './query';
 import { PObject } from './object';
 import { queryMethods } from './query/methods';
 
-type ProtoFunction<T, R> = (request: Proto & T) => R | PromiseLike<R>;
+type Callback<T, R> = (request: Proto & T) => R | PromiseLike<R>;
 
 export type ProtoOptions = {
   schema: Record<string, PSchema>;
   storage: PStorage;
-  functions?: Record<string, ProtoFunction<{ data: IOSerializable; }, IOSerializable>>;
+  functions?: Record<string, Callback<{ data: IOSerializable; }, IOSerializable>>;
   triggers?: {
-    beforeSave: Record<string, ProtoFunction<{ object: PObject; }, void>>;
-    afterSave: Record<string, ProtoFunction<{ object: PObject; }, void>>;
+    beforeSave: Record<string, Callback<{ object: PObject; }, void>>;
+    afterSave: Record<string, Callback<{ object: PObject; }, void>>;
   },
 };
 
