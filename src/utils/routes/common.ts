@@ -24,15 +24,18 @@
 //
 
 import { Response } from 'express';
+import { IOSerializable, serialize } from '../codec';
+import { PObject } from '../types';
 
-export const response = async <T>(
+export const response = async <T extends IOSerializable<PObject>>(
   res: Response,
   callback: () => Promise<T>,
 ) => {
 
   try {
 
-    res.json(await callback());
+    const data = await callback();
+    res.type('application/json').send(serialize(data));
 
   } catch (error) {
 
