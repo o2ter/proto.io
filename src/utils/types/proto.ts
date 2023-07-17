@@ -56,10 +56,10 @@ export type ProtoOptions = {
 
 export class Proto {
 
-  #options: ProtoOptions;
+  _options: ProtoOptions;
 
   constructor(options: ProtoOptions) {
-    this.#options = options;
+    this._options = options;
   }
 
   models(): string[] | PromiseLike<string[]> {
@@ -83,19 +83,19 @@ export class Proto {
   }
 
   get schema(): ProtoOptions['schema'] {
-    return this.#options.schema;
+    return this._options.schema;
   }
 
   get storage(): ProtoOptions['storage'] {
-    return this.#options.storage;
+    return this._options.storage;
   }
 
   get functions(): ProtoOptions['functions'] {
-    return this.#options.functions;
+    return this._options.functions;
   }
 
   get triggers(): ProtoOptions['triggers'] {
-    return this.#options.triggers;
+    return this._options.triggers;
   }
 
   async _prepare() {
@@ -104,7 +104,7 @@ export class Proto {
 
   async _run(name: string, payload?: any, master?: boolean) {
 
-    const func = this.#options.functions?.[name];
+    const func = this.functions?.[name];
 
     if (_.isNil(func)) return null;
     if (_.isFunction(func)) return func(payload ?? this);
