@@ -128,7 +128,7 @@ export const queryMethods = (
       },
     },
     findOneAndUpdate: {
-      value: async (update: Record<string, any>) => {
+      value: async (update: Record<string, [UpdateOperation, any]>) => {
         const beforeSave = proto.triggers?.beforeSave?.[query.className];
         const afterSave = proto.triggers?.afterSave?.[query.className];
         if (!master && !_validateCLPs('update')) throw new Error('No permission');
@@ -155,7 +155,7 @@ export const queryMethods = (
       },
     },
     findOneAndUpsert: {
-      value: async (update: Record<string, any>, setOnInsert: Record<string, any>) => {
+      value: async (update: Record<string, [UpdateOperation, any]>, setOnInsert: Record<string, any>) => {
         const afterSave = proto.triggers?.afterSave?.[query.className];
         if (!master && !_validateCLPs('create', 'update')) throw new Error('No permission');
 
