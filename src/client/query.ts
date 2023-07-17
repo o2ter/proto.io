@@ -36,6 +36,7 @@ declare module './index' {
     findOneAndUpdate: (update: any) => PromiseLike<PObject | undefined>;
     findOneAndUpsert: (update: any, setOnInsert: any) => PromiseLike<PObject | undefined>;
     findOneAndDelete: () => PromiseLike<PObject | undefined>;
+    findAndDelete: () => PromiseLike<PObject | undefined>;
   }
 }
 
