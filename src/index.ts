@@ -27,7 +27,7 @@ import _ from 'lodash';
 import express, { RequestHandler } from 'express';
 import cookieParser from 'cookie-parser';
 import { Proto, ProtoOptions } from './server';
-import csrfHandler from './utils/csrf';
+import csrfHandler from './server/csrf';
 import classesRoute from './server/routes/classes';
 import functionRoute from './server/routes/function';
 
