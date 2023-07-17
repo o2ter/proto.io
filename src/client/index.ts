@@ -28,7 +28,8 @@ import { request } from './request';
 import axios, { CancelToken } from 'axios';
 import { IOSerializable, serialize, deserialize } from '../utils/codec';
 import { Query } from '../utils/types/query';
-import { queryMethods } from './query';
+import { objectMethods, queryMethods } from './query';
+import { PObject } from '../utils/types';
 
 export * from '../utils/codec';
 export { PObject } from '../utils/types';
@@ -38,6 +39,13 @@ type Options = {
 }
 
 export const CancelTokenSource = axios.CancelToken.source;
+
+const applyObjectMethods = (data: IOSerializable<PObject>, proto: Proto): IOSerializable<PObject> => {
+  if (data instanceof PObject) return objectMethods(data, proto);
+  if (_.isArray(data)) return _.map(data, x => applyObjectMethods(x, proto));
+  if (_.isPlainObject(data)) return _.mapValues(data as any, x => applyObjectMethods(x, proto));
+  return data;
+}
 
 export class Proto {
 
@@ -65,7 +73,7 @@ export class Proto {
       throw new Error(error.message, { cause: error });
     }
 
-    return deserialize(res.data);
+    return applyObjectMethods(deserialize(res.data), this);
   }
 
   async run(
