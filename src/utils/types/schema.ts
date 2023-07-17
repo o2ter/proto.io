@@ -23,23 +23,23 @@
 //  THE SOFTWARE.
 //
 
-export namespace ISchema {
+export namespace IOSchema {
   export type ACL = string[];
   export type Primitive = 'boolean' | 'number' | 'decimal' | 'string' | 'date' | 'object' | 'array' | 'file';
   export type Relation = 'pointer' | 'relation';
   export type DataType = Primitive | { type: Primitive } | { type: Relation, target: string };
   export type CLPs = {
-    find?: ISchema.ACL;
-    count?: ISchema.ACL;
-    create?: ISchema.ACL;
-    update?: ISchema.ACL;
-    delete?: ISchema.ACL;
+    find?: IOSchema.ACL;
+    count?: IOSchema.ACL;
+    create?: IOSchema.ACL;
+    update?: IOSchema.ACL;
+    delete?: IOSchema.ACL;
   };
 }
 
-export interface ISchema {
-  fields: Record<string, ISchema.DataType>;
-  fieldLevelPermissions?: Record<string, ISchema.ACL>;
-  classLevelPermissions?: ISchema.CLPs;
+export interface IOSchema {
+  fields: Record<string, IOSchema.DataType>;
+  fieldLevelPermissions?: Record<string, IOSchema.ACL>;
+  classLevelPermissions?: IOSchema.CLPs;
   indexes?: Record<string, Record<string, 1 | -1>>;
 }

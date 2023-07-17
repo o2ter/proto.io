@@ -27,11 +27,11 @@ import _ from 'lodash';
 import { Query } from './index';
 import { Proto } from '../proto';
 import { PObject } from '../object';
-import { ISchema } from '../schema';
+import { IOSchema } from '../schema';
 
 const validateCLPs = (
-  clps: ISchema.CLPs,
-  keys: (keyof ISchema.CLPs)[],
+  clps: IOSchema.CLPs,
+  keys: (keyof IOSchema.CLPs)[],
   acls: string[],
 ) => {
   for (const key of keys) {
@@ -79,7 +79,7 @@ export const queryMethods = (
     ...query.options,
   });
 
-  const _validateCLPs = (...keys: (keyof ISchema.CLPs)[]) => validateCLPs(
+  const _validateCLPs = (...keys: (keyof IOSchema.CLPs)[]) => validateCLPs(
     proto.schema[query.model]?.classLevelPermissions ?? {},
     keys, acls(),
   );
