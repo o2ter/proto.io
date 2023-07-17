@@ -105,9 +105,11 @@ export class Proto {
   async _run(name: string, payload?: any, master?: boolean) {
 
     const func = this.#options.functions?.[name];
+
+    if (_.isNil(func)) return null;
     if (_.isFunction(func)) return func(payload ?? this);
 
-    const { callback, validator } = func ?? {};
+    const { callback, validator } = func;
 
     if (!!validator?.requireUser && !this.user) throw new Error('No permission');
     if (!!validator?.requireMaster && !master) throw new Error('No permission');
