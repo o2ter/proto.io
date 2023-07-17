@@ -143,9 +143,8 @@ export const queryMethods = (query: Query, proto: Proto, acls: string[]) => {
           await beforeDelete(Object.setPrototypeOf({ object }, proto));
 
           result = await proto.storage.findOneAndDelete({
+            ...options(),
             filter: { _id: object.objectId },
-            model: query.model,
-            acls,
           });
 
         } else {
