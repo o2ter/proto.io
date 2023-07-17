@@ -98,12 +98,10 @@ export class Proto {
     await this.storage.prepare(this.schema);
   }
 
-  async run(name: string, data?: IOSerializable, master?: boolean) {
+  async _run(name: string, payload?: any, master?: boolean) {
 
     const func = this.#options.functions?.[name];
-    const payload = Object.setPrototypeOf({ data: data ?? null }, this);
-
-    if (_.isFunction(func)) return func(payload);
+    if (_.isFunction(func)) return func(payload ?? this);
 
     const { callback, validator } = func ?? {};
 
@@ -112,7 +110,12 @@ export class Proto {
     if (!_.find(validator?.requireAnyUserRoles, x => _.includes(this.roles, x))) throw new Error('No permission');
     if (_.find(validator?.requireAllUserRoles, x => !_.includes(this.roles, x))) throw new Error('No permission');
 
-    return _.isFunction(callback) ? callback(payload) : null;
+    return _.isFunction(callback) ? callback(payload ?? this) : null;
+  }
+
+  run(name: string, data?: IOSerializable, master?: boolean) {
+    const payload = Object.setPrototypeOf({ data: data ?? null }, this);
+    return this._run(name, payload, master);
   }
 
 }

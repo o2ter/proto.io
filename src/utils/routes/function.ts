@@ -40,9 +40,7 @@ export default (router: Router, payload: Proto) => {
     async (req, res) => {
 
       const { name } = req.params;
-      const func = functions[name];
-
-      if (!_.isFunction(func)) return res.sendStatus(404);
+      if (_.isNil(functions[name])) return res.sendStatus(404);
 
       await response(res, async () => {
 
@@ -51,8 +49,8 @@ export default (router: Router, payload: Proto) => {
           ..._.omit(req, 'body'),
           data: data ?? null,
         }, payload);
-        
-        return func(_payload);
+
+        return _payload._run(name);
       });
     }
   );
