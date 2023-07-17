@@ -29,7 +29,7 @@ import queryType from 'query-types';
 import { Proto } from '../types';
 import { deserialize } from '../codec';
 import { response } from './common';
-import { privateKey } from '../types/private';
+import { PVK } from '../types/private';
 
 export default (router: Router, payload: Proto) => {
 
@@ -57,7 +57,7 @@ export default (router: Router, payload: Proto) => {
           ..._.omit(req, 'body'),
         }, payload);
         const query = _payload.query(name);
-        query[privateKey].options = options;
+        query[PVK].options = options;
 
         switch (operation) {
           case 'count': return query.count();
@@ -97,12 +97,12 @@ export default (router: Router, payload: Proto) => {
           returning,
         } = req.query;
 
-        query[privateKey].options.filter = _.isEmpty(filter) && _.isString(filter) ? _.castArray(deserialize(filter)) as any : [];
-        query[privateKey].options.sort = _.isPlainObject(sort) && _.every(_.values(sort), _.isNumber) ? sort as any : undefined;
-        query[privateKey].options.includes = _.isArray(includes) && _.every(includes, _.isString) ? includes as any : undefined;
-        query[privateKey].options.skip = _.isNumber(skip) ? skip : undefined;
-        query[privateKey].options.limit = _.isNumber(limit) ? limit : undefined;
-        query[privateKey].options.returning = _.includes(['old', 'new'], returning) ? returning as any : undefined;
+        query[PVK].options.filter = _.isEmpty(filter) && _.isString(filter) ? _.castArray(deserialize(filter)) as any : [];
+        query[PVK].options.sort = _.isPlainObject(sort) && _.every(_.values(sort), _.isNumber) ? sort as any : undefined;
+        query[PVK].options.includes = _.isArray(includes) && _.every(includes, _.isString) ? includes as any : undefined;
+        query[PVK].options.skip = _.isNumber(skip) ? skip : undefined;
+        query[PVK].options.limit = _.isNumber(limit) ? limit : undefined;
+        query[PVK].options.returning = _.includes(['old', 'new'], returning) ? returning as any : undefined;
 
         return await query;
       });

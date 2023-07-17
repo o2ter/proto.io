@@ -31,7 +31,7 @@ import { Query } from './query';
 import { IOObject } from './object';
 import { objectMethods, queryMethods } from './query/methods';
 import { IOUser } from './user';
-import { privateKey } from './private';
+import { PVK } from './private';
 
 type Callback<T, R> = (request: Proto & T) => R | PromiseLike<R>;
 type ProtoFunction = Callback<{ data: IOSerializable; }, IOSerializable>;
@@ -57,12 +57,12 @@ export type ProtoOptions = {
 
 export class Proto {
 
-  [privateKey]: {
+  [PVK]: {
     options: ProtoOptions;
   };
 
   constructor(options: ProtoOptions) {
-    this[privateKey] = {
+    this[PVK] = {
       options,
     };
   }
@@ -88,19 +88,19 @@ export class Proto {
   }
 
   get schema(): ProtoOptions['schema'] {
-    return this[privateKey].options.schema;
+    return this[PVK].options.schema;
   }
 
   get storage(): ProtoOptions['storage'] {
-    return this[privateKey].options.storage;
+    return this[PVK].options.storage;
   }
 
   get functions(): ProtoOptions['functions'] {
-    return this[privateKey].options.functions;
+    return this[PVK].options.functions;
   }
 
   get triggers(): ProtoOptions['triggers'] {
-    return this[privateKey].options.triggers;
+    return this[PVK].options.triggers;
   }
 
   async _prepare() {

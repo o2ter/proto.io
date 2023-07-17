@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { FilterQuery } from './filter';
 import { IOObject, UpdateOperation } from '../object';
-import { privateKey } from '../private';
+import { PVK } from '../private';
 
 export namespace Query {
   export interface Options {
@@ -52,49 +52,49 @@ export interface Query {
 
 export class Query {
 
-  [privateKey]: {
+  [PVK]: {
     className: string;
     options: Query.Options;
   }
 
   constructor(className: string, options: Query.Options = {}) {
-    this[privateKey] = {
+    this[PVK] = {
       className,
       options,
     };
   }
 
   get className(): string {
-    return this[privateKey].className;
+    return this[PVK].className;
   }
 
   filter<T>(filter: FilterQuery<T>) {
-    this[privateKey].options.filter = this[privateKey].options.filter ? [..._.castArray(this[privateKey].options.filter), filter] : filter;
+    this[PVK].options.filter = this[PVK].options.filter ? [..._.castArray(this[PVK].options.filter), filter] : filter;
     return this;
   }
 
   sort(sort: Record<string, 1 | -1>) {
-    this[privateKey].options.sort = sort;
+    this[PVK].options.sort = sort;
     return this;
   }
 
   includes(...includes: string[]) {
-    this[privateKey].options.includes = this[privateKey].options.includes ? [...this[privateKey].options.includes, ...includes] : includes;
+    this[PVK].options.includes = this[PVK].options.includes ? [...this[PVK].options.includes, ...includes] : includes;
     return this;
   }
 
   skip(skip: number) {
-    this[privateKey].options.skip = skip;
+    this[PVK].options.skip = skip;
     return this;
   }
 
   limit(limit: number) {
-    this[privateKey].options.limit = limit;
+    this[PVK].options.limit = limit;
     return this;
   }
 
   returning(returning: 'old' | 'new') {
-    this[privateKey].options.returning = returning;
+    this[PVK].options.returning = returning;
     return this;
   }
 

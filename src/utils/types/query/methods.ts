@@ -28,7 +28,7 @@ import { Query } from './index';
 import { Proto } from '../proto';
 import { IOObject, UpdateOperation } from '../object';
 import { IOSchema } from '../schema';
-import { privateKey } from '../private';
+import { PVK } from '../private';
 
 const validateCLPs = (
   clps: IOSchema.CLPs,
@@ -57,7 +57,7 @@ export const objectMethods = <T extends IOObject | IOObject[] | undefined>(
   return Object.defineProperties(object, {
     save: {
       value: async (master?: boolean) => {
-        await proto.query(object.className, master).findOneAndUpdate(object[privateKey].mutated);
+        await proto.query(object.className, master).findOneAndUpdate(object[PVK].mutated);
       },
     },
     destory: {
@@ -82,7 +82,7 @@ export const queryMethods = (
   const options = () => ({
     acls: acls(), master,
     className: query.className,
-    ...query[privateKey].options,
+    ...query[PVK].options,
   });
 
   const _validateCLPs = (...keys: (keyof IOSchema.CLPs)[]) => validateCLPs(
@@ -136,10 +136,10 @@ export const queryMethods = (
           const object = objectMethods(_.first(await asyncIterableToArray(proto.storage.find({ ...options(), limit: 1 }))), proto);
           if (!object) return undefined;
 
-          object[privateKey].mutated = update;
+          object[PVK].mutated = update;
           await beforeSave(Object.setPrototypeOf({ object }, proto));
 
-          update = object[privateKey].mutated;
+          update = object[PVK].mutated;
         }
 
         const result = objectMethods(

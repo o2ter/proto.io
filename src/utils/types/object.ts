@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { privateKey } from './private';
+import { PVK } from './private';
 
 export enum UpdateOperation {
   set = 'set',
@@ -46,7 +46,7 @@ export interface IOObject {
 
 export class IOObject {
 
-  [privateKey]: {
+  [PVK]: {
     className: string;
     attributes: Record<string, any>;
     mutated: Record<string, [UpdateOperation, any]>;
@@ -56,7 +56,7 @@ export class IOObject {
     className: string,
     attributes?: Record<string, any> | ((self: IOObject) => Record<string, any>),
   ) {
-    this[privateKey] = {
+    this[PVK] = {
       className,
       attributes: _.isFunction(attributes) ? attributes(this) : attributes ?? {},
       mutated: {},
@@ -64,89 +64,89 @@ export class IOObject {
   }
 
   get className(): string {
-    return this[privateKey].className;
+    return this[PVK].className;
   }
 
   get attributes(): Record<string, any> {
-    return this[privateKey].attributes;
+    return this[PVK].attributes;
   }
 
   get objectId(): string | undefined {
-    return this[privateKey].attributes._id;
+    return this[PVK].attributes._id;
   }
 
   get createdAt(): Date | undefined {
-    return this[privateKey].attributes._created_at;
+    return this[PVK].attributes._created_at;
   }
 
   get updatedAt(): Date | undefined {
-    return this[privateKey].attributes._updated_at;
+    return this[PVK].attributes._updated_at;
   }
 
   keys(): string[] {
-    return _.uniq([..._.keys(this.attributes), ..._.keys(this[privateKey].mutated)]);
+    return _.uniq([..._.keys(this.attributes), ..._.keys(this[PVK].mutated)]);
   }
 
   get(key: string): any {
-    if (_.isNil(this[privateKey].mutated[key])) return this.attributes[key];
-    const [op, value] = this[privateKey].mutated[key];
+    if (_.isNil(this[PVK].mutated[key])) return this.attributes[key];
+    const [op, value] = this[PVK].mutated[key];
     return op === UpdateOperation.set ? value : this.attributes[key];
   }
 
   set(key: string, value: any) {
-    this[privateKey].mutated[key] = [UpdateOperation.set, value];
+    this[PVK].mutated[key] = [UpdateOperation.set, value];
   }
 
   unset(key: string) {
-    this[privateKey].mutated[key] = [UpdateOperation.set, null];
+    this[PVK].mutated[key] = [UpdateOperation.set, null];
   }
 
   get isDirty(): boolean {
-    return !_.isEmpty(this[privateKey].mutated);
+    return !_.isEmpty(this[PVK].mutated);
   }
 
   increment(key: string, value: number) {
-    this[privateKey].mutated[key] = [UpdateOperation.increment, value];
+    this[PVK].mutated[key] = [UpdateOperation.increment, value];
   }
 
   decrement(key: string, value: number) {
-    this[privateKey].mutated[key] = [UpdateOperation.increment, -value];
+    this[PVK].mutated[key] = [UpdateOperation.increment, -value];
   }
 
   multiply(key: string, value: number) {
-    this[privateKey].mutated[key] = [UpdateOperation.multiply, value];
+    this[PVK].mutated[key] = [UpdateOperation.multiply, value];
   }
 
   divide(key: string, value: number) {
-    this[privateKey].mutated[key] = [UpdateOperation.multiply, 1 / value];
+    this[PVK].mutated[key] = [UpdateOperation.multiply, 1 / value];
   }
 
   max(key: string, value: any) {
-    this[privateKey].mutated[key] = [UpdateOperation.max, value];
+    this[PVK].mutated[key] = [UpdateOperation.max, value];
   }
 
   min(key: string, value: any) {
-    this[privateKey].mutated[key] = [UpdateOperation.min, value];
+    this[PVK].mutated[key] = [UpdateOperation.min, value];
   }
 
   addToSet(key: string, values: any[]) {
-    this[privateKey].mutated[key] = [UpdateOperation.addToSet, values];
+    this[PVK].mutated[key] = [UpdateOperation.addToSet, values];
   }
 
   push(key: string, values: any[]) {
-    this[privateKey].mutated[key] = [UpdateOperation.push, values];
+    this[PVK].mutated[key] = [UpdateOperation.push, values];
   }
 
   removeAll(key: string, values: any[]) {
-    this[privateKey].mutated[key] = [UpdateOperation.removeAll, values];
+    this[PVK].mutated[key] = [UpdateOperation.removeAll, values];
   }
 
   popFirst(key: string) {
-    this[privateKey].mutated[key] = [UpdateOperation.popFirst, null];
+    this[PVK].mutated[key] = [UpdateOperation.popFirst, null];
   }
 
   popLast(key: string) {
-    this[privateKey].mutated[key] = [UpdateOperation.popLast, null];
+    this[PVK].mutated[key] = [UpdateOperation.popLast, null];
   }
 
 }

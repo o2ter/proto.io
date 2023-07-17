@@ -23,4 +23,4 @@
 //  THE SOFTWARE.
 //
 
-export const privateKey = Symbol('#private');
+export const PVK = Symbol('#private');

@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { Query } from '../utils/types/query';
 import { IOObject, UpdateOperation } from '../utils/types/object';
-import { privateKey } from '../utils/types/private';
+import { PVK } from '../utils/types/private';
 import Proto from './index';
 
 export const objectMethods = (
@@ -39,7 +39,7 @@ export const objectMethods = (
   return Object.defineProperties(object, {
     save: {
       value: async () => {
-        await query().findOneAndUpdate(object[privateKey].mutated);
+        await query().findOneAndUpdate(object[PVK].mutated);
       },
     },
     destory: {
@@ -53,8 +53,8 @@ export const objectMethods = (
 export const queryMethods = (query: Query, proto: Proto) => {
 
   const options = () => ({
-    className: query[privateKey].className,
-    ...query[privateKey].options,
+    className: query[PVK].className,
+    ...query[PVK].options,
   }) as any;
 
   const requestOpt = {
