@@ -36,6 +36,7 @@ import {
   UUID
 } from 'bson';
 import { IOObject } from '../types/object';
+import { IOUser } from '../types/user';
 
 export { UUID, Decimal };
 export type IONumber = number | Decimal | BigInt;
@@ -81,7 +82,9 @@ const decodeEJSON = (x: EJSON.SerializableTypes, stack: any[]): IOSerializable<I
 
   if (x.$object) {
     const { className, attributes } = x.$object;
-    return new IOObject(className, (self) => _.mapValues(attributes, v => decodeEJSON(v, [...stack, self])));
+    const _attributes = (self: IOObject) => _.mapValues(attributes, v => decodeEJSON(v, [...stack, self]));
+    if (className === '_User') return new IOUser(_attributes);
+    return new IOObject(className, _attributes);
   }
 
   return _.transform(x, (r, v, k) => {
