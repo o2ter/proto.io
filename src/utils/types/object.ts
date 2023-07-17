@@ -124,11 +124,11 @@ export class IOObject {
     this[privateKey].mutated[key] = [UpdateOperation.removeAll, value];
   }
 
-  popFirst(key: string, value: any) {
+  popFirst(key: string) {
     this[privateKey].mutated[key] = [UpdateOperation.popFirst, null];
   }
 
-  popLast(key: string, value: any) {
+  popLast(key: string) {
     this[privateKey].mutated[key] = [UpdateOperation.popLast, null];
   }
 
