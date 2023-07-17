@@ -123,9 +123,13 @@ export const queryMethods = (query: Query, proto: Proto, acls: string[]) => {
       },
     },
     findOneAndDelete: {
-      value: () => {
+      value: async () => {
+        const afterDelete = proto.triggers?.afterSave?.[query.model];
         if (!_validateCLPs('delete')) throw new Error('No permission');
-        return proto.storage.findOneAndDelete(options());
+
+        const result = await proto.storage.findOneAndDelete(options());
+        if (result && _.isFunction(afterDelete)) await afterDelete(Object.setPrototypeOf({ object: result }, proto));
+        return result;
       },
     },
     findAndDelete: {
