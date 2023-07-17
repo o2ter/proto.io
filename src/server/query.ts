@@ -24,11 +24,11 @@
 //
 
 import _ from 'lodash';
-import { Query } from '../utils/types/query/index';
+import { Query } from '../types/query/index';
 import { Proto } from '.';
-import { IOObject, UpdateOperation } from '../utils/types/object';
-import { IOSchema } from '../utils/types/schema';
-import { PVK } from '../utils/types/private';
+import { IOObject, UpdateOperation } from '../types/object';
+import { IOSchema } from '../types/schema';
+import { PVK } from '../types/private';
 
 const validateCLPs = (
   clps: IOSchema.CLPs,

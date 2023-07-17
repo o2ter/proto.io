@@ -31,7 +31,7 @@ import csrfHandler from './server/csrf';
 import classesRoute from './server/routes/classes';
 import functionRoute from './server/routes/function';
 
-export * from './utils/codec';
+export * from './codec';
 export * from './server';
 
 export const ProtoRoute = async (options: {

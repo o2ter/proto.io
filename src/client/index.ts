@@ -26,13 +26,13 @@
 import _ from 'lodash';
 import { request } from './request';
 import axios, { CancelToken } from 'axios';
-import { IOSerializable, serialize, deserialize } from '../utils/codec';
-import { Query } from '../utils/types/query';
+import { IOSerializable, serialize, deserialize } from '../codec';
+import { Query } from '../types/query';
 import { objectMethods, queryMethods } from './query';
-import { IOObject } from '../utils/types/object';
-import { IOUser } from '../utils/types/user';
+import { IOObject } from '../types/object';
+import { IOUser } from '../types/user';
 
-export * from '../utils/codec';
+export * from '../codec';
 
 type Options = {
   endpoint: string;

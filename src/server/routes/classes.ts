@@ -27,9 +27,9 @@ import _ from 'lodash';
 import express, { Router } from 'express';
 import { Proto } from '../../server';
 import queryType from 'query-types';
-import { deserialize } from '../../utils/codec';
+import { deserialize } from '../../codec';
 import { response } from './common';
-import { PVK } from '../../utils/types/private';
+import { PVK } from '../../types/private';
 
 export default (router: Router, payload: Proto) => {
 

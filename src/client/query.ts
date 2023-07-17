@@ -24,9 +24,9 @@
 //
 
 import _ from 'lodash';
-import { Query } from '../utils/types/query';
-import { IOObject, UpdateOperation } from '../utils/types/object';
-import { PVK } from '../utils/types/private';
+import { Query } from '../types/query';
+import { IOObject, UpdateOperation } from '../types/object';
+import { PVK } from '../types/private';
 import Proto from './index';
 
 export const objectMethods = (

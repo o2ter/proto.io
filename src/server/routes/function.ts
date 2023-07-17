@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import express, { Router } from 'express';
 import { Proto } from '../../server';
-import { deserialize } from '../../utils/codec';
+import { deserialize } from '../../codec';
 import { applyIOObjectMethods, response } from './common';
 
 export default (router: Router, payload: Proto) => {

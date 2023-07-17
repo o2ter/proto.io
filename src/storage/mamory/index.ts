@@ -24,8 +24,8 @@
 //
 
 import _ from 'lodash';
-import { IOStorage } from '../../utils/types/storage';
-import { IOSchema } from '../../utils/types/schema';
+import { IOStorage } from '../../types/storage';
+import { IOSchema } from '../../types/schema';
 
 export class MemoryStorage implements IOStorage {
 

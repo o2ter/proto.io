@@ -25,8 +25,8 @@
 
 import _ from 'lodash';
 import { Response } from 'express';
-import { IOSerializable, serialize } from '../../utils/codec';
-import { IOObject } from '../../utils/types/object';
+import { IOSerializable, serialize } from '../../codec';
+import { IOObject } from '../../types/object';
 import { objectMethods } from '../../server/query';
 import { Proto } from '../../server';
 

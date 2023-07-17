@@ -23,8 +23,8 @@
 //  THE SOFTWARE.
 //
 
-import { IOObject } from '../../src/utils/types/object';
-import { serialize, deserialize, Decimal } from '../../src/utils/codec';
+import { IOObject } from '../../src/types/object';
+import { serialize, deserialize, Decimal } from '../../src/codec';
 import { expect, test } from '@jest/globals';
 
 test('test serialize', async () => {

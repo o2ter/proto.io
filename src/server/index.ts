@@ -24,14 +24,14 @@
 //
 
 import _ from 'lodash';
-import { IOSerializable } from '../utils/codec';
-import { IOStorage } from '../utils/types/storage';
-import { IOSchema } from '../utils/types/schema';
-import { Query } from '../utils/types/query';
-import { IOObject } from '../utils/types/object';
+import { IOSerializable } from '../codec';
+import { IOStorage } from '../types/storage';
+import { IOSchema } from '../types/schema';
+import { Query } from '../types/query';
+import { IOObject } from '../types/object';
 import { objectMethods, queryMethods } from './query';
-import { IOUser } from '../utils/types/user';
-import { PVK } from '../utils/types/private';
+import { IOUser } from '../types/user';
+import { PVK } from '../types/private';
 
 type Callback<T, R> = (request: Proto & T) => R | PromiseLike<R>;
 type ProtoFunction = Callback<{ data: IOSerializable; }, IOSerializable>;
