@@ -32,14 +32,14 @@ export namespace PSchema {
 
 export interface PSchema {
   fields: Record<string, PSchema.DataType>;
-  fieldLevelPermissions: Record<string, PSchema.ACL>;
-  classLevelPermissions: {
-    find: PSchema.ACL;
-    get: PSchema.ACL;
-    count: PSchema.ACL;
-    create: PSchema.ACL;
-    update: PSchema.ACL;
-    delete: PSchema.ACL;
+  fieldLevelPermissions?: Record<string, PSchema.ACL>;
+  classLevelPermissions?: {
+    find?: PSchema.ACL;
+    get?: PSchema.ACL;
+    count?: PSchema.ACL;
+    create?: PSchema.ACL;
+    update?: PSchema.ACL;
+    delete?: PSchema.ACL;
   };
-  indexes: Record<string, Record<string, 1 | -1>>;
+  indexes?: Record<string, Record<string, 1 | -1>>;
 }
