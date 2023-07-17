@@ -102,6 +102,11 @@ export class Query {
     return this;
   }
 
+  async get(id: string) {
+    const query = new Query(this.className);
+    return _.first(await query.filter({ _id: id }).limit(1));
+  }
+
   async first() {
     return _.first(await this.clone().limit(1));
   }
