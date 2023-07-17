@@ -27,11 +27,11 @@ type QuerySelector<T> = {
   $eq?: T;
   $gt?: T;
   $gte?: T;
-  $in?: [T];
+  $in?: T[];
   $lt?: T;
   $lte?: T;
   $ne?: T;
-  $nin?: [T];
+  $nin?: T[];
   $not?: T extends string ? QuerySelector<T> | RegExp : QuerySelector<T>;
   $exists?: boolean;
   $expr?: any;
