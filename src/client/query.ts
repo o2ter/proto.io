@@ -33,8 +33,8 @@ declare module './index' {
     count: () => PromiseLike<number>;
     then: Promise<PObject[]>['then'];
     insert: (attrs: any) => PromiseLike<PObject | undefined>;
-    findOneAndUpdate: (update: any) => PromiseLike<PObject | undefined>;
-    findOneAndUpsert: (update: any, setOnInsert: any) => PromiseLike<PObject | undefined>;
+    findOneAndUpdate: (update: Record<string, any>) => PromiseLike<PObject | undefined>;
+    findOneAndUpsert: (update: Record<string, any>, setOnInsert: Record<string, any>) => PromiseLike<PObject | undefined>;
     findOneAndDelete: () => PromiseLike<PObject | undefined>;
     findAndDelete: () => PromiseLike<PObject | undefined>;
   }
@@ -74,14 +74,14 @@ export const queryMethods = (query: Query, proto: Proto) => {
       }, requestOpt),
     },
     findOneAndUpdate: {
-      value: (update: any) => proto._request({
+      value: (update: Record<string, any>) => proto._request({
         operation: 'findOneAndUpdate',
         update,
         ...options(),
       }, requestOpt),
     },
     findOneAndUpsert: {
-      value: (update: any, setOnInsert: any) => proto._request({
+      value: (update: Record<string, any>, setOnInsert: Record<string, any>) => proto._request({
         operation: 'findOneAndUpsert',
         update,
         setOnInsert,

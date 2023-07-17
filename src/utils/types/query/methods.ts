@@ -35,8 +35,8 @@ declare module './index' {
     then: Promise<PObject[]>['then'];
     [Symbol.asyncIterator]: AsyncIterator<PObject>;
     insert: (attrs: any) => PromiseLike<PObject | undefined>;
-    findOneAndUpdate: (update: any) => PromiseLike<PObject | undefined>;
-    findOneAndUpsert: (update: any, setOnInsert: any) => PromiseLike<PObject | undefined>;
+    findOneAndUpdate: (update: Record<string, any>) => PromiseLike<PObject | undefined>;
+    findOneAndUpsert: (update: Record<string, any>, setOnInsert: Record<string, any>) => PromiseLike<PObject | undefined>;
     findOneAndDelete: () => PromiseLike<PObject | undefined>;
     findAndDelete: () => PromiseLike<PObject | undefined>;
   }
@@ -107,7 +107,7 @@ export const queryMethods = (query: Query, proto: Proto, acls: string[]) => {
       },
     },
     findOneAndUpdate: {
-      value: async (update: any) => {
+      value: async (update: Record<string, any>) => {
         const beforeSave = proto.triggers?.beforeSave?.[query.model];
         const afterSave = proto.triggers?.afterSave?.[query.model];
         if (!_validateCLPs('update')) throw new Error('No permission');
@@ -118,7 +118,7 @@ export const queryMethods = (query: Query, proto: Proto, acls: string[]) => {
       },
     },
     findOneAndUpsert: {
-      value: async (update: any, setOnInsert: any) => {
+      value: async (update: Record<string, any>, setOnInsert: Record<string, any>) => {
         const beforeSave = proto.triggers?.beforeSave?.[query.model];
         const afterSave = proto.triggers?.afterSave?.[query.model];
         if (!_validateCLPs('create', 'update')) throw new Error('No permission');
