@@ -28,16 +28,19 @@ import { IOSerializable } from '../codec';
 import { PStorage } from './storage';
 import { PSchema } from './schema';
 import { Query } from './query';
+import { PObject } from './object';
 import { queryMethods } from './query/methods';
 
-export type ProtoFunction = (
-  request: Proto & { data: IOSerializable; }
-) => IOSerializable | PromiseLike<IOSerializable>;
+type ProtoFunction<T, R> = (request: Proto & T) => R | PromiseLike<R>;
 
 export type ProtoOptions = {
   schema: Record<string, PSchema>;
   storage: PStorage;
-  functions?: Record<string, ProtoFunction>;
+  functions?: Record<string, ProtoFunction<{ data: IOSerializable; }, IOSerializable>>;
+  triggers?: {
+    beforeSave: Record<string, ProtoFunction<{ object: PObject; }, void>>;
+    afterSave: Record<string, ProtoFunction<{ object: PObject; }, void>>;
+  },
 };
 
 export class Proto {
