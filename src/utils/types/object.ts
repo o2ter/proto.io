@@ -28,8 +28,8 @@ import { privateKey } from './private';
 
 export enum UpdateOperation {
   set = 'set',
-  increment = 'increment',
-  multiply = 'multiply',
+  increment = 'inc',
+  multiply = 'mul',
   max = 'max',
   min = 'min',
   push = 'push',
