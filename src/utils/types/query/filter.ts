@@ -44,6 +44,6 @@ type RootQuerySelector<T> = {
   $or?: Array<FilterQuery<T>>;
 };
 
-export type FilterQuery<T> = {
-  [P in keyof T]?: QuerySelector<T[P]>;
-} & RootQuerySelector<T>;
+export type FilterQuery<T> = RootQuerySelector<T> | {
+  [P in keyof T]?: T[P] | QuerySelector<T[P]>;
+};

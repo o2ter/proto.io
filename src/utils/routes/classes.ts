@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import express, { Router } from 'express';
 import { Proto } from '../types';
-import { serialize, deserialize } from '../codec';
+import { deserialize } from '../codec';
 import { response } from './common';
 
 export default (router: Router, payload: Proto) => {
@@ -92,14 +92,21 @@ export default (router: Router, payload: Proto) => {
     express.text({ type: '*/*' }),
     async (req, res) => {
 
+      if (!_.isEmpty(req.body)) return res.sendStatus(400);
+
       const { name, id } = req.params;
       const models = await payload.models();
 
       if (!_.includes(models, name)) return res.sendStatus(404);
 
+      const _payload = Object.setPrototypeOf({
+        ..._.omit(req, 'body'),
+      }, payload);
+      const query = _payload.query(name).filter({ _id: id }).limit(1);
+
       await response(res, async () => {
-
-
+        const [obj] = await query;
+        return obj;
       });
     }
   );
@@ -114,11 +121,12 @@ export default (router: Router, payload: Proto) => {
 
       if (!_.includes(models, name)) return res.sendStatus(404);
 
-      await response(res, async () => {
+      const _payload = Object.setPrototypeOf({
+        ..._.omit(req, 'body'),
+      }, payload);
+      const query = _payload.query(name).filter({ _id: id }).limit(1);
 
-        const data = deserialize(req.body);
-
-      });
+      await response(res, async () => query.findOneAndUpdate(deserialize(req.body)));
     }
   );
 
@@ -127,14 +135,19 @@ export default (router: Router, payload: Proto) => {
     express.text({ type: '*/*' }),
     async (req, res) => {
 
+      if (!_.isEmpty(req.body)) return res.sendStatus(400);
+
       const { name, id } = req.params;
       const models = await payload.models();
 
       if (!_.includes(models, name)) return res.sendStatus(404);
 
-      await response(res, async () => {
+      const _payload = Object.setPrototypeOf({
+        ..._.omit(req, 'body'),
+      }, payload);
+      const query = _payload.query(name).filter({ _id: id });
 
-      });
+      await response(res, async () => query.findOneAndDelete());
     }
   );
 
