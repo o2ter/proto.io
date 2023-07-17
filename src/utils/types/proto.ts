@@ -27,6 +27,7 @@ import _ from 'lodash';
 import { IOSerializable } from '../codec';
 import { PStorage } from './storage';
 import { PSchema } from './schema';
+import { PObject } from './object';
 import { Query } from './query';
 import { queryMethods } from './query/methods';
 
@@ -52,6 +53,10 @@ export class Proto {
     const query = new Query(model);
     queryMethods(query, this.storage, []);
     return query;
+  }
+
+  insert(model: string, attrs: any): PromiseLike<PObject | undefined> {
+    return this.storage.insert(model, attrs);
   }
 
   get schema(): ProtoOptions['schema'] {
