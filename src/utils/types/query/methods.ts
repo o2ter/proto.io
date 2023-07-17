@@ -43,6 +43,10 @@ declare module './index' {
 }
 
 const validateCLPs = (clps: PSchema.CLPs, keys: (keyof PSchema.CLPs)[], acls: string[]) => {
+  for (const key of keys) {
+    if (_.includes(clps[key], '*')) return clps[key];
+    if (_.every(clps[key], x => !_.includes(acls, x))) return false;
+  }
   return true;
 }
 
