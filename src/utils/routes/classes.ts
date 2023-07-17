@@ -51,7 +51,10 @@ export default (router: Router, payload: Proto) => {
           ...options
         }: any = deserialize(req.body);
 
-        const query = payload.query(name);
+        const _payload = Object.setPrototypeOf({
+          ..._.omit(req, 'body'),
+        }, payload);
+        const query = _payload.query(name);
         query.options = options;
 
         switch (operation) {
