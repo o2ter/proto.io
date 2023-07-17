@@ -74,7 +74,7 @@ export class Proto {
     return;
   }
 
-  roles(): string[] {
+  get roles(): string[] {
     return [];
   }
 
