@@ -42,7 +42,11 @@ declare module './index' {
   }
 }
 
-const validateCLPs = (clps: PSchema.CLPs, keys: (keyof PSchema.CLPs)[], acls: string[]) => {
+const validateCLPs = (
+  clps: PSchema.CLPs,
+  keys: (keyof PSchema.CLPs)[],
+  acls: string[],
+) => {
   for (const key of keys) {
     if (_.includes(clps[key], '*')) continue;
     if (_.every(clps[key], x => !_.includes(acls, x))) return false;
@@ -56,31 +60,35 @@ const asyncIterableToArray = async <T>(asyncIterable: AsyncIterable<T>) => {
   return array;
 }
 
-export const queryMethods = (query: Query, proto: Proto, acls: string[]) => {
+export const queryMethods = (
+  query: Query,
+  proto: Proto,
+  acls: string[],
+  master: boolean,
+) => {
 
   const options = () => ({
-    acls,
+    acls, master,
     model: query.model,
     ...query.options,
   });
 
   const _validateCLPs = (...keys: (keyof PSchema.CLPs)[]) => validateCLPs(
     proto.schema[query.model]?.classLevelPermissions ?? {},
-    keys,
-    acls,
+    keys, acls,
   );
 
   const props = {
     count: {
       value: () => {
-        if (!_validateCLPs('count')) throw new Error('No permission');
+        if (!master && !_validateCLPs('count')) throw new Error('No permission');
         return proto.storage.count(options());
       },
     },
     then: {
       get() {
         const result = (async () => {
-          if (!_validateCLPs('find')) throw new Error('No permission');
+          if (!master && !_validateCLPs('find')) throw new Error('No permission');
           return asyncIterableToArray(proto.storage.find(options()));
         })();
         return result.then;
@@ -88,7 +96,7 @@ export const queryMethods = (query: Query, proto: Proto, acls: string[]) => {
     },
     [Symbol.asyncIterator]: {
       get() {
-        if (!_validateCLPs('find')) throw new Error('No permission');
+        if (!master && !_validateCLPs('find')) throw new Error('No permission');
         return proto.storage.find(options())[Symbol.asyncIterator];
       },
     },
@@ -96,7 +104,7 @@ export const queryMethods = (query: Query, proto: Proto, acls: string[]) => {
       value: async (attrs: any) => {
         const beforeSave = proto.triggers?.beforeSave?.[query.model];
         const afterSave = proto.triggers?.afterSave?.[query.model];
-        if (!_validateCLPs('create')) throw new Error('No permission');
+        if (!master && !_validateCLPs('create')) throw new Error('No permission');
 
         const object = new PObject(query.model, _.omit(attrs, '_id', '_created_at', '_created_at'));
         if (_.isFunction(beforeSave)) await beforeSave(Object.setPrototypeOf({ object }, proto));
@@ -110,7 +118,7 @@ export const queryMethods = (query: Query, proto: Proto, acls: string[]) => {
       value: async (update: Record<string, any>) => {
         const beforeSave = proto.triggers?.beforeSave?.[query.model];
         const afterSave = proto.triggers?.afterSave?.[query.model];
-        if (!_validateCLPs('update')) throw new Error('No permission');
+        if (!master && !_validateCLPs('update')) throw new Error('No permission');
 
         const result = await proto.storage.findOneAndUpdate(options(), update);
         if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result }, proto));
@@ -121,7 +129,7 @@ export const queryMethods = (query: Query, proto: Proto, acls: string[]) => {
       value: async (update: Record<string, any>, setOnInsert: Record<string, any>) => {
         const beforeSave = proto.triggers?.beforeSave?.[query.model];
         const afterSave = proto.triggers?.afterSave?.[query.model];
-        if (!_validateCLPs('create', 'update')) throw new Error('No permission');
+        if (!master && !_validateCLPs('create', 'update')) throw new Error('No permission');
 
         const result = await proto.storage.findOneAndUpsert(options(), update, setOnInsert);
         if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result }, proto));
@@ -132,7 +140,7 @@ export const queryMethods = (query: Query, proto: Proto, acls: string[]) => {
       value: async () => {
         const beforeDelete = proto.triggers?.beforeDelete?.[query.model];
         const afterDelete = proto.triggers?.afterDelete?.[query.model];
-        if (!_validateCLPs('delete')) throw new Error('No permission');
+        if (!master && !_validateCLPs('delete')) throw new Error('No permission');
 
         let result: PObject | undefined;
 
@@ -159,7 +167,7 @@ export const queryMethods = (query: Query, proto: Proto, acls: string[]) => {
       value: async () => {
         const beforeDelete = proto.triggers?.beforeDelete?.[query.model];
         const afterDelete = proto.triggers?.afterDelete?.[query.model];
-        if (!_validateCLPs('delete')) throw new Error('No permission');
+        if (!master && !_validateCLPs('delete')) throw new Error('No permission');
 
         if (_.isFunction(beforeDelete) || _.isFunction(afterDelete)) {
 

@@ -28,7 +28,7 @@ import { PObject } from './object';
 import { Query } from './query';
 import { PSchema } from './schema';
 
-type CommonFindOptions = { model: string; acls: string[]; };
+type CommonFindOptions = { model: string; acls: string[]; master: boolean; };
 type FindOptions = CommonFindOptions & Omit<Query.Options, 'returning'>;
 type FindOneOptions = CommonFindOptions & Omit<Query.Options, 'skip' | 'limit'>;
 

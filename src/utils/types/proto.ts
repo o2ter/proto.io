@@ -57,8 +57,8 @@ export class Proto {
     return this.storage.models();
   }
 
-  query(model: string): Query {
-    return queryMethods(new Query(model), this, []);
+  query(model: string, master?: boolean): Query {
+    return queryMethods(new Query(model), this, [], master ?? false);
   }
 
   get schema(): ProtoOptions['schema'] {
