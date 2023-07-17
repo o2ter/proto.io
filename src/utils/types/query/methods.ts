@@ -106,12 +106,12 @@ export const queryMethods = (
         const afterSave = proto.triggers?.afterSave?.[query.model];
         if (!master && !_validateCLPs('create')) throw new Error('No permission');
 
-        attrs = _.omit(attrs, '_id', '_created_at', '_created_at');
+        attrs = _.omit(attrs, '_id', '_created_at', '_updated_at');
         const object = new PObject(query.model, attrs);
         if (_.isFunction(beforeSave)) await beforeSave(Object.setPrototypeOf({ object }, proto));
 
         attrs = _.fromPairs(object.keys().map(k => [k, object.get(k)]));
-        attrs = _.omit(attrs, '_id', '_created_at', '_created_at');
+        attrs = _.omit(attrs, '_id', '_created_at', '_updated_at');
 
         const result = await proto.storage.insert(query.model, attrs);
         if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result }, proto));
