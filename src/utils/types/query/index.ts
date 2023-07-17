@@ -47,7 +47,7 @@ export interface Query {
   findOneAndUpdate: (update: Record<string, [UpdateOperation, any]>) => PromiseLike<IOObject | undefined>;
   findOneAndUpsert: (update: Record<string, [UpdateOperation, any]>, setOnInsert: Record<string, any>) => PromiseLike<IOObject | undefined>;
   findOneAndDelete: () => PromiseLike<IOObject | undefined>;
-  findAndDelete: () => PromiseLike<IOObject | undefined>;
+  findAndDelete: () => PromiseLike<number>;
 }
 
 export class Query {
@@ -109,5 +109,21 @@ export class Query {
 
   async first() {
     return _.first(await this.clone().limit(1));
+  }
+
+  async updateOne(update: Record<string, [UpdateOperation, any]>) {
+    return this.findOneAndUpdate(update);
+  }
+
+  async upsertOne(update: Record<string, [UpdateOperation, any]>, setOnInsert: Record<string, any>) {
+    return this.findOneAndUpsert(update, setOnInsert);
+  }
+
+  async deleteOne() {
+    return this.findOneAndDelete();
+  }
+
+  async deleteAll() {
+    return this.findAndDelete();
   }
 }
