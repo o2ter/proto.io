@@ -28,12 +28,7 @@ export namespace PSchema {
   export type Primitive = 'boolean' | 'number' | 'decimal' | 'string' | 'date' | 'object' | 'array' | 'file';
   export type Relation = 'pointer' | 'relation';
   export type DataType = Primitive | { type: Primitive } | { type: Relation, target: string };
-}
-
-export interface PSchema {
-  fields: Record<string, PSchema.DataType>;
-  fieldLevelPermissions?: Record<string, PSchema.ACL>;
-  classLevelPermissions?: {
+  export type CLPs = {
     find?: PSchema.ACL;
     get?: PSchema.ACL;
     count?: PSchema.ACL;
@@ -41,5 +36,11 @@ export interface PSchema {
     update?: PSchema.ACL;
     delete?: PSchema.ACL;
   };
+}
+
+export interface PSchema {
+  fields: Record<string, PSchema.DataType>;
+  fieldLevelPermissions?: Record<string, PSchema.ACL>;
+  classLevelPermissions?: PSchema.CLPs;
   indexes?: Record<string, Record<string, 1 | -1>>;
 }
