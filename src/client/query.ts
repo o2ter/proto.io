@@ -75,6 +75,21 @@ export const queryMethods = (query: Query, proto: Proto) => {
         }, requestOpt);
       },
     },
+    [Symbol.asyncIterator]: {
+      value: async function* () {
+
+        const result = await proto._request({
+          operation: 'find',
+          ...options(),
+        }, requestOpt);
+
+        if (_.isArray(result)) {
+          for (const object of result) yield object;
+        } else {
+          yield result;
+        }
+      },
+    },
     insert: {
       value: (attrs: any) => proto._request({
         operation: 'insert',

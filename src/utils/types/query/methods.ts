@@ -104,7 +104,7 @@ export const queryMethods = (
     [Symbol.asyncIterator]: {
       value: async function*() {
         if (!master && !_validateCLPs('find')) throw new Error('No permission');
-        for await (const object of proto.storage.find(options())) return objectMethods(object, proto);
+        for await (const object of proto.storage.find(options())) yield objectMethods(object, proto);
       },
     },
     insert: {
