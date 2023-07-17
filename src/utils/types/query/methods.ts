@@ -48,21 +48,25 @@ const asyncIterableToArray = async <T>(asyncIterable: AsyncIterable<T>) => {
   return array;
 }
 
-export const objectMethods = (
-  object: IOObject | undefined,
+export const objectMethods = <T extends IOObject | IOObject[] | undefined>(
+  object: T,
   proto: Proto,
-) => object ? Object.defineProperties(object, {
-  save: {
-    value: async (master?: boolean) => {
-      await proto.query(object.className, master).findOneAndUpdate(object[privateKey].mutated);
+): T => {
+  if (_.isNil(object)) return undefined as T;
+  if (_.isArray(object)) return _.map(object, x => objectMethods(x, proto)) as T;
+  return Object.defineProperties(object, {
+    save: {
+      value: async (master?: boolean) => {
+        await proto.query(object.className, master).findOneAndUpdate(object[privateKey].mutated);
+      },
     },
-  },
-  destory: {
-    value: async (master?: boolean) => {
-      await proto.query(object.className, master).filter({ _id: object.objectId }).findOneAndDelete();
+    destory: {
+      value: async (master?: boolean) => {
+        await proto.query(object.className, master).filter({ _id: object.objectId }).findOneAndDelete();
+      },
     },
-  },
-}) : undefined;
+  });
+}
 
 export const queryMethods = (
   query: Query,
@@ -110,7 +114,7 @@ export const queryMethods = (
         const afterSave = proto.triggers?.afterSave?.[query.className];
         if (!master && !_validateCLPs('create')) throw new Error('No permission');
 
-        const object = objectMethods(new IOObject(query.className, _.omit(attrs, '_id', '_created_at', '_updated_at')), proto) as IOObject;
+        const object = objectMethods(new IOObject(query.className, _.omit(attrs, '_id', '_created_at', '_updated_at')), proto);
         if (_.isFunction(beforeSave)) await beforeSave(Object.setPrototypeOf({ object }, proto));
 
         const result = objectMethods(
@@ -203,10 +207,7 @@ export const queryMethods = (
 
         if (_.isFunction(beforeDelete) || _.isFunction(afterDelete)) {
 
-          const objects = _.map(
-            await asyncIterableToArray(proto.storage.find(options())),
-            x => objectMethods(x, proto),
-          ) as IOObject[];
+          const objects = objectMethods(await asyncIterableToArray(proto.storage.find(options())), proto);
           if (_.isEmpty(objects)) return 0;
 
           if (_.isFunction(beforeDelete)) {
