@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { Query } from './index';
 import { Proto } from '../proto';
-import { IOObject } from '../object';
+import { IOObject, UpdateOperation } from '../object';
 import { IOSchema } from '../schema';
 import { privateKey } from '../private';
 
@@ -152,10 +152,23 @@ export const queryMethods = (
     },
     findOneAndUpsert: {
       value: async (update: Record<string, any>, setOnInsert: Record<string, any>) => {
-        //FIXME: beforeSave does not implement yet.
         const beforeSave = proto.triggers?.beforeSave?.[query.className];
         const afterSave = proto.triggers?.afterSave?.[query.className];
         if (!master && !_validateCLPs('create', 'update')) throw new Error('No permission');
+
+        if (_.isFunction(beforeSave)) {
+
+          const object = objectMethods(_.first(await asyncIterableToArray(proto.storage.find({ ...options(), limit: 1 }))), proto);
+          if (!object) return undefined;
+
+          object[privateKey].mutated = update;
+          await beforeSave(Object.setPrototypeOf({ object }, proto));
+
+          update = object[privateKey].mutated;
+          setOnInsert = _.filter(
+            object[privateKey].mutated, (v, k) => v[0] === UpdateOperation.set && !(k in object[privateKey].attributes)
+          ).map(x => x[1]);
+        }
 
         const result = objectMethods(
           await proto.storage.findOneAndUpsert(options(), update, setOnInsert),
