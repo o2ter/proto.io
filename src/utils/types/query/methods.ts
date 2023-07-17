@@ -156,8 +156,36 @@ export const queryMethods = (query: Query, proto: Proto, acls: string[]) => {
       },
     },
     findAndDelete: {
-      value: () => {
+      value: async () => {
+        const beforeDelete = proto.triggers?.beforeDelete?.[query.model];
+        const afterDelete = proto.triggers?.afterDelete?.[query.model];
         if (!_validateCLPs('delete')) throw new Error('No permission');
+
+        if (_.isFunction(beforeDelete) || _.isFunction(afterDelete)) {
+
+          const objects = await asyncIterableToArray(proto.storage.find(options()));
+          if (_.isEmpty(objects)) return 0;
+
+          if (_.isFunction(beforeDelete)) {
+            for (const object of objects) {
+              await beforeDelete(Object.setPrototypeOf({ object }, proto));
+            }
+          }
+
+          await proto.storage.findAndDelete({
+            ...options(),
+            filter: { _id: { $in: _.map(objects, x => x.objectId) } },
+          });
+
+          if (_.isFunction(afterDelete)) {
+            for (const object of objects) {
+              await afterDelete(Object.setPrototypeOf({ object }, proto));
+            }
+          }
+
+          return objects.length;
+        }
+
         return proto.storage.findAndDelete(options());
       },
     },
