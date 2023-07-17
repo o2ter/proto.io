@@ -104,8 +104,16 @@ export class IOObject {
     this[privateKey].mutated[key] = [UpdateOperation.increment, value];
   }
 
+  decrement(key: string, value: any) {
+    this[privateKey].mutated[key] = [UpdateOperation.increment, -value];
+  }
+
   multiply(key: string, value: any) {
     this[privateKey].mutated[key] = [UpdateOperation.multiply, value];
+  }
+
+  divide(key: string, value: any) {
+    this[privateKey].mutated[key] = [UpdateOperation.multiply, 1 / value];
   }
 
   max(key: string, value: any) {
