@@ -68,6 +68,10 @@ export class Query {
     return this[PVK].className;
   }
 
+  clone() {
+    return new Query(this.className, this[PVK].options);
+  }
+
   filter<T>(filter: FilterQuery<T>) {
     this[PVK].options.filter = this[PVK].options.filter ? [..._.castArray(this[PVK].options.filter), filter] : filter;
     return this;
@@ -98,4 +102,7 @@ export class Query {
     return this;
   }
 
+  async first() {
+    return _.first(await this.clone().limit(1));
+  }
 }
