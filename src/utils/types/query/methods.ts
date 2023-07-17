@@ -29,19 +29,6 @@ import { Proto } from '../proto';
 import { PObject } from '../object';
 import { PSchema } from '../schema';
 
-declare module './index' {
-  export interface Query {
-    count: () => PromiseLike<number>;
-    then: Promise<PObject[]>['then'];
-    [Symbol.asyncIterator]: () => AsyncIterator<PObject>;
-    insert: (attrs: any) => PromiseLike<PObject | undefined>;
-    findOneAndUpdate: (update: Record<string, any>) => PromiseLike<PObject | undefined>;
-    findOneAndUpsert: (update: Record<string, any>, setOnInsert: Record<string, any>) => PromiseLike<PObject | undefined>;
-    findOneAndDelete: () => PromiseLike<PObject | undefined>;
-    findAndDelete: () => PromiseLike<PObject | undefined>;
-  }
-}
-
 const validateCLPs = (
   clps: PSchema.CLPs,
   keys: (keyof PSchema.CLPs)[],
@@ -58,6 +45,26 @@ const asyncIterableToArray = async <T>(asyncIterable: AsyncIterable<T>) => {
   const array: T[] = [];
   for await (const obj of asyncIterable) array.push(obj);
   return array;
+}
+
+export const objectMethods = (
+  object: PObject,
+  proto: Proto,
+) => {
+
+  const props = {
+    save: {
+      value: async (master?: boolean) => {
+      },
+    },
+    destory: {
+      value: async (master?: boolean) => {
+        await proto.query(object.className, master).filter({ _id: object.objectId }).findOneAndDelete();
+      },
+    },
+  }
+
+  return Object.defineProperties(object, props);
 }
 
 export const queryMethods = (
@@ -94,9 +101,11 @@ export const queryMethods = (
         return asyncIterableToArray(query).then;
       },
     },
-    async *[Symbol.asyncIterator]() {
-      if (!master && !_validateCLPs('find')) throw new Error('No permission');
-      for await (const object of proto.storage.find(options())) yield object;
+    [Symbol.asyncIterator]: {
+      get() {
+        if (!master && !_validateCLPs('find')) throw new Error('No permission');
+        return proto.storage.find(options())[Symbol.asyncIterator];
+      },
     },
     insert: {
       value: async (attrs: any) => {

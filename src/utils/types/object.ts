@@ -37,6 +37,11 @@ enum UpdateOperation {
   popLast,
 }
 
+export interface PObject {
+  save: (master?: boolean) => PromiseLike<void>;
+  destory: (master?: boolean) => PromiseLike<void>;
+}
+
 export class PObject {
 
   className: string;

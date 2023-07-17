@@ -25,9 +25,9 @@
 
 import _ from 'lodash';
 import { FilterQuery } from './filter';
+import { PObject } from '../object';
 
 export namespace Query {
-
   export interface Options {
     filter?: FilterQuery<any> | FilterQuery<any>[];
     sort?: Record<string, 1 | -1>;
@@ -36,6 +36,17 @@ export namespace Query {
     limit?: number;
     returning?: 'old' | 'new';
   }
+}
+
+export interface Query {
+  count: () => PromiseLike<number>;
+  then: Promise<PObject[]>['then'];
+  [Symbol.asyncIterator]: () => AsyncIterator<PObject>;
+  insert: (attrs: any) => PromiseLike<PObject | undefined>;
+  findOneAndUpdate: (update: Record<string, any>) => PromiseLike<PObject | undefined>;
+  findOneAndUpsert: (update: Record<string, any>, setOnInsert: Record<string, any>) => PromiseLike<PObject | undefined>;
+  findOneAndDelete: () => PromiseLike<PObject | undefined>;
+  findAndDelete: () => PromiseLike<PObject | undefined>;
 }
 
 export class Query {

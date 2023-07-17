@@ -28,16 +28,24 @@ import { Query } from '../utils/types/query';
 import { PObject } from '../utils/types';
 import Proto from './index';
 
-declare module './index' {
-  export interface Query {
-    count: () => PromiseLike<number>;
-    then: Promise<PObject[]>['then'];
-    insert: (attrs: any) => PromiseLike<PObject | undefined>;
-    findOneAndUpdate: (update: Record<string, any>) => PromiseLike<PObject | undefined>;
-    findOneAndUpsert: (update: Record<string, any>, setOnInsert: Record<string, any>) => PromiseLike<PObject | undefined>;
-    findOneAndDelete: () => PromiseLike<PObject | undefined>;
-    findAndDelete: () => PromiseLike<PObject | undefined>;
+export const objectMethods = (
+  object: PObject,
+  proto: Proto,
+) => {
+
+  const props = {
+    save: {
+      value: async () => {
+      },
+    },
+    destory: {
+      value: async () => {
+        await proto.query(object.className).filter({ _id: object.objectId }).findOneAndDelete();
+      },
+    },
   }
+
+  return Object.defineProperties(object, props);
 }
 
 export const queryMethods = (query: Query, proto: Proto) => {
