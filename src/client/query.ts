@@ -25,7 +25,8 @@
 
 import _ from 'lodash';
 import { Query } from '../utils/types/query';
-import { IOObject } from '../utils/types/object';
+import { IOObject, UpdateOperation } from '../utils/types/object';
+import { privateKey } from '../utils/types/private';
 import Proto from './index';
 
 export const objectMethods = (
@@ -33,14 +34,17 @@ export const objectMethods = (
   proto: Proto,
 ) => {
 
+  const query = () => proto.query(object.className).filter({ _id: object.objectId });
+
   const props = {
     save: {
       value: async () => {
+        await query().findOneAndUpdate(object[privateKey].mutated);
       },
     },
     destory: {
       value: async () => {
-        await proto.query(object.className).filter({ _id: object.objectId }).findOneAndDelete();
+        await query().findOneAndDelete();
       },
     },
   }
@@ -93,14 +97,14 @@ export const queryMethods = (query: Query, proto: Proto) => {
       }, requestOpt),
     },
     findOneAndUpdate: {
-      value: (update: Record<string, any>) => proto._request({
+      value: (update: Record<string, [UpdateOperation, any]>) => proto._request({
         operation: 'findOneAndUpdate',
         update,
         ...options(),
       }, requestOpt),
     },
     findOneAndUpsert: {
-      value: (update: Record<string, any>, setOnInsert: Record<string, any>) => proto._request({
+      value: (update: Record<string, [UpdateOperation, any]>, setOnInsert: Record<string, any>) => proto._request({
         operation: 'findOneAndUpsert',
         update,
         setOnInsert,

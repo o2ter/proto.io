@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { FilterQuery } from './filter';
-import { IOObject } from '../object';
+import { IOObject, UpdateOperation } from '../object';
 
 export namespace Query {
   export interface Options {
@@ -43,8 +43,8 @@ export interface Query {
   then: Promise<IOObject[]>['then'];
   [Symbol.asyncIterator]: () => AsyncIterator<IOObject>;
   insert: (attrs: any) => PromiseLike<IOObject | undefined>;
-  findOneAndUpdate: (update: Record<string, any>) => PromiseLike<IOObject | undefined>;
-  findOneAndUpsert: (update: Record<string, any>, setOnInsert: Record<string, any>) => PromiseLike<IOObject | undefined>;
+  findOneAndUpdate: (update: Record<string, [UpdateOperation, any]>) => PromiseLike<IOObject | undefined>;
+  findOneAndUpsert: (update: Record<string, [UpdateOperation, any]>, setOnInsert: Record<string, any>) => PromiseLike<IOObject | undefined>;
   findOneAndDelete: () => PromiseLike<IOObject | undefined>;
   findAndDelete: () => PromiseLike<IOObject | undefined>;
 }

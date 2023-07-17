@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { privateKey } from './private';
 
-enum UpdateOperation {
+export enum UpdateOperation {
   set,
   increment,
   multiply,
