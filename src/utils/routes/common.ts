@@ -52,7 +52,7 @@ export const response = async <T extends IOSerializable<PObject>>(
 }
 
 export const applyObjectMethods = (data: IOSerializable<PObject>, proto: Proto): IOSerializable<PObject> => {
-  if (data instanceof PObject) return objectMethods(data, proto);
+  if (data instanceof PObject) return objectMethods(data, proto) as PObject;
   if (_.isArray(data)) return _.map(data, x => applyObjectMethods(x, proto));
   if (_.isPlainObject(data)) return _.mapValues(data as any, x => applyObjectMethods(x, proto));
   return data;

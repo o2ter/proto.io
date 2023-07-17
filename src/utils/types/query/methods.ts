@@ -196,7 +196,7 @@ export const queryMethods = (
           const objects = _.map(
             await asyncIterableToArray(proto.storage.find(options())),
             x => objectMethods(x, proto),
-          );
+          ) as PObject[];
           if (_.isEmpty(objects)) return 0;
 
           if (_.isFunction(beforeDelete)) {
