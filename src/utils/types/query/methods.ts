@@ -129,12 +129,9 @@ export const queryMethods = (
 
         if (_.isFunction(beforeSave)) {
 
-          const [object] = _.map(
-            await asyncIterableToArray(proto.storage.find({ ...options(), limit: 1 })),
-            x => objectMethods(x, proto),
-          );
-
+          const object = objectMethods(_.first(await asyncIterableToArray(proto.storage.find({ ...options(), limit: 1 }))), proto);
           if (!object) return undefined;
+
           object[privateKey].mutated = update;
           await beforeSave(Object.setPrototypeOf({ object }, proto));
 
@@ -174,11 +171,9 @@ export const queryMethods = (
 
         if (_.isFunction(beforeDelete)) {
 
-          const [object] = _.map(
-            await asyncIterableToArray(proto.storage.find({ ...options(), limit: 1 })),
-            x => objectMethods(x, proto),
-          );
+          const object = objectMethods(_.first(await asyncIterableToArray(proto.storage.find({ ...options(), limit: 1 }))), proto);
           if (!object) return undefined;
+
           await beforeDelete(Object.setPrototypeOf({ object }, proto));
 
           result = objectMethods(
