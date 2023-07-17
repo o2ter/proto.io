@@ -97,7 +97,7 @@ export const queryMethods = (query: Query, proto: Proto, acls: string[]) => {
         const object = new PObject(query.model, _.omit(attrs, '_id', '_created_at', '_created_at'));
         if (_.isFunction(beforeSave)) await beforeSave(Object.setPrototypeOf({ object }, proto));
 
-        const result = await proto.storage.insert(query.model, attrs);
+        const result = await proto.storage.insert(query.model, _.fromPairs(object.keys().map(k => [k, object.get(k)])));
 
         if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result }, proto));
 

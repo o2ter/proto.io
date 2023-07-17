@@ -68,6 +68,10 @@ export class PObject {
     return this.#attributes._updated_at;
   }
 
+  keys(): string[] {
+    return _.uniq([..._.keys(this.#attributes), ..._.keys(this.#mutated)]);
+  }
+
   get(key: string): any {
     if (_.isNil(this.#mutated[key])) return this.#attributes[key];
     const [op, value] = this.#mutated[key];
