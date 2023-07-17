@@ -54,7 +54,7 @@ export class Proto {
   }
 
   query(model: string): Query {
-    return queryMethods(new Query(model), this.storage, []);
+    return queryMethods(new Query(model), this, []);
   }
 
   get schema(): ProtoOptions['schema'] {

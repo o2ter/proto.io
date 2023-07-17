@@ -25,8 +25,8 @@
 
 import _ from 'lodash';
 import { Query } from './index';
-import { PStorage } from '../storage';
 import { PObject } from '../object';
+import { Proto } from '../proto';
 
 declare module './index' {
   export interface Query {
@@ -41,7 +41,7 @@ declare module './index' {
   }
 }
 
-export const queryMethods = (query: Query, storage: PStorage, acls: string[]) => {
+export const queryMethods = (query: Query, proto: Proto, acls: string[]) => {
 
   const options = () => ({
     acls,
@@ -52,14 +52,14 @@ export const queryMethods = (query: Query, storage: PStorage, acls: string[]) =>
   const props = {
     count: {
       value: () => {
-        return storage.count(options());
+        return proto.storage.count(options());
       },
     },
     then: {
       get() {
         const result = (async () => {
           const array: PObject[] = [];
-          for await (const obj of storage.find(options())) array.push(obj);
+          for await (const obj of proto.storage.find(options())) array.push(obj);
           return array;
         })();
         return result.then;
@@ -67,32 +67,32 @@ export const queryMethods = (query: Query, storage: PStorage, acls: string[]) =>
     },
     [Symbol.asyncIterator]: {
       get() {
-        return storage.find(options())[Symbol.asyncIterator];
+        return proto.storage.find(options())[Symbol.asyncIterator];
       },
     },
     insert: {
       value: (attrs: any) => {
-        return storage.insert(query.model, attrs);
+        return proto.storage.insert(query.model, attrs);
       },
     },
     findOneAndUpdate: {
       value: (update: any) => {
-        return storage.findOneAndUpdate(options(), update);
+        return proto.storage.findOneAndUpdate(options(), update);
       },
     },
     findOneAndUpsert: {
       value: (update: any, setOnInsert: any) => {
-        return storage.findOneAndUpsert(options(), update, setOnInsert);
+        return proto.storage.findOneAndUpsert(options(), update, setOnInsert);
       },
     },
     findOneAndDelete: {
       value: () => {
-        return storage.findOneAndDelete(options());
+        return proto.storage.findOneAndDelete(options());
       },
     },
     findAndDelete: {
       value: () => {
-        return storage.findAndDelete(options());
+        return proto.storage.findAndDelete(options());
       },
     },
   };
