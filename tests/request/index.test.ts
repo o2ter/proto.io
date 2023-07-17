@@ -34,21 +34,6 @@ const proto = new Proto({
 });
 
 test('echo', async () => {
-
-  proto._request(null, {
-    method: 'get',
-    url: 'classes/test',
-    params: {
-      filter: serialize({
-        _id: 123,
-        _id2: '123',
-      }),
-      sort: { _id: 1 }
-    }
-  })
-
-});
-test('echo', async () => {
   const result = await proto.run('echo', 'hello, world');
   expect(result).toStrictEqual('hello, world');
 });
