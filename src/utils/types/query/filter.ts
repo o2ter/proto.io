@@ -39,9 +39,9 @@ type QuerySelector<T> = {
 }
 
 type RootQuerySelector<T> = {
-  $and?: Array<FilterQuery<T>>;
-  $nor?: Array<FilterQuery<T>>;
-  $or?: Array<FilterQuery<T>>;
+  $and?: FilterQuery<T>[];
+  $nor?: FilterQuery<T>[];
+  $or?: FilterQuery<T>[];
 };
 
 export type FilterQuery<T> = RootQuerySelector<T> | {
