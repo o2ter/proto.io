@@ -29,7 +29,7 @@ import { PStorage } from './storage';
 import { PSchema } from './schema';
 import { Query } from './query';
 import { PObject } from './object';
-import { queryMethods } from './query/methods';
+import { objectMethods, queryMethods } from './query/methods';
 import { PUser } from './user';
 
 type Callback<T, R> = (request: Proto & T) => R | PromiseLike<R>;
@@ -64,6 +64,10 @@ export class Proto {
 
   models(): string[] | PromiseLike<string[]> {
     return this.storage.models();
+  }
+
+  object(model: string) {
+    return objectMethods(new PObject(model), this);
   }
 
   query(model: string, master?: boolean): Query {
