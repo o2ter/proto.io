@@ -27,6 +27,7 @@ import _ from 'lodash';
 import express, { Router } from 'express';
 import { Proto } from '../types';
 import { serialize, deserialize } from '../codec';
+import { response } from './common';
 
 export default (router: Router, payload: Proto) => {
 
@@ -40,6 +41,11 @@ export default (router: Router, payload: Proto) => {
 
       if (!_.includes(models, name)) return res.sendStatus(404);
 
+      await response(res, async () => {
+
+        const data = deserialize(req.body);
+
+      });
     }
   );
 
@@ -53,6 +59,11 @@ export default (router: Router, payload: Proto) => {
 
       if (!_.includes(models, name)) return res.sendStatus(404);
 
+      await response(res, async () => {
+
+        const data = deserialize(req.body);
+
+      });
     }
   );
 
@@ -66,6 +77,11 @@ export default (router: Router, payload: Proto) => {
 
       if (!_.includes(models, name)) return res.sendStatus(404);
 
+      await response(res, async () => {
+
+        const data = deserialize(req.body);
+
+      });
     }
   );
 
@@ -79,6 +95,11 @@ export default (router: Router, payload: Proto) => {
 
       if (!_.includes(models, name)) return res.sendStatus(404);
 
+      await response(res, async () => {
+
+        const data = deserialize(req.body);
+
+      });
     }
   );
 
@@ -92,6 +113,11 @@ export default (router: Router, payload: Proto) => {
 
       if (!_.includes(models, name)) return res.sendStatus(404);
 
+      await response(res, async () => {
+
+        const data = deserialize(req.body);
+
+      });
     }
   );
 

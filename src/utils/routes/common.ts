@@ -1,5 +1,5 @@
 //
-//  function.ts
+//  common.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -23,39 +23,25 @@
 //  THE SOFTWARE.
 //
 
-import _ from 'lodash';
-import express, { Router } from 'express';
-import { Proto } from '../types';
-import { serialize, deserialize } from '../codec';
-import { response } from './common';
+import { Response } from 'express';
 
-export default (router: Router, payload: Proto) => {
+export const response = async <T>(
+  res: Response,
+  callback: () => Promise<T>,
+) => {
 
-  const { functions } = payload;
-  if (_.isEmpty(functions)) return router;
+  try {
 
-  router.post(
-    '/functions/:name',
-    express.text({ type: '*/*' }),
-    async (req, res) => {
+    res.json(await callback());
 
-      const { name } = req.params;
-      const func = functions[name];
+  } catch (error) {
 
-      if (!_.isFunction(func)) return res.sendStatus(404);
-
-      await response(res, async () => {
-
-        const data = deserialize(req.body);
-        const _payload = Object.setPrototypeOf({
-          ..._.omit(req, 'body'),
-          data: data ?? null,
-        }, payload);
-        
-        return func(_payload);
-      });
+    if (error instanceof String) {
+      res.status(400).json({ message: error });
+    } else if (error instanceof Error) {
+      res.status(400).json({ ...error, message: error.message });
+    } else {
+      res.status(400).json(error);
     }
-  );
-
-  return router;
+  }
 }
