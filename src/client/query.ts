@@ -1,5 +1,5 @@
 //
-//  methods.ts
+//  query.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -24,26 +24,26 @@
 //
 
 import _ from 'lodash';
-import { Query } from './index';
-import { PStorage } from '../storage';
-import { PObject } from '../object';
+import { request } from './request';
+import axios, { CancelToken } from 'axios';
+import { IOSerializable, serialize, deserialize } from '../utils/codec';
+import { Query } from '../utils/types/query';
+import { PObject } from '../utils/types';
+import Proto from './index';
 
 declare module './index' {
   export interface Query {
     count: () => PromiseLike<number>;
     then: Promise<PObject[]>['then'];
-    [Symbol.asyncIterator]: AsyncIterator<PObject>;
     findOneAndUpdate: (update: any) => PromiseLike<PObject | undefined>;
     findOneAndUpsert: (update: any, setOnInsert: any) => PromiseLike<PObject | undefined>;
     findOneAndDelete: () => PromiseLike<PObject | undefined>;
-    findAndDelete: () => PromiseLike<PObject | undefined>;
   }
 }
 
-export const queryMethods = (query: Query, storage: PStorage, acls: string[]) => {
+export const queryMethods = (query: Query, proto: Proto) => {
 
   const options = () => ({
-    acls,
     model: query.model,
     ...query.options,
   });
@@ -51,42 +51,32 @@ export const queryMethods = (query: Query, storage: PStorage, acls: string[]) =>
   const props = {
     count: {
       value: () => {
-        return storage.count(options());
+        
       },
     },
     then: {
       get() {
-        const result = (async () => {
-          const array: PObject[] = [];
-          for await (const obj of storage.find(options())) array.push(obj);
-          return array;
-        })();
-        return result.then;
-      },
-    },
-    [Symbol.asyncIterator]: {
-      get() {
-        return storage.find(options())[Symbol.asyncIterator];
+        
       },
     },
     findOneAndUpdate: {
       value: (update: any) => {
-        return storage.findOneAndUpdate(options(), update);
+        
       },
     },
     findOneAndUpsert: {
       value: (update: any, setOnInsert: any) => {
-        return storage.findOneAndUpsert(options(), update, setOnInsert);
+        
       },
     },
     findOneAndDelete: {
       value: () => {
-        return storage.findOneAndDelete(options());
+        
       },
     },
     findAndDelete: {
       value: () => {
-        return storage.findAndDelete(options());
+        
       },
     },
   };

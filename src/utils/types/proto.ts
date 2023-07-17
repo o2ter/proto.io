@@ -54,9 +54,7 @@ export class Proto {
   }
 
   query(model: string): Query {
-    const query = new Query(model);
-    queryMethods(query, this.storage, []);
-    return query;
+    return queryMethods(new Query(model), this.storage, []);
   }
 
   insert(model: string, attrs: any): PromiseLike<PObject | undefined> {

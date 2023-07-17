@@ -28,6 +28,7 @@ import { request } from './request';
 import axios, { CancelToken } from 'axios';
 import { IOSerializable, serialize, deserialize } from '../utils/codec';
 import { Query } from '../utils/types/query';
+import { queryMethods } from './query';
 
 export * from '../utils/codec';
 export { PObject } from '../utils/types';
@@ -47,8 +48,7 @@ export class Proto {
   }
 
   query(model: string): Query {
-    const query = new Query(model);
-    return query;
+    return queryMethods(new Query(model), this);
   }
 
   async run(
