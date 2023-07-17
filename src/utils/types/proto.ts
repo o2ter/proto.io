@@ -71,6 +71,10 @@ export class Proto {
     return this.#options.functions;
   }
 
+  get triggers(): ProtoOptions['triggers'] {
+    return this.#options.triggers;
+  }
+
   async _prepare() {
     await this.storage.prepare(this.schema);
   }
