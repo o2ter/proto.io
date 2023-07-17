@@ -24,6 +24,7 @@
 //
 
 import _ from 'lodash';
+import { privateKey } from './private';
 
 enum UpdateOperation {
   set,
@@ -45,49 +46,54 @@ export interface PObject {
 export class PObject {
 
   className: string;
-  #attributes: Record<string, any>;
 
-  #mutated: Record<string, [UpdateOperation, any]> = {};
+  [privateKey]: {
+    attributes: Record<string, any>;
+    mutated: Record<string, [UpdateOperation, any]>;
+  };
 
   constructor(
     className: string,
     attributes?: Record<string, any> | ((self: PObject) => Record<string, any>),
   ) {
     this.className = className;
-    this.#attributes = _.isFunction(attributes) ? attributes(this) : attributes ?? {};
+    this[privateKey] = {
+      attributes: _.isFunction(attributes) ? attributes(this) : attributes ?? {},
+      mutated: {},
+    }
   }
 
   get attributes(): Record<string, any> {
-    return this.#attributes;
+    return this[privateKey].attributes;
   }
 
   get objectId(): string | undefined {
-    return this.#attributes._id;
+    return this[privateKey].attributes._id;
   }
 
   get createdAt(): Date | undefined {
-    return this.#attributes._created_at;
+    return this[privateKey].attributes._created_at;
   }
 
   get updatedAt(): Date | undefined {
-    return this.#attributes._updated_at;
+    return this[privateKey].attributes._updated_at;
   }
 
   keys(): string[] {
-    return _.uniq([..._.keys(this.#attributes), ..._.keys(this.#mutated)]);
+    return _.uniq([..._.keys(this.attributes), ..._.keys(this[privateKey].mutated)]);
   }
 
   get(key: string): any {
-    if (_.isNil(this.#mutated[key])) return this.#attributes[key];
-    const [op, value] = this.#mutated[key];
-    return op === UpdateOperation.set ? value : this.#attributes[key];
+    if (_.isNil(this[privateKey].mutated[key])) return this.attributes[key];
+    const [op, value] = this[privateKey].mutated[key];
+    return op === UpdateOperation.set ? value : this.attributes[key];
   }
 
   set(key: string, value: any) {
-    this.#mutated[key] = [UpdateOperation.set, value];
+    this[privateKey].mutated[key] = [UpdateOperation.set, value];
   }
 
   get isDirty(): boolean {
-    return !_.isEmpty(this.#mutated);
+    return !_.isEmpty(this[privateKey].mutated);
   }
 }
