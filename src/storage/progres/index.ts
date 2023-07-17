@@ -24,6 +24,7 @@
 //
 
 import _ from 'lodash';
+import pg from 'pg-promise';
 import { IOSchema, IOStorage } from '../../utils/types';
 
 export class MongoStorage implements IOStorage {

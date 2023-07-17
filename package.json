@@ -24,6 +24,7 @@
     "jsonwebtoken": ">=9.0.1",
     "lodash": ">=4.17.21",
     "mongodb": "^5.7.0",
+    "pg-promise": "^11.5.0",
     "query-types": "^0.1.4"
   },
   "peerDependencies": {
