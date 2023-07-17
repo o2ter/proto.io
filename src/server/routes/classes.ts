@@ -124,12 +124,8 @@ export default (router: Router, payload: Proto) => {
       const _payload = Object.setPrototypeOf({
         ..._.omit(req, 'body'),
       }, payload);
-      const query = _payload.query(name).filter({ _id: id }).limit(1);
 
-      await response(res, async () => {
-        const [obj] = await query;
-        return obj;
-      });
+      await response(res, async () => _payload.query(name).get(id));
     }
   );
 
