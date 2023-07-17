@@ -50,6 +50,12 @@ const validateCLPs = (clps: PSchema.CLPs, keys: (keyof PSchema.CLPs)[], acls: st
   return true;
 }
 
+const asyncIterableToArray = async <T>(asyncIterable: AsyncIterable<T>) => {
+  const array: T[] = [];
+  for await (const obj of asyncIterable) array.push(obj);
+  return array;
+}
+
 export const queryMethods = (query: Query, proto: Proto, acls: string[]) => {
 
   const options = () => ({
@@ -75,9 +81,7 @@ export const queryMethods = (query: Query, proto: Proto, acls: string[]) => {
       get() {
         const result = (async () => {
           if (!_validateCLPs('find')) throw new Error('No permission');
-          const array: PObject[] = [];
-          for await (const obj of proto.storage.find(options())) array.push(obj);
-          return array;
+          return asyncIterableToArray(proto.storage.find(options()));
         })();
         return result.then;
       },
@@ -130,7 +134,24 @@ export const queryMethods = (query: Query, proto: Proto, acls: string[]) => {
         const afterDelete = proto.triggers?.afterDelete?.[query.model];
         if (!_validateCLPs('delete')) throw new Error('No permission');
 
-        const result = await proto.storage.findOneAndDelete(options());
+        let result: PObject | undefined;
+
+        if (_.isFunction(beforeDelete)) {
+
+          const [object] = await asyncIterableToArray(proto.storage.find({ ...options(), limit: 1 }));
+          if (!object) return undefined;
+          await beforeDelete(Object.setPrototypeOf({ object }, proto));
+
+          result = await proto.storage.findOneAndDelete({
+            filter: { _id: object.objectId },
+            model: query.model,
+            acls,
+          });
+
+        } else {
+          result = await proto.storage.findOneAndDelete(options());
+        }
+
         if (result && _.isFunction(afterDelete)) await afterDelete(Object.setPrototypeOf({ object: result }, proto));
         return result;
       },

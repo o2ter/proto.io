@@ -29,7 +29,7 @@ import { FilterQuery } from './filter';
 export namespace Query {
 
   export interface Options {
-    filter?: FilterQuery<any>[];
+    filter?: FilterQuery<any> | FilterQuery<any>[];
     sort?: Record<string, 1 | -1>;
     includes?: string[];
     skip?: number;
@@ -49,7 +49,7 @@ export class Query {
   }
 
   filter<T>(filter: FilterQuery<T>) {
-    this.options.filter = this.options.filter ? [...this.options.filter, filter] : [filter];
+    this.options.filter = this.options.filter ? [..._.castArray(this.options.filter), filter] : filter;
     return this;
   }
 
