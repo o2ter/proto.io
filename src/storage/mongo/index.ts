@@ -25,12 +25,12 @@
 
 import _ from 'lodash';
 import { MongoClient, MongoClientOptions } from 'mongodb';
-import { PSchema, PStorage } from '../../utils/types';
+import { ISchema, IStorage } from '../../utils/types';
 
-export class MongoStorage implements PStorage {
+export class MongoStorage implements IStorage {
 
   connection: MongoClient;
-  schema: Record<string, PSchema> = {};
+  schema: Record<string, ISchema> = {};
 
   constructor(uri: string, options?: MongoClientOptions) {
     this.connection = new MongoClient(uri, options);
@@ -50,7 +50,7 @@ export class MongoStorage implements PStorage {
     return storage.connect();
   }
 
-  prepare(schema: Record<string, PSchema>) {
+  prepare(schema: Record<string, ISchema>) {
     this.schema = schema;
   }
 

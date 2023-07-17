@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { Query } from '../utils/types/query';
-import { PObject } from '../utils/types';
+import { PObject } from '../utils/types/object';
 import Proto from './index';
 
 export const objectMethods = (

@@ -23,23 +23,23 @@
 //  THE SOFTWARE.
 //
 
-export namespace PSchema {
+export namespace ISchema {
   export type ACL = string[];
   export type Primitive = 'boolean' | 'number' | 'decimal' | 'string' | 'date' | 'object' | 'array' | 'file';
   export type Relation = 'pointer' | 'relation';
   export type DataType = Primitive | { type: Primitive } | { type: Relation, target: string };
   export type CLPs = {
-    find?: PSchema.ACL;
-    count?: PSchema.ACL;
-    create?: PSchema.ACL;
-    update?: PSchema.ACL;
-    delete?: PSchema.ACL;
+    find?: ISchema.ACL;
+    count?: ISchema.ACL;
+    create?: ISchema.ACL;
+    update?: ISchema.ACL;
+    delete?: ISchema.ACL;
   };
 }
 
-export interface PSchema {
-  fields: Record<string, PSchema.DataType>;
-  fieldLevelPermissions?: Record<string, PSchema.ACL>;
-  classLevelPermissions?: PSchema.CLPs;
+export interface ISchema {
+  fields: Record<string, ISchema.DataType>;
+  fieldLevelPermissions?: Record<string, ISchema.ACL>;
+  classLevelPermissions?: ISchema.CLPs;
   indexes?: Record<string, Record<string, 1 | -1>>;
 }

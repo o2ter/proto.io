@@ -24,13 +24,13 @@
 //
 
 import _ from 'lodash';
-import { PStorage, PSchema } from '../../src';
+import { IStorage, ISchema } from '../../src';
 
-export class MemoryStorage implements PStorage {
+export class MemoryStorage implements IStorage {
 
-  schema: Record<string, PSchema> = {};
+  schema: Record<string, ISchema> = {};
 
-  prepare(schema: Record<string, PSchema>) {
+  prepare(schema: Record<string, ISchema>) {
     this.schema = schema;
   }
 

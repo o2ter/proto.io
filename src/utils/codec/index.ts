@@ -35,7 +35,7 @@ import {
   Decimal128,
   UUID
 } from 'bson';
-import { PObject } from '../types';
+import { PObject } from '../types/object';
 
 export { UUID, Decimal };
 export type IONumber = number | Decimal | BigInt;

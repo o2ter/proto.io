@@ -45,9 +45,8 @@ export interface PObject {
 
 export class PObject {
 
-  className: string;
-
   [privateKey]: {
+    className: string;  
     attributes: Record<string, any>;
     mutated: Record<string, [UpdateOperation, any]>;
   };
@@ -56,11 +55,15 @@ export class PObject {
     className: string,
     attributes?: Record<string, any> | ((self: PObject) => Record<string, any>),
   ) {
-    this.className = className;
     this[privateKey] = {
+      className,
       attributes: _.isFunction(attributes) ? attributes(this) : attributes ?? {},
       mutated: {},
     }
+  }
+
+  get className(): string {
+    return this[privateKey].className;
   }
 
   get attributes(): Record<string, any> {

@@ -25,8 +25,8 @@
 
 import _ from 'lodash';
 import { IOSerializable } from '../codec';
-import { PStorage } from './storage';
-import { PSchema } from './schema';
+import { IStorage } from './storage';
+import { ISchema } from './schema';
 import { Query } from './query';
 import { PObject } from './object';
 import { objectMethods, queryMethods } from './query/methods';
@@ -44,8 +44,8 @@ type Validator = {
 };
 
 export type ProtoOptions = {
-  schema: Record<string, PSchema>;
-  storage: PStorage;
+  schema: Record<string, ISchema>;
+  storage: IStorage;
   functions?: Record<string, ProtoFunction | { callback: ProtoFunction; validator?: Validator }>;
   triggers?: {
     beforeSave?: Record<string, Callback<{ object: PObject; }, void>>;

@@ -26,15 +26,15 @@
 import _ from 'lodash';
 import { PObject } from './object';
 import { Query } from './query';
-import { PSchema } from './schema';
+import { ISchema } from './schema';
 
 type CommonFindOptions = { model: string; acls: string[]; master: boolean; };
 type FindOptions = CommonFindOptions & Omit<Query.Options, 'returning'>;
 type FindOneOptions = CommonFindOptions & Omit<Query.Options, 'skip' | 'limit'>;
 
-export interface PStorage {
+export interface IStorage {
 
-  prepare(schema: Record<string, PSchema>): void | PromiseLike<void>;
+  prepare(schema: Record<string, ISchema>): void | PromiseLike<void>;
   models(): string[] | PromiseLike<string[]>;
 
   count(query: FindOptions): PromiseLike<number>;
