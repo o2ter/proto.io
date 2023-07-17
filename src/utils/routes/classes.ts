@@ -25,6 +25,7 @@
 
 import _ from 'lodash';
 import express, { Router } from 'express';
+import queryType from 'query-types';
 import { Proto } from '../types';
 import { deserialize } from '../codec';
 import { response } from './common';
@@ -74,6 +75,7 @@ export default (router: Router, payload: Proto) => {
   router.get(
     '/classes/:name',
     express.text({ type: '*/*' }),
+    queryType.middleware(),
     async (req, res) => {
 
       const { name } = req.params;
@@ -81,8 +83,27 @@ export default (router: Router, payload: Proto) => {
 
       if (!_.includes(models, name)) return res.sendStatus(404);
 
+      const query = payload.query(name);
+
       await response(res, async () => {
 
+        const {
+          filter,
+          sort,
+          includes,
+          skip,
+          limit,
+          returning,
+        } = req.query;
+
+        query.options.filter = _.isEmpty(filter) && _.isString(filter) ? _.castArray(deserialize(filter)) as any : [];
+        query.options.sort = _.isPlainObject(sort) && _.every(_.values(sort), _.isNumber) ? sort as any : undefined;
+        query.options.includes = _.isArray(includes) && _.every(includes, _.isString) ? includes as any : undefined;
+        query.options.skip = _.isNumber(skip) ? skip : undefined;
+        query.options.limit = _.isNumber(limit) ? limit : undefined;
+        query.options.returning = _.includes(['old', 'new'], returning) ? returning as any : undefined;
+
+        return await query;
       });
     }
   );

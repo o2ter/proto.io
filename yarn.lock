@@ -3587,6 +3587,11 @@ qs@6.11.0:
   dependencies:
     side-channel "^1.0.4"
 
+query-types@^0.1.4:
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/query-types/-/query-types-0.1.4.tgz#e95e28cd730d856dbbeb493205384850cc8ea8ea"
+  integrity sha512-DvOCeSGI+RJeZ8+13NYTZUGbGva3P85GmATpY2ojj0mIsNfw70xeTpQW51JaYDZyQ2Li/svGT+FUdd4CBUoDcQ==
+
 random-bytes@~1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/random-bytes/-/random-bytes-1.0.0.tgz#4f68a1dc0ae58bd3fb95848c30324db75d64360b"
