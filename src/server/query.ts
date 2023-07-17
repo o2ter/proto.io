@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { Query } from '../types/query/index';
+import { Query } from '../types/query';
 import { Proto } from '.';
 import { IOObject, UpdateOperation } from '../types/object';
 import { IOSchema } from '../types/schema';

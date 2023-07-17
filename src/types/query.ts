@@ -25,8 +25,8 @@
 
 import _ from 'lodash';
 import { FilterQuery } from './filter';
-import { IOObject, UpdateOperation } from '../object';
-import { PVK } from '../private';
+import { IOObject, UpdateOperation } from './object';
+import { PVK } from './private';
 
 export namespace Query {
   export interface Options {
