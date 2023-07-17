@@ -33,7 +33,7 @@ declare module './index' {
   export interface Query {
     count: () => PromiseLike<number>;
     then: Promise<PObject[]>['then'];
-    [Symbol.asyncIterator]: AsyncIterator<PObject>;
+    [Symbol.asyncIterator]: () => AsyncIterator<PObject>;
     insert: (attrs: any) => PromiseLike<PObject | undefined>;
     findOneAndUpdate: (update: Record<string, any>) => PromiseLike<PObject | undefined>;
     findOneAndUpsert: (update: Record<string, any>, setOnInsert: Record<string, any>) => PromiseLike<PObject | undefined>;
@@ -87,15 +87,11 @@ export const queryMethods = (
     },
     then: {
       get() {
-        const result = (async () => {
-          if (!master && !_validateCLPs('find')) throw new Error('No permission');
-          return asyncIterableToArray(proto.storage.find(options()));
-        })();
-        return result.then;
+        return asyncIterableToArray(query).then;
       },
     },
     [Symbol.asyncIterator]: {
-      get() {
+      value: () => {
         if (!master && !_validateCLPs('find')) throw new Error('No permission');
         return proto.storage.find(options())[Symbol.asyncIterator];
       },
