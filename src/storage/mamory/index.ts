@@ -1,5 +1,5 @@
 //
-//  storage.ts
+//  index.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { IOStorage, IOSchema } from '../../src';
+import { IOStorage, IOSchema } from '../..';
 
 export class MemoryStorage implements IOStorage {
 
@@ -67,3 +67,5 @@ export class MemoryStorage implements IOStorage {
   }
 
 };
+
+export default MemoryStorage;

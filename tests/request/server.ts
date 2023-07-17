@@ -27,7 +27,7 @@ import _ from 'lodash';
 import express from 'express';
 import { ProtoRoute, UUID } from '../../src/index';
 import { beforeAll, afterAll } from '@jest/globals';
-import { MemoryStorage } from './storage';
+import { MemoryStorage } from '../../src/storage/mamory';
 
 let httpServer: any;
 
