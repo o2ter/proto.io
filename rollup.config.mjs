@@ -46,6 +46,7 @@ export default [
       index: 'src/index',
       client: 'src/client',
       'storage/mongo': 'src/storage/mongo',
+      'storage/progres': 'src/storage/progres',
     },
     external: [
       /node_modules/
@@ -79,4 +80,5 @@ export default [
   rollupTypes('index'),
   rollupTypes('client'),
   rollupTypes('storage/mongo'),
+  rollupTypes('storage/progres'),
 ];
