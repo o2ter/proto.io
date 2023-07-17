@@ -87,3 +87,5 @@ export class MongoStorage implements PStorage {
   }
 
 }
+
+export default MongoStorage;

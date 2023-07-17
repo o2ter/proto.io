@@ -45,6 +45,7 @@ export default [
     input: {
       index: 'src/index',
       client: 'src/client',
+      'storage/mongo': 'src/storage/mongo',
     },
     external: [
       /node_modules/
@@ -77,4 +78,5 @@ export default [
   },
   rollupTypes('index'),
   rollupTypes('client'),
+  rollupTypes('storage/mongo'),
 ];
