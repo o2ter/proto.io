@@ -65,6 +65,12 @@ export const queryMethods = (query: Query, proto: Proto) => {
         }, requestOpt);
       },
     },
+    insert: {
+      value: (attrs: any) => proto._request({
+        operation: 'insert',
+        attrs,
+      }, requestOpt),
+    },
     findOneAndUpdate: {
       value: (update: any) => proto._request({
         operation: 'findOneAndUpdate',
