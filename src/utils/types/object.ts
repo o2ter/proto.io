@@ -27,15 +27,15 @@ import _ from 'lodash';
 import { privateKey } from './private';
 
 export enum UpdateOperation {
-  set,
-  increment,
-  multiply,
-  max,
-  min,
-  push,
-  removeAll,
-  popFirst,
-  popLast,
+  set = 'set',
+  increment = 'increment',
+  multiply = 'multiply',
+  max = 'max',
+  min = 'min',
+  push = 'push',
+  removeAll = 'removeAll',
+  popFirst = 'popFirst',
+  popLast = 'popLast',
 }
 
 export interface IOObject {
