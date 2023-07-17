@@ -116,6 +116,7 @@ export const queryMethods = (
     },
     findOneAndUpdate: {
       value: async (update: Record<string, any>) => {
+        //FIXME: beforeSave does not implement yet.
         const beforeSave = proto.triggers?.beforeSave?.[query.model];
         const afterSave = proto.triggers?.afterSave?.[query.model];
         if (!master && !_validateCLPs('update')) throw new Error('No permission');
@@ -127,6 +128,7 @@ export const queryMethods = (
     },
     findOneAndUpsert: {
       value: async (update: Record<string, any>, setOnInsert: Record<string, any>) => {
+        //FIXME: beforeSave does not implement yet.
         const beforeSave = proto.triggers?.beforeSave?.[query.model];
         const afterSave = proto.triggers?.afterSave?.[query.model];
         if (!master && !_validateCLPs('create', 'update')) throw new Error('No permission');
