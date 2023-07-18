@@ -24,10 +24,11 @@
 //
 
 import _ from 'lodash';
-import { IOObject } from '.';
+import { IOObject } from './index';
 import { PVK } from '../private';
 import { ExtraOptions } from '../options';
 import { Query } from '../query';
+import { IOSerializable, Proto } from '../../client';
 
 export const objectMethods = <T extends IOObject | IOObject[] | undefined>(
   object: T,
@@ -57,4 +58,11 @@ export const objectMethods = <T extends IOObject | IOObject[] | undefined>(
       },
     },
   });
+};
+
+export const applyIOObjectMethods = (data: IOSerializable<IOObject>, proto: Proto): IOSerializable<IOObject> => {
+  if (data instanceof IOObject) return objectMethods(data, proto);
+  if (_.isArray(data)) return _.map(data, x => applyIOObjectMethods(x, proto));
+  if (_.isPlainObject(data)) return _.mapValues(data as any, x => applyIOObjectMethods(x, proto));
+  return data;
 };

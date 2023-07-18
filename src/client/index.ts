@@ -23,7 +23,6 @@
 //  THE SOFTWARE.
 //
 
-import _ from 'lodash';
 import { request } from './request';
 import axios, { CancelToken } from 'axios';
 import { IOSerializable, serialize, deserialize } from '../codec';
@@ -33,7 +32,7 @@ import { IOObject } from '../types/object';
 import { IOObjectType, IOObjectTypes } from '../types/object/types';
 import { ExtraOptions } from '../types/options';
 import { isObjKey } from '../utils';
-import { objectMethods } from '../types/object/methods';
+import { objectMethods, applyIOObjectMethods } from '../types/object/methods';
 
 export * from '../codec';
 
@@ -42,13 +41,6 @@ type Options = {
 }
 
 export const CancelTokenSource = axios.CancelToken.source;
-
-const applyIOObjectMethods = (data: IOSerializable<IOObject>, proto: Proto): IOSerializable<IOObject> => {
-  if (data instanceof IOObject) return objectMethods(data, proto);
-  if (_.isArray(data)) return _.map(data, x => applyIOObjectMethods(x, proto));
-  if (_.isPlainObject(data)) return _.mapValues(data as any, x => applyIOObjectMethods(x, proto));
-  return data;
-}
 
 type RequestOptions = {
   master?: boolean;
