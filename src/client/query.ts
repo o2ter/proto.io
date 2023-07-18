@@ -28,6 +28,7 @@ import { Query } from '../types/query';
 import { IOObject, UpdateOperation } from '../types/object';
 import { PVK } from '../types/private';
 import Proto from './index';
+import { ExtraOptions } from '../types/options';
 
 export const objectMethods = (
   object: IOObject,
@@ -38,7 +39,7 @@ export const objectMethods = (
 
   return Object.defineProperties(object, {
     save: {
-      value: async () => {
+      value: async (options?: ExtraOptions) => {
         const updated = await query().findOneAndUpdate(object[PVK].mutated);
         if (updated) {
           object[PVK].attributes = updated.attributes;
@@ -47,16 +48,16 @@ export const objectMethods = (
       },
     },
     destory: {
-      value: async () => {
+      value: async (options?: ExtraOptions) => {
         await query().findOneAndDelete();
       },
     },
   });
 }
 
-export const queryMethods = (query: Query, proto: Proto) => {
+export const queryMethods = (query: Query, proto: Proto, options?: ExtraOptions) => {
 
-  const options = () => ({
+  const queryOptions = () => ({
     className: query[PVK].className,
     ...query[PVK].options,
   }) as any;
@@ -70,14 +71,14 @@ export const queryMethods = (query: Query, proto: Proto) => {
     count: {
       value: () => proto._request({
         operation: 'count',
-        ...options(),
+        ...queryOptions(),
       }, requestOpt),
     },
     then: {
       get() {
         return proto._request({
           operation: 'find',
-          ...options(),
+          ...queryOptions(),
         }, requestOpt);
       },
     },
@@ -96,7 +97,7 @@ export const queryMethods = (query: Query, proto: Proto) => {
       value: (update: Record<string, [UpdateOperation, any]>) => proto._request({
         operation: 'findOneAndUpdate',
         update,
-        ...options(),
+        ...queryOptions(),
       }, requestOpt),
     },
     findOneAndUpsert: {
@@ -104,19 +105,19 @@ export const queryMethods = (query: Query, proto: Proto) => {
         operation: 'findOneAndUpsert',
         update,
         setOnInsert,
-        ...options(),
+        ...queryOptions(),
       }, requestOpt),
     },
     findOneAndDelete: {
       value: () => proto._request({
         operation: 'findOneAndDelete',
-        ...options(),
+        ...queryOptions(),
       }, requestOpt),
     },
     findAndDelete: {
       value: () => proto._request({
         operation: 'findAndDelete',
-        ...options(),
+        ...queryOptions(),
       }, requestOpt),
     },
   };

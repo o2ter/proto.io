@@ -31,6 +31,7 @@ import { Query } from '../types/query';
 import { objectMethods, queryMethods } from './query';
 import { IOObject } from '../types/object';
 import { IOUser } from '../types/user';
+import { ExtraOptions } from '../types/options';
 
 export * from '../codec';
 
@@ -47,6 +48,11 @@ const applyIOObjectMethods = (data: IOSerializable<IOObject>, proto: Proto): IOS
   return data;
 }
 
+type RequestOptions = {
+  master?: boolean;
+  cancelToken?: CancelToken;
+};
+
 export class Proto {
 
   options: Options;
@@ -59,17 +65,22 @@ export class Proto {
     return objectMethods(className === '_User' ? new IOUser : new IOObject(className), this);
   }
 
-  query(className: string): Query {
-    return queryMethods(new Query(className), this);
+  query(className: string, options?: ExtraOptions): Query {
+    return queryMethods(new Query(className), this, options);
   }
 
-  async _request(data?: IOSerializable, options?: any) {
+  async _request(
+    data?: IOSerializable,
+    options?: RequestOptions & Parameters<typeof request>[0]
+  ) {
+
+    const { master, ...opts } = options ?? {};
 
     const res = await request({
       baseURL: this.options.endpoint,
       data: serialize(data ?? null),
       responseType: 'text',
-      ...(options ?? {})
+      ...opts,
     });
 
     if (res.status !== 200) {
@@ -83,9 +94,7 @@ export class Proto {
   async run(
     name: string,
     data?: IOSerializable,
-    options?: {
-      cancelToken?: CancelToken
-    },
+    options?: RequestOptions,
   ) {
 
     return this._request(data, {

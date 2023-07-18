@@ -1,5 +1,5 @@
 //
-//  storage.ts
+//  options.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -23,29 +23,6 @@
 //  THE SOFTWARE.
 //
 
-import _ from 'lodash';
-import { IOObject } from './object';
-import { Query } from './query';
-import { IOSchema } from './schema';
-import { ExtraOptions } from './options';
-
-type CommonFindOptions = { className: string; options: ExtraOptions & { acls: string[]; }; };
-type FindOptions = CommonFindOptions & Omit<Query.Options, 'returning'>;
-type FindOneOptions = CommonFindOptions & Omit<Query.Options, 'skip' | 'limit'>;
-
-export interface IOStorage {
-
-  prepare(schema: Record<string, IOSchema>): void | PromiseLike<void>;
-  classes(): string[] | PromiseLike<string[]>;
-
-  count(query: FindOptions): PromiseLike<number>;
-  find(query: FindOptions): AsyncIterable<IOObject>;
-
-  insert(className: string, attrs: any): PromiseLike<IOObject | undefined>;
-
-  findOneAndUpdate(query: FindOneOptions, update: any): PromiseLike<IOObject | undefined>;
-  findOneAndUpsert(query: FindOneOptions, update: any, setOnInsert: any): PromiseLike<IOObject | undefined>;
-  findOneAndDelete(query: FindOneOptions): PromiseLike<IOObject | undefined>;
-
-  findAndDelete(query: FindOptions): PromiseLike<number>;
-}
+export type ExtraOptions = {
+  master?: boolean;
+};

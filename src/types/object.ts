@@ -25,6 +25,7 @@
 
 import _ from 'lodash';
 import { PVK } from './private';
+import { ExtraOptions } from './options';
 
 export enum UpdateOperation {
   set = 'set',
@@ -40,8 +41,8 @@ export enum UpdateOperation {
 }
 
 export interface IOObject {
-  save: (master?: boolean) => PromiseLike<void>;
-  destory: (master?: boolean) => PromiseLike<void>;
+  save: (options?: ExtraOptions) => PromiseLike<void>;
+  destory: (options?: ExtraOptions) => PromiseLike<void>;
 }
 
 export class IOObject {

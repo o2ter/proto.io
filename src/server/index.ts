@@ -32,6 +32,7 @@ import { IOObject } from '../types/object';
 import { objectMethods, queryMethods } from './query';
 import { IOUser } from '../types/user';
 import { PVK } from '../types/private';
+import { ExtraOptions } from '../types/options';
 
 type Callback<T, R> = (request: Proto & T) => R | PromiseLike<R>;
 type ProtoFunction = Callback<{ data: IOSerializable; }, IOSerializable>;
@@ -75,8 +76,8 @@ export class Proto {
     return objectMethods(className === '_User' ? new IOUser : new IOObject(className), this);
   }
 
-  query(className: string, master?: boolean): Query {
-    return queryMethods(new Query(className), this, master ?? false);
+  query(className: string, options?: ExtraOptions): Query {
+    return queryMethods(new Query(className), this, options);
   }
 
   get user(): IOUser | undefined {
@@ -107,7 +108,7 @@ export class Proto {
     await this.storage.prepare(this.schema);
   }
 
-  async _run(name: string, payload?: any, master?: boolean) {
+  async _run(name: string, payload?: any, options?: ExtraOptions) {
 
     const func = this.functions?.[name];
 
@@ -117,16 +118,16 @@ export class Proto {
     const { callback, validator } = func;
 
     if (!!validator?.requireUser && !this.user) throw new Error('No permission');
-    if (!!validator?.requireMaster && !master) throw new Error('No permission');
+    if (!!validator?.requireMaster && !options?.master) throw new Error('No permission');
     if (!_.find(validator?.requireAnyUserRoles, x => _.includes(this.roles, x))) throw new Error('No permission');
     if (_.find(validator?.requireAllUserRoles, x => !_.includes(this.roles, x))) throw new Error('No permission');
 
     return _.isFunction(callback) ? callback(payload ?? this) : null;
   }
 
-  run(name: string, data?: IOSerializable, master?: boolean) {
+  run(name: string, data?: IOSerializable, options?: ExtraOptions) {
     const payload = Object.setPrototypeOf({ data: data ?? null }, this);
-    return this._run(name, payload, master);
+    return this._run(name, payload, options);
   }
 
 }

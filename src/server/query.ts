@@ -29,6 +29,7 @@ import { Proto } from '.';
 import { IOObject, UpdateOperation } from '../types/object';
 import { IOSchema } from '../types/schema';
 import { PVK } from '../types/private';
+import { ExtraOptions } from '../types/options';
 
 const validateCLPs = (
   clps: IOSchema.CLPs,
@@ -56,8 +57,8 @@ export const objectMethods = <T extends IOObject | IOObject[] | undefined>(
   if (_.isArray(object)) return _.map(object, x => objectMethods(x, proto)) as T;
   return Object.defineProperties(object, {
     save: {
-      value: async (master?: boolean) => {
-        const updated = await proto.query(object.className, master).findOneAndUpdate(object[PVK].mutated);
+      value: async (options?: ExtraOptions) => {
+        const updated = await proto.query(object.className, options).findOneAndUpdate(object[PVK].mutated);
         if (updated) {
           object[PVK].attributes = updated.attributes;
           object[PVK].mutated = {};
@@ -65,8 +66,8 @@ export const objectMethods = <T extends IOObject | IOObject[] | undefined>(
       },
     },
     destory: {
-      value: async (master?: boolean) => {
-        await proto.query(object.className, master).filter({ _id: object.objectId }).findOneAndDelete();
+      value: async (options?: ExtraOptions) => {
+        await proto.query(object.className, options).filter({ _id: object.objectId }).findOneAndDelete();
       },
     },
   });
@@ -75,7 +76,7 @@ export const objectMethods = <T extends IOObject | IOObject[] | undefined>(
 export const queryMethods = (
   query: Query,
   proto: Proto,
-  master: boolean,
+  options?: ExtraOptions,
 ) => {
 
   const acls = () => [
@@ -83,9 +84,12 @@ export const queryMethods = (
     proto.user?.objectId,
   ].filter(Boolean) as string[];
 
-  const options = () => ({
-    acls: acls(), master,
+  const queryOptions = () => ({
     className: query.className,
+    options: {
+      acls: acls(),
+      ...(options ?? {}),
+    },
     ...query[PVK].options,
   });
 
@@ -97,8 +101,8 @@ export const queryMethods = (
   const props = {
     count: {
       value: async () => {
-        if (!master && !_validateCLPs('count')) throw new Error('No permission');
-        return proto.storage.count(options());
+        if (!options?.master && !_validateCLPs('count')) throw new Error('No permission');
+        return proto.storage.count(queryOptions());
       },
     },
     then: {
@@ -108,15 +112,15 @@ export const queryMethods = (
     },
     [Symbol.asyncIterator]: {
       value: async function* () {
-        if (!master && !_validateCLPs('find')) throw new Error('No permission');
-        for await (const object of proto.storage.find(options())) yield objectMethods(object, proto);
+        if (!options?.master && !_validateCLPs('find')) throw new Error('No permission');
+        for await (const object of proto.storage.find(queryOptions())) yield objectMethods(object, proto);
       },
     },
     insert: {
       value: async (attrs: any) => {
         const beforeSave = proto.triggers?.beforeSave?.[query.className];
         const afterSave = proto.triggers?.afterSave?.[query.className];
-        if (!master && !_validateCLPs('create')) throw new Error('No permission');
+        if (!options?.master && !_validateCLPs('create')) throw new Error('No permission');
 
         const context = {};
 
@@ -135,13 +139,13 @@ export const queryMethods = (
       value: async (update: Record<string, [UpdateOperation, any]>) => {
         const beforeSave = proto.triggers?.beforeSave?.[query.className];
         const afterSave = proto.triggers?.afterSave?.[query.className];
-        if (!master && !_validateCLPs('update')) throw new Error('No permission');
+        if (!options?.master && !_validateCLPs('update')) throw new Error('No permission');
 
         const context = {};
 
         if (_.isFunction(beforeSave)) {
 
-          const object = objectMethods(_.first(await asyncIterableToArray(proto.storage.find({ ...options(), limit: 1 }))), proto);
+          const object = objectMethods(_.first(await asyncIterableToArray(proto.storage.find({ ...queryOptions(), limit: 1 }))), proto);
           if (!object) return undefined;
 
           object[PVK].mutated = update;
@@ -151,7 +155,7 @@ export const queryMethods = (
         }
 
         const result = objectMethods(
-          await proto.storage.findOneAndUpdate(options(), update),
+          await proto.storage.findOneAndUpdate(queryOptions(), update),
           proto,
         );
         if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, proto));
@@ -161,10 +165,10 @@ export const queryMethods = (
     findOneAndUpsert: {
       value: async (update: Record<string, [UpdateOperation, any]>, setOnInsert: Record<string, any>) => {
         const afterSave = proto.triggers?.afterSave?.[query.className];
-        if (!master && !_validateCLPs('create', 'update')) throw new Error('No permission');
+        if (!options?.master && !_validateCLPs('create', 'update')) throw new Error('No permission');
 
         const result = objectMethods(
-          await proto.storage.findOneAndUpsert(options(), update, setOnInsert),
+          await proto.storage.findOneAndUpsert(queryOptions(), update, setOnInsert),
           proto,
         );
         if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result }, proto));
@@ -175,21 +179,21 @@ export const queryMethods = (
       value: async () => {
         const beforeDelete = proto.triggers?.beforeDelete?.[query.className];
         const afterDelete = proto.triggers?.afterDelete?.[query.className];
-        if (!master && !_validateCLPs('delete')) throw new Error('No permission');
+        if (!options?.master && !_validateCLPs('delete')) throw new Error('No permission');
 
         const context = {};
         let result: IOObject | undefined;
 
         if (_.isFunction(beforeDelete)) {
 
-          const object = objectMethods(_.first(await asyncIterableToArray(proto.storage.find({ ...options(), limit: 1 }))), proto);
+          const object = objectMethods(_.first(await asyncIterableToArray(proto.storage.find({ ...queryOptions(), limit: 1 }))), proto);
           if (!object) return undefined;
 
           await beforeDelete(Object.setPrototypeOf({ object, context }, proto));
 
           result = objectMethods(
             await proto.storage.findOneAndDelete({
-              ...options(),
+              ...queryOptions(),
               filter: { _id: object.objectId },
             }),
             proto,
@@ -197,7 +201,7 @@ export const queryMethods = (
 
         } else {
           result = objectMethods(
-            await proto.storage.findOneAndDelete(options()),
+            await proto.storage.findOneAndDelete(queryOptions()),
             proto,
           );
         }
@@ -210,11 +214,11 @@ export const queryMethods = (
       value: async () => {
         const beforeDelete = proto.triggers?.beforeDelete?.[query.className];
         const afterDelete = proto.triggers?.afterDelete?.[query.className];
-        if (!master && !_validateCLPs('delete')) throw new Error('No permission');
+        if (!options?.master && !_validateCLPs('delete')) throw new Error('No permission');
 
         if (_.isFunction(beforeDelete) || _.isFunction(afterDelete)) {
 
-          const objects = objectMethods(await asyncIterableToArray(proto.storage.find(options())), proto);
+          const objects = objectMethods(await asyncIterableToArray(proto.storage.find(queryOptions())), proto);
           if (_.isEmpty(objects)) return 0;
 
           const context: Record<string, any> = {};
@@ -228,7 +232,7 @@ export const queryMethods = (
           }
 
           await proto.storage.findAndDelete({
-            ...options(),
+            ...queryOptions(),
             filter: { _id: { $in: _.map(objects, x => x.objectId) } },
           });
 
@@ -242,7 +246,7 @@ export const queryMethods = (
           return objects.length;
         }
 
-        return proto.storage.findAndDelete(options());
+        return proto.storage.findAndDelete(queryOptions());
       },
     },
   };
