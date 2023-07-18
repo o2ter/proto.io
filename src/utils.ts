@@ -26,3 +26,9 @@
 import _ from 'lodash';
 
 export const isObjKey = <T extends object>(key: PropertyKey, obj: T): key is keyof T  => key in obj;
+
+export const asyncIterableToArray = async <T>(asyncIterable: AsyncIterable<T>) => {
+  const array: T[] = [];
+  for await (const obj of asyncIterable) array.push(obj);
+  return array;
+};

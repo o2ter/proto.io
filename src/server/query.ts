@@ -31,6 +31,7 @@ import { IOSchema } from '../types/schema';
 import { PVK } from '../types/private';
 import { ExtraOptions } from '../types/options';
 import { objectMethods } from '../types/object/methods';
+import { asyncIterableToArray } from '../utils';
 
 const validateCLPs = (
   clps: IOSchema.CLPs,
@@ -42,12 +43,6 @@ const validateCLPs = (
     if (_.every(clps[key], x => !_.includes(acls, x))) return false;
   }
   return true;
-}
-
-const asyncIterableToArray = async <T>(asyncIterable: AsyncIterable<T>) => {
-  const array: T[] = [];
-  for await (const obj of asyncIterable) array.push(obj);
-  return array;
 }
 
 export const queryMethods = (
