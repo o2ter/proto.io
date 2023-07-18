@@ -30,7 +30,7 @@ import { IOObject, UpdateOperation } from '../types/object';
 import { IOSchema } from '../types/schema';
 import { PVK } from '../types/private';
 import { ExtraOptions } from '../types/options';
-import { objectMethods } from './object';
+import { objectMethods } from '../types/object/methods';
 
 const validateCLPs = (
   clps: IOSchema.CLPs,

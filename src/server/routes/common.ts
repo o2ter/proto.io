@@ -27,7 +27,7 @@ import _ from 'lodash';
 import { Response } from 'express';
 import { IOSerializable, serialize } from '../../codec';
 import { IOObject } from '../../types/object';
-import { objectMethods } from '../object';
+import { objectMethods } from '../../types/object/methods';
 import { Proto } from '../../server';
 
 export const response = async <T extends IOSerializable<IOObject>>(

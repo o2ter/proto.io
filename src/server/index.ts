@@ -31,7 +31,7 @@ import { Query } from '../types/query';
 import { IOObject } from '../types/object';
 import { IOObjectType, IOObjectTypes } from '../types/object/types';
 import { queryMethods } from './query';
-import { objectMethods } from './object';
+import { objectMethods } from '../types/object/methods';
 import { IOUser } from '../types/object/user';
 import { PVK } from '../types/private';
 import { ExtraOptions } from '../types/options';

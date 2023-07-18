@@ -1,5 +1,5 @@
 //
-//  object.ts
+//  methods.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -24,15 +24,20 @@
 //
 
 import _ from 'lodash';
-import { IOObject } from '../types/object';
-import { PVK } from '../types/private';
-import Proto from './index';
-import { ExtraOptions } from '../types/options';
+import { IOObject } from '.';
+import { PVK } from '../private';
+import { ExtraOptions } from '../options';
+import { Query } from '../query';
 
-export const objectMethods = (
-  object: IOObject,
-  proto: Proto
-) => {
+export const objectMethods = <T extends IOObject | IOObject[] | undefined>(
+  object: T,
+  proto: {
+    query(className: string, options?: ExtraOptions): Query
+  }
+): T => {
+
+  if (_.isNil(object)) return undefined as T;
+  if (_.isArray(object)) return _.map(object, x => objectMethods(x, proto)) as T;
 
   const query = (options?: ExtraOptions) => proto.query(object.className, options).filter({ _id: object.objectId });
 
