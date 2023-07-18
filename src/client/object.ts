@@ -34,12 +34,12 @@ export const objectMethods = (
   proto: Proto
 ) => {
 
-  const query = () => proto.query(object.className).filter({ _id: object.objectId });
+  const query = (options?: ExtraOptions) => proto.query(object.className, options).filter({ _id: object.objectId });
 
   return Object.defineProperties(object, {
     save: {
       value: async (options?: ExtraOptions) => {
-        const updated = await query().findOneAndUpdate(object[PVK].mutated);
+        const updated = await query(options).findOneAndUpdate(object[PVK].mutated);
         if (updated) {
           object[PVK].attributes = updated.attributes;
           object[PVK].mutated = {};
@@ -48,7 +48,7 @@ export const objectMethods = (
     },
     destory: {
       value: async (options?: ExtraOptions) => {
-        await query().findOneAndDelete();
+        await query(options).findOneAndDelete();
       },
     },
   });
