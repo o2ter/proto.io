@@ -57,7 +57,7 @@ export class Proto {
 
   object<T extends string>(className: T) {
     const obj = isObjKey(className, IOObjectTypes) ? new IOObjectTypes[className] : new IOObject(className);
-    return objectMethods(obj, this) as IOObjectType<T>;
+    return objectMethods(obj as IOObjectType<T>, this);
   }
 
   query(className: string, options?: ExtraOptions): Query {
