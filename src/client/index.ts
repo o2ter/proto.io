@@ -31,7 +31,7 @@ import { Query } from '../types/query';
 import { queryMethods } from './query';
 import { objectMethods } from './object';
 import { IOObject } from '../types/object';
-import { IOObjectTypes } from '../types/object/types';
+import { IOObjectType, IOObjectTypes } from '../types/object/types';
 import { ExtraOptions } from '../types/options';
 import { isObjKey } from '../utils';
 
@@ -63,9 +63,9 @@ export class Proto {
     this.options = options;
   }
 
-  object(className: string) {
+  object<T extends string>(className: T) {
     const obj = isObjKey(className, IOObjectTypes) ? new IOObjectTypes[className] : new IOObject(className);
-    return objectMethods(obj, this);
+    return objectMethods(obj, this) as IOObjectType<T>;
   }
 
   query(className: string, options?: ExtraOptions): Query {

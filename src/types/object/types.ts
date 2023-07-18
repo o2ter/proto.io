@@ -23,6 +23,7 @@
 //  THE SOFTWARE.
 //
 
+import { IOObject } from './index';
 import { IOUser } from './user';
 import { IORole } from './role';
 
@@ -30,3 +31,5 @@ export const IOObjectTypes = {
   '_User': IOUser,
   '_Role': IORole,
 };
+
+export type IOObjectType<T extends string> = T extends keyof typeof IOObjectTypes ? (typeof IOObjectTypes)[T] : IOObject;

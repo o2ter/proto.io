@@ -29,7 +29,6 @@ import { PVK } from '../types/private';
 import Proto from './index';
 import { ExtraOptions } from '../types/options';
 
-
 export const objectMethods = (
   object: IOObject,
   proto: Proto
