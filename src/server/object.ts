@@ -33,12 +33,16 @@ export const objectMethods = <T extends IOObject | IOObject[] | undefined>(
   object: T,
   proto: Proto
 ): T => {
+
   if (_.isNil(object)) return undefined as T;
   if (_.isArray(object)) return _.map(object, x => objectMethods(x, proto)) as T;
+
+  const query = (options?: ExtraOptions) => proto.query(object.className, options).filter({ _id: object.objectId });
+
   return Object.defineProperties(object, {
     save: {
       value: async (options?: ExtraOptions) => {
-        const updated = await proto.query(object.className, options).findOneAndUpdate(object[PVK].mutated);
+        const updated = await query(options).findOneAndUpdate(object[PVK].mutated);
         if (updated) {
           object[PVK].attributes = updated.attributes;
           object[PVK].mutated = {};
@@ -47,7 +51,7 @@ export const objectMethods = <T extends IOObject | IOObject[] | undefined>(
     },
     destory: {
       value: async (options?: ExtraOptions) => {
-        await proto.query(object.className, options).filter({ _id: object.objectId }).findOneAndDelete();
+        await query(options).findOneAndDelete();
       },
     },
   });
