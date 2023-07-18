@@ -1,5 +1,5 @@
 //
-//  common.ts
+//  object.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -24,37 +24,33 @@
 //
 
 import _ from 'lodash';
-import { Response } from 'express';
-import { IOSerializable, serialize } from '../../codec';
-import { IOObject } from '../../types/object';
-import { objectMethods } from '../object';
-import { Proto } from '../../server';
+import { IOObject } from '../types/object';
+import { PVK } from '../types/private';
+import Proto from './index';
+import { ExtraOptions } from '../types/options';
 
-export const response = async <T extends IOSerializable<IOObject>>(
-  res: Response,
-  callback: () => Promise<T | undefined>,
+
+export const objectMethods = (
+  object: IOObject,
+  proto: Proto
 ) => {
 
-  try {
+  const query = () => proto.query(object.className).filter({ _id: object.objectId });
 
-    const data = await callback();
-    res.type('application/json').send(serialize(data ?? null));
-
-  } catch (error) {
-
-    if (error instanceof String) {
-      res.status(400).json({ message: error });
-    } else if (error instanceof Error) {
-      res.status(400).json({ ...error, message: error.message });
-    } else {
-      res.status(400).json(error);
-    }
-  }
-}
-
-export const applyIOObjectMethods = (data: IOSerializable<IOObject>, proto: Proto): IOSerializable<IOObject> => {
-  if (data instanceof IOObject) return objectMethods(data, proto) as IOObject;
-  if (_.isArray(data)) return _.map(data, x => applyIOObjectMethods(x, proto));
-  if (_.isPlainObject(data)) return _.mapValues(data as any, x => applyIOObjectMethods(x, proto));
-  return data;
-}
+  return Object.defineProperties(object, {
+    save: {
+      value: async (options?: ExtraOptions) => {
+        const updated = await query().findOneAndUpdate(object[PVK].mutated);
+        if (updated) {
+          object[PVK].attributes = updated.attributes;
+          object[PVK].mutated = {};
+        }
+      },
+    },
+    destory: {
+      value: async (options?: ExtraOptions) => {
+        await query().findOneAndDelete();
+      },
+    },
+  });
+};

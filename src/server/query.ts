@@ -30,6 +30,7 @@ import { IOObject, UpdateOperation } from '../types/object';
 import { IOSchema } from '../types/schema';
 import { PVK } from '../types/private';
 import { ExtraOptions } from '../types/options';
+import { objectMethods } from './object';
 
 const validateCLPs = (
   clps: IOSchema.CLPs,
@@ -47,30 +48,6 @@ const asyncIterableToArray = async <T>(asyncIterable: AsyncIterable<T>) => {
   const array: T[] = [];
   for await (const obj of asyncIterable) array.push(obj);
   return array;
-}
-
-export const objectMethods = <T extends IOObject | IOObject[] | undefined>(
-  object: T,
-  proto: Proto,
-): T => {
-  if (_.isNil(object)) return undefined as T;
-  if (_.isArray(object)) return _.map(object, x => objectMethods(x, proto)) as T;
-  return Object.defineProperties(object, {
-    save: {
-      value: async (options?: ExtraOptions) => {
-        const updated = await proto.query(object.className, options).findOneAndUpdate(object[PVK].mutated);
-        if (updated) {
-          object[PVK].attributes = updated.attributes;
-          object[PVK].mutated = {};
-        }
-      },
-    },
-    destory: {
-      value: async (options?: ExtraOptions) => {
-        await proto.query(object.className, options).filter({ _id: object.objectId }).findOneAndDelete();
-      },
-    },
-  });
 }
 
 export const queryMethods = (

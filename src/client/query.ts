@@ -25,35 +25,10 @@
 
 import _ from 'lodash';
 import { Query } from '../types/query';
-import { IOObject, UpdateOperation } from '../types/object';
+import { UpdateOperation } from '../types/object';
 import { PVK } from '../types/private';
 import Proto from './index';
 import { ExtraOptions } from '../types/options';
-
-export const objectMethods = (
-  object: IOObject,
-  proto: Proto,
-) => {
-
-  const query = () => proto.query(object.className).filter({ _id: object.objectId });
-
-  return Object.defineProperties(object, {
-    save: {
-      value: async (options?: ExtraOptions) => {
-        const updated = await query().findOneAndUpdate(object[PVK].mutated);
-        if (updated) {
-          object[PVK].attributes = updated.attributes;
-          object[PVK].mutated = {};
-        }
-      },
-    },
-    destory: {
-      value: async (options?: ExtraOptions) => {
-        await query().findOneAndDelete();
-      },
-    },
-  });
-}
 
 export const queryMethods = (query: Query, proto: Proto, options?: ExtraOptions) => {
 
