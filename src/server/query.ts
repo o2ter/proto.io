@@ -57,7 +57,11 @@ export const objectMethods = <T extends IOObject | IOObject[] | undefined>(
   return Object.defineProperties(object, {
     save: {
       value: async (master?: boolean) => {
-        await proto.query(object.className, master).findOneAndUpdate(object[PVK].mutated);
+        const updated = await proto.query(object.className, master).findOneAndUpdate(object[PVK].mutated);
+        if (updated) {
+          object[PVK].attributes = updated.attributes;
+          object[PVK].mutated = {};
+        }
       },
     },
     destory: {

@@ -39,7 +39,11 @@ export const objectMethods = (
   return Object.defineProperties(object, {
     save: {
       value: async () => {
-        await query().findOneAndUpdate(object[PVK].mutated);
+        const updated = await query().findOneAndUpdate(object[PVK].mutated);
+        if (updated) {
+          object[PVK].attributes = updated.attributes;
+          object[PVK].mutated = {};
+        }
       },
     },
     destory: {
