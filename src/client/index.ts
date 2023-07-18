@@ -33,6 +33,7 @@ import { IOObjectType, IOObjectTypes } from '../types/object/types';
 import { ExtraOptions } from '../types/options';
 import { isObjKey } from '../utils';
 import { objectMethods, applyIOObjectMethods } from '../types/object/methods';
+import { PVK } from '../types/private';
 
 export * from '../codec';
 
@@ -49,10 +50,14 @@ type RequestOptions = {
 
 export class Proto {
 
-  options: Options;
+  [PVK]: {
+    options: Options;
+  };
 
   constructor(options: Options) {
-    this.options = options;
+    this[PVK] = {
+      options,
+    };
   }
 
   object<T extends string>(className: T) {
@@ -72,7 +77,7 @@ export class Proto {
     const { master, ...opts } = options ?? {};
 
     const res = await request({
-      baseURL: this.options.endpoint,
+      baseURL: this[PVK].options.endpoint,
       data: serialize(data ?? null),
       responseType: 'text',
       ...opts,
