@@ -1,5 +1,5 @@
 //
-//  user.ts
+//  utils.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -24,13 +24,5 @@
 //
 
 import _ from 'lodash';
-import { IOObject } from './object';
 
-export class IOUser extends IOObject {
-
-  constructor(
-    attributes?: Record<string, any> | ((self: IOObject) => Record<string, any>),
-  ) {
-    super('_User', attributes);
-  }
-}
+export const isObjKey = <T extends object>(key: PropertyKey, obj: T): key is keyof T  => key in obj;

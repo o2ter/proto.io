@@ -30,8 +30,9 @@ import { IOSerializable, serialize, deserialize } from '../codec';
 import { Query } from '../types/query';
 import { objectMethods, queryMethods } from './query';
 import { IOObject } from '../types/object';
-import { IOUser } from '../types/user';
+import { IOObjectTypes } from '../types/object/types';
 import { ExtraOptions } from '../types/options';
+import { isObjKey } from '../utils';
 
 export * from '../codec';
 
@@ -62,7 +63,8 @@ export class Proto {
   }
 
   object(className: string) {
-    return objectMethods(className === '_User' ? new IOUser : new IOObject(className), this);
+    const obj = isObjKey(className, IOObjectTypes) ? new IOObjectTypes[className] : new IOObject(className);
+    return objectMethods(obj, this);
   }
 
   query(className: string, options?: ExtraOptions): Query {

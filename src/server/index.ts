@@ -29,10 +29,12 @@ import { IOStorage } from '../types/storage';
 import { IOSchema } from '../types/schema';
 import { Query } from '../types/query';
 import { IOObject } from '../types/object';
+import { IOObjectTypes } from '../types/object/types';
 import { objectMethods, queryMethods } from './query';
-import { IOUser } from '../types/user';
+import { IOUser } from '../types/object/user';
 import { PVK } from '../types/private';
 import { ExtraOptions } from '../types/options';
+import { isObjKey } from '../utils';
 
 type Callback<T, R> = (request: Proto & T) => R | PromiseLike<R>;
 type ProtoFunction = Callback<{ data: IOSerializable; }, IOSerializable>;
@@ -72,8 +74,9 @@ export class Proto {
     return this.storage.classes();
   }
 
-  object(className: string) {
-    return objectMethods(className === '_User' ? new IOUser : new IOObject(className), this);
+  object<T extends string>(className: T) {
+    const obj = isObjKey(className, IOObjectTypes) ? new IOObjectTypes[className] : new IOObject(className);
+    return objectMethods(obj, this);
   }
 
   query(className: string, options?: ExtraOptions): Query {

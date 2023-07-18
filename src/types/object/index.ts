@@ -24,8 +24,8 @@
 //
 
 import _ from 'lodash';
-import { PVK } from './private';
-import { ExtraOptions } from './options';
+import { PVK } from '../private';
+import { ExtraOptions } from '../options';
 
 export enum UpdateOperation {
   set = 'set',
