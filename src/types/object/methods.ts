@@ -55,11 +55,17 @@ export const objectMethods = <T extends IOObject | IOObject[] | undefined, E>(
           object[PVK].attributes = updated.attributes;
           object[PVK].mutated = {};
         }
+        return object;
       },
     },
     destory: {
       value: async (options?: ExtraOptions) => {
-        await query(options).findOneAndDelete();
+        const deleted = await query(options).findOneAndDelete();
+        if (deleted) {
+          object[PVK].attributes = deleted.attributes;
+          object[PVK].mutated = {};
+        }
+        return object;
       },
     },
   });

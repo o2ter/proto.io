@@ -41,8 +41,8 @@ export enum UpdateOperation {
 }
 
 export interface IOObject {
-  save: (options?: ExtraOptions) => PromiseLike<void>;
-  destory: (options?: ExtraOptions) => PromiseLike<void>;
+  save: (options?: ExtraOptions) => PromiseLike<this>;
+  destory: (options?: ExtraOptions) => PromiseLike<this>;
 }
 
 export class IOObject {
