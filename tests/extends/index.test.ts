@@ -26,17 +26,32 @@
 import { test, expect } from '@jest/globals';
 import Proto from '../../src/client';
 import _extends from './extends';
+import { IOUser } from '../../src/types/object/user';
 
 const proto = new Proto({
   endpoint: 'http://localhost:8080',
   classExtends: _extends,
 });
 
-test('echo', async () => {
-  
+test('test types', async () => {
+
+  const user = proto.object('_User');
+
+  expect(user).toBeInstanceOf(IOUser);
+
+});
+
+test('test methods', async () => {
+
   const user = proto.object('_User');
 
   expect(await user.softDelete()).toStrictEqual('deleted');
+
+});
+
+test('test property', async () => {
+
+  const user = proto.object('_User');
 
   user.name = 'test';
   expect(user.name).toStrictEqual('test');
