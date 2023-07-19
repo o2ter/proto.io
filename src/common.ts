@@ -1,5 +1,5 @@
 //
-//  index.ts
+//  common.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -23,44 +23,4 @@
 //  THE SOFTWARE.
 //
 
-import _ from 'lodash';
-import express, { RequestHandler } from 'express';
-import cookieParser from 'cookie-parser';
-import { Proto, ProtoOptions } from './server';
-import csrfHandler from './server/csrf';
-import classesRoute from './server/routes/classes';
-import functionRoute from './server/routes/function';
-
-export * from './common';
-export * from './server';
-
-export const ProtoRoute = async <E>(options: {
-  jwtToken: string;
-  csrfToken?: string;
-  adapters?: ((proto: Proto<E>) => RequestHandler)[],
-  proto: Proto<E> | ProtoOptions<E>;
-}) => {
-
-  const {
-    jwtToken,
-    csrfToken,
-    adapters,
-    proto: _proto,
-  } = options;
-
-  const proto = _proto instanceof Proto ? _proto : new Proto(_proto);
-  await proto._prepare();
-
-  const router = express.Router().use(
-    cookieParser() as any,
-    csrfHandler(csrfToken),
-    ..._.map(adapters, x => x(proto)),
-  );
-
-  classesRoute(router, proto);
-  functionRoute(router, proto);
-
-  return router;
-}
-
-export default ProtoRoute;
+export * from './codec';

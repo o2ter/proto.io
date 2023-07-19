@@ -45,6 +45,7 @@ export default [
     input: {
       index: 'src/index',
       client: 'src/client',
+      common: 'src/common',
       'storage/mongo': 'src/storage/mongo',
       'storage/progres': 'src/storage/progres',
     },
@@ -79,6 +80,7 @@ export default [
   },
   rollupTypes('index'),
   rollupTypes('client'),
+  rollupTypes('common'),
   rollupTypes('storage/mongo'),
   rollupTypes('storage/progres'),
 ];

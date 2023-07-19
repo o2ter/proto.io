@@ -35,7 +35,7 @@ import { isObjKey } from '../utils';
 import { objectMethods, applyIOObjectMethods } from '../types/object/methods';
 import { PVK } from '../types/private';
 
-export * from '../codec';
+export * from '../common';
 
 type Options<Ext> = {
   endpoint: string;
