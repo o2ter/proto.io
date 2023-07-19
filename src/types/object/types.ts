@@ -54,3 +54,5 @@ type PropertyMap<T, O> = {
 export type IOObjectExtension<T> = {
   [K in keyof T]: PropertyMap<T[K], IOObjectType<K>>;
 };
+
+export type IOObjectWithExt<T, K> = K extends keyof T ? PropertyMapToExt<T[K]> : {};

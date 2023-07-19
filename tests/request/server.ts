@@ -40,17 +40,6 @@ beforeAll(async () => {
     proto: {
       schema: {},
       storage: new MemoryStorage(),
-      classExtends: {
-        '_User': {
-          async softDelete() {
-          },
-          name: {
-            get() {
-              return this.get('name');
-            }
-          },
-        }
-      },
       functions: {
         echo: (req) => {
           return req.data;

@@ -30,7 +30,7 @@ import Decimal from 'decimal.js';
 import Proto from '../../src/client';
 
 const proto = new Proto({
-  endpoint: 'http://localhost:8080'
+  endpoint: 'http://localhost:8080',
 });
 
 test('echo', async () => {

@@ -29,7 +29,7 @@ import { IOSerializable, serialize, deserialize } from '../codec';
 import { Query } from '../types/query';
 import { queryMethods } from './query';
 import { IOObject } from '../types/object';
-import { IOObjectExtension, IOObjectType, IOObjectTypes } from '../types/object/types';
+import { IOObjectExtension, IOObjectType, IOObjectTypes, IOObjectWithExt } from '../types/object/types';
 import { ExtraOptions } from '../types/options';
 import { isObjKey } from '../utils';
 import { objectMethods, applyIOObjectMethods } from '../types/object/methods';
@@ -63,7 +63,7 @@ export class Proto<Ext> {
 
   object<T extends string>(className: T) {
     const obj = isObjKey(className, IOObjectTypes) ? new IOObjectTypes[className] : new IOObject(className);
-    return objectMethods(obj as IOObjectType<T>, this);
+    return objectMethods(obj as IOObjectType<T> & IOObjectWithExt<Ext, T>, this);
   }
 
   query(className: string, options?: ExtraOptions): Query {

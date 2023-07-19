@@ -29,7 +29,7 @@ import { IOStorage } from '../types/storage';
 import { IOSchema } from '../types/schema';
 import { Query } from '../types/query';
 import { IOObject } from '../types/object';
-import { IOObjectExtension, IOObjectType, IOObjectTypes } from '../types/object/types';
+import { IOObjectExtension, IOObjectType, IOObjectTypes, IOObjectWithExt } from '../types/object/types';
 import { queryMethods } from './query';
 import { objectMethods } from '../types/object/methods';
 import { IOUser } from '../types/object/user';
@@ -78,7 +78,7 @@ export class Proto<Ext> {
 
   object<T extends string>(className: T) {
     const obj = isObjKey(className, IOObjectTypes) ? new IOObjectTypes[className] : new IOObject(className);
-    return objectMethods(obj as IOObjectType<T>, this);
+    return objectMethods(obj as IOObjectType<T> & IOObjectWithExt<Ext, T>, this);
   }
 
   query(className: string, options?: ExtraOptions): Query {
