@@ -96,7 +96,11 @@ export const queryMethods = <E, T extends string>(
 
         const context = {};
 
-        const object = objectMethods(new IOObject(query.className, _.omit(attrs, '_id', '_created_at', '_updated_at')), proto);
+        const object = proto.object(query.className);
+        for (const [key, value] of _.toPairs(_.omit(attrs, '_id', '_created_at', '_updated_at'))) {
+          object[PVK].mutated[key] = [UpdateOperation.set, value];
+        }
+
         if (_.isFunction(beforeSave)) await beforeSave(Object.setPrototypeOf({ object, context }, proto));
 
         const result = objectMethods(
@@ -149,14 +153,22 @@ export const queryMethods = <E, T extends string>(
           if (object) {
             object[PVK].mutated = update;
           } else {
-            object = objectMethods(new IOObject(query.className, _.omit(setOnInsert, '_id', '_created_at', '_updated_at')), proto);
+            object = proto.object(query.className);
+            for (const [key, value] of _.toPairs(_.omit(setOnInsert, '_id', '_created_at', '_updated_at'))) {
+              object[PVK].mutated[key] = [UpdateOperation.set, value];
+            }
           }
-          await beforeSave(Object.setPrototypeOf({ object, context }, proto));  
+          await beforeSave(Object.setPrototypeOf({ object, context }, proto));
 
           if (object.objectId) {
             update = object[PVK].mutated;
           } else {
-            setOnInsert = _.mapValues(_.pickBy(object[PVK].mutated, v => v[0] === UpdateOperation.set), v => v[1]);
+            setOnInsert = {};
+            for (const [key, [op, value]] of _.toPairs(object[PVK].mutated)) {
+              if (op === UpdateOperation.set) {
+                setOnInsert[key] = value;
+              }
+            }
           }
         }
 
