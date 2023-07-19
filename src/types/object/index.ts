@@ -95,6 +95,7 @@ export class IOObject {
   }
 
   set(key: string, value: any) {
+    if (['_id', '_created_at', '_updated_at'].includes(key)) return;
     this[PVK].mutated[key] = [UpdateOperation.set, value];
   }
 
