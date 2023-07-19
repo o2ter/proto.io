@@ -136,14 +136,35 @@ export const queryMethods = <E, T extends string>(
     },
     findOneAndUpsert: {
       value: async (update: Record<string, [UpdateOperation, any]>, setOnInsert: Record<string, any>) => {
+        const beforeSave = proto.triggers?.beforeSave?.[query.className];
         const afterSave = proto.triggers?.afterSave?.[query.className];
         if (!options?.master && !_validateCLPs('create', 'update')) throw new Error('No permission');
+
+        const context = {};
+
+        if (_.isFunction(beforeSave)) {
+
+          let object = objectMethods(_.first(await asyncIterableToArray(proto.storage.find({ ...queryOptions(), limit: 1 }))), proto);
+
+          if (object) {
+            object[PVK].mutated = update;
+          } else {
+            object = objectMethods(new IOObject(query.className, _.omit(setOnInsert, '_id', '_created_at', '_updated_at')), proto);
+          }
+          await beforeSave(Object.setPrototypeOf({ object, context }, proto));  
+
+          if (object.objectId) {
+            update = object[PVK].mutated;
+          } else {
+            setOnInsert = _.mapValues(_.pickBy(object[PVK].mutated, v => v[0] === UpdateOperation.set), v => v[1]);
+          }
+        }
 
         const result = objectMethods(
           await proto.storage.findOneAndUpsert(queryOptions(), update, setOnInsert),
           proto,
         );
-        if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result }, proto));
+        if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, proto));
         return result;
       },
     },
