@@ -97,7 +97,7 @@ export const queryMethods = <E, T extends string>(
         const context = {};
 
         const object = proto.object(query.className);
-        for (const [key, value] of _.toPairs(_.omit(attrs, '_id', '_created_at', '_updated_at'))) {
+        for (const [key, value] of _.toPairs(_.omit(attrs, ...IOObject.defaultKeys))) {
           object[PVK].mutated[key] = [UpdateOperation.set, value];
         }
 
@@ -154,7 +154,7 @@ export const queryMethods = <E, T extends string>(
             object[PVK].mutated = update;
           } else {
             object = proto.object(query.className);
-            for (const [key, value] of _.toPairs(_.omit(setOnInsert, '_id', '_created_at', '_updated_at'))) {
+            for (const [key, value] of _.toPairs(_.omit(setOnInsert, ...IOObject.defaultKeys))) {
               object[PVK].mutated[key] = [UpdateOperation.set, value];
             }
           }
