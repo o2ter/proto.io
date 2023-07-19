@@ -48,6 +48,16 @@ export const objectMethods = <T extends IOObject | IOObject[] | undefined, E>(
 
   return Object.defineProperties(object, {
     ..._.mapValues(extensions, value => _.isFunction(value) ? { value } : value),
+    fetch: {
+      value: async (options?: ExtraOptions) => {
+        const fetched = await query(options).first();
+        if (fetched) {
+          object[PVK].attributes = fetched.attributes;
+          object[PVK].mutated = {};
+        }
+        return object;
+      },
+    },
     save: {
       value: async (options?: ExtraOptions) => {
         const updated = await query(options).findOneAndUpdate(object[PVK].mutated);
