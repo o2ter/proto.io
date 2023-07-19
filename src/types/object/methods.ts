@@ -43,9 +43,8 @@ export const objectMethods = <T extends IOObject | IOObject[] | undefined, E>(
   if (_.isArray(object)) return _.map(object, x => objectMethods(x, proto)) as T;
 
   const classExtends = proto[PVK].options.classExtends ?? {} as IOObjectExtension<E>;
-  const query = (options?: ExtraOptions) => proto.query(object.className, options).filter({ _id: object.objectId });
-
   const extensions = classExtends[object.className as keyof E] ?? {};
+  const query = (options?: ExtraOptions) => proto.query(object.className, options).filter({ _id: object.objectId });
 
   return Object.defineProperties(object, {
     ..._.mapValues(extensions, value => _.isFunction(value) ? { value } : value),
