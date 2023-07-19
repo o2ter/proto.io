@@ -27,6 +27,7 @@ import _ from 'lodash';
 import { FilterQuery } from './filter';
 import { IOObject, UpdateOperation } from './object';
 import { PVK } from './private';
+import { IOObjectWithExt } from './object/types';
 
 export namespace Query {
   export interface Options {
@@ -39,37 +40,37 @@ export namespace Query {
   }
 }
 
-export interface Query {
+export interface Query<Ext, C extends string> {
   count: () => PromiseLike<number>;
-  then: Promise<IOObject[]>['then'];
-  [Symbol.asyncIterator]: () => AsyncIterator<IOObject>;
-  insert: (attrs: any) => PromiseLike<IOObject | undefined>;
-  findOneAndUpdate: (update: Record<string, [UpdateOperation, any]>) => PromiseLike<IOObject | undefined>;
-  findOneAndUpsert: (update: Record<string, [UpdateOperation, any]>, setOnInsert: Record<string, any>) => PromiseLike<IOObject | undefined>;
-  findOneAndDelete: () => PromiseLike<IOObject | undefined>;
+  then: Promise<(IOObject & IOObjectWithExt<Ext, C>)[]>['then'];
+  [Symbol.asyncIterator]: () => AsyncIterator<IOObject & IOObjectWithExt<Ext, C>>;
+  insert: (attrs: any) => PromiseLike<(IOObject & IOObjectWithExt<Ext, C>) | undefined>;
+  findOneAndUpdate: (update: Record<string, [UpdateOperation, any]>) => PromiseLike<(IOObject & IOObjectWithExt<Ext, C>) | undefined>;
+  findOneAndUpsert: (update: Record<string, [UpdateOperation, any]>, setOnInsert: Record<string, any>) => PromiseLike<(IOObject & IOObjectWithExt<Ext, C>) | undefined>;
+  findOneAndDelete: () => PromiseLike<(IOObject & IOObjectWithExt<Ext, C>) | undefined>;
   findAndDelete: () => PromiseLike<number>;
 }
 
-export class Query {
+export class Query<Ext, C extends string> {
 
   [PVK]: {
-    className: string;
+    className: C;
     options: Query.Options;
   }
 
-  constructor(className: string, options: Query.Options = {}) {
+  constructor(className: C, options: Query.Options = {}) {
     this[PVK] = {
       className,
       options,
     };
   }
 
-  get className(): string {
+  get className(): C {
     return this[PVK].className;
   }
 
   clone() {
-    return new Query(this.className, this[PVK].options);
+    return new Query<Ext, C>(this.className, this[PVK].options);
   }
 
   filter<T>(filter: FilterQuery<T>) {

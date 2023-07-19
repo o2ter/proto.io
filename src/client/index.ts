@@ -66,8 +66,8 @@ export class Proto<Ext> {
     return objectMethods(obj as IOObjectType<T> & IOObjectWithExt<Ext, T>, this);
   }
 
-  query(className: string, options?: ExtraOptions): Query {
-    return queryMethods(new Query(className), this, options);
+  query<T extends string>(className: T, options?: ExtraOptions): Query<Ext, T> {
+    return queryMethods(new Query<Ext, T>(className), this, options);
   }
 
   async _request(

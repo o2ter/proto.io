@@ -35,7 +35,7 @@ export const objectMethods = <T extends IOObject | IOObject[] | undefined, E>(
   object: T,
   proto: {
     [PVK]: { options: { classExtends?: IOObjectExtension<E> } };
-    query(className: string, options?: ExtraOptions): Query;
+    query<C extends string>(className: C, options?: ExtraOptions): Query<E, C>;
   }
 ): T => {
 
