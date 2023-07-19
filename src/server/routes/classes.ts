@@ -31,7 +31,7 @@ import { deserialize } from '../../codec';
 import { response } from './common';
 import { PVK } from '../../types/private';
 
-export default (router: Router, payload: Proto) => {
+export default <E>(router: Router, payload: Proto<E>) => {
 
   router.post(
     '/classes/:name',

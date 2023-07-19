@@ -45,9 +45,9 @@ const validateCLPs = (
   return true;
 }
 
-export const queryMethods = (
+export const queryMethods = <E>(
   query: Query,
-  proto: Proto,
+  proto: Proto<E>,
   options?: ExtraOptions,
 ) => {
 

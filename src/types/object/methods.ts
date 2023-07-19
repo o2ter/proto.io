@@ -60,7 +60,7 @@ export const objectMethods = <T extends IOObject | IOObject[] | undefined>(
   });
 };
 
-export const applyIOObjectMethods = (data: IOSerializable<IOObject>, proto: Proto): IOSerializable<IOObject> => {
+export const applyIOObjectMethods = <E>(data: IOSerializable<IOObject>, proto: Proto<E>): IOSerializable<IOObject> => {
   if (data instanceof IOObject) return objectMethods(data, proto);
   if (_.isArray(data)) return _.map(data, x => applyIOObjectMethods(x, proto));
   if (_.isPlainObject(data)) return _.mapValues(data as any, x => applyIOObjectMethods(x, proto));

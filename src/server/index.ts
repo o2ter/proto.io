@@ -37,8 +37,8 @@ import { PVK } from '../types/private';
 import { ExtraOptions } from '../types/options';
 import { isObjKey } from '../utils';
 
-type Callback<T, R> = (request: Proto & T) => R | PromiseLike<R>;
-type ProtoFunction = Callback<{ data: IOSerializable; }, IOSerializable>;
+type Callback<T, R, E> = (request: Proto<E> & T) => R | PromiseLike<R>;
+type ProtoFunction<E> = Callback<{ data: IOSerializable; }, IOSerializable, E>;
 
 type Validator = {
   requireUser?: boolean;
@@ -47,25 +47,26 @@ type Validator = {
   requireAllUserRoles?: string[];
 };
 
-export type ProtoOptions = {
+export type ProtoOptions<Ext> = {
   schema: Record<string, IOSchema>;
   storage: IOStorage;
-  functions?: Record<string, ProtoFunction | { callback: ProtoFunction; validator?: Validator }>;
+  classExtends?: Ext;
+  functions?: Record<string, ProtoFunction<Ext> | { callback: ProtoFunction<Ext>; validator?: Validator }>;
   triggers?: {
-    beforeSave?: Record<string, Callback<{ object: IOObject; context: object; }, void>>;
-    afterSave?: Record<string, Callback<{ object: IOObject; context: object; }, void>>;
-    beforeDelete?: Record<string, Callback<{ object: IOObject; context: object; }, void>>;
-    afterDelete?: Record<string, Callback<{ object: IOObject; context: object; }, void>>;
+    beforeSave?: Record<string, Callback<{ object: IOObject; context: object; }, void, Ext>>;
+    afterSave?: Record<string, Callback<{ object: IOObject; context: object; }, void, Ext>>;
+    beforeDelete?: Record<string, Callback<{ object: IOObject; context: object; }, void, Ext>>;
+    afterDelete?: Record<string, Callback<{ object: IOObject; context: object; }, void, Ext>>;
   },
 };
 
-export class Proto {
+export class Proto<Ext> {
 
   [PVK]: {
-    options: ProtoOptions;
+    options: ProtoOptions<Ext>;
   };
 
-  constructor(options: ProtoOptions) {
+  constructor(options: ProtoOptions<Ext>) {
     this[PVK] = {
       options,
     };
@@ -92,19 +93,19 @@ export class Proto {
     return [];
   }
 
-  get schema(): ProtoOptions['schema'] {
+  get schema(): ProtoOptions<Ext>['schema'] {
     return this[PVK].options.schema;
   }
 
-  get storage(): ProtoOptions['storage'] {
+  get storage(): ProtoOptions<Ext>['storage'] {
     return this[PVK].options.storage;
   }
 
-  get functions(): ProtoOptions['functions'] {
+  get functions(): ProtoOptions<Ext>['functions'] {
     return this[PVK].options.functions;
   }
 
-  get triggers(): ProtoOptions['triggers'] {
+  get triggers(): ProtoOptions<Ext>['triggers'] {
     return this[PVK].options.triggers;
   }
 

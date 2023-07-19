@@ -37,8 +37,9 @@ import { PVK } from '../types/private';
 
 export * from '../codec';
 
-type Options = {
+type Options<Ext> = {
   endpoint: string;
+  classExtends?: Ext;
 }
 
 export const CancelTokenSource = axios.CancelToken.source;
@@ -48,13 +49,13 @@ type RequestOptions = {
   cancelToken?: CancelToken;
 };
 
-export class Proto {
+export class Proto<Ext> {
 
   [PVK]: {
-    options: Options;
+    options: Options<Ext>;
   };
 
-  constructor(options: Options) {
+  constructor(options: Options<Ext>) {
     this[PVK] = {
       options,
     };
@@ -88,7 +89,7 @@ export class Proto {
       throw new Error(error.message, { cause: error });
     }
 
-    return applyIOObjectMethods(deserialize(res.data), this);
+    return applyIOObjectMethods<Ext>(deserialize(res.data), this);
   }
 
   async run(

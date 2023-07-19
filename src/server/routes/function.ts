@@ -29,7 +29,7 @@ import { Proto } from '../../server';
 import { deserialize } from '../../codec';
 import { applyIOObjectMethods, response } from './common';
 
-export default (router: Router, payload: Proto) => {
+export default <E>(router: Router, payload: Proto<E>) => {
 
   const { functions } = payload;
   if (_.isEmpty(functions)) return router;

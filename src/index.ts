@@ -34,11 +34,11 @@ import functionRoute from './server/routes/function';
 export * from './codec';
 export * from './server';
 
-export const ProtoRoute = async (options: {
+export const ProtoRoute = async <E>(options: {
   jwtToken: string;
   csrfToken?: string;
-  adapters?: ((proto: Proto) => RequestHandler)[],
-  proto: Proto | ProtoOptions;
+  adapters?: ((proto: Proto<E>) => RequestHandler)[],
+  proto: Proto<E> | ProtoOptions<E>;
 }) => {
 
   const {
