@@ -29,20 +29,26 @@ import { PVK } from '../private';
 import { ExtraOptions } from '../options';
 import { Query } from '../query';
 import { IOSerializable, Proto } from '../../client';
+import { IOObjectExtension } from './types';
 
-export const objectMethods = <T extends IOObject | IOObject[] | undefined>(
+export const objectMethods = <T extends IOObject | IOObject[] | undefined, E>(
   object: T,
   proto: {
-    query(className: string, options?: ExtraOptions): Query
+    [PVK]: { options: { classExtends?: IOObjectExtension<E> } };
+    query(className: string, options?: ExtraOptions): Query;
   }
 ): T => {
 
   if (_.isNil(object)) return undefined as T;
   if (_.isArray(object)) return _.map(object, x => objectMethods(x, proto)) as T;
 
+  const classExtends = proto[PVK].options.classExtends ?? {} as IOObjectExtension<E>;
   const query = (options?: ExtraOptions) => proto.query(object.className, options).filter({ _id: object.objectId });
 
+  const extensions = classExtends[object.className as keyof E] ?? {};
+
   return Object.defineProperties(object, {
+    ..._.mapValues(extensions, value => _.isFunction(value) ? { value } : value),
     save: {
       value: async (options?: ExtraOptions) => {
         const updated = await query(options).findOneAndUpdate(object[PVK].mutated);
