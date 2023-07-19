@@ -23,4 +23,8 @@
 //  THE SOFTWARE.
 //
 
+import { IOObjectExtension } from './types/object/types';
+
 export * from './codec';
+
+export const classExtends = <E>(x: IOObjectExtension<E>) => x;

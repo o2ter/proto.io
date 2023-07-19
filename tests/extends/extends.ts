@@ -1,5 +1,5 @@
 //
-//  index.test.ts
+//  extends.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -23,21 +23,20 @@
 //  THE SOFTWARE.
 //
 
-import { test, expect } from '@jest/globals';
-import Proto from '../../src/client';
-import _extends from './extends';
+import { classExtends } from '../../src/client';
 
-const proto = new Proto({
-  endpoint: 'http://localhost:8080',
-  classExtends: _extends,
-});
-
-test('echo', async () => {
-  
-  const user = proto.object('_User');
-
-  expect(await user.softDelete()).toStrictEqual('deleted');
-
-  user.name = 'test';
-  expect(user.name).toStrictEqual('test');
+export default classExtends({
+  '_User': {
+    async softDelete() {
+      return 'deleted';
+    },
+    name: {
+      get() {
+        return this.get('name') as string;
+      },
+      set(value: string) {
+        this.set('name', value);
+      },
+    }
+  }
 });
