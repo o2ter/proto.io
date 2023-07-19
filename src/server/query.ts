@@ -158,6 +158,7 @@ export const queryMethods = <E, T extends string>(
               object[PVK].mutated[key] = [UpdateOperation.set, value];
             }
           }
+
           await beforeSave(Object.setPrototypeOf({ object, context }, proto));
 
           if (object.objectId) {
