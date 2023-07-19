@@ -32,4 +32,25 @@ export const IOObjectTypes = {
   '_Role': IORole,
 };
 
-export type IOObjectType<T extends string> = T extends keyof typeof IOObjectTypes ? (typeof IOObjectTypes)[T] : IOObject;
+export type IOObjectType<T> = T extends keyof typeof IOObjectTypes ? InstanceType<(typeof IOObjectTypes)[T]> : IOObject;
+
+type PropertyDescriptor<T> = {
+  enumerable?: boolean;
+  get: () => T;
+  set?: (value: T) => void;
+};
+type PropertyMapToExt<T> = {
+  [P in keyof T as T[P] extends Function ? P : never]: T[P];
+} & {
+  [P in keyof T as T[P] extends Required<Pick<PropertyDescriptor<any>, 'get' | 'set'>> ? P : never]: T[P] extends PropertyDescriptor<infer V> ? V : never;
+} & {
+  readonly [P in keyof T as T[P] extends Pick<PropertyDescriptor<any>, 'get'> ? P : never]: T[P] extends PropertyDescriptor<infer V> ? V : never;
+}
+type Property<T> = T extends Function ? T | PropertyDescriptor<T> : PropertyDescriptor<T>;
+type PropertyMap<T, O> = {
+  [K in keyof T]: T[K] extends Property<any> ? T[K] : never;
+} & ThisType<O & PropertyMapToExt<T>>;
+
+export type IOObjectExtension<T> = {
+  [K in keyof T]: PropertyMap<T[K], IOObjectType<K>>;
+};

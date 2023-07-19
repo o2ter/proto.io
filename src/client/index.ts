@@ -29,7 +29,7 @@ import { IOSerializable, serialize, deserialize } from '../codec';
 import { Query } from '../types/query';
 import { queryMethods } from './query';
 import { IOObject } from '../types/object';
-import { IOObjectType, IOObjectTypes } from '../types/object/types';
+import { IOObjectExtension, IOObjectType, IOObjectTypes } from '../types/object/types';
 import { ExtraOptions } from '../types/options';
 import { isObjKey } from '../utils';
 import { objectMethods, applyIOObjectMethods } from '../types/object/methods';
@@ -39,7 +39,7 @@ export * from '../codec';
 
 type Options<Ext> = {
   endpoint: string;
-  classExtends?: Ext;
+  classExtends?: IOObjectExtension<Ext>;
 }
 
 export const CancelTokenSource = axios.CancelToken.source;

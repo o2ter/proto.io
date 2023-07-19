@@ -29,7 +29,7 @@ import { IOStorage } from '../types/storage';
 import { IOSchema } from '../types/schema';
 import { Query } from '../types/query';
 import { IOObject } from '../types/object';
-import { IOObjectType, IOObjectTypes } from '../types/object/types';
+import { IOObjectExtension, IOObjectType, IOObjectTypes } from '../types/object/types';
 import { queryMethods } from './query';
 import { objectMethods } from '../types/object/methods';
 import { IOUser } from '../types/object/user';
@@ -50,7 +50,7 @@ type Validator = {
 export type ProtoOptions<Ext> = {
   schema: Record<string, IOSchema>;
   storage: IOStorage;
-  classExtends?: Ext;
+  classExtends?: IOObjectExtension<Ext>;
   functions?: Record<string, ProtoFunction<Ext> | { callback: ProtoFunction<Ext>; validator?: Validator }>;
   triggers?: {
     beforeSave?: Record<string, Callback<{ object: IOObject; context: object; }, void, Ext>>;
