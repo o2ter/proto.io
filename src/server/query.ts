@@ -124,14 +124,14 @@ export const queryMethods = <E, T extends string>(
           const object = objectMethods(_.first(await asyncIterableToArray(proto.storage.find({ ...queryOptions(), limit: 1 }))), proto);
           if (!object) return undefined;
 
-          object[PVK].mutated = update;
+          object[PVK].mutated = _.omit(update, ...IOObject.defaultKeys);
           await beforeSave(Object.setPrototypeOf({ object, context }, proto));
 
           update = object[PVK].mutated;
         }
 
         const result = objectMethods(
-          await proto.storage.findOneAndUpdate(queryOptions(), update),
+          await proto.storage.findOneAndUpdate(queryOptions(), _.omit(update, ...IOObject.defaultKeys)),
           proto,
         );
         if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, proto));
@@ -151,7 +151,7 @@ export const queryMethods = <E, T extends string>(
           let object = objectMethods(_.first(await asyncIterableToArray(proto.storage.find({ ...queryOptions(), limit: 1 }))), proto);
 
           if (object) {
-            object[PVK].mutated = update;
+            object[PVK].mutated = _.omit(update, ...IOObject.defaultKeys);
           } else {
             object = proto.object(query.className);
             for (const [key, value] of _.toPairs(_.omit(setOnInsert, ...IOObject.defaultKeys))) {
@@ -174,7 +174,11 @@ export const queryMethods = <E, T extends string>(
         }
 
         const result = objectMethods(
-          await proto.storage.findOneAndUpsert(queryOptions(), update, setOnInsert),
+          await proto.storage.findOneAndUpsert(
+            queryOptions(),
+            _.omit(update, ...IOObject.defaultKeys),
+            _.omit(setOnInsert, ...IOObject.defaultKeys)
+          ),
           proto,
         );
         if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, proto));
