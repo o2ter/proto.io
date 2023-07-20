@@ -49,6 +49,7 @@ export default <E>(router: Router, payload: Proto<E>) => {
           operation = 'insert',
           attributes,
           update,
+          replacement,
           setOnInsert,
           ...options
         }: any = deserialize(req.body);
@@ -64,6 +65,7 @@ export default <E>(router: Router, payload: Proto<E>) => {
           case 'find': return await query;
           case 'insert': return query.insert(attributes);
           case 'findOneAndUpdate': return query.findOneAndUpdate(update);
+          case 'findOneAndReplace': return query.findOneAndReplace(replacement);
           case 'findOneAndUpsert': return query.findOneAndUpsert(update, setOnInsert);
           case 'findOneAndDelete': return query.findOneAndDelete();
           case 'findAndDelete': return query.findAndDelete();

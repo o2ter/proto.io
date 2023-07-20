@@ -46,6 +46,7 @@ export interface TQuery<Ext, C extends string> {
   [Symbol.asyncIterator]: () => AsyncIterator<TObject & TMethods<Ext, C>>;
   insert: (attrs: any) => PromiseLike<(TObject & TMethods<Ext, C>) | undefined>;
   findOneAndUpdate: (update: Record<string, [UpdateOperation, any]>) => PromiseLike<(TObject & TMethods<Ext, C>) | undefined>;
+  findOneAndReplace: (replacement: Record<string, any>) => PromiseLike<(TObject & TMethods<Ext, C>) | undefined>;
   findOneAndUpsert: (update: Record<string, [UpdateOperation, any]>, setOnInsert: Record<string, any>) => PromiseLike<(TObject & TMethods<Ext, C>) | undefined>;
   findOneAndDelete: () => PromiseLike<(TObject & TMethods<Ext, C>) | undefined>;
   findAndDelete: () => PromiseLike<number>;
@@ -118,6 +119,10 @@ export class TQuery<Ext, C extends string> {
 
   async updateOne(update: Record<string, [UpdateOperation, any]>) {
     return this.findOneAndUpdate(update);
+  }
+
+  async replaceOne(replacement: Record<string, any>) {
+    return this.findOneAndReplace(replacement);
   }
 
   async upsertOne(update: Record<string, [UpdateOperation, any]>, setOnInsert: Record<string, any>) {

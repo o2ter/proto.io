@@ -55,6 +55,10 @@ export class MemoryStorage implements IOStorage {
     return undefined;
   }
 
+  async findOneAndReplace() {
+    return undefined;
+  }
+
   async findOneAndUpsert() {
     return undefined;
   }

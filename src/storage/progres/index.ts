@@ -71,6 +71,10 @@ export class PostgresStorage implements IOStorage {
     return undefined;
   }
 
+  async findOneAndReplace() {
+    return undefined;
+  }
+
   async findOneAndUpsert() {
     return undefined;
   }

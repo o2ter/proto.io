@@ -138,6 +138,10 @@ export const queryMethods = <E, T extends string>(
         return result;
       },
     },
+    findOneAndReplace: {
+      value: async (replacement: Record<string, any>) => {
+      },
+    },
     findOneAndUpsert: {
       value: async (update: Record<string, [UpdateOperation, any]>, setOnInsert: Record<string, any>) => {
         const beforeSave = proto.triggers?.beforeSave?.[query.className];

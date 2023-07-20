@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { TObject } from './object';
+import { TObject, UpdateOperation } from './object';
 import { TQuery } from './query';
 import { TSchema } from './schema';
 import { ExtraOptions } from './options';
@@ -43,8 +43,9 @@ export interface IOStorage {
 
   insert(className: string, attrs: any): PromiseLike<TObject | undefined>;
 
-  findOneAndUpdate(query: FindOneOptions, update: any): PromiseLike<TObject | undefined>;
-  findOneAndUpsert(query: FindOneOptions, update: any, setOnInsert: any): PromiseLike<TObject | undefined>;
+  findOneAndUpdate(query: FindOneOptions, update: Record<string, [UpdateOperation, any]>): PromiseLike<TObject | undefined>;
+  findOneAndReplace(query: FindOneOptions, replacement: Record<string, any>): PromiseLike<TObject | undefined>;
+  findOneAndUpsert(query: FindOneOptions, update: Record<string, [UpdateOperation, any]>, setOnInsert: Record<string, any>): PromiseLike<TObject | undefined>;
   findOneAndDelete(query: FindOneOptions): PromiseLike<TObject | undefined>;
 
   findAndDelete(query: FindOptions): PromiseLike<number>;

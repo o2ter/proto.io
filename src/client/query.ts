@@ -76,6 +76,13 @@ export const queryMethods = <E, T extends string>(query: TQuery<E, T>, proto: Pr
         ...queryOptions(),
       }, requestOpt),
     },
+    findOneAndReplace: {
+      value: (replacement: Record<string, any>) => proto._request({
+        operation: 'findOneAndReplace',
+        replacement,
+        ...queryOptions(),
+      }, requestOpt),
+    },
     findOneAndUpsert: {
       value: (update: Record<string, [UpdateOperation, any]>, setOnInsert: Record<string, any>) => proto._request({
         operation: 'findOneAndUpsert',

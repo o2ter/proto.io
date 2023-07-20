@@ -75,6 +75,10 @@ export class MongoStorage implements IOStorage {
     return undefined;
   }
 
+  async findOneAndReplace() {
+    return undefined;
+  }
+
   async findOneAndUpsert() {
     return undefined;
   }
