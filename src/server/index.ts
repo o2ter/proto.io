@@ -29,7 +29,7 @@ import { IOStorage } from '../types/storage';
 import { IOSchema } from '../types/schema';
 import { Query } from '../types/query';
 import { IOObject } from '../types/object';
-import { IOObjectExtension, IOObjectType, IOObjectTypes, IOObjectWithExt } from '../types/object/types';
+import { TExtensions, TObjectType, IOObjectTypes, TMethods } from '../types/object/types';
 import { queryMethods } from './query';
 import { objectMethods } from '../types/object/methods';
 import { IOUser } from '../types/object/user';
@@ -50,7 +50,7 @@ type Validator = {
 export type ProtoOptions<Ext> = {
   schema: Record<string, IOSchema>;
   storage: IOStorage;
-  classExtends?: IOObjectExtension<Ext>;
+  classExtends?: TExtensions<Ext>;
   functions?: Record<string, ProtoFunction<Ext> | { callback: ProtoFunction<Ext>; validator?: Validator }>;
   triggers?: {
     beforeSave?: Record<string, Callback<{ object: IOObject; context: object; }, void, Ext>>;
@@ -78,7 +78,7 @@ export class Proto<Ext> {
 
   object<T extends string>(className: T) {
     const obj = isObjKey(className, IOObjectTypes) ? new IOObjectTypes[className] : new IOObject(className);
-    return objectMethods(obj as IOObjectType<T> & IOObjectWithExt<Ext, T>, this);
+    return objectMethods(obj as TObjectType<T> & TMethods<Ext, T>, this);
   }
 
   query<T extends string>(className: T, options?: ExtraOptions): Query<Ext, T> {

@@ -29,7 +29,7 @@ import { IOSerializable, serialize, deserialize } from '../codec';
 import { Query } from '../types/query';
 import { queryMethods } from './query';
 import { IOObject } from '../types/object';
-import { IOObjectExtension, IOObjectType, IOObjectTypes, IOObjectWithExt } from '../types/object/types';
+import { TExtensions, TObjectType, IOObjectTypes, TMethods } from '../types/object/types';
 import { isObjKey } from '../utils';
 import { objectMethods, applyIOObjectMethods } from '../types/object/methods';
 import { RequestOptions } from './options';
@@ -39,7 +39,7 @@ export * from '../common';
 
 type ProtoOptions<Ext> = {
   endpoint: string;
-  classExtends?: IOObjectExtension<Ext>;
+  classExtends?: TExtensions<Ext>;
 }
 
 export const CancelTokenSource = axios.CancelToken.source;
@@ -58,7 +58,7 @@ export class Proto<Ext> {
 
   object<T extends string>(className: T) {
     const obj = isObjKey(className, IOObjectTypes) ? new IOObjectTypes[className] : new IOObject(className);
-    return objectMethods(obj as IOObjectType<T> & IOObjectWithExt<Ext, T>, this);
+    return objectMethods(obj as TObjectType<T> & TMethods<Ext, T>, this);
   }
 
   query<T extends string>(className: T, options?: RequestOptions): Query<Ext, T> {

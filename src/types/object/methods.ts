@@ -29,12 +29,12 @@ import { PVK } from '../private';
 import { ExtraOptions } from '../options';
 import { Query } from '../query';
 import { IOSerializable, Proto } from '../../client';
-import { IOObjectExtension } from './types';
+import { TExtensions } from './types';
 
 export const objectMethods = <T extends IOObject | IOObject[] | undefined, E>(
   object: T,
   proto: {
-    [PVK]: { options: { classExtends?: IOObjectExtension<E> } };
+    [PVK]: { options: { classExtends?: TExtensions<E> } };
     query<C extends string>(className: C, options?: ExtraOptions): Query<E, C>;
   }
 ): T => {
@@ -42,7 +42,7 @@ export const objectMethods = <T extends IOObject | IOObject[] | undefined, E>(
   if (_.isNil(object)) return undefined as T;
   if (_.isArray(object)) return _.map(object, x => objectMethods(x, proto)) as T;
 
-  const classExtends = proto[PVK].options.classExtends ?? {} as IOObjectExtension<E>;
+  const classExtends = proto[PVK].options.classExtends ?? {} as TExtensions<E>;
   const extensions = classExtends[object.className as keyof E] ?? {};
   const query = (options?: ExtraOptions) => proto.query(object.className, options).filter({ _id: object.objectId });
 

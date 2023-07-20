@@ -32,7 +32,7 @@ export const IOObjectTypes = {
   '_Role': IORole,
 };
 
-export type IOObjectType<T> = T extends keyof typeof IOObjectTypes ? InstanceType<(typeof IOObjectTypes)[T]> : IOObject;
+export type TObjectType<T> = T extends keyof typeof IOObjectTypes ? InstanceType<(typeof IOObjectTypes)[T]> : IOObject;
 
 type PickBy<T, C> = {
   [P in keyof T as T[P] extends C ? P : never]: T[P];
@@ -46,7 +46,7 @@ type PropertyDescriptor<T> = {
 type ReadOnlyProperty<T> = Pick<PropertyDescriptor<T>, 'get'>;
 type ReadWriteProperty<T> = Required<Pick<PropertyDescriptor<T>, 'get' | 'set'>>;
 
-type PropertyMapToExt<T> = PickBy<T, Function> &
+type PropertyMapToMethods<T> = PickBy<T, Function> &
   {
     [P in keyof PickBy<T, ReadWriteProperty<any>>]: T[P] extends PropertyDescriptor<infer V> ? V : never;
   } &
@@ -56,10 +56,10 @@ type PropertyMapToExt<T> = PickBy<T, Function> &
 type Property<T> = T extends Function ? T | PropertyDescriptor<T> : PropertyDescriptor<T>;
 type PropertyMap<T, O> = {
   [K in keyof T]: T[K] extends Property<any> ? T[K] : never;
-} & ThisType<O & PropertyMapToExt<T>>;
+} & ThisType<O & PropertyMapToMethods<T>>;
 
-export type IOObjectExtension<T> = {
-  [K in keyof T]: PropertyMap<T[K], IOObjectType<K>>;
+export type TExtensions<T> = {
+  [K in keyof T]: PropertyMap<T[K], TObjectType<K>>;
 };
 
-export type IOObjectWithExt<T, K> = K extends keyof T ? PropertyMapToExt<T[K]> : {};
+export type TMethods<T, K> = K extends keyof T ? PropertyMapToMethods<T[K]> : {};

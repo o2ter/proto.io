@@ -27,7 +27,7 @@ import _ from 'lodash';
 import { FilterQuery } from './filter';
 import { IOObject, UpdateOperation } from './object';
 import { PVK } from './private';
-import { IOObjectWithExt } from './object/types';
+import { TMethods } from './object/types';
 
 export namespace Query {
   export interface Options {
@@ -42,12 +42,12 @@ export namespace Query {
 
 export interface Query<Ext, C extends string> {
   count: () => PromiseLike<number>;
-  then: Promise<(IOObject & IOObjectWithExt<Ext, C>)[]>['then'];
-  [Symbol.asyncIterator]: () => AsyncIterator<IOObject & IOObjectWithExt<Ext, C>>;
-  insert: (attrs: any) => PromiseLike<(IOObject & IOObjectWithExt<Ext, C>) | undefined>;
-  findOneAndUpdate: (update: Record<string, [UpdateOperation, any]>) => PromiseLike<(IOObject & IOObjectWithExt<Ext, C>) | undefined>;
-  findOneAndUpsert: (update: Record<string, [UpdateOperation, any]>, setOnInsert: Record<string, any>) => PromiseLike<(IOObject & IOObjectWithExt<Ext, C>) | undefined>;
-  findOneAndDelete: () => PromiseLike<(IOObject & IOObjectWithExt<Ext, C>) | undefined>;
+  then: Promise<(IOObject & TMethods<Ext, C>)[]>['then'];
+  [Symbol.asyncIterator]: () => AsyncIterator<IOObject & TMethods<Ext, C>>;
+  insert: (attrs: any) => PromiseLike<(IOObject & TMethods<Ext, C>) | undefined>;
+  findOneAndUpdate: (update: Record<string, [UpdateOperation, any]>) => PromiseLike<(IOObject & TMethods<Ext, C>) | undefined>;
+  findOneAndUpsert: (update: Record<string, [UpdateOperation, any]>, setOnInsert: Record<string, any>) => PromiseLike<(IOObject & TMethods<Ext, C>) | undefined>;
+  findOneAndDelete: () => PromiseLike<(IOObject & TMethods<Ext, C>) | undefined>;
   findAndDelete: () => PromiseLike<number>;
 }
 

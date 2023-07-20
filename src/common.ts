@@ -23,8 +23,8 @@
 //  THE SOFTWARE.
 //
 
-import { IOObjectExtension } from './types/object/types';
+import { TExtensions } from './types/object/types';
 
 export * from './codec';
 
-export const classExtends = <E>(x: IOObjectExtension<E>) => x;
+export const classExtends = <E>(x: TExtensions<E>) => x;
