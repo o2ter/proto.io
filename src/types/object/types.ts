@@ -44,7 +44,7 @@ type PropertyDescriptor<T> = {
   set?: (value: T) => void;
 };
 type ReadOnlyProperty<T> = Pick<PropertyDescriptor<T>, 'get'>;
-type ReadWriteProperty<T> = Required<Pick<PropertyDescriptor<any>, 'get' | 'set'>>;
+type ReadWriteProperty<T> = Required<Pick<PropertyDescriptor<T>, 'get' | 'set'>>;
 
 type PropertyMapToExt<T> = PickBy<T, Function> &
   {
