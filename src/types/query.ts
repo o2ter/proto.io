@@ -112,6 +112,10 @@ export class TQuery<Ext, C extends string> {
     return _.first(await this.clone().limit(1));
   }
 
+  async exists() {
+    return !_.isNil(await this.first());
+  }
+
   async updateOne(update: Record<string, [UpdateOperation, any]>) {
     return this.findOneAndUpdate(update);
   }
