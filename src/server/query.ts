@@ -256,19 +256,15 @@ export const queryMethods = <E, T extends string>(
         const afterDelete = proto.triggers?.afterDelete?.[query.className];
         if (!options?.master && !_validateCLPs('delete')) throw new Error('No permission');
 
+        const context = {};
+
         if (_.isFunction(beforeDelete) || _.isFunction(afterDelete)) {
 
           const objects = objectMethods(await asyncIterableToArray(proto.storage.find(queryOptions())), proto);
           if (_.isEmpty(objects)) return 0;
 
-          const context: Record<string, any> = {};
-          objects.forEach(x => context[x.objectId as string] = {});
-
           if (_.isFunction(beforeDelete)) {
-            await Promise.all(_.map(objects, object => beforeDelete(Object.setPrototypeOf({
-              object,
-              context: context[object.objectId as string],
-            }, proto))));
+            await Promise.all(_.map(objects, object => beforeDelete(Object.setPrototypeOf({ object, context }, proto))));
           }
 
           await proto.storage.findAndDelete({
@@ -277,10 +273,7 @@ export const queryMethods = <E, T extends string>(
           });
 
           if (_.isFunction(afterDelete)) {
-            await Promise.all(_.map(objects, object => afterDelete(Object.setPrototypeOf({
-              object,
-              context: context[object.objectId as string],
-            }, proto))));
+            await Promise.all(_.map(objects, object => afterDelete(Object.setPrototypeOf({ object, context }, proto))));
           }
 
           return objects.length;
