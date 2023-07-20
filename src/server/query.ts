@@ -34,8 +34,8 @@ import { objectMethods } from '../types/object/methods';
 import { asyncIterableToArray } from '../utils';
 
 const validateCLPs = (
-  clps: IOSchema.CLPs,
-  keys: (keyof IOSchema.CLPs)[],
+  clps: TSchema.CLPs,
+  keys: (keyof TSchema.CLPs)[],
   acls: string[],
 ) => {
   for (const key of keys) {
@@ -65,7 +65,7 @@ export const queryMethods = <E, T extends string>(
     ...query[PVK].options,
   });
 
-  const _validateCLPs = (...keys: (keyof IOSchema.CLPs)[]) => validateCLPs(
+  const _validateCLPs = (...keys: (keyof TSchema.CLPs)[]) => validateCLPs(
     proto.schema[query.className]?.classLevelPermissions ?? {},
     keys, acls(),
   );
