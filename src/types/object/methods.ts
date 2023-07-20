@@ -24,18 +24,18 @@
 //
 
 import _ from 'lodash';
-import { IOObject } from './index';
+import { TObject } from './index';
 import { PVK } from '../private';
 import { ExtraOptions } from '../options';
-import { Query } from '../query';
+import { TQuery } from '../query';
 import { IOSerializable, Proto } from '../../client';
 import { TExtensions } from './types';
 
-export const objectMethods = <T extends IOObject | IOObject[] | undefined, E>(
+export const objectMethods = <T extends TObject | TObject[] | undefined, E>(
   object: T,
   proto: {
     [PVK]: { options: { classExtends?: TExtensions<E> } };
-    query<C extends string>(className: C, options?: ExtraOptions): Query<E, C>;
+    query<C extends string>(className: C, options?: ExtraOptions): TQuery<E, C>;
   }
 ): T => {
 
@@ -81,8 +81,8 @@ export const objectMethods = <T extends IOObject | IOObject[] | undefined, E>(
   });
 };
 
-export const applyIOObjectMethods = <E>(data: IOSerializable<IOObject>, proto: Proto<E>): IOSerializable<IOObject> => {
-  if (data instanceof IOObject) return objectMethods(data, proto);
+export const applyIOObjectMethods = <E>(data: IOSerializable<TObject>, proto: Proto<E>): IOSerializable<TObject> => {
+  if (data instanceof TObject) return objectMethods(data, proto);
   if (_.isArray(data)) return _.map(data, x => applyIOObjectMethods(x, proto));
   if (_.isPlainObject(data)) return _.mapValues(data as any, x => applyIOObjectMethods(x, proto));
   return data;

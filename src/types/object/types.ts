@@ -23,16 +23,16 @@
 //  THE SOFTWARE.
 //
 
-import { IOObject } from './index';
-import { IOUser } from './user';
-import { IORole } from './role';
+import { TObject } from './index';
+import { TUser } from './user';
+import { TRole } from './role';
 
-export const IOObjectTypes = {
-  '_User': IOUser,
-  '_Role': IORole,
+export const TObjectTypes = {
+  '_User': TUser,
+  '_Role': TRole,
 };
 
-export type TObjectType<T> = T extends keyof typeof IOObjectTypes ? InstanceType<(typeof IOObjectTypes)[T]> : IOObject;
+export type TObjectType<T> = T extends keyof typeof TObjectTypes ? InstanceType<(typeof TObjectTypes)[T]> : TObject;
 
 type PickBy<T, C> = {
   [P in keyof T as T[P] extends C ? P : never]: T[P];

@@ -26,12 +26,12 @@
 import _ from 'lodash';
 import { MongoClient, MongoClientOptions } from 'mongodb';
 import { IOStorage } from '../../types/storage';
-import { IOSchema } from '../../types/schema';
+import { TSchema } from '../../types/schema';
 
 export class MongoStorage implements IOStorage {
 
   connection: MongoClient;
-  schema: Record<string, IOSchema> = {};
+  schema: Record<string, TSchema> = {};
 
   constructor(uri: string, options?: MongoClientOptions) {
     this.connection = new MongoClient(uri, options);
@@ -51,7 +51,7 @@ export class MongoStorage implements IOStorage {
     return storage.connect();
   }
 
-  prepare(schema: Record<string, IOSchema>) {
+  prepare(schema: Record<string, TSchema>) {
     this.schema = schema;
   }
 

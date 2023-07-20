@@ -26,7 +26,7 @@
 type AnyArray<T> = T[] | readonly T[];
 type Unpacked<T> = T extends AnyArray<infer U> ? U : T;
 
-type QuerySelector<T> = {
+type TQuerySelector<T> = {
   $eq?: T;
   $gt?: T;
   $gte?: T;
@@ -35,18 +35,18 @@ type QuerySelector<T> = {
   $lte?: T;
   $ne?: T;
   $nin?: T[] extends AnyArray<any> ? Unpacked<T>[] : T[];
-  $not?: T extends string ? QuerySelector<T> | RegExp : QuerySelector<T>;
+  $not?: T extends string ? TQuerySelector<T> | RegExp : TQuerySelector<T>;
   $exists?: boolean;
   $expr?: any;
   $regex?: T extends string ? RegExp | string : never;
 }
 
-type RootQuerySelector<T> = {
-  $and?: FilterQuery<T>[];
-  $nor?: FilterQuery<T>[];
-  $or?: FilterQuery<T>[];
+type TRootQuerySelector<T> = {
+  $and?: TFilterQuery<T>[];
+  $nor?: TFilterQuery<T>[];
+  $or?: TFilterQuery<T>[];
 };
 
-export type FilterQuery<T> = RootQuerySelector<T> | {
-  [P in keyof T]?: T[P] | QuerySelector<T[P]>;
+export type TFilterQuery<T> = TRootQuerySelector<T> | {
+  [P in keyof T]?: T[P] | TQuerySelector<T[P]>;
 };

@@ -24,10 +24,10 @@
 //
 
 import _ from 'lodash';
-import { Query } from '../types/query';
+import { TQuery } from '../types/query';
 import { Proto } from '.';
-import { IOObject, UpdateOperation } from '../types/object';
-import { IOSchema } from '../types/schema';
+import { TObject, UpdateOperation } from '../types/object';
+import { TSchema } from '../types/schema';
 import { PVK } from '../types/private';
 import { ExtraOptions } from '../types/options';
 import { objectMethods } from '../types/object/methods';
@@ -46,7 +46,7 @@ const validateCLPs = (
 }
 
 export const queryMethods = <E, T extends string>(
-  query: Query<E, T>,
+  query: TQuery<E, T>,
   proto: Proto<E>,
   options?: ExtraOptions,
 ) => {
@@ -97,7 +97,7 @@ export const queryMethods = <E, T extends string>(
         const context = {};
 
         const object = proto.object(query.className);
-        for (const [key, value] of _.toPairs(_.omit(attrs, ...IOObject.defaultKeys))) {
+        for (const [key, value] of _.toPairs(_.omit(attrs, ...TObject.defaultKeys))) {
           object[PVK].mutated[key] = [UpdateOperation.set, value];
         }
 
@@ -124,14 +124,14 @@ export const queryMethods = <E, T extends string>(
           const object = objectMethods(_.first(await asyncIterableToArray(proto.storage.find({ ...queryOptions(), limit: 1 }))), proto);
           if (!object) return undefined;
 
-          object[PVK].mutated = _.omit(update, ...IOObject.defaultKeys);
+          object[PVK].mutated = _.omit(update, ...TObject.defaultKeys);
           await beforeSave(Object.setPrototypeOf({ object, context }, proto));
 
           update = object[PVK].mutated;
         }
 
         const result = objectMethods(
-          await proto.storage.findOneAndUpdate(queryOptions(), _.omit(update, ...IOObject.defaultKeys)),
+          await proto.storage.findOneAndUpdate(queryOptions(), _.omit(update, ...TObject.defaultKeys)),
           proto,
         );
         if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, proto));
@@ -151,10 +151,10 @@ export const queryMethods = <E, T extends string>(
           let object = objectMethods(_.first(await asyncIterableToArray(proto.storage.find({ ...queryOptions(), limit: 1 }))), proto);
 
           if (object) {
-            object[PVK].mutated = _.omit(update, ...IOObject.defaultKeys);
+            object[PVK].mutated = _.omit(update, ...TObject.defaultKeys);
           } else {
             object = proto.object(query.className);
-            for (const [key, value] of _.toPairs(_.omit(setOnInsert, ...IOObject.defaultKeys))) {
+            for (const [key, value] of _.toPairs(_.omit(setOnInsert, ...TObject.defaultKeys))) {
               object[PVK].mutated[key] = [UpdateOperation.set, value];
             }
           }
@@ -176,8 +176,8 @@ export const queryMethods = <E, T extends string>(
         const result = objectMethods(
           await proto.storage.findOneAndUpsert(
             queryOptions(),
-            _.omit(update, ...IOObject.defaultKeys),
-            _.omit(setOnInsert, ...IOObject.defaultKeys)
+            _.omit(update, ...TObject.defaultKeys),
+            _.omit(setOnInsert, ...TObject.defaultKeys)
           ),
           proto,
         );
@@ -192,7 +192,7 @@ export const queryMethods = <E, T extends string>(
         if (!options?.master && !_validateCLPs('delete')) throw new Error('No permission');
 
         const context = {};
-        let result: IOObject | undefined;
+        let result: TObject | undefined;
 
         if (_.isFunction(beforeDelete)) {
 

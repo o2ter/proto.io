@@ -24,12 +24,12 @@
 //
 
 import _ from 'lodash';
-import { IOObject } from '.';
+import { TObject } from '.';
 
-export class IOUser extends IOObject {
+export class TUser extends TObject {
 
   constructor(
-    attributes?: Record<string, any> | ((self: IOObject) => Record<string, any>),
+    attributes?: Record<string, any> | ((self: TObject) => Record<string, any>),
   ) {
     super('_User', attributes);
   }

@@ -24,9 +24,9 @@
 //
 
 import _ from 'lodash';
-import { IOObject } from './object';
-import { Query } from './query';
-import { IOSchema } from './schema';
+import { TObject } from './object';
+import { TQuery } from './query';
+import { TSchema } from './schema';
 import { ExtraOptions } from './options';
 
 type CommonFindOptions = { className: string; options: ExtraOptions & { acls: string[]; }; };
@@ -35,17 +35,17 @@ type FindOneOptions = CommonFindOptions & Omit<Query.Options, 'skip' | 'limit'>;
 
 export interface IOStorage {
 
-  prepare(schema: Record<string, IOSchema>): void | PromiseLike<void>;
+  prepare(schema: Record<string, TSchema>): void | PromiseLike<void>;
   classes(): string[] | PromiseLike<string[]>;
 
   count(query: FindOptions): PromiseLike<number>;
-  find(query: FindOptions): AsyncIterable<IOObject>;
+  find(query: FindOptions): AsyncIterable<TObject>;
 
-  insert(className: string, attrs: any): PromiseLike<IOObject | undefined>;
+  insert(className: string, attrs: any): PromiseLike<TObject | undefined>;
 
-  findOneAndUpdate(query: FindOneOptions, update: any): PromiseLike<IOObject | undefined>;
-  findOneAndUpsert(query: FindOneOptions, update: any, setOnInsert: any): PromiseLike<IOObject | undefined>;
-  findOneAndDelete(query: FindOneOptions): PromiseLike<IOObject | undefined>;
+  findOneAndUpdate(query: FindOneOptions, update: any): PromiseLike<TObject | undefined>;
+  findOneAndUpsert(query: FindOneOptions, update: any, setOnInsert: any): PromiseLike<TObject | undefined>;
+  findOneAndDelete(query: FindOneOptions): PromiseLike<TObject | undefined>;
 
   findAndDelete(query: FindOptions): PromiseLike<number>;
 }

@@ -24,13 +24,13 @@
 //
 
 import _ from 'lodash';
-import { Query } from '../types/query';
+import { TQuery } from '../types/query';
 import { UpdateOperation } from '../types/object';
 import { PVK } from '../types/private';
 import Proto from './index';
 import { RequestOptions } from './options';
 
-export const queryMethods = <E, T extends string>(query: Query<E, T>, proto: Proto<E>, options?: RequestOptions) => {
+export const queryMethods = <E, T extends string>(query: TQuery<E, T>, proto: Proto<E>, options?: RequestOptions) => {
 
   const queryOptions = () => ({
     className: query[PVK].className,

@@ -25,13 +25,13 @@
 
 import _ from 'lodash';
 import { IOStorage } from '../../types/storage';
-import { IOSchema } from '../../types/schema';
+import { TSchema } from '../../types/schema';
 
 export class MemoryStorage implements IOStorage {
 
-  schema: Record<string, IOSchema> = {};
+  schema: Record<string, TSchema> = {};
 
-  prepare(schema: Record<string, IOSchema>) {
+  prepare(schema: Record<string, TSchema>) {
     this.schema = schema;
   }
 

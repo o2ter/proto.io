@@ -26,7 +26,7 @@
 import { test, expect } from '@jest/globals';
 import Proto from '../../src/client';
 import _extends from './extends';
-import { IOUser } from '../../src/types/object/user';
+import { TUser } from '../../src/types/object/user';
 
 const proto = new Proto({
   endpoint: 'http://localhost:8080',
@@ -37,7 +37,7 @@ test('test types', async () => {
 
   const user = proto.object('_User');
 
-  expect(user).toBeInstanceOf(IOUser);
+  expect(user).toBeInstanceOf(TUser);
 
 });
 

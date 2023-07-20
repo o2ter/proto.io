@@ -40,13 +40,13 @@ export enum UpdateOperation {
   popLast = 'popLast',
 }
 
-export interface IOObject {
+export interface TObject {
   fetch: (options?: ExtraOptions) => PromiseLike<this>;
   save: (options?: ExtraOptions) => PromiseLike<this>;
   destory: (options?: ExtraOptions) => PromiseLike<this>;
 }
 
-export class IOObject {
+export class TObject {
 
   static defaultKeys = ['_id', '_created_at', '_updated_at'];
 
@@ -58,7 +58,7 @@ export class IOObject {
 
   constructor(
     className: string,
-    attributes?: Record<string, any> | ((self: IOObject) => Record<string, any>),
+    attributes?: Record<string, any> | ((self: TObject) => Record<string, any>),
   ) {
     this[PVK] = {
       className,
@@ -98,12 +98,12 @@ export class IOObject {
   }
 
   set(key: string, value: any) {
-    if (IOObject.defaultKeys.includes(key)) return;
+    if (TObject.defaultKeys.includes(key)) return;
     this[PVK].mutated[key] = [UpdateOperation.set, value];
   }
 
   unset(key: string) {
-    if (IOObject.defaultKeys.includes(key)) return;
+    if (TObject.defaultKeys.includes(key)) return;
     this[PVK].mutated[key] = [UpdateOperation.set, null];
   }
 
@@ -112,57 +112,57 @@ export class IOObject {
   }
 
   increment(key: string, value: number) {
-    if (IOObject.defaultKeys.includes(key)) return;
+    if (TObject.defaultKeys.includes(key)) return;
     this[PVK].mutated[key] = [UpdateOperation.increment, value];
   }
 
   decrement(key: string, value: number) {
-    if (IOObject.defaultKeys.includes(key)) return;
+    if (TObject.defaultKeys.includes(key)) return;
     this[PVK].mutated[key] = [UpdateOperation.increment, -value];
   }
 
   multiply(key: string, value: number) {
-    if (IOObject.defaultKeys.includes(key)) return;
+    if (TObject.defaultKeys.includes(key)) return;
     this[PVK].mutated[key] = [UpdateOperation.multiply, value];
   }
 
   divide(key: string, value: number) {
-    if (IOObject.defaultKeys.includes(key)) return;
+    if (TObject.defaultKeys.includes(key)) return;
     this[PVK].mutated[key] = [UpdateOperation.multiply, 1 / value];
   }
 
   max(key: string, value: any) {
-    if (IOObject.defaultKeys.includes(key)) return;
+    if (TObject.defaultKeys.includes(key)) return;
     this[PVK].mutated[key] = [UpdateOperation.max, value];
   }
 
   min(key: string, value: any) {
-    if (IOObject.defaultKeys.includes(key)) return;
+    if (TObject.defaultKeys.includes(key)) return;
     this[PVK].mutated[key] = [UpdateOperation.min, value];
   }
 
   addToSet(key: string, values: any[]) {
-    if (IOObject.defaultKeys.includes(key)) return;
+    if (TObject.defaultKeys.includes(key)) return;
     this[PVK].mutated[key] = [UpdateOperation.addToSet, values];
   }
 
   push(key: string, values: any[]) {
-    if (IOObject.defaultKeys.includes(key)) return;
+    if (TObject.defaultKeys.includes(key)) return;
     this[PVK].mutated[key] = [UpdateOperation.push, values];
   }
 
   removeAll(key: string, values: any[]) {
-    if (IOObject.defaultKeys.includes(key)) return;
+    if (TObject.defaultKeys.includes(key)) return;
     this[PVK].mutated[key] = [UpdateOperation.removeAll, values];
   }
 
   popFirst(key: string) {
-    if (IOObject.defaultKeys.includes(key)) return;
+    if (TObject.defaultKeys.includes(key)) return;
     this[PVK].mutated[key] = [UpdateOperation.popFirst, null];
   }
 
   popLast(key: string) {
-    if (IOObject.defaultKeys.includes(key)) return;
+    if (TObject.defaultKeys.includes(key)) return;
     this[PVK].mutated[key] = [UpdateOperation.popLast, null];
   }
 

@@ -24,14 +24,14 @@
 //
 
 import _ from 'lodash';
-import { FilterQuery } from './filter';
-import { IOObject, UpdateOperation } from './object';
+import { TFilterQuery } from './filter';
+import { TObject, UpdateOperation } from './object';
 import { PVK } from './private';
 import { TMethods } from './object/types';
 
-export namespace Query {
+export namespace TQuery {
   export interface Options {
-    filter?: FilterQuery<any> | FilterQuery<any>[];
+    filter?: TFilterQuery<any> | TFilterQuery<any>[];
     sort?: Record<string, 1 | -1>;
     includes?: string[];
     skip?: number;
@@ -40,25 +40,25 @@ export namespace Query {
   }
 }
 
-export interface Query<Ext, C extends string> {
+export interface TQuery<Ext, C extends string> {
   count: () => PromiseLike<number>;
-  then: Promise<(IOObject & TMethods<Ext, C>)[]>['then'];
-  [Symbol.asyncIterator]: () => AsyncIterator<IOObject & TMethods<Ext, C>>;
-  insert: (attrs: any) => PromiseLike<(IOObject & TMethods<Ext, C>) | undefined>;
-  findOneAndUpdate: (update: Record<string, [UpdateOperation, any]>) => PromiseLike<(IOObject & TMethods<Ext, C>) | undefined>;
-  findOneAndUpsert: (update: Record<string, [UpdateOperation, any]>, setOnInsert: Record<string, any>) => PromiseLike<(IOObject & TMethods<Ext, C>) | undefined>;
-  findOneAndDelete: () => PromiseLike<(IOObject & TMethods<Ext, C>) | undefined>;
+  then: Promise<(TObject & TMethods<Ext, C>)[]>['then'];
+  [Symbol.asyncIterator]: () => AsyncIterator<TObject & TMethods<Ext, C>>;
+  insert: (attrs: any) => PromiseLike<(TObject & TMethods<Ext, C>) | undefined>;
+  findOneAndUpdate: (update: Record<string, [UpdateOperation, any]>) => PromiseLike<(TObject & TMethods<Ext, C>) | undefined>;
+  findOneAndUpsert: (update: Record<string, [UpdateOperation, any]>, setOnInsert: Record<string, any>) => PromiseLike<(TObject & TMethods<Ext, C>) | undefined>;
+  findOneAndDelete: () => PromiseLike<(TObject & TMethods<Ext, C>) | undefined>;
   findAndDelete: () => PromiseLike<number>;
 }
 
-export class Query<Ext, C extends string> {
+export class TQuery<Ext, C extends string> {
 
   [PVK]: {
     className: C;
-    options: Query.Options;
+    options: TQuery.Options;
   }
 
-  constructor(className: C, options: Query.Options = {}) {
+  constructor(className: C, options: TQuery.Options = {}) {
     this[PVK] = {
       className,
       options,
@@ -70,10 +70,10 @@ export class Query<Ext, C extends string> {
   }
 
   clone() {
-    return new Query<Ext, C>(this.className, this[PVK].options);
+    return new TQuery<Ext, C>(this.className, this[PVK].options);
   }
 
-  filter<T>(filter: FilterQuery<T>) {
+  filter<T>(filter: TFilterQuery<T>) {
     this[PVK].options.filter = this[PVK].options.filter ? [..._.castArray(this[PVK].options.filter), filter] : filter;
     return this;
   }
@@ -104,7 +104,7 @@ export class Query<Ext, C extends string> {
   }
 
   async get(id: string) {
-    const query = new Query(this.className);
+    const query = new TQuery(this.className);
     return _.first(await query.filter({ _id: id }).limit(1));
   }
 

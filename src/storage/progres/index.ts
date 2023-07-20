@@ -26,12 +26,12 @@
 import _ from 'lodash';
 import pg, { IInitOptions, IConnectionOptions, IDatabase } from 'pg-promise';
 import { IOStorage } from '../../types/storage';
-import { IOSchema } from '../../types/schema';
+import { TSchema } from '../../types/schema';
 
 export class PostgresStorage implements IOStorage {
 
   connection: IDatabase<{}>;
-  schema: Record<string, IOSchema> = {};
+  schema: Record<string, TSchema> = {};
 
   constructor(uri: string, options?: IInitOptions) {
     this.connection = pg(options ?? {})(uri);
@@ -47,7 +47,7 @@ export class PostgresStorage implements IOStorage {
     return storage.connect();
   }
 
-  prepare(schema: Record<string, IOSchema>) {
+  prepare(schema: Record<string, TSchema>) {
     this.schema = schema;
   }
 

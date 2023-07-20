@@ -26,13 +26,13 @@
 import _ from 'lodash';
 import { IOSerializable } from '../codec';
 import { IOStorage } from '../types/storage';
-import { IOSchema } from '../types/schema';
-import { Query } from '../types/query';
-import { IOObject } from '../types/object';
-import { TExtensions, TObjectType, IOObjectTypes, TMethods } from '../types/object/types';
+import { TSchema } from '../types/schema';
+import { TQuery } from '../types/query';
+import { TObject } from '../types/object';
+import { TExtensions, TObjectType, TObjectTypes, TMethods } from '../types/object/types';
 import { queryMethods } from './query';
 import { objectMethods } from '../types/object/methods';
-import { IOUser } from '../types/object/user';
+import { TUser } from '../types/object/user';
 import { PVK } from '../types/private';
 import { ExtraOptions } from '../types/options';
 import { isObjKey } from '../utils';
@@ -48,15 +48,15 @@ type Validator = {
 };
 
 export type ProtoOptions<Ext> = {
-  schema: Record<string, IOSchema>;
+  schema: Record<string, TSchema>;
   storage: IOStorage;
   classExtends?: TExtensions<Ext>;
   functions?: Record<string, ProtoFunction<Ext> | { callback: ProtoFunction<Ext>; validator?: Validator }>;
   triggers?: {
-    beforeSave?: Record<string, Callback<{ object: IOObject; context: object; }, void, Ext>>;
-    afterSave?: Record<string, Callback<{ object: IOObject; context: object; }, void, Ext>>;
-    beforeDelete?: Record<string, Callback<{ object: IOObject; context: object; }, void, Ext>>;
-    afterDelete?: Record<string, Callback<{ object: IOObject; context: object; }, void, Ext>>;
+    beforeSave?: Record<string, Callback<{ object: TObject; context: object; }, void, Ext>>;
+    afterSave?: Record<string, Callback<{ object: TObject; context: object; }, void, Ext>>;
+    beforeDelete?: Record<string, Callback<{ object: TObject; context: object; }, void, Ext>>;
+    afterDelete?: Record<string, Callback<{ object: TObject; context: object; }, void, Ext>>;
   },
 };
 
@@ -77,15 +77,15 @@ export class Proto<Ext> {
   }
 
   object<T extends string>(className: T) {
-    const obj = isObjKey(className, IOObjectTypes) ? new IOObjectTypes[className] : new IOObject(className);
+    const obj = isObjKey(className, TObjectTypes) ? new TObjectTypes[className] : new TObject(className);
     return objectMethods(obj as TObjectType<T> & TMethods<Ext, T>, this);
   }
 
-  query<T extends string>(className: T, options?: ExtraOptions): Query<Ext, T> {
-    return queryMethods(new Query<Ext, T>(className), this, options);
+  query<T extends string>(className: T, options?: ExtraOptions): TQuery<Ext, T> {
+    return queryMethods(new TQuery<Ext, T>(className), this, options);
   }
 
-  get user(): IOUser | undefined {
+  get user(): TUser | undefined {
     return;
   }
 

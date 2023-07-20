@@ -35,9 +35,8 @@ import {
   Decimal128,
   UUID
 } from 'bson';
-import { IOObject } from '../types/object';
-import { IOObjectTypes } from '../types/object/types';
-import { IOUser } from '../types/object/user';
+import { TObject } from '../types/object';
+import { TObjectTypes } from '../types/object/types';
 import { isObjKey } from '../utils';
 
 export { UUID, Decimal };
@@ -46,7 +45,7 @@ export type IOPrimitive = UUID | Date | string | IONumber | boolean | null;
 export type IODictionary<Extends = never> = { [x: string]: IOSerializable<Extends> };
 export type IOSerializable<Extends = never> = IODictionary<Extends> | IOSerializable<Extends>[] | IOPrimitive | Extends;
 
-const encodeEJSON = (x: IOSerializable<IOObject>, stack: any[]): EJSON.SerializableTypes => {
+const encodeEJSON = (x: IOSerializable<TObject>, stack: any[]): EJSON.SerializableTypes => {
   if (_.isNumber(x) || _.isNil(x) || _.isBoolean(x) || _.isString(x) || _.isDate(x)) return x;
   if (x instanceof UUID) return x;
   if (x instanceof BigInt) return Number(x);
@@ -56,7 +55,7 @@ const encodeEJSON = (x: IOSerializable<IOObject>, stack: any[]): EJSON.Serializa
   if (found !== -1) return { $ref: found };
 
   if (_.isArray(x)) return x.map(v => encodeEJSON(v, [...stack, x]));
-  if (x instanceof IOObject) return {
+  if (x instanceof TObject) return {
     $object: {
       className: x.className,
       attributes: _.mapValues(x.attributes, v => encodeEJSON(v, [...stack, x])),
@@ -65,10 +64,10 @@ const encodeEJSON = (x: IOSerializable<IOObject>, stack: any[]): EJSON.Serializa
 
   return _.transform(x, (r, v, k) => {
     r[k.startsWith('$') ? `$${k}` : k] = encodeEJSON(v, [...stack, x]);
-  }, {} as IODictionary<IOObject>);
+  }, {} as IODictionary<TObject>);
 }
 
-const decodeEJSON = (x: EJSON.SerializableTypes, stack: any[]): IOSerializable<IOObject> => {
+const decodeEJSON = (x: EJSON.SerializableTypes, stack: any[]): IOSerializable<TObject> => {
   if (_.isNumber(x) || _.isNil(x) || _.isBoolean(x) || _.isString(x) || _.isDate(x)) return x;
   if (x instanceof UUID) return x;
   if (x instanceof Double || x instanceof Int32) return x.valueOf();
@@ -77,24 +76,24 @@ const decodeEJSON = (x: EJSON.SerializableTypes, stack: any[]): IOSerializable<I
   if (_.isArray(x)) {
     return _.transform(x, (r, v) => {
       r.push(decodeEJSON(v, [...stack, r]));
-    }, [] as IOSerializable<IOObject>[]);
+    }, [] as IOSerializable<TObject>[]);
   }
 
   if (x.$ref) return stack[x.$ref];
 
   if (x.$object) {
     const { className, attributes } = x.$object;
-    const _attributes = (self: IOObject) => _.mapValues(attributes, v => decodeEJSON(v, [...stack, self]));
-    return isObjKey(className, IOObjectTypes) ? new IOObjectTypes[className](_attributes) : new IOObject(className, _attributes);
+    const _attributes = (self: TObject) => _.mapValues(attributes, v => decodeEJSON(v, [...stack, self]));
+    return isObjKey(className, TObjectTypes) ? new TObjectTypes[className](_attributes) : new TObject(className, _attributes);
   }
 
   return _.transform(x, (r, v, k) => {
     r[k.startsWith('$') ? k.substring(1) : k] = decodeEJSON(v, [...stack, r]);
-  }, {} as IODictionary<IOObject>);
+  }, {} as IODictionary<TObject>);
 }
 
 export const serialize = (
-  x: IOSerializable<IOObject>,
+  x: IOSerializable<TObject>,
   space?: string | number,
 ) => EJSON.stringify(encodeEJSON(x, []), undefined, space, { relaxed: false });
 export const deserialize = (buffer: string) => decodeEJSON(EJSON.parse(buffer, { relaxed: false }), []);
