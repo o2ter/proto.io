@@ -24,38 +24,33 @@
 //
 
 import { request } from './request';
-import axios, { CancelToken } from 'axios';
+import axios from 'axios';
 import { IOSerializable, serialize, deserialize } from '../codec';
 import { Query } from '../types/query';
 import { queryMethods } from './query';
 import { IOObject } from '../types/object';
 import { IOObjectExtension, IOObjectType, IOObjectTypes, IOObjectWithExt } from '../types/object/types';
-import { ExtraOptions } from '../types/options';
 import { isObjKey } from '../utils';
 import { objectMethods, applyIOObjectMethods } from '../types/object/methods';
+import { RequestOptions } from './options';
 import { PVK } from '../types/private';
 
 export * from '../common';
 
-type Options<Ext> = {
+type ProtoOptions<Ext> = {
   endpoint: string;
   classExtends?: IOObjectExtension<Ext>;
 }
 
 export const CancelTokenSource = axios.CancelToken.source;
 
-type RequestOptions = {
-  master?: boolean;
-  cancelToken?: CancelToken;
-};
-
 export class Proto<Ext> {
 
   [PVK]: {
-    options: Options<Ext>;
+    options: ProtoOptions<Ext>;
   };
 
-  constructor(options: Options<Ext>) {
+  constructor(options: ProtoOptions<Ext>) {
     this[PVK] = {
       options,
     };
@@ -66,7 +61,7 @@ export class Proto<Ext> {
     return objectMethods(obj as IOObjectType<T> & IOObjectWithExt<Ext, T>, this);
   }
 
-  query<T extends string>(className: T, options?: ExtraOptions): Query<Ext, T> {
+  query<T extends string>(className: T, options?: RequestOptions): Query<Ext, T> {
     return queryMethods(new Query<Ext, T>(className), this, options);
   }
 

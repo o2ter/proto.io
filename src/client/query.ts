@@ -28,9 +28,9 @@ import { Query } from '../types/query';
 import { UpdateOperation } from '../types/object';
 import { PVK } from '../types/private';
 import Proto from './index';
-import { ExtraOptions } from '../types/options';
+import { RequestOptions } from './options';
 
-export const queryMethods = <E, T extends string>(query: Query<E, T>, proto: Proto<E>, options?: ExtraOptions) => {
+export const queryMethods = <E, T extends string>(query: Query<E, T>, proto: Proto<E>, options?: RequestOptions) => {
 
   const queryOptions = () => ({
     className: query[PVK].className,
@@ -40,6 +40,7 @@ export const queryMethods = <E, T extends string>(query: Query<E, T>, proto: Pro
   const requestOpt = {
     method: 'post',
     url: `classes/${query.className}`,
+    ...(options ?? {}),
   };
 
   const props = {
