@@ -140,6 +140,32 @@ export const queryMethods = <E, T extends string>(
     },
     findOneAndReplace: {
       value: async (replacement: Record<string, any>) => {
+        const beforeSave = proto.triggers?.beforeSave?.[query.className];
+        const afterSave = proto.triggers?.afterSave?.[query.className];
+        if (!options?.master && !_validateCLPs('update')) throw new Error('No permission');
+
+        const context = {};
+
+        if (_.isFunction(beforeSave)) {
+
+          const object = objectMethods(_.first(await asyncIterableToArray(proto.storage.find({ ...queryOptions(), limit: 1 }))), proto);
+          if (!object) return undefined;
+
+          object[PVK].mutated = _.omit(replacement, ...TObject.defaultKeys);
+          await beforeSave(Object.setPrototypeOf({ object, context }, proto));
+
+          replacement = {};
+          for (const key of object.keys()) {
+            replacement[key] = object.get(key);
+          }
+        }
+
+        const result = objectMethods(
+          await proto.storage.findOneAndReplace(queryOptions(), _.omit(replacement, ...TObject.defaultKeys)),
+          proto,
+        );
+        if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, proto));
+        return result;
       },
     },
     findOneAndUpsert: {
