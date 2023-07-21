@@ -39,6 +39,7 @@ type TQuerySelector<T> = {
   $exists?: boolean;
   $expr?: any;
   $regex?: T extends string ? RegExp | string : never;
+  $elemMatch?: TFilterQuery<T>;
 }
 
 type TRootQuerySelector<T> = {
