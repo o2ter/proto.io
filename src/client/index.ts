@@ -67,14 +67,14 @@ export class Proto<Ext> {
 
   async _request(
     data?: IOSerializable,
-    options?: RequestOptions & Parameters<typeof request>[0]
+    options?: RequestOptions & Parameters<typeof request>[0],
   ) {
 
-    const { master, ...opts } = options ?? {};
+    const { master, serializeOpts, ...opts } = options ?? {};
 
     const res = await request({
       baseURL: this[PVK].options.endpoint,
-      data: serialize(data ?? null),
+      data: serialize(data ?? null, serializeOpts),
       responseType: 'text',
       ...opts,
     });

@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { TQuery } from '../types/query';
-import { UpdateOperation } from '../types/object';
+import { TObject, UpdateOperation } from '../types/object';
 import { PVK } from '../types/private';
 import Proto from './index';
 import { RequestOptions } from './options';
@@ -40,6 +40,9 @@ export const queryMethods = <E, T extends string>(query: TQuery<E, T>, proto: Pr
   const requestOpt = {
     method: 'post',
     url: `classes/${query.className}`,
+    serializeOpts: {
+      objAttrs: TObject.defaultKeys,
+    },
     ...(options ?? {}),
   };
 

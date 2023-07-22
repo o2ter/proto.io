@@ -24,8 +24,10 @@
 //
 
 import { CancelToken } from 'axios';
+import { SerializeOptions } from '../codec';
 
 export type RequestOptions = {
   master?: boolean;
   cancelToken?: CancelToken;
+  serializeOpts?: SerializeOptions;
 };

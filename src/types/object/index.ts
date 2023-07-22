@@ -41,7 +41,7 @@ export enum UpdateOperation {
 }
 
 export interface TObject {
-  fetch: (options?: ExtraOptions) => PromiseLike<this>;
+  fetchWithInclude: (keys: string[], options?: ExtraOptions) => PromiseLike<this>;
   save: (options?: ExtraOptions) => PromiseLike<this>;
   destory: (options?: ExtraOptions) => PromiseLike<this>;
 }
@@ -164,6 +164,10 @@ export class TObject {
   popLast(key: string) {
     if (TObject.defaultKeys.includes(key)) return;
     this[PVK].mutated[key] = [UpdateOperation.popLast, null];
+  }
+
+  async fetch(options?: ExtraOptions) {
+    return this.fetchWithInclude(_.keys(this.attributes), options)
   }
 
 }

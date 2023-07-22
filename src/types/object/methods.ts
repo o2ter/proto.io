@@ -48,9 +48,9 @@ export const objectMethods = <T extends TObject | TObject[] | undefined, E>(
 
   return Object.defineProperties(object, {
     ..._.mapValues(extensions, value => _.isFunction(value) ? { value } : value),
-    fetch: {
-      value: async (options?: ExtraOptions) => {
-        const fetched = await query(options).first();
+    fetchWithInclude: {
+      value: async (keys: string[], options?: ExtraOptions) => {
+        const fetched = await query(options).includes(...keys).first();
         if (fetched) {
           object[PVK].attributes = fetched.attributes;
           object[PVK].mutated = {};
