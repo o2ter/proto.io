@@ -52,10 +52,10 @@ test('test codec', async () => {
   expect(result).toStrictEqual(obj);
 });
 test('test files', async () => {
-  const file = proto.File('test.txt', 'hello, world');
+  const file = proto.File('test.txt', 'hello, world', 'text/plain');
   await file.save();
 });
 test('test files 2', async () => {
-  const file = proto.File('test.txt', fs.createReadStream(__filename));
+  const file = proto.File('test.txt', fs.createReadStream(__filename), 'text/plain');
   await file.save();
 });

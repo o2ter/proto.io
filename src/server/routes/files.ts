@@ -40,7 +40,12 @@ export default <E>(router: Router, payload: Proto<E>) => {
       });
 
       formData.on('file', (name, file, info) => {
-        console.log(name, file, info)
+        console.log(name, info)
+        file.on('data', (data) => {
+          console.log(`File [${name}] got ${data.length} bytes`);
+        }).on('close', () => {
+          console.log(`File [${name}] done`);
+        });
       });
 
       formData.on('close', () => {
