@@ -34,7 +34,7 @@ import { isObjKey } from '../utils';
 import { objectMethods, applyObjectMethods } from '../types/object/methods';
 import { RequestOptions } from './options';
 import { PVK } from '../types/private';
-import { ProtoType } from '../types/proto';
+import { ProtoInternalType, ProtoType } from '../types/proto';
 import { FileData } from '../types/object/file';
 import { ExtraOptions } from '../types/options';
 
@@ -47,16 +47,52 @@ type ProtoOptions<Ext> = {
 
 export const CancelTokenSource = axios.CancelToken.source;
 
+class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
+
+  proto: Proto<Ext>;
+  options: ProtoOptions<Ext>;
+
+  constructor(proto: Proto<Ext>, options: ProtoOptions<Ext>) {
+    this.proto = proto;
+    this.options = options;
+  }
+
+  async _request(
+    data?: TSerializable,
+    options?: RequestOptions & Parameters<typeof request>[0],
+  ) {
+
+    const { master, serializeOpts, ...opts } = options ?? {};
+
+    const res = await request({
+      baseURL: this.options.endpoint,
+      data: serialize(data ?? null, serializeOpts),
+      responseType: 'text',
+      ...opts,
+    });
+
+    if (res.status !== 200) {
+      const error = JSON.parse(res.data);
+      throw new Error(error.message, { cause: error });
+    }
+
+    return applyObjectMethods<Ext>(deserialize(res.data), this.proto);
+  }
+
+  async _saveFile(object: TObject, options?: ExtraOptions) {
+
+
+    return object;
+  }
+
+}
+
 export class Proto<Ext> implements ProtoType<Ext> {
 
-  [PVK]: {
-    options: ProtoOptions<Ext>;
-  };
+  [PVK]: ProtoInternal<Ext>;
 
   constructor(options: ProtoOptions<Ext>) {
-    this[PVK] = {
-      options,
-    };
+    this[PVK] = new ProtoInternal(this, options);
   }
 
   Object<T extends string>(className: T): TObjectType<T, Ext> {
@@ -76,45 +112,17 @@ export class Proto<Ext> implements ProtoType<Ext> {
     return queryMethods(new TQuery<T, Ext>(className), this, options);
   }
 
-  async _request(
-    data?: TSerializable,
-    options?: RequestOptions & Parameters<typeof request>[0],
-  ) {
-
-    const { master, serializeOpts, ...opts } = options ?? {};
-
-    const res = await request({
-      baseURL: this[PVK].options.endpoint,
-      data: serialize(data ?? null, serializeOpts),
-      responseType: 'text',
-      ...opts,
-    });
-
-    if (res.status !== 200) {
-      const error = JSON.parse(res.data);
-      throw new Error(error.message, { cause: error });
-    }
-
-    return applyObjectMethods<Ext>(deserialize(res.data), this);
-  }
-
   async run(
     name: string,
     data?: TSerializable,
     options?: RequestOptions,
   ) {
 
-    return this._request(data, {
+    return this[PVK]._request(data, {
       method: 'post',
       url: `functions/${name}`,
       ...(options ?? {})
     });
-  }
-
-  async _saveFile(object: TObject, options?: ExtraOptions) {
-
-
-    return object;
   }
 
 }

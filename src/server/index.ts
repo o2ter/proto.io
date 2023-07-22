@@ -37,7 +37,7 @@ import { PVK } from '../types/private';
 import { ExtraOptions } from '../types/options';
 import { isObjKey } from '../utils';
 import { defaultSchema } from './defaults';
-import { ProtoType } from '../types/proto';
+import { ProtoInternalType, ProtoType } from '../types/proto';
 import { FileData } from '../types/object/file';
 
 type Callback<T, R, E> = (request: Proto<E> & T) => R | PromiseLike<R>;
@@ -69,16 +69,51 @@ export type ProtoOptions<Ext> = {
   },
 };
 
+class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
+
+  proto: Proto<Ext>;
+  options: ProtoOptions<Ext>;
+
+  constructor(proto: Proto<Ext>, options: ProtoOptions<Ext>) {
+    this.proto = proto;
+    this.options = options;
+  }
+
+  async _prepare() {
+    await this.options.storage.prepare(_.merge({}, defaultSchema, this.options.schema));
+  }
+
+  async _run(name: string, payload: any, options?: ExtraOptions) {
+
+    const func = this.options.functions?.[name];
+
+    if (_.isNil(func)) return null;
+    if (_.isFunction(func)) return func(payload ?? this.proto);
+
+    const { callback, validator } = func;
+
+    if (!!validator?.requireUser && !this.proto.user) throw new Error('No permission');
+    if (!!validator?.requireMaster && !options?.master) throw new Error('No permission');
+    if (!_.find(validator?.requireAnyUserRoles, x => _.includes(this.proto.roles, x))) throw new Error('No permission');
+    if (_.find(validator?.requireAllUserRoles, x => !_.includes(this.proto.roles, x))) throw new Error('No permission');
+
+    return _.isFunction(callback) ? callback(payload ?? this.proto) : null;
+  }
+
+  async _saveFile(object: TObject, options?: ExtraOptions) {
+
+
+    return object;
+  }
+
+}
+
 export class Proto<Ext> implements ProtoType<Ext> {
 
-  [PVK]: {
-    options: ProtoOptions<Ext>;
-  };
+  [PVK]: ProtoInternal<Ext>;
 
   constructor(options: ProtoOptions<Ext>) {
-    this[PVK] = {
-      options,
-    };
+    this[PVK] = new ProtoInternal(this, options);
   }
 
   classes(): string[] | PromiseLike<string[]> {
@@ -126,36 +161,9 @@ export class Proto<Ext> implements ProtoType<Ext> {
     return this[PVK].options.triggers;
   }
 
-  async _prepare() {
-    await this.storage.prepare(_.merge({}, defaultSchema, this.schema));
-  }
-
-  async _run(name: string, payload?: any, options?: ExtraOptions) {
-
-    const func = this.functions?.[name];
-
-    if (_.isNil(func)) return null;
-    if (_.isFunction(func)) return func(payload ?? this);
-
-    const { callback, validator } = func;
-
-    if (!!validator?.requireUser && !this.user) throw new Error('No permission');
-    if (!!validator?.requireMaster && !options?.master) throw new Error('No permission');
-    if (!_.find(validator?.requireAnyUserRoles, x => _.includes(this.roles, x))) throw new Error('No permission');
-    if (_.find(validator?.requireAllUserRoles, x => !_.includes(this.roles, x))) throw new Error('No permission');
-
-    return _.isFunction(callback) ? callback(payload ?? this) : null;
-  }
-
   run(name: string, data?: TSerializable, options?: ExtraOptions) {
     const payload = Object.setPrototypeOf({ data: data ?? null }, this);
-    return this._run(name, payload, options);
-  }
-
-  async _saveFile(object: TObject, options?: ExtraOptions) {
-
-
-    return object;
+    return this[PVK]._run(name, payload, options);
   }
 
   define(

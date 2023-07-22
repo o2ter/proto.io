@@ -30,14 +30,21 @@ import { TExtensions, TObjectType } from './object/types';
 import { FileData } from './object/file';
 import { TObject } from './object';
 
+export interface ProtoInternalType<Ext> {
+
+  options: {
+    classExtends?: TExtensions<Ext>;
+  };
+
+  _saveFile(object: TObject, options?: ExtraOptions): Promise<TObject>;
+}
+
 export interface ProtoType<Ext> {
 
-  [PVK]: { options: { classExtends?: TExtensions<Ext>; }; };
+  [PVK]: ProtoInternalType<Ext>;
 
   Object<T extends string>(className: T): TObjectType<T, Ext>;
   File(filename: string, data: FileData, type?: string): TObjectType<'_File', Ext>;
 
   Query<T extends string>(className: T, options?: ExtraOptions): TQuery<T, Ext>;
-
-  _saveFile(object: TObject, options?: ExtraOptions): Promise<TObject>;
 };

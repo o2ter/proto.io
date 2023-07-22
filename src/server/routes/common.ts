@@ -51,10 +51,3 @@ export const response = async <T extends TSerializable>(
     }
   }
 }
-
-export const applyObjectMethods = <E>(data: TSerializable, proto: Proto<E>): TSerializable => {
-  if (data instanceof TObject) return objectMethods(data, proto) as TObject;
-  if (_.isArray(data)) return _.map(data, x => applyObjectMethods(x, proto));
-  if (_.isPlainObject(data)) return _.mapValues(data as any, x => applyObjectMethods(x, proto));
-  return data;
-}

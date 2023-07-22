@@ -48,14 +48,14 @@ export const queryMethods = <T extends string, E>(query: TQuery<T, E>, proto: Pr
 
   const props = {
     count: {
-      value: () => proto._request({
+      value: () => proto[PVK]._request({
         operation: 'count',
         ...queryOptions(),
       }, requestOpt),
     },
     then: {
       get() {
-        return proto._request({
+        return proto[PVK]._request({
           operation: 'find',
           ...queryOptions(),
         }, requestOpt);
@@ -67,27 +67,27 @@ export const queryMethods = <T extends string, E>(query: TQuery<T, E>, proto: Pr
       },
     },
     insert: {
-      value: (attrs: any) => proto._request({
+      value: (attrs: any) => proto[PVK]._request({
         operation: 'insert',
         attributes: attrs,
       }, requestOpt),
     },
     findOneAndUpdate: {
-      value: (update: Record<string, [UpdateOperation, any]>) => proto._request({
+      value: (update: Record<string, [UpdateOperation, any]>) => proto[PVK]._request({
         operation: 'findOneAndUpdate',
         update,
         ...queryOptions(),
       }, requestOpt),
     },
     findOneAndReplace: {
-      value: (replacement: Record<string, any>) => proto._request({
+      value: (replacement: Record<string, any>) => proto[PVK]._request({
         operation: 'findOneAndReplace',
         replacement,
         ...queryOptions(),
       }, requestOpt),
     },
     findOneAndUpsert: {
-      value: (update: Record<string, [UpdateOperation, any]>, setOnInsert: Record<string, any>) => proto._request({
+      value: (update: Record<string, [UpdateOperation, any]>, setOnInsert: Record<string, any>) => proto[PVK]._request({
         operation: 'findOneAndUpsert',
         update,
         setOnInsert,
@@ -95,13 +95,13 @@ export const queryMethods = <T extends string, E>(query: TQuery<T, E>, proto: Pr
       }, requestOpt),
     },
     findOneAndDelete: {
-      value: () => proto._request({
+      value: () => proto[PVK]._request({
         operation: 'findOneAndDelete',
         ...queryOptions(),
       }, requestOpt),
     },
     findAndDelete: {
-      value: () => proto._request({
+      value: () => proto[PVK]._request({
         operation: 'findAndDelete',
         ...queryOptions(),
       }, requestOpt),

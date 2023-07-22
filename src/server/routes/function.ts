@@ -27,7 +27,9 @@ import _ from 'lodash';
 import express, { Router } from 'express';
 import { Proto } from '../../server';
 import { deserialize } from '../../codec';
-import { applyObjectMethods, response } from './common';
+import { response } from './common';
+import { PVK } from '../../types/private';
+import { applyObjectMethods } from '../../types/object/methods';
 
 export default <E>(router: Router, payload: Proto<E>) => {
 
@@ -49,7 +51,7 @@ export default <E>(router: Router, payload: Proto<E>) => {
         }, payload);
         _payload.data = applyObjectMethods(deserialize(req.body), _payload);
 
-        return _payload._run(name);
+        return _payload[PVK]._run(name, _payload);
       });
     }
   );

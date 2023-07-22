@@ -30,6 +30,7 @@ import { Proto, ProtoOptions } from './server';
 import csrfHandler from './server/csrf';
 import classesRoute from './server/routes/classes';
 import functionRoute from './server/routes/function';
+import { PVK } from './types/private';
 
 export * from './common';
 export * from './server';
@@ -49,7 +50,7 @@ export const ProtoRoute = async <E>(options: {
   } = options;
 
   const proto = _proto instanceof Proto ? _proto : new Proto(_proto);
-  await proto._prepare();
+  await proto[PVK]._prepare();
 
   const router = express.Router().use(
     cookieParser() as any,
