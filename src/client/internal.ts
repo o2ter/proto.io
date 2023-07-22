@@ -83,6 +83,18 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
   async createFile(object: TFile, options?: RequestOptions) {
 
     const { master, serializeOpts, ...opts } = options ?? {};
+    const { data } = object[PVK].extra;
+
+    const res = await request({
+      method: 'post',
+      baseURL: this.options.endpoint,
+      url: 'files',
+      data: {
+        attributes: serialize(_.fromPairs(object.keys().map(k => [k, object.get(k)])), serializeOpts),
+        file: data,
+      },
+      ...opts
+    });
 
     return object;
   }
