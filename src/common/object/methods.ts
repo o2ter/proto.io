@@ -48,9 +48,7 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
   const query = (options?: ExtraOptions) => proto.Query(object.className, options);
 
   const saveMethods = {
-    '_File': (options?: ExtraOptions) => {
-      return object.objectId ? saveMethods.default(options) : proto[PVK].saveFile(object as TFile, options);
-    },
+    '_File': (options?: ExtraOptions) => proto[PVK].saveFile(object as TFile, options),
     default: async (options?: ExtraOptions) => {
       if (object.objectId) {
         const updated = await query(options).filter({ _id: object.objectId }).findOneAndUpdate(object[PVK].mutated);
