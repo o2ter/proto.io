@@ -40,9 +40,8 @@ export namespace TQuery {
   }
 }
 
-export interface TQuery<Ext, C extends string> extends PromiseLike<TObjectType<C, Ext>[]> {
+export interface TQuery<Ext, C extends string> {
   count(): PromiseLike<number>;
-  [Symbol.asyncIterator](): AsyncIterator<TObjectType<C, Ext>>;
   insert(attrs: any): PromiseLike<TObjectType<C, Ext> | undefined>;
   findOneAndUpdate(update: Record<string, [UpdateOperation, any]>): PromiseLike<TObjectType<C, Ext> | undefined>;
   findOneAndReplace(replacement: Record<string, any>): PromiseLike<TObjectType<C, Ext> | undefined>;
@@ -50,6 +49,9 @@ export interface TQuery<Ext, C extends string> extends PromiseLike<TObjectType<C
   findOneAndDelete(): PromiseLike<TObjectType<C, Ext> | undefined>;
   findAndDelete(): PromiseLike<number>;
 }
+
+export interface TQuery<Ext, C extends string> extends PromiseLike<TObjectType<C, Ext>[]> {}
+export interface TQuery<Ext, C extends string> extends AsyncIterable<TObjectType<C, Ext>> {}
 
 export class TQuery<Ext, C extends string> {
 
