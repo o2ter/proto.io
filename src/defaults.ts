@@ -30,11 +30,19 @@ const classLevelPermissions: Record<string, TSchema.CLPs> = {
   '_User': {
     find: [],
     count: [],
+    delete: [],
+  },
+  '_Role': {
+    find: [],
+    count: [],
+    create: [],
+    update: [],
+    delete: [],
   },
 }
 
 const fieldLevelPermissions: Record<string, Record<string, TSchema.ACLs>> = {
   '_User': {
     password: { read: [], write: [] },
-  }
+  },
 }
