@@ -53,9 +53,12 @@ export const defaultSchema: Record<string, TSchema> = {
       update: [],
       delete: [],
     },
-    indexes: {
-      name: { name: 1 },
-    },
+    indexes: [
+      {
+        keys: { name: 1 },
+        unique: true,
+      },
+    ],
   },
   '_File': {
     fields: {

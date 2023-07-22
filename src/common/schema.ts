@@ -36,11 +36,16 @@ export namespace TSchema {
     update?: TSchema.ACL;
     delete?: TSchema.ACL;
   };
+  export type Indexes = {
+    keys: Record<string, 1 | -1>;
+    unique?: boolean;
+    expireAfterSeconds?: number;
+  };
 }
 
 export interface TSchema {
   fields: Record<string, TSchema.DataType>;
   classLevelPermissions?: TSchema.CLPs;
   fieldLevelPermissions?: Record<string, TSchema.ACLs>;
-  indexes?: Record<string, Record<string, 1 | -1>>;
+  indexes?: TSchema.Indexes[];
 }
