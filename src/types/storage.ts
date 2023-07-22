@@ -33,7 +33,7 @@ type CommonFindOptions = { className: string; options: ExtraOptions & { acls: st
 type FindOptions = CommonFindOptions & Omit<TQuery.Options, 'returning'>;
 type FindOneOptions = CommonFindOptions & Omit<TQuery.Options, 'skip' | 'limit'>;
 
-export interface IOStorage {
+export interface TStorage {
 
   prepare(schema: Record<string, TSchema>): void | PromiseLike<void>;
   classes(): string[] | PromiseLike<string[]>;

@@ -24,8 +24,8 @@
 //
 
 import _ from 'lodash';
-import { IOSerializable } from '../codec';
-import { IOStorage } from '../types/storage';
+import { TSerializable } from '../codec';
+import { TStorage } from '../types/storage';
 import { TSchema } from '../types/schema';
 import { TQuery } from '../types/query';
 import { TObject } from '../types/object';
@@ -39,7 +39,7 @@ import { isObjKey } from '../utils';
 import { defaultSchema } from './defaults';
 
 type Callback<T, R, E> = (request: Proto<E> & T) => R | PromiseLike<R>;
-type ProtoFunction<E> = Callback<{ data: IOSerializable; }, IOSerializable, E>;
+type ProtoFunction<E> = Callback<{ data: TSerializable; }, TSerializable, E>;
 type ProtoTrigger<E> = Callback<{ object: TObject; context: object; }, void, E>;
 
 type Validator = {
@@ -56,7 +56,7 @@ type ProtoFunctionOptions<E> = {
 
 export type ProtoOptions<Ext> = {
   schema: Record<string, TSchema>;
-  storage: IOStorage;
+  storage: TStorage;
   classExtends?: TExtensions<Ext>;
   functions?: Record<string, ProtoFunction<Ext> | ProtoFunctionOptions<Ext>>;
   triggers?: {
@@ -137,7 +137,7 @@ export class Proto<Ext> {
     return _.isFunction(callback) ? callback(payload ?? this) : null;
   }
 
-  run(name: string, data?: IOSerializable, options?: ExtraOptions) {
+  run(name: string, data?: TSerializable, options?: ExtraOptions) {
     const payload = Object.setPrototypeOf({ data: data ?? null }, this);
     return this._run(name, payload, options);
   }

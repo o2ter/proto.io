@@ -25,10 +25,10 @@
 
 import _ from 'lodash';
 import pg, { IInitOptions, IConnectionOptions, IDatabase } from 'pg-promise';
-import { IOStorage } from '../../types/storage';
+import { TStorage } from '../../types/storage';
 import { TSchema } from '../../types/schema';
 
-export class PostgresStorage implements IOStorage {
+export class PostgresStorage implements TStorage {
 
   connection: IDatabase<{}>;
   schema: Record<string, TSchema> = {};

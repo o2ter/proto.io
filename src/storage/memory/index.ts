@@ -24,10 +24,10 @@
 //
 
 import _ from 'lodash';
-import { IOStorage } from '../../types/storage';
+import { TStorage } from '../../types/storage';
 import { TSchema } from '../../types/schema';
 
-export class MemoryStorage implements IOStorage {
+export class MemoryStorage implements TStorage {
 
   schema: Record<string, TSchema> = {};
 

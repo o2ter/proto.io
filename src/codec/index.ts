@@ -40,10 +40,10 @@ import { TObjectTypes } from '../types/object/types';
 import { isObjKey } from '../utils';
 
 export { UUID, Decimal };
-export type IONumber = number | Decimal | BigInt;
-export type IOPrimitive = UUID | Date | string | IONumber | boolean | null;
-export type IODictionary<Extends = never> = { [x: string]: IOSerializable<Extends> };
-export type IOSerializable<Extends = never> = IODictionary<Extends> | IOSerializable<Extends>[] | IOPrimitive | Extends;
+export type TNumber = number | Decimal | BigInt;
+export type TPrimitive = UUID | Date | string | TNumber | boolean | null;
+export type TDictionary = { [x: string]: TSerializable };
+export type TSerializable = TDictionary | TSerializable[] | TPrimitive | TObject;
 
 export type SerializeOptions = {
   space?: string | number;
@@ -51,7 +51,7 @@ export type SerializeOptions = {
 };
 
 const encodeEJSON = (
-  x: IOSerializable<TObject>,
+  x: TSerializable,
   stack: any[],
   options: SerializeOptions,
 ): EJSON.SerializableTypes => {
@@ -76,13 +76,13 @@ const encodeEJSON = (
 
   return _.transform(x, (r, v, k) => {
     r[k.startsWith('$') ? `$${k}` : k] = encodeEJSON(v, [...stack, x], options);
-  }, {} as IODictionary<TObject>);
+  }, {} as TDictionary);
 }
 
 const decodeEJSON = (
   x: EJSON.SerializableTypes,
   stack: any[],
-): IOSerializable<TObject> => {
+): TSerializable => {
   if (_.isNumber(x) || _.isNil(x) || _.isBoolean(x) || _.isString(x) || _.isDate(x)) return x;
   if (x instanceof UUID) return x;
   if (x instanceof Double || x instanceof Int32) return x.valueOf();
@@ -91,7 +91,7 @@ const decodeEJSON = (
   if (_.isArray(x)) {
     return _.transform(x, (r, v) => {
       r.push(decodeEJSON(v, [...stack, r]));
-    }, [] as IOSerializable<TObject>[]);
+    }, [] as TSerializable[]);
   }
 
   if (x.$ref) return stack[x.$ref];
@@ -104,11 +104,11 @@ const decodeEJSON = (
 
   return _.transform(x, (r, v, k) => {
     r[k.startsWith('$') ? k.substring(1) : k] = decodeEJSON(v, [...stack, r]);
-  }, {} as IODictionary<TObject>);
+  }, {} as TDictionary);
 }
 
 export const serialize = (
-  x: IOSerializable<TObject>,
+  x: TSerializable,
   options?: SerializeOptions,
 ) => EJSON.stringify(encodeEJSON(x, [], options ?? {}), undefined, options?.space, { relaxed: false });
 

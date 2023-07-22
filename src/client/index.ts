@@ -25,7 +25,7 @@
 
 import { request } from './request';
 import axios from 'axios';
-import { IOSerializable, serialize, deserialize } from '../codec';
+import { TSerializable, serialize, deserialize } from '../codec';
 import { TQuery } from '../types/query';
 import { queryMethods } from './query';
 import { TObject } from '../types/object';
@@ -66,7 +66,7 @@ export class Proto<Ext> {
   }
 
   async _request(
-    data?: IOSerializable,
+    data?: TSerializable,
     options?: RequestOptions & Parameters<typeof request>[0],
   ) {
 
@@ -89,7 +89,7 @@ export class Proto<Ext> {
 
   async run(
     name: string,
-    data?: IOSerializable,
+    data?: TSerializable,
     options?: RequestOptions,
   ) {
 

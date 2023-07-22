@@ -28,7 +28,7 @@ import { TObject } from './index';
 import { PVK } from '../private';
 import { ExtraOptions } from '../options';
 import { TQuery } from '../query';
-import { IOSerializable, Proto } from '../../client';
+import { TSerializable, Proto } from '../../client';
 import { TExtensions } from './types';
 
 export const objectMethods = <T extends TObject | TObject[] | undefined, E>(
@@ -81,7 +81,7 @@ export const objectMethods = <T extends TObject | TObject[] | undefined, E>(
   });
 };
 
-export const applyIOObjectMethods = <E>(data: IOSerializable<TObject>, proto: Proto<E>): IOSerializable<TObject> => {
+export const applyIOObjectMethods = <E>(data: TSerializable, proto: Proto<E>): TSerializable => {
   if (data instanceof TObject) return objectMethods(data, proto);
   if (_.isArray(data)) return _.map(data, x => applyIOObjectMethods(x, proto));
   if (_.isPlainObject(data)) return _.mapValues(data as any, x => applyIOObjectMethods(x, proto));

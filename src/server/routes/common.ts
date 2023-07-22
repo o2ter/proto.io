@@ -25,12 +25,12 @@
 
 import _ from 'lodash';
 import { Response } from 'express';
-import { IOSerializable, serialize } from '../../codec';
+import { TSerializable, serialize } from '../../codec';
 import { TObject } from '../../types/object';
 import { objectMethods } from '../../types/object/methods';
 import { Proto } from '../../server';
 
-export const response = async <T extends IOSerializable<TObject>>(
+export const response = async <T extends TSerializable>(
   res: Response,
   callback: () => Promise<T | undefined>,
 ) => {
@@ -52,7 +52,7 @@ export const response = async <T extends IOSerializable<TObject>>(
   }
 }
 
-export const applyIOObjectMethods = <E>(data: IOSerializable<TObject>, proto: Proto<E>): IOSerializable<TObject> => {
+export const applyIOObjectMethods = <E>(data: TSerializable, proto: Proto<E>): TSerializable => {
   if (data instanceof TObject) return objectMethods(data, proto) as TObject;
   if (_.isArray(data)) return _.map(data, x => applyIOObjectMethods(x, proto));
   if (_.isPlainObject(data)) return _.mapValues(data as any, x => applyIOObjectMethods(x, proto));

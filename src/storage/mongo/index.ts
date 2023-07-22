@@ -25,10 +25,10 @@
 
 import _ from 'lodash';
 import { MongoClient, MongoClientOptions } from 'mongodb';
-import { IOStorage } from '../../types/storage';
+import { TStorage } from '../../types/storage';
 import { TSchema } from '../../types/schema';
 
-export class MongoStorage implements IOStorage {
+export class MongoStorage implements TStorage {
 
   connection: MongoClient;
   schema: Record<string, TSchema> = {};
