@@ -77,7 +77,6 @@ export default <E>(router: Router, payload: Proto<E>) => {
 
   router.get(
     '/classes/:name',
-    express.text({ type: '*/*' }),
     queryType.middleware(),
     async (req, res) => {
 
@@ -113,10 +112,7 @@ export default <E>(router: Router, payload: Proto<E>) => {
 
   router.get(
     '/classes/:name/:id',
-    express.text({ type: '*/*' }),
     async (req, res) => {
-
-      if (!_.isEmpty(req.body)) return res.sendStatus(400);
 
       const { name, id } = req.params;
       const classes = await payload.classes();
