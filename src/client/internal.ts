@@ -23,6 +23,7 @@
 //  THE SOFTWARE.
 //
 
+import _ from 'lodash';
 import { request } from './request';
 import { TSerializable, serialize, deserialize } from '../common/codec';
 import { applyObjectMethods } from '../common/object/methods';
@@ -31,6 +32,7 @@ import { ProtoInternalType } from '../common/proto';
 import { ExtraOptions } from '../common/options';
 import { ProtoClient, ProtoOptions } from './index';
 import { TFile } from '../common/object/file';
+import { PVK } from '../common/private';
 
 export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
 
@@ -64,10 +66,29 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     return applyObjectMethods(deserialize(res.data), this.proto);
   }
 
-  async saveFile(object: TFile, options?: RequestOptions) {
+  async updateFile(object: TFile, options?: RequestOptions) {
 
+    const updated = await this.proto.Query(object.className, options)
+      .filter({ _id: object.objectId })
+      .findOneAndUpdate(object[PVK].mutated);
+
+    if (updated) {
+      object[PVK].attributes = updated.attributes;
+      object[PVK].mutated = {};
+    }
 
     return object;
+  }
+
+  async createFile(object: TFile, options?: RequestOptions) {
+
+    const { master, serializeOpts, ...opts } = options ?? {};
+
+    return object;
+  }
+
+  async saveFile(object: TFile, options?: RequestOptions) {
+    return object.objectId ? this.updateFile(object, options) : this.createFile(object, options);
   }
 
   async deleteFile(object: TFile, options?: ExtraOptions) {

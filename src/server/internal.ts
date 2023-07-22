@@ -29,6 +29,7 @@ import { defaultSchema } from './defaults';
 import { ProtoInternalType } from '../common/proto';
 import { Proto, ProtoOptions, ProtoFunction, ProtoFunctionOptions, ProtoTrigger } from './index';
 import { TFile } from '../common/object/file';
+import { PVK } from '../common/private';
 
 export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
 
@@ -75,6 +76,25 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     return callback(payload ?? this.proto);
   }
 
+  async updateFile(object: TFile, options?: ExtraOptions) {
+
+    const updated = await this.proto.Query(object.className, options)
+      .filter({ _id: object.objectId })
+      .findOneAndUpdate(object[PVK].mutated);
+
+    if (updated) {
+      object[PVK].attributes = updated.attributes;
+      object[PVK].mutated = {};
+    }
+
+    return object;
+  }
+
+  async createFile(object: TFile, options?: ExtraOptions) {
+
+    return object;
+  }
+
   async saveFile(object: TFile, options?: ExtraOptions) {
 
     const beforeSave = this.triggers?.beforeSaveFile;
@@ -85,6 +105,8 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     if (_.isFunction(beforeSave)) {
       await beforeSave(Object.setPrototypeOf({ object, context }, this.proto));
     }
+
+    object = object.objectId ? await this.updateFile(object, options) : await this.createFile(object, options);
 
     if (_.isFunction(afterSave)) {
       await afterSave(Object.setPrototypeOf({ object, context }, this.proto));
