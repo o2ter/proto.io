@@ -43,6 +43,6 @@ export const defaultClassLevelPermissions: Record<string, TSchema.CLPs> = {
 
 export const defaultFieldLevelPermissions: Record<string, Record<string, TSchema.ACLs>> = {
   '_User': {
-    password: { read: [], write: [] },
+    _password: { read: [], write: [] },
   },
 }
