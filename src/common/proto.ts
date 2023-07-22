@@ -27,8 +27,7 @@ import { PVK } from './private';
 import { ExtraOptions } from './options';
 import { TQuery } from './query';
 import { TExtensions, TObjectType } from './object/types';
-import { FileData } from './object/file';
-import { TObject } from './object';
+import { FileData, TFile } from './object/file';
 
 export interface ProtoInternalType<Ext> {
 
@@ -36,7 +35,8 @@ export interface ProtoInternalType<Ext> {
     classExtends?: TExtensions<Ext>;
   };
 
-  saveFile(object: TObject, options?: ExtraOptions): Promise<TObject>;
+  saveFile(object: TFile, options?: ExtraOptions): Promise<TFile>;
+  deleteFile(object: TFile, options?: ExtraOptions): Promise<TFile>;
 }
 
 export interface ProtoType<Ext> {

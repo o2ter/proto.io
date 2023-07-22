@@ -24,11 +24,11 @@
 //
 
 import _ from 'lodash';
-import { TObject } from '../common/object';
 import { ExtraOptions } from '../common/options';
 import { defaultSchema } from './defaults';
 import { ProtoInternalType } from '../common/proto';
 import { Proto, ProtoOptions } from './index';
+import { TFile } from '../common/object/file';
 
 export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
 
@@ -61,7 +61,13 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     return _.isFunction(callback) ? callback(payload ?? this.proto) : null;
   }
 
-  async saveFile(object: TObject, options?: ExtraOptions) {
+  async saveFile(object: TFile, options?: ExtraOptions) {
+
+
+    return object;
+  }
+
+  async deleteFile(object: TFile, options?: ExtraOptions) {
 
 
     return object;

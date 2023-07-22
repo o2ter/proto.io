@@ -25,12 +25,12 @@
 
 import { request } from './request';
 import { TSerializable, serialize, deserialize } from '../common/codec';
-import { TObject } from '../common/object';
 import { applyObjectMethods } from '../common/object/methods';
 import { RequestOptions } from './options';
 import { ProtoInternalType } from '../common/proto';
 import { ExtraOptions } from '../common/options';
 import { ProtoClient, ProtoOptions } from './index';
+import { TFile } from '../common/object/file';
 
 export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
 
@@ -64,7 +64,13 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     return applyObjectMethods<Ext>(deserialize(res.data), this.proto);
   }
 
-  async saveFile(object: TObject, options?: ExtraOptions) {
+  async saveFile(object: TFile, options?: ExtraOptions) {
+
+
+    return object;
+  }
+
+  async deleteFile(object: TFile, options?: ExtraOptions) {
 
 
     return object;

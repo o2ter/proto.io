@@ -30,6 +30,7 @@ import { ExtraOptions } from '../options';
 import { TExtensions } from './types';
 import { ProtoType } from '../proto';
 import { TSerializable } from '../codec';
+import { TFile } from './file';
 
 export const objectMethods = <T extends TObject | TObject[] | undefined, E>(
   object: T,
@@ -44,11 +45,23 @@ export const objectMethods = <T extends TObject | TObject[] | undefined, E>(
   const query = (options?: ExtraOptions) => proto.Query(object.className, options).filter({ _id: object.objectId });
 
   const saveMethods = {
-    '_File': (options?: ExtraOptions) => proto[PVK].saveFile(object, options),
+    '_File': (options?: ExtraOptions) => proto[PVK].saveFile(object as TFile, options),
     default: async (options?: ExtraOptions) => {
       const updated = await query(options).findOneAndUpdate(object[PVK].mutated);
       if (updated) {
         object[PVK].attributes = updated.attributes;
+        object[PVK].mutated = {};
+      }
+      return object;
+    },
+  };
+
+  const destoryMethods = {
+    '_File': (options?: ExtraOptions) => proto[PVK].deleteFile(object as TFile, options),
+    default: async (options?: ExtraOptions) => {
+      const deleted = await query(options).findOneAndDelete();
+      if (deleted) {
+        object[PVK].attributes = deleted.attributes;
         object[PVK].mutated = {};
       }
       return object;
@@ -80,14 +93,7 @@ export const objectMethods = <T extends TObject | TObject[] | undefined, E>(
       value: saveMethods[object.className as keyof typeof saveMethods] ?? saveMethods.default,
     },
     destory: {
-      value: async (options?: ExtraOptions) => {
-        const deleted = await query(options).findOneAndDelete();
-        if (deleted) {
-          object[PVK].attributes = deleted.attributes;
-          object[PVK].mutated = {};
-        }
-        return object;
-      },
+      value: destoryMethods[object.className as keyof typeof destoryMethods] ?? destoryMethods.default,
     }
   });
 };
