@@ -30,7 +30,7 @@ import { applyObjectMethods } from '../common/object/methods';
 import { RequestOptions } from './options';
 import { ProtoInternalType } from '../common/proto';
 import { ExtraOptions } from '../common/options';
-import { ProtoClient, ProtoOptions } from '.';
+import { ProtoClient, ProtoOptions } from './index';
 
 export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
 

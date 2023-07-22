@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { TObject } from '.';
+import { TObject } from './index';
 
 export class TUser extends TObject {
 

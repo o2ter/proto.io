@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { TObject } from '.';
+import { TObject } from './index';
 
 export type FileData = string | Blob | Buffer | ReadableStream | { base64: string } | { uri: string };
 

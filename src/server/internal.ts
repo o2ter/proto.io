@@ -28,7 +28,7 @@ import { TObject } from '../common/object';
 import { ExtraOptions } from '../common/options';
 import { defaultSchema } from './defaults';
 import { ProtoInternalType } from '../common/proto';
-import { Proto, ProtoOptions } from '.';
+import { Proto, ProtoOptions } from './index';
 
 export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
 
