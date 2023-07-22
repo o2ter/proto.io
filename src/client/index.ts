@@ -29,7 +29,7 @@ import { TSerializable, serialize, deserialize } from '../codec';
 import { TQuery } from '../types/query';
 import { queryMethods } from './query';
 import { TObject } from '../types/object';
-import { TExtensions, TObjectType, TObjectTypes, TMethods } from '../types/object/types';
+import { TExtensions, TObjectType, TObjectTypes } from '../types/object/types';
 import { isObjKey } from '../utils';
 import { objectMethods, applyIOObjectMethods } from '../types/object/methods';
 import { RequestOptions } from './options';
@@ -58,7 +58,7 @@ export class Proto<Ext> {
 
   object<T extends string>(className: T) {
     const obj = isObjKey(className, TObjectTypes) ? new TObjectTypes[className] : new TObject(className);
-    return objectMethods(obj as TObjectType<T> & TMethods<Ext, T>, this);
+    return objectMethods(obj as TObjectType<T, Ext>, this);
   }
 
   query<T extends string>(className: T, options?: RequestOptions): TQuery<Ext, T> {

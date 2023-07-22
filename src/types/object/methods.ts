@@ -46,38 +46,42 @@ export const objectMethods = <T extends TObject | TObject[] | undefined, E>(
   const extensions = classExtends[object.className as keyof E] ?? {};
   const query = (options?: ExtraOptions) => proto.query(object.className, options).filter({ _id: object.objectId });
 
+  const ownKeys = Object.getOwnPropertyNames(Object.getPrototypeOf(object));
+
   return Object.defineProperties(object, {
     ..._.mapValues(extensions, value => _.isFunction(value) ? { value } : value),
-    fetchWithInclude: {
-      value: async (keys: string[], options?: ExtraOptions) => {
-        const fetched = await query(options).includes(...keys).first();
-        if (fetched) {
-          object[PVK].attributes = fetched.attributes;
-          object[PVK].mutated = {};
-        }
-        return object;
+    ..._.omit({
+      fetchWithInclude: {
+        value: async (keys: string[], options?: ExtraOptions) => {
+          const fetched = await query(options).includes(...keys).first();
+          if (fetched) {
+            object[PVK].attributes = fetched.attributes;
+            object[PVK].mutated = {};
+          }
+          return object;
+        },
       },
-    },
-    save: {
-      value: async (options?: ExtraOptions) => {
-        const updated = await query(options).findOneAndUpdate(object[PVK].mutated);
-        if (updated) {
-          object[PVK].attributes = updated.attributes;
-          object[PVK].mutated = {};
-        }
-        return object;
+      save: {
+        value: async (options?: ExtraOptions) => {
+          const updated = await query(options).findOneAndUpdate(object[PVK].mutated);
+          if (updated) {
+            object[PVK].attributes = updated.attributes;
+            object[PVK].mutated = {};
+          }
+          return object;
+        },
       },
-    },
-    destory: {
-      value: async (options?: ExtraOptions) => {
-        const deleted = await query(options).findOneAndDelete();
-        if (deleted) {
-          object[PVK].attributes = deleted.attributes;
-          object[PVK].mutated = {};
-        }
-        return object;
-      },
-    },
+      destory: {
+        value: async (options?: ExtraOptions) => {
+          const deleted = await query(options).findOneAndDelete();
+          if (deleted) {
+            object[PVK].attributes = deleted.attributes;
+            object[PVK].mutated = {};
+          }
+          return object;
+        },
+      }
+    }, ownKeys),
   });
 };
 

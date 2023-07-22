@@ -25,9 +25,9 @@
 
 import _ from 'lodash';
 import { TFilterQuery } from './filter';
-import { TObject, UpdateOperation } from './object';
+import { UpdateOperation } from './object';
 import { PVK } from './private';
-import { TMethods } from './object/types';
+import { TObjectType } from './object/types';
 
 export namespace TQuery {
   export interface Options {
@@ -40,16 +40,15 @@ export namespace TQuery {
   }
 }
 
-export interface TQuery<Ext, C extends string> {
-  count: () => PromiseLike<number>;
-  then: Promise<(TObject & TMethods<Ext, C>)[]>['then'];
-  [Symbol.asyncIterator]: () => AsyncIterator<TObject & TMethods<Ext, C>>;
-  insert: (attrs: any) => PromiseLike<(TObject & TMethods<Ext, C>) | undefined>;
-  findOneAndUpdate: (update: Record<string, [UpdateOperation, any]>) => PromiseLike<(TObject & TMethods<Ext, C>) | undefined>;
-  findOneAndReplace: (replacement: Record<string, any>) => PromiseLike<(TObject & TMethods<Ext, C>) | undefined>;
-  findOneAndUpsert: (update: Record<string, [UpdateOperation, any]>, setOnInsert: Record<string, any>) => PromiseLike<(TObject & TMethods<Ext, C>) | undefined>;
-  findOneAndDelete: () => PromiseLike<(TObject & TMethods<Ext, C>) | undefined>;
-  findAndDelete: () => PromiseLike<number>;
+export interface TQuery<Ext, C extends string> extends PromiseLike<TObjectType<C, Ext>[]> {
+  count(): PromiseLike<number>;
+  [Symbol.asyncIterator](): AsyncIterator<TObjectType<C, Ext>>;
+  insert(attrs: any): PromiseLike<TObjectType<C, Ext> | undefined>;
+  findOneAndUpdate(update: Record<string, [UpdateOperation, any]>): PromiseLike<TObjectType<C, Ext> | undefined>;
+  findOneAndReplace(replacement: Record<string, any>): PromiseLike<TObjectType<C, Ext> | undefined>;
+  findOneAndUpsert(update: Record<string, [UpdateOperation, any]>, setOnInsert: Record<string, any>): PromiseLike<TObjectType<C, Ext> | undefined>;
+  findOneAndDelete(): PromiseLike<TObjectType<C, Ext> | undefined>;
+  findAndDelete(): PromiseLike<number>;
 }
 
 export class TQuery<Ext, C extends string> {

@@ -25,6 +25,7 @@
 
 import _ from 'lodash';
 import { TObject } from '.';
+import { ExtraOptions } from '../options';
 
 export class TFile extends TObject {
 
@@ -44,5 +45,9 @@ export class TFile extends TObject {
 
   get type(): string {
     return this.get('type');
+  }
+
+  async save(options?: ExtraOptions) {
+    return this;
   }
 }

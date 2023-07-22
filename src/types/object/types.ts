@@ -34,7 +34,7 @@ export const TObjectTypes = {
   '_File': TFile,
 };
 
-export type TObjectType<T> = T extends keyof typeof TObjectTypes ? InstanceType<(typeof TObjectTypes)[T]> : TObject;
+type _TObjectType<T> = T extends keyof typeof TObjectTypes ? InstanceType<(typeof TObjectTypes)[T]> : TObject;
 
 type PickBy<T, C> = {
   [P in keyof T as T[P] extends C ? P : never]: T[P];
@@ -57,7 +57,8 @@ type PropertyMap<T, O> = {
 } & ThisType<O & PropertyMapToMethods<T>>;
 
 export type TExtensions<T> = {
-  [K in keyof T]: PropertyMap<T[K], TObjectType<K>>;
+  [K in keyof T]: PropertyMap<T[K], _TObjectType<K>>;
 };
 
-export type TMethods<T, K> = K extends keyof T ? PropertyMapToMethods<T[K]> : {};
+type TMethods<T, K> = K extends keyof T ? PropertyMapToMethods<T[K]> : {};
+export type TObjectType<T, E> = _TObjectType<T> & TMethods<E, T>;

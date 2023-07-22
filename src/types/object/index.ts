@@ -42,9 +42,9 @@ export enum UpdateOperation {
 }
 
 export interface TObject {
-  fetchWithInclude: (keys: string[], options?: ExtraOptions) => PromiseLike<this>;
-  save: (options?: ExtraOptions) => PromiseLike<this>;
-  destory: (options?: ExtraOptions) => PromiseLike<this>;
+  fetchWithInclude(keys: string[], options?: ExtraOptions): PromiseLike<this>;
+  save(options?: ExtraOptions): PromiseLike<this>;
+  destory(options?: ExtraOptions): PromiseLike<this>;
 }
 
 export class TObject {
