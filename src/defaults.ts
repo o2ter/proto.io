@@ -1,5 +1,5 @@
 //
-//  schema.ts
+//  defaults.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -23,24 +23,18 @@
 //  THE SOFTWARE.
 //
 
-export namespace TSchema {
-  export type ACL = string[];
-  export type ACLs = { read?: TSchema.ACL; write?: TSchema.ACL; };
-  export type Primitive = 'boolean' | 'number' | 'decimal' | 'string' | 'date' | 'object' | 'array' | 'file';
-  export type Relation = 'pointer' | 'relation';
-  export type DataType = Primitive | { type: Primitive } | { type: Relation, target: string };
-  export type CLPs = {
-    find?: TSchema.ACL;
-    count?: TSchema.ACL;
-    create?: TSchema.ACL;
-    update?: TSchema.ACL;
-    delete?: TSchema.ACL;
-  };
+import _ from 'lodash';
+import { TSchema } from './types/schema';
+
+const classLevelPermissions: Record<string, TSchema.CLPs> = {
+  '_User': {
+    find: [],
+    count: [],
+  },
 }
 
-export interface TSchema {
-  fields: Record<string, TSchema.DataType>;
-  classLevelPermissions?: TSchema.CLPs;
-  fieldLevelPermissions?: Record<string, TSchema.ACLs>;
-  indexes?: Record<string, Record<string, 1 | -1>>;
+const fieldLevelPermissions: Record<string, Record<string, TSchema.ACLs>> = {
+  '_User': {
+    password: { read: [] },
+  }
 }

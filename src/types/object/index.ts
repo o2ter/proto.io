@@ -88,11 +88,11 @@ export class TObject {
     return this[PVK].attributes._updated_at;
   }
 
-  get acl(): TSchema.ACLs<'read' | 'write'> {
+  get acl(): TSchema.ACLs {
     return this.get('_acl') ?? {};
   }
 
-  set acl(value: TSchema.ACLs<'read' | 'write'>) {
+  set acl(value: TSchema.ACLs) {
     this[PVK].mutated['_acl'] = [UpdateOperation.set, value];
   }
 
