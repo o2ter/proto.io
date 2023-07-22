@@ -27,24 +27,18 @@ import _ from 'lodash';
 import { TObject } from './index';
 import { PVK } from '../private';
 import { ExtraOptions } from '../options';
-import { TQuery } from '../query';
-import { TSerializable, Proto } from '../../client';
 import { TExtensions } from './types';
+import { ProtoType } from '../proto';
+import { TSerializable } from '../../codec';
 
-export const objectMethods = <T extends TObject | TObject[] | undefined, E>(
-  object: T,
-  proto: {
-    [PVK]: { options: { classExtends?: TExtensions<E> } };
-    query<C extends string>(className: C, options?: ExtraOptions): TQuery<E, C>;
-  }
-): T => {
+export const objectMethods = <T extends TObject | TObject[] | undefined, E>(object: T, proto: ProtoType<E>): T => {
 
   if (_.isNil(object)) return undefined as T;
   if (_.isArray(object)) return _.map(object, x => objectMethods(x, proto)) as T;
 
   const classExtends = proto[PVK].options.classExtends ?? {} as TExtensions<E>;
   const extensions = classExtends[object.className as keyof E] ?? {};
-  const query = (options?: ExtraOptions) => proto.query(object.className, options).filter({ _id: object.objectId });
+  const query = (options?: ExtraOptions) => proto.Query(object.className, options).filter({ _id: object.objectId });
 
   const ownKeys = Object.getOwnPropertyNames(Object.getPrototypeOf(object));
 
@@ -85,7 +79,7 @@ export const objectMethods = <T extends TObject | TObject[] | undefined, E>(
   });
 };
 
-export const applyIOObjectMethods = <E>(data: TSerializable, proto: Proto<E>): TSerializable => {
+export const applyIOObjectMethods = <E>(data: TSerializable, proto: ProtoType<E>): TSerializable => {
   if (data instanceof TObject) return objectMethods(data, proto);
   if (_.isArray(data)) return _.map(data, x => applyIOObjectMethods(x, proto));
   if (_.isPlainObject(data)) return _.mapValues(data as any, x => applyIOObjectMethods(x, proto));

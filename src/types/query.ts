@@ -40,39 +40,39 @@ export namespace TQuery {
   }
 }
 
-export interface TQuery<Ext, C extends string> {
+export interface TQuery<T extends string, Ext> {
   count(): PromiseLike<number>;
-  insert(attrs: any): PromiseLike<TObjectType<C, Ext> | undefined>;
-  findOneAndUpdate(update: Record<string, [UpdateOperation, any]>): PromiseLike<TObjectType<C, Ext> | undefined>;
-  findOneAndReplace(replacement: Record<string, any>): PromiseLike<TObjectType<C, Ext> | undefined>;
-  findOneAndUpsert(update: Record<string, [UpdateOperation, any]>, setOnInsert: Record<string, any>): PromiseLike<TObjectType<C, Ext> | undefined>;
-  findOneAndDelete(): PromiseLike<TObjectType<C, Ext> | undefined>;
+  insert(attrs: any): PromiseLike<TObjectType<T, Ext> | undefined>;
+  findOneAndUpdate(update: Record<string, [UpdateOperation, any]>): PromiseLike<TObjectType<T, Ext> | undefined>;
+  findOneAndReplace(replacement: Record<string, any>): PromiseLike<TObjectType<T, Ext> | undefined>;
+  findOneAndUpsert(update: Record<string, [UpdateOperation, any]>, setOnInsert: Record<string, any>): PromiseLike<TObjectType<T, Ext> | undefined>;
+  findOneAndDelete(): PromiseLike<TObjectType<T, Ext> | undefined>;
   findAndDelete(): PromiseLike<number>;
 }
 
-export interface TQuery<Ext, C extends string> extends PromiseLike<TObjectType<C, Ext>[]> {}
-export interface TQuery<Ext, C extends string> extends AsyncIterable<TObjectType<C, Ext>> {}
+export interface TQuery<T extends string, Ext> extends PromiseLike<TObjectType<T, Ext>[]> {}
+export interface TQuery<T extends string, Ext> extends AsyncIterable<TObjectType<T, Ext>> {}
 
-export class TQuery<Ext, C extends string> {
+export class TQuery<T extends string, Ext> {
 
   [PVK]: {
-    className: C;
+    className: T;
     options: TQuery.Options;
   }
 
-  constructor(className: C, options: TQuery.Options = {}) {
+  constructor(className: T, options: TQuery.Options = {}) {
     this[PVK] = {
       className,
       options,
     };
   }
 
-  get className(): C {
+  get className(): T {
     return this[PVK].className;
   }
 
   clone() {
-    return new TQuery<Ext, C>(this.className, this[PVK].options);
+    return new TQuery<T, Ext>(this.className, this[PVK].options);
   }
 
   filter<T>(filter: TFilterQuery<T>) {

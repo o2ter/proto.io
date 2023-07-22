@@ -37,6 +37,7 @@ import { PVK } from '../types/private';
 import { ExtraOptions } from '../types/options';
 import { isObjKey } from '../utils';
 import { defaultSchema } from './defaults';
+import { ProtoType } from '../types/proto';
 
 type Callback<T, R, E> = (request: Proto<E> & T) => R | PromiseLike<R>;
 type ProtoFunction<E> = Callback<{ data: TSerializable; }, TSerializable, E>;
@@ -67,7 +68,7 @@ export type ProtoOptions<Ext> = {
   },
 };
 
-export class Proto<Ext> {
+export class Proto<Ext> implements ProtoType<Ext> {
 
   [PVK]: {
     options: ProtoOptions<Ext>;
@@ -83,13 +84,13 @@ export class Proto<Ext> {
     return this.storage.classes();
   }
 
-  object<T extends string>(className: T) {
+  Object<T extends string>(className: T): TObjectType<T, Ext> {
     const obj = isObjKey(className, TObjectTypes) ? new TObjectTypes[className] : new TObject(className);
     return objectMethods(obj as TObjectType<T, Ext>, this);
   }
 
-  query<T extends string>(className: T, options?: ExtraOptions): TQuery<Ext, T> {
-    return queryMethods(new TQuery<Ext, T>(className), this, options);
+  Query<T extends string>(className: T, options?: ExtraOptions): TQuery<T, Ext> {
+    return queryMethods(new TQuery<T, Ext>(className), this, options);
   }
 
   get user(): TUser | undefined {

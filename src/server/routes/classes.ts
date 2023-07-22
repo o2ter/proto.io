@@ -86,7 +86,7 @@ export default <E>(router: Router, payload: Proto<E>) => {
 
       if (!_.includes(classes, name)) return res.sendStatus(404);
 
-      const query = payload.query(name);
+      const query = payload.Query(name);
 
       await response(res, async () => {
 

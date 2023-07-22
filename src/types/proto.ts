@@ -1,5 +1,5 @@
 //
-//  index.test.ts
+//  proto.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -23,36 +23,16 @@
 //  THE SOFTWARE.
 //
 
-import { test, expect } from '@jest/globals';
-import Proto from '../../src/client';
-import _extends from './extends';
-import { TUser } from '../../src/types/object/user';
+import { PVK } from './private';
+import { ExtraOptions } from './options';
+import { TQuery } from './query';
+import { TExtensions, TObjectType } from './object/types';
 
-const proto = new Proto({
-  endpoint: 'http://localhost:8080',
-  classExtends: _extends,
-});
+export interface ProtoType<Ext> {
 
-test('test types', async () => {
+  [PVK]: { options: { classExtends?: TExtensions<Ext>; }; };
 
-  const user = proto.Object('_User');
+  Object<T extends string>(className: T): TObjectType<T, Ext>;
+  Query<T extends string>(className: T, options?: ExtraOptions): TQuery<T, Ext>;
 
-  expect(user).toBeInstanceOf(TUser);
-
-});
-
-test('test methods', async () => {
-
-  const user = proto.Object('_User');
-
-  expect(await user.softDelete()).toStrictEqual('deleted');
-
-});
-
-test('test property', async () => {
-
-  const user = proto.Object('_User');
-
-  user.name = 'test';
-  expect(user.name).toStrictEqual('test');
-});
+};

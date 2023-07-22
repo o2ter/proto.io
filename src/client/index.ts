@@ -34,6 +34,7 @@ import { isObjKey } from '../utils';
 import { objectMethods, applyIOObjectMethods } from '../types/object/methods';
 import { RequestOptions } from './options';
 import { PVK } from '../types/private';
+import { ProtoType } from '../types/proto';
 
 export * from '../common';
 
@@ -44,7 +45,7 @@ type ProtoOptions<Ext> = {
 
 export const CancelTokenSource = axios.CancelToken.source;
 
-export class Proto<Ext> {
+export class Proto<Ext> implements ProtoType<Ext> {
 
   [PVK]: {
     options: ProtoOptions<Ext>;
@@ -56,13 +57,13 @@ export class Proto<Ext> {
     };
   }
 
-  object<T extends string>(className: T) {
+  Object<T extends string>(className: T): TObjectType<T, Ext> {
     const obj = isObjKey(className, TObjectTypes) ? new TObjectTypes[className] : new TObject(className);
     return objectMethods(obj as TObjectType<T, Ext>, this);
   }
 
-  query<T extends string>(className: T, options?: RequestOptions): TQuery<Ext, T> {
-    return queryMethods(new TQuery<Ext, T>(className), this, options);
+  Query<T extends string>(className: T, options?: RequestOptions): TQuery<T, Ext> {
+    return queryMethods(new TQuery<T, Ext>(className), this, options);
   }
 
   async _request(

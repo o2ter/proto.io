@@ -45,8 +45,8 @@ const validateCLPs = (
   return true;
 }
 
-export const queryMethods = <E, T extends string>(
-  query: TQuery<E, T>,
+export const queryMethods = <T extends string, E>(
+  query: TQuery<T, E>,
   proto: Proto<E>,
   options?: ExtraOptions,
 ) => {
@@ -96,7 +96,7 @@ export const queryMethods = <E, T extends string>(
 
         const context = {};
 
-        const object = proto.object(query.className);
+        const object = proto.Object(query.className);
         for (const [key, value] of _.toPairs(_.omit(attrs, ...TObject.defaultReadonlyKeys))) {
           object[PVK].mutated[key] = [UpdateOperation.set, value];
         }
@@ -183,7 +183,7 @@ export const queryMethods = <E, T extends string>(
           if (object) {
             object[PVK].mutated = _.omit(update, ...TObject.defaultReadonlyKeys);
           } else {
-            object = proto.object(query.className);
+            object = proto.Object(query.className);
             for (const [key, value] of _.toPairs(_.omit(setOnInsert, ...TObject.defaultReadonlyKeys))) {
               object[PVK].mutated[key] = [UpdateOperation.set, value];
             }

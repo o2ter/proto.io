@@ -60,5 +60,5 @@ export type TExtensions<T> = {
   [K in keyof T]: PropertyMap<T[K], _TObjectType<K>>;
 };
 
-type TMethods<T, K> = K extends keyof T ? PropertyMapToMethods<T[K]> : {};
-export type TObjectType<T, E> = _TObjectType<T> & TMethods<E, T>;
+type TMethods<T, E> = T extends keyof E ? PropertyMapToMethods<E[T]> : {};
+export type TObjectType<T, E> = _TObjectType<T> & TMethods<T, E>;
