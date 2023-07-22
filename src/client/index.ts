@@ -23,7 +23,6 @@
 //  THE SOFTWARE.
 //
 
-import axios from 'axios';
 import { TSerializable } from '../common/codec';
 import { TQuery } from '../common/query';
 import { queryMethods } from './query';
@@ -43,8 +42,6 @@ export type ProtoOptions<Ext> = {
   endpoint: string;
   classExtends?: TExtensions<Ext>;
 }
-
-export const CancelTokenSource = axios.CancelToken.source;
 
 export class ProtoClient<Ext> implements ProtoType<Ext> {
 
