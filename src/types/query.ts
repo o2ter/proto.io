@@ -72,7 +72,7 @@ export class TQuery<T extends string, Ext> {
   }
 
   clone() {
-    return new TQuery<T, Ext>(this.className, this[PVK].options);
+    return new TQuery<T, Ext>(this.className, { ...this[PVK].options });
   }
 
   filter<T>(filter: TFilterQuery<T>) {
