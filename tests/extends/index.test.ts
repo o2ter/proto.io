@@ -24,11 +24,11 @@
 //
 
 import { test, expect } from '@jest/globals';
-import Proto from '../../src/client';
+import ProtoClient from '../../src/client';
 import _extends from './extends';
 import { TUser } from '../../src/common/object/user';
 
-const proto = new Proto({
+const proto = new ProtoClient({
   endpoint: 'http://localhost:8080',
   classExtends: _extends,
 });

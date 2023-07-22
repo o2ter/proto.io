@@ -27,10 +27,10 @@ import _ from 'lodash';
 import { TQuery } from '../common/query';
 import { TObject, UpdateOperation } from '../common/object';
 import { PVK } from '../common/private';
-import Proto from './index';
+import ProtoClient from './index';
 import { RequestOptions } from './options';
 
-export const queryMethods = <T extends string, E>(query: TQuery<T, E>, proto: Proto<E>, options?: RequestOptions) => {
+export const queryMethods = <T extends string, E>(query: TQuery<T, E>, proto: ProtoClient<E>, options?: RequestOptions) => {
 
   const queryOptions = () => ({
     className: query[PVK].className,

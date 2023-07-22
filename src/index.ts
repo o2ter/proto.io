@@ -31,9 +31,12 @@ import csrfHandler from './server/csrf';
 import classesRoute from './server/routes/classes';
 import functionRoute from './server/routes/function';
 import { PVK } from './common/private';
+import ProtoClient from './client';
 
 export * from './common';
 export * from './server';
+
+export { ProtoClient };
 
 export const ProtoRoute = async <E>(options: {
   jwtToken: string;

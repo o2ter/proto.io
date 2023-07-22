@@ -35,7 +35,7 @@ import { RequestOptions } from './options';
 import { PVK } from '../common/private';
 import { ProtoType } from '../common/proto';
 import { FileData } from '../common/object/file';
-import { ProtoInternal } from './internal';
+import { ProtoClientInternal } from './internal';
 
 export * from '../common';
 
@@ -46,12 +46,12 @@ export type ProtoOptions<Ext> = {
 
 export const CancelTokenSource = axios.CancelToken.source;
 
-export class Proto<Ext> implements ProtoType<Ext> {
+export class ProtoClient<Ext> implements ProtoType<Ext> {
 
-  [PVK]: ProtoInternal<Ext>;
+  [PVK]: ProtoClientInternal<Ext>;
 
   constructor(options: ProtoOptions<Ext>) {
-    this[PVK] = new ProtoInternal(this, options);
+    this[PVK] = new ProtoClientInternal(this, options);
   }
 
   Object<T extends string>(className: T): TObjectType<T, Ext> {
@@ -86,4 +86,4 @@ export class Proto<Ext> implements ProtoType<Ext> {
 
 }
 
-export default Proto;
+export default ProtoClient;

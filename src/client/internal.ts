@@ -30,14 +30,14 @@ import { applyObjectMethods } from '../common/object/methods';
 import { RequestOptions } from './options';
 import { ProtoInternalType } from '../common/proto';
 import { ExtraOptions } from '../common/options';
-import { Proto, ProtoOptions } from '.';
+import { ProtoClient, ProtoOptions } from '.';
 
-export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
+export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
 
-  proto: Proto<Ext>;
+  proto: ProtoClient<Ext>;
   options: ProtoOptions<Ext>;
 
-  constructor(proto: Proto<Ext>, options: ProtoOptions<Ext>) {
+  constructor(proto: ProtoClient<Ext>, options: ProtoOptions<Ext>) {
     this.proto = proto;
     this.options = options;
   }
