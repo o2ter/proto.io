@@ -48,8 +48,4 @@ export class TFile extends TObject {
   get type(): string {
     return this.get('type');
   }
-
-  async save(options?: ExtraOptions) {
-    return this;
-  }
 }

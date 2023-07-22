@@ -44,38 +44,36 @@ export const objectMethods = <T extends TObject | TObject[] | undefined, E>(obje
 
   return Object.defineProperties(object, {
     ..._.mapValues(extensions, value => _.isFunction(value) ? { value } : value),
-    ..._.omit({
-      fetchWithInclude: {
-        value: async (keys: string[], options?: ExtraOptions) => {
-          const fetched = await query(options).includes(...keys).first();
-          if (fetched) {
-            object[PVK].attributes = fetched.attributes;
-            object[PVK].mutated = {};
-          }
-          return object;
-        },
+    fetchWithInclude: {
+      value: async (keys: string[], options?: ExtraOptions) => {
+        const fetched = await query(options).includes(...keys).first();
+        if (fetched) {
+          object[PVK].attributes = fetched.attributes;
+          object[PVK].mutated = {};
+        }
+        return object;
       },
-      save: {
-        value: async (options?: ExtraOptions) => {
-          const updated = await query(options).findOneAndUpdate(object[PVK].mutated);
-          if (updated) {
-            object[PVK].attributes = updated.attributes;
-            object[PVK].mutated = {};
-          }
-          return object;
-        },
+    },
+    save: {
+      value: async (options?: ExtraOptions) => {
+        const updated = await query(options).findOneAndUpdate(object[PVK].mutated);
+        if (updated) {
+          object[PVK].attributes = updated.attributes;
+          object[PVK].mutated = {};
+        }
+        return object;
       },
-      destory: {
-        value: async (options?: ExtraOptions) => {
-          const deleted = await query(options).findOneAndDelete();
-          if (deleted) {
-            object[PVK].attributes = deleted.attributes;
-            object[PVK].mutated = {};
-          }
-          return object;
-        },
-      }
-    }, ownKeys),
+    },
+    destory: {
+      value: async (options?: ExtraOptions) => {
+        const deleted = await query(options).findOneAndDelete();
+        if (deleted) {
+          object[PVK].attributes = deleted.attributes;
+          object[PVK].mutated = {};
+        }
+        return object;
+      },
+    }
   });
 };
 
