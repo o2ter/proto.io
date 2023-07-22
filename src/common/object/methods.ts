@@ -44,7 +44,7 @@ export const objectMethods = <T extends TObject | TObject[] | undefined, E>(
   const query = (options?: ExtraOptions) => proto.Query(object.className, options).filter({ _id: object.objectId });
 
   const saveMethods = {
-    '_File': (options?: ExtraOptions) => proto[PVK]._saveFile(object, options),
+    '_File': (options?: ExtraOptions) => proto[PVK].saveFile(object, options),
     default: async (options?: ExtraOptions) => {
       const updated = await query(options).findOneAndUpdate(object[PVK].mutated);
       if (updated) {

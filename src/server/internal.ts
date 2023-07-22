@@ -40,11 +40,11 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     this.options = options;
   }
 
-  async _prepare() {
+  async prepare() {
     await this.options.storage.prepare(_.merge({}, defaultSchema, this.options.schema));
   }
 
-  async _run(name: string, payload: any, options?: ExtraOptions) {
+  async run(name: string, payload: any, options?: ExtraOptions) {
 
     const func = this.options.functions?.[name];
 
@@ -61,7 +61,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     return _.isFunction(callback) ? callback(payload ?? this.proto) : null;
   }
 
-  async _saveFile(object: TObject, options?: ExtraOptions) {
+  async saveFile(object: TObject, options?: ExtraOptions) {
 
 
     return object;

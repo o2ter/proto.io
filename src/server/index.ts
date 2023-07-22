@@ -123,7 +123,7 @@ export class Proto<Ext> implements ProtoType<Ext> {
 
   run(name: string, data?: TSerializable, options?: ExtraOptions) {
     const payload = Object.setPrototypeOf({ data: data ?? null }, this);
-    return this[PVK]._run(name, payload, options);
+    return this[PVK].run(name, payload, options);
   }
 
   define(

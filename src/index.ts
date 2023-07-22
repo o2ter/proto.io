@@ -50,7 +50,7 @@ export const ProtoRoute = async <E>(options: {
   } = options;
 
   const proto = _proto instanceof Proto ? _proto : new Proto(_proto);
-  await proto[PVK]._prepare();
+  await proto[PVK].prepare();
 
   const router = express.Router().use(
     cookieParser() as any,

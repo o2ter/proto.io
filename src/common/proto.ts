@@ -36,7 +36,7 @@ export interface ProtoInternalType<Ext> {
     classExtends?: TExtensions<Ext>;
   };
 
-  _saveFile(object: TObject, options?: ExtraOptions): Promise<TObject>;
+  saveFile(object: TObject, options?: ExtraOptions): Promise<TObject>;
 }
 
 export interface ProtoType<Ext> {

@@ -42,7 +42,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     this.options = options;
   }
 
-  async _request(
+  async request(
     data?: TSerializable,
     options?: RequestOptions & Parameters<typeof request>[0]
   ) {
@@ -64,7 +64,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     return applyObjectMethods<Ext>(deserialize(res.data), this.proto);
   }
 
-  async _saveFile(object: TObject, options?: ExtraOptions) {
+  async saveFile(object: TObject, options?: ExtraOptions) {
 
 
     return object;

@@ -77,7 +77,7 @@ export class Proto<Ext> implements ProtoType<Ext> {
     options?: RequestOptions,
   ) {
 
-    return this[PVK]._request(data, {
+    return this[PVK].request(data, {
       method: 'post',
       url: `functions/${name}`,
       ...(options ?? {})
