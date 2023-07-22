@@ -24,25 +24,34 @@
 //
 
 import _ from 'lodash';
-import { TSchema } from './types/schema';
+import { TSchema } from '../types/schema';
 
-export const defaultClassLevelPermissions: Record<string, TSchema.CLPs> = {
+export const defaultSchema: Record<string, TSchema> = {
   '_User': {
-    find: [],
-    count: [],
-    delete: [],
+    fields: {
+      password: 'string',
+    },
+    classLevelPermissions: {
+      find: [],
+      count: [],
+      delete: [],
+    },
+    fieldLevelPermissions: {
+      password: { read: [], write: [] },
+    },
   },
   '_Role': {
-    find: [],
-    count: [],
-    create: [],
-    update: [],
-    delete: [],
-  },
-}
-
-export const defaultFieldLevelPermissions: Record<string, Record<string, TSchema.ACLs>> = {
-  '_User': {
-    _password: { read: [], write: [] },
+    fields: {
+      name: 'string',
+      users: { type: 'relation', target: '_User' },
+      roles: { type: 'relation', target: '_Role' },
+    },
+    classLevelPermissions: {
+      find: [],
+      count: [],
+      create: [],
+      update: [],
+      delete: [],
+    },
   },
 }

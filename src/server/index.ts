@@ -36,6 +36,7 @@ import { TUser } from '../types/object/user';
 import { PVK } from '../types/private';
 import { ExtraOptions } from '../types/options';
 import { isObjKey } from '../utils';
+import { defaultSchema } from './defaults';
 
 type Callback<T, R, E> = (request: Proto<E> & T) => R | PromiseLike<R>;
 type ProtoFunction<E> = Callback<{ data: IOSerializable; }, IOSerializable, E>;
@@ -110,7 +111,7 @@ export class Proto<Ext> {
   }
 
   async _prepare() {
-    await this.storage.prepare(this.schema);
+    await this.storage.prepare(_.merge({}, defaultSchema, this.schema));
   }
 
   async _run(name: string, payload?: any, options?: ExtraOptions) {
