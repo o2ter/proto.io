@@ -63,12 +63,16 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
 
   async saveFile(object: TFile, options?: ExtraOptions) {
 
+    const beforeSave = this.proto.triggers?.beforeSaveFile;
+    const afterSave = this.proto.triggers?.afterSaveFile;
 
     return object;
   }
 
   async deleteFile(object: TFile, options?: ExtraOptions) {
 
+    const beforeDelete = this.proto.triggers?.beforeDeleteFile;
+    const afterDelete = this.proto.triggers?.afterDeleteFile;
 
     return object;
   }
