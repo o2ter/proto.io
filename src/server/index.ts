@@ -152,6 +152,12 @@ export class Proto<Ext> implements ProtoType<Ext> {
     return this._run(name, payload, options);
   }
 
+  async _saveFile(object: TObject, options?: ExtraOptions) {
+
+
+    return object;
+  }
+
   define(
     name: string,
     callback: ProtoFunction<Ext>,

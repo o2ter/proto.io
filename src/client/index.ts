@@ -36,6 +36,7 @@ import { RequestOptions } from './options';
 import { PVK } from '../types/private';
 import { ProtoType } from '../types/proto';
 import { FileData } from '../types/object/file';
+import { ExtraOptions } from '../types/options';
 
 export * from '../common';
 
@@ -108,6 +109,12 @@ export class Proto<Ext> implements ProtoType<Ext> {
       url: `functions/${name}`,
       ...(options ?? {})
     });
+  }
+
+  async _saveFile(object: TObject, options?: ExtraOptions) {
+
+
+    return object;
   }
 
 }

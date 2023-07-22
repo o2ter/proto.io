@@ -31,17 +31,10 @@ import { TExtensions } from './types';
 import { ProtoType } from '../proto';
 import { TSerializable } from '../../codec';
 
-const fileSaveMethods = <T extends TObject, E>(
+export const objectMethods = <T extends TObject | TObject[] | undefined, E>(
   object: T,
   proto: ProtoType<E>,
-) => async (options?: ExtraOptions) => {
-
-
-
-  return object;
-};
-
-export const objectMethods = <T extends TObject | TObject[] | undefined, E>(object: T, proto: ProtoType<E>): T => {
+): T => {
 
   if (_.isNil(object)) return undefined as T;
   if (_.isArray(object)) return _.map(object, x => objectMethods(x, proto)) as T;
@@ -51,7 +44,7 @@ export const objectMethods = <T extends TObject | TObject[] | undefined, E>(obje
   const query = (options?: ExtraOptions) => proto.Query(object.className, options).filter({ _id: object.objectId });
 
   const saveMethods = {
-    '_File': fileSaveMethods(object, proto),
+    '_File': (options?: ExtraOptions) => proto._saveFile(object, options),
     default: async (options?: ExtraOptions) => {
       const updated = await query(options).findOneAndUpdate(object[PVK].mutated);
       if (updated) {
@@ -90,7 +83,10 @@ export const objectMethods = <T extends TObject | TObject[] | undefined, E>(obje
   });
 };
 
-export const applyObjectMethods = <E>(data: TSerializable, proto: ProtoType<E>): TSerializable => {
+export const applyObjectMethods = <E>(
+  data: TSerializable,
+  proto: ProtoType<E>,
+): TSerializable => {
   if (data instanceof TObject) return objectMethods(data, proto);
   if (_.isArray(data)) return _.map(data, x => applyObjectMethods(x, proto));
   if (_.isPlainObject(data)) return _.mapValues(data as any, x => applyObjectMethods(x, proto));

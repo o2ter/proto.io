@@ -28,6 +28,7 @@ import { ExtraOptions } from './options';
 import { TQuery } from './query';
 import { TExtensions, TObjectType } from './object/types';
 import { FileData } from './object/file';
+import { TObject } from './object';
 
 export interface ProtoType<Ext> {
 
@@ -37,4 +38,6 @@ export interface ProtoType<Ext> {
   File(filename: string, data: FileData, type?: string): TObjectType<'_File', Ext>;
 
   Query<T extends string>(className: T, options?: ExtraOptions): TQuery<T, Ext>;
+
+  _saveFile(object: TObject, options?: ExtraOptions): Promise<TObject>;
 };
