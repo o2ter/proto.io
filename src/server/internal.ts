@@ -80,6 +80,16 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     const beforeSave = this.triggers?.beforeSaveFile;
     const afterSave = this.triggers?.afterSaveFile;
 
+    const context = {};
+
+    if (_.isFunction(beforeSave)) {
+      await beforeSave(Object.setPrototypeOf({ object, context }, this.proto));
+    }
+
+    if (_.isFunction(afterSave)) {
+      await afterSave(Object.setPrototypeOf({ object, context }, this.proto));
+    }
+
     return object;
   }
 
@@ -87,6 +97,16 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
 
     const beforeDelete = this.triggers?.beforeDeleteFile;
     const afterDelete = this.triggers?.afterDeleteFile;
+
+    const context = {};
+
+    if (_.isFunction(beforeDelete)) {
+      await beforeDelete(Object.setPrototypeOf({ object, context }, this.proto));
+    }
+
+    if (_.isFunction(afterDelete)) {
+      await afterDelete(Object.setPrototypeOf({ object, context }, this.proto));
+    }
 
     return object;
   }
