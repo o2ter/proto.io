@@ -23,7 +23,6 @@
 //  THE SOFTWARE.
 //
 
-import _ from 'lodash';
 import { TSerializable } from '../codec';
 import { TStorage } from '../types/storage';
 import { TSchema } from '../types/schema';
@@ -36,9 +35,9 @@ import { TUser } from '../types/object/user';
 import { PVK } from '../types/private';
 import { ExtraOptions } from '../types/options';
 import { isObjKey } from '../utils';
-import { defaultSchema } from './defaults';
-import { ProtoInternalType, ProtoType } from '../types/proto';
+import { ProtoType } from '../types/proto';
 import { FileData } from '../types/object/file';
+import { ProtoInternal } from './internal';
 
 type Callback<T, R, E> = (request: Proto<E> & T) => R | PromiseLike<R>;
 type ProtoFunction<E> = Callback<{ data: TSerializable; }, TSerializable, E>;
@@ -68,45 +67,6 @@ export type ProtoOptions<Ext> = {
     afterDelete?: Record<string, ProtoTrigger<Ext>>;
   },
 };
-
-class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
-
-  proto: Proto<Ext>;
-  options: ProtoOptions<Ext>;
-
-  constructor(proto: Proto<Ext>, options: ProtoOptions<Ext>) {
-    this.proto = proto;
-    this.options = options;
-  }
-
-  async _prepare() {
-    await this.options.storage.prepare(_.merge({}, defaultSchema, this.options.schema));
-  }
-
-  async _run(name: string, payload: any, options?: ExtraOptions) {
-
-    const func = this.options.functions?.[name];
-
-    if (_.isNil(func)) return null;
-    if (_.isFunction(func)) return func(payload ?? this.proto);
-
-    const { callback, validator } = func;
-
-    if (!!validator?.requireUser && !this.proto.user) throw new Error('No permission');
-    if (!!validator?.requireMaster && !options?.master) throw new Error('No permission');
-    if (!_.find(validator?.requireAnyUserRoles, x => _.includes(this.proto.roles, x))) throw new Error('No permission');
-    if (_.find(validator?.requireAllUserRoles, x => !_.includes(this.proto.roles, x))) throw new Error('No permission');
-
-    return _.isFunction(callback) ? callback(payload ?? this.proto) : null;
-  }
-
-  async _saveFile(object: TObject, options?: ExtraOptions) {
-
-
-    return object;
-  }
-
-}
 
 export class Proto<Ext> implements ProtoType<Ext> {
 

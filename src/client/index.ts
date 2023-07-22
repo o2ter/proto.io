@@ -23,69 +23,28 @@
 //  THE SOFTWARE.
 //
 
-import { request } from './request';
 import axios from 'axios';
-import { TSerializable, serialize, deserialize } from '../codec';
+import { TSerializable } from '../codec';
 import { TQuery } from '../types/query';
 import { queryMethods } from './query';
 import { TObject } from '../types/object';
 import { TExtensions, TObjectType, TObjectTypes } from '../types/object/types';
 import { isObjKey } from '../utils';
-import { objectMethods, applyObjectMethods } from '../types/object/methods';
+import { objectMethods } from '../types/object/methods';
 import { RequestOptions } from './options';
 import { PVK } from '../types/private';
-import { ProtoInternalType, ProtoType } from '../types/proto';
+import { ProtoType } from '../types/proto';
 import { FileData } from '../types/object/file';
-import { ExtraOptions } from '../types/options';
+import { ProtoInternal } from './internal';
 
 export * from '../common';
 
-type ProtoOptions<Ext> = {
+export type ProtoOptions<Ext> = {
   endpoint: string;
   classExtends?: TExtensions<Ext>;
 }
 
 export const CancelTokenSource = axios.CancelToken.source;
-
-class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
-
-  proto: Proto<Ext>;
-  options: ProtoOptions<Ext>;
-
-  constructor(proto: Proto<Ext>, options: ProtoOptions<Ext>) {
-    this.proto = proto;
-    this.options = options;
-  }
-
-  async _request(
-    data?: TSerializable,
-    options?: RequestOptions & Parameters<typeof request>[0],
-  ) {
-
-    const { master, serializeOpts, ...opts } = options ?? {};
-
-    const res = await request({
-      baseURL: this.options.endpoint,
-      data: serialize(data ?? null, serializeOpts),
-      responseType: 'text',
-      ...opts,
-    });
-
-    if (res.status !== 200) {
-      const error = JSON.parse(res.data);
-      throw new Error(error.message, { cause: error });
-    }
-
-    return applyObjectMethods<Ext>(deserialize(res.data), this.proto);
-  }
-
-  async _saveFile(object: TObject, options?: ExtraOptions) {
-
-
-    return object;
-  }
-
-}
 
 export class Proto<Ext> implements ProtoType<Ext> {
 
