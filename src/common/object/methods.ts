@@ -29,7 +29,7 @@ import { PVK } from '../private';
 import { ExtraOptions } from '../options';
 import { TExtensions } from './types';
 import { ProtoType } from '../proto';
-import { TSerializable } from '../../codec';
+import { TSerializable } from '../codec';
 
 export const objectMethods = <T extends TObject | TObject[] | undefined, E>(
   object: T,

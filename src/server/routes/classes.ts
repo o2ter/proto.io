@@ -29,7 +29,7 @@ import { Proto } from '../../server';
 import queryType from 'query-types';
 import { deserialize } from '../../common/codec';
 import { response } from './common';
-import { PVK } from '../../common/types/private';
+import { PVK } from '../../common/private';
 
 export default <E>(router: Router, payload: Proto<E>) => {
 

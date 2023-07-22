@@ -24,9 +24,9 @@
 //
 
 import _ from 'lodash';
-import { TQuery } from '../common/types/query';
-import { TObject, UpdateOperation } from '../common/types/object';
-import { PVK } from '../common/types/private';
+import { TQuery } from '../common/query';
+import { TObject, UpdateOperation } from '../common/object';
+import { PVK } from '../common/private';
 import Proto from './index';
 import { RequestOptions } from './options';
 

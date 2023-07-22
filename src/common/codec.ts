@@ -1,5 +1,5 @@
 //
-//  index.ts
+//  codec.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -35,9 +35,9 @@ import {
   Decimal128,
   UUID
 } from 'bson';
-import { TObject } from '../types/object';
-import { TObjectTypes } from '../types/object/types';
-import { isObjKey } from '../utils';
+import { TObject } from './object';
+import { TObjectTypes } from './object/types';
+import { isObjKey } from './utils';
 
 export { UUID, Decimal };
 export type TNumber = number | Decimal | BigInt;

@@ -25,11 +25,11 @@
 
 import { request } from './request';
 import { TSerializable, serialize, deserialize } from '../common/codec';
-import { TObject } from '../common/types/object';
-import { applyObjectMethods } from '../common/types/object/methods';
+import { TObject } from '../common/object';
+import { applyObjectMethods } from '../common/object/methods';
 import { RequestOptions } from './options';
-import { ProtoInternalType } from '../common/types/proto';
-import { ExtraOptions } from '../common/types/options';
+import { ProtoInternalType } from '../common/proto';
+import { ExtraOptions } from '../common/options';
 import { Proto, ProtoOptions } from '.';
 
 export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {

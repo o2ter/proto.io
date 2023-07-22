@@ -28,8 +28,8 @@ import express, { Router } from 'express';
 import { Proto } from '../../server';
 import { deserialize } from '../../common/codec';
 import { response } from './common';
-import { PVK } from '../../common/types/private';
-import { applyObjectMethods } from '../../common/types/object/methods';
+import { PVK } from '../../common/private';
+import { applyObjectMethods } from '../../common/object/methods';
 
 export default <E>(router: Router, payload: Proto<E>) => {
 

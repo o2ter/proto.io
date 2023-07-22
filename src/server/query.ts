@@ -24,13 +24,13 @@
 //
 
 import _ from 'lodash';
-import { TQuery } from '../common/types/query';
+import { TQuery } from '../common/query';
 import { Proto } from '.';
-import { TObject, UpdateOperation } from '../common/types/object';
-import { TSchema } from '../common/types/schema';
-import { PVK } from '../common/types/private';
-import { ExtraOptions } from '../common/types/options';
-import { objectMethods } from '../common/types/object/methods';
+import { TObject, UpdateOperation } from '../common/object';
+import { TSchema } from '../common/schema';
+import { PVK } from '../common/private';
+import { ExtraOptions } from '../common/options';
+import { objectMethods } from '../common/object/methods';
 import { asyncIterableToArray } from '../common/utils';
 
 const validateCLPs = (

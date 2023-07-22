@@ -25,8 +25,8 @@
 
 import _ from 'lodash';
 import pg, { IInitOptions, IConnectionOptions, IDatabase } from 'pg-promise';
-import { TStorage } from '../../common/types/storage';
-import { TSchema } from '../../common/types/schema';
+import { TStorage } from '../../common/storage';
+import { TSchema } from '../../common/schema';
 
 export class PostgresStorage implements TStorage {
 

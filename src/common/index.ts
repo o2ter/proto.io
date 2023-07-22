@@ -23,7 +23,7 @@
 //  THE SOFTWARE.
 //
 
-import { TExtensions } from './types/object/types';
+import { TExtensions } from './object/types';
 
 export * from './codec';
 
