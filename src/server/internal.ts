@@ -62,7 +62,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
 
     const func = this.functions?.[name];
 
-    if (_.isNil(func)) return null;
+    if (_.isNil(func)) throw new Error('Function not found');
     if (_.isFunction(func)) return func(payload ?? this.proto);
 
     const { callback, validator } = func;
@@ -72,7 +72,9 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     if (!_.find(validator?.requireAnyUserRoles, x => _.includes(this.proto.roles, x))) throw new Error('No permission');
     if (_.find(validator?.requireAllUserRoles, x => !_.includes(this.proto.roles, x))) throw new Error('No permission');
 
-    return _.isFunction(callback) ? callback(payload ?? this.proto) : null;
+    if (!_.isFunction(callback)) throw new Error('Invalid callback type');
+
+    return callback(payload ?? this.proto);
   }
 
   async saveFile(object: TFile, options?: ExtraOptions) {
