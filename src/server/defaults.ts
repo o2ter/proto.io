@@ -57,4 +57,16 @@ export const defaultSchema: Record<string, TSchema> = {
       name: { name: 1 },
     },
   },
+  '_File': {
+    fields: {
+      filename: 'string',
+      size: 'number',
+      type: 'string',
+    },
+    classLevelPermissions: {
+      find: [],
+      count: [],
+      update: [],
+    },
+  },
 }

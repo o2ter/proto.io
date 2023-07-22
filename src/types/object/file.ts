@@ -1,5 +1,5 @@
 //
-//  role.ts
+//  file.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -26,15 +26,23 @@
 import _ from 'lodash';
 import { TObject } from '.';
 
-export class TRole extends TObject {
+export class TFile extends TObject {
 
   constructor(
     attributes?: Record<string, any> | ((self: TObject) => Record<string, any>),
   ) {
-    super('_Role', attributes);
+    super('_File', attributes);
   }
 
-  get name(): string {
-    return this.get('name');
+  get filename(): string {
+    return this.get('filename');
+  }
+
+  get size(): number {
+    return this.get('size');
+  }
+
+  get type(): string {
+    return this.get('type');
   }
 }
