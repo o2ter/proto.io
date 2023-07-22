@@ -31,7 +31,7 @@ import { queryMethods } from './query';
 import { TObject } from '../types/object';
 import { TExtensions, TObjectType, TObjectTypes } from '../types/object/types';
 import { isObjKey } from '../utils';
-import { objectMethods, applyIOObjectMethods } from '../types/object/methods';
+import { objectMethods, applyObjectMethods } from '../types/object/methods';
 import { RequestOptions } from './options';
 import { PVK } from '../types/private';
 import { ProtoType } from '../types/proto';
@@ -94,7 +94,7 @@ export class Proto<Ext> implements ProtoType<Ext> {
       throw new Error(error.message, { cause: error });
     }
 
-    return applyIOObjectMethods<Ext>(deserialize(res.data), this);
+    return applyObjectMethods<Ext>(deserialize(res.data), this);
   }
 
   async run(

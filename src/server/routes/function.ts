@@ -27,7 +27,7 @@ import _ from 'lodash';
 import express, { Router } from 'express';
 import { Proto } from '../../server';
 import { deserialize } from '../../codec';
-import { applyIOObjectMethods, response } from './common';
+import { applyObjectMethods, response } from './common';
 
 export default <E>(router: Router, payload: Proto<E>) => {
 
@@ -47,7 +47,7 @@ export default <E>(router: Router, payload: Proto<E>) => {
         const _payload = Object.setPrototypeOf({
           ..._.omit(req, 'body'),
         }, payload);
-        _payload.data = applyIOObjectMethods(deserialize(req.body), _payload);
+        _payload.data = applyObjectMethods(deserialize(req.body), _payload);
 
         return _payload._run(name);
       });
