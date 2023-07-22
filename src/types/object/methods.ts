@@ -31,6 +31,16 @@ import { TExtensions } from './types';
 import { ProtoType } from '../proto';
 import { TSerializable } from '../../codec';
 
+const fileSaveMethods = <T extends TObject, E>(
+  object: T,
+  proto: ProtoType<E>,
+) => async (options?: ExtraOptions) => {
+
+
+
+  return object;
+};
+
 export const objectMethods = <T extends TObject | TObject[] | undefined, E>(object: T, proto: ProtoType<E>): T => {
 
   if (_.isNil(object)) return undefined as T;
@@ -40,7 +50,17 @@ export const objectMethods = <T extends TObject | TObject[] | undefined, E>(obje
   const extensions = classExtends[object.className as keyof E] ?? {};
   const query = (options?: ExtraOptions) => proto.Query(object.className, options).filter({ _id: object.objectId });
 
-  const ownKeys = Object.getOwnPropertyNames(Object.getPrototypeOf(object));
+  const saveMethods = {
+    '_File': fileSaveMethods(object, proto),
+    default: async (options?: ExtraOptions) => {
+      const updated = await query(options).findOneAndUpdate(object[PVK].mutated);
+      if (updated) {
+        object[PVK].attributes = updated.attributes;
+        object[PVK].mutated = {};
+      }
+      return object;
+    },
+  };
 
   return Object.defineProperties(object, {
     ..._.mapValues(extensions, value => _.isFunction(value) ? { value } : value),
@@ -55,14 +75,7 @@ export const objectMethods = <T extends TObject | TObject[] | undefined, E>(obje
       },
     },
     save: {
-      value: async (options?: ExtraOptions) => {
-        const updated = await query(options).findOneAndUpdate(object[PVK].mutated);
-        if (updated) {
-          object[PVK].attributes = updated.attributes;
-          object[PVK].mutated = {};
-        }
-        return object;
-      },
+      value: saveMethods[object.className as keyof typeof saveMethods] ?? saveMethods.default,
     },
     destory: {
       value: async (options?: ExtraOptions) => {
