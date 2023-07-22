@@ -33,7 +33,7 @@ import functionRoute from './server/routes/function';
 import { PVK } from './common/private';
 
 export * from './common';
-export * from './server';
+export { Proto } from './server';
 export { ProtoClient } from './client';
 
 export const ProtoRoute = async <E>(options: {
