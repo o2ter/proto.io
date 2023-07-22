@@ -48,7 +48,7 @@ export class ProtoClient<Ext> implements ProtoType<Ext> {
   [PVK]: ProtoClientInternal<Ext>;
 
   constructor(options: ProtoOptions<Ext>) {
-    this[PVK] = new ProtoClientInternal(this, options);
+    this[PVK] = new ProtoClientInternal(this, { ...options });
   }
 
   Object<T extends string>(className: T): TObjectType<T, Ext> {
