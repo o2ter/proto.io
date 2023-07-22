@@ -26,6 +26,7 @@
 import _ from 'lodash';
 import { PVK } from '../private';
 import { ExtraOptions } from '../options';
+import { TSchema } from '../schema';
 
 export enum UpdateOperation {
   set = 'set',
@@ -48,7 +49,7 @@ export interface TObject {
 
 export class TObject {
 
-  static defaultKeys = ['_id', '_created_at', '_updated_at'];
+  static defaultKeys = ['_id', '_created_at', '_updated_at', '_acl'];
 
   [PVK]: {
     className: string;
@@ -85,6 +86,10 @@ export class TObject {
 
   get updatedAt(): Date | undefined {
     return this[PVK].attributes._updated_at;
+  }
+
+  get acl(): TSchema.ACLs<'read' | 'write'> {
+    return this[PVK].attributes._acl;
   }
 
   keys(): string[] {

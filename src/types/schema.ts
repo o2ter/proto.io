@@ -25,6 +25,7 @@
 
 export namespace TSchema {
   export type ACL = string[];
+  export type ACLs<T extends string> = Record<T, TSchema.ACL>;
   export type Primitive = 'boolean' | 'number' | 'decimal' | 'string' | 'date' | 'object' | 'array' | 'file';
   export type Relation = 'pointer' | 'relation';
   export type DataType = Primitive | { type: Primitive } | { type: Relation, target: string };
@@ -39,7 +40,7 @@ export namespace TSchema {
 
 export interface TSchema {
   fields: Record<string, TSchema.DataType>;
-  fieldLevelPermissions?: Record<string, TSchema.ACL>;
+  fieldLevelPermissions?: TSchema.ACLs<string>;
   classLevelPermissions?: TSchema.CLPs;
   indexes?: Record<string, Record<string, 1 | -1>>;
 }
