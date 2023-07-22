@@ -33,16 +33,13 @@ import { applyObjectMethods } from '../../common/object/methods';
 
 export default <E>(router: Router, payload: Proto<E>) => {
 
-  const { functions } = payload;
-  if (_.isEmpty(functions)) return router;
-
   router.post(
     '/functions/:name',
     express.text({ type: '*/*' }),
     async (req, res) => {
 
       const { name } = req.params;
-      if (_.isNil(functions[name])) return res.sendStatus(404);
+      if (_.isNil(payload[PVK].functions[name])) return res.sendStatus(404);
 
       await response(res, async () => {
 

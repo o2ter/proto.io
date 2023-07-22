@@ -27,7 +27,7 @@ import _ from 'lodash';
 import { ExtraOptions } from '../common/options';
 import { defaultSchema } from './defaults';
 import { ProtoInternalType } from '../common/proto';
-import { Proto, ProtoOptions } from './index';
+import { Proto, ProtoOptions, ProtoFunction, ProtoFunctionOptions, ProtoTrigger } from './index';
 import { TFile } from '../common/object/file';
 
 export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
@@ -35,9 +35,23 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
   proto: Proto<Ext>;
   options: ProtoOptions<Ext>;
 
+  functions: Record<string, ProtoFunction<Ext> | ProtoFunctionOptions<Ext>>;
+  triggers: {
+    beforeSave?: Record<string, ProtoTrigger<string, Ext>>;
+    afterSave?: Record<string, ProtoTrigger<string, Ext>>;
+    beforeDelete?: Record<string, ProtoTrigger<string, Ext>>;
+    afterDelete?: Record<string, ProtoTrigger<string, Ext>>;
+    beforeSaveFile?: ProtoTrigger<'_File', Ext>;
+    afterSaveFile?: ProtoTrigger<'_File', Ext>;
+    beforeDeleteFile?: ProtoTrigger<'_File', Ext>;
+    afterDeleteFile?: ProtoTrigger<'_File', Ext>;
+  };
+
   constructor(proto: Proto<Ext>, options: ProtoOptions<Ext>) {
     this.proto = proto;
     this.options = options;
+    this.functions = {};
+    this.triggers = {};
   }
 
   async prepare() {
@@ -46,7 +60,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
 
   async run(name: string, payload: any, options?: ExtraOptions) {
 
-    const func = this.options.functions?.[name];
+    const func = this.functions?.[name];
 
     if (_.isNil(func)) return null;
     if (_.isFunction(func)) return func(payload ?? this.proto);
@@ -63,16 +77,16 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
 
   async saveFile(object: TFile, options?: ExtraOptions) {
 
-    const beforeSave = this.proto.triggers?.beforeSaveFile;
-    const afterSave = this.proto.triggers?.afterSaveFile;
+    const beforeSave = this.triggers?.beforeSaveFile;
+    const afterSave = this.triggers?.afterSaveFile;
 
     return object;
   }
 
   async deleteFile(object: TFile, options?: ExtraOptions) {
 
-    const beforeDelete = this.proto.triggers?.beforeDeleteFile;
-    const afterDelete = this.proto.triggers?.afterDeleteFile;
+    const beforeDelete = this.triggers?.beforeDeleteFile;
+    const afterDelete = this.triggers?.afterDeleteFile;
 
     return object;
   }

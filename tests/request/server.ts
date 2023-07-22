@@ -25,27 +25,28 @@
 
 import _ from 'lodash';
 import express from 'express';
-import { ProtoRoute, UUID } from '../../src/index';
+import { Proto, ProtoRoute, UUID } from '../../src/index';
 import { beforeAll, afterAll } from '@jest/globals';
 import { MemoryStorage } from '../../src/storage/memory';
 
 let httpServer: any;
 
+const proto = new Proto({
+  schema: {},
+  storage: new MemoryStorage(),
+});
+
+proto.define('echo', (req) => {
+  return req.data;
+});
+
 beforeAll(async () => {
 
   const app = express();
-  
+
   app.use(await ProtoRoute({
     jwtToken: (new UUID()).toString(),
-    proto: {
-      schema: {},
-      storage: new MemoryStorage(),
-      functions: {
-        echo: (req) => {
-          return req.data;
-        }
-      }
-    },
+    proto: proto,
   }));
   
   httpServer = require('http-shutdown')(require('http').createServer(app));

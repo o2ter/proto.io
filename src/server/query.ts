@@ -90,8 +90,8 @@ export const queryMethods = <T extends string, E>(
     },
     insert: {
       value: async (attrs: any) => {
-        const beforeSave = proto.triggers?.beforeSave?.[query.className];
-        const afterSave = proto.triggers?.afterSave?.[query.className];
+        const beforeSave = proto[PVK].triggers?.beforeSave?.[query.className];
+        const afterSave = proto[PVK].triggers?.afterSave?.[query.className];
         if (!options?.master && !_validateCLPs('create')) throw new Error('No permission');
 
         const context = {};
@@ -113,8 +113,8 @@ export const queryMethods = <T extends string, E>(
     },
     findOneAndUpdate: {
       value: async (update: Record<string, [UpdateOperation, any]>) => {
-        const beforeSave = proto.triggers?.beforeSave?.[query.className];
-        const afterSave = proto.triggers?.afterSave?.[query.className];
+        const beforeSave = proto[PVK].triggers?.beforeSave?.[query.className];
+        const afterSave = proto[PVK].triggers?.afterSave?.[query.className];
         if (!options?.master && !_validateCLPs('update')) throw new Error('No permission');
 
         const context = {};
@@ -140,8 +140,8 @@ export const queryMethods = <T extends string, E>(
     },
     findOneAndReplace: {
       value: async (replacement: Record<string, any>) => {
-        const beforeSave = proto.triggers?.beforeSave?.[query.className];
-        const afterSave = proto.triggers?.afterSave?.[query.className];
+        const beforeSave = proto[PVK].triggers?.beforeSave?.[query.className];
+        const afterSave = proto[PVK].triggers?.afterSave?.[query.className];
         if (!options?.master && !_validateCLPs('update')) throw new Error('No permission');
 
         const context = {};
@@ -170,8 +170,8 @@ export const queryMethods = <T extends string, E>(
     },
     findOneAndUpsert: {
       value: async (update: Record<string, [UpdateOperation, any]>, setOnInsert: Record<string, any>) => {
-        const beforeSave = proto.triggers?.beforeSave?.[query.className];
-        const afterSave = proto.triggers?.afterSave?.[query.className];
+        const beforeSave = proto[PVK].triggers?.beforeSave?.[query.className];
+        const afterSave = proto[PVK].triggers?.afterSave?.[query.className];
         if (!options?.master && !_validateCLPs('create', 'update')) throw new Error('No permission');
 
         const context = {};
@@ -217,8 +217,8 @@ export const queryMethods = <T extends string, E>(
     },
     findOneAndDelete: {
       value: async () => {
-        const beforeDelete = proto.triggers?.beforeDelete?.[query.className];
-        const afterDelete = proto.triggers?.afterDelete?.[query.className];
+        const beforeDelete = proto[PVK].triggers?.beforeDelete?.[query.className];
+        const afterDelete = proto[PVK].triggers?.afterDelete?.[query.className];
         if (!options?.master && !_validateCLPs('delete')) throw new Error('No permission');
 
         const context = {};
@@ -252,8 +252,8 @@ export const queryMethods = <T extends string, E>(
     },
     findAndDelete: {
       value: async () => {
-        const beforeDelete = proto.triggers?.beforeDelete?.[query.className];
-        const afterDelete = proto.triggers?.afterDelete?.[query.className];
+        const beforeDelete = proto[PVK].triggers?.beforeDelete?.[query.className];
+        const afterDelete = proto[PVK].triggers?.afterDelete?.[query.className];
         if (!options?.master && !_validateCLPs('delete')) throw new Error('No permission');
 
         const context = {};

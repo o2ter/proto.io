@@ -40,8 +40,8 @@ import { FileData } from '../common/object/file';
 import { ProtoInternal } from './internal';
 
 type Callback<T, R, E> = (request: Proto<E> & T) => R | PromiseLike<R>;
-type ProtoFunction<E> = Callback<{ data: TSerializable; }, TSerializable, E>;
-type ProtoTrigger<T, E> = Callback<{ object: TObjectType<T, E>; context: object; }, void, E>;
+export type ProtoFunction<E> = Callback<{ data: TSerializable; }, TSerializable, E>;
+export type ProtoTrigger<T, E> = Callback<{ object: TObjectType<T, E>; context: object; }, void, E>;
 
 type Validator = {
   requireUser?: boolean;
@@ -50,7 +50,7 @@ type Validator = {
   requireAllUserRoles?: string[];
 };
 
-type ProtoFunctionOptions<E> = {
+export type ProtoFunctionOptions<E> = {
   callback: ProtoFunction<E>;
   validator?: Validator;
 };
@@ -59,17 +59,6 @@ export type ProtoOptions<Ext> = {
   schema: Record<string, TSchema>;
   storage: TStorage;
   classExtends?: TExtensions<Ext>;
-  functions?: Record<string, ProtoFunction<Ext> | ProtoFunctionOptions<Ext>>;
-  triggers?: {
-    beforeSave?: Record<string, ProtoTrigger<string, Ext>>;
-    afterSave?: Record<string, ProtoTrigger<string, Ext>>;
-    beforeDelete?: Record<string, ProtoTrigger<string, Ext>>;
-    afterDelete?: Record<string, ProtoTrigger<string, Ext>>;
-    beforeSaveFile?: ProtoTrigger<'_File', Ext>;
-    afterSaveFile?: ProtoTrigger<'_File', Ext>;
-    beforeDeleteFile?: ProtoTrigger<'_File', Ext>;
-    afterDeleteFile?: ProtoTrigger<'_File', Ext>;
-  },
 };
 
 export class Proto<Ext> implements ProtoType<Ext> {
@@ -77,7 +66,7 @@ export class Proto<Ext> implements ProtoType<Ext> {
   [PVK]: ProtoInternal<Ext>;
 
   constructor(options: ProtoOptions<Ext>) {
-    this[PVK] = new ProtoInternal(this, options);
+    this[PVK] = new ProtoInternal(this, { ...options });
   }
 
   classes(): string[] | PromiseLike<string[]> {
@@ -117,14 +106,6 @@ export class Proto<Ext> implements ProtoType<Ext> {
     return this[PVK].options.storage;
   }
 
-  get functions(): ProtoOptions<Ext>['functions'] {
-    return this[PVK].options.functions;
-  }
-
-  get triggers(): ProtoOptions<Ext>['triggers'] {
-    return this[PVK].options.triggers;
-  }
-
   run(name: string, data?: TSerializable, options?: ExtraOptions) {
     const payload = Object.setPrototypeOf({ data: data ?? null }, this);
     return this[PVK].run(name, payload, options);
@@ -135,44 +116,35 @@ export class Proto<Ext> implements ProtoType<Ext> {
     callback: ProtoFunction<Ext>,
     options?: Omit<ProtoFunctionOptions<Ext>, 'callback'>,
   ) {
-    if (!this[PVK].options.functions) this[PVK].options.functions = {};
-    this[PVK].options.functions[name] = options ? { callback, ...options } : callback;
+    this[PVK].functions[name] = options ? { callback, ...options } : callback;
   }
 
   beforeSave<T extends string>(name: T, callback: ProtoTrigger<T, Ext>) {
-    if (!this[PVK].options.triggers) this[PVK].options.triggers = {};
-    if (!this[PVK].options.triggers.beforeSave) this[PVK].options.triggers.beforeSave = {};
-    this[PVK].options.triggers.beforeSave[name] = callback as ProtoTrigger<string, Ext>;
+    if (!this[PVK].triggers.beforeSave) this[PVK].triggers.beforeSave = {};
+    this[PVK].triggers.beforeSave[name] = callback as ProtoTrigger<string, Ext>;
   }
   afterSave<T extends string>(name: T, callback: ProtoTrigger<T, Ext>) {
-    if (!this[PVK].options.triggers) this[PVK].options.triggers = {};
-    if (!this[PVK].options.triggers.afterSave) this[PVK].options.triggers.afterSave = {};
-    this[PVK].options.triggers.afterSave[name] = callback as ProtoTrigger<string, Ext>;
+    if (!this[PVK].triggers.afterSave) this[PVK].triggers.afterSave = {};
+    this[PVK].triggers.afterSave[name] = callback as ProtoTrigger<string, Ext>;
   }
   beforeDelete<T extends string>(name: T, callback: ProtoTrigger<T, Ext>) {
-    if (!this[PVK].options.triggers) this[PVK].options.triggers = {};
-    if (!this[PVK].options.triggers.beforeDelete) this[PVK].options.triggers.beforeDelete = {};
-    this[PVK].options.triggers.beforeDelete[name] = callback as ProtoTrigger<string, Ext>;
+    if (!this[PVK].triggers.beforeDelete) this[PVK].triggers.beforeDelete = {};
+    this[PVK].triggers.beforeDelete[name] = callback as ProtoTrigger<string, Ext>;
   }
   afterDelete<T extends string>(name: T, callback: ProtoTrigger<T, Ext>) {
-    if (!this[PVK].options.triggers) this[PVK].options.triggers = {};
-    if (!this[PVK].options.triggers.afterDelete) this[PVK].options.triggers.afterDelete = {};
-    this[PVK].options.triggers.afterDelete[name] = callback as ProtoTrigger<string, Ext>;
+    if (!this[PVK].triggers.afterDelete) this[PVK].triggers.afterDelete = {};
+    this[PVK].triggers.afterDelete[name] = callback as ProtoTrigger<string, Ext>;
   }
   beforeSaveFile(callback: ProtoTrigger<'_File', Ext>) {
-    if (!this[PVK].options.triggers) this[PVK].options.triggers = {};
-    this[PVK].options.triggers.beforeSaveFile = callback;
+    this[PVK].triggers.beforeSaveFile = callback;
   }
   afterSaveFile(callback: ProtoTrigger<'_File', Ext>) {
-    if (!this[PVK].options.triggers) this[PVK].options.triggers = {};
-    this[PVK].options.triggers.afterSaveFile = callback;
+    this[PVK].triggers.afterSaveFile = callback;
   }
   beforeDeleteFile(callback: ProtoTrigger<'_File', Ext>) {
-    if (!this[PVK].options.triggers) this[PVK].options.triggers = {};
-    this[PVK].options.triggers.beforeDeleteFile = callback;
+    this[PVK].triggers.beforeDeleteFile = callback;
   }
   afterDeleteFile(callback: ProtoTrigger<'_File', Ext>) {
-    if (!this[PVK].options.triggers) this[PVK].options.triggers = {};
-    this[PVK].options.triggers.afterDeleteFile = callback;
+    this[PVK].triggers.afterDeleteFile = callback;
   }
 }
