@@ -47,12 +47,8 @@ type ReadOnlyProperty<T> = Pick<PropertyDescriptor<T>, 'get'>;
 type ReadWriteProperty<T> = Required<Pick<PropertyDescriptor<T>, 'get' | 'set'>>;
 
 type PropertyMapToMethods<T> = PickBy<T, Function> &
-  {
-    [P in keyof PickBy<T, ReadWriteProperty<any>>]: T[P] extends PropertyDescriptor<infer V> ? V : never;
-  } &
-  {
-    readonly [P in keyof PickBy<T, ReadOnlyProperty<any>>]: T[P] extends PropertyDescriptor<infer V> ? V : never;
-  }
+  { [P in keyof PickBy<T, ReadWriteProperty<any>>]: T[P] extends PropertyDescriptor<infer V> ? V : never; } &
+  { readonly [P in keyof PickBy<T, ReadOnlyProperty<any>>]: T[P] extends PropertyDescriptor<infer V> ? V : never; }
 type Property<T> = T extends Function ? T | PropertyDescriptor<T> : PropertyDescriptor<T>;
 type PropertyMap<T, O> = {
   [K in keyof T]: T[K] extends Property<any> ? T[K] : never;
