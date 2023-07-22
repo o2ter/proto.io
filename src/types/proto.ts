@@ -27,12 +27,14 @@ import { PVK } from './private';
 import { ExtraOptions } from './options';
 import { TQuery } from './query';
 import { TExtensions, TObjectType } from './object/types';
+import { FileData } from './object/file';
 
 export interface ProtoType<Ext> {
 
   [PVK]: { options: { classExtends?: TExtensions<Ext>; }; };
 
   Object<T extends string>(className: T): TObjectType<T, Ext>;
-  Query<T extends string>(className: T, options?: ExtraOptions): TQuery<T, Ext>;
+  File(filename: string, data: FileData, type?: string): TObjectType<'_File', Ext>;
 
+  Query<T extends string>(className: T, options?: ExtraOptions): TQuery<T, Ext>;
 };

@@ -38,6 +38,7 @@ import { ExtraOptions } from '../types/options';
 import { isObjKey } from '../utils';
 import { defaultSchema } from './defaults';
 import { ProtoType } from '../types/proto';
+import { FileData } from '../types/object/file';
 
 type Callback<T, R, E> = (request: Proto<E> & T) => R | PromiseLike<R>;
 type ProtoFunction<E> = Callback<{ data: TSerializable; }, TSerializable, E>;
@@ -87,6 +88,14 @@ export class Proto<Ext> implements ProtoType<Ext> {
   Object<T extends string>(className: T): TObjectType<T, Ext> {
     const obj = isObjKey(className, TObjectTypes) ? new TObjectTypes[className] : new TObject(className);
     return objectMethods(obj as TObjectType<T, Ext>, this);
+  }
+
+  File(filename: string, data: FileData, type?: string) {
+    const file = this.Object('_File');
+    file.set('filename', filename);
+    file.set('data', data);
+    file.set('type', type);
+    return file;
   }
 
   Query<T extends string>(className: T, options?: ExtraOptions): TQuery<T, Ext> {

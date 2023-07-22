@@ -35,6 +35,7 @@ import { objectMethods, applyIOObjectMethods } from '../types/object/methods';
 import { RequestOptions } from './options';
 import { PVK } from '../types/private';
 import { ProtoType } from '../types/proto';
+import { FileData } from '../types/object/file';
 
 export * from '../common';
 
@@ -60,6 +61,14 @@ export class Proto<Ext> implements ProtoType<Ext> {
   Object<T extends string>(className: T): TObjectType<T, Ext> {
     const obj = isObjKey(className, TObjectTypes) ? new TObjectTypes[className] : new TObject(className);
     return objectMethods(obj as TObjectType<T, Ext>, this);
+  }
+
+  File(filename: string, data: FileData, type?: string) {
+    const file = this.Object('_File');
+    file.set('filename', filename);
+    file.set('data', data);
+    file.set('type', type);
+    return file;
   }
 
   Query<T extends string>(className: T, options?: RequestOptions): TQuery<T, Ext> {
