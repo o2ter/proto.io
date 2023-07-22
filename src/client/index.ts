@@ -25,11 +25,11 @@
 
 import { TSerializable } from '../common/codec';
 import { TQuery } from '../common/query';
-import { queryMethods } from './query';
+import { applyQueryMethods } from './query';
 import { TObject } from '../common/object';
 import { TExtensions, TObjectType, TObjectTypes } from '../common/object/types';
 import { isObjKey } from '../common/utils';
-import { objectMethods } from '../common/object/methods';
+import { applyObjectMethods } from '../common/object/methods';
 import { RequestOptions } from './options';
 import { PVK } from '../common/private';
 import { ProtoType } from '../common/proto';
@@ -53,7 +53,7 @@ export class ProtoClient<Ext> implements ProtoType<Ext> {
 
   Object<T extends string>(className: T): TObjectType<T, Ext> {
     const obj = isObjKey(className, TObjectTypes) ? new TObjectTypes[className] : new TObject(className);
-    return objectMethods(obj as TObjectType<T, Ext>, this);
+    return applyObjectMethods(obj as TObjectType<T, Ext>, this);
   }
 
   File(filename: string, data: FileData, type?: string) {
@@ -65,7 +65,7 @@ export class ProtoClient<Ext> implements ProtoType<Ext> {
   }
 
   Query<T extends string>(className: T, options?: RequestOptions): TQuery<T, Ext> {
-    return queryMethods(new TQuery<T, Ext>(className), this, options);
+    return applyQueryMethods(new TQuery<T, Ext>(className), this, options);
   }
 
   async run(

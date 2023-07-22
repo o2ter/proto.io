@@ -30,7 +30,7 @@ import { TObject, UpdateOperation } from '../common/object';
 import { TSchema } from '../common/schema';
 import { PVK } from '../common/private';
 import { ExtraOptions } from '../common/options';
-import { objectMethods } from '../common/object/methods';
+import { applyObjectMethods } from '../common/object/methods';
 import { asyncIterableToArray } from '../common/utils';
 
 const validateCLPs = (
@@ -45,7 +45,7 @@ const validateCLPs = (
   return true;
 }
 
-export const queryMethods = <T extends string, E>(
+export const applyQueryMethods = <T extends string, E>(
   query: TQuery<T, E>,
   proto: Proto<E>,
   options?: ExtraOptions,
@@ -85,7 +85,7 @@ export const queryMethods = <T extends string, E>(
     [Symbol.asyncIterator]: {
       value: async function* () {
         if (!options?.master && !_validateCLPs('find')) throw new Error('No permission');
-        for await (const object of proto.storage.find(queryOptions())) yield objectMethods(object, proto);
+        for await (const object of proto.storage.find(queryOptions())) yield applyObjectMethods(object, proto);
       },
     },
     insert: {
@@ -103,7 +103,7 @@ export const queryMethods = <T extends string, E>(
 
         if (_.isFunction(beforeSave)) await beforeSave(Object.setPrototypeOf({ object, context }, proto));
 
-        const result = objectMethods(
+        const result = applyObjectMethods(
           await proto.storage.insert(query.className, _.fromPairs(object.keys().map(k => [k, object.get(k)]))),
           proto,
         );
@@ -121,7 +121,7 @@ export const queryMethods = <T extends string, E>(
 
         if (_.isFunction(beforeSave)) {
 
-          const object = objectMethods(_.first(await asyncIterableToArray(proto.storage.find({ ...queryOptions(), limit: 1 }))), proto);
+          const object = applyObjectMethods(_.first(await asyncIterableToArray(proto.storage.find({ ...queryOptions(), limit: 1 }))), proto);
           if (!object) return undefined;
 
           object[PVK].mutated = _.omit(update, ...TObject.defaultReadonlyKeys);
@@ -130,7 +130,7 @@ export const queryMethods = <T extends string, E>(
           update = object[PVK].mutated;
         }
 
-        const result = objectMethods(
+        const result = applyObjectMethods(
           await proto.storage.findOneAndUpdate(queryOptions(), _.omit(update, ...TObject.defaultReadonlyKeys)),
           proto,
         );
@@ -148,7 +148,7 @@ export const queryMethods = <T extends string, E>(
 
         if (_.isFunction(beforeSave)) {
 
-          const object = objectMethods(_.first(await asyncIterableToArray(proto.storage.find({ ...queryOptions(), limit: 1 }))), proto);
+          const object = applyObjectMethods(_.first(await asyncIterableToArray(proto.storage.find({ ...queryOptions(), limit: 1 }))), proto);
           if (!object) return undefined;
 
           object[PVK].mutated = _.mapValues(_.omit(replacement, ...TObject.defaultReadonlyKeys), v => [UpdateOperation.set, v]);
@@ -160,7 +160,7 @@ export const queryMethods = <T extends string, E>(
           }
         }
 
-        const result = objectMethods(
+        const result = applyObjectMethods(
           await proto.storage.findOneAndReplace(queryOptions(), _.omit(replacement, ...TObject.defaultReadonlyKeys)),
           proto,
         );
@@ -178,7 +178,7 @@ export const queryMethods = <T extends string, E>(
 
         if (_.isFunction(beforeSave)) {
 
-          let object = objectMethods(_.first(await asyncIterableToArray(proto.storage.find({ ...queryOptions(), limit: 1 }))), proto);
+          let object = applyObjectMethods(_.first(await asyncIterableToArray(proto.storage.find({ ...queryOptions(), limit: 1 }))), proto);
 
           if (object) {
             object[PVK].mutated = _.omit(update, ...TObject.defaultReadonlyKeys);
@@ -203,7 +203,7 @@ export const queryMethods = <T extends string, E>(
           }
         }
 
-        const result = objectMethods(
+        const result = applyObjectMethods(
           await proto.storage.findOneAndUpsert(
             queryOptions(),
             _.omit(update, ...TObject.defaultReadonlyKeys),
@@ -226,12 +226,12 @@ export const queryMethods = <T extends string, E>(
 
         if (_.isFunction(beforeDelete)) {
 
-          const object = objectMethods(_.first(await asyncIterableToArray(proto.storage.find({ ...queryOptions(), limit: 1 }))), proto);
+          const object = applyObjectMethods(_.first(await asyncIterableToArray(proto.storage.find({ ...queryOptions(), limit: 1 }))), proto);
           if (!object) return undefined;
 
           await beforeDelete(Object.setPrototypeOf({ object, context }, proto));
 
-          result = objectMethods(
+          result = applyObjectMethods(
             await proto.storage.findOneAndDelete({
               ...queryOptions(),
               filter: { _id: object.objectId },
@@ -240,7 +240,7 @@ export const queryMethods = <T extends string, E>(
           );
 
         } else {
-          result = objectMethods(
+          result = applyObjectMethods(
             await proto.storage.findOneAndDelete(queryOptions()),
             proto,
           );
@@ -260,7 +260,7 @@ export const queryMethods = <T extends string, E>(
 
         if (_.isFunction(beforeDelete) || _.isFunction(afterDelete)) {
 
-          const objects = objectMethods(await asyncIterableToArray(proto.storage.find(queryOptions())), proto);
+          const objects = applyObjectMethods(await asyncIterableToArray(proto.storage.find(queryOptions())), proto);
           if (_.isEmpty(objects)) return 0;
 
           if (_.isFunction(beforeDelete)) {

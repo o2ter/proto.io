@@ -32,13 +32,16 @@ import { ProtoType } from '../proto';
 import { TSerializable } from '../codec';
 import { TFile } from './file';
 
-export const objectMethods = <T extends TObject | TObject[] | undefined, E>(
+export const applyObjectMethods = <T extends TSerializable | undefined, E>(
   object: T,
   proto: ProtoType<E>,
 ): T => {
 
-  if (_.isNil(object)) return undefined as T;
-  if (_.isArray(object)) return _.map(object, x => objectMethods(x, proto)) as T;
+  if (!(object instanceof TObject)) {
+    if (_.isArray(object)) return _.map(object, x => applyObjectMethods(x, proto)) as T;
+    if (_.isPlainObject(object)) return _.mapValues(object as any, x => applyObjectMethods(x, proto));
+    return object;
+  }
 
   const classExtends = proto[PVK].options.classExtends ?? {} as TExtensions<E>;
   const extensions = classExtends[object.className as keyof E] ?? {};
@@ -96,14 +99,4 @@ export const objectMethods = <T extends TObject | TObject[] | undefined, E>(
       value: destoryMethods[object.className as keyof typeof destoryMethods] ?? destoryMethods.default,
     }
   });
-};
-
-export const applyObjectMethods = <E>(
-  data: TSerializable,
-  proto: ProtoType<E>,
-): TSerializable => {
-  if (data instanceof TObject) return objectMethods(data, proto);
-  if (_.isArray(data)) return _.map(data, x => applyObjectMethods(x, proto));
-  if (_.isPlainObject(data)) return _.mapValues(data as any, x => applyObjectMethods(x, proto));
-  return data;
 };

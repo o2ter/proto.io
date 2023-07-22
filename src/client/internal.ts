@@ -61,7 +61,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
       throw new Error(error.message, { cause: error });
     }
 
-    return applyObjectMethods<Ext>(deserialize(res.data), this.proto);
+    return applyObjectMethods(deserialize(res.data), this.proto);
   }
 
   async saveFile(object: TFile, options?: ExtraOptions) {

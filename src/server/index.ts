@@ -29,8 +29,8 @@ import { TSchema } from '../common/schema';
 import { TQuery } from '../common/query';
 import { TObject } from '../common/object';
 import { TExtensions, TObjectType, TObjectTypes } from '../common/object/types';
-import { queryMethods } from './query';
-import { objectMethods } from '../common/object/methods';
+import { applyQueryMethods } from './query';
+import { applyObjectMethods } from '../common/object/methods';
 import { TUser } from '../common/object/user';
 import { PVK } from '../common/private';
 import { ExtraOptions } from '../common/options';
@@ -75,7 +75,7 @@ export class Proto<Ext> implements ProtoType<Ext> {
 
   Object<T extends string>(className: T): TObjectType<T, Ext> {
     const obj = isObjKey(className, TObjectTypes) ? new TObjectTypes[className] : new TObject(className);
-    return objectMethods(obj as TObjectType<T, Ext>, this);
+    return applyObjectMethods(obj as TObjectType<T, Ext>, this);
   }
 
   File(filename: string, data: FileData, type?: string) {
@@ -87,7 +87,7 @@ export class Proto<Ext> implements ProtoType<Ext> {
   }
 
   Query<T extends string>(className: T, options?: ExtraOptions): TQuery<T, Ext> {
-    return queryMethods(new TQuery<T, Ext>(className), this, options);
+    return applyQueryMethods(new TQuery<T, Ext>(className), this, options);
   }
 
   get user(): TUser | undefined {

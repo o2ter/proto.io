@@ -30,7 +30,7 @@ import { PVK } from '../common/private';
 import ProtoClient from './index';
 import { RequestOptions } from './options';
 
-export const queryMethods = <T extends string, E>(query: TQuery<T, E>, proto: ProtoClient<E>, options?: RequestOptions) => {
+export const applyQueryMethods = <T extends string, E>(query: TQuery<T, E>, proto: ProtoClient<E>, options?: RequestOptions) => {
 
   const queryOptions = () => ({
     className: query[PVK].className,
