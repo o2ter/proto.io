@@ -24,10 +24,10 @@
 //
 
 import _ from 'lodash';
-import { TFilterQuery } from './filter';
-import { UpdateOperation } from './object';
-import { PVK } from './private';
-import { TObjectType } from './object/types';
+import { TFilterQuery } from './types';
+import { UpdateOperation } from '../object';
+import { PVK } from '../private';
+import { TObjectType } from '../object/types';
 
 export namespace TQuery {
   export interface Options {
