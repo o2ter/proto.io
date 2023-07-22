@@ -25,7 +25,6 @@
 
 import _ from 'lodash';
 import { TObject } from '.';
-import { ExtraOptions } from '../options';
 
 export type FileData = string | Blob | Buffer | ReadableStream | { base64: string } | { uri: string };
 
