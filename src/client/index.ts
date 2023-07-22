@@ -68,7 +68,7 @@ export class Proto<Ext> implements ProtoType<Ext> {
     const file = this.Object('_File');
     file.set('filename', filename);
     file.set('type', type);
-    file[PVK].data = data;
+    file[PVK].extra.data = data;
     return file;
   }
 

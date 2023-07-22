@@ -42,6 +42,7 @@ export enum UpdateOperation {
 }
 
 export interface TObject {
+  clone(): TObject;
   fetchWithInclude(keys: string[], options?: ExtraOptions): PromiseLike<this>;
   save(options?: ExtraOptions): PromiseLike<this>;
   destory(options?: ExtraOptions): PromiseLike<this>;
@@ -56,7 +57,8 @@ export class TObject {
     className: string;
     attributes: Record<string, any>;
     mutated: Record<string, [UpdateOperation, any]>;
-  } & Record<string, any>;
+    extra: Record<string, any>;
+  };
 
   constructor(
     className: string,
@@ -66,6 +68,7 @@ export class TObject {
       className,
       attributes: _.isFunction(attributes) ? attributes(this) : attributes ?? {},
       mutated: {},
+      extra: {},
     }
   }
 
