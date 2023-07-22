@@ -35,6 +35,6 @@ const classLevelPermissions: Record<string, TSchema.CLPs> = {
 
 const fieldLevelPermissions: Record<string, Record<string, TSchema.ACLs>> = {
   '_User': {
-    password: { read: [] },
+    password: { read: [], write: [] },
   }
 }
