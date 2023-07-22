@@ -64,7 +64,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     return applyObjectMethods(deserialize(res.data), this.proto);
   }
 
-  async saveFile(object: TFile, options?: ExtraOptions) {
+  async saveFile(object: TFile, options?: RequestOptions) {
 
 
     return object;
