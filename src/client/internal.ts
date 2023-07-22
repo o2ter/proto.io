@@ -93,6 +93,9 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
         attributes: serialize(_.fromPairs(object.keys().map(k => [k, object.get(k)])), serializeOpts),
         file: data,
       },
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
       ...opts
     });
 

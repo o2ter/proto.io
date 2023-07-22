@@ -24,19 +24,30 @@
 //
 
 import _ from 'lodash';
-import express, { Router } from 'express';
+import { Router } from 'express';
 import { Proto } from '../../server';
+import busboy from 'busboy';
 
 export default <E>(router: Router, payload: Proto<E>) => {
 
   router.post(
     '/files',
-    express.text({ type: '*/*' }),
-    async (req, res) => {
+    (req, res) => {
+      const formData = busboy(req);
 
-      console.log(req)
+      formData.on('field', (name, val, info) => {
+        console.log(name, val, info)
+      });
 
-      res.status(200);
+      formData.on('file', (name, file, info) => {
+        console.log(name, file, info)
+      });
+
+      formData.on('close', () => {
+        res.json({});
+      });
+
+      req.pipe(formData);
     }
   );
 

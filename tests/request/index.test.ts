@@ -24,6 +24,7 @@
 //
 
 import './server';
+import fs from 'fs';
 import { test, expect } from '@jest/globals';
 import { UUID } from 'bson';
 import Decimal from 'decimal.js';
@@ -49,4 +50,12 @@ test('test codec', async () => {
 
   const result = await proto.run('echo', obj);
   expect(result).toStrictEqual(obj);
+});
+test('test files', async () => {
+  const file = proto.File('test.txt', 'hello, world');
+  await file.save();
+});
+test('test files 2', async () => {
+  const file = proto.File('test.txt', fs.createReadStream(__filename));
+  await file.save();
 });
