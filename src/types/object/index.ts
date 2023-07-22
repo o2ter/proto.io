@@ -56,7 +56,7 @@ export class TObject {
     className: string;
     attributes: Record<string, any>;
     mutated: Record<string, [UpdateOperation, any]>;
-  };
+  } & Record<string, any>;
 
   constructor(
     className: string,
