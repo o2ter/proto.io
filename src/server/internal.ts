@@ -72,8 +72,6 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     if (!_.find(validator?.requireAnyUserRoles, x => _.includes(this.proto.roles, x))) throw new Error('No permission');
     if (_.find(validator?.requireAllUserRoles, x => !_.includes(this.proto.roles, x))) throw new Error('No permission');
 
-    if (!_.isFunction(callback)) throw new Error('Invalid callback type');
-
     return callback(payload ?? this.proto);
   }
 
