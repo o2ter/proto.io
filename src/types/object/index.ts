@@ -89,7 +89,7 @@ export class TObject {
   }
 
   get acl(): TSchema.ACLs<'read' | 'write'> {
-    return this.get('_acl');
+    return this.get('_acl') ?? {};
   }
 
   set acl(value: TSchema.ACLs<'read' | 'write'>) {
