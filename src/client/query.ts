@@ -41,7 +41,7 @@ export const queryMethods = <E, T extends string>(query: TQuery<E, T>, proto: Pr
     method: 'post',
     url: `classes/${query.className}`,
     serializeOpts: {
-      objAttrs: TObject.defaultKeys,
+      objAttrs: TObject.defaultReadonlyKeys,
     },
     ...(options ?? {}),
   };

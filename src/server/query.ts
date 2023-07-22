@@ -97,7 +97,7 @@ export const queryMethods = <E, T extends string>(
         const context = {};
 
         const object = proto.object(query.className);
-        for (const [key, value] of _.toPairs(_.omit(attrs, ...TObject.defaultKeys))) {
+        for (const [key, value] of _.toPairs(_.omit(attrs, ...TObject.defaultReadonlyKeys))) {
           object[PVK].mutated[key] = [UpdateOperation.set, value];
         }
 
@@ -124,14 +124,14 @@ export const queryMethods = <E, T extends string>(
           const object = objectMethods(_.first(await asyncIterableToArray(proto.storage.find({ ...queryOptions(), limit: 1 }))), proto);
           if (!object) return undefined;
 
-          object[PVK].mutated = _.omit(update, ...TObject.defaultKeys);
+          object[PVK].mutated = _.omit(update, ...TObject.defaultReadonlyKeys);
           await beforeSave(Object.setPrototypeOf({ object, context }, proto));
 
           update = object[PVK].mutated;
         }
 
         const result = objectMethods(
-          await proto.storage.findOneAndUpdate(queryOptions(), _.omit(update, ...TObject.defaultKeys)),
+          await proto.storage.findOneAndUpdate(queryOptions(), _.omit(update, ...TObject.defaultReadonlyKeys)),
           proto,
         );
         if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, proto));
@@ -151,7 +151,7 @@ export const queryMethods = <E, T extends string>(
           const object = objectMethods(_.first(await asyncIterableToArray(proto.storage.find({ ...queryOptions(), limit: 1 }))), proto);
           if (!object) return undefined;
 
-          object[PVK].mutated = _.mapValues(_.omit(replacement, ...TObject.defaultKeys), v => [UpdateOperation.set, v]);
+          object[PVK].mutated = _.mapValues(_.omit(replacement, ...TObject.defaultReadonlyKeys), v => [UpdateOperation.set, v]);
           await beforeSave(Object.setPrototypeOf({ object, context }, proto));
 
           replacement = {};
@@ -161,7 +161,7 @@ export const queryMethods = <E, T extends string>(
         }
 
         const result = objectMethods(
-          await proto.storage.findOneAndReplace(queryOptions(), _.omit(replacement, ...TObject.defaultKeys)),
+          await proto.storage.findOneAndReplace(queryOptions(), _.omit(replacement, ...TObject.defaultReadonlyKeys)),
           proto,
         );
         if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, proto));
@@ -181,10 +181,10 @@ export const queryMethods = <E, T extends string>(
           let object = objectMethods(_.first(await asyncIterableToArray(proto.storage.find({ ...queryOptions(), limit: 1 }))), proto);
 
           if (object) {
-            object[PVK].mutated = _.omit(update, ...TObject.defaultKeys);
+            object[PVK].mutated = _.omit(update, ...TObject.defaultReadonlyKeys);
           } else {
             object = proto.object(query.className);
-            for (const [key, value] of _.toPairs(_.omit(setOnInsert, ...TObject.defaultKeys))) {
+            for (const [key, value] of _.toPairs(_.omit(setOnInsert, ...TObject.defaultReadonlyKeys))) {
               object[PVK].mutated[key] = [UpdateOperation.set, value];
             }
           }
@@ -206,8 +206,8 @@ export const queryMethods = <E, T extends string>(
         const result = objectMethods(
           await proto.storage.findOneAndUpsert(
             queryOptions(),
-            _.omit(update, ...TObject.defaultKeys),
-            _.omit(setOnInsert, ...TObject.defaultKeys)
+            _.omit(update, ...TObject.defaultReadonlyKeys),
+            _.omit(setOnInsert, ...TObject.defaultReadonlyKeys)
           ),
           proto,
         );
