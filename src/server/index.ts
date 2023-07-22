@@ -40,6 +40,7 @@ import { defaultSchema } from './defaults';
 
 type Callback<T, R, E> = (request: Proto<E> & T) => R | PromiseLike<R>;
 type ProtoFunction<E> = Callback<{ data: IOSerializable; }, IOSerializable, E>;
+type ProtoTrigger<E> = Callback<{ object: TObject; context: object; }, void, E>;
 
 type Validator = {
   requireUser?: boolean;
@@ -48,16 +49,21 @@ type Validator = {
   requireAllUserRoles?: string[];
 };
 
+type ProtoFunctionOptions<E> = {
+  callback: ProtoFunction<E>;
+  validator?: Validator;
+};
+
 export type ProtoOptions<Ext> = {
   schema: Record<string, TSchema>;
   storage: IOStorage;
   classExtends?: TExtensions<Ext>;
-  functions?: Record<string, ProtoFunction<Ext> | { callback: ProtoFunction<Ext>; validator?: Validator }>;
+  functions?: Record<string, ProtoFunction<Ext> | ProtoFunctionOptions<Ext>>;
   triggers?: {
-    beforeSave?: Record<string, Callback<{ object: TObject; context: object; }, void, Ext>>;
-    afterSave?: Record<string, Callback<{ object: TObject; context: object; }, void, Ext>>;
-    beforeDelete?: Record<string, Callback<{ object: TObject; context: object; }, void, Ext>>;
-    afterDelete?: Record<string, Callback<{ object: TObject; context: object; }, void, Ext>>;
+    beforeSave?: Record<string, ProtoTrigger<Ext>>;
+    afterSave?: Record<string, ProtoTrigger<Ext>>;
+    beforeDelete?: Record<string, ProtoTrigger<Ext>>;
+    afterDelete?: Record<string, ProtoTrigger<Ext>>;
   },
 };
 
@@ -136,4 +142,33 @@ export class Proto<Ext> {
     return this._run(name, payload, options);
   }
 
+  define(
+    name: string,
+    callback: ProtoFunction<Ext>,
+    options?: Omit<ProtoFunctionOptions<Ext>, 'callback'>,
+  ) {
+    if (!this[PVK].options.functions) this[PVK].options.functions = {};
+    this[PVK].options.functions[name] = options ? { callback, ...options } : callback;
+  }
+
+  beforeSave(name: string, callback: ProtoTrigger<Ext>) {
+    if (!this[PVK].options.triggers) this[PVK].options.triggers = {};
+    if (!this[PVK].options.triggers.beforeSave) this[PVK].options.triggers.beforeSave = {};
+    this[PVK].options.triggers.beforeSave[name] = callback;
+  }
+  afterSave(name: string, callback: ProtoTrigger<Ext>) {
+    if (!this[PVK].options.triggers) this[PVK].options.triggers = {};
+    if (!this[PVK].options.triggers.afterSave) this[PVK].options.triggers.afterSave = {};
+    this[PVK].options.triggers.afterSave[name] = callback;
+  }
+  beforeDelete(name: string, callback: ProtoTrigger<Ext>) {
+    if (!this[PVK].options.triggers) this[PVK].options.triggers = {};
+    if (!this[PVK].options.triggers.beforeDelete) this[PVK].options.triggers.beforeDelete = {};
+    this[PVK].options.triggers.beforeDelete[name] = callback;
+  }
+  afterDelete(name: string, callback: ProtoTrigger<Ext>) {
+    if (!this[PVK].options.triggers) this[PVK].options.triggers = {};
+    if (!this[PVK].options.triggers.afterDelete) this[PVK].options.triggers.afterDelete = {};
+    this[PVK].options.triggers.afterDelete[name] = callback;
+  }
 }
