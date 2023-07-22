@@ -45,15 +45,25 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
 
   const classExtends = proto[PVK].options.classExtends ?? {} as TExtensions<E>;
   const extensions = classExtends[object.className as keyof E] ?? {};
-  const query = (options?: ExtraOptions) => proto.Query(object.className, options).filter({ _id: object.objectId });
+  const query = (options?: ExtraOptions) => proto.Query(object.className, options);
 
   const saveMethods = {
-    '_File': (options?: ExtraOptions) => proto[PVK].saveFile(object as TFile, options),
+    '_File': (options?: ExtraOptions) => {
+      return object.objectId ? saveMethods.default(options) : proto[PVK].saveFile(object as TFile, options);
+    },
     default: async (options?: ExtraOptions) => {
-      const updated = await query(options).findOneAndUpdate(object[PVK].mutated);
-      if (updated) {
-        object[PVK].attributes = updated.attributes;
-        object[PVK].mutated = {};
+      if (object.objectId) {
+        const updated = await query(options).filter({ _id: object.objectId }).findOneAndUpdate(object[PVK].mutated);
+        if (updated) {
+          object[PVK].attributes = updated.attributes;
+          object[PVK].mutated = {};
+        }
+      } else {
+        const inserted = await query(options).insert(_.fromPairs(object.keys().map(k => [k, object.get(k)])));
+        if (inserted) {
+          object[PVK].attributes = inserted.attributes;
+          object[PVK].mutated = {};
+        }
       }
       return object;
     },
@@ -62,7 +72,7 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
   const destoryMethods = {
     '_File': (options?: ExtraOptions) => proto[PVK].deleteFile(object as TFile, options),
     default: async (options?: ExtraOptions) => {
-      const deleted = await query(options).findOneAndDelete();
+      const deleted = await query(options).filter({ _id: object.objectId }).findOneAndDelete();
       if (deleted) {
         object[PVK].attributes = deleted.attributes;
         object[PVK].mutated = {};
@@ -84,7 +94,7 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
     },
     fetchWithInclude: {
       value: async (keys: string[], options?: ExtraOptions) => {
-        const fetched = await query(options).includes(...keys).first();
+        const fetched = await query(options).filter({ _id: object.objectId }).includes(...keys).first();
         if (fetched) {
           object[PVK].attributes = fetched.attributes;
           object[PVK].mutated = {};
