@@ -30,7 +30,7 @@ import { Proto, ProtoOptions } from './server';
 import csrfHandler from './server/csrf';
 import classesRoute from './server/routes/classes';
 import functionRoute from './server/routes/function';
-import { PVK } from './types/private';
+import { PVK } from './common/types/private';
 
 export * from './common';
 export * from './server';

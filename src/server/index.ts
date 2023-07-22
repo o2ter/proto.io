@@ -23,20 +23,20 @@
 //  THE SOFTWARE.
 //
 
-import { TSerializable } from '../codec';
-import { TStorage } from '../types/storage';
-import { TSchema } from '../types/schema';
-import { TQuery } from '../types/query';
-import { TObject } from '../types/object';
-import { TExtensions, TObjectType, TObjectTypes } from '../types/object/types';
+import { TSerializable } from '../common/codec';
+import { TStorage } from '../common/types/storage';
+import { TSchema } from '../common/types/schema';
+import { TQuery } from '../common/types/query';
+import { TObject } from '../common/types/object';
+import { TExtensions, TObjectType, TObjectTypes } from '../common/types/object/types';
 import { queryMethods } from './query';
-import { objectMethods } from '../types/object/methods';
-import { TUser } from '../types/object/user';
-import { PVK } from '../types/private';
-import { ExtraOptions } from '../types/options';
-import { isObjKey } from '../utils';
-import { ProtoType } from '../types/proto';
-import { FileData } from '../types/object/file';
+import { objectMethods } from '../common/types/object/methods';
+import { TUser } from '../common/types/object/user';
+import { PVK } from '../common/types/private';
+import { ExtraOptions } from '../common/types/options';
+import { isObjKey } from '../common/utils';
+import { ProtoType } from '../common/types/proto';
+import { FileData } from '../common/types/object/file';
 import { ProtoInternal } from './internal';
 
 type Callback<T, R, E> = (request: Proto<E> & T) => R | PromiseLike<R>;

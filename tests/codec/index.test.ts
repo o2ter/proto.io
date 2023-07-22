@@ -23,8 +23,8 @@
 //  THE SOFTWARE.
 //
 
-import { TObject } from '../../src/types/object';
-import { serialize, deserialize, Decimal } from '../../src/codec';
+import { TObject } from '../../src/common/types/object';
+import { serialize, deserialize, Decimal } from '../../src/common/codec';
 import { expect, test } from '@jest/globals';
 
 test('test serialize', async () => {

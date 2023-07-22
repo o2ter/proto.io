@@ -25,9 +25,9 @@
 
 import _ from 'lodash';
 import { Response } from 'express';
-import { TSerializable, serialize } from '../../codec';
-import { TObject } from '../../types/object';
-import { objectMethods } from '../../types/object/methods';
+import { TSerializable, serialize } from '../../common/codec';
+import { TObject } from '../../common/types/object';
+import { objectMethods } from '../../common/types/object/methods';
 import { Proto } from '../../server';
 
 export const response = async <T extends TSerializable>(

@@ -24,10 +24,10 @@
 //
 
 import _ from 'lodash';
-import { TObject } from '../types/object';
-import { ExtraOptions } from '../types/options';
+import { TObject } from '../common/types/object';
+import { ExtraOptions } from '../common/types/options';
 import { defaultSchema } from './defaults';
-import { ProtoInternalType } from '../types/proto';
+import { ProtoInternalType } from '../common/types/proto';
 import { Proto, ProtoOptions } from '.';
 
 export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {

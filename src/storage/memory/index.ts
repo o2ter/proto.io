@@ -24,8 +24,8 @@
 //
 
 import _ from 'lodash';
-import { TStorage } from '../../types/storage';
-import { TSchema } from '../../types/schema';
+import { TStorage } from '../../common/types/storage';
+import { TSchema } from '../../common/types/schema';
 
 export class MemoryStorage implements TStorage {
 

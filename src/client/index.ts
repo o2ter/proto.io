@@ -24,17 +24,17 @@
 //
 
 import axios from 'axios';
-import { TSerializable } from '../codec';
-import { TQuery } from '../types/query';
+import { TSerializable } from '../common/codec';
+import { TQuery } from '../common/types/query';
 import { queryMethods } from './query';
-import { TObject } from '../types/object';
-import { TExtensions, TObjectType, TObjectTypes } from '../types/object/types';
-import { isObjKey } from '../utils';
-import { objectMethods } from '../types/object/methods';
+import { TObject } from '../common/types/object';
+import { TExtensions, TObjectType, TObjectTypes } from '../common/types/object/types';
+import { isObjKey } from '../common/utils';
+import { objectMethods } from '../common/types/object/methods';
 import { RequestOptions } from './options';
-import { PVK } from '../types/private';
-import { ProtoType } from '../types/proto';
-import { FileData } from '../types/object/file';
+import { PVK } from '../common/types/private';
+import { ProtoType } from '../common/types/proto';
+import { FileData } from '../common/types/object/file';
 import { ProtoInternal } from './internal';
 
 export * from '../common';

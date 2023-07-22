@@ -26,10 +26,10 @@
 import _ from 'lodash';
 import express, { Router } from 'express';
 import { Proto } from '../../server';
-import { deserialize } from '../../codec';
+import { deserialize } from '../../common/codec';
 import { response } from './common';
-import { PVK } from '../../types/private';
-import { applyObjectMethods } from '../../types/object/methods';
+import { PVK } from '../../common/types/private';
+import { applyObjectMethods } from '../../common/types/object/methods';
 
 export default <E>(router: Router, payload: Proto<E>) => {
 
