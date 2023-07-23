@@ -36,11 +36,8 @@ export const generateId = (
   size: number = 16
 ): string => {
   let id = '';
-  let carry = 0;
-  for (const byte of randomBytes(size)) {
-    const digit = carry + byte;
-    id += chars[digit % chars.length];
-    carry = Math.floor(digit / chars.length);
+  for (const x of randomBytes(size)) {
+    id += chars[x % chars.length];
   }
   return id.slice(0, size);
 }
