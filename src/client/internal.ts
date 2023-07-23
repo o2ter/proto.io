@@ -36,6 +36,7 @@ import {
   ExtraOptions,
   deserialize,
   serialize,
+  FileData,
 } from '../internals';
 
 export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
@@ -88,7 +89,21 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
   async createFile(object: TFile, options?: RequestOptions) {
 
     const { master, serializeOpts, ...opts } = options ?? {};
-    const { data } = object[PVK].extra;
+    const { data } = object[PVK].extra.data;
+
+    let buffer: FileData;
+
+    if (
+      _.isString(data) ||
+      data instanceof Blob ||
+      data instanceof Buffer
+    ) {
+      buffer = data;
+    } else if ('base64' in data) {
+      buffer = Buffer.from(data.base64, 'base64');
+    } else {
+      throw Error('Invalid file object');
+    }
 
     const res = await request({
       method: 'post',
@@ -96,7 +111,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
       url: 'files',
       data: {
         attributes: serialize(_.fromPairs(object.keys().map(k => [k, object.get(k)])), serializeOpts),
-        file: data,
+        file: buffer,
       },
       headers: {
         'Content-Type': 'multipart/form-data',
