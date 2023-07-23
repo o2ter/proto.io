@@ -43,9 +43,9 @@ export class MongoStorage implements TStorage {
     return this;
   }
 
-  async close(force?: boolean) {
+  async shutdown() {
     this.schedule?.destory();
-    await this.connection.close(force);
+    await this.connection.close();
   }
 
   static async connect(uri: string, options?: MongoClientOptions) {

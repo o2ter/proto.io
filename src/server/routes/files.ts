@@ -26,33 +26,31 @@
 import _ from 'lodash';
 import { Router } from 'express';
 import { Proto } from '../../server';
-import busboy from 'busboy';
+import { decodeFormStream, response } from './common';
+import { TFile } from '../../internals';
 
 export default <E>(router: Router, payload: Proto<E>) => {
 
   router.post(
     '/files',
-    (req, res) => {
-      const formData = busboy(req);
+    async (req, res) => {
 
-      formData.on('field', (name, val) => {
-        console.log(name, val)
-      });
+      await response(res, async () => {
 
-      formData.on('file', (name, file, { filename, mimeType }) => {
-        console.log(name, filename, mimeType)
-        file.on('data', (data) => {
-          console.log(`File [${name}] got ${data.length} bytes`);
-        }).on('close', () => {
-          console.log(`File [${name}] done`);
+        const data = await decodeFormStream(req, async (file, info) => {
+          console.log(info);
+          file.on('data', (data) => {
+            console.log(`File got ${data.length} bytes`);
+          }).on('close', () => {
+            console.log(`File done`);
+          });
+          return [];
         });
-      });
 
-      formData.on('close', () => {
-        res.json({});
-      });
+        console.log(data)
 
-      req.pipe(formData);
+        return data;
+      });
     }
   );
 

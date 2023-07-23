@@ -53,6 +53,7 @@ beforeAll(async () => {
   httpServer.listen(8080, () => console.log('listening on port 8080'));
 });
 
-afterAll(() => new Promise<void>((res) => {
+afterAll(() => new Promise<void>(async (res) => {
+  await proto.shutdown();
   httpServer.shutdown(res);
 }));

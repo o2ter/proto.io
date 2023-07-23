@@ -45,7 +45,7 @@ export class PostgresStorage implements TStorage {
     return this;
   }
 
-  async close() {
+  async shutdown() {
     this.schedule?.destory();
   }
 

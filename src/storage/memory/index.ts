@@ -32,11 +32,11 @@ export class MemoryStorage implements TStorage {
 
   schema: Record<string, TSchema> = {};
 
-  async close() {
+  async shutdown() {
     this.schedule?.destory();
   }
 
-  prepare(schema: Record<string, TSchema>) {
+  async prepare(schema: Record<string, TSchema>) {
     this.schema = schema;
     this.schedule?.execute();
   }

@@ -24,8 +24,9 @@
 //
 
 import _ from 'lodash';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { TSerializable, serialize } from '../../internals';
+import busboy, { FileInfo } from 'busboy';
 
 export const response = async <T extends TSerializable>(
   res: Response,
@@ -47,4 +48,24 @@ export const response = async <T extends TSerializable>(
       res.status(400).json(error);
     }
   }
-}
+};
+
+export const decodeFormStream = (
+  req: Request,
+  onFile: (file: NodeJS.ReadableStream, info: FileInfo) => Promise<any>
+) => {
+
+  const formData = busboy(req);
+  const data: Record<string, any> = {};
+
+  formData.on('field', (name, val) => { data[name] = val; });
+  formData.on('file', async (name, file, info) => { data[name] = await onFile(file, info); });
+
+  const result = new Promise<Record<string, any>>((resolve, reject) => {
+    formData.on('close', () => { resolve(data); });
+    formData.on('error', (error) => { reject(error); });
+  });
+
+  req.pipe(formData);
+  return result;
+};

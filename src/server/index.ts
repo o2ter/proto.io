@@ -73,6 +73,10 @@ export class Proto<Ext> implements ProtoType<Ext> {
     this[PVK] = new ProtoInternal(this, { ...options });
   }
 
+  async shutdown() {
+    await this.storage.shutdown();
+  }
+
   classes(): string[] | PromiseLike<string[]> {
     return this.storage.classes();
   }

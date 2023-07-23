@@ -35,7 +35,9 @@ export type FindOneOptions = CommonFindOptions & Omit<TQuery.Options, 'skip' | '
 
 export interface TStorage {
 
-  prepare(schema: Record<string, TSchema>): void | PromiseLike<void>;
+  prepare(schema: Record<string, TSchema>): PromiseLike<void>;
+  shutdown(): PromiseLike<void>;
+
   classes(): string[] | PromiseLike<string[]>;
 
   count(query: FindOptions): PromiseLike<number>;
