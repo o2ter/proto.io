@@ -38,11 +38,11 @@ import {
   TQuery,
   TSerializable,
   TSchema,
-  TStorage,
   TUser,
   ExtraOptions,
-  TFileStorage,
 } from '../internals';
+import { TFileStorage } from './filesys';
+import { TStorage } from './storage';
 
 type Callback<T, R, E> = (request: Proto<E> & T) => R | PromiseLike<R>;
 export type ProtoFunction<E> = Callback<{ data: TSerializable; }, TSerializable, E>;
@@ -61,6 +61,7 @@ export type ProtoFunctionOptions<E> = {
 };
 
 export type ProtoOptions<Ext> = {
+  objectIdSize?: number;
   schema: Record<string, TSchema>;
   storage: TStorage;
   fileStorage: TFileStorage;

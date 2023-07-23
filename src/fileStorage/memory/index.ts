@@ -25,14 +25,16 @@
 
 import _ from 'lodash';
 import { Readable } from 'node:stream';
-import { FileData, ProtoType, TFileStorage, generateId } from '../../internals';
+import { FileData, PVK, generateId } from '../../internals';
+import { TFileStorage } from '../../server/filesys';
+import { Proto } from '../../server';
 
 export class MemoryFileStorage implements TFileStorage {
 
   _storage: Partial<Record<string, string | Buffer>> = {};
 
   async create<E>(
-    proto: ProtoType<E>,
+    proto: Proto<E>,
     file: FileData,
     info: {
       mimeType?: string;
@@ -58,7 +60,7 @@ export class MemoryFileStorage implements TFileStorage {
       throw Error('Unknown file type');
     }
 
-    const token = generateId();
+    const token = generateId(proto[PVK].options.objectIdSize);
     this._storage[token] = buffer;
     return {
       _id: token,
@@ -66,10 +68,10 @@ export class MemoryFileStorage implements TFileStorage {
     };
   }
 
-  async persist<E>(proto: ProtoType<E>, id: string) {
+  async persist<E>(proto: Proto<E>, id: string) {
   }
 
-  async destory<E>(proto: ProtoType<E>, id: string) {
+  async destory<E>(proto: Proto<E>, id: string) {
     this._storage[id] = undefined;
   }
 

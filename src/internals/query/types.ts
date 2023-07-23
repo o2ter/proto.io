@@ -23,6 +23,9 @@
 //  THE SOFTWARE.
 //
 
+import { TQuery } from './index';
+import { ExtraOptions } from '../options';
+
 type AnyArray<T> = T[] | readonly T[];
 type Unpacked<T> = T extends AnyArray<infer U> ? U : T;
 
@@ -51,3 +54,7 @@ type TRootQuerySelector<T> = {
 export type TFilterQuery<T> = TRootQuerySelector<T> | {
   [P in keyof T]?: T[P] | TQuerySelector<T[P]>;
 };
+
+type CommonFindOptions = { className: string; options: ExtraOptions & { acls?: string[]; }; };
+export type FindOptions = CommonFindOptions & Omit<TQuery.Options, 'returning'>;
+export type FindOneOptions = CommonFindOptions & Omit<TQuery.Options, 'skip' | 'limit'>;

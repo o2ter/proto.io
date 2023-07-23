@@ -24,14 +24,13 @@
 //
 
 import _ from 'lodash';
-import { TObject, UpdateOperation } from './object';
-import { TQuery } from './query';
-import { TSchema } from './schema';
-import { ExtraOptions } from './options';
-
-type CommonFindOptions = { className: string; options: ExtraOptions & { acls?: string[]; }; };
-export type FindOptions = CommonFindOptions & Omit<TQuery.Options, 'returning'>;
-export type FindOneOptions = CommonFindOptions & Omit<TQuery.Options, 'skip' | 'limit'>;
+import {
+  TObject,
+  UpdateOperation,
+  TSchema,
+  FindOptions,
+  FindOneOptions,
+} from '../internals';
 
 export interface TStorage {
 
