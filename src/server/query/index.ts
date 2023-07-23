@@ -24,29 +24,17 @@
 //
 
 import _ from 'lodash';
-import { Proto } from './index';
+import { Proto } from '../index';
 import {
   PVK,
   TQuery,
   TObject,
   UpdateOperation,
-  TSchema,
   ExtraOptions,
   applyObjectMethods,
   asyncIterableToArray,
-} from '../internals';
-
-const validateCLPs = (
-  clps: TSchema.CLPs,
-  keys: (keyof TSchema.CLPs)[],
-  acls: string[],
-) => {
-  for (const key of keys) {
-    if (_.includes(clps[key], '*')) continue;
-    if (_.every(clps[key], x => !_.includes(acls, x))) return false;
-  }
-  return true;
-}
+} from '../../internals';
+import { queryValidator } from './validator';
 
 export const applyQueryMethods = <T extends string, E>(
   query: TQuery<T, E>,
@@ -54,30 +42,18 @@ export const applyQueryMethods = <T extends string, E>(
   options?: ExtraOptions,
 ) => {
 
-  const acls = () => [
-    ..._.map(proto.roles, x => `role:${x}`),
-    proto.user?.objectId,
-  ].filter(Boolean) as string[];
-
   const queryOptions = () => ({
     className: query.className,
-    options: {
-      acls: acls(),
-      ...(options ?? {}),
-    },
+    options: options ?? {},
     ...query[PVK].options,
   });
 
-  const _validateCLPs = (...keys: (keyof TSchema.CLPs)[]) => validateCLPs(
-    proto.schema[query.className]?.classLevelPermissions ?? {},
-    keys, acls(),
-  );
+  const storage = () => queryValidator(proto, query.className, options);
 
   const props = {
     count: {
       value: async () => {
-        if (!options?.master && !_validateCLPs('count')) throw new Error('No permission');
-        return proto.storage.count(queryOptions());
+        return storage().count(queryOptions());
       },
     },
     then: {
@@ -87,15 +63,13 @@ export const applyQueryMethods = <T extends string, E>(
     },
     [Symbol.asyncIterator]: {
       value: async function* () {
-        if (!options?.master && !_validateCLPs('find')) throw new Error('No permission');
-        for await (const object of proto.storage.find(queryOptions())) yield applyObjectMethods(object, proto);
+        for await (const object of storage().find(queryOptions())) yield applyObjectMethods(object, proto);
       },
     },
     insert: {
       value: async (attrs: Record<string, any>) => {
         const beforeSave = proto[PVK].triggers?.beforeSave?.[query.className];
         const afterSave = proto[PVK].triggers?.afterSave?.[query.className];
-        if (!options?.master && !_validateCLPs('create')) throw new Error('No permission');
 
         const context = {};
 
@@ -107,7 +81,7 @@ export const applyQueryMethods = <T extends string, E>(
         if (_.isFunction(beforeSave)) await beforeSave(Object.setPrototypeOf({ object, context }, proto));
 
         const result = applyObjectMethods(
-          await proto.storage.insert(query.className, _.fromPairs(object.keys().map(k => [k, object.get(k)]))),
+          await storage().insert(query.className, _.fromPairs(object.keys().map(k => [k, object.get(k)]))),
           proto,
         );
         if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, proto));
@@ -118,13 +92,12 @@ export const applyQueryMethods = <T extends string, E>(
       value: async (update: Record<string, [UpdateOperation, any]>) => {
         const beforeSave = proto[PVK].triggers?.beforeSave?.[query.className];
         const afterSave = proto[PVK].triggers?.afterSave?.[query.className];
-        if (!options?.master && !_validateCLPs('update')) throw new Error('No permission');
 
         const context = {};
 
         if (_.isFunction(beforeSave)) {
 
-          const object = applyObjectMethods(_.first(await asyncIterableToArray(proto.storage.find({ ...queryOptions(), limit: 1 }))), proto);
+          const object = applyObjectMethods(_.first(await asyncIterableToArray(storage().find({ ...queryOptions(), limit: 1 }))), proto);
           if (!object) return undefined;
 
           object[PVK].mutated = _.omit(update, ...TObject.defaultReadonlyKeys);
@@ -134,7 +107,7 @@ export const applyQueryMethods = <T extends string, E>(
         }
 
         const result = applyObjectMethods(
-          await proto.storage.findOneAndUpdate(queryOptions(), _.omit(update, ...TObject.defaultReadonlyKeys)),
+          await storage().findOneAndUpdate(queryOptions(), _.omit(update, ...TObject.defaultReadonlyKeys)),
           proto,
         );
         if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, proto));
@@ -145,13 +118,12 @@ export const applyQueryMethods = <T extends string, E>(
       value: async (replacement: Record<string, any>) => {
         const beforeSave = proto[PVK].triggers?.beforeSave?.[query.className];
         const afterSave = proto[PVK].triggers?.afterSave?.[query.className];
-        if (!options?.master && !_validateCLPs('update')) throw new Error('No permission');
 
         const context = {};
 
         if (_.isFunction(beforeSave)) {
 
-          const object = applyObjectMethods(_.first(await asyncIterableToArray(proto.storage.find({ ...queryOptions(), limit: 1 }))), proto);
+          const object = applyObjectMethods(_.first(await asyncIterableToArray(storage().find({ ...queryOptions(), limit: 1 }))), proto);
           if (!object) return undefined;
 
           object[PVK].mutated = _.mapValues(_.omit(replacement, ...TObject.defaultReadonlyKeys), v => [UpdateOperation.set, v]);
@@ -164,7 +136,7 @@ export const applyQueryMethods = <T extends string, E>(
         }
 
         const result = applyObjectMethods(
-          await proto.storage.findOneAndReplace(queryOptions(), _.omit(replacement, ...TObject.defaultReadonlyKeys)),
+          await storage().findOneAndReplace(queryOptions(), _.omit(replacement, ...TObject.defaultReadonlyKeys)),
           proto,
         );
         if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, proto));
@@ -175,13 +147,12 @@ export const applyQueryMethods = <T extends string, E>(
       value: async (update: Record<string, [UpdateOperation, any]>, setOnInsert: Record<string, any>) => {
         const beforeSave = proto[PVK].triggers?.beforeSave?.[query.className];
         const afterSave = proto[PVK].triggers?.afterSave?.[query.className];
-        if (!options?.master && !_validateCLPs('create', 'update')) throw new Error('No permission');
 
         const context = {};
 
         if (_.isFunction(beforeSave)) {
 
-          let object = applyObjectMethods(_.first(await asyncIterableToArray(proto.storage.find({ ...queryOptions(), limit: 1 }))), proto);
+          let object = applyObjectMethods(_.first(await asyncIterableToArray(storage().find({ ...queryOptions(), limit: 1 }))), proto);
 
           if (object) {
             object[PVK].mutated = _.omit(update, ...TObject.defaultReadonlyKeys);
@@ -207,7 +178,7 @@ export const applyQueryMethods = <T extends string, E>(
         }
 
         const result = applyObjectMethods(
-          await proto.storage.findOneAndUpsert(
+          await storage().findOneAndUpsert(
             queryOptions(),
             _.omit(update, ...TObject.defaultReadonlyKeys),
             _.omit(setOnInsert, ...TObject.defaultReadonlyKeys)
@@ -222,20 +193,19 @@ export const applyQueryMethods = <T extends string, E>(
       value: async () => {
         const beforeDelete = proto[PVK].triggers?.beforeDelete?.[query.className];
         const afterDelete = proto[PVK].triggers?.afterDelete?.[query.className];
-        if (!options?.master && !_validateCLPs('delete')) throw new Error('No permission');
 
         const context = {};
         let result: TObject | undefined;
 
         if (_.isFunction(beforeDelete)) {
 
-          const object = applyObjectMethods(_.first(await asyncIterableToArray(proto.storage.find({ ...queryOptions(), limit: 1 }))), proto);
+          const object = applyObjectMethods(_.first(await asyncIterableToArray(storage().find({ ...queryOptions(), limit: 1 }))), proto);
           if (!object) return undefined;
 
           await beforeDelete(Object.setPrototypeOf({ object, context }, proto));
 
           result = applyObjectMethods(
-            await proto.storage.findOneAndDelete({
+            await storage().findOneAndDelete({
               ...queryOptions(),
               filter: { _id: object.objectId },
             }),
@@ -244,7 +214,7 @@ export const applyQueryMethods = <T extends string, E>(
 
         } else {
           result = applyObjectMethods(
-            await proto.storage.findOneAndDelete(queryOptions()),
+            await storage().findOneAndDelete(queryOptions()),
             proto,
           );
         }
@@ -257,20 +227,19 @@ export const applyQueryMethods = <T extends string, E>(
       value: async () => {
         const beforeDelete = proto[PVK].triggers?.beforeDelete?.[query.className];
         const afterDelete = proto[PVK].triggers?.afterDelete?.[query.className];
-        if (!options?.master && !_validateCLPs('delete')) throw new Error('No permission');
 
         const context = {};
 
         if (_.isFunction(beforeDelete) || _.isFunction(afterDelete)) {
 
-          const objects = applyObjectMethods(await asyncIterableToArray(proto.storage.find(queryOptions())), proto);
+          const objects = applyObjectMethods(await asyncIterableToArray(storage().find(queryOptions())), proto);
           if (_.isEmpty(objects)) return 0;
 
           if (_.isFunction(beforeDelete)) {
             await Promise.all(_.map(objects, object => beforeDelete(Object.setPrototypeOf({ object, context }, proto))));
           }
 
-          await proto.storage.findAndDelete({
+          await storage().findAndDelete({
             ...queryOptions(),
             filter: { _id: { $in: _.map(objects, x => x.objectId) } },
           });
@@ -282,7 +251,7 @@ export const applyQueryMethods = <T extends string, E>(
           return objects.length;
         }
 
-        return proto.storage.findAndDelete(queryOptions());
+        return storage().findAndDelete(queryOptions());
       },
     },
   };
