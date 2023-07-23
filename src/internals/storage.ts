@@ -41,7 +41,7 @@ export interface TStorage {
   count(query: FindOptions): PromiseLike<number>;
   find(query: FindOptions): AsyncIterable<TObject>;
 
-  insert(className: string, attrs: any): PromiseLike<TObject | undefined>;
+  insert(className: string, attrs: Record<string, any>): PromiseLike<TObject | undefined>;
 
   findOneAndUpdate(query: FindOneOptions, update: Record<string, [UpdateOperation, any]>): PromiseLike<TObject | undefined>;
   findOneAndReplace(query: FindOneOptions, replacement: Record<string, any>): PromiseLike<TObject | undefined>;

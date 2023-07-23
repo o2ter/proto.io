@@ -70,7 +70,7 @@ export const applyQueryMethods = <T extends string, E>(query: TQuery<T, E>, prot
       },
     },
     insert: {
-      value: (attrs: any) => proto[PVK].request({
+      value: (attrs: Record<string, any>) => proto[PVK].request({
         operation: 'insert',
         attributes: attrs,
       }, requestOpt),

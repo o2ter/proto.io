@@ -42,7 +42,7 @@ export namespace TQuery {
 
 export interface TQuery<T extends string, Ext> {
   count(): PromiseLike<number>;
-  insert(attrs: any): PromiseLike<TObjectType<T, Ext> | undefined>;
+  insert(attrs: Record<string, any>): PromiseLike<TObjectType<T, Ext> | undefined>;
   findOneAndUpdate(update: Record<string, [UpdateOperation, any]>): PromiseLike<TObjectType<T, Ext> | undefined>;
   findOneAndReplace(replacement: Record<string, any>): PromiseLike<TObjectType<T, Ext> | undefined>;
   findOneAndUpsert(update: Record<string, [UpdateOperation, any]>, setOnInsert: Record<string, any>): PromiseLike<TObjectType<T, Ext> | undefined>;

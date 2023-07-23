@@ -92,7 +92,7 @@ export const applyQueryMethods = <T extends string, E>(
       },
     },
     insert: {
-      value: async (attrs: any) => {
+      value: async (attrs: Record<string, any>) => {
         const beforeSave = proto[PVK].triggers?.beforeSave?.[query.className];
         const afterSave = proto[PVK].triggers?.afterSave?.[query.className];
         if (!options?.master && !_validateCLPs('create')) throw new Error('No permission');
