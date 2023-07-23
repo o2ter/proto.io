@@ -40,8 +40,8 @@ type TQuerySelector<T> = {
   $nin?: T[] extends AnyArray<any> ? Unpacked<T>[] : T[];
   $not?: T extends string ? TQuerySelector<T> | RegExp : TQuerySelector<T>;
   $exists?: boolean;
-  $size?: number;
-  $regex?: T extends string ? RegExp | string : never;
+  $size?: T extends number ? T : never;
+  $regex?: T extends string ? RegExp | T : never;
   $elemMatch?: TQuerySelector<T> | TFilterQuery<T>;
 }
 
