@@ -25,13 +25,13 @@
 
 import _ from 'lodash';
 import { Readable } from 'node:stream';
-import { FileData, PVK, base64ToBuffer, generateId } from '../../internals';
+import { FileBuffer, FileData, PVK, base64ToBuffer, fileBufferSize, generateId, isFileBuffer } from '../../internals';
 import { TFileStorage } from '../../server/filesys';
 import { Proto } from '../../server';
 
 export class DatabaseFileStorage implements TFileStorage {
 
-  _storage: Partial<Record<string, string | Buffer>> = {};
+  _storage: Partial<Record<string, string | FileBuffer>> = {};
 
   async create<E>(
     proto: Proto<E>,
@@ -42,7 +42,7 @@ export class DatabaseFileStorage implements TFileStorage {
     }
   ) {
 
-    let buffer: string | Buffer;
+    let buffer: string | FileBuffer;
 
     if (file instanceof Readable) {
       const buffers = [];
@@ -50,7 +50,7 @@ export class DatabaseFileStorage implements TFileStorage {
         buffers.push(data);
       }
       buffer = Buffer.concat(buffers);
-    } else if (_.isString(file) || file instanceof Buffer) {
+    } else if (_.isString(file) || isFileBuffer(file)) {
       buffer = file;
     } else if ('base64' in file) {
       buffer = base64ToBuffer(file.base64);
@@ -62,7 +62,7 @@ export class DatabaseFileStorage implements TFileStorage {
     this._storage[token] = buffer;
     return {
       _id: token,
-      size: buffer.length,
+      size: _.isString(buffer) ? buffer.length : fileBufferSize(buffer),
     };
   }
 
