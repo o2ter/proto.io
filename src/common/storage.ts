@@ -30,8 +30,8 @@ import { TSchema } from './schema';
 import { ExtraOptions } from './options';
 
 type CommonFindOptions = { className: string; options: ExtraOptions & { acls: string[]; }; };
-type FindOptions = CommonFindOptions & Omit<TQuery.Options, 'returning'>;
-type FindOneOptions = CommonFindOptions & Omit<TQuery.Options, 'skip' | 'limit'>;
+export type FindOptions = CommonFindOptions & Omit<TQuery.Options, 'returning'>;
+export type FindOneOptions = CommonFindOptions & Omit<TQuery.Options, 'skip' | 'limit'>;
 
 export interface TStorage {
 

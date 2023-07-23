@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import pg, { IConnectionOptions, IDatabase } from 'pg-promise';
-import { TStorage } from '../../common/storage';
+import { FindOptions, TStorage } from '../../common/storage';
 import { TSchema } from '../../common/schema';
 
 const pgp = pg({});
@@ -55,7 +55,15 @@ export class PostgresStorage implements TStorage {
   }
 
   _scheduleCallback() {
-
+    (async () => {
+      for (const className of this.classes()) {
+        await this.findAndDelete({
+          className,
+          filter: { _expired_at: { $lt: new Date() } },
+          options: { master: true, acls: [] },
+        });
+      }
+    })();
   }
 
   prepare(schema: Record<string, TSchema>) {
@@ -94,7 +102,7 @@ export class PostgresStorage implements TStorage {
     return undefined;
   }
 
-  async findAndDelete() {
+  async findAndDelete(query: FindOptions) {
     return 0;
   }
 
