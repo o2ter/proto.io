@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { Proto } from '../index';
-import { TSchema, TObject, FindOptions, FindOneOptions, UpdateOperation, ExtraOptions } from '../../internals';
+import { TSchema, FindOptions, FindOneOptions, UpdateOperation, ExtraOptions } from '../../internals';
 
 const validateCLPs = (
   clps: TSchema.CLPs,
