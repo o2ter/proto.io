@@ -1,5 +1,5 @@
 //
-//  common.ts
+//  index.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -23,20 +23,4 @@
 //  THE SOFTWARE.
 //
 
-export * from './object';
-export * from './object/types';
-export * from './object/file';
-export * from './object/role';
-export * from './object/user';
-export * from './object/methods';
-export * from './buffer';
-export * from './codec';
-export * from './query';
-export * from './query/types';
-export * from './options';
-export * from './private';
-export * from './proto';
-export * from './crypto';
-export * from './schedule';
-export * from './schema';
-export * from './utils';
+export * from './random';
