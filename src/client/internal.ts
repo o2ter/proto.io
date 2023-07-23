@@ -109,10 +109,10 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
       throw new Error(error.message, { cause: error });
     }
 
-    const updated = deserialize(res.data) as TFile;
+    const created = deserialize(res.data) as TFile;
 
-    if (updated) {
-      object[PVK].attributes = updated.attributes;
+    if (created) {
+      object[PVK].attributes = created.attributes;
       object[PVK].mutated = {};
       object[PVK].extra = {};
     }
