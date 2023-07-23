@@ -50,7 +50,7 @@ export const storageSchedule = (storage: TStorage, operations: (keyof typeof sch
       try {
         await task(storage);
       } catch (e) {
-        console.error(e);
+        console.error(`Errors on schedule ${op}: ${e}`);
       }
     }
     running = false;
