@@ -33,6 +33,8 @@ import {
   ExtraOptions,
   ProtoInternalType,
   FileData,
+  isFileBuffer,
+  isFileStream,
 } from '../internals';
 
 export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
@@ -109,12 +111,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
 
     if (_.isString(data) && data.length < 64 * 1024) {
       content = data;
-    } else if (
-      _.isString(data) ||
-      data instanceof Blob ||
-      data instanceof Buffer ||
-      data instanceof Readable
-    ) {
+    } else if (_.isString(data) || isFileBuffer(data) || isFileStream(data)) {
       file = await this.proto.fileStorage.create(data, info);
     } else if ('base64' in data) {
       const buffer = Buffer.from(data.base64, 'base64');
