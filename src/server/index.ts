@@ -41,6 +41,7 @@ import {
   TStorage,
   TUser,
   ExtraOptions,
+  TFileStorage,
 } from '../internals';
 
 type Callback<T, R, E> = (request: Proto<E> & T) => R | PromiseLike<R>;
@@ -62,6 +63,7 @@ export type ProtoFunctionOptions<E> = {
 export type ProtoOptions<Ext> = {
   schema: Record<string, TSchema>;
   storage: TStorage;
+  fileStorage: TFileStorage;
   classExtends?: TExtensions<Ext>;
 };
 
@@ -112,6 +114,10 @@ export class Proto<Ext> implements ProtoType<Ext> {
 
   get storage(): ProtoOptions<Ext>['storage'] {
     return this[PVK].options.storage;
+  }
+
+  get fileStorage(): ProtoOptions<Ext>['fileStorage'] {
+    return this[PVK].options.fileStorage;
   }
 
   run(name: string, data?: TSerializable, options?: ExtraOptions) {

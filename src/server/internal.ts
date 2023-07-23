@@ -31,6 +31,7 @@ import {
   TFile,
   ExtraOptions,
   ProtoInternalType,
+  FileData,
 } from '../internals';
 
 export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
@@ -108,7 +109,11 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
       await beforeSave(Object.setPrototypeOf({ object, context }, this.proto));
     }
 
-    object = object.objectId ? await this.updateFile(object, options) : await this.createFile(object, options);
+    if (object.objectId) {
+      object = await this.updateFile(object, options);
+    } else {
+      object = await this.createFile(object, options);
+    }
 
     if (_.isFunction(afterSave)) {
       await afterSave(Object.setPrototypeOf({ object, context }, this.proto));

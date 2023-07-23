@@ -32,6 +32,7 @@ export * from './object/user';
 export * from './object/methods';
 export * from './query';
 export * from './query/types';
+export * from './filesys';
 export * from './options';
 export * from './private';
 export * from './proto';

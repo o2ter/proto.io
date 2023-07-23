@@ -30,7 +30,7 @@ import queryType from 'query-types';
 import { response } from './common';
 import { PVK, deserialize } from '../../internals';
 
-export default <E>(router: Router, payload: Proto<E>) => {
+export default <E>(router: Router, proto: Proto<E>) => {
 
   router.post(
     '/classes/:name',
@@ -38,7 +38,7 @@ export default <E>(router: Router, payload: Proto<E>) => {
     async (req, res) => {
 
       const { name } = req.params;
-      const classes = await payload.classes();
+      const classes = await proto.classes();
 
       if (!_.includes(classes, name)) return res.sendStatus(404);
 
@@ -53,10 +53,10 @@ export default <E>(router: Router, payload: Proto<E>) => {
           ...options
         }: any = deserialize(req.body);
 
-        const _payload = Object.setPrototypeOf({
+        const payload = Object.setPrototypeOf({
           ..._.omit(req, 'body'),
-        }, payload);
-        const query = _payload.query(name);
+        }, proto);
+        const query = payload.query(name);
         query[PVK].options = options;
 
         switch (operation) {
@@ -80,11 +80,11 @@ export default <E>(router: Router, payload: Proto<E>) => {
     async (req, res) => {
 
       const { name } = req.params;
-      const classes = await payload.classes();
+      const classes = await proto.classes();
 
       if (!_.includes(classes, name)) return res.sendStatus(404);
 
-      const query = payload.Query(name);
+      const query = proto.Query(name);
 
       await response(res, async () => {
 
@@ -114,15 +114,15 @@ export default <E>(router: Router, payload: Proto<E>) => {
     async (req, res) => {
 
       const { name, id } = req.params;
-      const classes = await payload.classes();
+      const classes = await proto.classes();
 
       if (!_.includes(classes, name)) return res.sendStatus(404);
 
-      const _payload = Object.setPrototypeOf({
+      const payload = Object.setPrototypeOf({
         ..._.omit(req, 'body'),
-      }, payload);
+      }, proto);
 
-      await response(res, async () => _payload.query(name).get(id));
+      await response(res, async () => payload.query(name).get(id));
     }
   );
 
@@ -132,14 +132,14 @@ export default <E>(router: Router, payload: Proto<E>) => {
     async (req, res) => {
 
       const { name, id } = req.params;
-      const classes = await payload.classes();
+      const classes = await proto.classes();
 
       if (!_.includes(classes, name)) return res.sendStatus(404);
 
-      const _payload = Object.setPrototypeOf({
+      const payload = Object.setPrototypeOf({
         ..._.omit(req, 'body'),
-      }, payload);
-      const query = _payload.query(name).filter({ _id: id }).limit(1);
+      }, proto);
+      const query = payload.query(name).filter({ _id: id }).limit(1);
 
       await response(res, async () => query.findOneAndUpdate(deserialize(req.body)));
     }
@@ -153,14 +153,14 @@ export default <E>(router: Router, payload: Proto<E>) => {
       if (!_.isEmpty(req.body)) return res.sendStatus(400);
 
       const { name, id } = req.params;
-      const classes = await payload.classes();
+      const classes = await proto.classes();
 
       if (!_.includes(classes, name)) return res.sendStatus(404);
 
-      const _payload = Object.setPrototypeOf({
+      const payload = Object.setPrototypeOf({
         ..._.omit(req, 'body'),
-      }, payload);
-      const query = _payload.query(name).filter({ _id: id });
+      }, proto);
+      const query = payload.query(name).filter({ _id: id });
 
       await response(res, async () => query.findOneAndDelete());
     }

@@ -27,9 +27,9 @@ import _ from 'lodash';
 import { Router } from 'express';
 import { Proto } from '../../server';
 import { decodeFormStream, response } from './common';
-import { TFile } from '../../internals';
+import { PVK, UpdateOperation, deserialize } from '../../internals';
 
-export default <E>(router: Router, payload: Proto<E>) => {
+export default <E>(router: Router, proto: Proto<E>) => {
 
   router.post(
     '/files',
@@ -37,19 +37,19 @@ export default <E>(router: Router, payload: Proto<E>) => {
 
       await response(res, async () => {
 
-        const data = await decodeFormStream(req, async (file, info) => {
-          console.log(info);
-          file.on('data', (data) => {
-            console.log(`File got ${data.length} bytes`);
-          }).on('close', () => {
-            console.log(`File done`);
-          });
-          return [];
-        });
+        const { attributes, file } = await decodeFormStream(req, async (file, info) => ({
+          _id: await proto.fileStorage.create(file, info),
+        }));
 
-        console.log(data)
+        if (file?._id) {
+          await proto.fileStorage.persist(file._id);
+        }
 
-        return data;
+        const obj = proto.Object('_File');
+        obj[PVK].mutated = _.mapValues(deserialize(attributes) as any, v => [UpdateOperation.set, v]) as any;
+        obj[PVK].extra.data = file;
+
+        return obj.save();
       });
     }
   );

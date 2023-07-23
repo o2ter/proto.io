@@ -1,5 +1,5 @@
 //
-//  function.ts
+//  filesys.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -24,32 +24,21 @@
 //
 
 import _ from 'lodash';
-import express, { Router } from 'express';
-import { Proto } from '../../server';
-import { response } from './common';
-import { PVK, deserialize, applyObjectMethods } from '../../internals';
 
-export default <E>(router: Router, proto: Proto<E>) => {
+type TFileInfo = {
+  mimeType: string;
+  filename: string;
+};
 
-  router.post(
-    '/functions/:name',
-    express.text({ type: '*/*' }),
-    async (req, res) => {
+export interface TFileStorage {
 
-      const { name } = req.params;
-      if (_.isNil(proto[PVK].functions[name])) return res.sendStatus(404);
+  create(
+    file: NodeJS.ReadableStream,
+    info: TFileInfo,
+  ): PromiseLike<string>;
 
-      await response(res, async () => {
+  persist(id: string): PromiseLike<void>;
 
-        const payload = Object.setPrototypeOf({
-          ..._.omit(req, 'body'),
-        }, proto);
-        payload.data = applyObjectMethods(deserialize(req.body), payload);
+  destory(id: string): PromiseLike<void>;
 
-        return payload[PVK].run(name, payload);
-      });
-    }
-  );
-
-  return router;
 }
