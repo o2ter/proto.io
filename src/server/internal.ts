@@ -111,10 +111,10 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     if (_.isString(data) && data.length < 64 * 1024) {
       content = data;
     } else if (_.isString(data) || isFileBuffer(data) || isFileStream(data)) {
-      file = await this.proto.fileStorage.create(data, info);
+      file = await this.proto.fileStorage.create(this.proto, data, info);
     } else if ('base64' in data) {
       const buffer = Buffer.from(data.base64, 'base64');
-      file = await this.proto.fileStorage.create(buffer, info);
+      file = await this.proto.fileStorage.create(this.proto, buffer, info);
     } else if ('_id' in data && 'size' in data) {
       file = { ...data, persist: true };
     } else {
@@ -122,7 +122,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     }
 
     if (!file?.persist && file?._id) {
-      await this.proto.fileStorage.persist(file?._id);
+      await this.proto.fileStorage.persist(this.proto, file?._id);
     }
 
     if (file?._id) {

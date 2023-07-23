@@ -25,6 +25,7 @@
 
 import _ from 'lodash';
 import { FileData } from './object/file';
+import { ProtoType } from './proto';
 
 type TFileInfo = {
   mimeType?: string;
@@ -33,13 +34,14 @@ type TFileInfo = {
 
 export interface TFileStorage {
 
-  create(
+  create<E>(
+    proto: ProtoType<E>,
     file: FileData,
     info: TFileInfo,
   ): PromiseLike<{ _id: string; size: number; }>;
 
-  persist(id: string): PromiseLike<void>;
+  persist<E>(proto: ProtoType<E>, id: string): PromiseLike<void>;
 
-  destory(id: string): PromiseLike<void>;
+  destory<E>(proto: ProtoType<E>, id: string): PromiseLike<void>;
 
 }

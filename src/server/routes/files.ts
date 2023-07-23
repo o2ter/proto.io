@@ -37,10 +37,10 @@ export default <E>(router: Router, proto: Proto<E>) => {
 
       await response(res, async () => {
 
-        const { attributes, file } = await decodeFormStream(req, (file, info) => proto.fileStorage.create(file, info));
+        const { attributes, file } = await decodeFormStream(req, (file, info) => proto.fileStorage.create(proto, file, info));
 
         if (file?._id) {
-          await proto.fileStorage.persist(file._id);
+          await proto.fileStorage.persist(proto, file._id);
         }
 
         const obj = proto.Object('_File');

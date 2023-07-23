@@ -25,16 +25,20 @@
 
 import _ from 'lodash';
 import { Readable } from 'node:stream';
-import { FileData, TFileStorage, generateId } from '../../internals';
+import { FileData, ProtoType, TFileStorage, generateId } from '../../internals';
 
 export class MemoryFileStorage implements TFileStorage {
 
   _storage: Partial<Record<string, string | Buffer>> = {};
 
-  async create(file: FileData, info: {
-    mimeType?: string;
-    filename?: string;
-  }) {
+  async create<E>(
+    proto: ProtoType<E>,
+    file: FileData,
+    info: {
+      mimeType?: string;
+      filename?: string;
+    }
+  ) {
 
     let buffer: string | Buffer;
 
@@ -62,10 +66,10 @@ export class MemoryFileStorage implements TFileStorage {
     };
   }
 
-  async persist(id: string) {
+  async persist<E>(proto: ProtoType<E>, id: string) {
   }
 
-  async destory(id: string) {
+  async destory<E>(proto: ProtoType<E>, id: string) {
     this._storage[id] = undefined;
   }
 
