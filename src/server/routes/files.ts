@@ -35,12 +35,12 @@ export default <E>(router: Router, payload: Proto<E>) => {
     (req, res) => {
       const formData = busboy(req);
 
-      formData.on('field', (name, val, info) => {
-        console.log(name, val, info)
+      formData.on('field', (name, val) => {
+        console.log(name, val)
       });
 
-      formData.on('file', (name, file, info) => {
-        console.log(name, info)
+      formData.on('file', (name, file, { filename, mimeType }) => {
+        console.log(name, filename, mimeType)
         file.on('data', (data) => {
           console.log(`File [${name}] got ${data.length} bytes`);
         }).on('close', () => {
