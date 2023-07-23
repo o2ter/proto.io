@@ -91,7 +91,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
   async createFile(object: TFile, options?: RequestOptions) {
 
     const { master, serializeOpts, ...opts } = options ?? {};
-    const { data } = object[PVK].extra.data;
+    const { data } = object[PVK].extra;
 
     let buffer: FileData;
 
