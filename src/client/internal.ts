@@ -93,11 +93,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
 
     let buffer: FileData;
 
-    if (
-      _.isString(data) ||
-      data instanceof Blob ||
-      data instanceof Buffer
-    ) {
+    if (_.isString(data) || data instanceof Blob || data instanceof Buffer) {
       buffer = data;
     } else if ('base64' in data) {
       buffer = Buffer.from(data.base64, 'base64');
