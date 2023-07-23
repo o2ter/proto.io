@@ -57,9 +57,9 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
           object[PVK].mutated = {};
         }
       } else {
-        const inserted = await query(options).insert(_.fromPairs(object.keys().map(k => [k, object.get(k)])));
-        if (inserted) {
-          object[PVK].attributes = inserted.attributes;
+        const created = await query(options).insert(_.fromPairs(object.keys().map(k => [k, object.get(k)])));
+        if (created) {
+          object[PVK].attributes = created.attributes;
           object[PVK].mutated = {};
         }
       }

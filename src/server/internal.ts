@@ -133,11 +133,11 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
       object.set('size', content.length);
     }
 
-    const inserted = await this.proto.Query(object.className, options)
+    const created = await this.proto.Query(object.className, options)
       .insert(_.fromPairs(object.keys().map(k => [k, object.get(k)])));
 
-    if (inserted) {
-      object[PVK].attributes = inserted.attributes;
+    if (created) {
+      object[PVK].attributes = created.attributes;
       object[PVK].mutated = {};
       object[PVK].extra = {};
     }
