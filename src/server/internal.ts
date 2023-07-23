@@ -26,7 +26,6 @@
 import _ from 'lodash';
 import { defaultSchema } from './defaults';
 import { Proto, ProtoOptions, ProtoFunction, ProtoFunctionOptions, ProtoTrigger } from './index';
-import { Readable } from 'node:stream';
 import {
   PVK,
   TFile,
