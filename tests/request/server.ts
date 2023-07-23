@@ -25,6 +25,7 @@
 
 import _ from 'lodash';
 import express from 'express';
+import { Readable } from 'node:stream';
 import { Proto, ProtoRoute, UUID } from '../../src/index';
 import { beforeAll, afterAll } from '@jest/globals';
 import { MemoryStorage } from '../../src/storage/memory';
@@ -36,6 +37,13 @@ const proto = new Proto({
   storage: new MemoryStorage(),
   fileStorage: {
     async create(file, info) {
+      if (file instanceof Readable) {
+        const buffers = [];
+        for await (const data of file) {
+          buffers.push(data);
+        }
+        console.log(buffers);
+      }
       return { _id: '', size: 0 };
     },
     async persist(id) { },
@@ -55,7 +63,7 @@ beforeAll(async () => {
     jwtToken: (new UUID()).toString(),
     proto: proto,
   }));
-  
+
   httpServer = require('http-shutdown')(require('http').createServer(app));
   httpServer.listen(8080, () => console.log('listening on port 8080'));
 });
