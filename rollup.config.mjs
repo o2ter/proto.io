@@ -48,6 +48,7 @@ export default [
       common: 'src/common',
       'storage/mongo': 'src/storage/mongo',
       'storage/progres': 'src/storage/progres',
+      'fileStorage/database': 'src/fileStorage/database',
     },
     external: [
       /node_modules/
@@ -83,4 +84,5 @@ export default [
   rollupTypes('common'),
   rollupTypes('storage/mongo'),
   rollupTypes('storage/progres'),
+  rollupTypes('fileStorage/database'),
 ];

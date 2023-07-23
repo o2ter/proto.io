@@ -28,14 +28,14 @@ import express from 'express';
 import { Proto, ProtoRoute, UUID } from '../../src/index';
 import { beforeAll, afterAll } from '@jest/globals';
 import { MemoryStorage } from '../../src/storage/memory';
-import MemoryFileStorage from '../../src/fileStorage/memory';
+import DatabaseFileStorage from '../../src/fileStorage/database';
 
 let httpServer: any;
 
 const proto = new Proto({
   schema: {},
   storage: new MemoryStorage(),
-  fileStorage: new MemoryFileStorage(),
+  fileStorage: new DatabaseFileStorage(),
 });
 
 proto.define('echo', (req) => {

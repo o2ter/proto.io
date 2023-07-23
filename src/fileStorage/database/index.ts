@@ -29,7 +29,7 @@ import { FileData, PVK, generateId } from '../../internals';
 import { TFileStorage } from '../../server/filesys';
 import { Proto } from '../../server';
 
-export class MemoryFileStorage implements TFileStorage {
+export class DatabaseFileStorage implements TFileStorage {
 
   _storage: Partial<Record<string, string | Buffer>> = {};
 
@@ -77,4 +77,4 @@ export class MemoryFileStorage implements TFileStorage {
 
 };
 
-export default MemoryFileStorage;
+export default DatabaseFileStorage;
