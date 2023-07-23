@@ -30,11 +30,6 @@ export const randomBytes = typeof window === 'undefined' ?
   require('node:crypto').randomBytes as typeof _randomBytes :
   (size: number) => window.crypto.getRandomValues(new Uint8Array(size));
 
-export const generateId = (size: number = 16): string => {
-  if (typeof window === 'undefined') {
-    return require('node:crypto').randomBytes(size / 2).toString('hex');
-  }
-  const buffer = new Uint8Array(size / 2);
-  window.crypto.getRandomValues(buffer);
-  return _.map(buffer, x => x.toString(16).padStart(2, '0')).join('');
-}
+export const generateId = (
+  size: number = 16
+): string => _.map(randomBytes(size / 2), x => x.toString(16).padStart(2, '0')).join('');
