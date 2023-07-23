@@ -34,7 +34,13 @@ let httpServer: any;
 const proto = new Proto({
   schema: {},
   storage: new MemoryStorage(),
-  fileStorage: null as any,
+  fileStorage: {
+    async create(file, info) {
+      return { _id: '', size: 0 };
+    },
+    async persist(id) { },
+    async destory(id) { },
+  },
 });
 
 proto.define('echo', (req) => {
