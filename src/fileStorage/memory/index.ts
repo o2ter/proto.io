@@ -29,7 +29,7 @@ import { FileData, TFileStorage, generateId } from '../../internals';
 
 export class MemoryFileStorage implements TFileStorage {
 
-  storage: Partial<Record<string, string | Buffer>> = {};
+  _storage: Partial<Record<string, string | Buffer>> = {};
 
   async create(file: FileData, info: {
     mimeType?: string;
@@ -55,7 +55,7 @@ export class MemoryFileStorage implements TFileStorage {
     }
 
     const token = generateId();
-    this.storage[token] = buffer;
+    this._storage[token] = buffer;
     return {
       _id: token,
       size: buffer.length,
@@ -66,7 +66,7 @@ export class MemoryFileStorage implements TFileStorage {
   }
 
   async destory(id: string) {
-    this.storage[id] = undefined;
+    this._storage[id] = undefined;
   }
 
 };
