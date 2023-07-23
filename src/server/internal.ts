@@ -24,12 +24,14 @@
 //
 
 import _ from 'lodash';
-import { ExtraOptions } from '../common/options';
 import { defaultSchema } from './defaults';
-import { ProtoInternalType } from '../common/proto';
 import { Proto, ProtoOptions, ProtoFunction, ProtoFunctionOptions, ProtoTrigger } from './index';
-import { TFile } from '../common/object/file';
-import { PVK } from '../common/private';
+import {
+  PVK,
+  TFile,
+  ExtraOptions,
+  ProtoInternalType,
+} from '../internals';
 
 export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
 

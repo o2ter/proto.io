@@ -23,8 +23,8 @@
 //  THE SOFTWARE.
 //
 
-import { TExtensions } from './object/types';
+import { TExtensions } from '../internals';
 
-export * from './codec';
+export * from '../internals/codec';
 
 export const classExtends = <E>(x: TExtensions<E>) => x;

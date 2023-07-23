@@ -24,11 +24,14 @@
 //
 
 import _ from 'lodash';
-import { TQuery } from '../common/query';
-import { TObject, UpdateOperation } from '../common/object';
-import { PVK } from '../common/private';
 import ProtoClient from './index';
 import { RequestOptions } from './options';
+import {
+  PVK,
+  TQuery,
+  TObject,
+  UpdateOperation,
+} from '../internals';
 
 export const applyQueryMethods = <T extends string, E>(query: TQuery<T, E>, proto: ProtoClient<E>, options?: RequestOptions) => {
 

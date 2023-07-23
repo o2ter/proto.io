@@ -24,14 +24,17 @@
 //
 
 import _ from 'lodash';
-import { TQuery } from '../common/query';
 import { Proto } from './index';
-import { TObject, UpdateOperation } from '../common/object';
-import { TSchema } from '../common/schema';
-import { PVK } from '../common/private';
-import { ExtraOptions } from '../common/options';
-import { applyObjectMethods } from '../common/object/methods';
-import { asyncIterableToArray } from '../common/utils';
+import {
+  PVK,
+  TQuery,
+  TObject,
+  UpdateOperation,
+  TSchema,
+  ExtraOptions,
+  applyObjectMethods,
+  asyncIterableToArray,
+} from '../internals';
 
 const validateCLPs = (
   clps: TSchema.CLPs,

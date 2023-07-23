@@ -25,14 +25,18 @@
 
 import _ from 'lodash';
 import { request } from './request';
-import { TSerializable, serialize, deserialize } from '../common/codec';
-import { applyObjectMethods } from '../common/object/methods';
 import { RequestOptions } from './options';
-import { ProtoInternalType } from '../common/proto';
-import { ExtraOptions } from '../common/options';
 import { ProtoClient, ProtoOptions } from './index';
-import { TFile } from '../common/object/file';
-import { PVK } from '../common/private';
+import {
+  PVK,
+  applyObjectMethods,
+  TSerializable,
+  ProtoInternalType,
+  TFile,
+  ExtraOptions,
+  deserialize,
+  serialize,
+} from '../internals';
 
 export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
 

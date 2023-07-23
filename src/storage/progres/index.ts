@@ -25,9 +25,7 @@
 
 import _ from 'lodash';
 import pg, { IConnectionOptions, IDatabase } from 'pg-promise';
-import { FindOptions, TStorage } from '../../common/storage';
-import { TSchema } from '../../common/schema';
-import { storageSchedule } from '../../common/schedule';
+import { FindOptions, TStorage, TSchema, storageSchedule } from '../../internals';
 
 const pgp = pg({});
 

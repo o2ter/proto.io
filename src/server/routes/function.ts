@@ -26,10 +26,8 @@
 import _ from 'lodash';
 import express, { Router } from 'express';
 import { Proto } from '../../server';
-import { deserialize } from '../../common/codec';
 import { response } from './common';
-import { PVK } from '../../common/private';
-import { applyObjectMethods } from '../../common/object/methods';
+import { PVK, deserialize, applyObjectMethods } from '../../internals';
 
 export default <E>(router: Router, payload: Proto<E>) => {
 

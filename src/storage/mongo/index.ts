@@ -25,9 +25,7 @@
 
 import _ from 'lodash';
 import { MongoClient, MongoClientOptions } from 'mongodb';
-import { TStorage } from '../../common/storage';
-import { TSchema } from '../../common/schema';
-import { storageSchedule } from '../../common/schedule';
+import { TStorage, TSchema, storageSchedule } from '../../internals';
 
 export class MongoStorage implements TStorage {
 

@@ -31,7 +31,7 @@ import csrfHandler from './server/csrf';
 import classesRoute from './server/routes/classes';
 import functionRoute from './server/routes/function';
 import filesRoute from './server/routes/files';
-import { PVK } from './common/private';
+import { PVK } from './internals';
 
 export * from './common';
 export { Proto } from './server';

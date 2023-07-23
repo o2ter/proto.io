@@ -23,21 +23,25 @@
 //  THE SOFTWARE.
 //
 
-import { TSerializable } from '../common/codec';
-import { TStorage } from '../common/storage';
-import { TSchema } from '../common/schema';
-import { TQuery } from '../common/query';
-import { TObject } from '../common/object';
-import { TExtensions, TObjectType, TObjectTypes } from '../common/object/types';
 import { applyQueryMethods } from './query';
-import { applyObjectMethods } from '../common/object/methods';
-import { TUser } from '../common/object/user';
-import { PVK } from '../common/private';
-import { ExtraOptions } from '../common/options';
-import { isObjKey } from '../common/utils';
-import { ProtoType } from '../common/proto';
-import { FileData } from '../common/object/file';
 import { ProtoInternal } from './internal';
+import {
+  PVK,
+  ProtoType,
+  TExtensions,
+  TObject,
+  TObjectType,
+  TObjectTypes,
+  isObjKey,
+  FileData,
+  applyObjectMethods,
+  TQuery,
+  TSerializable,
+  TSchema,
+  TStorage,
+  TUser,
+  ExtraOptions,
+} from '../internals';
 
 type Callback<T, R, E> = (request: Proto<E> & T) => R | PromiseLike<R>;
 export type ProtoFunction<E> = Callback<{ data: TSerializable; }, TSerializable, E>;

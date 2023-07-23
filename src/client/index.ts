@@ -23,18 +23,22 @@
 //  THE SOFTWARE.
 //
 
-import { TSerializable } from '../common/codec';
-import { TQuery } from '../common/query';
 import { applyQueryMethods } from './query';
-import { TObject } from '../common/object';
-import { TExtensions, TObjectType, TObjectTypes } from '../common/object/types';
-import { isObjKey } from '../common/utils';
-import { applyObjectMethods } from '../common/object/methods';
 import { RequestOptions } from './options';
-import { PVK } from '../common/private';
-import { ProtoType } from '../common/proto';
-import { FileData } from '../common/object/file';
 import { ProtoClientInternal } from './internal';
+import {
+  PVK,
+  ProtoType,
+  TExtensions,
+  TObject,
+  TObjectType,
+  TObjectTypes,
+  isObjKey,
+  FileData,
+  applyObjectMethods,
+  TQuery,
+  TSerializable,
+} from '../internals';
 
 export * from '../common';
 
