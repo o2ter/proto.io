@@ -24,6 +24,7 @@
 //
 
 import _ from 'lodash';
+import { FileData } from './object/file';
 
 type TFileInfo = {
   mimeType: string;
@@ -33,7 +34,7 @@ type TFileInfo = {
 export interface TFileStorage {
 
   create(
-    file: NodeJS.ReadableStream,
+    file: FileData,
     info: TFileInfo,
   ): PromiseLike<string>;
 
