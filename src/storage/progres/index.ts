@@ -32,9 +32,22 @@ const pgp = pg({});
 
 export class PostgresStorage implements TStorage {
 
+  static _scheduleCallback(storage: PostgresStorage) {
+    (async () => {
+      for (const className of storage.classes()) {
+        await storage.findAndDelete({
+          className,
+          filter: { _expired_at: { $lt: new Date() } },
+          options: { master: true, acls: [] },
+        });
+      }
+    })();
+  }
+
+  interval = setInterval(PostgresStorage._scheduleCallback, 60 * 1000, this);
+
   connection: IDatabase<{}>;
   schema: Record<string, TSchema> = {};
-  interval = setInterval(this._scheduleCallback, 60 * 1000);
 
   constructor(uri: string) {
     this.connection = pgp(uri);
@@ -52,18 +65,6 @@ export class PostgresStorage implements TStorage {
   static async connect(uri: string, options?: IConnectionOptions) {
     const storage = new PostgresStorage(uri);
     return storage.connect(options);
-  }
-
-  _scheduleCallback() {
-    (async () => {
-      for (const className of this.classes()) {
-        await this.findAndDelete({
-          className,
-          filter: { _expired_at: { $lt: new Date() } },
-          options: { master: true, acls: [] },
-        });
-      }
-    })();
   }
 
   prepare(schema: Record<string, TSchema>) {
