@@ -79,6 +79,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     if (updated) {
       object[PVK].attributes = updated.attributes;
       object[PVK].mutated = {};
+      object[PVK].extra = {};
     }
 
     return object;
@@ -102,6 +103,19 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
       },
       ...opts
     });
+
+    if (res.status !== 200) {
+      const error = JSON.parse(res.data);
+      throw new Error(error.message, { cause: error });
+    }
+
+    const updated = deserialize(res.data) as TFile;
+
+    if (updated) {
+      object[PVK].attributes = updated.attributes;
+      object[PVK].mutated = {};
+      object[PVK].extra = {};
+    }
 
     return object;
   }
