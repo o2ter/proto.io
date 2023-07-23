@@ -45,17 +45,16 @@ type TQuerySelector<T> = {
   $elemMatch?: TQuerySelector<T> | TFilterQuery<T>;
 }
 
-type TCondQuerySelector<T> = {
+type TRootQuerySelector<T> = {
   $and?: TFilterQuery<T>[];
   $nor?: TFilterQuery<T>[];
   $or?: TFilterQuery<T>[];
+  $expr?: T;
 };
 
-type TRootQuerySelector<T> = TCondQuerySelector<T> | {
+export type TFilterQuery<T> = TRootQuerySelector<T> | {
   [P in keyof T]?: T[P] | TQuerySelector<T[P]>;
 };
-
-export type TFilterQuery<T> = TRootQuerySelector<T> | { $expr?: T; };
 
 type CommonFindOptions = { className: string; options: ExtraOptions & { acls?: string[]; }; };
 export type FindOptions = CommonFindOptions & Omit<TQuery.Options, 'returning'>;
