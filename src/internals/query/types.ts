@@ -26,18 +26,15 @@
 import { TQuery } from './index';
 import { ExtraOptions } from '../options';
 
-type AnyArray<T> = T[] | readonly T[];
-type Unpacked<T> = T extends AnyArray<infer U> ? U : T;
-
 type TQuerySelector<T> = {
   $eq?: T;
   $gt?: T;
   $gte?: T;
-  $in?: T[] extends AnyArray<any> ? Unpacked<T>[] : T[];
+  $in?: T[];
   $lt?: T;
   $lte?: T;
   $ne?: T;
-  $nin?: T[] extends AnyArray<any> ? Unpacked<T>[] : T[];
+  $nin?: T[];
   $not?: T extends string ? TQuerySelector<T> | RegExp : TQuerySelector<T>;
   $exists?: T extends boolean ? T : never;
   $size?: T extends number ? T : never;
