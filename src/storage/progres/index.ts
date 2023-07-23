@@ -24,17 +24,19 @@
 //
 
 import _ from 'lodash';
-import pg, { IInitOptions, IConnectionOptions, IDatabase } from 'pg-promise';
+import pg, { IConnectionOptions, IDatabase } from 'pg-promise';
 import { TStorage } from '../../common/storage';
 import { TSchema } from '../../common/schema';
+
+const pgp = pg({});
 
 export class PostgresStorage implements TStorage {
 
   connection: IDatabase<{}>;
   schema: Record<string, TSchema> = {};
 
-  constructor(uri: string, options?: IInitOptions) {
-    this.connection = pg(options ?? {})(uri);
+  constructor(uri: string) {
+    this.connection = pgp(uri);
   }
 
   async connect(options?: IConnectionOptions) {
@@ -42,9 +44,9 @@ export class PostgresStorage implements TStorage {
     return this;
   }
 
-  static async connect(uri: string, options?: IInitOptions) {
-    const storage = new PostgresStorage(uri, options);
-    return storage.connect();
+  static async connect(uri: string, options?: IConnectionOptions) {
+    const storage = new PostgresStorage(uri);
+    return storage.connect(options);
   }
 
   prepare(schema: Record<string, TSchema>) {
