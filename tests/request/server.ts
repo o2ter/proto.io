@@ -34,6 +34,7 @@ let httpServer: any;
 const proto = new Proto({
   schema: {},
   storage: new MemoryStorage(),
+  fileStorage: null as any,
 });
 
 proto.define('echo', (req) => {

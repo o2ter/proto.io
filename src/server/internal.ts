@@ -26,6 +26,7 @@
 import _ from 'lodash';
 import { defaultSchema } from './defaults';
 import { Proto, ProtoOptions, ProtoFunction, ProtoFunctionOptions, ProtoTrigger } from './index';
+import { Readable } from 'node:stream';
 import {
   PVK,
   TFile,
@@ -88,6 +89,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     if (updated) {
       object[PVK].attributes = updated.attributes;
       object[PVK].mutated = {};
+      object[PVK].extra = {};
     }
 
     return object;
@@ -95,7 +97,54 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
 
   async createFile(object: TFile, options?: ExtraOptions) {
 
-    const data = object[PVK].extra.data as FileData | { _id: string };
+    const data = object[PVK].extra.data as FileData | { _id: string; size: number; };
+
+    let file: { _id?: string; size?: number; persist?: boolean; } = {};
+    let content: string | undefined;
+
+    const info = {
+      mimeType: object.get('type'),
+      filename: object.get('filename'),
+    };
+
+    if (_.isString(data) && data.length < 64 * 1024) {
+      content = data;
+    } else if (
+      _.isString(data) ||
+      data instanceof Blob ||
+      data instanceof Buffer ||
+      data instanceof Readable
+    ) {
+      file = await this.proto.fileStorage.create(data, info);
+    } else if ('base64' in data) {
+      const buffer = Buffer.from(data.base64, 'base64');
+      file = await this.proto.fileStorage.create(buffer, info);
+    } else if ('_id' in data && 'size' in data) {
+      file = { ...data, persist: true };
+    } else {
+      throw Error('Invalid file object');
+    }
+
+    if (!file?.persist && file?._id) {
+      await this.proto.fileStorage.persist(file?._id);
+    }
+
+    if (file?._id) {
+      object.set('token', file._id);
+      object.set('size', file.size);
+    } else if (content) {
+      object.set('content', content);
+      object.set('size', content.length);
+    }
+
+    const inserted = await this.proto.Query(object.className, options)
+      .insert(_.fromPairs(object.keys().map(k => [k, object.get(k)])));
+
+    if (inserted) {
+      object[PVK].attributes = inserted.attributes;
+      object[PVK].mutated = {};
+      object[PVK].extra = {};
+    }
 
     return object;
   }

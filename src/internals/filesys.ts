@@ -27,8 +27,8 @@ import _ from 'lodash';
 import { FileData } from './object/file';
 
 type TFileInfo = {
-  mimeType: string;
-  filename: string;
+  mimeType?: string;
+  filename?: string;
 };
 
 export interface TFileStorage {
@@ -36,7 +36,7 @@ export interface TFileStorage {
   create(
     file: FileData,
     info: TFileInfo,
-  ): PromiseLike<string>;
+  ): PromiseLike<{ _id: string; size: number; }>;
 
   persist(id: string): PromiseLike<void>;
 

@@ -25,8 +25,9 @@
 
 import _ from 'lodash';
 import { TObject } from './index';
+import { Readable } from 'node:stream';
 
-export type FileData = string | Blob | Buffer | ReadableStream | NodeJS.ReadableStream | { base64: string } | { uri: string };
+export type FileData = string | Blob | Buffer | ReadableStream | Readable | { base64: string };
 
 export class TFile extends TObject {
 

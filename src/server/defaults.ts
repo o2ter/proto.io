@@ -65,6 +65,8 @@ export const defaultSchema: Record<string, TSchema> = {
       filename: 'string',
       size: 'number',
       type: 'string',
+      token: 'string',
+      content: 'string',
     },
     classLevelPermissions: {
       find: [],

@@ -24,6 +24,7 @@
 //
 
 import _ from 'lodash';
+import { Readable } from 'node:stream';
 import { Request, Response } from 'express';
 import { TSerializable, serialize } from '../../internals';
 import busboy, { FileInfo } from 'busboy';
@@ -52,7 +53,7 @@ export const response = async <T extends TSerializable>(
 
 export const decodeFormStream = (
   req: Request,
-  onFile: (file: NodeJS.ReadableStream, info: FileInfo) => Promise<any>
+  onFile: (file: Readable, info: FileInfo) => Promise<any>
 ) => {
 
   const formData = busboy(req);
