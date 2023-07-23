@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { Readable } from 'node:stream';
+import { Readable, Duplex } from 'node:stream';
 import { Request, Response } from 'express';
 import { TSerializable, serialize } from '../../internals';
 import busboy, { FileInfo } from 'busboy';
@@ -63,6 +63,7 @@ export const decodeFormStream = (
   formData.on('file', async (name, file, info) => {
     try {
       data[name] = await onFile(file, info);
+      if (!file.readableEnded) throw Error('Incomplete read');
     } catch (e) {
       formData.emit('error', e);
     }
