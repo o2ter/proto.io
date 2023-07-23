@@ -65,7 +65,7 @@ export const applyQueryMethods = <T extends string, E>(query: TQuery<T, E>, prot
       },
     },
     [Symbol.asyncIterator]: {
-      value: async function* () {
+      value: async function*() {
         for (const object of await query) yield object;
       },
     },

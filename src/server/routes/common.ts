@@ -53,14 +53,20 @@ export const response = async <T extends TSerializable>(
 
 export const decodeFormStream = (
   req: Request,
-  onFile: (file: Readable, info: FileInfo) => Promise<any>
+  onFile: (file: Readable, info: FileInfo) => PromiseLike<any>
 ) => {
 
   const formData = busboy(req);
   const data: Record<string, any> = {};
 
   formData.on('field', (name, val) => { data[name] = val; });
-  formData.on('file', async (name, file, info) => { data[name] = await onFile(file, info); });
+  formData.on('file', async (name, file, info) => {
+    try {
+      data[name] = await onFile(file, info);
+    } catch (e) {
+      formData.emit('error', e);
+    }
+  });
 
   const result = new Promise<Record<string, any>>((resolve, reject) => {
     formData.on('close', () => { resolve(data); });

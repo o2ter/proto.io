@@ -62,7 +62,7 @@ export const applyQueryMethods = <T extends string, E>(
       },
     },
     [Symbol.asyncIterator]: {
-      value: async function* () {
+      value: async function*() {
         for await (const object of storage().find(queryOptions())) yield applyObjectMethods(object, proto);
       },
     },
