@@ -25,15 +25,22 @@
 
 import _ from 'lodash';
 import { TObject } from './index';
-import { Readable } from 'node:stream';
+import type { Readable } from 'node:stream';
 
 type FileBuffer = Blob | Buffer;
 type FileStream = ReadableStream | Readable;
 export type FileData = string | FileBuffer | FileStream | { base64: string };
 
-export const isFileBuffer = (x: any): x is FileBuffer => x instanceof Blob || x instanceof Buffer;
-export const isFileStream = (x: any): x is FileStream => x instanceof ReadableStream || x instanceof Readable;
-
+export const isFileBuffer = (x: any): x is FileBuffer => {
+  if (typeof Blob !== 'undefined' && x instanceof Blob) return true;
+  if (typeof Buffer !== 'undefined' && x instanceof Buffer) return true;
+  return false;
+};
+export const isFileStream = (x: any): x is FileStream => {
+  if (typeof ReadableStream !== 'undefined' && x instanceof ReadableStream) return true;
+  if (typeof window === 'undefined' && x instanceof require('node:stream').Readable) return true;
+  return false;
+};
 export class TFile extends TObject {
 
   constructor(
