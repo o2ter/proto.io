@@ -5,13 +5,18 @@ import babel from '@rollup/plugin-babel';
 import json from '@rollup/plugin-json';
 import dts from 'rollup-plugin-dts';
 
-const input = {
-  index: 'src/index',
-  client: 'src/client',
-  common: 'src/common',
-  'storage/mongo': 'src/storage/mongo',
-  'storage/progres': 'src/storage/progres',
-  'fileStorage/database': 'src/fileStorage/database',
+const configs = {
+  input: {
+    index: 'src/index',
+    client: 'src/client/index',
+    common: 'src/common/index',
+    'storage/mongo': 'src/storage/mongo/index',
+    'storage/progres': 'src/storage/progres/index',
+    'fileStorage/database': 'src/fileStorage/database/index',
+  },
+  external: [
+    /node_modules/
+  ],
 };
 
 const resolvePlugin = resolve({
@@ -36,10 +41,7 @@ const rollupPlugins = [
 
 export default [
   {
-    input: input,
-    external: [
-      /node_modules/
-    ],
+    ...configs,
     output: [
       {
         entryFileNames: '[name].js',
@@ -62,10 +64,7 @@ export default [
     ],
   },
   {
-    input: input,
-    external: [
-      /node_modules/
-    ],
+    ...configs,
     output: [
       {
         entryFileNames: '[name].d.ts',
