@@ -30,7 +30,7 @@ type ScheduleOp = 'expireDocument';
 
 const scheduleCallback = async (storage: TStorage, operations: ScheduleOp[]) => {
 
-  if (_.includes(operations, '')) {
+  if (_.includes(operations, 'expireDocument')) {
     for (const className of await storage.classes()) {
       await storage.findAndDelete({
         className,
