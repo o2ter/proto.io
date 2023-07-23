@@ -40,20 +40,22 @@ type TQuerySelector<T> = {
   $nin?: T[] extends AnyArray<any> ? Unpacked<T>[] : T[];
   $not?: T extends string ? TQuerySelector<T> | RegExp : TQuerySelector<T>;
   $exists?: boolean;
-  $expr?: any;
+  $size?: number;
   $regex?: T extends string ? RegExp | string : never;
   $elemMatch?: TQuerySelector<T> | TFilterQuery<T>;
 }
 
-type TRootQuerySelector<T> = {
+type TCondQuerySelector<T> = {
   $and?: TFilterQuery<T>[];
   $nor?: TFilterQuery<T>[];
   $or?: TFilterQuery<T>[];
 };
 
-export type TFilterQuery<T> = TRootQuerySelector<T> | {
+type TRootQuerySelector<T> = TCondQuerySelector<T> | {
   [P in keyof T]?: T[P] | TQuerySelector<T[P]>;
 };
+
+export type TFilterQuery<T> = TRootQuerySelector<T> | { $expr?: T; };
 
 type CommonFindOptions = { className: string; options: ExtraOptions & { acls?: string[]; }; };
 export type FindOptions = CommonFindOptions & Omit<TQuery.Options, 'returning'>;
