@@ -32,4 +32,7 @@ export const randomBytes = typeof window === 'undefined' ?
 
 export const generateId = (
   size: number = 16
-): string => _.map(randomBytes(size / 2), x => x.toString(16).padStart(2, '0')).join('');
+): string => {
+  const bytes = randomBytes(size / 2);
+  return _.map(bytes, x => x.toString(16).padStart(2, '0')).join('');
+}
