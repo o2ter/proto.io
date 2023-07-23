@@ -39,6 +39,7 @@ import {
   FileData,
   isFileBuffer,
   isFileStream,
+  base64ToBuffer,
 } from '../internals';
 
 export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
@@ -98,7 +99,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     if (_.isString(data) || isFileBuffer(data) || isFileStream(data)) {
       buffer = data;
     } else if ('base64' in data) {
-      buffer = Buffer.from(data.base64, 'base64');
+      buffer = base64ToBuffer(data.base64);
     } else {
       throw Error('Invalid file object');
     }

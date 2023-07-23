@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { FileData } from '../internals/object/file';
+import { FileData } from '../internals/buffer';
 import { Proto } from '.';
 
 type TFileInfo = {

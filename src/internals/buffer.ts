@@ -1,5 +1,5 @@
 //
-//  common.ts
+//  buffer.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -23,20 +23,26 @@
 //  THE SOFTWARE.
 //
 
-export * from './object';
-export * from './object/types';
-export * from './object/file';
-export * from './object/role';
-export * from './object/user';
-export * from './object/methods';
-export * from './buffer';
-export * from './codec';
-export * from './query';
-export * from './query/types';
-export * from './options';
-export * from './private';
-export * from './proto';
-export * from './random';
-export * from './schedule';
-export * from './schema';
-export * from './utils';
+import _ from 'lodash';
+import type { Readable } from 'node:stream';
+
+type FileBuffer = Blob | Buffer | ArrayBufferLike;
+type FileStream = ReadableStream | Readable;
+export type FileData = string | FileBuffer | FileStream | { base64: string; };
+
+export const isFileBuffer = (x: any): x is FileBuffer => {
+  if (typeof Blob !== 'undefined' && x instanceof Blob) return true;
+  if (typeof Buffer !== 'undefined' && x instanceof Buffer) return true;
+  if (_.isArrayBuffer(x)) return true;
+  return false;
+};
+
+export const isFileStream = (x: any): x is FileStream => {
+  if (typeof ReadableStream !== 'undefined' && x instanceof ReadableStream) return true;
+  if (typeof window === 'undefined' && x instanceof require('node:stream').Readable) return true;
+  return false;
+};
+
+export const base64ToBuffer = (base64: string) => {
+  return Buffer.from(base64, 'base64');
+};

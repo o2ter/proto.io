@@ -27,7 +27,8 @@ import { PVK } from './private';
 import { ExtraOptions } from './options';
 import { TQuery } from './query';
 import { TExtensions, TObjectType } from './object/types';
-import { FileData, TFile } from './object/file';
+import { TFile } from './object/file';
+import { FileData } from './buffer';
 
 export interface ProtoInternalType<Ext> {
 

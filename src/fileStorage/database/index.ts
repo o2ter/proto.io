@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { Readable } from 'node:stream';
-import { FileData, PVK, generateId } from '../../internals';
+import { FileData, PVK, base64ToBuffer, generateId } from '../../internals';
 import { TFileStorage } from '../../server/filesys';
 import { Proto } from '../../server';
 
@@ -44,18 +44,16 @@ export class DatabaseFileStorage implements TFileStorage {
 
     let buffer: string | Buffer;
 
-    if (_.isString(file) || file instanceof Buffer) {
-      buffer = file;
-    } else if (file instanceof Blob) {
-      buffer = Buffer.from(await file.arrayBuffer());
-    } else if (file instanceof Readable) {
+    if (file instanceof Readable) {
       const buffers = [];
       for await (const data of file) {
         buffers.push(data);
       }
       buffer = Buffer.concat(buffers);
+    } else if (_.isString(file) || file instanceof Buffer) {
+      buffer = file;
     } else if ('base64' in file) {
-      buffer = Buffer.from(file.base64, 'base64');
+      buffer = base64ToBuffer(file.base64);
     } else {
       throw Error('Unknown file type');
     }
