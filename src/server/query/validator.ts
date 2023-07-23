@@ -54,34 +54,34 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
   return {
     count(
       query: FindOptions,
-    ): PromiseLike<number> {
+    ) {
       if (!options?.master && !_validateCLPs('count')) throw new Error('No permission');
       return proto.storage.count(query);
     },
     find(
       query: FindOptions,
-    ): AsyncIterable<TObject> {
+    ) {
       if (!options?.master && !_validateCLPs('find')) throw new Error('No permission');
       return proto.storage.find(query);
     },
     insert(
       className: string,
       attrs: Record<string, any>,
-    ): PromiseLike<TObject | undefined> {
+    ) {
       if (!options?.master && !_validateCLPs('create')) throw new Error('No permission');
       return proto.storage.insert(className, attrs);
     },
     findOneAndUpdate(
       query: FindOneOptions,
       update: Record<string, [UpdateOperation, any]>,
-    ): PromiseLike<TObject | undefined> {
+    ) {
       if (!options?.master && !_validateCLPs('update')) throw new Error('No permission');
       return proto.storage.findOneAndUpdate(query, update);
     },
     findOneAndReplace(
       query: FindOneOptions,
       replacement: Record<string, any>,
-    ): PromiseLike<TObject | undefined> {
+    ) {
       if (!options?.master && !_validateCLPs('update')) throw new Error('No permission');
       return proto.storage.findOneAndReplace(query, replacement);
     },
@@ -89,19 +89,19 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
       query: FindOneOptions,
       update: Record<string, [UpdateOperation, any]>,
       setOnInsert: Record<string, any>,
-    ): PromiseLike<TObject | undefined> {
+    ) {
       if (!options?.master && !_validateCLPs('create', 'update')) throw new Error('No permission');
       return proto.storage.findOneAndUpsert(query, update, setOnInsert);
     },
     findOneAndDelete(
       query: FindOneOptions,
-    ): PromiseLike<TObject | undefined> {
+    ) {
       if (!options?.master && !_validateCLPs('delete')) throw new Error('No permission');
       return proto.storage.findOneAndDelete(query);
     },
     findAndDelete(
       query: FindOptions,
-    ): PromiseLike<number> {
+    ) {
       if (!options?.master && !_validateCLPs('delete')) throw new Error('No permission');
       return proto.storage.findAndDelete(query);
     },
