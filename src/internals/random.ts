@@ -26,6 +26,8 @@
 import _ from 'lodash';
 import type { randomBytes as _randomBytes } from 'node:crypto';
 
+const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+
 export const randomBytes = typeof window === 'undefined' ?
   require('node:crypto').randomBytes as typeof _randomBytes :
   (size: number) => window.crypto.getRandomValues(new Uint8Array(size));
