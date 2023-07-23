@@ -26,11 +26,8 @@
 import _ from 'lodash';
 import { TStorage } from './storage';
 
-type ScheduleOp = 'expireDocument';
-
-const scheduleCallback = async (storage: TStorage, operations: ScheduleOp[]) => {
-
-  if (_.includes(operations, 'expireDocument')) {
+const scheduleOp = {
+  expireDocument: async (storage: TStorage) => {
     for (const className of await storage.classes()) {
       await storage.findAndDelete({
         className,
@@ -39,14 +36,29 @@ const scheduleCallback = async (storage: TStorage, operations: ScheduleOp[]) => 
       });
     }
   }
-
 }
 
-export const storageSchedule = (storage: TStorage, operations: ScheduleOp[]) => {
+export const storageSchedule = (storage: TStorage, operations: (keyof typeof scheduleOp)[]) => {
   if (_.isEmpty(operations)) return null;
-  const schedule = setInterval(scheduleCallback, 60 * 1000, storage, operations);
+  let running = false;
+  const execute = async () => {
+    if (running) return;
+    running = true;
+    for (const op of operations) {
+      const task = scheduleOp[op];
+      if (!_.isFunction(task)) continue;
+      try {
+        await task(storage);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    running = false;
+  }
+  const schedule = setInterval(execute, 60 * 1000);
   return {
     schedule,
+    execute,
     destory() { clearInterval(schedule); }
   }
 }

@@ -54,8 +54,9 @@ export class PostgresStorage implements TStorage {
     return storage.connect(options);
   }
 
-  prepare(schema: Record<string, TSchema>) {
+  async prepare(schema: Record<string, TSchema>) {
     this.schema = schema;
+    this.schedule?.execute();
   }
 
   classes() {

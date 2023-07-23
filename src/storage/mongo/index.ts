@@ -53,8 +53,9 @@ export class MongoStorage implements TStorage {
     return storage.connect();
   }
 
-  prepare(schema: Record<string, TSchema>) {
+  async prepare(schema: Record<string, TSchema>) {
     this.schema = schema;
+    this.schedule?.execute();
   }
 
   classes() {

@@ -24,14 +24,21 @@
 //
 
 import _ from 'lodash';
-import { TStorage, TSchema } from '../../internals';
+import { TStorage, TSchema, storageSchedule } from '../../internals';
 
 export class MemoryStorage implements TStorage {
 
+  schedule = storageSchedule(this, ['expireDocument']);
+
   schema: Record<string, TSchema> = {};
+
+  async close() {
+    this.schedule?.destory();
+  }
 
   prepare(schema: Record<string, TSchema>) {
     this.schema = schema;
+    this.schedule?.execute();
   }
 
   classes() {
