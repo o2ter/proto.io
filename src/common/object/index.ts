@@ -51,7 +51,7 @@ export interface TObject {
 export class TObject {
 
   static defaultReadonlyKeys = ['_id', '_created_at', '_updated_at'];
-  static defaultKeys = [...TObject.defaultReadonlyKeys, '_acl'];
+  static defaultKeys = [...TObject.defaultReadonlyKeys, '_expired_at', '_acl'];
 
   [PVK]: {
     className: string;
@@ -90,6 +90,14 @@ export class TObject {
 
   get updatedAt(): Date | undefined {
     return this[PVK].attributes._updated_at;
+  }
+
+  get expiredAt(): Date | undefined {
+    return this.get('_expired_at');
+  }
+
+  set expiredAt(value: Date | undefined) {
+    this.set('_expired_at', value);
   }
 
   get acl(): TSchema.ACLs {

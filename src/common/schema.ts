@@ -39,7 +39,6 @@ export namespace TSchema {
   export type Indexes = {
     keys: Record<string, 1 | -1>;
     unique?: boolean;
-    expireAfterSeconds?: number;
   };
 }
 
