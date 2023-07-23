@@ -1,5 +1,5 @@
 //
-//  random.ts
+//  index.test.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -23,24 +23,10 @@
 //  THE SOFTWARE.
 //
 
-import _ from 'lodash';
-import type { randomBytes as _randomBytes } from 'node:crypto';
+import { expect, test } from '@jest/globals';
+import { generateId } from '../../src/internals';
 
-const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-
-export const randomBytes = typeof window === 'undefined' ?
-  require('node:crypto').randomBytes as typeof _randomBytes :
-  (size: number) => window.crypto.getRandomValues(new Uint8Array(size));
-
-export const generateId = (
-  size: number = 16
-): string => {
-  let id = '';
-  let carry = 0;
-  for (const byte of randomBytes(size)) {
-    const digit = carry + byte;
-    id += chars[digit % chars.length];
-    carry = Math.floor(digit / chars.length);
-  }
-  return id.slice(0, size);
-}
+test('test generateId', async () => {
+  const id = generateId(12);
+  expect(id.length).toBe(12);
+});
