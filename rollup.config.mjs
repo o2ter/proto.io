@@ -5,8 +5,24 @@ import babel from '@rollup/plugin-babel';
 import json from '@rollup/plugin-json';
 import dts from 'rollup-plugin-dts';
 
+const input = {
+  index: 'src/index',
+  client: 'src/client',
+  common: 'src/common',
+  'storage/mongo': 'src/storage/mongo',
+  'storage/progres': 'src/storage/progres',
+  'fileStorage/database': 'src/fileStorage/database',
+};
+
+const resolvePlugin = resolve({
+  extensions: [
+    '.web.ts', '.web.tsx', '.web.mjs', '.web.js',
+    '.ts', '.tsx', '.mjs', '.js',
+  ]
+});
+
 const rollupPlugins = [
-  typescript(),
+  typescript({ declaration: false }),
   babel({
     babelrc: false,
     exclude: 'node_modules/**',
@@ -18,38 +34,9 @@ const rollupPlugins = [
   json(),
 ];
 
-const rollupTypes = (name) => ({
-  input: `src/${name}`,
-  external: [
-    /node_modules/
-  ],
-  output: [
-    {
-      file: `dist/${name}.d.ts`,
-      format: 'es',
-    },
-  ],
-  plugins: [
-    resolve({
-      extensions: [
-        '.web.ts', '.web.tsx', '.web.mjs', '.web.js',
-        '.ts', '.tsx', '.mjs', '.js',
-      ]
-    }),
-    dts()
-  ],
-});
-
 export default [
   {
-    input: {
-      index: 'src/index',
-      client: 'src/client',
-      common: 'src/common',
-      'storage/mongo': 'src/storage/mongo',
-      'storage/progres': 'src/storage/progres',
-      'fileStorage/database': 'src/fileStorage/database',
-    },
+    input: input,
     external: [
       /node_modules/
     ],
@@ -70,19 +57,27 @@ export default [
       },
     ],
     plugins: [
-      resolve({
-        extensions: [
-          '.web.ts', '.web.tsx', '.web.mjs', '.web.js',
-          '.ts', '.tsx', '.mjs', '.js',
-        ]
-      }),
+      resolvePlugin,
       ...rollupPlugins
     ],
   },
-  rollupTypes('index'),
-  rollupTypes('client'),
-  rollupTypes('common'),
-  rollupTypes('storage/mongo'),
-  rollupTypes('storage/progres'),
-  rollupTypes('fileStorage/database'),
+  {
+    input: input,
+    external: [
+      /node_modules/
+    ],
+    output: [
+      {
+        entryFileNames: '[name].d.ts',
+        chunkFileNames: 'internals/[name]-[hash].d.ts',
+        dir: './dist',
+        format: 'es',
+        sourcemap: true,
+      },
+    ],
+    plugins: [
+      resolvePlugin,
+      dts()
+    ],
+  },
 ];
