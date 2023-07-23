@@ -34,6 +34,7 @@ export class PostgresStorage implements TStorage {
 
   connection: IDatabase<{}>;
   schema: Record<string, TSchema> = {};
+  interval = setInterval(this._intervalCallback, 60 * 1000);
 
   constructor(uri: string) {
     this.connection = pgp(uri);
@@ -44,9 +45,17 @@ export class PostgresStorage implements TStorage {
     return this;
   }
 
+  async close() {
+    clearInterval(this.interval);
+  }
+
   static async connect(uri: string, options?: IConnectionOptions) {
     const storage = new PostgresStorage(uri);
     return storage.connect(options);
+  }
+
+  _intervalCallback() {
+
   }
 
   prepare(schema: Record<string, TSchema>) {
