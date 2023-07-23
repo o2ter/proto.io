@@ -25,30 +25,17 @@
 
 import _ from 'lodash';
 import express from 'express';
-import { Readable } from 'node:stream';
 import { Proto, ProtoRoute, UUID } from '../../src/index';
 import { beforeAll, afterAll } from '@jest/globals';
 import { MemoryStorage } from '../../src/storage/memory';
+import MemoryFileStorage from '../../src/fileStorage/memory';
 
 let httpServer: any;
 
 const proto = new Proto({
   schema: {},
   storage: new MemoryStorage(),
-  fileStorage: {
-    async create(file, info) {
-      if (file instanceof Readable) {
-        const buffers = [];
-        for await (const data of file) {
-          buffers.push(data);
-        }
-        console.log(buffers);
-      }
-      return { _id: '', size: 0 };
-    },
-    async persist(id) { },
-    async destory(id) { },
-  },
+  fileStorage: new MemoryFileStorage(),
 });
 
 proto.define('echo', (req) => {

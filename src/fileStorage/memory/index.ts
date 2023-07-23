@@ -1,5 +1,5 @@
 //
-//  common.ts
+//  index.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -23,21 +23,52 @@
 //  THE SOFTWARE.
 //
 
-export * from './codec';
-export * from './object';
-export * from './object/types';
-export * from './object/file';
-export * from './object/role';
-export * from './object/user';
-export * from './object/methods';
-export * from './query';
-export * from './query/types';
-export * from './filesys';
-export * from './options';
-export * from './private';
-export * from './proto';
-export * from './random';
-export * from './schedule';
-export * from './schema';
-export * from './storage';
-export * from './utils';
+import _ from 'lodash';
+import { Readable } from 'node:stream';
+import { FileData, TFileStorage, generateId } from '../../internals';
+
+export class MemoryFileStorage implements TFileStorage {
+
+  storage: Partial<Record<string, string | Buffer>> = {};
+
+  async create(file: FileData, info: {
+    mimeType?: string;
+    filename?: string;
+  }) {
+
+    let buffer: string | Buffer;
+
+    if (_.isString(file) || file instanceof Buffer) {
+      buffer = file;
+    } else if (file instanceof Blob) {
+      buffer = Buffer.from(await file.arrayBuffer());
+    } else if (file instanceof Readable) {
+      const buffers = [];
+      for await (const data of file) {
+        buffers.push(data);
+      }
+      buffer = Buffer.concat(buffers);
+    } else if ('base64' in file) {
+      buffer = Buffer.from(file.base64, 'base64');
+    } else {
+      throw Error('Unknown file type');
+    }
+
+    const token = generateId();
+    this.storage[token] = buffer;
+    return {
+      _id: token,
+      size: buffer.length,
+    };
+  }
+
+  async persist(id: string) {
+  }
+
+  async destory(id: string) {
+    this.storage[id] = undefined;
+  }
+
+};
+
+export default MemoryFileStorage;

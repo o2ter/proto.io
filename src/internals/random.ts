@@ -1,5 +1,5 @@
 //
-//  common.ts
+//  random.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -23,21 +23,13 @@
 //  THE SOFTWARE.
 //
 
-export * from './codec';
-export * from './object';
-export * from './object/types';
-export * from './object/file';
-export * from './object/role';
-export * from './object/user';
-export * from './object/methods';
-export * from './query';
-export * from './query/types';
-export * from './filesys';
-export * from './options';
-export * from './private';
-export * from './proto';
-export * from './random';
-export * from './schedule';
-export * from './schema';
-export * from './storage';
-export * from './utils';
+import _ from 'lodash';
+
+export const generateId = (size: number = 16): string => {
+  if (typeof window === 'undefined') {
+    return require('node:crypto').randomBytes(size / 2).toString('hex');
+  }
+  const buffer = new Uint8Array(size / 2);
+  window.crypto.getRandomValues(buffer);
+  return _.map(buffer, x => x.toString(16).padStart(2, '0')).join('');
+}
