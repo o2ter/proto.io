@@ -27,8 +27,11 @@ import _ from 'lodash';
 import { MongoClient, MongoClientOptions } from 'mongodb';
 import { TStorage } from '../../common/storage';
 import { TSchema } from '../../common/schema';
+import { storageSchedule } from '../../common/schedule';
 
 export class MongoStorage implements TStorage {
+
+  schedule = storageSchedule(this, []);
 
   connection: MongoClient;
   schema: Record<string, TSchema> = {};
@@ -43,6 +46,7 @@ export class MongoStorage implements TStorage {
   }
 
   async close(force?: boolean) {
+    this.schedule?.destory();
     await this.connection.close(force);
   }
 

@@ -27,24 +27,13 @@ import _ from 'lodash';
 import pg, { IConnectionOptions, IDatabase } from 'pg-promise';
 import { FindOptions, TStorage } from '../../common/storage';
 import { TSchema } from '../../common/schema';
+import { storageSchedule } from '../../common/schedule';
 
 const pgp = pg({});
 
 export class PostgresStorage implements TStorage {
 
-  static _scheduleCallback(storage: PostgresStorage) {
-    (async () => {
-      for (const className of storage.classes()) {
-        await storage.findAndDelete({
-          className,
-          filter: { _expired_at: { $lt: new Date() } },
-          options: { master: true, acls: [] },
-        });
-      }
-    })();
-  }
-
-  interval = setInterval(PostgresStorage._scheduleCallback, 60 * 1000, this);
+  schedule = storageSchedule(this, ['expireDocument']);
 
   connection: IDatabase<{}>;
   schema: Record<string, TSchema> = {};
@@ -59,7 +48,7 @@ export class PostgresStorage implements TStorage {
   }
 
   async close() {
-    clearInterval(this.interval);
+    this.schedule?.destory();
   }
 
   static async connect(uri: string, options?: IConnectionOptions) {
