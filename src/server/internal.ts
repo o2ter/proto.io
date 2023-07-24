@@ -186,7 +186,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     const beforeDelete = this.triggers?.beforeDeleteFile;
     const afterDelete = this.triggers?.afterDeleteFile;
 
-    const token = await object.token();
+    object = await object.fetchIfNeeded(['token'], options);
     const context = {};
 
     if (_.isFunction(beforeDelete)) {
@@ -203,7 +203,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
       object[PVK].extra = {};
     }
 
-    this.destoryFileData(this.proto, token);
+    this.destoryFileData(this.proto, object.token);
 
     if (_.isFunction(afterDelete)) {
       await afterDelete(Object.setPrototypeOf({ object, context }, this.proto));

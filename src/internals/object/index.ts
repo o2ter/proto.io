@@ -188,7 +188,13 @@ export class TObject {
   }
 
   async fetch(options?: ExtraOptions) {
-    return this.fetchWithInclude(_.keys(this.attributes), options)
+    return this.fetchWithInclude(_.keys(this.attributes), options);
+  }
+
+  async fetchIfNeeded(keys: string[], options?: ExtraOptions) {
+    const current = _.keys(this.attributes);
+    if (_.every(keys, k => _.includes(current, k))) return this;
+    return this.fetchWithInclude(_.uniq([...current, ...keys]), options);
   }
 
 }
