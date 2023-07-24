@@ -72,6 +72,9 @@ export default <E>(router: Router, proto: Proto<E>) => {
       const file = await query.first();
       if (!file || file.filename !== name) return res.sendStatus(404);
 
+      const location = await payload.fileStorage.fileLocation(payload, file.token);
+      if (location) return res.redirect(location);
+
       const totalSize = file.size;
       const ranges = req.range(totalSize);
 
