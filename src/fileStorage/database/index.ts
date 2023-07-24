@@ -38,7 +38,7 @@ export class DatabaseFileStorage implements TFileStorage {
           token: 'string',
           offset: 'number',
           size: 'number',
-          content: 'string',
+          base64: 'string',
         },
         classLevelPermissions: {
           find: [],
@@ -70,7 +70,7 @@ export class DatabaseFileStorage implements TFileStorage {
         token,
         offset: size,
         size: chunkSize,
-        content: await bufferToBase64(data),
+        base64: await bufferToBase64(data),
       });
       if (!created) throw Error('Unable to save file');
 
@@ -109,7 +109,7 @@ export class DatabaseFileStorage implements TFileStorage {
       token,
       offset: 0,
       size,
-      content: await bufferToBase64(buffer),
+      base64: await bufferToBase64(buffer),
     });
     if (!created) throw Error('Unable to save file');
 
