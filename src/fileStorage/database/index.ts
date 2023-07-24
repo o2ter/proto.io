@@ -85,9 +85,6 @@ export class DatabaseFileStorage implements TFileStorage {
     };
   }
 
-  async persist<E>(proto: Proto<E>, id: string) {
-  }
-
   async destory<E>(proto: Proto<E>, id: string) {
     this._storage[id] = undefined;
   }

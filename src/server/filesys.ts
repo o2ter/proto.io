@@ -43,8 +43,6 @@ export interface TFileStorage {
     info: TFileInfo,
   ): PromiseLike<{ _id: string; size: number; }>;
 
-  persist<E>(proto: Proto<E>, id: string): PromiseLike<void>;
-
   destory<E>(proto: Proto<E>, id: string): PromiseLike<void>;
 
 }

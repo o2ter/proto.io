@@ -39,15 +39,20 @@ export default <E>(router: Router, proto: Proto<E>) => {
 
         const { attributes, file } = await decodeFormStream(req, (file, info) => proto.fileStorage.create(proto, file, info));
 
-        if (file?._id) {
-          await proto.fileStorage.persist(proto, file._id);
+        try {
+
+          const obj = proto.Object('_File');
+          obj[PVK].mutated = _.mapValues(deserialize(attributes) as any, v => [UpdateOp.set, v]) as any;
+          obj[PVK].extra.data = file;
+
+          return obj.save();
+
+        } catch (e) {
+
+          if (file?._id) await proto.fileStorage.destory(proto, file._id);
+
+          throw e;
         }
-
-        const obj = proto.Object('_File');
-        obj[PVK].mutated = _.mapValues(deserialize(attributes) as any, v => [UpdateOp.set, v]) as any;
-        obj[PVK].extra.data = file;
-
-        return obj.save();
       });
     }
   );

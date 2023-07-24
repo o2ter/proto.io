@@ -107,7 +107,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
 
     const data = object[PVK].extra.data as FileData | { _id: string; size: number; };
 
-    let file: { _id?: string; size?: number; persist?: boolean; } = {};
+    let file: { _id: string; size: number; } | undefined;
     let content: string | undefined;
 
     const info = {
@@ -123,33 +123,38 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
       const buffer = base64ToBuffer(data.base64);
       file = await this.proto.fileStorage.create(this.proto, buffer, info);
     } else if ('_id' in data && 'size' in data) {
-      file = { ...data, persist: true };
+      file = data;
     } else {
       throw Error('Invalid file object');
     }
 
-    if (!file?.persist && file?._id) {
-      await this.proto.fileStorage.persist(this.proto, file?._id);
+    try {
+
+      if (file?._id) {
+        object.set('token', file._id);
+        object.set('size', file.size);
+      } else if (content) {
+        object.set('content', content);
+        object.set('size', content.length);
+      }
+
+      const created = await this.proto.Query(object.className, options)
+        .insert(_.fromPairs(object.keys().map(k => [k, object.get(k)])));
+
+      if (created) {
+        object[PVK].attributes = created.attributes;
+        object[PVK].mutated = {};
+        object[PVK].extra = {};
+      }
+
+      return object;
+
+    } catch (e) {
+
+      if (file?._id) await this.proto.fileStorage.destory(this.proto, file._id);
+
+      throw e;
     }
-
-    if (file?._id) {
-      object.set('token', file._id);
-      object.set('size', file.size);
-    } else if (content) {
-      object.set('content', content);
-      object.set('size', content.length);
-    }
-
-    const created = await this.proto.Query(object.className, options)
-      .insert(_.fromPairs(object.keys().map(k => [k, object.get(k)])));
-
-    if (created) {
-      object[PVK].attributes = created.attributes;
-      object[PVK].mutated = {};
-      object[PVK].extra = {};
-    }
-
-    return object;
   }
 
   async saveFile(object: TFile, options?: ExtraOptions) {
