@@ -33,7 +33,7 @@ const validateCLPs = (
   acls: string[],
 ) => {
   for (const key of keys) {
-    if (_.includes(clps[key], '*')) continue;
+    if (_.isNil(clps[key]) || _.includes(clps[key], '*')) continue;
     if (_.every(clps[key], x => !_.includes(acls, x))) return false;
   }
   return true;
