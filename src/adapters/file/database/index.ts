@@ -73,7 +73,7 @@ export class DatabaseFileStorage implements TFileStorage {
         start: size,
         end: size + chunkSize,
         size: chunkSize,
-        base64: await bufferToBase64(data),
+        base64: bufferToBase64(data),
       });
       if (!created) throw Error('Unable to save file');
 
@@ -113,7 +113,7 @@ export class DatabaseFileStorage implements TFileStorage {
       start: 0,
       end: size,
       size,
-      base64: await bufferToBase64(buffer),
+      base64: bufferToBase64(buffer),
     });
     if (!created) throw Error('Unable to save file');
 

@@ -53,7 +53,7 @@ const _bufferToBase64 = typeof window === 'undefined' ?
   (buffer: ArrayBufferLike) => Buffer.from(buffer).toString('base64') :
   (buffer: ArrayBufferLike) => window.btoa(String.fromCharCode(...new Uint8Array(buffer)));
 
-export const bufferToBase64 = async (buffer: string | FileBuffer) => {
+export const bufferToBase64 = (buffer: string | FileBuffer) => {
   if (_.isString(buffer)) return _stringToBase64(buffer);
   if (ArrayBuffer.isView(buffer)) buffer = buffer.buffer;
   return _bufferToBase64(buffer);
