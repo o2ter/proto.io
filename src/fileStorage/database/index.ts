@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { Readable } from 'node:stream';
-import { FileBuffer, FileData, PVK, TSchema, base64ToBuffer, fileBufferSize, isFileBuffer } from '../../internals';
+import { FileBuffer, FileData, PVK, TSchema, base64ToBuffer, bufferToBase64, fileBufferSize, isFileBuffer } from '../../internals';
 import { TFileStorage } from '../../server/filesys';
 import { Proto } from '../../server';
 
@@ -66,9 +66,14 @@ export class DatabaseFileStorage implements TFileStorage {
 
       const chunkSize = fileBufferSize(data);
 
-      const created = await proto.Query('_FileChunk', { master: true }).insert({ token, offset: size, size: chunkSize, content: data });
+      const created = await proto.Query('_FileChunk', { master: true }).insert({
+        token,
+        offset: size,
+        size: chunkSize,
+        content: await bufferToBase64(data),
+      });
       if (!created) throw Error('Unable to save file');
-  
+
       size += chunkSize;
       if (size > proto[PVK].options.maxUploadSize) throw Error('Payload too large');
     }
@@ -100,7 +105,12 @@ export class DatabaseFileStorage implements TFileStorage {
 
     if (size > proto[PVK].options.maxUploadSize) throw Error('Payload too large');
 
-    const created = await proto.Query('_FileChunk', { master: true }).insert({ token, offset: 0, size, content: buffer });
+    const created = await proto.Query('_FileChunk', { master: true }).insert({
+      token,
+      offset: 0,
+      size,
+      content: await bufferToBase64(buffer),
+    });
     if (!created) throw Error('Unable to save file');
 
     return { _id: token, size };

@@ -30,8 +30,10 @@ export type FileBuffer = Blob | ArrayBuffer | ArrayBufferView;
 export type FileStream = ReadableStream | Readable;
 export type FileData = string | FileBuffer | FileStream | { base64: string; };
 
+const isBlob = (x: any): x is Blob => typeof Blob !== 'undefined' && x instanceof Blob;
+
 export const isFileBuffer = (x: any): x is FileBuffer => {
-  if (typeof Blob !== 'undefined' && x instanceof Blob) return true;
+  if (isBlob(x)) return true;
   if (_.isArrayBuffer(x) || ArrayBuffer.isView(x)) return true;
   return false;
 };
@@ -50,3 +52,18 @@ export const isFileStream = (x: any): x is FileStream => {
 export const base64ToBuffer = typeof window === 'undefined' ?
   (base64: string) => Buffer.from(base64, 'base64') :
   (base64: string) => Uint8Array.from(window.atob(base64), x => x.codePointAt(0) as number);
+
+const _stringToBase64 = typeof window === 'undefined' ?
+  (buffer: string) => Buffer.from(buffer).toString('base64') :
+  (buffer: string) => window.btoa(buffer);
+
+const _bufferToBase64 = typeof window === 'undefined' ?
+  (buffer: ArrayBufferLike) => Buffer.from(buffer).toString('base64') :
+  (buffer: ArrayBufferLike) => window.btoa(String.fromCharCode(...new Uint8Array(buffer)));
+
+export const bufferToBase64 = async (buffer: string | FileBuffer) => {
+  if (_.isString(buffer)) return _stringToBase64(buffer);
+  if (isBlob(buffer)) buffer = await buffer.arrayBuffer();
+  if (ArrayBuffer.isView(buffer)) buffer = buffer.buffer;
+  return _bufferToBase64(buffer);
+}
