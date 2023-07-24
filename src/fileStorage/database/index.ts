@@ -40,6 +40,7 @@ export class DatabaseFileStorage implements TFileStorage {
           size: 'number',
           token: 'string',
           content: 'string',
+          partition: 'number',
         },
         classLevelPermissions: {
           find: [],
@@ -48,6 +49,9 @@ export class DatabaseFileStorage implements TFileStorage {
           update: [],
           delete: [],
         },
+        indexes: [
+          { keys: { token: 1, partition: 1 } },
+        ]
       },
     }
   }
