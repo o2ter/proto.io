@@ -39,6 +39,13 @@ const validateCLPs = (
   return true;
 }
 
+const normalize = <T>(x: T): T => {
+  if (_.isString(x)) return x.normalize('NFD') as T;
+  if (_.isArray(x)) return _.map(x, x => normalize(x)) as T;
+  if (_.isPlainObject(x)) return _.mapValues(x as any, x => normalize(x));
+  return x;
+};
+
 export const queryValidator = <E>(proto: Proto<E>, className: string, options?: ExtraOptions) => {
 
   const acls = () => [
@@ -56,34 +63,34 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
       query: FindOptions,
     ) {
       if (!options?.master && !_validateCLPs('count')) throw new Error('No permission');
-      return proto.storage.count(query);
+      return proto.storage.count(normalize(query));
     },
     find(
       query: FindOptions,
     ) {
       if (!options?.master && !_validateCLPs('find')) throw new Error('No permission');
-      return proto.storage.find(query);
+      return proto.storage.find(normalize(query));
     },
     insert(
       className: string,
       attrs: Record<string, any>,
     ) {
       if (!options?.master && !_validateCLPs('create')) throw new Error('No permission');
-      return proto.storage.insert(className, attrs);
+      return proto.storage.insert(className, normalize(attrs));
     },
     findOneAndUpdate(
       query: FindOneOptions,
       update: Record<string, [UpdateOperation, any]>,
     ) {
       if (!options?.master && !_validateCLPs('update')) throw new Error('No permission');
-      return proto.storage.findOneAndUpdate(query, update);
+      return proto.storage.findOneAndUpdate(normalize(query), normalize(update));
     },
     findOneAndReplace(
       query: FindOneOptions,
       replacement: Record<string, any>,
     ) {
       if (!options?.master && !_validateCLPs('update')) throw new Error('No permission');
-      return proto.storage.findOneAndReplace(query, replacement);
+      return proto.storage.findOneAndReplace(normalize(query), normalize(replacement));
     },
     findOneAndUpsert(
       query: FindOneOptions,
@@ -91,19 +98,19 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
       setOnInsert: Record<string, any>,
     ) {
       if (!options?.master && !_validateCLPs('create', 'update')) throw new Error('No permission');
-      return proto.storage.findOneAndUpsert(query, update, setOnInsert);
+      return proto.storage.findOneAndUpsert(normalize(query), normalize(update), normalize(setOnInsert));
     },
     findOneAndDelete(
       query: FindOneOptions,
     ) {
       if (!options?.master && !_validateCLPs('delete')) throw new Error('No permission');
-      return proto.storage.findOneAndDelete(query);
+      return proto.storage.findOneAndDelete(normalize(query));
     },
     findAndDelete(
       query: FindOptions,
     ) {
       if (!options?.master && !_validateCLPs('delete')) throw new Error('No permission');
-      return proto.storage.findAndDelete(query);
+      return proto.storage.findAndDelete(normalize(query));
     },
   };
 }
