@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { Readable } from 'node:stream';
-import { FileBuffer, FileData, PVK, TSchema, base64ToBuffer, fileBufferSize, generateId, isFileBuffer } from '../../internals';
+import { FileBuffer, FileData, PVK, TSchema, base64ToBuffer, fileBufferSize, isFileBuffer } from '../../internals';
 import { TFileStorage } from '../../server/filesys';
 import { Proto } from '../../server';
 
@@ -77,7 +77,7 @@ export class DatabaseFileStorage implements TFileStorage {
       throw Error('Unknown file type');
     }
 
-    const token = generateId(proto[PVK].options.objectIdSize);
+    const token = proto[PVK].generateId();
     this._storage[token] = buffer;
     return {
       _id: token,

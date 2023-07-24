@@ -35,6 +35,7 @@ import {
   isFileBuffer,
   isFileStream,
   base64ToBuffer,
+  generateId,
 } from '../internals';
 
 export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
@@ -64,6 +65,10 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
   async prepare() {
     const schema = _.merge({}, defaultSchema, this.options.fileStorage.schema, this.options.schema);
     await this.options.storage.prepare(schema);
+  }
+
+  generateId() {
+    return generateId(this.options.objectIdSize);
   }
 
   async run(name: string, payload: any, options?: ExtraOptions) {
