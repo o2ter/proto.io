@@ -24,10 +24,11 @@
 //
 
 import _ from 'lodash';
-import express, { Router } from 'express';
+import { Router } from 'express';
+import { Readable } from 'node:stream';
 import { Proto } from '../../server';
 import { decodeFormStream, response } from './common';
-import { PVK, UpdateOp, deserialize } from '../../internals';
+import { FileBuffer, PVK, UpdateOp, deserialize } from '../../internals';
 
 export default <E>(router: Router, proto: Proto<E>) => {
 
@@ -54,6 +55,52 @@ export default <E>(router: Router, proto: Proto<E>) => {
           throw e;
         }
       });
+    }
+  );
+
+  router.get(
+    '/files/:id/:name',
+    async (req, res) => {
+
+      const { id, name } = req.params;
+
+      const payload: Proto<E> = Object.setPrototypeOf({
+        ..._.omit(req, 'body'),
+      }, proto);
+      const query = payload.Query('_File').filter({ _id: id });
+
+      const file = await query.first();
+      if (!file || file.filename !== name) return res.sendStatus(404);
+
+      const totalSize = file.size;
+      const ranges = req.range(totalSize);
+
+      const match = req.headers['if-none-match'];
+      if (match === `"${id}"`) {
+        res.status(304).end();
+        return;
+      }
+      res.setHeader('Content-Type', file.type);
+      res.setHeader('Cache-Control', 'public, max-age=0');
+      res.setHeader('ETag', `"${id}"`);
+
+      let stream: AsyncIterable<FileBuffer>;
+
+      if (_.isArray(ranges) && ranges.type === 'bytes') {
+
+        const startBytes = _.minBy(ranges, r => r.start)?.start ?? 0;
+        const endBytes = _.maxBy(ranges, r => r.end)?.end ?? totalSize;
+
+        res.setHeader('Content-Range', `bytes ${startBytes}-${endBytes}/${totalSize}`);
+
+        stream = payload.fileStorage.fileData(payload, file.token, startBytes, endBytes);
+
+      } else {
+
+        stream = payload.fileStorage.fileData(payload, file.token);
+      }
+
+      Readable.from(stream).pipe(res).end();
     }
   );
 
