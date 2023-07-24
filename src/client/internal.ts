@@ -108,6 +108,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
       method: 'post',
       baseURL: this.options.endpoint,
       url: 'files',
+      responseType: 'text',
       data: {
         attributes: serialize(_.fromPairs(object.keys().map(k => [k, object.get(k)])), serializeOpts),
         file: buffer,
