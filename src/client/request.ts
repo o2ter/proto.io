@@ -34,6 +34,7 @@ export const request = async <T = any, D = any>(config: AxiosRequestConfig<D>): 
   config = {
     xsrfCookieName: XSRF_COOKIE_NAME,
     xsrfHeaderName: XSRF_HEADER_NAME,
+    validateStatus: () => true,
     ...config,
   };
 
