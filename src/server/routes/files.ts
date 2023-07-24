@@ -49,7 +49,15 @@ export default <E>(router: Router, proto: Proto<E>) => {
 
         } catch (e) {
 
-          if (file?._id) await proto.fileStorage.destory(proto, file._id);
+          if (file?._id) {
+            (async () => {
+              try {
+                await proto.fileStorage.destory(proto, file._id);
+              } catch (e) {
+                console.error(e);
+              }
+            })();
+          }
 
           throw e;
         }

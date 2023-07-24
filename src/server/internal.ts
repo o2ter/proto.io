@@ -151,7 +151,15 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
 
     } catch (e) {
 
-      if (file?._id) await this.proto.fileStorage.destory(this.proto, file._id);
+      if (file?._id) {
+        (async () => {
+          try {
+            await this.proto.fileStorage.destory(this.proto, file._id);
+          } catch (e) {
+            console.error(e);
+          }
+        })();
+      }
 
       throw e;
     }
