@@ -141,25 +141,9 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
 
   async deleteFile(object: TFile, options?: ExtraOptions) {
 
-    const { master, ...opts } = options ?? {};
-
-    const res = await request({
-      method: 'delete',
-      baseURL: this.options.endpoint,
-      url: `files/${object.objectId}`,
-      responseType: 'text',
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-      ...opts
-    });
-
-    if (res.status !== 200) {
-      const error = JSON.parse(res.data);
-      throw new Error(error.message, { cause: error });
-    }
-
-    const deleted = deserialize(res.data) as TFile;
+    const deleted = await this.proto.Query(object.className, options)
+      .filter({ _id: object.objectId })
+      .findOneAndDelete();
 
     if (deleted) {
       object[PVK].attributes = deleted.attributes;

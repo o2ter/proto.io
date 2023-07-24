@@ -57,23 +57,5 @@ export default <E>(router: Router, proto: Proto<E>) => {
     }
   );
 
-  router.delete(
-    '/files/:id',
-    express.text({ type: '*/*' }),
-    async (req, res) => {
-
-      if (!_.isEmpty(req.body)) return res.sendStatus(400);
-
-      const { id } = req.params;
-
-      const payload: Proto<E> = Object.setPrototypeOf({
-        ..._.omit(req, 'body'),
-      }, proto);
-      const query = payload.Query('_File').filter({ _id: id });
-
-      await response(res, async () => query.findOneAndDelete());
-    }
-  );
-
   return router;
 }
