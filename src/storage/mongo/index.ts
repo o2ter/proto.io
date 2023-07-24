@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { MongoClient, MongoClientOptions } from 'mongodb';
-import { TSchema, storageSchedule, FindOneOptions, UpdateOperation, FindOptions } from '../../internals';
+import { TSchema, storageSchedule, FindOneOptions, UpdateOp, FindOptions } from '../../internals';
 import { TStorage } from '../../server/storage';
 
 export class MongoStorage implements TStorage {
@@ -75,7 +75,7 @@ export class MongoStorage implements TStorage {
     return undefined;
   }
 
-  async findOneAndUpdate(query: FindOneOptions, update: Record<string, [UpdateOperation, any]>) {
+  async findOneAndUpdate(query: FindOneOptions, update: Record<string, [UpdateOp, any]>) {
     return undefined;
   }
 
@@ -83,7 +83,7 @@ export class MongoStorage implements TStorage {
     return undefined;
   }
 
-  async findOneAndUpsert(query: FindOneOptions, update: Record<string, [UpdateOperation, any]>, setOnInsert: Record<string, any>) {
+  async findOneAndUpsert(query: FindOneOptions, update: Record<string, [UpdateOp, any]>, setOnInsert: Record<string, any>) {
     return undefined;
   }
 

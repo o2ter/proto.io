@@ -27,7 +27,7 @@ import _ from 'lodash';
 import { Router } from 'express';
 import { Proto } from '../../server';
 import { decodeFormStream, response } from './common';
-import { PVK, UpdateOperation, deserialize } from '../../internals';
+import { PVK, UpdateOp, deserialize } from '../../internals';
 
 export default <E>(router: Router, proto: Proto<E>) => {
 
@@ -44,7 +44,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
         }
 
         const obj = proto.Object('_File');
-        obj[PVK].mutated = _.mapValues(deserialize(attributes) as any, v => [UpdateOperation.set, v]) as any;
+        obj[PVK].mutated = _.mapValues(deserialize(attributes) as any, v => [UpdateOp.set, v]) as any;
         obj[PVK].extra.data = file;
 
         return obj.save();

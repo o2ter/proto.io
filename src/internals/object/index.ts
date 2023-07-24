@@ -28,7 +28,7 @@ import { PVK } from '../private';
 import { ExtraOptions } from '../options';
 import { TSchema } from '../schema';
 
-export enum UpdateOperation {
+export enum UpdateOp {
   set = 'set',
   increment = 'inc',
   multiply = 'mul',
@@ -56,7 +56,7 @@ export class TObject {
   [PVK]: {
     className: string;
     attributes: Record<string, any>;
-    mutated: Record<string, [UpdateOperation, any]>;
+    mutated: Record<string, [UpdateOp, any]>;
     extra: Record<string, any>;
   };
 
@@ -115,17 +115,17 @@ export class TObject {
   get(key: string): any {
     if (_.isNil(this[PVK].mutated[key])) return this.attributes[key];
     const [op, value] = this[PVK].mutated[key];
-    return op === UpdateOperation.set ? value : this.attributes[key];
+    return op === UpdateOp.set ? value : this.attributes[key];
   }
 
   set(key: string, value: any) {
     if (TObject.defaultReadonlyKeys.includes(key)) return;
-    this[PVK].mutated[key] = [UpdateOperation.set, value];
+    this[PVK].mutated[key] = [UpdateOp.set, value];
   }
 
   unset(key: string) {
     if (TObject.defaultReadonlyKeys.includes(key)) return;
-    this[PVK].mutated[key] = [UpdateOperation.set, null];
+    this[PVK].mutated[key] = [UpdateOp.set, null];
   }
 
   get isDirty(): boolean {
@@ -134,57 +134,57 @@ export class TObject {
 
   increment(key: string, value: number) {
     if (TObject.defaultReadonlyKeys.includes(key)) return;
-    this[PVK].mutated[key] = [UpdateOperation.increment, value];
+    this[PVK].mutated[key] = [UpdateOp.increment, value];
   }
 
   decrement(key: string, value: number) {
     if (TObject.defaultReadonlyKeys.includes(key)) return;
-    this[PVK].mutated[key] = [UpdateOperation.increment, -value];
+    this[PVK].mutated[key] = [UpdateOp.increment, -value];
   }
 
   multiply(key: string, value: number) {
     if (TObject.defaultReadonlyKeys.includes(key)) return;
-    this[PVK].mutated[key] = [UpdateOperation.multiply, value];
+    this[PVK].mutated[key] = [UpdateOp.multiply, value];
   }
 
   divide(key: string, value: number) {
     if (TObject.defaultReadonlyKeys.includes(key)) return;
-    this[PVK].mutated[key] = [UpdateOperation.multiply, 1 / value];
+    this[PVK].mutated[key] = [UpdateOp.multiply, 1 / value];
   }
 
   max(key: string, value: any) {
     if (TObject.defaultReadonlyKeys.includes(key)) return;
-    this[PVK].mutated[key] = [UpdateOperation.max, value];
+    this[PVK].mutated[key] = [UpdateOp.max, value];
   }
 
   min(key: string, value: any) {
     if (TObject.defaultReadonlyKeys.includes(key)) return;
-    this[PVK].mutated[key] = [UpdateOperation.min, value];
+    this[PVK].mutated[key] = [UpdateOp.min, value];
   }
 
   addToSet(key: string, values: any[]) {
     if (TObject.defaultReadonlyKeys.includes(key)) return;
-    this[PVK].mutated[key] = [UpdateOperation.addToSet, values];
+    this[PVK].mutated[key] = [UpdateOp.addToSet, values];
   }
 
   push(key: string, values: any[]) {
     if (TObject.defaultReadonlyKeys.includes(key)) return;
-    this[PVK].mutated[key] = [UpdateOperation.push, values];
+    this[PVK].mutated[key] = [UpdateOp.push, values];
   }
 
   removeAll(key: string, values: any[]) {
     if (TObject.defaultReadonlyKeys.includes(key)) return;
-    this[PVK].mutated[key] = [UpdateOperation.removeAll, values];
+    this[PVK].mutated[key] = [UpdateOp.removeAll, values];
   }
 
   popFirst(key: string) {
     if (TObject.defaultReadonlyKeys.includes(key)) return;
-    this[PVK].mutated[key] = [UpdateOperation.popFirst, null];
+    this[PVK].mutated[key] = [UpdateOp.popFirst, null];
   }
 
   popLast(key: string) {
     if (TObject.defaultReadonlyKeys.includes(key)) return;
-    this[PVK].mutated[key] = [UpdateOperation.popLast, null];
+    this[PVK].mutated[key] = [UpdateOp.popLast, null];
   }
 
   async fetch(options?: ExtraOptions) {

@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { TFilterQuery } from './types';
-import { UpdateOperation } from '../object';
+import { UpdateOp } from '../object';
 import { PVK } from '../private';
 import { TObjectType } from '../object/types';
 
@@ -43,9 +43,9 @@ export namespace TQuery {
 export interface TQuery<T extends string, Ext> {
   count(): PromiseLike<number>;
   insert(attrs: Record<string, any>): PromiseLike<TObjectType<T, Ext> | undefined>;
-  findOneAndUpdate(update: Record<string, [UpdateOperation, any]>): PromiseLike<TObjectType<T, Ext> | undefined>;
+  findOneAndUpdate(update: Record<string, [UpdateOp, any]>): PromiseLike<TObjectType<T, Ext> | undefined>;
   findOneAndReplace(replacement: Record<string, any>): PromiseLike<TObjectType<T, Ext> | undefined>;
-  findOneAndUpsert(update: Record<string, [UpdateOperation, any]>, setOnInsert: Record<string, any>): PromiseLike<TObjectType<T, Ext> | undefined>;
+  findOneAndUpsert(update: Record<string, [UpdateOp, any]>, setOnInsert: Record<string, any>): PromiseLike<TObjectType<T, Ext> | undefined>;
   findOneAndDelete(): PromiseLike<TObjectType<T, Ext> | undefined>;
   findAndDelete(): PromiseLike<number>;
 }
@@ -118,7 +118,7 @@ export class TQuery<T extends string, Ext> {
     return !_.isNil(await this.first());
   }
 
-  async updateOne(update: Record<string, [UpdateOperation, any]>) {
+  async updateOne(update: Record<string, [UpdateOp, any]>) {
     return this.findOneAndUpdate(update);
   }
 
@@ -126,7 +126,7 @@ export class TQuery<T extends string, Ext> {
     return this.findOneAndReplace(replacement);
   }
 
-  async upsertOne(update: Record<string, [UpdateOperation, any]>, setOnInsert: Record<string, any>) {
+  async upsertOne(update: Record<string, [UpdateOp, any]>, setOnInsert: Record<string, any>) {
     return this.findOneAndUpsert(update, setOnInsert);
   }
 

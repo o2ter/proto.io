@@ -29,7 +29,7 @@ import {
   PVK,
   TQuery,
   TObject,
-  UpdateOperation,
+  UpdateOp,
   ExtraOptions,
   applyObjectMethods,
   asyncIterableToArray,
@@ -75,7 +75,7 @@ export const applyQueryMethods = <T extends string, E>(
 
         const object = proto.Object(query.className);
         for (const [key, value] of _.toPairs(_.omit(attrs, ...TObject.defaultReadonlyKeys))) {
-          object[PVK].mutated[key] = [UpdateOperation.set, value];
+          object[PVK].mutated[key] = [UpdateOp.set, value];
         }
 
         if (_.isFunction(beforeSave)) await beforeSave(Object.setPrototypeOf({ object, context }, proto));
@@ -89,7 +89,7 @@ export const applyQueryMethods = <T extends string, E>(
       },
     },
     findOneAndUpdate: {
-      value: async (update: Record<string, [UpdateOperation, any]>) => {
+      value: async (update: Record<string, [UpdateOp, any]>) => {
         const beforeSave = proto[PVK].triggers?.beforeSave?.[query.className];
         const afterSave = proto[PVK].triggers?.afterSave?.[query.className];
 
@@ -126,7 +126,7 @@ export const applyQueryMethods = <T extends string, E>(
           const object = applyObjectMethods(_.first(await asyncIterableToArray(storage().find({ ...queryOptions(), limit: 1 }))), proto);
           if (!object) return undefined;
 
-          object[PVK].mutated = _.mapValues(_.omit(replacement, ...TObject.defaultReadonlyKeys), v => [UpdateOperation.set, v]);
+          object[PVK].mutated = _.mapValues(_.omit(replacement, ...TObject.defaultReadonlyKeys), v => [UpdateOp.set, v]);
           await beforeSave(Object.setPrototypeOf({ object, context }, proto));
 
           replacement = {};
@@ -144,7 +144,7 @@ export const applyQueryMethods = <T extends string, E>(
       },
     },
     findOneAndUpsert: {
-      value: async (update: Record<string, [UpdateOperation, any]>, setOnInsert: Record<string, any>) => {
+      value: async (update: Record<string, [UpdateOp, any]>, setOnInsert: Record<string, any>) => {
         const beforeSave = proto[PVK].triggers?.beforeSave?.[query.className];
         const afterSave = proto[PVK].triggers?.afterSave?.[query.className];
 
@@ -159,7 +159,7 @@ export const applyQueryMethods = <T extends string, E>(
           } else {
             object = proto.Object(query.className);
             for (const [key, value] of _.toPairs(_.omit(setOnInsert, ...TObject.defaultReadonlyKeys))) {
-              object[PVK].mutated[key] = [UpdateOperation.set, value];
+              object[PVK].mutated[key] = [UpdateOp.set, value];
             }
           }
 
@@ -170,7 +170,7 @@ export const applyQueryMethods = <T extends string, E>(
           } else {
             setOnInsert = {};
             for (const [key, [op, value]] of _.toPairs(object[PVK].mutated)) {
-              if (op === UpdateOperation.set) {
+              if (op === UpdateOp.set) {
                 setOnInsert[key] = value;
               }
             }

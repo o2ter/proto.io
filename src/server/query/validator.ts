@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { Proto } from '../index';
-import { TSchema, FindOptions, FindOneOptions, UpdateOperation, ExtraOptions } from '../../internals';
+import { TSchema, FindOptions, FindOneOptions, UpdateOp, ExtraOptions } from '../../internals';
 
 const validateCLPs = (
   clps: TSchema.CLPs,
@@ -80,7 +80,7 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
     },
     findOneAndUpdate(
       query: FindOneOptions,
-      update: Record<string, [UpdateOperation, any]>,
+      update: Record<string, [UpdateOp, any]>,
     ) {
       if (!options?.master && !_validateCLPs('update')) throw new Error('No permission');
       return proto.storage.findOneAndUpdate(normalize(query), normalize(update));
@@ -94,7 +94,7 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
     },
     findOneAndUpsert(
       query: FindOneOptions,
-      update: Record<string, [UpdateOperation, any]>,
+      update: Record<string, [UpdateOp, any]>,
       setOnInsert: Record<string, any>,
     ) {
       if (!options?.master && !_validateCLPs('create', 'update')) throw new Error('No permission');

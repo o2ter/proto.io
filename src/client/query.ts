@@ -30,7 +30,7 @@ import {
   PVK,
   TQuery,
   TObject,
-  UpdateOperation,
+  UpdateOp,
 } from '../internals';
 
 export const applyQueryMethods = <T extends string, E>(query: TQuery<T, E>, proto: ProtoClient<E>, options?: RequestOptions) => {
@@ -76,7 +76,7 @@ export const applyQueryMethods = <T extends string, E>(query: TQuery<T, E>, prot
       }, requestOpt),
     },
     findOneAndUpdate: {
-      value: (update: Record<string, [UpdateOperation, any]>) => proto[PVK].request({
+      value: (update: Record<string, [UpdateOp, any]>) => proto[PVK].request({
         operation: 'findOneAndUpdate',
         update,
         ...queryOptions(),
@@ -90,7 +90,7 @@ export const applyQueryMethods = <T extends string, E>(query: TQuery<T, E>, prot
       }, requestOpt),
     },
     findOneAndUpsert: {
-      value: (update: Record<string, [UpdateOperation, any]>, setOnInsert: Record<string, any>) => proto[PVK].request({
+      value: (update: Record<string, [UpdateOp, any]>, setOnInsert: Record<string, any>) => proto[PVK].request({
         operation: 'findOneAndUpsert',
         update,
         setOnInsert,
