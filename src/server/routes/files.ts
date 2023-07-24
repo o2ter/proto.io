@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { Router } from 'express';
+import express, { Router } from 'express';
 import { Proto } from '../../server';
 import { decodeFormStream, response } from './common';
 import { PVK, UpdateOp, deserialize } from '../../internals';
@@ -54,6 +54,24 @@ export default <E>(router: Router, proto: Proto<E>) => {
           throw e;
         }
       });
+    }
+  );
+
+  router.delete(
+    '/files/:id',
+    express.text({ type: '*/*' }),
+    async (req, res) => {
+
+      if (!_.isEmpty(req.body)) return res.sendStatus(400);
+
+      const { id } = req.params;
+
+      const payload = Object.setPrototypeOf({
+        ..._.omit(req, 'body'),
+      }, proto);
+      const query = payload.query('_File').filter({ _id: id });
+
+      await response(res, async () => query.findOneAndDelete());
     }
   );
 
