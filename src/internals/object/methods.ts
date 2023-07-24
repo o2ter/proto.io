@@ -62,6 +62,9 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
           return endpoint.endsWith('/') ? `${endpoint}${path}` : `${endpoint}/${path}`;
         }
       },
+      fileData: {
+        value: (options?: ExtraOptions) => proto[PVK].fileData(object as TFile, options),
+      },
     },
   };
 

@@ -28,7 +28,7 @@ import { ExtraOptions } from './options';
 import { TQuery } from './query';
 import { TExtensions, TObjectType } from './object/types';
 import { TFile } from './object/file';
-import { FileData } from './buffer';
+import { FileData, FileStream } from './buffer';
 
 export interface ProtoInternalType<Ext> {
 
@@ -39,6 +39,8 @@ export interface ProtoInternalType<Ext> {
 
   saveFile(object: TFile, options?: ExtraOptions): Promise<TFile>;
   deleteFile(object: TFile, options?: ExtraOptions): Promise<TFile>;
+
+  fileData(object: TFile, options?: ExtraOptions): FileStream;
 }
 
 export interface ProtoType<Ext> {

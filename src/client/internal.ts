@@ -40,6 +40,7 @@ import {
   isFileBuffer,
   isFileStream,
   base64ToBuffer,
+  FileStream,
 } from '../internals';
 
 export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
@@ -154,4 +155,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     return object;
   }
 
+  fileData(object: TFile, options?: ExtraOptions | undefined): FileStream {
+    throw new Error('Method not implemented.');
+  }
 }

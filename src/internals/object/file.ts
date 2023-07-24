@@ -25,9 +25,12 @@
 
 import _ from 'lodash';
 import { TObject } from './index';
+import { ExtraOptions } from '../options';
+import { FileStream } from '../buffer';
 
 export interface TFile {
   url: string;
+  fileData(options?: ExtraOptions): FileStream;
 }
 
 export class TFile extends TObject {
