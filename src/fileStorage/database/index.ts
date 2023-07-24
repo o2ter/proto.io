@@ -31,8 +31,6 @@ import { Proto } from '../../server';
 
 export class DatabaseFileStorage implements TFileStorage {
 
-  _storage: Partial<Record<string, string | FileBuffer>> = {};
-
   get schema(): Record<string, TSchema> {
     return {
       '_FilePartition': {
@@ -56,24 +54,37 @@ export class DatabaseFileStorage implements TFileStorage {
     }
   }
 
+  async createWithStream<E>(
+    proto: Proto<E>,
+    file: Readable,
+  ) {
+
+    const token = proto[PVK].generateId();
+    let size = 0;
+
+    for await (const data of file) {
+
+      if (size > proto[PVK].options.maxUploadSize) throw Error('Payload too large');
+
+    }
+
+    if (size > proto[PVK].options.maxUploadSize) throw Error('Payload too large');
+
+    return { _id: token, size };
+  }
+
   async create<E>(
     proto: Proto<E>,
     file: FileData,
-    info: {
-      mimeType?: string;
-      filename?: string;
-    }
   ) {
+
+    if (file instanceof Readable) {
+      return this.createWithStream(proto, file);
+    }
 
     let buffer: string | FileBuffer;
 
-    if (file instanceof Readable) {
-      const buffers = [];
-      for await (const data of file) {
-        buffers.push(data);
-      }
-      buffer = Buffer.concat(buffers);
-    } else if (_.isString(file) || isFileBuffer(file)) {
+    if (_.isString(file) || isFileBuffer(file)) {
       buffer = file;
     } else if ('base64' in file) {
       buffer = base64ToBuffer(file.base64);
@@ -82,15 +93,18 @@ export class DatabaseFileStorage implements TFileStorage {
     }
 
     const token = proto[PVK].generateId();
-    this._storage[token] = buffer;
-    return {
-      _id: token,
-      size: _.isString(buffer) ? buffer.length : fileBufferSize(buffer),
-    };
+    const size = _.isString(buffer) ? buffer.length : fileBufferSize(buffer);
+
+    if (size > proto[PVK].options.maxUploadSize) throw Error('Payload too large');
+
+    const created = await proto.Query('_FilePartition', { master: true }).insert({ token, size, content: buffer, partition: 0 });
+    if (!created) throw Error('Unable to save file');
+
+    return { _id: token, size };
   }
 
   async destory<E>(proto: Proto<E>, id: string) {
-    this._storage[id] = undefined;
+    await proto.Query('_FilePartition', { master: true }).filter({ token: id }).findAndDelete();
   }
 
 };
