@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { FileData } from '../internals/buffer';
+import { FileBuffer, FileData } from '../internals/buffer';
 import { Proto } from './index';
 import { TSchema } from '../internals';
 
@@ -44,5 +44,9 @@ export interface TFileStorage {
   ): PromiseLike<{ _id: string; size: number; }>;
 
   destory<E>(proto: Proto<E>, id: string): PromiseLike<void>;
+
+  fileData<E>(proto: Proto<E>, id: string, start?: number, end?: number): AsyncIterable<FileBuffer>;
+
+  fileLocation<E>(proto: Proto<E>, id: string): PromiseLike<string | undefined>;
 
 }

@@ -25,9 +25,9 @@
 
 import _ from 'lodash';
 import { Readable } from 'node:stream';
-import { FileBuffer, FileData, PVK, TSchema, base64ToBuffer, bufferToBase64, fileBufferSize, isFileBuffer } from '../../internals';
-import { TFileStorage } from '../../server/filesys';
-import { Proto } from '../../server';
+import { FileBuffer, FileData, PVK, TSchema, base64ToBuffer, bufferToBase64, fileBufferSize, isFileBuffer } from '../../../internals';
+import { TFileStorage } from '../../../server/filesys';
+import { Proto } from '../../../server';
 
 export class DatabaseFileStorage implements TFileStorage {
 
@@ -36,7 +36,8 @@ export class DatabaseFileStorage implements TFileStorage {
       '_FileChunk': {
         fields: {
           token: 'string',
-          offset: 'number',
+          start: 'number',
+          end: 'number',
           size: 'number',
           base64: 'string',
         },
@@ -48,7 +49,8 @@ export class DatabaseFileStorage implements TFileStorage {
           delete: [],
         },
         indexes: [
-          { keys: { token: 1, offset: 1 } },
+          { keys: { token: 1, start: 1 } },
+          { keys: { token: 1, end: 1 } },
         ]
       },
     }
@@ -68,7 +70,8 @@ export class DatabaseFileStorage implements TFileStorage {
 
       const created = await proto.Query('_FileChunk', { master: true }).insert({
         token,
-        offset: size,
+        start: size,
+        end: size + chunkSize,
         size: chunkSize,
         base64: await bufferToBase64(data),
       });
@@ -107,7 +110,8 @@ export class DatabaseFileStorage implements TFileStorage {
 
     const created = await proto.Query('_FileChunk', { master: true }).insert({
       token,
-      offset: 0,
+      start: 0,
+      end: size,
       size,
       base64: await bufferToBase64(buffer),
     });
@@ -118,6 +122,50 @@ export class DatabaseFileStorage implements TFileStorage {
 
   async destory<E>(proto: Proto<E>, id: string) {
     await proto.Query('_FileChunk', { master: true }).filter({ token: id }).findAndDelete();
+  }
+
+  async* fileData<E>(proto: Proto<E>, id: string, start?: number, end?: number) {
+
+    const query = proto.Query('_FileChunk', { master: true })
+      .sort({ start: 1 })
+      .filter({
+        token: id,
+        ...start ? { end: { $gt: start } } : {},
+        ...end ? { start: { $lt: end } } : {},
+      });
+
+    for await (const chunk of query) {
+
+      const startBytes = chunk.get('start');
+      const endBytes = chunk.get('end');
+      const base64 = chunk.get('base64');
+
+      if (!_.isNumber(startBytes) || !_.isNumber(endBytes) || !_.isString(base64)) throw Error('Corrupted data');
+
+      const data = base64ToBuffer(base64);
+
+      if (_.isNumber(start) || _.isNumber(end)) {
+
+        const _start = _.isNumber(start) && start > startBytes ? start - startBytes : 0;
+        const _end = _.isNumber(end) && end < endBytes ? end - startBytes : undefined;
+
+        if (data instanceof Buffer) {
+          yield Buffer.from(data, _start, _end ? _end - _start : undefined);
+        } else {
+          yield data.slice(_start, _end);
+        }
+
+      } else {
+
+        yield data;
+      }
+
+    }
+
+  }
+
+  async fileLocation<E>(proto: Proto<E>, id: string) {
+    return undefined;
   }
 
 };

@@ -10,9 +10,9 @@ const configs = {
     index: 'src/index',
     client: 'src/client/index',
     common: 'src/common/index',
-    'storage/mongo': 'src/storage/mongo/index',
-    'storage/progres': 'src/storage/progres/index',
-    'fileStorage/database': 'src/fileStorage/database/index',
+    'adapters/storage/mongo': 'src/adapters/storage/mongo/index',
+    'adapters/storage/progres': 'src/adapters/storage/progres/index',
+    'adapters/file/database': 'src/adapters/file/database/index',
   },
   external: [
     /node_modules/

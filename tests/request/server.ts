@@ -27,8 +27,8 @@ import _ from 'lodash';
 import express from 'express';
 import { Proto, ProtoRoute, UUID } from '../../src/index';
 import { beforeAll, afterAll } from '@jest/globals';
-import { MemoryStorage } from '../../src/storage/memory';
-import DatabaseFileStorage from '../../src/fileStorage/database';
+import { MemoryStorage } from '../../src/adapters/storage/memory';
+import DatabaseFileStorage from '../../src/adapters/file/database';
 
 let httpServer: any;
 
