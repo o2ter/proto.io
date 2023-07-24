@@ -47,40 +47,25 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
   const extensions = classExtends[object.className as keyof E] ?? {};
   const query = (options?: ExtraOptions) => proto.Query(object.className, options);
 
-  const saveMethods = {
-    '_File': (options?: ExtraOptions) => proto[PVK].saveFile(object as TFile, options),
-    default: async (options?: ExtraOptions) => {
-      if (object.objectId) {
-        const updated = await query(options).filter({ _id: object.objectId }).findOneAndUpdate(object[PVK].mutated);
-        if (updated) {
-          object[PVK].attributes = updated.attributes;
-          object[PVK].mutated = {};
+  const typedMethods: Record<string, PropertyDescriptorMap & ThisType<TObject>> = {
+    '_File': {
+      save: {
+        value: (options?: ExtraOptions) => proto[PVK].saveFile(object as TFile, options),
+      },
+      destory: {
+        value: (options?: ExtraOptions) => proto[PVK].deleteFile(object as TFile, options),
+      },
+      url: {
+        get() {
+          const endpoint = proto[PVK].options.endpoint;
+          const path = `files/${object.objectId}/${(object as TFile).filename}`;
+          return endpoint.endsWith('/') ? `${endpoint}${path}` : `${endpoint}/${path}`
         }
-      } else {
-        const created = await query(options).insert(_.fromPairs(object.keys().map(k => [k, object.get(k)])));
-        if (created) {
-          object[PVK].attributes = created.attributes;
-          object[PVK].mutated = {};
-        }
-      }
-      return object;
-    },
-  };
-
-  const destoryMethods = {
-    '_File': (options?: ExtraOptions) => proto[PVK].deleteFile(object as TFile, options),
-    default: async (options?: ExtraOptions) => {
-      const deleted = await query(options).filter({ _id: object.objectId }).findOneAndDelete();
-      if (deleted) {
-        object[PVK].attributes = deleted.attributes;
-        object[PVK].mutated = {};
-      }
-      return object;
+      },
     },
   };
 
   return Object.defineProperties(object, {
-    ..._.mapValues(extensions, value => _.isFunction(value) ? { value } : value),
     clone: {
       value: () => {
         const clone = proto.Object(object.className);
@@ -101,10 +86,34 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
       },
     },
     save: {
-      value: saveMethods[object.className as keyof typeof saveMethods] ?? saveMethods.default,
+      value: async (options?: ExtraOptions) => {
+        if (object.objectId) {
+          const updated = await query(options).filter({ _id: object.objectId }).findOneAndUpdate(object[PVK].mutated);
+          if (updated) {
+            object[PVK].attributes = updated.attributes;
+            object[PVK].mutated = {};
+          }
+        } else {
+          const created = await query(options).insert(_.fromPairs(object.keys().map(k => [k, object.get(k)])));
+          if (created) {
+            object[PVK].attributes = created.attributes;
+            object[PVK].mutated = {};
+          }
+        }
+        return object;
+      },
     },
     destory: {
-      value: destoryMethods[object.className as keyof typeof destoryMethods] ?? destoryMethods.default,
-    }
+      value: async (options?: ExtraOptions) => {
+        const deleted = await query(options).filter({ _id: object.objectId }).findOneAndDelete();
+        if (deleted) {
+          object[PVK].attributes = deleted.attributes;
+          object[PVK].mutated = {};
+        }
+        return object;
+      },
+    },
+    ...typedMethods[object.className] ?? {},
+    ..._.mapValues(extensions, value => _.isFunction(value) ? { value } : value),
   });
 };

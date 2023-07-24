@@ -26,6 +26,10 @@
 import _ from 'lodash';
 import { TObject } from './index';
 
+export interface TFile {
+  url: string;
+}
+
 export class TFile extends TObject {
 
   constructor(
