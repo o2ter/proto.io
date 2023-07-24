@@ -33,12 +33,12 @@ export class DatabaseFileStorage implements TFileStorage {
 
   get schema(): Record<string, TSchema> {
     return {
-      '_FilePartition': {
+      '_FileChunk': {
         fields: {
-          size: 'number',
           token: 'string',
+          offset: 'number',
+          size: 'number',
           content: 'string',
-          partition: 'number',
         },
         classLevelPermissions: {
           find: [],
@@ -48,7 +48,7 @@ export class DatabaseFileStorage implements TFileStorage {
           delete: [],
         },
         indexes: [
-          { keys: { token: 1, partition: 1 } },
+          { keys: { token: 1, offset: 1 } },
         ]
       },
     }
@@ -64,11 +64,14 @@ export class DatabaseFileStorage implements TFileStorage {
 
     for await (const data of file) {
 
+      const chunkSize = fileBufferSize(data);
+
+      const created = await proto.Query('_FileChunk', { master: true }).insert({ token, offset: size, size: chunkSize, content: data });
+      if (!created) throw Error('Unable to save file');
+  
+      size += chunkSize;
       if (size > proto[PVK].options.maxUploadSize) throw Error('Payload too large');
-
     }
-
-    if (size > proto[PVK].options.maxUploadSize) throw Error('Payload too large');
 
     return { _id: token, size };
   }
@@ -97,14 +100,14 @@ export class DatabaseFileStorage implements TFileStorage {
 
     if (size > proto[PVK].options.maxUploadSize) throw Error('Payload too large');
 
-    const created = await proto.Query('_FilePartition', { master: true }).insert({ token, size, content: buffer, partition: 0 });
+    const created = await proto.Query('_FileChunk', { master: true }).insert({ token, offset: 0, size, content: buffer });
     if (!created) throw Error('Unable to save file');
 
     return { _id: token, size };
   }
 
   async destory<E>(proto: Proto<E>, id: string) {
-    await proto.Query('_FilePartition', { master: true }).filter({ token: id }).findAndDelete();
+    await proto.Query('_FileChunk', { master: true }).filter({ token: id }).findAndDelete();
   }
 
 };
