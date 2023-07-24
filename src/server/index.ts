@@ -75,7 +75,7 @@ export class Proto<Ext> implements ProtoType<Ext> {
 
   constructor(options: ProtoOptions<Ext>) {
     this[PVK] = new ProtoInternal(this, {
-      objectIdSize: 16,
+      objectIdSize: 10,
       maxUploadSize: 20 * 1024 * 1024,
       classExtends: {} as TExtensions<Ext>,
       ...options,
