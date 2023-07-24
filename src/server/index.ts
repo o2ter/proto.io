@@ -61,11 +61,12 @@ export type ProtoFunctionOptions<E> = {
 };
 
 export type ProtoOptions<Ext> = {
-  objectIdSize?: number;
   schema: Record<string, TSchema>;
   storage: TStorage;
   fileStorage: TFileStorage;
   classExtends?: TExtensions<Ext>;
+  objectIdSize?: number;
+  maxUploadSize?: number;
 };
 
 export class Proto<Ext> implements ProtoType<Ext> {
@@ -73,7 +74,12 @@ export class Proto<Ext> implements ProtoType<Ext> {
   [PVK]: ProtoInternal<Ext>;
 
   constructor(options: ProtoOptions<Ext>) {
-    this[PVK] = new ProtoInternal(this, { ...options });
+    this[PVK] = new ProtoInternal(this, {
+      objectIdSize: 16,
+      maxUploadSize: 20 * 1024 * 1024,
+      classExtends: {} as TExtensions<Ext>,
+      ...options,
+    });
   }
 
   async shutdown() {

@@ -40,7 +40,7 @@ import {
 export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
 
   proto: Proto<Ext>;
-  options: ProtoOptions<Ext>;
+  options: Required<ProtoOptions<Ext>>;
 
   functions: Record<string, ProtoFunction<Ext> | ProtoFunctionOptions<Ext>>;
   triggers: {
@@ -54,7 +54,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     afterDeleteFile?: ProtoTrigger<'_File', Ext>;
   };
 
-  constructor(proto: Proto<Ext>, options: ProtoOptions<Ext>) {
+  constructor(proto: Proto<Ext>, options: Required<ProtoOptions<Ext>>) {
     this.proto = proto;
     this.options = options;
     this.functions = {};

@@ -32,9 +32,7 @@ export const randomBytes = typeof window === 'undefined' ?
   require('node:crypto').randomBytes as typeof _randomBytes :
   (size: number) => window.crypto.getRandomValues(new Uint8Array(size));
 
-export const generateId = (
-  size: number = 16
-): string => {
+export const generateId = (size: number): string => {
   let id = '';
   for (const x of randomBytes(size)) {
     id += chars[x % chars.length];
