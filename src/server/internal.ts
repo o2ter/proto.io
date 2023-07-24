@@ -151,15 +151,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
 
     } catch (e) {
 
-      if (file?._id) {
-        (async () => {
-          try {
-            await this.proto.fileStorage.destory(this.proto, file._id);
-          } catch (e) {
-            console.error(e);
-          }
-        })();
-      }
+      if (file?._id) this.destoryFileData(this.proto, file._id);
 
       throw e;
     }
@@ -211,19 +203,23 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
       object[PVK].extra = {};
     }
 
-    (async () => {
-      try {
-        this.proto.fileStorage.destory(this.proto, token);
-      } catch (e) {
-        console.error(e);
-      }
-    })();
+    this.destoryFileData(this.proto, token);
 
     if (_.isFunction(afterDelete)) {
       await afterDelete(Object.setPrototypeOf({ object, context }, this.proto));
     }
 
     return object;
+  }
+
+  destoryFileData(proto: Proto<Ext>, id: string) {
+    (async () => {
+      try {
+        await this.proto.fileStorage.destory(this.proto, id);
+      } catch (e) {
+        console.error(e);
+      }
+    })();
   }
 
 }
