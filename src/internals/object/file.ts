@@ -23,6 +23,7 @@
 //  THE SOFTWARE.
 //
 
+import _ from 'lodash';
 import { TObject } from './index';
 
 export class TFile extends TObject {
@@ -43,5 +44,11 @@ export class TFile extends TObject {
 
   get type(): string {
     return this.get('type');
+  }
+
+  async token() {
+    if (_.isString(this.attributes['token'])) return this.attributes['token'];
+    const fetched = await this.fetchWithInclude(['token']);
+    return fetched.attributes['token'] as string;
   }
 }

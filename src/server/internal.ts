@@ -186,11 +186,30 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     const beforeDelete = this.triggers?.beforeDeleteFile;
     const afterDelete = this.triggers?.afterDeleteFile;
 
+    const token = await object.token();
     const context = {};
 
     if (_.isFunction(beforeDelete)) {
       await beforeDelete(Object.setPrototypeOf({ object, context }, this.proto));
     }
+
+    const deleted = await this.proto.Query(object.className, options)
+      .filter({ _id: object.objectId })
+      .findOneAndDelete();
+
+    if (deleted) {
+      object[PVK].attributes = deleted.attributes;
+      object[PVK].mutated = {};
+      object[PVK].extra = {};
+    }
+
+    (async () => {
+      try {
+        this.proto.fileStorage.destory(this.proto, token);
+      } catch (e) {
+        console.error(e);
+      }
+    })();
 
     if (_.isFunction(afterDelete)) {
       await afterDelete(Object.setPrototypeOf({ object, context }, this.proto));
