@@ -66,10 +66,10 @@ export default <E>(router: Router, proto: Proto<E>) => {
 
       const { id } = req.params;
 
-      const payload = Object.setPrototypeOf({
+      const payload: Proto<E> = Object.setPrototypeOf({
         ..._.omit(req, 'body'),
       }, proto);
-      const query = payload.query('_File').filter({ _id: id });
+      const query = payload.Query('_File').filter({ _id: id });
 
       await response(res, async () => query.findOneAndDelete());
     }

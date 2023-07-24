@@ -28,7 +28,7 @@ import express, { Router } from 'express';
 import { Proto } from '../../server';
 import queryType from 'query-types';
 import { response } from './common';
-import { PVK, deserialize } from '../../internals';
+import { PVK, UpdateOp, deserialize } from '../../internals';
 
 export default <E>(router: Router, proto: Proto<E>) => {
 
@@ -53,10 +53,10 @@ export default <E>(router: Router, proto: Proto<E>) => {
           ...options
         }: any = deserialize(req.body);
 
-        const payload = Object.setPrototypeOf({
+        const payload: Proto<E> = Object.setPrototypeOf({
           ..._.omit(req, 'body'),
         }, proto);
-        const query = payload.query(name);
+        const query = payload.Query(name);
         query[PVK].options = options;
 
         switch (operation) {
@@ -118,11 +118,11 @@ export default <E>(router: Router, proto: Proto<E>) => {
 
       if (!_.includes(classes, name)) return res.sendStatus(404);
 
-      const payload = Object.setPrototypeOf({
+      const payload: Proto<E> = Object.setPrototypeOf({
         ..._.omit(req, 'body'),
       }, proto);
 
-      await response(res, async () => payload.query(name).get(id));
+      await response(res, async () => payload.Query(name).get(id));
     }
   );
 
@@ -136,12 +136,13 @@ export default <E>(router: Router, proto: Proto<E>) => {
 
       if (!_.includes(classes, name)) return res.sendStatus(404);
 
-      const payload = Object.setPrototypeOf({
+      const payload: Proto<E> = Object.setPrototypeOf({
         ..._.omit(req, 'body'),
       }, proto);
-      const query = payload.query(name).filter({ _id: id }).limit(1);
+      const query = payload.Query(name).filter({ _id: id }).limit(1);
 
-      await response(res, async () => query.findOneAndUpdate(deserialize(req.body)));
+      const update = _.mapValues(deserialize(req.body) as any, v => [UpdateOp.set, v]);
+      await response(res, async () => query.findOneAndUpdate(update as any));
     }
   );
 
@@ -157,10 +158,10 @@ export default <E>(router: Router, proto: Proto<E>) => {
 
       if (!_.includes(classes, name)) return res.sendStatus(404);
 
-      const payload = Object.setPrototypeOf({
+      const payload: Proto<E> = Object.setPrototypeOf({
         ..._.omit(req, 'body'),
       }, proto);
-      const query = payload.query(name).filter({ _id: id });
+      const query = payload.Query(name).filter({ _id: id });
 
       await response(res, async () => query.findOneAndDelete());
     }
