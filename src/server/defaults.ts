@@ -71,7 +71,12 @@ export const defaultSchema: Record<string, TSchema> = {
     classLevelPermissions: {
       find: [],
       count: [],
-      update: [],
+    },
+    fieldLevelPermissions: {
+      size: { write: [] },
+      type: { write: [] },
+      token: { write: [] },
+      content: { write: [] },
     },
   },
 }
