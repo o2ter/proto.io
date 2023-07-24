@@ -92,10 +92,13 @@ export default <E>(router: Router, proto: Proto<E>) => {
         const endBytes = _.maxBy(ranges, r => r.end)?.end ?? totalSize;
 
         res.setHeader('Content-Range', `bytes ${startBytes}-${endBytes}/${totalSize}`);
+        res.status(206);
 
         stream = payload.fileStorage.fileData(payload, file.token, startBytes, endBytes);
 
       } else {
+
+        res.status(200);
 
         stream = payload.fileStorage.fileData(payload, file.token);
       }
