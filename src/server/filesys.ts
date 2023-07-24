@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { FileData } from '../internals/buffer';
-import { Proto } from '.';
+import { Proto } from './index';
 import { TSchema } from '../internals';
 
 type TFileInfo = {
