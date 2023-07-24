@@ -37,5 +37,5 @@ export const generateId = (size: number): string => {
   for (const x of randomBytes(size)) {
     id += chars[x % chars.length];
   }
-  return id.slice(0, size);
+  return id;
 }
