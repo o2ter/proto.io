@@ -33,6 +33,7 @@ import DatabaseFileStorage from '../../src/adapters/file/database';
 let httpServer: any;
 
 const proto = new Proto({
+  endpoint: 'http://localhost:8080',
   schema: {},
   storage: new MemoryStorage(),
   fileStorage: new DatabaseFileStorage(),

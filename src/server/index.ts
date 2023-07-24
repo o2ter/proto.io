@@ -61,6 +61,7 @@ export type ProtoFunctionOptions<E> = {
 };
 
 export type ProtoOptions<Ext> = {
+  endpoint: string;
   schema: Record<string, TSchema>;
   storage: TStorage;
   fileStorage: TFileStorage;
@@ -128,7 +129,7 @@ export class Proto<Ext> implements ProtoType<Ext> {
   }
 
   run(name: string, data?: TSerializable, options?: ExtraOptions) {
-    const payload: Proto<E> = Object.setPrototypeOf({ data: data ?? null }, this);
+    const payload = Object.setPrototypeOf({ data: data ?? null }, this);
     return this[PVK].run(name, payload, options);
   }
 

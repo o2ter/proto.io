@@ -33,6 +33,7 @@ import { FileData } from './buffer';
 export interface ProtoInternalType<Ext> {
 
   options: {
+    endpoint: string;
     classExtends?: TExtensions<Ext>;
   };
 
