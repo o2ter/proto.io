@@ -40,7 +40,6 @@ import {
   isFileBuffer,
   isFileStream,
   base64ToBuffer,
-  FileStream,
 } from '../internals';
 
 export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
@@ -155,7 +154,23 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     return object;
   }
 
-  fileData(object: TFile, options?: ExtraOptions | undefined): FileStream {
+  fileData(object: TFile, options?: ExtraOptions | undefined): ReadableStream {
+    
+    const { master, ...opts } = options ?? {};
+
+    const res = request({
+      method: 'get',
+      baseURL: this.options.endpoint,
+      url: `files/${object.objectId}/${object.filename}`,
+      responseType: 'stream',
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      ...opts
+    });
+
+    const stream = res.then(x => x.data);
+
     throw new Error('Method not implemented.');
   }
 }
