@@ -26,6 +26,7 @@
 import _ from 'lodash';
 import { FileData } from '../internals/buffer';
 import { Proto } from '.';
+import { TSchema } from '../internals';
 
 type TFileInfo = {
   mimeType?: string;
@@ -33,6 +34,8 @@ type TFileInfo = {
 };
 
 export interface TFileStorage {
+
+  schema: Record<string, TSchema>;
 
   create<E>(
     proto: Proto<E>,

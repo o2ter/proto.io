@@ -62,7 +62,8 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
   }
 
   async prepare() {
-    await this.options.storage.prepare(_.merge({}, defaultSchema, this.options.schema));
+    const schema = _.merge({}, defaultSchema, this.options.fileStorage.schema, this.options.schema);
+    await this.options.storage.prepare(schema);
   }
 
   async run(name: string, payload: any, options?: ExtraOptions) {

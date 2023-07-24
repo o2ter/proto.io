@@ -25,13 +25,32 @@
 
 import _ from 'lodash';
 import { Readable } from 'node:stream';
-import { FileBuffer, FileData, PVK, base64ToBuffer, fileBufferSize, generateId, isFileBuffer } from '../../internals';
+import { FileBuffer, FileData, PVK, TSchema, base64ToBuffer, fileBufferSize, generateId, isFileBuffer } from '../../internals';
 import { TFileStorage } from '../../server/filesys';
 import { Proto } from '../../server';
 
 export class DatabaseFileStorage implements TFileStorage {
 
   _storage: Partial<Record<string, string | FileBuffer>> = {};
+
+  get schema(): Record<string, TSchema> {
+    return {
+      '_FilePartition': {
+        fields: {
+          size: 'number',
+          token: 'string',
+          content: 'string',
+        },
+        classLevelPermissions: {
+          find: [],
+          count: [],
+          create: [],
+          update: [],
+          delete: [],
+        },
+      },
+    }
+  }
 
   async create<E>(
     proto: Proto<E>,
