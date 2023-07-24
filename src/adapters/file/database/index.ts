@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { Readable } from 'node:stream';
-import { FileBuffer, FileData, PVK, TSchema, base64ToBuffer, bufferToBase64, fileBufferSize, isFileBuffer } from '../../../internals';
+import { FileBuffer, FileData, PVK, TSchema, base64ToBuffer, bufferToBase64, isFileBuffer } from '../../../internals';
 import { TFileStorage } from '../../../server/filesys';
 import { Proto } from '../../../server';
 
@@ -66,7 +66,7 @@ export class DatabaseFileStorage implements TFileStorage {
 
     for await (const data of file) {
 
-      const chunkSize = fileBufferSize(data);
+      const chunkSize = data.byteLength;
 
       const created = await proto.Query('_FileChunk', { master: true }).insert({
         token,
@@ -104,7 +104,7 @@ export class DatabaseFileStorage implements TFileStorage {
     }
 
     const token = proto[PVK].generateId();
-    const size = _.isString(buffer) ? buffer.length : fileBufferSize(buffer);
+    const size = _.isString(buffer) ? buffer.length : buffer.byteLength;
 
     if (size > proto[PVK].options.maxUploadSize) throw Error('Payload too large');
 

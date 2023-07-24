@@ -26,22 +26,14 @@
 import _ from 'lodash';
 import type { Readable } from 'node:stream';
 
-export type FileBuffer = Blob | ArrayBuffer | ArrayBufferView;
+export type FileBuffer = ArrayBuffer | ArrayBufferView;
 export type FileStream = ReadableStream | Readable;
 export type FileData = string | FileBuffer | FileStream | { base64: string; };
 
-const isBlob = (x: any): x is Blob => typeof Blob !== 'undefined' && x instanceof Blob;
-
 export const isFileBuffer = (x: any): x is FileBuffer => {
-  if (isBlob(x)) return true;
   if (_.isArrayBuffer(x) || ArrayBuffer.isView(x)) return true;
   return false;
 };
-
-export const fileBufferSize = (x: FileBuffer) => {
-  if (_.isArrayBuffer(x) || ArrayBuffer.isView(x)) return x.byteLength;
-  return x.size;
-}
 
 export const isFileStream = (x: any): x is FileStream => {
   if (typeof ReadableStream !== 'undefined' && x instanceof ReadableStream) return true;
@@ -63,7 +55,6 @@ const _bufferToBase64 = typeof window === 'undefined' ?
 
 export const bufferToBase64 = async (buffer: string | FileBuffer) => {
   if (_.isString(buffer)) return _stringToBase64(buffer);
-  if (isBlob(buffer)) buffer = await buffer.arrayBuffer();
   if (ArrayBuffer.isView(buffer)) buffer = buffer.buffer;
   return _bufferToBase64(buffer);
 }
