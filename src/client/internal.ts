@@ -41,7 +41,7 @@ import {
   isFileStream,
   base64ToBuffer,
 } from '../internals';
-import { streamToIterable } from './stream';
+import { promiseToStream, streamToIterable } from './stream';
 
 export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
 
@@ -158,7 +158,8 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
   fileData(object: TFile, options?: ExtraOptions | undefined): ReadableStream {
 
     const { master, ...opts } = options ?? {};
-    const _request = () => request({
+
+    const res = request({
       method: 'get',
       baseURL: this.options.endpoint,
       url: `files/${object.objectId}/${object.filename}`,
@@ -169,39 +170,12 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
       ...opts
     });
 
-    let iterator: AsyncIterator<any>;
-
-    return new ReadableStream({
-      async start(controller) {
-        try {
-          const res = await _request();
-          let stream: AsyncIterable<any>;
-
-          if (Symbol.asyncIterator in res.data || res.data instanceof ReadableStream) {
-            stream = streamToIterable(res.data);
-          } else {
-            throw Error('Unknown stream type');
-          }
-
-          iterator = stream[Symbol.asyncIterator]();
-
-        } catch (e) {
-          controller.error(e);
-        }
-        controller.close();
-      },
-      async pull(controller) {
-        try {
-          const { value, done } = await iterator?.next() ?? { done: true };
-          if (done) {
-            controller.close();
-          } else {
-            controller.enqueue(value);
-          }
-        } catch (e) {
-          controller.error(e);
-        }
-      },
-    });
+    return promiseToStream(res.then(x => {
+      if (Symbol.asyncIterator in x.data || x.data instanceof ReadableStream) {
+        return streamToIterable(x.data);
+      } else {
+        throw Error('Unknown stream type');
+      }
+    }));
   }
 }
