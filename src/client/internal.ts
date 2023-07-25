@@ -41,6 +41,7 @@ import {
   isFileStream,
   base64ToBuffer,
 } from '../internals';
+import { streamToIterable } from './stream';
 
 export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
 
@@ -176,9 +177,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
           const res = await _request();
           let stream: AsyncIterable<any>;
 
-          if (_.isFunction(res.data[Symbol.asyncIterator])) {
-            stream = res.data;
-          } else if (res.data instanceof ReadableStream) {
+          if (Symbol.asyncIterator in res.data || res.data instanceof ReadableStream) {
             stream = streamToIterable(res.data);
           } else {
             throw Error('Unknown stream type');
@@ -206,14 +205,3 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     });
   }
 }
-
-const streamToIterable = (stream: ReadableStream) => ({
-  [Symbol.asyncIterator]: async function* () {
-    const reader = stream.getReader();
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) return;
-      yield value;
-    }
-  },
-});
