@@ -57,14 +57,17 @@ export const applyQueryMethods = <T extends string, E>(
       },
     },
     find: {
-      value: () => ({
-        get then() {
-          return asyncIterableToArray(query.find()).then;
-        },
-        [Symbol.asyncIterator]: async function* () {
+      value: () => {
+        const iterator = async function* () {
           for await (const object of storage().find(queryOptions())) yield applyObjectMethods(object, proto);
-        },
-      })
+        };
+        return {
+          get then() {
+            return asyncIterableToArray({ [Symbol.asyncIterator]: iterator }).then;
+          },
+          [Symbol.asyncIterator]: iterator,
+        };
+      },
     },
     insert: {
       value: async (attrs: Record<string, any>) => {

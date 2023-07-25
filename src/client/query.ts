@@ -57,17 +57,20 @@ export const applyQueryMethods = <T extends string, E>(query: TQuery<T, E>, prot
       }, requestOpt),
     },
     find: {
-      value: () => ({
-        get then() {
-          return proto[PVK].request({
-            operation: 'find',
-            ...queryOptions(),
-          }, requestOpt).then;
-        },
-        [Symbol.asyncIterator]: async function* () {
-          for (const object of await query.find()) yield object;
-        },
-      })
+      value: () => {
+        const request = () => proto[PVK].request({
+          operation: 'find',
+          ...queryOptions(),
+        }, requestOpt) as Promise<TObject[]>;
+        return {
+          get then() {
+            return request().then;
+          },
+          [Symbol.asyncIterator]: async function* () {
+            for (const object of await request()) yield object;
+          },
+        };
+      },
     },
     insert: {
       value: (attrs: Record<string, any>) => proto[PVK].request({
