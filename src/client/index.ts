@@ -68,7 +68,7 @@ export class ProtoClient<Ext> implements ProtoType<Ext> {
     return file;
   }
 
-  Query<T extends string>(className: T, options?: RequestOptions): TQuery<T, Ext> {
+  Query<T extends string>(className: T, options?: RequestOptions) {
     return applyQueryMethods(new TQuery<T, Ext>(className), this, options);
   }
 

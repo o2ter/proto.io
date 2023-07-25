@@ -104,7 +104,7 @@ export class Proto<Ext> implements ProtoType<Ext> {
     return file;
   }
 
-  Query<T extends string>(className: T, options?: ExtraOptions): TQuery<T, Ext> {
+  Query<T extends string>(className: T, options?: ExtraOptions) {
     return applyQueryMethods(new TQuery<T, Ext>(className), this, options);
   }
 
