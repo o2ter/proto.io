@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { Router } from 'express';
-import { Readable as NodeReadable } from 'node:stream';
+import { Readable } from 'node:stream';
 import { Proto } from '../../server';
 import { decodeFormStream, response } from './common';
 import { FileBuffer, PVK, UpdateOp, deserialize } from '../../internals';
@@ -106,7 +106,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
         stream = payload.fileStorage.fileData(payload, file.token);
       }
 
-      NodeReadable.from(stream).pipe(res).end();
+      Readable.from(stream).pipe(res).end();
     }
   );
 

@@ -24,8 +24,7 @@
 //
 
 import _ from 'lodash';
-import { Readable } from 'readable-stream';
-import { Readable as NodeReadable } from 'node:stream';
+import { Readable } from 'node:stream';
 import { FileBuffer, FileData, PVK, TSchema, base64ToBuffer, bufferToBase64, isFileBuffer } from '../../../internals';
 import { TFileStorage } from '../../../server/filesys';
 import { Proto } from '../../../server';
@@ -59,7 +58,7 @@ export class DatabaseFileStorage implements TFileStorage {
 
   async createWithStream<E>(
     proto: Proto<E>,
-    file: AsyncIterable<FileBuffer>,
+    file: Readable,
   ) {
 
     const token = proto[PVK].generateId();
@@ -90,7 +89,7 @@ export class DatabaseFileStorage implements TFileStorage {
     file: FileData,
   ) {
 
-    if (file instanceof NodeReadable || file instanceof Readable) {
+    if (file instanceof Readable) {
       return this.createWithStream(proto, file);
     }
 
