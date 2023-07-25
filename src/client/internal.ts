@@ -169,7 +169,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
       ...opts
     });
 
-    const stream = res.then(x => x.data);
+    const stream = res.then(x => x.data as ReadableStream);
 
     throw new Error('Method not implemented.');
   }
