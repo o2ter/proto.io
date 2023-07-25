@@ -28,7 +28,7 @@ import { Decimal } from 'decimal.js';
 import { TObject } from '../object';
 import { ExtraOptions } from '../options';
 
-type TPrimitiveData = boolean | number | Decimal | string | Date | null | undefined;
+type TPrimitiveData = boolean | number | Decimal | string | Date | null;
 type TDictionaryData = { [x: string]: _TValue };
 type _TValue = TPrimitiveData | TDictionaryData | _TValue[];
 export type TValue = _TValue | TObject | TObject[];

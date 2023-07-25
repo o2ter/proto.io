@@ -84,43 +84,44 @@ export class TQuery<T extends string, Ext> {
     return this;
   }
 
-  equalTo(key: string, value: TValue) {
-    return this.filter({ [key]: { $eq: value } });
+  equalTo(key: string, value: TValue | undefined) {
+    return this.filter({ [key]: { $eq: value ?? null } });
   }
 
-  notEqualTo(key: string, value: TValue) {
-    return this.filter({ [key]: { $ne: value } });
+  notEqualTo(key: string, value: TValue | undefined) {
+    return this.filter({ [key]: { $ne: value ?? null } });
   }
 
-  lessThan(key: string, value: TValue) {
-    return this.filter({ [key]: { $lt: value } });
+  lessThan(key: string, value: TValue | undefined) {
+    return this.filter({ [key]: { $lt: value ?? null } });
   }
 
-  greaterThan(key: string, value: TValue) {
-    return this.filter({ [key]: { $gt: value } });
+  greaterThan(key: string, value: TValue | undefined) {
+    return this.filter({ [key]: { $gt: value ?? null } });
   }
 
-  lessThanOrEqualTo(key: string, value: TValue) {
-    return this.filter({ [key]: { $lte: value } });
+  lessThanOrEqualTo(key: string, value: TValue | undefined) {
+    return this.filter({ [key]: { $lte: value ?? null } });
   }
 
-  greaterThanOrEqualTo(key: string, value: TValue) {
-    return this.filter({ [key]: { $gte: value } });
+  greaterThanOrEqualTo(key: string, value: TValue | undefined) {
+    return this.filter({ [key]: { $gte: value ?? null } });
   }
 
   contains(key: string, value: string) {
-    return this.filter({ [key]: { $search: value } });
+    return this.filter({ [key]: { $search: value ?? null } });
   }
-  containsIn(key: string, value: TValue) {
-    return this.filter({ [key]: { $in: value } });
+
+  containsIn(key: string, value: TValue | undefined) {
+    return this.filter({ [key]: { $in: value ?? null } });
   }
 
   containsAll<T>(key: string, value: T[]) {
     return this.filter({ [key]: { $all: value } });
   }
 
-  notContainsIn(key: string, value: TValue) {
-    return this.filter({ [key]: { $nin: value } });
+  notContainsIn(key: string, value: TValue | undefined) {
+    return this.filter({ [key]: { $nin: value ?? null } });
   }
 
   sort(sort: Record<string, 1 | -1>) {
