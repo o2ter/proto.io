@@ -25,7 +25,9 @@
 
 import _ from 'lodash';
 
-export const streamToIterable = <T>(stream: ReadableStream<T> | AsyncIterable<T>) => {
+export const streamToIterable = <T>(
+  stream: ReadableStream<T> | AsyncIterable<T>
+) => {
   if (Symbol.asyncIterator in stream) return stream;
   return {
     [Symbol.asyncIterator]: async function* () {
@@ -39,12 +41,14 @@ export const streamToIterable = <T>(stream: ReadableStream<T> | AsyncIterable<T>
   };
 };
 
-export const promiseToStream = <T>(promise: PromiseLike<AsyncIterable<T>>) => {
+export const iterableToStream = <T>(
+  iterable: AsyncIterable<T> | PromiseLike<AsyncIterable<T>>
+) => {
   let iterator: AsyncIterator<T>;
   return new ReadableStream<T>({
     async start(controller) {
       try {
-        iterator = (await promise)[Symbol.asyncIterator]();
+        iterator = (await iterable)[Symbol.asyncIterator]();
       } catch (e) {
         controller.error(e);
       }

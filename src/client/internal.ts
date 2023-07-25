@@ -41,7 +41,7 @@ import {
   isFileStream,
   base64ToBuffer,
 } from '../internals';
-import { promiseToStream, streamToIterable } from './stream';
+import { iterableToStream, streamToIterable } from './stream';
 
 export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
 
@@ -170,7 +170,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
       ...opts
     });
 
-    return promiseToStream(res.then(x => {
+    return iterableToStream(res.then(x => {
       if (Symbol.asyncIterator in x.data || x.data instanceof ReadableStream) {
         return streamToIterable(x.data);
       } else {
