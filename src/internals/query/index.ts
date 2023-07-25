@@ -150,6 +150,7 @@ export class TQuery<T extends string, Ext> {
 
   async get(id: string) {
     const query = new TQuery(this.className);
+    if (this[PVK].options.includes) query.includes(...this[PVK].options.includes);
     return _.first(await query.equalTo('_id', id).limit(1).find());
   }
 
