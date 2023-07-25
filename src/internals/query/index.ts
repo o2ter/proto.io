@@ -78,6 +78,38 @@ export class TQuery<T extends string, Ext> {
     return this;
   }
 
+  equalTo<T>(key: string, value: T) {
+    return this.filter({ [key]: value });
+  }
+
+  notEqualTo<T>(key: string, value: T) {
+    return this.filter({ [key]: { $ne: value } });
+  }
+
+  lessThan<T>(key: string, value: T) {
+    return this.filter({ [key]: { $lt: value } });
+  }
+
+  greaterThan<T>(key: string, value: T) {
+    return this.filter({ [key]: { $gt: value } });
+  }
+
+  lessThanOrEqualTo<T>(key: string, value: T) {
+    return this.filter({ [key]: { $lte: value } });
+  }
+
+  greaterThanOrEqualTo<T>(key: string, value: T) {
+    return this.filter({ [key]: { $gte: value } });
+  }
+
+  containsIn<T>(key: string, value: T) {
+    return this.filter({ [key]: { $in: value } });
+  }
+
+  notContainsIn<T>(key: string, value: T) {
+    return this.filter({ [key]: { $nin: value } });
+  }
+
   sort(sort: Record<string, 1 | -1>) {
     this[PVK].options.sort = sort;
     return this;
