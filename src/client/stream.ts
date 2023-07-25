@@ -44,7 +44,7 @@ export const promiseToStream = <T>(promise: PromiseLike<AsyncIterable<T>>) => {
   return new ReadableStream<T>({
     async start(controller) {
       try {
-        iterator = streamToIterable(await promise)[Symbol.asyncIterator]();
+        iterator = (await promise)[Symbol.asyncIterator]();
       } catch (e) {
         controller.error(e);
       }
