@@ -74,7 +74,7 @@ export class TQuery<T extends string, Ext> {
   }
 
   filter<T>(filter: TFilterQuery<T>) {
-    if (_.isEmpty(this[PVK].options.filter)) {
+    if (_.isNil(this[PVK].options.filter)) {
       this[PVK].options.filter = filter;
     } else if (_.isArray(this[PVK].options.filter)) {
       this[PVK].options.filter = [...this[PVK].options.filter, filter];
