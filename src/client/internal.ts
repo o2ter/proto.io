@@ -155,10 +155,9 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
   }
 
   fileData(object: TFile, options?: ExtraOptions | undefined): ReadableStream {
-    
-    const { master, ...opts } = options ?? {};
 
-    const res = request({
+    const { master, ...opts } = options ?? {};
+    const _request = () => request({
       method: 'get',
       baseURL: this.options.endpoint,
       url: `files/${object.objectId}/${object.filename}`,
@@ -169,8 +168,23 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
       ...opts
     });
 
-    const stream = res.then(x => x.data as ReadableStream);
-
-    throw new Error('Method not implemented.');
+    return new ReadableStream({
+      async start(controller) {
+        const res = await _request();
+        const stream = res.data as ReadableStream;
+        const reader = stream.getReader();
+        const push = async () => {
+          try {
+            const { done, value } = await reader.read();
+            if (done) return controller.close();
+            controller.enqueue(value);
+            push();
+          } catch (e) {
+            controller.error(e);
+          }
+        };
+        push();
+      },
+    });
   }
 }
