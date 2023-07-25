@@ -51,8 +51,13 @@ export const applyQueryMethods = <T extends string, E>(
   const storage = () => queryValidator(proto, query.className, options);
 
   const props = {
+    explain: {
+      value: () => {
+        return storage().explain(queryOptions());
+      },
+    },
     count: {
-      value: async () => {
+      value: () => {
         return storage().count(queryOptions());
       },
     },

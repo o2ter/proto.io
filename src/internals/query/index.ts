@@ -41,6 +41,7 @@ export namespace TQuery {
 }
 
 export interface TQuery<T extends string, Ext> {
+  explain(): PromiseLike<any>;
   count(): PromiseLike<number>;
   find(): PromiseLike<TObjectType<T, Ext>[]> & AsyncIterable<TObjectType<T, Ext>>;
   insert(attrs: Record<string, any>): PromiseLike<TObjectType<T, Ext> | undefined>;

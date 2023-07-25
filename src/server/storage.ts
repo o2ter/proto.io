@@ -39,6 +39,8 @@ export interface TStorage {
 
   classes(): string[] | PromiseLike<string[]>;
 
+  explain(query: FindOptions): PromiseLike<any>;
+
   count(query: FindOptions): PromiseLike<number>;
   find(query: FindOptions): AsyncIterable<TObject>;
 

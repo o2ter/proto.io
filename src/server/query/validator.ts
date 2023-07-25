@@ -59,6 +59,12 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
   );
 
   return {
+    explain(
+      query: FindOptions,
+    ) {
+      if (!options?.master && !_validateCLPs('count')) throw new Error('No permission');
+      return proto.storage.explain(normalize(query));
+    },
     count(
       query: FindOptions,
     ) {

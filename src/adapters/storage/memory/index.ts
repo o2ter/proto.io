@@ -46,6 +46,10 @@ export class MemoryStorage implements TStorage {
     return Object.keys(this.schema);
   }
 
+  async explain(query: FindOptions) {
+    return 0;
+  }
+
   async count(query: FindOptions) {
     return 0;
   }
