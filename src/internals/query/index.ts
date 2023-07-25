@@ -24,14 +24,14 @@
 //
 
 import _ from 'lodash';
-import { TFilterQuery } from './types';
+import { TValue, TFilterQuery } from './types';
 import { UpdateOp } from '../object';
 import { PVK } from '../private';
 import { TObjectType } from '../object/types';
 
 export namespace TQuery {
   export interface Options {
-    filter?: TFilterQuery<any> | TFilterQuery<any>[];
+    filter?: TFilterQuery | TFilterQuery[];
     sort?: Record<string, 1 | -1>;
     includes?: string[];
     skip?: number;
@@ -73,7 +73,7 @@ export class TQuery<T extends string, Ext> {
     return new TQuery<T, Ext>(this.className, { ...this[PVK].options });
   }
 
-  filter<T>(filter: TFilterQuery<T>) {
+  filter(filter: TFilterQuery) {
     if (_.isNil(this[PVK].options.filter)) {
       this[PVK].options.filter = filter;
     } else if (_.isArray(this[PVK].options.filter)) {
@@ -84,34 +84,34 @@ export class TQuery<T extends string, Ext> {
     return this;
   }
 
-  equalTo<T>(key: string, value: T) {
+  equalTo(key: string, value: TValue) {
     return this.filter({ [key]: { $eq: value } });
   }
 
-  notEqualTo<T>(key: string, value: T) {
+  notEqualTo(key: string, value: TValue) {
     return this.filter({ [key]: { $ne: value } });
   }
 
-  lessThan<T>(key: string, value: T) {
+  lessThan(key: string, value: TValue) {
     return this.filter({ [key]: { $lt: value } });
   }
 
-  greaterThan<T>(key: string, value: T) {
+  greaterThan(key: string, value: TValue) {
     return this.filter({ [key]: { $gt: value } });
   }
 
-  lessThanOrEqualTo<T>(key: string, value: T) {
+  lessThanOrEqualTo(key: string, value: TValue) {
     return this.filter({ [key]: { $lte: value } });
   }
 
-  greaterThanOrEqualTo<T>(key: string, value: T) {
+  greaterThanOrEqualTo(key: string, value: TValue) {
     return this.filter({ [key]: { $gte: value } });
   }
 
   contains(key: string, value: string) {
     return this.filter({ [key]: { $search: value } });
   }
-  containsIn<T>(key: string, value: T) {
+  containsIn(key: string, value: TValue) {
     return this.filter({ [key]: { $in: value } });
   }
 
@@ -119,7 +119,7 @@ export class TQuery<T extends string, Ext> {
     return this.filter({ [key]: { $all: value } });
   }
 
-  notContainsIn<T>(key: string, value: T) {
+  notContainsIn(key: string, value: TValue) {
     return this.filter({ [key]: { $nin: value } });
   }
 

@@ -24,34 +24,41 @@
 //
 
 import { TQuery } from './index';
+import { Decimal } from 'decimal.js';
+import { TObject } from '../object';
 import { ExtraOptions } from '../options';
 
-type TQuerySelector<T> = {
-  $eq?: T;
-  $gt?: T;
-  $gte?: T;
-  $in?: T[];
-  $lt?: T;
-  $lte?: T;
-  $ne?: T;
-  $nin?: T[];
-  $not?: T extends string ? TQuerySelector<T> | RegExp : TQuerySelector<T>;
-  $search?: T extends string ? string : never;
-  $regex?: T extends string ? RegExp | string : never;
-  $all?: T[];
-  $size?: T extends number ? number : never;
-  $elemMatch?: TQuerySelector<T> | TFilterQuery<T>;
+type TPrimitiveData = boolean | number | Decimal | string | Date | null | undefined;
+type TDictionaryData = { [x: string]: _TValue };
+type _TValue = TPrimitiveData | TDictionaryData | _TValue[];
+export type TValue = _TValue | TObject | TObject[];
+
+type TQuerySelector = {
+  $eq?: TValue;
+  $gt?: TValue;
+  $gte?: TValue;
+  $in?: TValue[];
+  $lt?: TValue;
+  $lte?: TValue;
+  $ne?: TValue;
+  $nin?: TValue[];
+  $not?: TQuerySelector | RegExp;
+  $search?: string;
+  $regex?: RegExp | string;
+  $all?: TValue[];
+  $size?: number;
+  $elemMatch?: TQuerySelector | TFilterQuery;
 }
 
-type TRootQuerySelector<T> = {
-  $and?: TFilterQuery<T>[];
-  $nor?: TFilterQuery<T>[];
-  $or?: TFilterQuery<T>[];
-  $expr?: T;
+type TRootQuerySelector = {
+  $and?: TFilterQuery[];
+  $nor?: TFilterQuery[];
+  $or?: TFilterQuery[];
+  $expr?: any;
 };
 
-export type TFilterQuery<T> = TRootQuerySelector<T> | {
-  [P in keyof T]?: TQuerySelector<T[P]>;
+export type TFilterQuery = TRootQuerySelector | {
+  [x: string]: TQuerySelector;
 };
 
 type CommonFindOptions = { className: string; options: ExtraOptions & { acls?: string[]; }; };
