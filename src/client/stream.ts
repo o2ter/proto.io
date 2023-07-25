@@ -48,7 +48,6 @@ export const promiseToStream = <T>(promise: PromiseLike<AsyncIterable<T>>) => {
       } catch (e) {
         controller.error(e);
       }
-      controller.close();
     },
     async pull(controller) {
       try {
