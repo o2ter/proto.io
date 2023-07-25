@@ -116,7 +116,7 @@ export class TQuery<T extends string, Ext> {
     return this.filter({ [key]: { $in: value ?? null } });
   }
 
-  containsAll<T>(key: string, value: T[]) {
+  containsAll(key: string, value: TValue[]) {
     return this.filter({ [key]: { $all: value } });
   }
 
