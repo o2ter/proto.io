@@ -210,7 +210,7 @@ export const applyQueryMethods = <T extends string, E>(
           result = applyObjectMethods(
             await storage().findOneAndDelete({
               ...queryOptions(),
-              filter: { _id: object.objectId },
+              filter: { _id: { $eq: object.objectId } },
             }),
             proto,
           );
@@ -244,7 +244,7 @@ export const applyQueryMethods = <T extends string, E>(
 
           await storage().findAndDelete({
             ...queryOptions(),
-            filter: { _id: { $in: _.map(objects, x => x.objectId) } },
+            filter: { _id: { $in: _.map(objects, x => x.objectId as string) } },
           });
 
           if (_.isFunction(afterDelete)) {
