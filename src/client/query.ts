@@ -62,7 +62,7 @@ export const applyQueryMethods = <T extends string, E>(query: TQuery<T, E>, prot
           return proto[PVK].request({
             operation: 'find',
             ...queryOptions(),
-          }, requestOpt);
+          }, requestOpt).then;
         },
         [Symbol.asyncIterator]: async function* () {
           for (const object of await query.find()) yield object;
