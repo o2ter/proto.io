@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import pg, { IConnectionOptions, IDatabase } from 'pg-promise';
-import { FindOptions, TSchema, storageSchedule, FindOneOptions, UpdateOp } from '../../../internals';
+import { FindOptions, TSchema, storageSchedule, FindOneOptions, UpdateOp, ExplainOptions } from '../../../internals';
 import { TStorage } from '../../../server/storage';
 
 const pgp = pg({});
@@ -64,7 +64,7 @@ export class PostgresStorage implements TStorage {
     return Object.keys(this.schema);
   }
 
-  async explain(query: FindOptions) {
+  async explain(query: ExplainOptions) {
     return 0;
   }
 

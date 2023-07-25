@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { TSchema, storageSchedule, FindOptions, FindOneOptions, UpdateOp } from '../../../internals';
+import { TSchema, storageSchedule, FindOptions, FindOneOptions, UpdateOp, ExplainOptions } from '../../../internals';
 import { TStorage } from '../../../server/storage';
 
 export class MemoryStorage implements TStorage {
@@ -46,7 +46,7 @@ export class MemoryStorage implements TStorage {
     return Object.keys(this.schema);
   }
 
-  async explain(query: FindOptions) {
+  async explain(query: ExplainOptions) {
     return 0;
   }
 

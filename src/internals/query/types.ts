@@ -62,5 +62,6 @@ export type TFilterQuery = TRootQuerySelector | {
 };
 
 type CommonFindOptions = { className: string; options: ExtraOptions & { acls?: string[]; }; };
+export type ExplainOptions = CommonFindOptions & Omit<TQuery.Options, 'returning' | 'skip' | 'limit'>;
 export type FindOptions = CommonFindOptions & Omit<TQuery.Options, 'returning'>;
 export type FindOneOptions = CommonFindOptions & Omit<TQuery.Options, 'skip' | 'limit'>;

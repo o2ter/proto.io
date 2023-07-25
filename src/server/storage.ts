@@ -30,6 +30,7 @@ import {
   TSchema,
   FindOptions,
   FindOneOptions,
+  ExplainOptions,
 } from '../internals';
 
 export interface TStorage {
@@ -39,7 +40,7 @@ export interface TStorage {
 
   classes(): string[] | PromiseLike<string[]>;
 
-  explain(query: FindOptions): PromiseLike<any>;
+  explain(query: ExplainOptions): PromiseLike<any>;
 
   count(query: FindOptions): PromiseLike<number>;
   find(query: FindOptions): AsyncIterable<TObject>;

@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { MongoClient, MongoClientOptions } from 'mongodb';
-import { TSchema, storageSchedule, FindOneOptions, UpdateOp, FindOptions } from '../../../internals';
+import { TSchema, storageSchedule, FindOneOptions, UpdateOp, FindOptions, ExplainOptions } from '../../../internals';
 import { TStorage } from '../../../server/storage';
 
 export class MongoStorage implements TStorage {
@@ -63,7 +63,7 @@ export class MongoStorage implements TStorage {
     return Object.keys(this.schema);
   }
 
-  async explain(query: FindOptions) {
+  async explain(query: ExplainOptions) {
     return 0;
   }
 
