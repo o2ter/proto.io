@@ -159,7 +159,9 @@ export class TQuery<T extends string, Ext> {
   }
 
   async exists() {
-    return !_.isNil(await this.first());
+    const query = this.clone();
+    this[PVK].options.includes = [];
+    return !_.isNil(await query.limit(1).find());
   }
 
   async updateOne(update: Record<string, [UpdateOp, any]>) {
