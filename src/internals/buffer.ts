@@ -24,10 +24,11 @@
 //
 
 import _ from 'lodash';
-import type { Readable } from 'node:stream';
+import { Readable } from 'readable-stream';
+import type { Readable as NodeReadable } from 'node:stream';
 
 export type FileBuffer = ArrayBuffer | ArrayBufferView;
-export type FileStream = ReadableStream | Readable;
+export type FileStream = ReadableStream | NodeReadable | Readable;
 export type FileData = string | FileBuffer | FileStream | { base64: string; };
 
 export const isFileBuffer = (x: any): x is FileBuffer => {
@@ -38,7 +39,7 @@ export const isFileBuffer = (x: any): x is FileBuffer => {
 export const isFileStream = (x: any): x is FileStream => {
   if (typeof ReadableStream !== 'undefined' && x instanceof ReadableStream) return true;
   if (typeof window === 'undefined' && x instanceof require('node:stream').Readable) return true;
-  return false;
+  return x instanceof Readable;
 };
 
 export const base64ToBuffer = typeof window === 'undefined' ?

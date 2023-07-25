@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { Readable } from 'node:stream';
+import { Readable as NodeReadable } from 'node:stream';
 import { defaultSchema } from './defaults';
 import { Proto, ProtoOptions, ProtoFunction, ProtoFunctionOptions, ProtoTrigger } from './index';
 import {
@@ -215,7 +215,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
 
   fileData(object: TFile, options?: ExtraOptions) {
     const self = this;
-    return Readable.from({
+    return NodeReadable.from({
       [Symbol.asyncIterator]: async function*() {
         object = await object.fetchIfNeeded(['token'], options);
         const chunks = self.options.fileStorage.fileData(self.proto, object.token);
