@@ -80,7 +80,7 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
     },
     fetchWithInclude: {
       value: async (keys: string[], options?: ExtraOptions) => {
-        const fetched = await query(options).filter({ _id: object.objectId }).includes(...keys).first();
+        const fetched = await query(options).equalTo('_id', object.objectId).includes(...keys).first();
         if (fetched) {
           object[PVK].attributes = fetched.attributes;
           object[PVK].mutated = {};
@@ -91,7 +91,7 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
     save: {
       value: async (options?: ExtraOptions) => {
         if (object.objectId) {
-          const updated = await query(options).filter({ _id: object.objectId }).findOneAndUpdate(object[PVK].mutated);
+          const updated = await query(options).equalTo('_id', object.objectId).findOneAndUpdate(object[PVK].mutated);
           if (updated) {
             object[PVK].attributes = updated.attributes;
             object[PVK].mutated = {};
@@ -108,7 +108,7 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
     },
     destory: {
       value: async (options?: ExtraOptions) => {
-        const deleted = await query(options).filter({ _id: object.objectId }).findOneAndDelete();
+        const deleted = await query(options).equalTo('_id', object.objectId).findOneAndDelete();
         if (deleted) {
           object[PVK].attributes = deleted.attributes;
           object[PVK].mutated = {};

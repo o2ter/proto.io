@@ -67,7 +67,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
       const payload: Proto<E> = Object.setPrototypeOf({
         ..._.omit(req, 'body'),
       }, proto);
-      const query = payload.Query('_File').filter({ _id: id });
+      const query = payload.Query('_File').equalTo('_id', id);
 
       const file = await query.first();
       if (!file || file.filename !== name) return res.sendStatus(404);

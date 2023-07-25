@@ -121,7 +121,7 @@ export class DatabaseFileStorage implements TFileStorage {
   }
 
   async destory<E>(proto: Proto<E>, id: string) {
-    await proto.Query('_FileChunk', { master: true }).filter({ token: id }).findAndDelete();
+    await proto.Query('_FileChunk', { master: true }).equalTo('token', id).findAndDelete();
   }
 
   async* fileData<E>(proto: Proto<E>, id: string, start?: number, end?: number) {
@@ -129,7 +129,7 @@ export class DatabaseFileStorage implements TFileStorage {
     const query = proto.Query('_FileChunk', { master: true })
       .sort({ start: 1 })
       .filter({
-        token: id,
+        token: { $eq: id },
         ...start ? { end: { $gt: start } } : {},
         ...end ? { start: { $lt: end } } : {},
       });

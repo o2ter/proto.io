@@ -139,7 +139,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
       const payload: Proto<E> = Object.setPrototypeOf({
         ..._.omit(req, 'body'),
       }, proto);
-      const query = payload.Query(name).filter({ _id: id });
+      const query = payload.Query(name).equalTo('_id', id);
 
       await response(res, async () => query.findOneAndReplace(deserialize(req.body) as any));
     }
@@ -158,7 +158,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
       const payload: Proto<E> = Object.setPrototypeOf({
         ..._.omit(req, 'body'),
       }, proto);
-      const query = payload.Query(name).filter({ _id: id });
+      const query = payload.Query(name).equalTo('_id', id);
 
       const update = _.mapValues(deserialize(req.body) as any, v => [UpdateOp.set, v]);
       await response(res, async () => query.findOneAndUpdate(update as any));
@@ -180,7 +180,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
       const payload: Proto<E> = Object.setPrototypeOf({
         ..._.omit(req, 'body'),
       }, proto);
-      const query = payload.Query(name).filter({ _id: id });
+      const query = payload.Query(name).equalTo('_id', id);
 
       await response(res, async () => query.findOneAndDelete());
     }

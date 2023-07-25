@@ -74,7 +74,13 @@ export class TQuery<T extends string, Ext> {
   }
 
   filter<T>(filter: TFilterQuery<T>) {
-    this[PVK].options.filter = this[PVK].options.filter ? [..._.castArray(this[PVK].options.filter), filter] : filter;
+    if (_.isEmpty(this[PVK].options.filter)) {
+      this[PVK].options.filter = filter;
+    } else if (_.isArray(this[PVK].options.filter)) {
+      this[PVK].options.filter = [...this[PVK].options.filter, filter];
+    } else {
+      this[PVK].options.filter = [this[PVK].options.filter, filter];
+    }
     return this;
   }
 
@@ -144,7 +150,7 @@ export class TQuery<T extends string, Ext> {
 
   async get(id: string) {
     const query = new TQuery(this.className);
-    return _.first(await query.filter({ _id: id }).limit(1).find());
+    return _.first(await query.equalTo('_id', id).limit(1).find());
   }
 
   async first() {

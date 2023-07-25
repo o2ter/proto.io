@@ -51,7 +51,7 @@ type TRootQuerySelector<T> = {
 };
 
 export type TFilterQuery<T> = TRootQuerySelector<T> | {
-  [P in keyof T]?: T[P] | TQuerySelector<T[P]>;
+  [P in keyof T]?: TQuerySelector<T[P]>;
 };
 
 type CommonFindOptions = { className: string; options: ExtraOptions & { acls?: string[]; }; };

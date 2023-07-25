@@ -78,7 +78,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
   async updateFile(object: TFile, options?: RequestOptions) {
 
     const updated = await this.proto.Query(object.className, options)
-      .filter({ _id: object.objectId })
+      .equalTo('_id', object.objectId)
       .findOneAndUpdate(object[PVK].mutated);
 
     if (updated) {
@@ -143,7 +143,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
   async deleteFile(object: TFile, options?: ExtraOptions) {
 
     const deleted = await this.proto.Query(object.className, options)
-      .filter({ _id: object.objectId })
+      .equalTo('_id', object.objectId)
       .findOneAndDelete();
 
     if (deleted) {
