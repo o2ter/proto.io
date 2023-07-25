@@ -50,6 +50,12 @@ export const applyQueryMethods = <T extends string, E>(query: TQuery<T, E>, prot
   };
 
   const props = {
+    explain: {
+      value: () => proto[PVK].request({
+        operation: 'explain',
+        ...queryOptions(),
+      }, requestOpt),
+    },
     count: {
       value: () => proto[PVK].request({
         operation: 'count',
