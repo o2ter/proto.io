@@ -155,7 +155,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     return object;
   }
 
-  fileData(object: TFile, options?: ExtraOptions | undefined): ReadableStream {
+  fileData(object: TFile, options?: ExtraOptions | undefined) {
 
     const { master, ...opts } = options ?? {};
 
