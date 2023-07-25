@@ -60,7 +60,9 @@ export default <E>(router: Router, proto: Proto<E>) => {
         query[PVK].options = options;
 
         switch (operation) {
-          case 'explain': return query.explain();
+          case 'explain':
+            if (!payload.isMaster) throw new Error('No permission');
+            return query.explain();
           case 'count': return query.count();
           case 'find': return await query.find();
           case 'insert': return query.insert(attributes);
