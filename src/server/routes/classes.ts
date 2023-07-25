@@ -139,7 +139,26 @@ export default <E>(router: Router, proto: Proto<E>) => {
       const payload: Proto<E> = Object.setPrototypeOf({
         ..._.omit(req, 'body'),
       }, proto);
-      const query = payload.Query(name).filter({ _id: id }).limit(1);
+      const query = payload.Query(name).filter({ _id: id });
+
+      await response(res, async () => query.findOneAndReplace(deserialize(req.body) as any));
+    }
+  );
+
+  router.patch(
+    '/classes/:name/:id',
+    express.text({ type: '*/*' }),
+    async (req, res) => {
+
+      const { name, id } = req.params;
+      const classes = await proto.classes();
+
+      if (!_.includes(classes, name)) return res.sendStatus(404);
+
+      const payload: Proto<E> = Object.setPrototypeOf({
+        ..._.omit(req, 'body'),
+      }, proto);
+      const query = payload.Query(name).filter({ _id: id });
 
       const update = _.mapValues(deserialize(req.body) as any, v => [UpdateOp.set, v]);
       await response(res, async () => query.findOneAndUpdate(update as any));
