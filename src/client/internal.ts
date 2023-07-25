@@ -171,19 +171,31 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     return new ReadableStream({
       async start(controller) {
         const res = await _request();
-        const stream = res.data as ReadableStream;
-        const reader = stream.getReader();
-        const push = async () => {
-          try {
-            const { done, value } = await reader.read();
-            if (done) return controller.close();
-            controller.enqueue(value);
-            push();
-          } catch (e) {
-            controller.error(e);
+        let stream: AsyncIterable<any>;
+        if (_.isFunction(res.data[Symbol.asyncIterator])) {
+          stream = res.data;
+        } else if (res.data instanceof ReadableStream) {
+          const reader = res.data.getReader();
+          stream = {
+            [Symbol.asyncIterator]: async function* () {
+              while (true) {
+                const { done, value } = await reader.read();
+                if (done) return;
+                yield value;
+              }
+            }
           }
-        };
-        push();
+        } else {
+          throw Error('Unknown stream type');
+        }
+        try {
+          for await(const chunk of res.data) {
+            controller.enqueue(chunk);
+          }
+        } catch (e) {
+          controller.error(e);
+        }
+        controller.close();
       },
     });
   }
