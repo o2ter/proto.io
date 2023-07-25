@@ -42,6 +42,7 @@ export namespace TQuery {
 
 export interface TQuery<T extends string, Ext> {
   count(): PromiseLike<number>;
+  find(): PromiseLike<TObjectType<T, Ext>[]> & AsyncIterable<TObjectType<T, Ext>>;
   insert(attrs: Record<string, any>): PromiseLike<TObjectType<T, Ext> | undefined>;
   findOneAndUpdate(update: Record<string, [UpdateOp, any]>): PromiseLike<TObjectType<T, Ext> | undefined>;
   findOneAndReplace(replacement: Record<string, any>): PromiseLike<TObjectType<T, Ext> | undefined>;
@@ -49,9 +50,6 @@ export interface TQuery<T extends string, Ext> {
   findOneAndDelete(): PromiseLike<TObjectType<T, Ext> | undefined>;
   findAndDelete(): PromiseLike<number>;
 }
-
-export interface TQuery<T extends string, Ext> extends PromiseLike<TObjectType<T, Ext>[]> {}
-export interface TQuery<T extends string, Ext> extends AsyncIterable<TObjectType<T, Ext>> {}
 
 export class TQuery<T extends string, Ext> {
 
@@ -107,11 +105,11 @@ export class TQuery<T extends string, Ext> {
 
   async get(id: string) {
     const query = new TQuery(this.className);
-    return _.first(await query.filter({ _id: id }).limit(1));
+    return _.first(await query.filter({ _id: id }).limit(1).find());
   }
 
   async first() {
-    return _.first(await this.clone().limit(1));
+    return _.first(await this.clone().limit(1).find());
   }
 
   async exists() {

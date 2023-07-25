@@ -134,7 +134,7 @@ export class DatabaseFileStorage implements TFileStorage {
         ...end ? { start: { $lt: end } } : {},
       });
 
-    for await (const chunk of query) {
+    for await (const chunk of query.find()) {
 
       const startBytes = chunk.get('start');
       const endBytes = chunk.get('end');

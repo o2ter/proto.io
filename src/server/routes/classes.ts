@@ -61,7 +61,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
 
         switch (operation) {
           case 'count': return query.count();
-          case 'find': return await query;
+          case 'find': return await query.find();
           case 'insert': return query.insert(attributes);
           case 'findOneAndUpdate': return query.findOneAndUpdate(update);
           case 'findOneAndReplace': return query.findOneAndReplace(replacement);
@@ -104,7 +104,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
         query[PVK].options.limit = _.isNumber(limit) ? limit : undefined;
         query[PVK].options.returning = _.includes(['old', 'new'], returning) ? returning as any : undefined;
 
-        return await query;
+        return await query.find();
       });
     }
   );
