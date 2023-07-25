@@ -116,6 +116,10 @@ export class Proto<Ext> implements ProtoType<Ext> {
     return [];
   }
 
+  get isMaster(): boolean {
+    return false;
+  }
+
   get schema(): ProtoOptions<Ext>['schema'] {
     return this[PVK].options.schema;
   }

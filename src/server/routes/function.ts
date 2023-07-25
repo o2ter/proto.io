@@ -46,7 +46,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
         }, proto);
         payload.data = applyObjectMethods(deserialize(req.body), payload);
 
-        return payload[PVK].run(name, payload);
+        return payload[PVK].run(name, payload, { master: payload.isMaster });
       });
     }
   );

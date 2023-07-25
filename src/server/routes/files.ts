@@ -42,11 +42,14 @@ export default <E>(router: Router, proto: Proto<E>) => {
 
         try {
 
-          const obj = proto.Object('_File');
+          const payload: Proto<E> = Object.setPrototypeOf({
+            ..._.omit(req, 'body'),
+          }, proto);
+          const obj = payload.Object('_File');
           obj[PVK].mutated = _.mapValues(deserialize(attributes) as any, v => [UpdateOp.set, v]) as any;
           obj[PVK].extra.data = file;
 
-          return obj.save();
+          return obj.save({ master: payload.isMaster });
 
         } catch (e) {
 
@@ -67,7 +70,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
       const payload: Proto<E> = Object.setPrototypeOf({
         ..._.omit(req, 'body'),
       }, proto);
-      const query = payload.Query('_File').equalTo('_id', id);
+      const query = payload.Query('_File', { master: payload.isMaster }).equalTo('_id', id);
 
       const file = await query.first();
       if (!file || file.filename !== name) return res.sendStatus(404);
