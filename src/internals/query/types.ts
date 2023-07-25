@@ -36,8 +36,10 @@ type TQuerySelector<T> = {
   $ne?: T;
   $nin?: T[];
   $not?: T extends string ? TQuerySelector<T> | RegExp : TQuerySelector<T>;
-  $size?: T extends number ? number : never;
+  $search?: T extends string ? string : never;
   $regex?: T extends string ? RegExp | string : never;
+  $all?: T[];
+  $size?: T extends number ? number : never;
   $elemMatch?: TQuerySelector<T> | TFilterQuery<T>;
 }
 

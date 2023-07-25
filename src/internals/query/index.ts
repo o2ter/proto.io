@@ -79,7 +79,7 @@ export class TQuery<T extends string, Ext> {
   }
 
   equalTo<T>(key: string, value: T) {
-    return this.filter({ [key]: value });
+    return this.filter({ [key]: { $eq: value } });
   }
 
   notEqualTo<T>(key: string, value: T) {
@@ -102,8 +102,15 @@ export class TQuery<T extends string, Ext> {
     return this.filter({ [key]: { $gte: value } });
   }
 
+  contains(key: string, value: string) {
+    return this.filter({ [key]: { $search: value } });
+  }
   containsIn<T>(key: string, value: T) {
     return this.filter({ [key]: { $in: value } });
+  }
+
+  containsAll<T>(key: string, value: T[]) {
+    return this.filter({ [key]: { $all: value } });
   }
 
   notContainsIn<T>(key: string, value: T) {
