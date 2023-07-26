@@ -43,29 +43,30 @@ export const applyQueryMethods = <T extends string, E>(
   options?: ExtraOptions,
 ) => {
 
-  const queryOptions = () => ({
+  const queryOptions = (query: TQuery<T, E>) => ({
     className: query.className,
     options: options ?? {},
     ...query[PVK].options,
   });
 
-  const storage = () => queryValidator(proto, query.className, options);
+  const storage = (query: TQuery<T, E>) => queryValidator(proto, query.className, options);
 
   const props: PropertyDescriptorMap & ThisType<TQuery<T, E>> = {
     explain: {
       value() {
-        return storage().explain(queryOptions());
+        return storage(this).explain(queryOptions(this));
       },
     },
     count: {
       value() {
-        return storage().count(queryOptions());
+        return storage(this).count(queryOptions(this));
       },
     },
     find: {
       value() {
+        const objects = () => storage(this).find(queryOptions(this));
         const iterator = async function* () {
-          for await (const object of storage().find(queryOptions())) yield applyObjectMethods(object, proto);
+          for await (const object of objects()) yield applyObjectMethods(object, proto);
         };
         return {
           get then() {
@@ -77,12 +78,12 @@ export const applyQueryMethods = <T extends string, E>(
     },
     insert: {
       async value(attrs: Record<string, any>) {
-        const beforeSave = proto[PVK].triggers?.beforeSave?.[query.className];
-        const afterSave = proto[PVK].triggers?.afterSave?.[query.className];
+        const beforeSave = proto[PVK].triggers?.beforeSave?.[this.className];
+        const afterSave = proto[PVK].triggers?.afterSave?.[this.className];
 
         const context = {};
 
-        const object = proto.Object(query.className);
+        const object = proto.Object(this.className);
         for (const [key, value] of _.toPairs(_.omit(attrs, ...TObject.defaultReadonlyKeys))) {
           object[PVK].mutated[key] = [UpdateOp.set, value as any];
         }
@@ -90,7 +91,7 @@ export const applyQueryMethods = <T extends string, E>(
         if (_.isFunction(beforeSave)) await beforeSave(Object.setPrototypeOf({ object, context }, proto));
 
         const result = applyObjectMethods(
-          await storage().insert(query.className, _.fromPairs(object.keys().map(k => [k, object.get(k)]))),
+          await storage(this).insert(this.className, _.fromPairs(object.keys().map(k => [k, object.get(k)]))),
           proto,
         );
         if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, proto));
@@ -99,14 +100,14 @@ export const applyQueryMethods = <T extends string, E>(
     },
     findOneAndUpdate: {
       async value(update: Record<string, [UpdateOp, TValue]>) {
-        const beforeSave = proto[PVK].triggers?.beforeSave?.[query.className];
-        const afterSave = proto[PVK].triggers?.afterSave?.[query.className];
+        const beforeSave = proto[PVK].triggers?.beforeSave?.[this.className];
+        const afterSave = proto[PVK].triggers?.afterSave?.[this.className];
 
         const context = {};
 
         if (_.isFunction(beforeSave)) {
 
-          const object = applyObjectMethods(_.first(await asyncIterableToArray(storage().find({ ...queryOptions(), limit: 1 }))), proto);
+          const object = applyObjectMethods(_.first(await asyncIterableToArray(storage(this).find({ ...queryOptions(this), limit: 1 }))), proto);
           if (!object) return undefined;
 
           object[PVK].mutated = _.omit(update, ...TObject.defaultReadonlyKeys);
@@ -116,7 +117,7 @@ export const applyQueryMethods = <T extends string, E>(
         }
 
         const result = applyObjectMethods(
-          await storage().findOneAndUpdate(queryOptions(), _.omit(update, ...TObject.defaultReadonlyKeys)),
+          await storage(this).findOneAndUpdate(queryOptions(this), _.omit(update, ...TObject.defaultReadonlyKeys)),
           proto,
         );
         if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, proto));
@@ -125,14 +126,14 @@ export const applyQueryMethods = <T extends string, E>(
     },
     findOneAndReplace: {
       async value(replacement: Record<string, any>) {
-        const beforeSave = proto[PVK].triggers?.beforeSave?.[query.className];
-        const afterSave = proto[PVK].triggers?.afterSave?.[query.className];
+        const beforeSave = proto[PVK].triggers?.beforeSave?.[this.className];
+        const afterSave = proto[PVK].triggers?.afterSave?.[this.className];
 
         const context = {};
 
         if (_.isFunction(beforeSave)) {
 
-          const object = applyObjectMethods(_.first(await asyncIterableToArray(storage().find({ ...queryOptions(), limit: 1 }))), proto);
+          const object = applyObjectMethods(_.first(await asyncIterableToArray(storage(this).find({ ...queryOptions(this), limit: 1 }))), proto);
           if (!object) return undefined;
 
           object[PVK].mutated = _.mapValues(_.omit(replacement, ...TObject.defaultReadonlyKeys), v => [UpdateOp.set, v]);
@@ -145,7 +146,7 @@ export const applyQueryMethods = <T extends string, E>(
         }
 
         const result = applyObjectMethods(
-          await storage().findOneAndReplace(queryOptions(), _.omit(replacement, ...TObject.defaultReadonlyKeys)),
+          await storage(this).findOneAndReplace(queryOptions(this), _.omit(replacement, ...TObject.defaultReadonlyKeys)),
           proto,
         );
         if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, proto));
@@ -154,19 +155,19 @@ export const applyQueryMethods = <T extends string, E>(
     },
     findOneAndUpsert: {
       async value(update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, any>) {
-        const beforeSave = proto[PVK].triggers?.beforeSave?.[query.className];
-        const afterSave = proto[PVK].triggers?.afterSave?.[query.className];
+        const beforeSave = proto[PVK].triggers?.beforeSave?.[this.className];
+        const afterSave = proto[PVK].triggers?.afterSave?.[this.className];
 
         const context = {};
 
         if (_.isFunction(beforeSave)) {
 
-          let object = applyObjectMethods(_.first(await asyncIterableToArray(storage().find({ ...queryOptions(), limit: 1 }))), proto);
+          let object = applyObjectMethods(_.first(await asyncIterableToArray(storage(this).find({ ...queryOptions(this), limit: 1 }))), proto);
 
           if (object) {
             object[PVK].mutated = _.omit(update, ...TObject.defaultReadonlyKeys);
           } else {
-            object = proto.Object(query.className);
+            object = proto.Object(this.className);
             for (const [key, value] of _.toPairs(_.omit(setOnInsert, ...TObject.defaultReadonlyKeys))) {
               object[PVK].mutated[key] = [UpdateOp.set, value as any];
             }
@@ -187,8 +188,8 @@ export const applyQueryMethods = <T extends string, E>(
         }
 
         const result = applyObjectMethods(
-          await storage().findOneAndUpsert(
-            queryOptions(),
+          await storage(this).findOneAndUpsert(
+            queryOptions(this),
             _.omit(update, ...TObject.defaultReadonlyKeys),
             _.omit(setOnInsert, ...TObject.defaultReadonlyKeys)
           ),
@@ -200,22 +201,22 @@ export const applyQueryMethods = <T extends string, E>(
     },
     findOneAndDelete: {
       async value() {
-        const beforeDelete = proto[PVK].triggers?.beforeDelete?.[query.className];
-        const afterDelete = proto[PVK].triggers?.afterDelete?.[query.className];
+        const beforeDelete = proto[PVK].triggers?.beforeDelete?.[this.className];
+        const afterDelete = proto[PVK].triggers?.afterDelete?.[this.className];
 
         const context = {};
         let result: TObject | undefined;
 
         if (_.isFunction(beforeDelete)) {
 
-          const object = applyObjectMethods(_.first(await asyncIterableToArray(storage().find({ ...queryOptions(), limit: 1 }))), proto);
+          const object = applyObjectMethods(_.first(await asyncIterableToArray(storage(this).find({ ...queryOptions(this), limit: 1 }))), proto);
           if (!object) return undefined;
 
           await beforeDelete(Object.setPrototypeOf({ object, context }, proto));
 
           result = applyObjectMethods(
-            await storage().findOneAndDelete({
-              ...queryOptions(),
+            await storage(this).findOneAndDelete({
+              ...queryOptions(this),
               filter: { _id: { $eq: object.objectId } },
             }),
             proto,
@@ -223,7 +224,7 @@ export const applyQueryMethods = <T extends string, E>(
 
         } else {
           result = applyObjectMethods(
-            await storage().findOneAndDelete(queryOptions()),
+            await storage(this).findOneAndDelete(queryOptions(this)),
             proto,
           );
         }
@@ -234,22 +235,22 @@ export const applyQueryMethods = <T extends string, E>(
     },
     findAndDelete: {
       async value() {
-        const beforeDelete = proto[PVK].triggers?.beforeDelete?.[query.className];
-        const afterDelete = proto[PVK].triggers?.afterDelete?.[query.className];
+        const beforeDelete = proto[PVK].triggers?.beforeDelete?.[this.className];
+        const afterDelete = proto[PVK].triggers?.afterDelete?.[this.className];
 
         const context = {};
 
         if (_.isFunction(beforeDelete) || _.isFunction(afterDelete)) {
 
-          const objects = applyObjectMethods(await asyncIterableToArray(storage().find(queryOptions())), proto);
+          const objects = applyObjectMethods(await asyncIterableToArray(storage(this).find(queryOptions(this))), proto);
           if (_.isEmpty(objects)) return 0;
 
           if (_.isFunction(beforeDelete)) {
             await Promise.all(_.map(objects, object => beforeDelete(Object.setPrototypeOf({ object, context }, proto))));
           }
 
-          await storage().findAndDelete({
-            ...queryOptions(),
+          await storage(this).findAndDelete({
+            ...queryOptions(this),
             filter: { _id: { $in: _.map(objects, x => x.objectId as string) } },
           });
 
@@ -260,7 +261,7 @@ export const applyQueryMethods = <T extends string, E>(
           return objects.length;
         }
 
-        return storage().findAndDelete(queryOptions());
+        return storage(this).findAndDelete(queryOptions(this));
       },
     },
   };

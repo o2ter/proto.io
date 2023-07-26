@@ -36,43 +36,43 @@ import {
 
 export const applyQueryMethods = <T extends string, E>(query: TQuery<T, E>, proto: ProtoClient<E>, options?: RequestOptions) => {
 
-  const queryOptions = () => ({
+  const queryOptions = (query: TQuery<T, E>) => ({
     className: query[PVK].className,
     ...query[PVK].options,
   }) as any;
 
-  const requestOpt = {
+  const requestOpt = (query: TQuery<T, E>) => ({
     method: 'post',
     url: `classes/${query.className}`,
     serializeOpts: {
       objAttrs: TObject.defaultReadonlyKeys,
     },
     ...(options ?? {}),
-  };
+  });
 
   const props: PropertyDescriptorMap & ThisType<TQuery<T, E>> = {
     explain: {
       value() {
         return proto[PVK].request({
           operation: 'explain',
-          ...queryOptions(),
-        }, requestOpt);
+          ...queryOptions(this),
+        }, requestOpt(this));
       },
     },
     count: {
       value() {
         return proto[PVK].request({
           operation: 'count',
-          ...queryOptions(),
-        }, requestOpt);
+          ...queryOptions(this),
+        }, requestOpt(this));
       },
     },
     find: {
       value() {
         const request = () => proto[PVK].request({
           operation: 'find',
-          ...queryOptions(),
-        }, requestOpt) as Promise<TObject[]>;
+          ...queryOptions(this),
+        }, requestOpt(this)) as Promise<TObject[]>;
         return {
           get then() {
             return request().then;
@@ -88,7 +88,7 @@ export const applyQueryMethods = <T extends string, E>(query: TQuery<T, E>, prot
         return proto[PVK].request({
           operation: 'insert',
           attributes: attrs,
-        }, requestOpt);
+        }, requestOpt(this));
       },
     },
     findOneAndUpdate: {
@@ -96,8 +96,8 @@ export const applyQueryMethods = <T extends string, E>(query: TQuery<T, E>, prot
         return proto[PVK].request({
           operation: 'findOneAndUpdate',
           update,
-          ...queryOptions(),
-        }, requestOpt);
+          ...queryOptions(this),
+        }, requestOpt(this));
       },
     },
     findOneAndReplace: {
@@ -105,8 +105,8 @@ export const applyQueryMethods = <T extends string, E>(query: TQuery<T, E>, prot
         return proto[PVK].request({
           operation: 'findOneAndReplace',
           replacement,
-          ...queryOptions(),
-        }, requestOpt);
+          ...queryOptions(this),
+        }, requestOpt(this));
       },
     },
     findOneAndUpsert: {
@@ -115,24 +115,24 @@ export const applyQueryMethods = <T extends string, E>(query: TQuery<T, E>, prot
           operation: 'findOneAndUpsert',
           update,
           setOnInsert,
-          ...queryOptions(),
-        }, requestOpt);
+          ...queryOptions(this),
+        }, requestOpt(this));
       },
     },
     findOneAndDelete: {
       value() {
         return proto[PVK].request({
           operation: 'findOneAndDelete',
-          ...queryOptions(),
-        }, requestOpt);
+          ...queryOptions(this),
+        }, requestOpt(this));
       },
     },
     findAndDelete: {
       value() {
         return proto[PVK].request({
           operation: 'findAndDelete',
-          ...queryOptions(),
-        }, requestOpt);
+          ...queryOptions(this),
+        }, requestOpt(this));
       },
     },
   };
