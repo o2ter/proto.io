@@ -28,10 +28,9 @@ import { Decimal } from 'decimal.js';
 import { TObject } from '../object';
 import { ExtraOptions } from '../options';
 
-type TPrimitiveData = boolean | number | Decimal | string | Date | null;
-type TDictionaryData = { [x: string]: _TValue };
-type _TValue = TPrimitiveData | TDictionaryData | _TValue[];
-export type TValue = _TValue | TObject | TObject[];
+type TPrimitiveValue = boolean | number | Decimal | string | Date | null;
+type TDictionaryValue = { [x: string]: TValue };
+export type TValue = TDictionaryValue | TValue[] | TPrimitiveValue | TObject;
 
 type TQuerySelector = {
   $eq?: TValue;
