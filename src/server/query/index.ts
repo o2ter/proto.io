@@ -33,6 +33,7 @@ import {
   ExtraOptions,
   applyObjectMethods,
   asyncIterableToArray,
+  TValue,
 } from '../../internals';
 import { queryValidator } from './validator';
 
@@ -50,7 +51,7 @@ export const applyQueryMethods = <T extends string, E>(
 
   const storage = () => queryValidator(proto, query.className, options);
 
-  const props = {
+  const props: PropertyDescriptorMap & ThisType<TQuery<T, E>> = {
     explain: {
       value: () => {
         return storage().explain(queryOptions());
@@ -83,7 +84,7 @@ export const applyQueryMethods = <T extends string, E>(
 
         const object = proto.Object(query.className);
         for (const [key, value] of _.toPairs(_.omit(attrs, ...TObject.defaultReadonlyKeys))) {
-          object[PVK].mutated[key] = [UpdateOp.set, value];
+          object[PVK].mutated[key] = [UpdateOp.set, value as any];
         }
 
         if (_.isFunction(beforeSave)) await beforeSave(Object.setPrototypeOf({ object, context }, proto));
@@ -167,7 +168,7 @@ export const applyQueryMethods = <T extends string, E>(
           } else {
             object = proto.Object(query.className);
             for (const [key, value] of _.toPairs(_.omit(setOnInsert, ...TObject.defaultReadonlyKeys))) {
-              object[PVK].mutated[key] = [UpdateOp.set, value];
+              object[PVK].mutated[key] = [UpdateOp.set, value as any];
             }
           }
 

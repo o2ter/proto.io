@@ -50,37 +50,43 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
   const typedMethods: Record<string, PropertyDescriptorMap & ThisType<TObject>> = {
     '_File': {
       save: {
-        value: (options?: ExtraOptions) => proto[PVK].saveFile(object as TFile, options),
+        value(options?: ExtraOptions) {
+          return proto[PVK].saveFile(this as TFile, options);
+        },
       },
       destory: {
-        value: (options?: ExtraOptions) => proto[PVK].deleteFile(object as TFile, options),
+        value(options?: ExtraOptions) {
+          return proto[PVK].deleteFile(this as TFile, options);
+        },
       },
       url: {
         get() {
           const endpoint = proto[PVK].options.endpoint;
-          const path = `files/${object.objectId}/${encodeURIComponent((object as TFile).filename)}`;
+          const path = `files/${this.objectId}/${encodeURIComponent((this as TFile).filename)}`;
           return endpoint.endsWith('/') ? `${endpoint}${path}` : `${endpoint}/${path}`;
         }
       },
       fileData: {
-        value: (options?: ExtraOptions) => proto[PVK].fileData(object as TFile, options),
+        value(options?: ExtraOptions) {
+          return proto[PVK].fileData(this as TFile, options);
+        },
       },
     },
   };
 
-  return Object.defineProperties(object, {
+  const props: PropertyDescriptorMap & ThisType<TObject> = {
     clone: {
-      value: () => {
-        const clone = proto.Object(object.className);
-        clone[PVK].attributes = { ...object[PVK].attributes };
-        clone[PVK].mutated = { ...object[PVK].mutated };
-        clone[PVK].extra = { ...object[PVK].extra };
+      value() {
+        const clone = proto.Object(this.className);
+        clone[PVK].attributes = { ...this[PVK].attributes };
+        clone[PVK].mutated = { ...this[PVK].mutated };
+        clone[PVK].extra = { ...this[PVK].extra };
         return clone;
       }
     },
     fetchWithInclude: {
-      value: async (keys: string[], options?: ExtraOptions) => {
-        const fetched = await query(options).equalTo('_id', object.objectId).includes(...keys).first();
+      async value(keys: string[], options?: ExtraOptions) {
+        const fetched = await query(options).equalTo('_id', this.objectId).includes(...keys).first();
         if (fetched) {
           object[PVK].attributes = fetched.attributes;
           object[PVK].mutated = {};
@@ -89,15 +95,15 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
       },
     },
     save: {
-      value: async (options?: ExtraOptions) => {
-        if (object.objectId) {
-          const updated = await query(options).equalTo('_id', object.objectId).findOneAndUpdate(object[PVK].mutated);
+      async value(options?: ExtraOptions) {
+        if (this.objectId) {
+          const updated = await query(options).equalTo('_id', this.objectId).findOneAndUpdate(object[PVK].mutated);
           if (updated) {
             object[PVK].attributes = updated.attributes;
             object[PVK].mutated = {};
           }
         } else {
-          const created = await query(options).insert(_.fromPairs(object.keys().map(k => [k, object.get(k)])));
+          const created = await query(options).insert(_.fromPairs(this.keys().map(k => [k, this.get(k)])));
           if (created) {
             object[PVK].attributes = created.attributes;
             object[PVK].mutated = {};
@@ -107,8 +113,8 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
       },
     },
     destory: {
-      value: async (options?: ExtraOptions) => {
-        const deleted = await query(options).equalTo('_id', object.objectId).findOneAndDelete();
+      async value(options?: ExtraOptions) {
+        const deleted = await query(options).equalTo('_id', this.objectId).findOneAndDelete();
         if (deleted) {
           object[PVK].attributes = deleted.attributes;
           object[PVK].mutated = {};
@@ -118,5 +124,7 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
     },
     ...typedMethods[object.className] ?? {},
     ..._.mapValues(extensions, value => _.isFunction(value) ? { value } : value),
-  });
+  };
+
+  return Object.defineProperties(object, props);
 };

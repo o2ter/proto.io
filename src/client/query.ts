@@ -50,7 +50,7 @@ export const applyQueryMethods = <T extends string, E>(query: TQuery<T, E>, prot
     ...(options ?? {}),
   };
 
-  const props = {
+  const props: PropertyDescriptorMap & ThisType<TQuery<T, E>> = {
     explain: {
       value: () => proto[PVK].request({
         operation: 'explain',
