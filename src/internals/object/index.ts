@@ -51,7 +51,7 @@ export interface TObject {
 
 export class TObject {
 
-  static defaultReadonlyKeys = ['_id', '_created_at', '_updated_at'];
+  static defaultReadonlyKeys = ['_id', '_created_at', '_updated_at', '_version'];
   static defaultKeys = [...TObject.defaultReadonlyKeys, '_expired_at', '_acl'];
 
   [PVK]: {
@@ -91,6 +91,10 @@ export class TObject {
 
   get updatedAt(): Date | undefined {
     return this[PVK].attributes._updated_at as Date;
+  }
+
+  get version(): string {
+    return this[PVK].attributes._version as string;
   }
 
   get expiredAt(): Date | undefined {
