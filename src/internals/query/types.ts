@@ -42,6 +42,7 @@ type TQuerySelector = {
   $ne?: TValue;
   $nin?: TValue[];
   $not?: TQuerySelector | RegExp;
+  $type?: TValue | TValue[];
   $search?: string;
   $regex?: RegExp | string;
   $all?: TValue[];
@@ -53,7 +54,6 @@ type TRootQuerySelector = {
   $and?: TFilterQuery[];
   $nor?: TFilterQuery[];
   $or?: TFilterQuery[];
-  $expr?: any;
 };
 
 export type TFilterQuery = TRootQuerySelector | {
