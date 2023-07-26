@@ -31,6 +31,7 @@ import {
   TQuery,
   TObject,
   UpdateOp,
+  TValue,
 } from '../internals';
 
 export const applyQueryMethods = <T extends string, E>(query: TQuery<T, E>, proto: ProtoClient<E>, options?: RequestOptions) => {
