@@ -70,7 +70,7 @@ export class DatabaseFileStorage implements TFileStorage {
           delete: [],
         },
         indexes: [
-          { keys: { token: 1, start: 1 } },
+          { keys: { token: 1, start: 1, end: 1 } },
           { keys: { token: 1, end: 1 } },
         ]
       },
