@@ -53,17 +53,17 @@ export const applyQueryMethods = <T extends string, E>(
 
   const props: PropertyDescriptorMap & ThisType<TQuery<T, E>> = {
     explain: {
-      value: () => {
+      value() {
         return storage().explain(queryOptions());
       },
     },
     count: {
-      value: () => {
+      value() {
         return storage().count(queryOptions());
       },
     },
     find: {
-      value: () => {
+      value() {
         const iterator = async function* () {
           for await (const object of storage().find(queryOptions())) yield applyObjectMethods(object, proto);
         };
@@ -76,7 +76,7 @@ export const applyQueryMethods = <T extends string, E>(
       },
     },
     insert: {
-      value: async (attrs: Record<string, any>) => {
+      async value(attrs: Record<string, any>) {
         const beforeSave = proto[PVK].triggers?.beforeSave?.[query.className];
         const afterSave = proto[PVK].triggers?.afterSave?.[query.className];
 
@@ -98,7 +98,7 @@ export const applyQueryMethods = <T extends string, E>(
       },
     },
     findOneAndUpdate: {
-      value: async (update: Record<string, [UpdateOp, TValue]>) => {
+      async value(update: Record<string, [UpdateOp, TValue]>) {
         const beforeSave = proto[PVK].triggers?.beforeSave?.[query.className];
         const afterSave = proto[PVK].triggers?.afterSave?.[query.className];
 
@@ -124,7 +124,7 @@ export const applyQueryMethods = <T extends string, E>(
       },
     },
     findOneAndReplace: {
-      value: async (replacement: Record<string, any>) => {
+      async value(replacement: Record<string, any>) {
         const beforeSave = proto[PVK].triggers?.beforeSave?.[query.className];
         const afterSave = proto[PVK].triggers?.afterSave?.[query.className];
 
@@ -153,7 +153,7 @@ export const applyQueryMethods = <T extends string, E>(
       },
     },
     findOneAndUpsert: {
-      value: async (update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, any>) => {
+      async value(update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, any>) {
         const beforeSave = proto[PVK].triggers?.beforeSave?.[query.className];
         const afterSave = proto[PVK].triggers?.afterSave?.[query.className];
 
@@ -199,7 +199,7 @@ export const applyQueryMethods = <T extends string, E>(
       },
     },
     findOneAndDelete: {
-      value: async () => {
+      async value() {
         const beforeDelete = proto[PVK].triggers?.beforeDelete?.[query.className];
         const afterDelete = proto[PVK].triggers?.afterDelete?.[query.className];
 
@@ -233,7 +233,7 @@ export const applyQueryMethods = <T extends string, E>(
       },
     },
     findAndDelete: {
-      value: async () => {
+      async value() {
         const beforeDelete = proto[PVK].triggers?.beforeDelete?.[query.className];
         const afterDelete = proto[PVK].triggers?.afterDelete?.[query.className];
 

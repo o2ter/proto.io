@@ -52,19 +52,23 @@ export const applyQueryMethods = <T extends string, E>(query: TQuery<T, E>, prot
 
   const props: PropertyDescriptorMap & ThisType<TQuery<T, E>> = {
     explain: {
-      value: () => proto[PVK].request({
-        operation: 'explain',
-        ...queryOptions(),
-      }, requestOpt),
+      value() {
+        return proto[PVK].request({
+          operation: 'explain',
+          ...queryOptions(),
+        }, requestOpt);
+      },
     },
     count: {
-      value: () => proto[PVK].request({
-        operation: 'count',
-        ...queryOptions(),
-      }, requestOpt),
+      value() {
+        return proto[PVK].request({
+          operation: 'count',
+          ...queryOptions(),
+        }, requestOpt);
+      },
     },
     find: {
-      value: () => {
+      value() {
         const request = () => proto[PVK].request({
           operation: 'find',
           ...queryOptions(),
@@ -80,44 +84,56 @@ export const applyQueryMethods = <T extends string, E>(query: TQuery<T, E>, prot
       },
     },
     insert: {
-      value: (attrs: Record<string, any>) => proto[PVK].request({
-        operation: 'insert',
-        attributes: attrs,
-      }, requestOpt),
+      value(attrs: Record<string, any>) {
+        return proto[PVK].request({
+          operation: 'insert',
+          attributes: attrs,
+        }, requestOpt);
+      },
     },
     findOneAndUpdate: {
-      value: (update: Record<string, [UpdateOp, TValue]>) => proto[PVK].request({
-        operation: 'findOneAndUpdate',
-        update,
-        ...queryOptions(),
-      }, requestOpt),
+      value(update: Record<string, [UpdateOp, TValue]>) {
+        return proto[PVK].request({
+          operation: 'findOneAndUpdate',
+          update,
+          ...queryOptions(),
+        }, requestOpt);
+      },
     },
     findOneAndReplace: {
-      value: (replacement: Record<string, any>) => proto[PVK].request({
-        operation: 'findOneAndReplace',
-        replacement,
-        ...queryOptions(),
-      }, requestOpt),
+      value(replacement: Record<string, any>) {
+        return proto[PVK].request({
+          operation: 'findOneAndReplace',
+          replacement,
+          ...queryOptions(),
+        }, requestOpt);
+      },
     },
     findOneAndUpsert: {
-      value: (update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, any>) => proto[PVK].request({
-        operation: 'findOneAndUpsert',
-        update,
-        setOnInsert,
-        ...queryOptions(),
-      }, requestOpt),
+      value(update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, any>) {
+        return proto[PVK].request({
+          operation: 'findOneAndUpsert',
+          update,
+          setOnInsert,
+          ...queryOptions(),
+        }, requestOpt);
+      },
     },
     findOneAndDelete: {
-      value: () => proto[PVK].request({
-        operation: 'findOneAndDelete',
-        ...queryOptions(),
-      }, requestOpt),
+      value() {
+        return proto[PVK].request({
+          operation: 'findOneAndDelete',
+          ...queryOptions(),
+        }, requestOpt);
+      },
     },
     findAndDelete: {
-      value: () => proto[PVK].request({
-        operation: 'findAndDelete',
-        ...queryOptions(),
-      }, requestOpt),
+      value() {
+        return proto[PVK].request({
+          operation: 'findAndDelete',
+          ...queryOptions(),
+        }, requestOpt);
+      },
     },
   };
 
