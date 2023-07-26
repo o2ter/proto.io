@@ -38,6 +38,7 @@ import {
 import { TObject } from './object';
 import { TObjectTypes } from './object/types';
 import { isObjKey } from './utils';
+import { TValue } from './query/types';
 
 export { UUID, Decimal };
 export type TNumber = number | Decimal | BigInt;
@@ -98,7 +99,7 @@ const decodeEJSON = (
 
   if (x.$object) {
     const { className, attributes } = x.$object;
-    const _attributes = (self: TObject) => _.mapValues(attributes, v => decodeEJSON(v, [...stack, self]));
+    const _attributes = (self: TObject) => _.mapValues(attributes, v => decodeEJSON(v, [...stack, self])) as Record<string, TValue>;
     return isObjKey(className, TObjectTypes) ? new TObjectTypes[className](_attributes) : new TObject(className, _attributes);
   }
 

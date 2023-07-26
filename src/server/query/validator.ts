@@ -86,7 +86,7 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
     },
     findOneAndUpdate(
       query: FindOneOptions,
-      update: Record<string, [UpdateOp, any]>,
+      update: Record<string, [UpdateOp, TValue]>,
     ) {
       if (!options?.master && !_validateCLPs('update')) throw new Error('No permission');
       return proto.storage.findOneAndUpdate(normalize(query), normalize(update));
@@ -100,7 +100,7 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
     },
     findOneAndUpsert(
       query: FindOneOptions,
-      update: Record<string, [UpdateOp, any]>,
+      update: Record<string, [UpdateOp, TValue]>,
       setOnInsert: Record<string, any>,
     ) {
       if (!options?.master && !_validateCLPs('create', 'update')) throw new Error('No permission');

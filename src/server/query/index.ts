@@ -97,7 +97,7 @@ export const applyQueryMethods = <T extends string, E>(
       },
     },
     findOneAndUpdate: {
-      value: async (update: Record<string, [UpdateOp, any]>) => {
+      value: async (update: Record<string, [UpdateOp, TValue]>) => {
         const beforeSave = proto[PVK].triggers?.beforeSave?.[query.className];
         const afterSave = proto[PVK].triggers?.afterSave?.[query.className];
 
@@ -152,7 +152,7 @@ export const applyQueryMethods = <T extends string, E>(
       },
     },
     findOneAndUpsert: {
-      value: async (update: Record<string, [UpdateOp, any]>, setOnInsert: Record<string, any>) => {
+      value: async (update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, any>) => {
         const beforeSave = proto[PVK].triggers?.beforeSave?.[query.className];
         const afterSave = proto[PVK].triggers?.afterSave?.[query.className];
 

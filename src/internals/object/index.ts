@@ -27,6 +27,7 @@ import _ from 'lodash';
 import { PVK } from '../private';
 import { ExtraOptions } from '../options';
 import { TSchema } from '../schema';
+import { TValue } from '../query/types';
 
 export enum UpdateOp {
   set = 'set',
@@ -55,14 +56,14 @@ export class TObject {
 
   [PVK]: {
     className: string;
-    attributes: Record<string, any>;
-    mutated: Record<string, [UpdateOp, any]>;
+    attributes: Record<string, TValue>;
+    mutated: Record<string, [UpdateOp, TValue]>;
     extra: Record<string, any>;
   };
 
   constructor(
     className: string,
-    attributes?: Record<string, any> | ((self: TObject) => Record<string, any>),
+    attributes?: Record<string, TValue> | ((self: TObject) => Record<string, TValue>),
   ) {
     this[PVK] = {
       className,
@@ -76,24 +77,24 @@ export class TObject {
     return this[PVK].className;
   }
 
-  get attributes(): Record<string, any> {
+  get attributes(): Record<string, TValue> {
     return this[PVK].attributes;
   }
 
   get objectId(): string | undefined {
-    return this[PVK].attributes._id;
+    return this[PVK].attributes._id as string;
   }
 
   get createdAt(): Date | undefined {
-    return this[PVK].attributes._created_at;
+    return this[PVK].attributes._created_at as Date;
   }
 
   get updatedAt(): Date | undefined {
-    return this[PVK].attributes._updated_at;
+    return this[PVK].attributes._updated_at as Date;
   }
 
   get expiredAt(): Date | undefined {
-    return this.get('_expired_at');
+    return this.get('_expired_at') as Date;
   }
 
   set expiredAt(value: Date | undefined) {
@@ -101,7 +102,7 @@ export class TObject {
   }
 
   get acl(): TSchema.ACLs {
-    return this.get('_acl') ?? {};
+    return this.get('_acl') as TSchema.ACLs ?? {};
   }
 
   set acl(value: TSchema.ACLs) {
@@ -112,15 +113,15 @@ export class TObject {
     return _.uniq([..._.keys(this.attributes), ..._.keys(this[PVK].mutated)]);
   }
 
-  get(key: string): any {
+  get(key: string) {
     if (_.isNil(this[PVK].mutated[key])) return this.attributes[key];
     const [op, value] = this[PVK].mutated[key];
     return op === UpdateOp.set ? value : this.attributes[key];
   }
 
-  set(key: string, value: any) {
+  set(key: string, value: TValue | undefined) {
     if (TObject.defaultReadonlyKeys.includes(key)) return;
-    this[PVK].mutated[key] = [UpdateOp.set, value];
+    this[PVK].mutated[key] = [UpdateOp.set, value ?? null];
   }
 
   unset(key: string) {
@@ -152,27 +153,27 @@ export class TObject {
     this[PVK].mutated[key] = [UpdateOp.multiply, 1 / value];
   }
 
-  max(key: string, value: any) {
+  max(key: string, value: TValue) {
     if (TObject.defaultReadonlyKeys.includes(key)) return;
     this[PVK].mutated[key] = [UpdateOp.max, value];
   }
 
-  min(key: string, value: any) {
+  min(key: string, value: TValue) {
     if (TObject.defaultReadonlyKeys.includes(key)) return;
     this[PVK].mutated[key] = [UpdateOp.min, value];
   }
 
-  addToSet(key: string, values: any[]) {
+  addToSet(key: string, values: TValue[]) {
     if (TObject.defaultReadonlyKeys.includes(key)) return;
     this[PVK].mutated[key] = [UpdateOp.addToSet, values];
   }
 
-  push(key: string, values: any[]) {
+  push(key: string, values: TValue[]) {
     if (TObject.defaultReadonlyKeys.includes(key)) return;
     this[PVK].mutated[key] = [UpdateOp.push, values];
   }
 
-  removeAll(key: string, values: any[]) {
+  removeAll(key: string, values: TValue[]) {
     if (TObject.defaultReadonlyKeys.includes(key)) return;
     this[PVK].mutated[key] = [UpdateOp.removeAll, values];
   }

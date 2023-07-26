@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import pg, { IConnectionOptions, IDatabase } from 'pg-promise';
-import { FindOptions, TSchema, storageSchedule, FindOneOptions, UpdateOp, ExplainOptions } from '../../../internals';
+import { FindOptions, TSchema, storageSchedule, FindOneOptions, UpdateOp, ExplainOptions, TValue } from '../../../internals';
 import { TStorage } from '../../../server/storage';
 
 const pgp = pg({});
@@ -80,7 +80,7 @@ export class PostgresStorage implements TStorage {
     return undefined;
   }
 
-  async findOneAndUpdate(query: FindOneOptions, update: Record<string, [UpdateOp, any]>) {
+  async findOneAndUpdate(query: FindOneOptions, update: Record<string, [UpdateOp, TValue]>) {
     return undefined;
   }
 
@@ -88,7 +88,7 @@ export class PostgresStorage implements TStorage {
     return undefined;
   }
 
-  async findOneAndUpsert(query: FindOneOptions, update: Record<string, [UpdateOp, any]>, setOnInsert: Record<string, any>) {
+  async findOneAndUpsert(query: FindOneOptions, update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, any>) {
     return undefined;
   }
 

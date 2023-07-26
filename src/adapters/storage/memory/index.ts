@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { TSchema, storageSchedule, FindOptions, FindOneOptions, UpdateOp, ExplainOptions } from '../../../internals';
+import { TSchema, storageSchedule, FindOptions, FindOneOptions, UpdateOp, ExplainOptions, TValue } from '../../../internals';
 import { TStorage } from '../../../server/storage';
 
 export class MemoryStorage implements TStorage {
@@ -62,7 +62,7 @@ export class MemoryStorage implements TStorage {
     return undefined;
   }
 
-  async findOneAndUpdate(query: FindOneOptions, update: Record<string, [UpdateOp, any]>) {
+  async findOneAndUpdate(query: FindOneOptions, update: Record<string, [UpdateOp, TValue]>) {
     return undefined;
   }
 
@@ -70,7 +70,7 @@ export class MemoryStorage implements TStorage {
     return undefined;
   }
 
-  async findOneAndUpsert(query: FindOneOptions, update: Record<string, [UpdateOp, any]>, setOnInsert: Record<string, any>) {
+  async findOneAndUpsert(query: FindOneOptions, update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, any>) {
     return undefined;
   }
 

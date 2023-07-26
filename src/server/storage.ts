@@ -31,6 +31,7 @@ import {
   FindOptions,
   FindOneOptions,
   ExplainOptions,
+  TValue,
 } from '../internals';
 
 export interface TStorage {
@@ -47,9 +48,9 @@ export interface TStorage {
 
   insert(className: string, attrs: Record<string, any>): PromiseLike<TObject | undefined>;
 
-  findOneAndUpdate(query: FindOneOptions, update: Record<string, [UpdateOp, any]>): PromiseLike<TObject | undefined>;
+  findOneAndUpdate(query: FindOneOptions, update: Record<string, [UpdateOp, TValue]>): PromiseLike<TObject | undefined>;
   findOneAndReplace(query: FindOneOptions, replacement: Record<string, any>): PromiseLike<TObject | undefined>;
-  findOneAndUpsert(query: FindOneOptions, update: Record<string, [UpdateOp, any]>, setOnInsert: Record<string, any>): PromiseLike<TObject | undefined>;
+  findOneAndUpsert(query: FindOneOptions, update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, any>): PromiseLike<TObject | undefined>;
   findOneAndDelete(query: FindOneOptions): PromiseLike<TObject | undefined>;
 
   findAndDelete(query: FindOptions): PromiseLike<number>;

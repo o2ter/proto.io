@@ -112,8 +112,8 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     let content: string | undefined;
 
     const info = {
-      mimeType: object.get('type'),
-      filename: object.get('filename'),
+      mimeType: object.get('type') as string,
+      filename: object.get('filename') as string,
     };
 
     if (_.isString(data) && data.length < 64 * 1024) {

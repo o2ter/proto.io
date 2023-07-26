@@ -35,6 +35,6 @@ export class TRole extends TObject {
   }
 
   get name(): string {
-    return this.get('name');
+    return this.get('name') as string;
   }
 }
