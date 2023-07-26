@@ -52,6 +52,7 @@ type TQuerySelector = {
 
 type TRootQuerySelector = {
   $and?: TFilterQuery[];
+  $not?: TFilterQuery[];
   $nor?: TFilterQuery[];
   $or?: TFilterQuery[];
 };
