@@ -40,6 +40,7 @@ import {
   TSchema,
   TUser,
   ExtraOptions,
+  TValue,
 } from '../internals';
 import { TFileStorage } from './filesys';
 import { TStorage } from './storage';
@@ -91,8 +92,9 @@ export class Proto<Ext> implements ProtoType<Ext> {
     return this.storage.classes();
   }
 
-  Object<T extends string>(className: T): TObjectType<T, Ext> {
-    const obj = isObjKey(className, TObjectTypes) ? new TObjectTypes[className] : new TObject(className);
+  Object<T extends string>(className: T, objectId?: string): TObjectType<T, Ext> {
+    const attrs: Record<string, TValue> = objectId ? { _id: objectId } : {};
+    const obj = isObjKey(className, TObjectTypes) ? new TObjectTypes[className](attrs) : new TObject(className, attrs);
     return applyObjectMethods(obj as TObjectType<T, Ext>, this);
   }
 

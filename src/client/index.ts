@@ -38,6 +38,7 @@ import {
   applyObjectMethods,
   TQuery,
   TSerializable,
+  TValue,
 } from '../internals';
 
 export * from '../common';
@@ -55,8 +56,9 @@ export class ProtoClient<Ext> implements ProtoType<Ext> {
     this[PVK] = new ProtoClientInternal(this, { ...options });
   }
 
-  Object<T extends string>(className: T): TObjectType<T, Ext> {
-    const obj = isObjKey(className, TObjectTypes) ? new TObjectTypes[className] : new TObject(className);
+  Object<T extends string>(className: T, objectId?: string): TObjectType<T, Ext> {
+    const attrs: Record<string, TValue> = objectId ? { _id: objectId } : {};
+    const obj = isObjKey(className, TObjectTypes) ? new TObjectTypes[className](attrs) : new TObject(className, attrs);
     return applyObjectMethods(obj as TObjectType<T, Ext>, this);
   }
 
