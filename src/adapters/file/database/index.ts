@@ -25,6 +25,7 @@
 
 import _ from 'lodash';
 import { Readable } from 'node:stream';
+import { deflate, unzip } from 'node:zlib';
 import { FileBuffer, FileData, PVK, TSchema, base64ToBuffer, bufferToBase64, isFileBuffer } from '../../../internals';
 import { TFileStorage } from '../../../server/filesys';
 import { Proto } from '../../../server';
@@ -81,13 +82,20 @@ export class DatabaseFileStorage implements TFileStorage {
     for await (const data of streamChunk(file)) {
 
       const chunkSize = data.byteLength;
+      const compressed: Buffer = await new Promise((resolve, rejected) => deflate(data, (err, buffer) => {
+        if (err) {
+          rejected(err);
+        } else {
+          resolve(buffer);
+        }
+      }));
 
       const created = await proto.Query('_FileChunk', { master: true }).insert({
         token,
         start: size,
         end: size + chunkSize,
         size: chunkSize,
-        base64: bufferToBase64(data),
+        base64: bufferToBase64(compressed),
       });
       if (!created) throw Error('Unable to save file');
 
@@ -157,21 +165,24 @@ export class DatabaseFileStorage implements TFileStorage {
       if (!_.isNumber(startBytes) || !_.isNumber(endBytes) || !_.isString(base64)) throw Error('Corrupted data');
 
       const data = base64ToBuffer(base64);
+      const uncompressed: Buffer = await new Promise((resolve, rejected) => unzip(data, (err, buffer) => {
+        if (err) {
+          rejected(err);
+        } else {
+          resolve(buffer);
+        }
+      }));
 
       if (_.isNumber(start) || _.isNumber(end)) {
 
         const _start = _.isNumber(start) && start > startBytes ? start - startBytes : 0;
         const _end = _.isNumber(end) && end < endBytes ? end - startBytes : undefined;
 
-        if (data instanceof Buffer) {
-          yield data.subarray(_start, _end);
-        } else {
-          yield data.slice(_start, _end);
-        }
+        yield uncompressed.subarray(_start, _end);
 
       } else {
 
-        yield data;
+        yield uncompressed;
       }
 
     }
