@@ -29,6 +29,20 @@ import { FileBuffer, FileData, PVK, TSchema, base64ToBuffer, bufferToBase64, isF
 import { TFileStorage } from '../../../server/filesys';
 import { Proto } from '../../../server';
 
+const streamChunk = (stream: Readable, chunkSize: number = 16 * 1024) => Readable.from({
+  [Symbol.asyncIterator]: async function* () {
+    let buffer = Buffer.from([]);
+    for await (const chunk of stream) {
+      buffer = Buffer.concat([buffer, chunk]);
+      while (buffer.byteLength >= chunkSize) {
+        if (buffer.byteLength) yield buffer.subarray(0, chunkSize);
+        buffer = buffer.subarray(chunkSize);
+      }
+    }
+    yield buffer;
+  },
+});
+
 export class DatabaseFileStorage implements TFileStorage {
 
   get schema(): Record<string, TSchema> {
@@ -64,7 +78,7 @@ export class DatabaseFileStorage implements TFileStorage {
     const token = proto[PVK].generateId();
     let size = 0;
 
-    for await (const data of file) {
+    for await (const data of streamChunk(file)) {
 
       const chunkSize = data.byteLength;
 
@@ -150,7 +164,7 @@ export class DatabaseFileStorage implements TFileStorage {
         const _end = _.isNumber(end) && end < endBytes ? end - startBytes : undefined;
 
         if (data instanceof Buffer) {
-          yield Buffer.from(data, _start, _end ? _end - _start : undefined);
+          yield data.subarray(_start, _end);
         } else {
           yield data.slice(_start, _end);
         }
