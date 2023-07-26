@@ -85,6 +85,8 @@ export class DatabaseFileStorage implements TFileStorage {
     const token = proto[PVK].generateId();
     let size = 0;
 
+    const maxUploadSize = _.isFunction(proto[PVK].options.maxUploadSize) ? await proto[PVK].options.maxUploadSize(proto) : proto[PVK].options.maxUploadSize;
+
     for await (const data of streamChunk(file, this.chunkSize)) {
 
       const chunkSize = data.byteLength;
@@ -106,7 +108,7 @@ export class DatabaseFileStorage implements TFileStorage {
       if (!created) throw Error('Unable to save file');
 
       size += chunkSize;
-      if (size > proto[PVK].options.maxUploadSize) throw Error('Payload too large');
+      if (size > maxUploadSize) throw Error('Payload too large');
     }
 
     return { _id: token, size };
@@ -134,7 +136,9 @@ export class DatabaseFileStorage implements TFileStorage {
     const token = proto[PVK].generateId();
     const size = _.isString(buffer) ? buffer.length : buffer.byteLength;
 
-    if (size > proto[PVK].options.maxUploadSize) throw Error('Payload too large');
+    const maxUploadSize = _.isFunction(proto[PVK].options.maxUploadSize) ? await proto[PVK].options.maxUploadSize(proto) : proto[PVK].options.maxUploadSize;
+
+    if (size > maxUploadSize) throw Error('Payload too large');
 
     const created = await proto.Query('_FileChunk', { master: true }).insert({
       token,

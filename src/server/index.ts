@@ -67,7 +67,7 @@ export type ProtoOptions<Ext> = {
   fileStorage: TFileStorage;
   classExtends?: TExtensions<Ext>;
   objectIdSize?: number;
-  maxUploadSize?: number;
+  maxUploadSize?: number | ((proto: Proto<Ext>) => number | PromiseLike<number>);
 };
 
 export class Proto<Ext> implements ProtoType<Ext> {
