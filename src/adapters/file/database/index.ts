@@ -35,7 +35,7 @@ const streamChunk = (stream: Readable, chunkSize: number = 16 * 1024) => Readabl
     for await (const chunk of stream) {
       buffer = Buffer.concat([buffer, chunk]);
       while (buffer.byteLength >= chunkSize) {
-        if (buffer.byteLength) yield buffer.subarray(0, chunkSize);
+        yield buffer.subarray(0, chunkSize);
         buffer = buffer.subarray(chunkSize);
       }
     }
