@@ -89,7 +89,6 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
         const fetched = await query(options).equalTo('_id', this.objectId).includes(...keys).first();
         if (fetched) {
           object[PVK].attributes = fetched.attributes;
-          object[PVK].mutated = {};
         }
         return object;
       },
