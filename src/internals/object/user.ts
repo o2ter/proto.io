@@ -25,11 +25,12 @@
 
 import _ from 'lodash';
 import { TObject } from './index';
+import { TValue } from '../query/types';
 
 export class TUser extends TObject {
 
   constructor(
-    attributes?: Record<string, any> | ((self: TObject) => Record<string, any>),
+    attributes?: Record<string, TValue> | ((self: TObject) => Record<string, TValue>),
   ) {
     super('_User', attributes);
   }

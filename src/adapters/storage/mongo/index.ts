@@ -75,7 +75,7 @@ export class MongoStorage implements TStorage {
     return [];
   }
 
-  async insert(className: string, attrs: Record<string, any>) {
+  async insert(className: string, attrs: Record<string, TValue>) {
     return undefined;
   }
 
@@ -83,11 +83,11 @@ export class MongoStorage implements TStorage {
     return undefined;
   }
 
-  async findOneAndReplace(query: FindOneOptions, replacement: Record<string, any>) {
+  async findOneAndReplace(query: FindOneOptions, replacement: Record<string, TValue>) {
     return undefined;
   }
 
-  async findOneAndUpsert(query: FindOneOptions, update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, any>) {
+  async findOneAndUpsert(query: FindOneOptions, update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>) {
     return undefined;
   }
 

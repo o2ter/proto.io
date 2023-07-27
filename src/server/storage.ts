@@ -46,11 +46,11 @@ export interface TStorage {
   count(query: FindOptions): PromiseLike<number>;
   find(query: FindOptions): AsyncIterable<TObject>;
 
-  insert(className: string, attrs: Record<string, any>): PromiseLike<TObject | undefined>;
+  insert(className: string, attrs: Record<string, TValue>): PromiseLike<TObject | undefined>;
 
   findOneAndUpdate(query: FindOneOptions, update: Record<string, [UpdateOp, TValue]>): PromiseLike<TObject | undefined>;
-  findOneAndReplace(query: FindOneOptions, replacement: Record<string, any>): PromiseLike<TObject | undefined>;
-  findOneAndUpsert(query: FindOneOptions, update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, any>): PromiseLike<TObject | undefined>;
+  findOneAndReplace(query: FindOneOptions, replacement: Record<string, TValue>): PromiseLike<TObject | undefined>;
+  findOneAndUpsert(query: FindOneOptions, update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>): PromiseLike<TObject | undefined>;
   findOneAndDelete(query: FindOneOptions): PromiseLike<TObject | undefined>;
 
   findAndDelete(query: FindOptions): PromiseLike<number>;

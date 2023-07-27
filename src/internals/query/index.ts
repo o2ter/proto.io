@@ -44,10 +44,10 @@ export interface TQuery<T extends string, Ext> {
   explain(): PromiseLike<any>;
   count(): PromiseLike<number>;
   find(): PromiseLike<TObjectType<T, Ext>[]> & AsyncIterable<TObjectType<T, Ext>>;
-  insert(attrs: Record<string, any>): PromiseLike<TObjectType<T, Ext> | undefined>;
+  insert(attrs: Record<string, TValue>): PromiseLike<TObjectType<T, Ext> | undefined>;
   findOneAndUpdate(update: Record<string, [UpdateOp, TValue]>): PromiseLike<TObjectType<T, Ext> | undefined>;
-  findOneAndReplace(replacement: Record<string, any>): PromiseLike<TObjectType<T, Ext> | undefined>;
-  findOneAndUpsert(update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, any>): PromiseLike<TObjectType<T, Ext> | undefined>;
+  findOneAndReplace(replacement: Record<string, TValue>): PromiseLike<TObjectType<T, Ext> | undefined>;
+  findOneAndUpsert(update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>): PromiseLike<TObjectType<T, Ext> | undefined>;
   findOneAndDelete(): PromiseLike<TObjectType<T, Ext> | undefined>;
   findAndDelete(): PromiseLike<number>;
 }
@@ -170,11 +170,11 @@ export class TQuery<T extends string, Ext> {
     return this.findOneAndUpdate(update);
   }
 
-  async replaceOne(replacement: Record<string, any>) {
+  async replaceOne(replacement: Record<string, TValue>) {
     return this.findOneAndReplace(replacement);
   }
 
-  async upsertOne(update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, any>) {
+  async upsertOne(update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>) {
     return this.findOneAndUpsert(update, setOnInsert);
   }
 

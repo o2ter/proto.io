@@ -79,7 +79,7 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
     },
     insert(
       className: string,
-      attrs: Record<string, any>,
+      attrs: Record<string, TValue>,
     ) {
       if (!options?.master && !_validateCLPs('create')) throw new Error('No permission');
       return proto.storage.insert(className, normalize(attrs));
@@ -93,7 +93,7 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
     },
     findOneAndReplace(
       query: FindOneOptions,
-      replacement: Record<string, any>,
+      replacement: Record<string, TValue>,
     ) {
       if (!options?.master && !_validateCLPs('update')) throw new Error('No permission');
       return proto.storage.findOneAndReplace(normalize(query), normalize(replacement));
@@ -101,7 +101,7 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
     findOneAndUpsert(
       query: FindOneOptions,
       update: Record<string, [UpdateOp, TValue]>,
-      setOnInsert: Record<string, any>,
+      setOnInsert: Record<string, TValue>,
     ) {
       if (!options?.master && !_validateCLPs('create', 'update')) throw new Error('No permission');
       return proto.storage.findOneAndUpsert(normalize(query), normalize(update), normalize(setOnInsert));

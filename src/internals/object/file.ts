@@ -27,6 +27,7 @@ import _ from 'lodash';
 import { TObject } from './index';
 import { ExtraOptions } from '../options';
 import { FileStream } from '../buffer';
+import { TValue } from '../query/types';
 
 export interface TFile {
   url: string;
@@ -36,7 +37,7 @@ export interface TFile {
 export class TFile extends TObject {
 
   constructor(
-    attributes?: Record<string, any> | ((self: TObject) => Record<string, any>),
+    attributes?: Record<string, TValue> | ((self: TObject) => Record<string, TValue>),
   ) {
     super('_File', attributes);
   }

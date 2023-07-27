@@ -84,7 +84,7 @@ export const applyQueryMethods = <T extends string, E>(query: TQuery<T, E>, prot
       },
     },
     insert: {
-      value(attrs: Record<string, any>) {
+      value(attrs: Record<string, TValue>) {
         return proto[PVK].request({
           operation: 'insert',
           attributes: attrs,
@@ -101,7 +101,7 @@ export const applyQueryMethods = <T extends string, E>(query: TQuery<T, E>, prot
       },
     },
     findOneAndReplace: {
-      value(replacement: Record<string, any>) {
+      value(replacement: Record<string, TValue>) {
         return proto[PVK].request({
           operation: 'findOneAndReplace',
           replacement,
@@ -110,7 +110,7 @@ export const applyQueryMethods = <T extends string, E>(query: TQuery<T, E>, prot
       },
     },
     findOneAndUpsert: {
-      value(update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, any>) {
+      value(update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>) {
         return proto[PVK].request({
           operation: 'findOneAndUpsert',
           update,
