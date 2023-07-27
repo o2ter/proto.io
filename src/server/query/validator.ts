@@ -41,6 +41,7 @@ const validateCLPs = (
 
 const validateFields = <T extends Record<string, any>>(
   schema: TSchema,
+  type: keyof TSchema.ACLs,
   values: T,
   acls: string[],
 ) => {
@@ -49,8 +50,8 @@ const validateFields = <T extends Record<string, any>>(
   for (const key of _.keys(_values)) {
     if (!_.has(schema.fields, key)) throw Error( `Invalid key of values: ${key}`);
     if (
-      !_.includes(flps[key]?.write ?? ['*'], '*') &&
-      _.every(flps[key].write, x => !_.includes(acls, x))
+      !_.includes(flps[key]?.[type] ?? ['*'], '*') &&
+      _.every(flps[key][type], x => !_.includes(acls, x))
     ) throw new Error('No permission');
   }
   return _values;
@@ -74,27 +75,27 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
   ].filter(Boolean) as string[];
 
   const _validateCLPs = (...keys: (keyof TSchema.CLPs)[]) => validateCLPs(classLevelPermissions(), keys, acls());
-  const _validateFields = <T extends Record<string, any>>(values: T) => validateFields(schema(), values, acls());
+  const _validateFields = <T extends Record<string, any>>(values: T, type: keyof TSchema.ACLs,) => validateFields(schema(), type, values, acls());
 
   return {
     explain(
       query: FindOptions,
     ) {
-      if (!_.has(schema(), className)) throw new Error('No permission');
+      if (!_.has(proto.schema, className)) throw new Error('No permission');
       if (!options?.master && !_validateCLPs('count')) throw new Error('No permission');
       return proto.storage.explain(normalize(query));
     },
     count(
       query: FindOptions,
     ) {
-      if (!_.has(schema(), className)) throw new Error('No permission');
+      if (!_.has(proto.schema, className)) throw new Error('No permission');
       if (!options?.master && !_validateCLPs('count')) throw new Error('No permission');
       return proto.storage.count(normalize(query));
     },
     find(
       query: FindOptions,
     ) {
-      if (!_.has(schema(), className)) throw new Error('No permission');
+      if (!_.has(proto.schema, className)) throw new Error('No permission');
       if (!options?.master && !_validateCLPs('find')) throw new Error('No permission');
       return proto.storage.find(normalize(query));
     },
@@ -102,46 +103,46 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
       className: string,
       attrs: Record<string, TValue>,
     ) {
-      if (!_.has(schema(), className)) throw new Error('No permission');
+      if (!_.has(proto.schema, className)) throw new Error('No permission');
       if (!options?.master && !_validateCLPs('create')) throw new Error('No permission');
-      return proto.storage.insert(className, normalize(_validateFields(attrs)));
+      return proto.storage.insert(className, normalize(_validateFields(attrs, 'create')));
     },
     findOneAndUpdate(
       query: FindOneOptions,
       update: Record<string, [UpdateOp, TValue]>,
     ) {
-      if (!_.has(schema(), className)) throw new Error('No permission');
+      if (!_.has(proto.schema, className)) throw new Error('No permission');
       if (!options?.master && !_validateCLPs('update')) throw new Error('No permission');
-      return proto.storage.findOneAndUpdate(normalize(query), normalize(_validateFields(update)));
+      return proto.storage.findOneAndUpdate(normalize(query), normalize(_validateFields(update, 'write')));
     },
     findOneAndReplace(
       query: FindOneOptions,
       replacement: Record<string, TValue>,
     ) {
-      if (!_.has(schema(), className)) throw new Error('No permission');
+      if (!_.has(proto.schema, className)) throw new Error('No permission');
       if (!options?.master && !_validateCLPs('update')) throw new Error('No permission');
-      return proto.storage.findOneAndReplace(normalize(query), normalize(_validateFields(replacement)));
+      return proto.storage.findOneAndReplace(normalize(query), normalize(_validateFields(replacement, 'write')));
     },
     findOneAndUpsert(
       query: FindOneOptions,
       update: Record<string, [UpdateOp, TValue]>,
       setOnInsert: Record<string, TValue>,
     ) {
-      if (!_.has(schema(), className)) throw new Error('No permission');
+      if (!_.has(proto.schema, className)) throw new Error('No permission');
       if (!options?.master && !_validateCLPs('create', 'update')) throw new Error('No permission');
-      return proto.storage.findOneAndUpsert(normalize(query), normalize(_validateFields(update)), normalize(_validateFields(setOnInsert)));
+      return proto.storage.findOneAndUpsert(normalize(query), normalize(_validateFields(update, 'write')), normalize(_validateFields(setOnInsert, 'create')));
     },
     findOneAndDelete(
       query: FindOneOptions,
     ) {
-      if (!_.has(schema(), className)) throw new Error('No permission');
+      if (!_.has(proto.schema, className)) throw new Error('No permission');
       if (!options?.master && !_validateCLPs('delete')) throw new Error('No permission');
       return proto.storage.findOneAndDelete(normalize(query));
     },
     findAndDelete(
       query: FindOptions,
     ) {
-      if (!_.has(schema(), className)) throw new Error('No permission');
+      if (!_.has(proto.schema, className)) throw new Error('No permission');
       if (!options?.master && !_validateCLPs('delete')) throw new Error('No permission');
       return proto.storage.findAndDelete(normalize(query));
     },
