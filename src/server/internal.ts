@@ -109,6 +109,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
   async createFile(object: TFile, options?: ExtraOptions) {
 
     const data = object[PVK].extra.data as FileData | { _id: string; size: number; };
+    if (_.isNil(data)) throw Error('Invalid file object');
 
     let file: { _id: string; size: number; } | undefined;
     let content: string | undefined;
