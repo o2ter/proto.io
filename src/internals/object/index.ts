@@ -128,11 +128,6 @@ export class TObject {
     this[PVK].mutated[key] = [UpdateOp.set, value ?? null];
   }
 
-  unset(key: string) {
-    if (TObject.defaultReadonlyKeys.includes(key)) return;
-    this[PVK].mutated[key] = [UpdateOp.set, null];
-  }
-
   get isDirty(): boolean {
     return !_.isEmpty(this[PVK].mutated);
   }
