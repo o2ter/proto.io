@@ -39,6 +39,24 @@ const validateCLPs = (
   return true;
 }
 
+const validateFields = <T extends Record<string, any>>(
+  schema: TSchema,
+  values: T,
+  acls: string[],
+) => {
+  const _values = { ...values };
+  const flps = schema.fieldLevelPermissions ?? {};
+  for (const key of _.keys(_values)) {
+    if (!(key in schema.fields)) throw Error('Invalid key of attributes');
+    if (
+      !_.isNil(flps[key]?.write) &&
+      !_.includes(flps[key].write, '*') &&
+      _.every(flps[key].write, x => !_.includes(acls, x))
+    ) throw new Error('No permission');
+  }
+  return _values;
+}
+
 const normalize = <T>(x: T): T => {
   if (_.isString(x)) return x.normalize('NFD') as T;
   if (_.isArray(x)) return _.map(x, x => normalize(x)) as T;
@@ -50,7 +68,6 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
 
   const schema = () => proto.schema[className] ?? {};
   const classLevelPermissions = () => schema().classLevelPermissions ?? {};
-  const fieldLevelPermissions = () => schema().fieldLevelPermissions ?? {};
 
   const acls = () => [
     ..._.map(proto.roles, x => `role:${x}`),
@@ -58,6 +75,7 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
   ].filter(Boolean) as string[];
 
   const _validateCLPs = (...keys: (keyof TSchema.CLPs)[]) => validateCLPs(classLevelPermissions(), keys, acls());
+  const _validateFields = <T extends Record<string, any>>(values: T) => validateFields(schema(), values, acls());
 
   return {
     explain(
@@ -83,21 +101,21 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
       attrs: Record<string, TValue>,
     ) {
       if (!options?.master && !_validateCLPs('create')) throw new Error('No permission');
-      return proto.storage.insert(className, normalize(attrs));
+      return proto.storage.insert(className, normalize(_validateFields(attrs)));
     },
     findOneAndUpdate(
       query: FindOneOptions,
       update: Record<string, [UpdateOp, TValue]>,
     ) {
       if (!options?.master && !_validateCLPs('update')) throw new Error('No permission');
-      return proto.storage.findOneAndUpdate(normalize(query), normalize(update));
+      return proto.storage.findOneAndUpdate(normalize(query), normalize(_validateFields(update)));
     },
     findOneAndReplace(
       query: FindOneOptions,
       replacement: Record<string, TValue>,
     ) {
       if (!options?.master && !_validateCLPs('update')) throw new Error('No permission');
-      return proto.storage.findOneAndReplace(normalize(query), normalize(replacement));
+      return proto.storage.findOneAndReplace(normalize(query), normalize(_validateFields(replacement)));
     },
     findOneAndUpsert(
       query: FindOneOptions,
@@ -105,7 +123,7 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
       setOnInsert: Record<string, TValue>,
     ) {
       if (!options?.master && !_validateCLPs('create', 'update')) throw new Error('No permission');
-      return proto.storage.findOneAndUpsert(normalize(query), normalize(update), normalize(setOnInsert));
+      return proto.storage.findOneAndUpsert(normalize(query), normalize(_validateFields(update)), normalize(_validateFields(setOnInsert)));
     },
     findOneAndDelete(
       query: FindOneOptions,
