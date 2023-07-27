@@ -29,7 +29,7 @@ import { ExtraOptions } from '../options';
 import { TSchema } from '../schema';
 import { TValue } from '../query/types';
 
-export enum UpdateOp {
+export const enum UpdateOp {
   set = 'set',
   increment = 'inc',
   multiply = 'mul',
