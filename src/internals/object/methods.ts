@@ -95,7 +95,7 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
       },
     },
     save: {
-      async value(options?: ExtraOptions) {
+      async value(options?: ExtraOptions & { cascadeSave?: boolean }) {
         const mutated = _.values(object[PVK].mutated);
         if (this.objectId) {
           const updated = await query(options).equalTo('_id', this.objectId).findOneAndUpdate(object[PVK].mutated);
@@ -110,8 +110,10 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
             object[PVK].mutated = {};
           }
         }
-        for (const [, value] of _.values(mutated)) {
-          if (value instanceof TObject && value.isDirty) await value.save(options);
+        if (options?.cascadeSave !== false) {
+          for (const [, value] of _.values(mutated)) {
+            if (value instanceof TObject && value.isDirty) await value.save(options);
+          }
         }
         return object;
       },

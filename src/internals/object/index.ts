@@ -45,7 +45,7 @@ export enum UpdateOp {
 export interface TObject {
   clone(): TObject;
   fetchWithInclude(keys: string[], options?: ExtraOptions): PromiseLike<this>;
-  save(options?: ExtraOptions): PromiseLike<this>;
+  save(options?: ExtraOptions & { cascadeSave?: boolean }): PromiseLike<this>;
   destory(options?: ExtraOptions): PromiseLike<this>;
 }
 
