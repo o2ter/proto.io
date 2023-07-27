@@ -96,6 +96,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
 
     const { serializeOpts, context, ...opts } = options ?? {};
     const { data } = object[PVK].extra;
+    if (_.isNil(data)) throw Error('Invalid file object');
 
     let buffer: FileData;
 
@@ -106,6 +107,8 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     } else {
       throw Error('Invalid file object');
     }
+
+    console.log(buffer)
 
     const res = await this.service.request({
       method: 'post',
