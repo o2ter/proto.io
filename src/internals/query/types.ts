@@ -42,7 +42,7 @@ type TQuerySelector = {
   $ne?: TValue;
   $nin?: TValue[];
   $not?: TQuerySelector | RegExp;
-  $type?: TValue | TValue[];
+  $type?: string | string[];
   $search?: string;
   $regex?: RegExp | string;
   $all?: TValue[];
