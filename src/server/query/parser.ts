@@ -1,5 +1,5 @@
 //
-//  options.ts
+//  parser.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -23,9 +23,8 @@
 //  THE SOFTWARE.
 //
 
-import { TSerializable } from './codec';
+import { TFilterQuery } from '../../internals';
 
-export type ExtraOptions = {
-  master?: boolean;
-  context?: TSerializable;
-};
+export const filterParser = (filter: TFilterQuery) => {
+
+}
