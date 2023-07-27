@@ -196,7 +196,8 @@ export const applyQueryMethods = <T extends string, E>(
           ),
           proto,
         );
-        if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, proto));
+        if (!result) throw Error('Unable to upsert document');
+        if (_.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, proto));
         return result;
       },
     },
