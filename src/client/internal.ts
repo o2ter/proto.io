@@ -108,8 +108,6 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
       throw Error('Invalid file object');
     }
 
-    console.log(buffer)
-
     const res = await this.service.request({
       method: 'post',
       baseURL: this.options.endpoint,
