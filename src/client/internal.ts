@@ -173,6 +173,10 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     });
 
     return iterableToStream(res.then(x => {
+      if (x.status >= 300) {
+        const error = JSON.parse(x.data);
+        throw new Error(error.message, { cause: error });
+      }
       if (Symbol.asyncIterator in x.data || x.data instanceof ReadableStream) {
         return streamToIterable(x.data);
       } else {
