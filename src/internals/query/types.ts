@@ -63,9 +63,7 @@ type TQuerySelector = {
 } & { [x in keyof typeof TComparisonSelector]?: TValue; } &
   { [x in keyof typeof TValueListSelector]?: TValue[]; };
 
-type TRootQuerySelector = {
-  $not?: TFilterQuery;
-} & { [x in keyof typeof TConditionalSelector]?: TFilterQuery[]; };
+type TRootQuerySelector = { [x in keyof typeof TConditionalSelector]?: TFilterQuery[]; };
 
 export type TFilterQuery = TRootQuerySelector | {
   [x: string]: TQuerySelector;
