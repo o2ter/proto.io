@@ -58,14 +58,16 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
 
   constructor(proto: Proto<Ext>, options: Required<ProtoOptions<Ext>>) {
     this.proto = proto;
-    this.options = options;
+    this.options = {
+      ...options,
+      schema: _.merge({}, defaultSchema, options.fileStorage.schema, options.schema),
+    };
     this.functions = {};
     this.triggers = {};
   }
 
   async prepare() {
-    const schema = _.merge({}, defaultSchema, this.options.fileStorage.schema, this.options.schema);
-    await this.options.storage.prepare(schema);
+    await this.options.storage.prepare(this.options.schema);
   }
 
   generateId() {
