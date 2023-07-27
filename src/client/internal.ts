@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { request } from './request';
+import Service from './request';
 import { RequestOptions } from './options';
 import { ProtoClient, ProtoOptions } from './index';
 import {
@@ -48,6 +48,8 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
   proto: ProtoClient<Ext>;
   options: ProtoOptions<Ext>;
 
+  service = new Service;
+
   constructor(proto: ProtoClient<Ext>, options: ProtoOptions<Ext>) {
     this.proto = proto;
     this.options = options;
@@ -55,16 +57,16 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
 
   async request(
     data?: TSerializable,
-    options?: RequestOptions & Parameters<typeof request>[0]
+    options?: Parameters<typeof this.service.request>[0]
   ) {
 
-    const { master, serializeOpts, ...opts } = options ?? {};
+    const { serializeOpts } = options ?? {};
 
-    const res = await request({
+    const res = await this.service.request({
       baseURL: this.options.endpoint,
       data: serialize(data ?? null, serializeOpts),
       responseType: 'text',
-      ...opts,
+      ...options,
     });
 
     if (res.status !== 200) {
@@ -92,7 +94,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
 
   async createFile(object: TFile, options?: RequestOptions) {
 
-    const { master, serializeOpts, ...opts } = options ?? {};
+    const { serializeOpts } = options ?? {};
     const { data } = object[PVK].extra;
 
     let buffer: FileData;
@@ -105,7 +107,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
       throw Error('Invalid file object');
     }
 
-    const res = await request({
+    const res = await this.service.request({
       method: 'post',
       baseURL: this.options.endpoint,
       url: 'files',
@@ -117,7 +119,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
-      ...opts
+      ...options,
     });
 
     if (res.status !== 200) {
@@ -155,11 +157,9 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     return object;
   }
 
-  fileData(object: TFile, options?: ExtraOptions | undefined) {
+  fileData(object: TFile, options?: RequestOptions | undefined) {
 
-    const { master, ...opts } = options ?? {};
-
-    const res = request({
+    const res = this.service.request({
       method: 'get',
       baseURL: this.options.endpoint,
       url: `files/${object.objectId}/${object.filename}`,
@@ -167,7 +167,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
-      ...opts
+      ...options,
     });
 
     return iterableToStream(res.then(x => {

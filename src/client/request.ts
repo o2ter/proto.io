@@ -26,23 +26,30 @@
 import _ from 'lodash';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { XSRF_COOKIE_NAME, XSRF_HEADER_NAME } from '../server/csrf/const';
+import { RequestOptions } from './options';
 
-const service = axios.create({ withCredentials: true });
+export default class {
 
-export const request = async <T = any, D = any>(config: AxiosRequestConfig<D>): Promise<AxiosResponse<T, D>> => {
+  service = axios.create({ withCredentials: true });
 
-  config = {
-    xsrfCookieName: XSRF_COOKIE_NAME,
-    xsrfHeaderName: XSRF_HEADER_NAME,
-    validateStatus: () => true,
-    ...config,
-  };
+  async request<T = any, D = any>(config: RequestOptions & AxiosRequestConfig<D>): Promise<AxiosResponse<T, D>> {
 
-  const res = await service.request(config);
+    const { master, abortSignal, serializeOpts, ...opts } = config ?? {};
 
-  if (res.status === 412) {
-    return await service.request(config);
+    config = {
+      xsrfCookieName: XSRF_COOKIE_NAME,
+      xsrfHeaderName: XSRF_HEADER_NAME,
+      validateStatus: () => true,
+      signal: abortSignal,
+      ...opts,
+    };
+  
+    const res = await this.service.request(config);
+  
+    if (res.status === 412) {
+      return await this.service.request(config);
+    }
+  
+    return res;
   }
-
-  return res;
-}
+};

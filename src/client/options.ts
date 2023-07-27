@@ -23,11 +23,10 @@
 //  THE SOFTWARE.
 //
 
-import { CancelToken } from 'axios';
 import { SerializeOptions } from '../internals';
 
 export type RequestOptions = {
   master?: boolean;
-  cancelToken?: CancelToken;
+  abortSignal?: AbortSignal;
   serializeOpts?: SerializeOptions;
 };
