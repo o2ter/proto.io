@@ -60,13 +60,13 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     options?: Parameters<typeof this.service.request>[0]
   ) {
 
-    const { serializeOpts } = options ?? {};
+    const { serializeOpts, context, ...opts } = options ?? {};
 
     const res = await this.service.request({
       baseURL: this.options.endpoint,
       data: serialize(data ?? null, serializeOpts),
       responseType: 'text',
-      ...options,
+      ...opts,
     });
 
     if (res.status !== 200) {
@@ -94,7 +94,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
 
   async createFile(object: TFile, options?: RequestOptions) {
 
-    const { serializeOpts } = options ?? {};
+    const { serializeOpts, context, ...opts } = options ?? {};
     const { data } = object[PVK].extra;
 
     let buffer: FileData;
@@ -119,7 +119,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
-      ...options,
+      ...opts,
     });
 
     if (res.status !== 200) {
@@ -159,6 +159,8 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
 
   fileData(object: TFile, options?: RequestOptions | undefined) {
 
+    const { serializeOpts, context, ...opts } = options ?? {};
+
     const res = this.service.request({
       method: 'get',
       baseURL: this.options.endpoint,
@@ -167,7 +169,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
-      ...options,
+      ...opts,
     });
 
     return iterableToStream(res.then(x => {

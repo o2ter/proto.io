@@ -23,10 +23,9 @@
 //  THE SOFTWARE.
 //
 
-import { SerializeOptions } from '../internals';
+import { ExtraOptions, SerializeOptions } from '../internals';
 
-export type RequestOptions = {
-  master?: boolean;
+export type RequestOptions = ExtraOptions & {
   abortSignal?: AbortSignal;
   serializeOpts?: SerializeOptions;
 };

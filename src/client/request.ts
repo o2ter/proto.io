@@ -34,7 +34,7 @@ export default class {
 
   async request<T = any, D = any>(config: RequestOptions & AxiosRequestConfig<D>): Promise<AxiosResponse<T, D>> {
 
-    const { master, abortSignal, serializeOpts, ...opts } = config ?? {};
+    const { master, abortSignal, serializeOpts, context, ...opts } = config ?? {};
 
     config = {
       xsrfCookieName: XSRF_COOKIE_NAME,
