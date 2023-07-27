@@ -46,6 +46,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
 
         const {
           operation = 'insert',
+          context,
           attributes,
           update,
           replacement,
@@ -56,7 +57,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
         const payload: Proto<E> = Object.setPrototypeOf({
           ..._.omit(req, 'body'),
         }, proto);
-        const query = payload.Query(name, { master: payload.isMaster });
+        const query = payload.Query(name, { master: payload.isMaster, context });
         query[PVK].options = options;
 
         switch (operation) {

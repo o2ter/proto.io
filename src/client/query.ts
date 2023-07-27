@@ -34,7 +34,13 @@ import {
   TValue,
 } from '../internals';
 
-export const applyQueryMethods = <T extends string, E>(query: TQuery<T, E>, proto: ProtoClient<E>, options?: RequestOptions) => {
+export const applyQueryMethods = <T extends string, E>(
+  query: TQuery<T, E>,
+  proto: ProtoClient<E>,
+  options?: RequestOptions,
+) => {
+
+  const { context, ...opts } = options ?? {};
 
   const queryOptions = (query: TQuery<T, E>) => ({
     className: query[PVK].className,
@@ -47,7 +53,7 @@ export const applyQueryMethods = <T extends string, E>(query: TQuery<T, E>, prot
     serializeOpts: {
       objAttrs: TObject.defaultReadonlyKeys,
     },
-    ...(options ?? {}),
+    ...opts,
   });
 
   const props: PropertyDescriptorMap & ThisType<TQuery<T, E>> = {
@@ -55,6 +61,7 @@ export const applyQueryMethods = <T extends string, E>(query: TQuery<T, E>, prot
       value() {
         return proto[PVK].request({
           operation: 'explain',
+          context: context ?? {},
           ...queryOptions(this),
         }, requestOpt(this));
       },
@@ -63,6 +70,7 @@ export const applyQueryMethods = <T extends string, E>(query: TQuery<T, E>, prot
       value() {
         return proto[PVK].request({
           operation: 'count',
+          context: context ?? {},
           ...queryOptions(this),
         }, requestOpt(this));
       },
@@ -71,6 +79,7 @@ export const applyQueryMethods = <T extends string, E>(query: TQuery<T, E>, prot
       value() {
         const request = () => proto[PVK].request({
           operation: 'find',
+          context: context ?? {},
           ...queryOptions(this),
         }, requestOpt(this)) as Promise<TObject[]>;
         return {
@@ -87,6 +96,7 @@ export const applyQueryMethods = <T extends string, E>(query: TQuery<T, E>, prot
       value(attrs: Record<string, TValue>) {
         return proto[PVK].request({
           operation: 'insert',
+          context: context ?? {},
           attributes: attrs,
         }, requestOpt(this));
       },
@@ -95,6 +105,7 @@ export const applyQueryMethods = <T extends string, E>(query: TQuery<T, E>, prot
       value(update: Record<string, [UpdateOp, TValue]>) {
         return proto[PVK].request({
           operation: 'findOneAndUpdate',
+          context: context ?? {},
           update,
           ...queryOptions(this),
         }, requestOpt(this));
@@ -104,6 +115,7 @@ export const applyQueryMethods = <T extends string, E>(query: TQuery<T, E>, prot
       value(replacement: Record<string, TValue>) {
         return proto[PVK].request({
           operation: 'findOneAndReplace',
+          context: context ?? {},
           replacement,
           ...queryOptions(this),
         }, requestOpt(this));
@@ -113,6 +125,7 @@ export const applyQueryMethods = <T extends string, E>(query: TQuery<T, E>, prot
       value(update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>) {
         return proto[PVK].request({
           operation: 'findOneAndUpsert',
+          context: context ?? {},
           update,
           setOnInsert,
           ...queryOptions(this),
@@ -123,6 +136,7 @@ export const applyQueryMethods = <T extends string, E>(query: TQuery<T, E>, prot
       value() {
         return proto[PVK].request({
           operation: 'findOneAndDelete',
+          context: context ?? {},
           ...queryOptions(this),
         }, requestOpt(this));
       },
@@ -131,6 +145,7 @@ export const applyQueryMethods = <T extends string, E>(query: TQuery<T, E>, prot
       value() {
         return proto[PVK].request({
           operation: 'findAndDelete',
+          context: context ?? {},
           ...queryOptions(this),
         }, requestOpt(this));
       },
