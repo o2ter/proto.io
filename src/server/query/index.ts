@@ -94,7 +94,8 @@ export const applyQueryMethods = <T extends string, E>(
           await storage(this).insert(this.className, _.fromPairs(object.keys().map(k => [k, object.get(k)]))),
           proto,
         );
-        if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, proto));
+        if (!result) throw Error('Unable to insert document');
+        if (_.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, proto));
         return result;
       },
     },

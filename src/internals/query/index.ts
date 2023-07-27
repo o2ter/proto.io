@@ -44,7 +44,7 @@ export interface TQuery<T extends string, Ext> {
   explain(): PromiseLike<any>;
   count(): PromiseLike<number>;
   find(): PromiseLike<TObjectType<T, Ext>[]> & AsyncIterable<TObjectType<T, Ext>>;
-  insert(attrs: Record<string, TValue>): PromiseLike<TObjectType<T, Ext> | undefined>;
+  insert(attrs: Record<string, TValue>): PromiseLike<TObjectType<T, Ext>>;
   findOneAndUpdate(update: Record<string, [UpdateOp, TValue]>): PromiseLike<TObjectType<T, Ext> | undefined>;
   findOneAndReplace(replacement: Record<string, TValue>): PromiseLike<TObjectType<T, Ext> | undefined>;
   findOneAndUpsert(update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>): PromiseLike<TObjectType<T, Ext> | undefined>;

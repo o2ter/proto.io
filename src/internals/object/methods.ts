@@ -87,9 +87,8 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
     fetchWithInclude: {
       async value(keys: string[], options?: ExtraOptions) {
         const fetched = await query(options).equalTo('_id', this.objectId).includes(...keys).first();
-        if (fetched) {
-          object[PVK].attributes = fetched.attributes;
-        }
+        if (!fetched) throw Error('Unable to fetch document');
+        object[PVK].attributes = fetched.attributes;
         return object;
       },
     },
@@ -98,16 +97,13 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
         const mutated = _.values(object[PVK].mutated);
         if (this.objectId) {
           const updated = await query(options).equalTo('_id', this.objectId).findOneAndUpdate(object[PVK].mutated);
-          if (updated) {
-            object[PVK].attributes = updated.attributes;
-            object[PVK].mutated = {};
-          }
+          if (!updated) throw Error('Unable to save document');
+          object[PVK].attributes = updated.attributes;
+          object[PVK].mutated = {};
         } else {
           const created = await query(options).insert(_.fromPairs(this.keys().map(k => [k, this.get(k)])));
-          if (created) {
-            object[PVK].attributes = created.attributes;
-            object[PVK].mutated = {};
-          }
+          object[PVK].attributes = created.attributes;
+          object[PVK].mutated = {};
         }
         if (options?.cascadeSave !== false) {
           for (const [, value] of _.values(mutated)) {
@@ -120,10 +116,9 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
     destory: {
       async value(options?: ExtraOptions) {
         const deleted = await query(options).equalTo('_id', this.objectId).findOneAndDelete();
-        if (deleted) {
-          object[PVK].attributes = deleted.attributes;
-          object[PVK].mutated = {};
-        }
+        if (!deleted) throw Error('Unable to destory document');
+        object[PVK].attributes = deleted.attributes;
+        object[PVK].mutated = {};
         return object;
       },
     },
