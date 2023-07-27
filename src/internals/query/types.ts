@@ -65,7 +65,7 @@ type TQuerySelector = {
 
 type TRootQuerySelector = { [x in keyof typeof TConditionalSelector]?: TFilterQuery[]; };
 
-export type TFilterQuery = TRootQuerySelector | {
+export type TFilterQuery = TRootQuerySelector & {
   [x: string]: TQuerySelector;
 };
 
