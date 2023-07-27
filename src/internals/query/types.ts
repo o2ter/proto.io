@@ -50,7 +50,7 @@ export const enum TValueListSelector {
 export const enum TConditionalSelector {
   $and = '$and',
   $nor = '$nor',
-  $aorll = '$or',
+  $or = '$or',
 };
 
 type TQuerySelector = {
