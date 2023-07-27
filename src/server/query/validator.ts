@@ -47,7 +47,7 @@ const validateFields = <T extends Record<string, any>>(
   const _values = { ...values };
   const flps = schema.fieldLevelPermissions ?? {};
   for (const key of _.keys(_values)) {
-    if (!(key in schema.fields)) throw Error('Invalid key of attributes');
+    if (!_.has(schema.fields, key)) throw Error( `Invalid key of values: ${key}`);
     if (
       !_.includes(flps[key]?.write ?? ['*'], '*') &&
       _.every(flps[key].write, x => !_.includes(acls, x))
