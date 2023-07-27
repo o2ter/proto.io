@@ -90,7 +90,7 @@ export class DatabaseFileStorage implements TFileStorage {
     for await (const data of streamChunk(file, this.chunkSize)) {
 
       const chunkSize = data.byteLength;
-      const compressed: Buffer = await new Promise((resolve, rejected) => deflate(data, (err, buffer) => {
+      const compressed = await new Promise<Buffer>((resolve, rejected) => deflate(data, (err, buffer) => {
         if (err) {
           rejected(err);
         } else {
@@ -137,15 +137,22 @@ export class DatabaseFileStorage implements TFileStorage {
     const size = _.isString(buffer) ? buffer.length : buffer.byteLength;
 
     const maxUploadSize = _.isFunction(proto[PVK].options.maxUploadSize) ? await proto[PVK].options.maxUploadSize(proto) : proto[PVK].options.maxUploadSize;
-
     if (size > maxUploadSize) throw Error('Payload too large');
+
+    const compressed = await new Promise<Buffer>((resolve, rejected) => deflate(buffer as any, (err, buffer) => {
+      if (err) {
+        rejected(err);
+      } else {
+        resolve(buffer);
+      }
+    }));
 
     const created = await proto.Query('_FileChunk', { master: true }).insert({
       token,
       start: 0,
       end: size,
       size,
-      base64: bufferToBase64(buffer),
+      base64: bufferToBase64(compressed),
     });
     if (!created) throw Error('Unable to save file');
 
@@ -175,7 +182,7 @@ export class DatabaseFileStorage implements TFileStorage {
       if (!_.isNumber(startBytes) || !_.isNumber(endBytes) || !_.isString(base64)) throw Error('Corrupted data');
 
       const data = base64ToBuffer(base64);
-      const uncompressed: Buffer = await new Promise((resolve, rejected) => unzip(data, (err, buffer) => {
+      const uncompressed = await new Promise<Buffer>((resolve, rejected) => unzip(data, (err, buffer) => {
         if (err) {
           rejected(err);
         } else {
