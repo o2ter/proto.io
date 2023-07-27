@@ -49,13 +49,15 @@ const normalize = <T>(x: T): T => {
 export const queryValidator = <E>(proto: Proto<E>, className: string, options?: ExtraOptions) => {
 
   const schema = proto.schema[className] ?? {};
+  const classLevelPermissions = schema.classLevelPermissions ?? {};
+  const fieldLevelPermissions = schema.fieldLevelPermissions ?? {};
 
   const acls = () => [
     ..._.map(proto.roles, x => `role:${x}`),
     proto.user?.objectId,
   ].filter(Boolean) as string[];
 
-  const _validateCLPs = (...keys: (keyof TSchema.CLPs)[]) => validateCLPs(schema.classLevelPermissions ?? {}, keys, acls());
+  const _validateCLPs = (...keys: (keyof TSchema.CLPs)[]) => validateCLPs(classLevelPermissions, keys, acls());
 
   return {
     explain(
