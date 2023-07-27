@@ -58,19 +58,18 @@ export const decodeFormStream = (
 
   const formData = busboy(req);
   const data: Record<string, any> = {};
+  const files: Promise<void>[] = [];
 
   formData.on('field', (name, val) => { data[name] = val; });
   formData.on('file', async (name, file, info) => {
-    try {
+    files.push((async () => {
       data[name] = await onFile(file, info);
       if (!file.readableEnded) throw Error('Incomplete read');
-    } catch (e) {
-      formData.emit('error', e);
-    }
+    })());
   });
 
   const result = new Promise<Record<string, any>>((resolve, reject) => {
-    formData.on('close', () => { resolve(data); });
+    formData.on('close', () => { resolve(Promise.all(files).then(() => data)); });
     formData.on('error', (error) => { reject(error); });
   });
 
