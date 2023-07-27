@@ -61,7 +61,7 @@ export const decodeFormStream = (
   const files: Promise<void>[] = [];
 
   formData.on('field', (name, val) => { data[name] = val; });
-  formData.on('file', async (name, file, info) => {
+  formData.on('file', (name, file, info) => {
     files.push((async () => {
       data[name] = await onFile(file, info);
       if (!file.readableEnded) throw Error('Incomplete read');
