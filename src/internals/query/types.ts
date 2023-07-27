@@ -48,7 +48,7 @@ export const enum TValueListSelector {
 };
 
 type TQuerySelector = {
-  $not?: TQuerySelector | RegExp;
+  $not?: TQuerySelector;
   $type?: string | string[];
   $search?: string;
   $regex?: RegExp | string;
