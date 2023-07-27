@@ -25,6 +25,6 @@
 
 import { TFilterQuery } from '../../internals';
 
-export const filterParser = (filter: TFilterQuery) => {
+export const filterParser = (filter: TFilterQuery[]) => {
 
 }
