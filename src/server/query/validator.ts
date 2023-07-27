@@ -75,7 +75,7 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
   ].filter(Boolean) as string[];
 
   const _validateCLPs = (...keys: (keyof TSchema.CLPs)[]) => validateCLPs(classLevelPermissions(), keys, acls());
-  const _validateFields = <T extends Record<string, any>>(values: T, type: keyof TSchema.ACLs,) => validateFields(schema(), type, values, acls());
+  const _validateFields = <T extends Record<string, any>>(values: T, type: keyof TSchema.ACLs) => validateFields(schema(), type, values, acls());
 
   return {
     explain(
