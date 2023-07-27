@@ -32,7 +32,6 @@ const scheduleOp = {
       await storage.findAndDelete({
         className,
         filter: { _expired_at: { $lt: new Date() } },
-        options: { master: true, acls: [] },
       });
     }
   }
