@@ -81,7 +81,7 @@ export const applyQueryMethods = <T extends string, E>(
         const beforeSave = proto[PVK].triggers?.beforeSave?.[this.className];
         const afterSave = proto[PVK].triggers?.afterSave?.[this.className];
 
-        const context = {};
+        const context = options?.context ?? {};
 
         const object = proto.Object(this.className);
         for (const [key, value] of _.toPairs(_.omit(attrs, ...TObject.defaultReadonlyKeys))) {
@@ -103,7 +103,7 @@ export const applyQueryMethods = <T extends string, E>(
         const beforeSave = proto[PVK].triggers?.beforeSave?.[this.className];
         const afterSave = proto[PVK].triggers?.afterSave?.[this.className];
 
-        const context = {};
+        const context = options?.context ?? {};
 
         if (_.isFunction(beforeSave)) {
 
@@ -129,7 +129,7 @@ export const applyQueryMethods = <T extends string, E>(
         const beforeSave = proto[PVK].triggers?.beforeSave?.[this.className];
         const afterSave = proto[PVK].triggers?.afterSave?.[this.className];
 
-        const context = {};
+        const context = options?.context ?? {};
 
         if (_.isFunction(beforeSave)) {
 
@@ -158,7 +158,7 @@ export const applyQueryMethods = <T extends string, E>(
         const beforeSave = proto[PVK].triggers?.beforeSave?.[this.className];
         const afterSave = proto[PVK].triggers?.afterSave?.[this.className];
 
-        const context = {};
+        const context = options?.context ?? {};
 
         if (_.isFunction(beforeSave)) {
 
@@ -204,7 +204,7 @@ export const applyQueryMethods = <T extends string, E>(
         const beforeDelete = proto[PVK].triggers?.beforeDelete?.[this.className];
         const afterDelete = proto[PVK].triggers?.afterDelete?.[this.className];
 
-        const context = {};
+        const context = options?.context ?? {};
         let result: TObject | undefined;
 
         if (_.isFunction(beforeDelete)) {
@@ -238,7 +238,7 @@ export const applyQueryMethods = <T extends string, E>(
         const beforeDelete = proto[PVK].triggers?.beforeDelete?.[this.className];
         const afterDelete = proto[PVK].triggers?.afterDelete?.[this.className];
 
-        const context = {};
+        const context = options?.context ?? {};
 
         if (_.isFunction(beforeDelete) || _.isFunction(afterDelete)) {
 

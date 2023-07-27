@@ -23,6 +23,9 @@
 //  THE SOFTWARE.
 //
 
+import { TSerializable } from "./codec";
+
 export type ExtraOptions = {
   master?: boolean;
+  context?: TSerializable;
 };

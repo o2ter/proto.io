@@ -47,7 +47,7 @@ import { TStorage } from './storage';
 
 type Callback<T, R, E> = (request: Proto<E> & T) => R | PromiseLike<R>;
 export type ProtoFunction<E> = Callback<{ data: TSerializable; }, TSerializable, E>;
-export type ProtoTrigger<T, E> = Callback<{ object: TObjectType<T, E>; context: object; }, void, E>;
+export type ProtoTrigger<T, E> = Callback<{ object: TObjectType<T, E>; context: TSerializable; }, void, E>;
 
 type Validator = {
   requireUser?: boolean;
