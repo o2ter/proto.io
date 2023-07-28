@@ -90,30 +90,49 @@ export class CoditionalSelector extends QuerySelector {
   }
 }
 
-export class FieldSelector extends QuerySelector {
+class FieldExpression extends QuerySelector {
 
   type: keyof TFieldQuerySelector;
-  field: string;
   expr: QuerySelector | RegExp | TValue;
 
-  constructor(type: keyof TFieldQuerySelector, field: string, expr: QuerySelector | RegExp | TValue) {
+  constructor(type: keyof TFieldQuerySelector, expr: QuerySelector | RegExp | TValue) {
     super();
     this.type = type;
+    this.expr = expr;
+  }
+
+  simplify(): FieldExpression {
+    return new FieldExpression(
+      this.type,
+      this.expr instanceof FieldExpression || this.expr instanceof QuerySelector ? this.expr.simplify() : this.expr,
+    );
+  }
+
+  encode(): any {
+    return {
+      [this.type]: this.expr instanceof FieldExpression || this.expr instanceof QuerySelector ? this.expr.encode() : this.expr,
+    };
+  }
+}
+
+export class FieldSelector extends QuerySelector {
+
+  field: string;
+  expr: FieldExpression;
+
+  constructor(field: string, expr: FieldExpression) {
+    super();
     this.field = field;
     this.expr = expr;
   }
 
   simplify() {
-    return new FieldSelector(
-      this.type,
-      this.field,
-      this.expr instanceof QuerySelector ? this.expr.simplify() : this.expr,
-    );
+    return new FieldSelector(this.field, this.expr.simplify());
   }
 
   encode(): TQuerySelector {
     return {
-      [this.field]: { [this.type]: this.expr instanceof QuerySelector ? this.expr.encode() : this.expr },
+      [this.field]: this.expr.encode(),
     };
   }
 }
