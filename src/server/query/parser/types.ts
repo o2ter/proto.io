@@ -24,7 +24,9 @@
 //
 
 import _ from 'lodash';
-import { TRootQuerySelector, TQuerySelector, TCoditionalKeys } from '../../../internals';
+import { TCoditionalQuerySelector, TQuerySelector, TCoditionalKeys } from '../../../internals';
+
+type SelectorInstance<T> = T extends TQuerySelector | TCoditionalQuerySelector ? QuerySelector : T;
 
 export interface QuerySelector {
 
@@ -45,9 +47,9 @@ export class FieldSelector<T extends keyof TQuerySelector> implements QuerySelec
 
   type: T;
   field: string;
-  expr: TQuerySelector[T];
+  expr: SelectorInstance<TQuerySelector[T]>;
 
-  constructor(type: T, field: string, expr: TQuerySelector[T]) {
+  constructor(type: T, field: string, expr: SelectorInstance<TQuerySelector[T]>) {
     this.type = type;
     this.field = field;
     this.expr = expr;

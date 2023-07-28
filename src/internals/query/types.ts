@@ -63,8 +63,8 @@ export type TQuerySelector = {
 } & { [x in keyof typeof TComparisonKeys]?: TValue; } &
   { [x in keyof typeof TValueListKeys]?: TValue[]; };
 
-export type TRootQuerySelector = { [x: string]: TQuerySelector; } &
-  { [x in keyof typeof TCoditionalKeys]?: TRootQuerySelector[]; };
+export type TCoditionalQuerySelector = { [x in keyof typeof TCoditionalKeys]?: TRootQuerySelector[]; };
+export type TRootQuerySelector = TCoditionalQuerySelector & { [x: string]: TQuerySelector; };
 
 type CommonFindOptions = { className: string; };
 export type ExplainOptions = CommonFindOptions & Omit<TQuery.Options, 'returning' | 'skip' | 'limit'>;
