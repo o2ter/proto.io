@@ -69,19 +69,22 @@ const validateKey = (
   const _key = _.isArray(key) ? key.join('.') : key;
   if (!_key.match(info.validator)) throw Error(`Invalid key: ${_key}`);
 
-  const [keyRoot, ...path] = _.toPath(_key);
+  const [keyRoot, ...subpath] = _.toPath(_key);
   if (_.isEmpty(keyRoot) || !_.has(schema.fields, keyRoot)) throw Error(`Invalid path: ${_key}`);
 
   const perms = schema.fieldLevelPermissions?.[keyRoot]?.[type] ?? ['*'];
   if (!_.includes(perms, '*') && _.every(perms, x => !_.includes(info.acls, x))) return false;
-  if (_.isEmpty(path)) return true;
+  if (_.isEmpty(subpath)) return true;
 
   const dataType = schema.fields[keyRoot];
   if (_.isString(dataType)) return true;
   if (dataType.type !== 'pointer' && dataType.type !== 'relation') return true;
   if (_.isNil(info.schema[dataType.target])) return false;
 
-  return validateKey(path, type, info);
+  if (dataType.type === 'relation' && _.first(subpath) === '*') {
+    return validateKey(subpath.slice(1), type, info);
+  }
+  return validateKey(subpath, type, info);
 };
 
 const validateFields = <T extends Record<string, any>>(
