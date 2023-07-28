@@ -1,5 +1,5 @@
 //
-//  types.ts
+//  parser.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -24,12 +24,16 @@
 //
 
 import _ from 'lodash';
-import { TFieldQuerySelector, TCoditionalKeys, TValue } from '../../../internals';
+import { TFieldQuerySelector, TCoditionalKeys, TValue, TQuerySelector } from '../../internals';
 
 export class QuerySelector {
 
   simplify(): QuerySelector {
     return this;
+  }
+
+  encode(): TQuerySelector {
+    return {};
   }
 }
 
