@@ -58,7 +58,7 @@ const validateKey = (
   key: string | string[],
   type: keyof TSchema.ACLs,
   info: ValidateKeyInfo,
-) => {
+): boolean => {
 
   const schema = info.schema[info.className] ?? {};
   const perms = schema.fieldLevelPermissions ?? {};
@@ -70,7 +70,14 @@ const validateKey = (
   if (!_.includes(perms[keyRoot]?.[type] ?? ['*'], '*')) return false;
   if (_.every(perms[keyRoot][type], x => !_.includes(info.acls, x))) return false;
 
-  return true;
+  if (_.isEmpty(path)) return true;
+
+  const dataType = schema.fields[keyRoot];
+  if (_.isString(dataType)) return true;
+  if (dataType.type !== 'pointer' && dataType.type !== 'relation') return true;
+  if (_.isNil(info.schema[dataType.target])) return false;
+
+  return validateKey(path, type, info);
 };
 
 const validateFields = <T extends Record<string, any>>(
