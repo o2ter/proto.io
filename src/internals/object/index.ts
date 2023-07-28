@@ -27,7 +27,7 @@ import _ from 'lodash';
 import { PVK } from '../private';
 import { ExtraOptions } from '../options';
 import { TSchema } from '../schema';
-import { TValue } from '../query/types';
+import { TValue, cloneValue } from '../query/value';
 
 export const enum UpdateOp {
   set = 'set',
@@ -65,9 +65,10 @@ export class TObject {
     className: string,
     attributes?: Record<string, TValue> | ((self: TObject) => Record<string, TValue>),
   ) {
+    const _attributes = _.isFunction(attributes) ? attributes(this) : attributes ?? {};
     this[PVK] = {
       className,
-      attributes: _.isFunction(attributes) ? attributes(this) : attributes ?? {},
+      attributes: _.mapValues(_attributes, v => cloneValue(v)),
       mutated: {},
       extra: {},
     }
@@ -78,7 +79,7 @@ export class TObject {
   }
 
   get attributes(): Record<string, TValue> {
-    return this[PVK].attributes;
+    return _.mapValues(this[PVK].attributes, v => cloneValue(v));
   }
 
   get objectId(): string | undefined {
@@ -114,13 +115,13 @@ export class TObject {
   }
 
   keys(): string[] {
-    return _.uniq([..._.keys(this.attributes), ..._.keys(this[PVK].mutated)]);
+    return _.uniq([..._.keys(this[PVK].attributes), ..._.keys(this[PVK].mutated)]);
   }
 
   get(key: string) {
-    if (_.isNil(this[PVK].mutated[key])) return this.attributes[key];
+    if (_.isNil(this[PVK].mutated[key])) return cloneValue(this[PVK].attributes[key]);
     const [op, value] = this[PVK].mutated[key];
-    return op === UpdateOp.set ? value : this.attributes[key];
+    return op === UpdateOp.set ? value : cloneValue(this[PVK].attributes[key]);
   }
 
   set(key: string, value: TValue | undefined) {
@@ -188,11 +189,11 @@ export class TObject {
   }
 
   async fetch(options?: ExtraOptions) {
-    return this.fetchWithInclude(_.keys(this.attributes), options);
+    return this.fetchWithInclude(_.keys(this[PVK].attributes), options);
   }
 
   async fetchIfNeeded(keys: string[], options?: ExtraOptions) {
-    const current = _.keys(this.attributes);
+    const current = _.keys(this[PVK].attributes);
     if (_.every(keys, k => _.includes(current, k))) return this;
     return this.fetchWithInclude(_.uniq([...current, ...keys]), options);
   }

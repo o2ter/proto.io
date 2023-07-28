@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { TObject } from './index';
-import { TValue } from '../query/types';
+import { TValue } from '../query/value';
 
 export class TUser extends TObject {
 

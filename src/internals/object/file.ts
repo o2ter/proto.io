@@ -27,7 +27,7 @@ import _ from 'lodash';
 import { TObject } from './index';
 import { ExtraOptions } from '../options';
 import { FileStream } from '../buffer';
-import { TValue } from '../query/types';
+import { TValue } from '../query/value';
 
 export interface TFile {
   url: string;

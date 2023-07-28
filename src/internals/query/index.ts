@@ -24,7 +24,8 @@
 //
 
 import _ from 'lodash';
-import { TValue, TQuerySelector } from './types';
+import { TQuerySelector } from './types';
+import { TValue } from './value';
 import { UpdateOp } from '../object';
 import { PVK } from '../private';
 import { TObjectType } from '../object/types';

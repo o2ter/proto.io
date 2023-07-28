@@ -38,12 +38,12 @@ import {
 import { TObject } from './object';
 import { TObjectTypes } from './object/types';
 import { isObjKey } from './utils';
-import { TValue } from './query/types';
+import { TValue } from './query/value';
 
 export { UUID, Decimal };
-export type TNumber = number | Decimal | BigInt;
-export type TPrimitive = UUID | Date | string | TNumber | boolean | null;
-export type TDictionary = { [x: string]: TSerializable };
+type TNumber = number | Decimal | BigInt;
+type TPrimitive = UUID | Date | string | TNumber | boolean | null;
+type TDictionary = { [x: string]: TSerializable };
 export type TSerializable = TDictionary | TSerializable[] | TPrimitive | TObject;
 
 export type SerializeOptions = {
@@ -56,7 +56,7 @@ const encodeEJSON = (
   stack: any[],
   options: SerializeOptions,
 ): EJSON.SerializableTypes => {
-  if (_.isNumber(x) || _.isNil(x) || _.isBoolean(x) || _.isString(x) || _.isDate(x)) return x;
+  if (_.isNil(x) || _.isNumber(x) || _.isBoolean(x) || _.isString(x) || _.isDate(x)) return x;
   if (x instanceof UUID) return x;
   if (x instanceof BigInt) return Number(x);
   if (x instanceof Decimal) return Decimal128.fromString(x.toString());
@@ -84,7 +84,7 @@ const decodeEJSON = (
   x: EJSON.SerializableTypes,
   stack: any[],
 ): TSerializable => {
-  if (_.isNumber(x) || _.isNil(x) || _.isBoolean(x) || _.isString(x) || _.isDate(x)) return x;
+  if (_.isNil(x) || _.isNumber(x) || _.isBoolean(x) || _.isString(x) || _.isDate(x)) return x;
   if (x instanceof UUID) return x;
   if (x instanceof Double || x instanceof Int32) return x.valueOf();
   if (x instanceof Decimal128 || Long.isLong(x)) return new Decimal(x.toString());

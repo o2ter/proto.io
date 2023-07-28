@@ -1,5 +1,5 @@
 //
-//  role.ts
+//  value.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -24,18 +24,16 @@
 //
 
 import _ from 'lodash';
-import { TObject } from './index';
-import { TValue } from '../query/value';
+import { Decimal } from 'decimal.js';
+import { TObject } from '../object';
 
-export class TRole extends TObject {
+type TPrimitiveValue = boolean | number | Decimal | string | Date | null;
+type TDictionaryValue = { [x: string]: TValue; };
+export type TValue = TDictionaryValue | TValue[] | TPrimitiveValue | TObject;
 
-  constructor(
-    attributes?: Record<string, TValue> | ((self: TObject) => Record<string, TValue>),
-  ) {
-    super('_Role', attributes);
-  }
-
-  get name(): string {
-    return this.get('name') as string;
-  }
+export const cloneValue = (x: TValue): TValue => {
+  if (_.isNil(x) || _.isNumber(x) || _.isBoolean(x) || _.isString(x) || _.isDate(x)) return x;
+  if (x instanceof Decimal || x instanceof TObject) return x;
+  if (_.isArray(x)) return x.map(v => cloneValue(v));
+  return _.mapValues(x, v => cloneValue(v));
 }
