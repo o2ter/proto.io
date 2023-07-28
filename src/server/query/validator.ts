@@ -36,8 +36,8 @@ import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions } from '../st
 import { QuerySelector } from './parser';
 import { TSchema } from '../schema';
 
-export const PathValidator = /^[A-Za-z_]\w*((\.\*)?\.[A-Za-z_]\w*)*$/g;
-export const NameValidator = /^[A-Za-z_]\w*$/g;
+export const PathValidator = /^[a-z_]\w*((\.\*)?\.[a-z_]\w*)*$/gi;
+export const NameValidator = /^[a-z_]\w*$/gi;
 
 const validateCLPs = (
   clps: TSchema.CLPs,
@@ -65,10 +65,10 @@ const validateKey = (
 
   const schema = info.schema[info.className] ?? {};
   const _key = _.isArray(key) ? key.join('.') : key;
-  if (!PathValidator.test(_key)) throw Error(`Invalid key: ${_key}`);
+  if (!_key.match(PathValidator)) throw Error(`Invalid key: ${_key}`);
 
   const [keyRoot, ...path] = _.toPath(_key);
-  if (_.isEmpty(keyRoot) || !_.has(schema.fields, keyRoot)) throw Error(`Invalid key: ${_key}`);
+  if (_.isEmpty(keyRoot) || !_.has(schema.fields, keyRoot)) throw Error(`Invalid path: ${_key}`);
 
   const perms = schema.fieldLevelPermissions?.[keyRoot]?.[type] ?? ['*'];
   if (!_.includes(perms, '*') && _.every(perms, x => !_.includes(info.acls, x))) return false;
@@ -164,7 +164,7 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
       recursiveCheck(attrs);
       if (!_.has(proto.schema, className)) throw new Error('No permission');
       if (!options?.master && !_validateCLPs('create')) throw new Error('No permission');
-      if (!_.every(_.keys(attrs), k => NameValidator.test(k))) throw new Error('Invalid key');
+      if (!_.every(_.keys(attrs), k => k.match(NameValidator))) throw new Error(`Invalid key: ${_.find(_.keys(attrs), k => !k.match(NameValidator))}`);
       return proto.storage.insert(className, normalize(_validateFields(attrs, 'create')));
     },
     findOneAndUpdate(
@@ -175,7 +175,7 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
       recursiveCheck(update);
       if (!_.has(proto.schema, className)) throw new Error('No permission');
       if (!options?.master && !_validateCLPs('update')) throw new Error('No permission');
-      if (!_.every(_.keys(update), k => PathValidator.test(k))) throw new Error('Invalid key');
+      if (!_.every(_.keys(update), k => k.match(PathValidator))) throw new Error(`Invalid path: ${_.find(_.keys(update), k => !k.match(PathValidator))}`);
       return proto.storage.findOneAndUpdate(_decodeQuery(normalize(query)), normalize(_validateFields(update, 'update')));
     },
     findOneAndReplace(
@@ -186,7 +186,7 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
       recursiveCheck(replacement);
       if (!_.has(proto.schema, className)) throw new Error('No permission');
       if (!options?.master && !_validateCLPs('update')) throw new Error('No permission');
-      if (!_.every(_.keys(replacement), k => NameValidator.test(k))) throw new Error('Invalid key');
+      if (!_.every(_.keys(replacement), k => k.match(NameValidator))) throw new Error(`Invalid key: ${_.find(_.keys(replacement), k => !k.match(NameValidator))}`);
       return proto.storage.findOneAndReplace(_decodeQuery(normalize(query)), normalize(_validateFields(replacement, 'update')));
     },
     findOneAndUpsert(
@@ -199,8 +199,8 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
       recursiveCheck(setOnInsert);
       if (!_.has(proto.schema, className)) throw new Error('No permission');
       if (!options?.master && !_validateCLPs('create', 'update')) throw new Error('No permission');
-      if (!_.every(_.keys(update), k => PathValidator.test(k))) throw new Error('Invalid key');
-      if (!_.every(_.keys(setOnInsert), k => NameValidator.test(k))) throw new Error('Invalid key');
+      if (!_.every(_.keys(update), k => k.match(PathValidator))) throw new Error(`Invalid path: ${_.find(_.keys(update), k => !k.match(PathValidator))}`);
+      if (!_.every(_.keys(setOnInsert), k => k.match(NameValidator))) throw new Error(`Invalid key: ${_.find(_.keys(setOnInsert), k => !k.match(NameValidator))}`);
       return proto.storage.findOneAndUpsert(_decodeQuery(normalize(query)), normalize(_validateFields(update, 'update')), normalize(_validateFields(setOnInsert, 'create')));
     },
     findOneAndDelete(
