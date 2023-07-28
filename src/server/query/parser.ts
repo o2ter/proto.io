@@ -59,6 +59,10 @@ export class QuerySelector {
     return this;
   }
 
+  validate(fields: string[]) {
+    return true;
+  }
+
   encode(): TQuerySelector {
     return {};
   }
@@ -87,6 +91,10 @@ export class CoditionalSelector extends QuerySelector {
           this.exprs, x => x instanceof CoditionalSelector && x.type === '$or' ? _.map(x.exprs, y => y.simplify()) : [x.simplify()]
         ));
     }
+  }
+
+  validate(fields: string[]) {
+    return _.every(this.exprs, x => x.validate(fields));
   }
 
   encode(): TCoditionalQuerySelector {
@@ -176,6 +184,16 @@ class FieldExpression {
     return new FieldExpression(this.type, this.expr);
   }
 
+  validate(fields: string[]): boolean {
+    if (this.expr instanceof FieldExpression) {
+      return this.expr.validate(fields);
+    }
+    if (this.expr instanceof QuerySelector) {
+      return this.expr.validate(fields);
+    }
+    return true;
+  }
+
   encode(): any {
     if (this.expr instanceof FieldExpression) {
       return { [this.type]: this.expr.encode() };
@@ -200,6 +218,10 @@ export class FieldSelector extends QuerySelector {
 
   simplify() {
     return new FieldSelector(this.field, this.expr.simplify());
+  }
+
+  validate(fields: string[]) {
+    return fields.includes(this.field) && this.expr.validate(fields);
   }
 
   encode(): TQuerySelector {
