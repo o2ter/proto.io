@@ -37,7 +37,7 @@ export const defaultSchema: Record<string, TSchema> = {
       delete: [],
     },
     fieldLevelPermissions: {
-      password: { read: [], write: [] },
+      password: { read: [], update: [] },
     },
   },
   '_Role': {
@@ -73,10 +73,10 @@ export const defaultSchema: Record<string, TSchema> = {
       count: [],
     },
     fieldLevelPermissions: {
-      size: { write: [] },
-      type: { write: [] },
-      token: { write: [] },
-      content: { write: [] },
+      size: { update: [] },
+      type: { update: [] },
+      token: { update: [] },
+      content: { update: [] },
     },
   },
 }

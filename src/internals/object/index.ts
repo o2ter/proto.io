@@ -125,7 +125,7 @@ export class TObject {
   }
 
   set(key: string, value: TValue | undefined) {
-    if (TObject.defaultReadonlyKeys.includes(key)) return;
+    if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key)) as string)) return;
     this[PVK].mutated[key] = [UpdateOp.set, value ?? null];
   }
 
@@ -134,57 +134,57 @@ export class TObject {
   }
 
   increment(key: string, value: number) {
-    if (TObject.defaultReadonlyKeys.includes(key)) return;
+    if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key)) as string)) return;
     this[PVK].mutated[key] = [UpdateOp.increment, value];
   }
 
   decrement(key: string, value: number) {
-    if (TObject.defaultReadonlyKeys.includes(key)) return;
+    if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key)) as string)) return;
     this[PVK].mutated[key] = [UpdateOp.increment, -value];
   }
 
   multiply(key: string, value: number) {
-    if (TObject.defaultReadonlyKeys.includes(key)) return;
+    if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key)) as string)) return;
     this[PVK].mutated[key] = [UpdateOp.multiply, value];
   }
 
   divide(key: string, value: number) {
-    if (TObject.defaultReadonlyKeys.includes(key)) return;
+    if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key)) as string)) return;
     this[PVK].mutated[key] = [UpdateOp.multiply, 1 / value];
   }
 
   max(key: string, value: TValue) {
-    if (TObject.defaultReadonlyKeys.includes(key)) return;
+    if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key)) as string)) return;
     this[PVK].mutated[key] = [UpdateOp.max, value];
   }
 
   min(key: string, value: TValue) {
-    if (TObject.defaultReadonlyKeys.includes(key)) return;
+    if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key)) as string)) return;
     this[PVK].mutated[key] = [UpdateOp.min, value];
   }
 
   addToSet(key: string, values: TValue[]) {
-    if (TObject.defaultReadonlyKeys.includes(key)) return;
+    if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key)) as string)) return;
     this[PVK].mutated[key] = [UpdateOp.addToSet, values];
   }
 
   push(key: string, values: TValue[]) {
-    if (TObject.defaultReadonlyKeys.includes(key)) return;
+    if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key)) as string)) return;
     this[PVK].mutated[key] = [UpdateOp.push, values];
   }
 
   removeAll(key: string, values: TValue[]) {
-    if (TObject.defaultReadonlyKeys.includes(key)) return;
+    if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key)) as string)) return;
     this[PVK].mutated[key] = [UpdateOp.removeAll, values];
   }
 
   popFirst(key: string) {
-    if (TObject.defaultReadonlyKeys.includes(key)) return;
+    if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key)) as string)) return;
     this[PVK].mutated[key] = [UpdateOp.popFirst, null];
   }
 
   popLast(key: string) {
-    if (TObject.defaultReadonlyKeys.includes(key)) return;
+    if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key)) as string)) return;
     this[PVK].mutated[key] = [UpdateOp.popLast, null];
   }
 

@@ -84,7 +84,7 @@ export const applyQueryMethods = <T extends string, E>(
         const context = options?.context ?? {};
 
         const object = proto.Object(this.className);
-        for (const [key, value] of _.toPairs(_.omit(attrs, ...TObject.defaultReadonlyKeys))) {
+        for (const [key, value] of _.toPairs(attrs)) {
           object[PVK].mutated[key] = [UpdateOp.set, value as any];
         }
 
@@ -111,15 +111,14 @@ export const applyQueryMethods = <T extends string, E>(
           const object = applyObjectMethods(_.first(await asyncIterableToArray(storage(this).find({ ...queryOptions(this), limit: 1 }))), proto);
           if (!object) return undefined;
 
-          object[PVK].mutated = _.omit(update, ...TObject.defaultReadonlyKeys);
+          object[PVK].mutated = update;
           await beforeSave(Object.setPrototypeOf({ object, context }, proto));
 
           update = object[PVK].mutated;
         }
 
         const result = applyObjectMethods(
-          await storage(this).findOneAndUpdate(queryOptions(this), _.omit(update, ...TObject.defaultReadonlyKeys)),
-          proto,
+          await storage(this).findOneAndUpdate(queryOptions(this), update), proto
         );
         if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, proto));
         return result;
@@ -137,7 +136,7 @@ export const applyQueryMethods = <T extends string, E>(
           const object = applyObjectMethods(_.first(await asyncIterableToArray(storage(this).find({ ...queryOptions(this), limit: 1 }))), proto);
           if (!object) return undefined;
 
-          object[PVK].mutated = _.mapValues(_.omit(replacement, ...TObject.defaultReadonlyKeys), v => [UpdateOp.set, v]);
+          object[PVK].mutated = _.mapValues(replacement, v => [UpdateOp.set, v]) as any;
           await beforeSave(Object.setPrototypeOf({ object, context }, proto));
 
           replacement = {};
@@ -147,8 +146,7 @@ export const applyQueryMethods = <T extends string, E>(
         }
 
         const result = applyObjectMethods(
-          await storage(this).findOneAndReplace(queryOptions(this), _.omit(replacement, ...TObject.defaultReadonlyKeys)),
-          proto,
+          await storage(this).findOneAndReplace(queryOptions(this), replacement), proto
         );
         if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, proto));
         return result;
@@ -166,10 +164,10 @@ export const applyQueryMethods = <T extends string, E>(
           let object = applyObjectMethods(_.first(await asyncIterableToArray(storage(this).find({ ...queryOptions(this), limit: 1 }))), proto);
 
           if (object) {
-            object[PVK].mutated = _.omit(update, ...TObject.defaultReadonlyKeys);
+            object[PVK].mutated = update;
           } else {
             object = proto.Object(this.className);
-            for (const [key, value] of _.toPairs(_.omit(setOnInsert, ...TObject.defaultReadonlyKeys))) {
+            for (const [key, value] of _.toPairs(setOnInsert)) {
               object[PVK].mutated[key] = [UpdateOp.set, value as any];
             }
           }
@@ -189,12 +187,7 @@ export const applyQueryMethods = <T extends string, E>(
         }
 
         const result = applyObjectMethods(
-          await storage(this).findOneAndUpsert(
-            queryOptions(this),
-            _.omit(update, ...TObject.defaultReadonlyKeys),
-            _.omit(setOnInsert, ...TObject.defaultReadonlyKeys)
-          ),
-          proto,
+          await storage(this).findOneAndUpsert(queryOptions(this), update, setOnInsert), proto
         );
         if (!result) throw Error('Unable to upsert document');
         if (_.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, proto));

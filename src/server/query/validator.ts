@@ -47,8 +47,9 @@ const validateFields = <T extends Record<string, any>>(
 ) => {
   const _values = { ...values };
   const flps = schema.fieldLevelPermissions ?? {};
-  for (const key of _.keys(_values)) {
-    if (!_.has(schema.fields, key)) throw Error( `Invalid key of values: ${key}`);
+  for (const _key of _.keys(_values)) {
+    const key = _.first(_.toPath(_key)) as string;
+    if (!_.has(schema.fields, key)) throw Error( `Invalid key: ${key}`);
     if (
       !_.includes(flps[key]?.[type] ?? ['*'], '*') &&
       _.every(flps[key][type], x => !_.includes(acls, x))
@@ -113,7 +114,7 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
     ) {
       if (!_.has(proto.schema, className)) throw new Error('No permission');
       if (!options?.master && !_validateCLPs('update')) throw new Error('No permission');
-      return proto.storage.findOneAndUpdate(normalize(query), normalize(_validateFields(update, 'write')));
+      return proto.storage.findOneAndUpdate(normalize(query), normalize(_validateFields(update, 'update')));
     },
     findOneAndReplace(
       query: FindOneOptions,
@@ -121,7 +122,7 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
     ) {
       if (!_.has(proto.schema, className)) throw new Error('No permission');
       if (!options?.master && !_validateCLPs('update')) throw new Error('No permission');
-      return proto.storage.findOneAndReplace(normalize(query), normalize(_validateFields(replacement, 'write')));
+      return proto.storage.findOneAndReplace(normalize(query), normalize(_validateFields(replacement, 'update')));
     },
     findOneAndUpsert(
       query: FindOneOptions,
@@ -130,7 +131,7 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
     ) {
       if (!_.has(proto.schema, className)) throw new Error('No permission');
       if (!options?.master && !_validateCLPs('create', 'update')) throw new Error('No permission');
-      return proto.storage.findOneAndUpsert(normalize(query), normalize(_validateFields(update, 'write')), normalize(_validateFields(setOnInsert, 'create')));
+      return proto.storage.findOneAndUpsert(normalize(query), normalize(_validateFields(update, 'update')), normalize(_validateFields(setOnInsert, 'create')));
     },
     findOneAndDelete(
       query: FindOneOptions,
