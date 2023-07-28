@@ -30,7 +30,6 @@ import {
   TQuerySelector,
   TCoditionalKeys,
   TFieldQuerySelector,
-  TCoditionalQuerySelector,
   TComparisonKeys,
   TValueListKeys,
   allFieldQueryKeys,
@@ -59,7 +58,7 @@ export class QuerySelector {
     return this;
   }
 
-  validate(path: string[], callback: (key: string) => boolean) {
+  validate(callback: (key: string) => boolean) {
     return true;
   }
 
@@ -93,8 +92,8 @@ export class CoditionalSelector extends QuerySelector {
     }
   }
 
-  validate(path: string[], callback: (key: string) => boolean) {
-    return _.every(this.exprs, x => x.validate(path, callback));
+  validate(callback: (key: string) => boolean) {
+    return _.every(this.exprs, x => x.validate(callback));
   }
 
   encode() {
@@ -171,9 +170,9 @@ class FieldExpression {
     return new FieldExpression(this.type, this.expr);
   }
 
-  validate(path: string[], callback: (key: string) => boolean): boolean {
+  validate(callback: (key: string) => boolean): boolean {
     if (this.expr instanceof FieldExpression) {
-      return this.expr.validate(path, callback);
+      return this.expr.validate(callback);
     }
     return true;
   }
@@ -204,9 +203,8 @@ export class FieldSelector extends QuerySelector {
     return new FieldSelector(this.field, this.expr.simplify());
   }
 
-  validate(path: string[], callback: (key: string) => boolean) {
-    const _path = [...path, this.field];
-    return callback(_path.join('.')) && this.expr.validate(_path, callback);
+  validate(callback: (key: string) => boolean) {
+    return callback(this.field) && this.expr.validate(callback);
   }
 
   encode(): TQuerySelector {

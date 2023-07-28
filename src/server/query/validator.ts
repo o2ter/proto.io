@@ -104,7 +104,7 @@ const decodeQuery = <Q extends ExplainOptions | FindOptions | FindOneOptions>(
   info: ValidateKeyInfo,
 ): DecodedQuery<Q> => {
   const filter = QuerySelector.decode(query.filter ?? []).simplify();
-  if (!filter.validate([], key => validateKey(key, 'read', info))) throw new Error('No permission');
+  if (!filter.validate(key => validateKey(key, 'read', info))) throw new Error('No permission');
   return { ...query, filter }
 };
 
