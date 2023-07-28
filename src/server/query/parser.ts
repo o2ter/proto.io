@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { TFieldQuerySelector, TCoditionalKeys, TValue, TQuerySelector } from '../../internals';
+import { TFieldQuerySelector, TCoditionalKeys, TValue, TQuerySelector, TCoditionalQuerySelector } from '../../internals';
 
 export class QuerySelector {
 
@@ -63,6 +63,12 @@ export class CoditionalSelector extends QuerySelector {
         return new CoditionalSelector(this.type, _.map(this.exprs, x => x.simplify()));
     }
   }
+
+  encode(): TCoditionalQuerySelector {
+    return {
+      [this.type]: _.map(this.exprs, x => x.encode()),
+    };
+  }
 }
 
 export class FieldSelector extends QuerySelector {
@@ -84,5 +90,11 @@ export class FieldSelector extends QuerySelector {
       this.field,
       this.expr instanceof QuerySelector ? this.expr.simplify() : this.expr,
     );
+  }
+
+  encode(): TQuerySelector {
+    return {
+      [this.field]: { [this.type]: this.expr instanceof QuerySelector ? this.expr.encode() : this.expr },
+    };
   }
 }
