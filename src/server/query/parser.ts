@@ -59,7 +59,7 @@ export class QuerySelector {
     return this;
   }
 
-  validate(fields: string[]) {
+  validate(path: string[], callback: (key: string) => boolean) {
     return true;
   }
 
@@ -93,8 +93,8 @@ export class CoditionalSelector extends QuerySelector {
     }
   }
 
-  validate(fields: string[]) {
-    return _.every(this.exprs, x => x.validate(fields));
+  validate(path: string[], callback: (key: string) => boolean) {
+    return _.every(this.exprs, x => x.validate(path, callback));
   }
 
   encode() {
@@ -171,9 +171,9 @@ class FieldExpression {
     return new FieldExpression(this.type, this.expr);
   }
 
-  validate(fields: string[]): boolean {
+  validate(path: string[], callback: (key: string) => boolean): boolean {
     if (this.expr instanceof FieldExpression) {
-      return this.expr.validate(fields);
+      return this.expr.validate(path, callback);
     }
     return true;
   }
@@ -204,8 +204,9 @@ export class FieldSelector extends QuerySelector {
     return new FieldSelector(this.field, this.expr.simplify());
   }
 
-  validate(fields: string[]) {
-    return fields.includes(this.field) && this.expr.validate(fields);
+  validate(path: string[], callback: (key: string) => boolean) {
+    const _path = [...path, this.field];
+    return callback(_path.join('.')) && this.expr.validate(_path, callback);
   }
 
   encode(): TQuerySelector {
