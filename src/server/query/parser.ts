@@ -190,6 +190,8 @@ class FieldExpression {
 
 export class FieldSelector extends QuerySelector {
 
+  static validator = /^[A-Za-z_]\w*((\.\*)?\.[A-Za-z_]\w*)*$/g
+
   field: string;
   expr: FieldExpression;
 
@@ -204,7 +206,7 @@ export class FieldSelector extends QuerySelector {
   }
 
   validate(callback: (key: string) => boolean) {
-    return callback(this.field) && this.expr.validate(callback);
+    return FieldSelector.validator.test(this.field) && callback(this.field) && this.expr.validate(callback);
   }
 
   encode(): TQuerySelector {
