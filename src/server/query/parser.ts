@@ -90,13 +90,12 @@ export class CoditionalSelector extends QuerySelector {
   }
 }
 
-class FieldExpression extends QuerySelector {
+class FieldExpression {
 
   type: keyof TFieldQuerySelector;
-  expr: QuerySelector | RegExp | TValue;
+  expr: FieldExpression | QuerySelector | RegExp | TValue;
 
-  constructor(type: keyof TFieldQuerySelector, expr: QuerySelector | RegExp | TValue) {
-    super();
+  constructor(type: keyof TFieldQuerySelector, expr: FieldExpression | QuerySelector | RegExp | TValue) {
     this.type = type;
     this.expr = expr;
   }
