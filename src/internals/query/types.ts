@@ -23,6 +23,7 @@
 //  THE SOFTWARE.
 //
 
+import _ from 'lodash';
 import { TQuery } from './index';
 import { TValue } from './value';
 
@@ -46,6 +47,12 @@ export enum TCoditionalKeys {
   $nor = '$nor',
   $or = '$or',
 };
+
+export const allFieldQueryKeys = [
+  '$not', '$type', '$search', '$regex', '$size', '$elemMatch',
+  ..._.keys(TCoditionalKeys),
+  ..._.keys(TValueListKeys),
+];
 
 export type TFieldQuerySelector = {
   $not?: TFieldQuerySelector;

@@ -24,7 +24,13 @@
 //
 
 import _ from 'lodash';
-import { TFieldQuerySelector, TCoditionalKeys, TValue, TQuerySelector, TCoditionalQuerySelector } from '../../internals';
+import {
+  TValue,
+  TQuerySelector,
+  TCoditionalKeys,
+  TFieldQuerySelector,
+  TCoditionalQuerySelector,
+} from '../../internals';
 
 export class QuerySelector {
 
@@ -99,7 +105,7 @@ class FieldExpression {
   static decode(selector: TFieldQuerySelector): FieldExpression {
     for (const [type, expr] of _.toPairs(selector)) {
       if (type === '$elemMatch') {
-
+        
       }
     }
     throw Error('Implemented');
