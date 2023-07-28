@@ -48,6 +48,7 @@ const validateFields = <T extends Record<string, any>>(
   const _values = { ...values };
   const flps = schema.fieldLevelPermissions ?? {};
   for (const _key of _.keys(_values)) {
+    if (_.isEmpty(_key)) throw Error('Invalid key');
     const key = _.first(_.toPath(_key)) as string;
     if (!_.has(schema.fields, key)) throw Error( `Invalid key: ${key}`);
     if (
