@@ -28,12 +28,13 @@ import { TFieldQuerySelector, TCoditionalKeys, TValue, TQuerySelector, TCodition
 
 export class QuerySelector {
 
-  static decode(selectors: TQuerySelector[]): QuerySelector[] {
-    const result: QuerySelector[] = [];
+  static decode(selectors: TQuerySelector[]): QuerySelector {
+    const exprs: QuerySelector[] = [];
     for (const selector of selectors) {
       
     }
-    return result;
+    const merged = (new CoditionalSelector('$and', exprs)).simplify();
+    return merged.exprs.length === 1 ? merged.exprs[0] : merged;
   }
 
   simplify(): QuerySelector {
