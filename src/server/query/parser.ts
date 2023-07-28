@@ -31,7 +31,9 @@ export class QuerySelector {
   static decode(selectors: TQuerySelector[]): QuerySelector {
     const exprs: QuerySelector[] = [];
     for (const selector of selectors) {
-      
+      for (const [key, expr] of _.toPairs(selector)) {
+        
+      }
     }
     const merged = (new CoditionalSelector('$and', exprs)).simplify();
     return merged.exprs.length === 1 ? merged.exprs[0] : merged;
