@@ -28,13 +28,13 @@ import { Proto } from '../index';
 import {
   TValue,
   TObject,
-  TSchema,
   UpdateOp,
   ExtraOptions,
   isPrimitiveValue,
 } from '../../internals';
 import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions } from '../storage';
 import { QuerySelector } from './parser';
+import { TSchema } from '../schema';
 
 const validateCLPs = (
   clps: TSchema.CLPs,
@@ -61,15 +61,13 @@ const validateKey = (
 ): boolean => {
 
   const schema = info.schema[info.className] ?? {};
-  const perms = schema.fieldLevelPermissions ?? {};
 
   const [keyRoot, ...path] = _.toPath(_.isArray(key) ? key.join('.') : key);
   if (_.isEmpty(keyRoot)) throw Error('Invalid key');
   if (!_.has(schema.fields, keyRoot)) throw Error(`Invalid key: ${key}`);
 
-  if (!_.includes(perms[keyRoot]?.[type] ?? ['*'], '*')) return false;
-  if (_.every(perms[keyRoot][type], x => !_.includes(info.acls, x))) return false;
-
+  const perms = schema.fieldLevelPermissions?.[keyRoot]?.[type] ?? ['*'];
+  if (!_.includes(perms, '*') && _.every(perms, x => !_.includes(info.acls, x))) return false;
   if (_.isEmpty(path)) return true;
 
   const dataType = schema.fields[keyRoot];
