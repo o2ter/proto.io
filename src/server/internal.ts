@@ -41,8 +41,14 @@ import { generateId } from './crypto';
 import { TSchema } from './schema';
 
 const validateSchema = (schema: Record<string, TSchema>) => {
+  const validator = /^[A-Za-z_]\w*$/g;
   if (!_.isNil(schema['_Schema'])) throw Error('Reserved name of class');
-
+  for (const [className, _schema] of _.toPairs(schema)) {
+    if (!validator.test(className)) throw Error(`Invalid class name: ${className}`);
+    for (const key of _.keys(_schema.fields)) {
+      if (!validator.test(key)) throw Error(`Invalid field name: ${key}`);
+    }
+  }
 }
 
 export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
