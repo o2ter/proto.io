@@ -102,7 +102,7 @@ const validateFields = <T extends Record<string, any>>(
 const normalize = <T>(x: T): T => {
   if (_.isString(x)) return x.normalize('NFD') as T;
   if (_.isArray(x)) return _.map(x, x => normalize(x)) as T;
-  if (_.isPlainObject(x)) return _.mapValues(x as any, x => normalize(x));
+  if (_.isPlainObject(x)) return _.fromPairs(_.map(_.toPairs(x as object), ([k, v]) => [normalize(k), normalize(v)])) as T;
   return x;
 };
 
