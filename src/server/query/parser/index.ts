@@ -23,9 +23,9 @@
 //  THE SOFTWARE.
 //
 
-import { TFilterQuery } from '../../internals';
+import { TFilterQuery } from '../../../internals';
 
-const conditionParser = () => {
+const decompose = () => {
 
 }
 
