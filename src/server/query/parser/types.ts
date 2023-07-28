@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { TCoditionalQuerySelector, TQuerySelector, TCoditionalKeys, TValue } from '../../../internals';
+import { TQuerySelector, TCoditionalKeys, TValue } from '../../../internals';
 
 export class QuerySelector {
 
