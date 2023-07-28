@@ -38,6 +38,12 @@ import {
   base64ToBuffer,
 } from '../internals';
 import { generateId } from './crypto';
+import { TSchema } from './schema';
+
+const validateSchema = (schema: Record<string, TSchema>) => {
+  if (!_.isNil(schema['_Schema'])) throw Error('Reserved name of class');
+
+}
 
 export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
 
@@ -57,7 +63,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
   };
 
   constructor(proto: Proto<Ext>, options: Required<ProtoOptions<Ext>>) {
-    if (!_.isNil(options.schema['_Schema'])) throw Error('Reserved name of class');
+    validateSchema(options.schema);
     this.proto = proto;
     this.options = {
       ...options,
