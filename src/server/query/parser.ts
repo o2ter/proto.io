@@ -188,9 +188,6 @@ class FieldExpression {
   }
 }
 
-export const PathValidator = /^[A-Za-z_]\w*((\.\*)?\.[A-Za-z_]\w*)*$/g;
-export const NameValidator = /^[A-Za-z_]\w*$/g;
-
 export class FieldSelector extends QuerySelector {
 
   field: string;
@@ -207,7 +204,7 @@ export class FieldSelector extends QuerySelector {
   }
 
   validate(callback: (key: string) => boolean) {
-    return PathValidator.test(this.field) && callback(this.field) && this.expr.validate(callback);
+    return callback(this.field) && this.expr.validate(callback);
   }
 
   encode(): TQuerySelector {

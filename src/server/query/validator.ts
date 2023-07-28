@@ -33,8 +33,11 @@ import {
   isPrimitiveValue,
 } from '../../internals';
 import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions } from '../storage';
-import { NameValidator, PathValidator, QuerySelector } from './parser';
+import { QuerySelector } from './parser';
 import { TSchema } from '../schema';
+
+export const PathValidator = /^[A-Za-z_]\w*((\.\*)?\.[A-Za-z_]\w*)*$/g;
+export const NameValidator = /^[A-Za-z_]\w*$/g;
 
 const validateCLPs = (
   clps: TSchema.CLPs,
@@ -61,10 +64,11 @@ const validateKey = (
 ): boolean => {
 
   const schema = info.schema[info.className] ?? {};
+  const _key = _.isArray(key) ? key.join('.') : key;
+  if (!PathValidator.test(_key)) throw Error(`Invalid key: ${_key}`);
 
-  const [keyRoot, ...path] = _.toPath(_.isArray(key) ? key.join('.') : key);
-  if (_.isEmpty(keyRoot)) throw Error('Invalid key');
-  if (!_.has(schema.fields, keyRoot)) throw Error(`Invalid key: ${key}`);
+  const [keyRoot, ...path] = _.toPath(_key);
+  if (_.isEmpty(keyRoot) || !_.has(schema.fields, keyRoot)) throw Error(`Invalid key: ${_key}`);
 
   const perms = schema.fieldLevelPermissions?.[keyRoot]?.[type] ?? ['*'];
   if (!_.includes(perms, '*') && _.every(perms, x => !_.includes(info.acls, x))) return false;
@@ -216,4 +220,4 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
       return proto.storage.findAndDelete(_decodeQuery(normalize(query)));
     },
   };
-}
+};

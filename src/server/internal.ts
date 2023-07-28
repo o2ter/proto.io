@@ -39,7 +39,7 @@ import {
 } from '../internals';
 import { generateId } from './crypto';
 import { TSchema } from './schema';
-import { NameValidator } from './query/parser';
+import { NameValidator } from './query/validator';
 
 const validateSchema = (schema: Record<string, TSchema>) => {
 
