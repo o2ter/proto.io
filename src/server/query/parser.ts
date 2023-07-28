@@ -107,9 +107,9 @@ export class CoditionalSelector extends QuerySelector {
 class FieldExpression {
 
   type: keyof TFieldQuerySelector;
-  expr: FieldExpression | QuerySelector | RegExp | TValue;
+  expr: FieldExpression | RegExp | TValue;
 
-  constructor(type: keyof TFieldQuerySelector, expr: FieldExpression | QuerySelector | RegExp | TValue) {
+  constructor(type: keyof TFieldQuerySelector, expr: FieldExpression | RegExp | TValue) {
     this.type = type;
     this.expr = expr;
   }
@@ -157,16 +157,6 @@ class FieldExpression {
             } else {
               throw Error('Invalid expression');
             }
-          case '$elemMatch':
-            {
-              const _expr = expr ? { ...expr as any } : {};
-              const keys = _.keys(_expr);
-              if (_.every(keys, x => allFieldQueryKeys.includes(x))) {
-                return new FieldExpression(type, FieldExpression.decode(_expr));
-              } else {
-                return new FieldExpression(type, QuerySelector.decode(_expr));
-              }
-            }
           default: throw Error('Invalid expression');
         }
       }
@@ -178,18 +168,11 @@ class FieldExpression {
     if (this.expr instanceof FieldExpression) {
       return new FieldExpression(this.type, this.expr.simplify());
     }
-    if (this.expr instanceof QuerySelector) {
-      return new FieldExpression(this.type, this.expr.simplify());
-    }
     return new FieldExpression(this.type, this.expr);
   }
 
   validate(fields: string[]): boolean {
-    if (this.type === '$elemMatch') return true;
     if (this.expr instanceof FieldExpression) {
-      return this.expr.validate(fields);
-    }
-    if (this.expr instanceof QuerySelector) {
       return this.expr.validate(fields);
     }
     return true;
