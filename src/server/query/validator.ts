@@ -63,7 +63,7 @@ const validateKey = (
   const schema = info.schema[info.className] ?? {};
   const perms = schema.fieldLevelPermissions ?? {};
 
-  const [keyRoot, ...path] = _.toPath(key);
+  const [keyRoot, ...path] = _.isArray(key) ? key : _.toPath(key);
   if (_.isEmpty(keyRoot)) throw Error('Invalid key');
   if (!_.has(schema.fields, keyRoot)) throw Error(`Invalid key: ${key}`);
 
