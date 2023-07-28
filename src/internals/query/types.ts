@@ -59,12 +59,12 @@ export type TQuerySelector = {
   $search?: string;
   $regex?: RegExp | string;
   $size?: number;
-  $elemMatch?: TQuerySelector | TFilterQuery;
+  $elemMatch?: TQuerySelector | TRootQuerySelector;
 } & { [x in keyof typeof TComparisonKeys]?: TValue; } &
   { [x in keyof typeof TValueListKeys]?: TValue[]; };
 
-export type TFilterQuery = { [x: string]: TQuerySelector; } &
-  { [x in keyof typeof TCoditionalKeys]?: TFilterQuery[]; };
+export type TRootQuerySelector = { [x: string]: TQuerySelector; } &
+  { [x in keyof typeof TCoditionalKeys]?: TRootQuerySelector[]; };
 
 type CommonFindOptions = { className: string; };
 export type ExplainOptions = CommonFindOptions & Omit<TQuery.Options, 'returning' | 'skip' | 'limit'>;

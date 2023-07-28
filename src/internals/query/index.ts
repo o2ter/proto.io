@@ -24,14 +24,14 @@
 //
 
 import _ from 'lodash';
-import { TValue, TFilterQuery } from './types';
+import { TValue, TRootQuerySelector } from './types';
 import { UpdateOp } from '../object';
 import { PVK } from '../private';
 import { TObjectType } from '../object/types';
 
 export namespace TQuery {
   export interface Options {
-    filter?: TFilterQuery | TFilterQuery[];
+    filter?: TRootQuerySelector | TRootQuerySelector[];
     sort?: Record<string, 1 | -1>;
     includes?: string[];
     skip?: number;
@@ -74,7 +74,7 @@ export class TQuery<T extends string, Ext> {
     return new TQuery<T, Ext>(this.className, { ...this[PVK].options });
   }
 
-  filter(filter: TFilterQuery) {
+  filter(filter: TRootQuerySelector) {
     if (_.isNil(this[PVK].options.filter)) {
       this[PVK].options.filter = filter;
     } else if (_.isArray(this[PVK].options.filter)) {
@@ -113,7 +113,7 @@ export class TQuery<T extends string, Ext> {
     return this.filter({ [key]: { $search: value ?? null } });
   }
 
-  containsIn(key: string, value: TValue | undefined) {
+  containsIn(key: string, value: TValue[]) {
     return this.filter({ [key]: { $in: value ?? null } });
   }
 
@@ -121,7 +121,7 @@ export class TQuery<T extends string, Ext> {
     return this.filter({ [key]: { $all: value } });
   }
 
-  notContainsIn(key: string, value: TValue | undefined) {
+  notContainsIn(key: string, value: TValue[]) {
     return this.filter({ [key]: { $nin: value ?? null } });
   }
 

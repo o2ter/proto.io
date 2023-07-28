@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { TFilterQuery, TCoditionalKeys } from '../../../internals';
+import { TRootQuerySelector, TCoditionalKeys } from '../../../internals';
 
 export interface QuerySelector {
 
@@ -33,9 +33,9 @@ export interface QuerySelector {
 export class RootQuerySelector implements QuerySelector {
 
   type: keyof typeof TCoditionalKeys;
-  exprs: TFilterQuery[];
+  exprs: TRootQuerySelector[];
 
-  constructor(type: keyof typeof TCoditionalKeys, exprs: TFilterQuery[]) {
+  constructor(type: keyof typeof TCoditionalKeys, exprs: TRootQuerySelector[]) {
     this.type = type;
     this.exprs = exprs;
   }

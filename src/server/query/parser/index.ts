@@ -23,9 +23,9 @@
 //  THE SOFTWARE.
 //
 
-import { TFilterQuery } from '../../../internals';
+import { TRootQuerySelector } from '../../../internals';
 import { QuerySelector } from './types';
 
-export const decomposeFilter = (filter: TFilterQuery) => {
+export const decomposeFilter = (filter: TRootQuerySelector) => {
 
 }
