@@ -28,28 +28,30 @@ import { TCoditionalQuerySelector, TQuerySelector, TCoditionalKeys } from '../..
 
 type SelectorInstance<T> = T extends TQuerySelector | TCoditionalQuerySelector ? QuerySelector : T;
 
-export interface QuerySelector {
+export class QuerySelector {
 
 }
 
-export class CoditionalSelector implements QuerySelector {
+export class CoditionalSelector extends QuerySelector {
 
   type: keyof typeof TCoditionalKeys;
   exprs: QuerySelector[];
 
   constructor(type: keyof typeof TCoditionalKeys, exprs: QuerySelector[]) {
+    super();
     this.type = type;
     this.exprs = exprs;
   }
 }
 
-export class FieldSelector<T extends keyof TQuerySelector> implements QuerySelector {
+export class FieldSelector<T extends keyof TQuerySelector> extends QuerySelector {
 
   type: T;
   field: string;
   expr: SelectorInstance<TQuerySelector[T]>;
 
   constructor(type: T, field: string, expr: SelectorInstance<TQuerySelector[T]>) {
+    super();
     this.type = type;
     this.field = field;
     this.expr = expr;
