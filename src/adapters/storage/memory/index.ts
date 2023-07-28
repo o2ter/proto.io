@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { TSchema, storageSchedule, UpdateOp, TValue } from '../../../internals';
-import { ExplainOptions, FindOneOptions, FindOptions, TStorage } from '../../../server/storage';
+import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions, TStorage } from '../../../server/storage';
 
 export class MemoryStorage implements TStorage {
 
@@ -46,15 +46,15 @@ export class MemoryStorage implements TStorage {
     return Object.keys(this.schema);
   }
 
-  async explain(query: ExplainOptions) {
+  async explain(query: DecodedQuery<ExplainOptions>) {
     return 0;
   }
 
-  async count(query: FindOptions) {
+  async count(query: DecodedQuery<FindOptions>) {
     return 0;
   }
 
-  async* find(query: FindOptions) {
+  async* find(query: DecodedQuery<FindOptions>) {
     return [];
   }
 
@@ -62,23 +62,23 @@ export class MemoryStorage implements TStorage {
     return undefined;
   }
 
-  async findOneAndUpdate(query: FindOneOptions, update: Record<string, [UpdateOp, TValue]>) {
+  async findOneAndUpdate(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>) {
     return undefined;
   }
 
-  async findOneAndReplace(query: FindOneOptions, replacement: Record<string, TValue>) {
+  async findOneAndReplace(query: DecodedQuery<FindOneOptions>, replacement: Record<string, TValue>) {
     return undefined;
   }
 
-  async findOneAndUpsert(query: FindOneOptions, update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>) {
+  async findOneAndUpsert(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>) {
     return undefined;
   }
 
-  async findOneAndDelete(query: FindOneOptions) {
+  async findOneAndDelete(query: DecodedQuery<FindOneOptions>) {
     return undefined;
   }
 
-  async findAndDelete(query: FindOptions) {
+  async findAndDelete(query: DecodedQuery<FindOptions>) {
     return 0;
   }
 

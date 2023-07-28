@@ -185,6 +185,7 @@ class FieldExpression {
   }
 
   validate(fields: string[]): boolean {
+    if (this.type === '$elemMatch') return true;
     if (this.expr instanceof FieldExpression) {
       return this.expr.validate(fields);
     }

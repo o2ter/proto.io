@@ -31,11 +31,14 @@ import {
   TValue,
   TQuery,
 } from '../internals';
+import { QuerySelector } from './query/parser';
 
 type CommonFindOptions = { className: string; };
 export type ExplainOptions = CommonFindOptions & Omit<TQuery.Options, 'returning' | 'skip' | 'limit'>;
 export type FindOptions = CommonFindOptions & Omit<TQuery.Options, 'returning'>;
 export type FindOneOptions = CommonFindOptions & Omit<TQuery.Options, 'skip' | 'limit'>;
+
+export type DecodedQuery<T> = Omit<T, 'filter'> & { filter: QuerySelector; };
 
 export interface TStorage {
 
@@ -44,17 +47,17 @@ export interface TStorage {
 
   classes(): string[] | PromiseLike<string[]>;
 
-  explain(query: ExplainOptions): PromiseLike<any>;
+  explain(query: DecodedQuery<ExplainOptions>): PromiseLike<any>;
 
-  count(query: FindOptions): PromiseLike<number>;
-  find(query: FindOptions): AsyncIterable<TObject>;
+  count(query: DecodedQuery<FindOptions>): PromiseLike<number>;
+  find(query: DecodedQuery<FindOptions>): AsyncIterable<TObject>;
 
   insert(className: string, attrs: Record<string, TValue>): PromiseLike<TObject | undefined>;
 
-  findOneAndUpdate(query: FindOneOptions, update: Record<string, [UpdateOp, TValue]>): PromiseLike<TObject | undefined>;
-  findOneAndReplace(query: FindOneOptions, replacement: Record<string, TValue>): PromiseLike<TObject | undefined>;
-  findOneAndUpsert(query: FindOneOptions, update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>): PromiseLike<TObject | undefined>;
-  findOneAndDelete(query: FindOneOptions): PromiseLike<TObject | undefined>;
+  findOneAndUpdate(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>): PromiseLike<TObject | undefined>;
+  findOneAndReplace(query: DecodedQuery<FindOneOptions>, replacement: Record<string, TValue>): PromiseLike<TObject | undefined>;
+  findOneAndUpsert(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>): PromiseLike<TObject | undefined>;
+  findOneAndDelete(query: DecodedQuery<FindOneOptions>): PromiseLike<TObject | undefined>;
 
-  findAndDelete(query: FindOptions): PromiseLike<number>;
+  findAndDelete(query: DecodedQuery<FindOptions>): PromiseLike<number>;
 }
