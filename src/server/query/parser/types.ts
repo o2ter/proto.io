@@ -26,8 +26,6 @@
 import _ from 'lodash';
 import { TCoditionalQuerySelector, TQuerySelector, TCoditionalKeys, TValue } from '../../../internals';
 
-type SelectorInstance<T> = T extends TQuerySelector | TCoditionalQuerySelector ? QuerySelector : T;
-
 export class QuerySelector {
 
   simplify(): QuerySelector {
