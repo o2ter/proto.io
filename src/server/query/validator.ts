@@ -33,7 +33,7 @@ import {
   isPrimitiveValue,
 } from '../../internals';
 import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions } from '../storage';
-import { QuerySelector } from './parser';
+import { NameValidator, PathValidator, QuerySelector } from './parser';
 import { TSchema } from '../schema';
 
 const validateCLPs = (
@@ -160,6 +160,7 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
       recursiveCheck(attrs);
       if (!_.has(proto.schema, className)) throw new Error('No permission');
       if (!options?.master && !_validateCLPs('create')) throw new Error('No permission');
+      if (!_.every(_.keys(attrs), k => NameValidator.test(k))) throw new Error('Invalid key');
       return proto.storage.insert(className, normalize(_validateFields(attrs, 'create')));
     },
     findOneAndUpdate(
@@ -170,6 +171,7 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
       recursiveCheck(update);
       if (!_.has(proto.schema, className)) throw new Error('No permission');
       if (!options?.master && !_validateCLPs('update')) throw new Error('No permission');
+      if (!_.every(_.keys(update), k => PathValidator.test(k))) throw new Error('Invalid key');
       return proto.storage.findOneAndUpdate(_decodeQuery(normalize(query)), normalize(_validateFields(update, 'update')));
     },
     findOneAndReplace(
@@ -180,6 +182,7 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
       recursiveCheck(replacement);
       if (!_.has(proto.schema, className)) throw new Error('No permission');
       if (!options?.master && !_validateCLPs('update')) throw new Error('No permission');
+      if (!_.every(_.keys(replacement), k => NameValidator.test(k))) throw new Error('Invalid key');
       return proto.storage.findOneAndReplace(_decodeQuery(normalize(query)), normalize(_validateFields(replacement, 'update')));
     },
     findOneAndUpsert(
@@ -192,6 +195,8 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
       recursiveCheck(setOnInsert);
       if (!_.has(proto.schema, className)) throw new Error('No permission');
       if (!options?.master && !_validateCLPs('create', 'update')) throw new Error('No permission');
+      if (!_.every(_.keys(update), k => PathValidator.test(k))) throw new Error('Invalid key');
+      if (!_.every(_.keys(setOnInsert), k => NameValidator.test(k))) throw new Error('Invalid key');
       return proto.storage.findOneAndUpsert(_decodeQuery(normalize(query)), normalize(_validateFields(update, 'update')), normalize(_validateFields(setOnInsert, 'create')));
     },
     findOneAndDelete(

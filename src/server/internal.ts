@@ -39,16 +39,19 @@ import {
 } from '../internals';
 import { generateId } from './crypto';
 import { TSchema } from './schema';
+import { NameValidator } from './query/parser';
 
 const validateSchema = (schema: Record<string, TSchema>) => {
-  const validator = /^[A-Za-z_]\w*$/g;
+
   if (!_.isNil(schema['_Schema'])) throw Error('Reserved name of class');
+
   for (const [className, _schema] of _.toPairs(schema)) {
-    if (!validator.test(className)) throw Error(`Invalid class name: ${className}`);
+
+    if (!NameValidator.test(className)) throw Error(`Invalid class name: ${className}`);
 
     const fields = _.keys(_schema.fields);
     for (const key of fields) {
-      if (!validator.test(key)) throw Error(`Invalid field name: ${key}`);
+      if (!NameValidator.test(key)) throw Error(`Invalid field name: ${key}`);
     }
     for (const key of _.keys(_schema.fieldLevelPermissions)) {
       if (!fields.includes(key)) throw Error(`Invalid field permission: ${key}`);
@@ -237,10 +240,10 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
   fileData(object: TFile, options?: ExtraOptions) {
     const self = this;
     return Readable.from({
-      [Symbol.asyncIterator]: async function*() {
+      [Symbol.asyncIterator]: async function* () {
         object = await object.fetchIfNeeded(['token'], options);
         const chunks = self.options.fileStorage.fileData(self.proto, object.token);
-        for await(const chunk of chunks) yield chunk;
+        for await (const chunk of chunks) yield chunk;
       }
     });
   }
