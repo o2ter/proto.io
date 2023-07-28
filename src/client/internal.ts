@@ -57,7 +57,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
 
   async request(
     data?: TSerializable,
-    options?: Parameters<typeof this.service.request>[0]
+    options?: Parameters<Service['request']>[0]
   ) {
 
     const { serializeOpts, context, ...opts } = options ?? {};
