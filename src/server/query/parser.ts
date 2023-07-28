@@ -33,9 +33,13 @@ export class QuerySelector {
     for (const selector of _.castArray(selectors)) {
       for (const [key, query] of _.toPairs(selector)) {
         if (key in TCoditionalKeys) {
+          if (!_.isArray(query))
           exprs.push(new CoditionalSelector(key as any, _.map(query as TQuerySelector[], x => QuerySelector.decode(x))));
         } else {
           for (const [type, expr] of _.toPairs(query as TFieldQuerySelector)) {
+            if (type === '$elemMatch') {
+
+            }
           }
         }
       }
