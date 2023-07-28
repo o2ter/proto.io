@@ -24,3 +24,15 @@
 //
 
 import _ from 'lodash';
+import { TFilterQuery, TCoditionalKeys } from '../../../internals';
+
+export class RootQuerySelector {
+
+  type: keyof typeof TCoditionalKeys;
+  exprs: TFilterQuery[];
+
+  constructor(type: keyof typeof TCoditionalKeys, exprs: TFilterQuery[]) {
+    this.type = type;
+    this.exprs = exprs;
+  }
+}

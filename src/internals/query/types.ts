@@ -32,7 +32,7 @@ type TPrimitiveValue = boolean | number | Decimal | string | Date | null;
 type TDictionaryValue = { [x: string]: TValue };
 export type TValue = TDictionaryValue | TValue[] | TPrimitiveValue | TObject;
 
-export const enum TComparisonSelector {
+export const enum TComparisonKeys {
   $eq = '$eq',
   $gt = '$gt',
   $gte = '$gte',
@@ -41,27 +41,29 @@ export const enum TComparisonSelector {
   $ne = '$ne',
 };
 
-export const enum TValueListSelector {
+export const enum TValueListKeys {
   $in = '$in',
   $nin = '$nin',
   $all = '$all',
 };
 
-type TQuerySelector = {
+export const enum TCoditionalKeys {
+  $and = '$and',
+  $nor = '$nor',
+  $or = '$or',
+};
+
+export type TQuerySelector = {
   $not?: TQuerySelector;
   $type?: string | string[];
   $search?: string;
   $regex?: RegExp | string;
   $size?: number;
   $elemMatch?: TQuerySelector | TFilterQuery;
-} & { [x in keyof typeof TComparisonSelector]?: TValue; } &
-  { [x in keyof typeof TValueListSelector]?: TValue[]; };
+} & { [x in keyof typeof TComparisonKeys]?: TValue; } &
+  { [x in keyof typeof TValueListKeys]?: TValue[]; };
 
-type TRootQuerySelector = {
-  $and?: TFilterQuery[];
-  $nor?: TFilterQuery[];
-  $or?: TFilterQuery[];
-};
+export type TRootQuerySelector = { [x in keyof typeof TCoditionalKeys]?: TFilterQuery[]; };
 
 export type TFilterQuery = TRootQuerySelector & {
   [x: string]: TQuerySelector;

@@ -25,10 +25,6 @@
 
 import { TFilterQuery } from '../../../internals';
 
-const decompose = () => {
-
-}
-
-export const filterParser = (filter: TFilterQuery) => {
+export const decomposeFilter = (filter: TFilterQuery) => {
 
 }
