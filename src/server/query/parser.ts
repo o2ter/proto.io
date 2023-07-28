@@ -88,6 +88,14 @@ export class CoditionalSelector extends QuerySelector {
 
 class FieldExpression {
 
+  type: keyof TFieldQuerySelector;
+  expr: FieldExpression | QuerySelector | RegExp | TValue;
+
+  constructor(type: keyof TFieldQuerySelector, expr: FieldExpression | QuerySelector | RegExp | TValue) {
+    this.type = type;
+    this.expr = expr;
+  }
+
   static decode(selector: TFieldQuerySelector): FieldExpression {
     for (const [type, expr] of _.toPairs(selector)) {
       if (type === '$elemMatch') {
@@ -95,14 +103,6 @@ class FieldExpression {
       }
     }
     throw Error('Implemented');
-  }
-
-  type: keyof TFieldQuerySelector;
-  expr: FieldExpression | QuerySelector | RegExp | TValue;
-
-  constructor(type: keyof TFieldQuerySelector, expr: FieldExpression | QuerySelector | RegExp | TValue) {
-    this.type = type;
-    this.expr = expr;
   }
 
   simplify(): FieldExpression {
