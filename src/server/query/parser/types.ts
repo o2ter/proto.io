@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { TRootQuerySelector, TCoditionalKeys } from '../../../internals';
+import { TRootQuerySelector, TQuerySelector, TCoditionalKeys } from '../../../internals';
 
 export interface QuerySelector {
 
@@ -38,5 +38,18 @@ export class CoditionalSelector implements QuerySelector {
   constructor(type: keyof typeof TCoditionalKeys, exprs: QuerySelector[]) {
     this.type = type;
     this.exprs = exprs;
+  }
+}
+
+export class FieldSelector<T extends keyof TQuerySelector> implements QuerySelector {
+
+  type: T;
+  field: string;
+  expr: TQuerySelector[T];
+
+  constructor(type: T, field: string, expr: TQuerySelector[T]) {
+    this.type = type;
+    this.field = field;
+    this.expr = expr;
   }
 }
