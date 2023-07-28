@@ -31,7 +31,7 @@ export class QuerySelector {
   static decode(selectors: _.Many<TQuerySelector>): QuerySelector {
     const exprs: QuerySelector[] = [];
     for (const selector of _.castArray(selectors)) {
-      for (const [key, query] of _.toPairs(selector)) {
+      for (const [key, query] of _.toPairs({ ...selector })) {
         if (key in TCoditionalKeys && _.isArray(query)) {
           exprs.push(new CoditionalSelector(key as any, _.map(query, x => QuerySelector.decode(x))));
         } else if (!key.startsWith('$') && !_.isArray(query)) {
