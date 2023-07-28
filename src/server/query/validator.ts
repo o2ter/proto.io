@@ -56,13 +56,12 @@ type ValidateKeyInfo = {
   className: string;
   schema: Record<string, TSchema>;
   acls: string[];
-  validator: RegExp;
 };
 
 const validateKey = (
   key: string | string[],
   type: keyof TSchema.ACLs,
-  info: ValidateKeyInfo,
+  info: ValidateKeyInfo & { validator: RegExp; },
 ): boolean => {
 
   const schema = info.schema[info.className] ?? {};
@@ -94,7 +93,7 @@ const validateFields = <T extends Record<string, any>>(
 ) => {
   const _values = { ...values };
   for (const key of _.keys(_values)) {
-    if (!validateKey(key, type, info)) throw new Error('No permission');
+    if (!validateKey(key, type, { ...info, validator: PathValidator })) throw new Error('No permission');
   }
   return _values;
 }
@@ -111,7 +110,8 @@ const decodeQuery = <Q extends ExplainOptions | FindOptions | FindOneOptions>(
   info: ValidateKeyInfo,
 ): DecodedQuery<Q> => {
   const filter = QuerySelector.decode(query.filter ?? []).simplify();
-  if (!filter.validate(key => validateKey(key, 'read', info))) throw new Error('No permission');
+  if (!filter.validate(key => validateKey(key, 'read', { ...info, validator: QueryPathValidator }))) throw new Error('No permission');
+  if (!_.every(query.includes, key => validateKey(key, 'read', { ...info, validator: PathValidator }))) throw new Error('No permission');
   return { ...query, filter }
 };
 
@@ -126,7 +126,7 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
 
   const schema = () => proto.schema[className] ?? {};
   const classLevelPermissions = () => schema().classLevelPermissions ?? {};
-  const validateKeyInfo = (validator: RegExp) => ({ className, schema: proto.schema, acls: acls(), validator });
+  const validateKeyInfo = () => ({ className, schema: proto.schema, acls: acls() });
 
   const acls = () => [
     ..._.map(proto.roles, x => `role:${x}`),
@@ -134,8 +134,8 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
   ].filter(Boolean) as string[];
 
   const _validateCLPs = (...keys: (keyof TSchema.CLPs)[]) => validateCLPs(classLevelPermissions(), keys, acls());
-  const _validateFields = <T extends Record<string, any>>(values: T, type: keyof TSchema.ACLs) => validateFields(values, type, validateKeyInfo(PathValidator));
-  const _decodeQuery = <Q extends ExplainOptions | FindOptions | FindOneOptions>(query: Q) => decodeQuery(query, validateKeyInfo(QueryPathValidator));
+  const _validateFields = <T extends Record<string, any>>(values: T, type: keyof TSchema.ACLs) => validateFields(values, type, validateKeyInfo());
+  const _decodeQuery = <Q extends ExplainOptions | FindOptions | FindOneOptions>(query: Q) => decodeQuery(query, validateKeyInfo());
 
   return {
     explain(
