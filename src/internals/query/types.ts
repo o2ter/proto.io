@@ -26,7 +26,6 @@
 import { TQuery } from './index';
 import { Decimal } from 'decimal.js';
 import { TObject } from '../object';
-import { ExtraOptions } from '../options';
 
 type TPrimitiveValue = boolean | number | Decimal | string | Date | null;
 type TDictionaryValue = { [x: string]: TValue };
