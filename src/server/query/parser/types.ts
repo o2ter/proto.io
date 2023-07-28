@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { TQuerySelector, TCoditionalKeys, TValue } from '../../../internals';
+import { TFieldQuerySelector, TCoditionalKeys, TValue } from '../../../internals';
 
 export class QuerySelector {
 
@@ -47,11 +47,11 @@ export class CoditionalSelector extends QuerySelector {
 
 export class FieldSelector extends QuerySelector {
 
-  type: keyof TQuerySelector;
+  type: keyof TFieldQuerySelector;
   field: string;
   expr: QuerySelector | RegExp | TValue;
 
-  constructor(type: keyof TQuerySelector, field: string, expr: QuerySelector | RegExp | TValue) {
+  constructor(type: keyof TFieldQuerySelector, field: string, expr: QuerySelector | RegExp | TValue) {
     super();
     this.type = type;
     this.field = field;

@@ -24,14 +24,14 @@
 //
 
 import _ from 'lodash';
-import { TValue, TRootQuerySelector } from './types';
+import { TValue, TQuerySelector } from './types';
 import { UpdateOp } from '../object';
 import { PVK } from '../private';
 import { TObjectType } from '../object/types';
 
 export namespace TQuery {
   export interface Options {
-    filter?: TRootQuerySelector | TRootQuerySelector[];
+    filter?: TQuerySelector | TQuerySelector[];
     sort?: Record<string, 1 | -1>;
     includes?: string[];
     skip?: number;
@@ -74,7 +74,7 @@ export class TQuery<T extends string, Ext> {
     return new TQuery<T, Ext>(this.className, { ...this[PVK].options });
   }
 
-  filter(filter: TRootQuerySelector) {
+  filter(filter: TQuerySelector) {
     if (_.isNil(this[PVK].options.filter)) {
       this[PVK].options.filter = filter;
     } else if (_.isArray(this[PVK].options.filter)) {

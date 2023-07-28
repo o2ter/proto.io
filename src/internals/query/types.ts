@@ -52,18 +52,18 @@ export const enum TCoditionalKeys {
   $or = '$or',
 };
 
-export type TQuerySelector = {
-  $not?: TQuerySelector;
+export type TFieldQuerySelector = {
+  $not?: TFieldQuerySelector;
   $type?: string | string[];
   $search?: string;
   $regex?: RegExp | string;
   $size?: number;
-  $elemMatch?: TQuerySelector | TRootQuerySelector;
+  $elemMatch?: TFieldQuerySelector | TQuerySelector;
 } & { [x in keyof typeof TComparisonKeys]?: TValue; } &
   { [x in keyof typeof TValueListKeys]?: TValue[]; };
 
-export type TCoditionalQuerySelector = { [x in keyof typeof TCoditionalKeys]?: TRootQuerySelector[]; };
-export type TRootQuerySelector = TCoditionalQuerySelector & { [x: string]: TQuerySelector; };
+export type TCoditionalQuerySelector = { [x in keyof typeof TCoditionalKeys]?: TQuerySelector[]; };
+export type TQuerySelector = TCoditionalQuerySelector & { [x: string]: TFieldQuerySelector; };
 
 type CommonFindOptions = { className: string; };
 export type ExplainOptions = CommonFindOptions & Omit<TQuery.Options, 'returning' | 'skip' | 'limit'>;
