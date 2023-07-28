@@ -26,7 +26,11 @@
 import _ from 'lodash';
 import { TFilterQuery, TCoditionalKeys } from '../../../internals';
 
-export class RootQuerySelector {
+export interface QuerySelector {
+
+}
+
+export class RootQuerySelector implements QuerySelector {
 
   type: keyof typeof TCoditionalKeys;
   exprs: TFilterQuery[];

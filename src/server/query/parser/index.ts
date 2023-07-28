@@ -24,6 +24,7 @@
 //
 
 import { TFilterQuery } from '../../../internals';
+import { QuerySelector } from './types';
 
 export const decomposeFilter = (filter: TFilterQuery) => {
 
