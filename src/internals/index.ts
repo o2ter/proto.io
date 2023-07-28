@@ -37,7 +37,4 @@ export * from './query/value';
 export * from './options';
 export * from './private';
 export * from './proto';
-export * from './crypto';
-export * from './schedule';
-export * from './schema';
 export * from './utils';

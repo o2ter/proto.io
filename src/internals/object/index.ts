@@ -26,8 +26,8 @@
 import _ from 'lodash';
 import { PVK } from '../private';
 import { ExtraOptions } from '../options';
-import { TSchema } from '../schema';
 import { TValue, cloneValue, isPrimitiveValue } from '../query/value';
+import { TSchema } from '../../server/schema';
 
 export const enum UpdateOp {
   set = 'set',

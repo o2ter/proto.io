@@ -24,14 +24,9 @@
 //
 
 import _ from 'lodash';
-import {
-  TObject,
-  UpdateOp,
-  TSchema,
-  TValue,
-  TQuery,
-} from '../internals';
+import { TObject, UpdateOp, TValue, TQuery } from '../internals';
 import { QuerySelector } from './query/parser';
+import { TSchema } from './schema';
 
 type CommonFindOptions = { className: string; };
 export type ExplainOptions = CommonFindOptions & Omit<TQuery.Options, 'returning' | 'skip' | 'limit'>;

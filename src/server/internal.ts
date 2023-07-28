@@ -36,8 +36,8 @@ import {
   isFileBuffer,
   isFileStream,
   base64ToBuffer,
-  generateId,
 } from '../internals';
+import { generateId } from './crypto';
 
 export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
 

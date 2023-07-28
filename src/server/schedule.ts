@@ -24,8 +24,8 @@
 //
 
 import _ from 'lodash';
-import { TStorage } from '../server/storage';
-import { QuerySelector } from '../server/query/parser';
+import { TStorage } from './storage';
+import { QuerySelector } from './query/parser';
 
 const scheduleOp = {
   expireDocument: async (storage: TStorage) => {
