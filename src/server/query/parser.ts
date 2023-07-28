@@ -42,8 +42,7 @@ export class QuerySelector {
       }
     }
     if (_.isEmpty(exprs)) return new QuerySelector;
-    const merged = (new CoditionalSelector('$and', exprs)).simplify();
-    return merged.exprs.length === 1 ? merged.exprs[0] : merged;
+    return (exprs.length === 1 ? exprs[0] : new CoditionalSelector('$and', exprs)).simplify();
   }
 
   simplify(): QuerySelector {
