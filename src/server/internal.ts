@@ -48,6 +48,9 @@ const validateSchema = (schema: Record<string, TSchema>) => {
     for (const key of _.keys(_schema.fields)) {
       if (!validator.test(key)) throw Error(`Invalid field name: ${key}`);
     }
+    for (const key of _.keys(_schema.fieldLevelPermissions)) {
+      if (!validator.test(key)) throw Error(`Invalid field name: ${key}`);
+    }
   }
 }
 
