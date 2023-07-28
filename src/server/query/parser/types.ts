@@ -64,7 +64,7 @@ export class FieldSelector extends QuerySelector {
     return new FieldSelector(
       this.type,
       this.field,
-      this.expr instanceof QuerySelector ? this.expr.simplify() : this.expr
+      this.expr instanceof QuerySelector ? this.expr.simplify() : this.expr,
     );
   }
 }
