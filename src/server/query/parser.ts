@@ -30,6 +30,10 @@ import {
   TCoditionalKeys,
   TFieldQuerySelector,
   TCoditionalQuerySelector,
+  TComparisonKeys,
+  TValueListKeys,
+  isValue,
+  allFieldQueryKeys,
 } from '../../internals';
 
 export class QuerySelector {
@@ -104,24 +108,82 @@ class FieldExpression {
 
   static decode(selector: TFieldQuerySelector): FieldExpression {
     for (const [type, expr] of _.toPairs(selector)) {
-      if (type === '$elemMatch') {
-        
+      if (type in TComparisonKeys) {
+        if (!isValue(expr)) throw Error('Invalid expression');
+        return new FieldExpression(type as any, expr);
+      } else if (type in TValueListKeys) {
+        if (!isValue(expr) || !_.isArray(expr)) throw Error('Invalid expression');
+        return new FieldExpression(type as any, expr);
+      } else {
+        switch (type) {
+          case '$not':
+            {
+              const _expr = expr ? { ...expr as any } : {};
+              const keys = _.keys(_expr);
+              if (keys.length !== 1 && !allFieldQueryKeys.includes(keys[0])) throw Error('Invalid expression');
+              return new FieldExpression(type, FieldExpression.decode(_expr));
+            }
+          case '$type':
+            if (_.isString(expr)) {
+              return new FieldExpression(type, expr);
+            } else if (_.isArray(expr) && _.every(expr, x => _.isString(x))) {
+              return new FieldExpression(type, expr);
+            } else {
+              throw Error('Invalid expression');
+            }
+          case '$search':
+            if (_.isString(expr)) {
+              return new FieldExpression(type, expr);
+            } else {
+              throw Error('Invalid expression');
+            }
+          case '$regex':
+            if (_.isString(expr) || _.isRegExp(expr)) {
+              return new FieldExpression(type, expr);
+            } else {
+              throw Error('Invalid expression');
+            }
+          case '$size':
+            if (_.isNumber(expr)) {
+              return new FieldExpression(type, expr);
+            } else {
+              throw Error('Invalid expression');
+            }
+          case '$elemMatch':
+            {
+              const _expr = expr ? { ...expr as any } : {};
+              const keys = _.keys(_expr);
+              if (_.every(keys, x => allFieldQueryKeys.includes(x))) {
+                return new FieldExpression(type, FieldExpression.decode(_expr));
+              } else {
+                return new FieldExpression(type, QuerySelector.decode(_expr));
+              }
+            }
+          default: throw Error('Invalid expression');
+        }
       }
     }
     throw Error('Implemented');
   }
 
   simplify(): FieldExpression {
-    return new FieldExpression(
-      this.type,
-      this.expr instanceof FieldExpression || this.expr instanceof QuerySelector ? this.expr.simplify() : this.expr,
-    );
+    if (this.expr instanceof FieldExpression) {
+      return new FieldExpression(this.type, this.expr.simplify());
+    }
+    if (this.expr instanceof QuerySelector) {
+      return new FieldExpression(this.type, this.expr.simplify());
+    }
+    return new FieldExpression(this.type, this.expr);
   }
 
   encode(): any {
-    return {
-      [this.type]: this.expr instanceof FieldExpression || this.expr instanceof QuerySelector ? this.expr.encode() : this.expr,
-    };
+    if (this.expr instanceof FieldExpression) {
+      return { [this.type]: this.expr.encode() };
+    }
+    if (this.expr instanceof QuerySelector) {
+      return { [this.type]: this.expr.encode() };
+    }
+    return { [this.type]: this.expr };
   }
 }
 
