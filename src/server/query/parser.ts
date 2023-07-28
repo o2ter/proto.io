@@ -28,6 +28,14 @@ import { TFieldQuerySelector, TCoditionalKeys, TValue, TQuerySelector, TCodition
 
 export class QuerySelector {
 
+  static decode(selectors: TQuerySelector[]): QuerySelector[] {
+    const result: QuerySelector[] = [];
+    for (const selector of selectors) {
+      
+    }
+    return result;
+  }
+
   simplify(): QuerySelector {
     return this;
   }
@@ -48,7 +56,7 @@ export class CoditionalSelector extends QuerySelector {
     this.exprs = exprs;
   }
 
-  simplify(): QuerySelector {
+  simplify() {
     switch (this.type) {
       case '$and':
         return new CoditionalSelector(this.type, _.flatMap(
@@ -82,7 +90,7 @@ export class FieldSelector extends QuerySelector {
     this.expr = expr;
   }
 
-  simplify(): QuerySelector {
+  simplify() {
     return new FieldSelector(
       this.type,
       this.field,
