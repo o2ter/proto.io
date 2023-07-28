@@ -36,7 +36,8 @@ import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions } from '../st
 import { QuerySelector } from './parser';
 import { TSchema } from '../schema';
 
-export const PathValidator = /^[a-z_]\w*(((\.\*)|(\[\d+\]))?\.[a-z\d_]\w*)*$/gi;
+export const QueryPathValidator = /^[a-z_]\w*(((\.\*)|(\[\d+\]))?\.[a-z\d_]\w*)*$/gi;
+export const PathValidator = /^[a-z_]\w*((\[\d+\])?\.[a-z\d_]\w*)*$/gi;
 export const NameValidator = /^[a-z_]\w*$/gi;
 
 const validateCLPs = (
@@ -55,6 +56,7 @@ type ValidateKeyInfo = {
   className: string;
   schema: Record<string, TSchema>;
   acls: string[];
+  validator: RegExp;
 };
 
 const validateKey = (
@@ -65,7 +67,7 @@ const validateKey = (
 
   const schema = info.schema[info.className] ?? {};
   const _key = _.isArray(key) ? key.join('.') : key;
-  if (!_key.match(PathValidator)) throw Error(`Invalid key: ${_key}`);
+  if (!_key.match(info.validator)) throw Error(`Invalid key: ${_key}`);
 
   const [keyRoot, ...path] = _.toPath(_key);
   if (_.isEmpty(keyRoot) || !_.has(schema.fields, keyRoot)) throw Error(`Invalid path: ${_key}`);
@@ -121,7 +123,7 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
 
   const schema = () => proto.schema[className] ?? {};
   const classLevelPermissions = () => schema().classLevelPermissions ?? {};
-  const validateKeyInfo = () => ({ className, schema: proto.schema, acls: acls() });
+  const validateKeyInfo = (validator: RegExp) => ({ className, schema: proto.schema, acls: acls(), validator });
 
   const acls = () => [
     ..._.map(proto.roles, x => `role:${x}`),
@@ -129,8 +131,8 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
   ].filter(Boolean) as string[];
 
   const _validateCLPs = (...keys: (keyof TSchema.CLPs)[]) => validateCLPs(classLevelPermissions(), keys, acls());
-  const _validateFields = <T extends Record<string, any>>(values: T, type: keyof TSchema.ACLs) => validateFields(values, type, validateKeyInfo());
-  const _decodeQuery = <Q extends ExplainOptions | FindOptions | FindOneOptions>(query: Q) => decodeQuery(query, validateKeyInfo());
+  const _validateFields = <T extends Record<string, any>>(values: T, type: keyof TSchema.ACLs) => validateFields(values, type, validateKeyInfo(PathValidator));
+  const _decodeQuery = <Q extends ExplainOptions | FindOptions | FindOneOptions>(query: Q) => decodeQuery(query, validateKeyInfo(QueryPathValidator));
 
   return {
     explain(
@@ -164,7 +166,6 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
       recursiveCheck(attrs);
       if (!_.has(proto.schema, className)) throw new Error('No permission');
       if (!options?.master && !_validateCLPs('create')) throw new Error('No permission');
-      if (!_.every(_.keys(attrs), k => k.match(NameValidator))) throw new Error(`Invalid key: ${_.find(_.keys(attrs), k => !k.match(NameValidator))}`);
       return proto.storage.insert(className, normalize(_validateFields(attrs, 'create')));
     },
     findOneAndUpdate(
@@ -175,7 +176,6 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
       recursiveCheck(update);
       if (!_.has(proto.schema, className)) throw new Error('No permission');
       if (!options?.master && !_validateCLPs('update')) throw new Error('No permission');
-      if (!_.every(_.keys(update), k => k.match(PathValidator))) throw new Error(`Invalid path: ${_.find(_.keys(update), k => !k.match(PathValidator))}`);
       return proto.storage.findOneAndUpdate(_decodeQuery(normalize(query)), normalize(_validateFields(update, 'update')));
     },
     findOneAndReplace(
@@ -186,7 +186,6 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
       recursiveCheck(replacement);
       if (!_.has(proto.schema, className)) throw new Error('No permission');
       if (!options?.master && !_validateCLPs('update')) throw new Error('No permission');
-      if (!_.every(_.keys(replacement), k => k.match(NameValidator))) throw new Error(`Invalid key: ${_.find(_.keys(replacement), k => !k.match(NameValidator))}`);
       return proto.storage.findOneAndReplace(_decodeQuery(normalize(query)), normalize(_validateFields(replacement, 'update')));
     },
     findOneAndUpsert(
@@ -199,8 +198,6 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
       recursiveCheck(setOnInsert);
       if (!_.has(proto.schema, className)) throw new Error('No permission');
       if (!options?.master && !_validateCLPs('create', 'update')) throw new Error('No permission');
-      if (!_.every(_.keys(update), k => k.match(PathValidator))) throw new Error(`Invalid path: ${_.find(_.keys(update), k => !k.match(PathValidator))}`);
-      if (!_.every(_.keys(setOnInsert), k => k.match(NameValidator))) throw new Error(`Invalid key: ${_.find(_.keys(setOnInsert), k => !k.match(NameValidator))}`);
       return proto.storage.findOneAndUpsert(_decodeQuery(normalize(query)), normalize(_validateFields(update, 'update')), normalize(_validateFields(setOnInsert, 'create')));
     },
     findOneAndDelete(
