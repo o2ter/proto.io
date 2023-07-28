@@ -26,13 +26,13 @@
 import _ from 'lodash';
 import {
   TValue,
+  isValue,
   TQuerySelector,
   TCoditionalKeys,
   TFieldQuerySelector,
   TCoditionalQuerySelector,
   TComparisonKeys,
   TValueListKeys,
-  isValue,
   allFieldQueryKeys,
 } from '../../internals';
 
