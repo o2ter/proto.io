@@ -45,11 +45,13 @@ const validateSchema = (schema: Record<string, TSchema>) => {
   if (!_.isNil(schema['_Schema'])) throw Error('Reserved name of class');
   for (const [className, _schema] of _.toPairs(schema)) {
     if (!validator.test(className)) throw Error(`Invalid class name: ${className}`);
-    for (const key of _.keys(_schema.fields)) {
+
+    const fields = _.keys(_schema.fields);
+    for (const key of fields) {
       if (!validator.test(key)) throw Error(`Invalid field name: ${key}`);
     }
     for (const key of _.keys(_schema.fieldLevelPermissions)) {
-      if (!validator.test(key)) throw Error(`Invalid field name: ${key}`);
+      if (!fields.includes(key)) throw Error(`Invalid field permission: ${key}`);
     }
   }
 }
