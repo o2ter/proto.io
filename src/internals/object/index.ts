@@ -68,7 +68,7 @@ export class TObject {
     const _attributes = _.isFunction(attributes) ? attributes(this) : attributes ?? {};
     this[PVK] = {
       className,
-      attributes: _.mapValues(_attributes, v => cloneValue(v)),
+      attributes: cloneValue(_attributes),
       mutated: {},
       extra: {},
     }
@@ -79,7 +79,7 @@ export class TObject {
   }
 
   get attributes(): Record<string, TValue> {
-    return _.mapValues(this[PVK].attributes, v => cloneValue(v));
+    return cloneValue(this[PVK].attributes);
   }
 
   get objectId(): string | undefined {

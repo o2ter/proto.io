@@ -31,9 +31,9 @@ type TPrimitiveValue = boolean | number | Decimal | string | Date | null;
 type TDictionaryValue = { [x: string]: TValue; };
 export type TValue = TDictionaryValue | TValue[] | TPrimitiveValue | TObject;
 
-export const cloneValue = (x: TValue): TValue => {
+export const cloneValue = <T extends TValue>(x: T): T => {
   if (_.isNil(x) || _.isNumber(x) || _.isBoolean(x) || _.isString(x) || _.isDate(x)) return x;
   if (x instanceof Decimal || x instanceof TObject) return x;
-  if (_.isArray(x)) return x.map(v => cloneValue(v));
-  return _.mapValues(x, v => cloneValue(v));
+  if (_.isArray(x)) return x.map(v => cloneValue(v)) as T;
+  return _.mapValues(x, v => cloneValue(v)) as T;
 }
