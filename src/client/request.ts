@@ -39,7 +39,7 @@ export default class {
     config = {
       xsrfCookieName: XSRF_COOKIE_NAME,
       xsrfHeaderName: XSRF_HEADER_NAME,
-      validateStatus: () => true,
+      validateStatus: (status) => status < 500,
       signal: abortSignal,
       ...opts,
     };
