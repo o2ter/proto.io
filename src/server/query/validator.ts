@@ -89,11 +89,12 @@ const validateKey = (
 const validateFields = <T extends Record<string, any>>(
   values: T,
   type: keyof TSchema.ACLs,
+  validator: RegExp,
   info: ValidateKeyInfo,
 ) => {
   const _values = { ...values };
   for (const key of _.keys(_values)) {
-    if (!validateKey(key, type, { ...info, validator: PathValidator })) throw new Error('No permission');
+    if (!validateKey(key, type, { ...info, validator })) throw new Error('No permission');
   }
   return _values;
 }
@@ -134,7 +135,7 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
   ].filter(Boolean) as string[];
 
   const _validateCLPs = (...keys: (keyof TSchema.CLPs)[]) => validateCLPs(classLevelPermissions(), keys, acls());
-  const _validateFields = <T extends Record<string, any>>(values: T, type: keyof TSchema.ACLs) => validateFields(values, type, validateKeyInfo());
+  const _validateFields = <T extends Record<string, any>>(values: T, type: keyof TSchema.ACLs, validator: RegExp) => validateFields(values, type, validator, validateKeyInfo());
   const _decodeQuery = <Q extends ExplainOptions | FindOptions | FindOneOptions>(query: Q) => decodeQuery(query, validateKeyInfo());
 
   return {
@@ -169,7 +170,7 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
       recursiveCheck(attrs);
       if (!_.has(proto.schema, className)) throw new Error('No permission');
       if (!options?.master && !_validateCLPs('create')) throw new Error('No permission');
-      return proto.storage.insert(className, normalize(_validateFields(attrs, 'create')));
+      return proto.storage.insert(className, normalize(_validateFields(attrs, 'create', NameValidator)));
     },
     findOneAndUpdate(
       query: FindOneOptions,
@@ -179,7 +180,7 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
       recursiveCheck(update);
       if (!_.has(proto.schema, className)) throw new Error('No permission');
       if (!options?.master && !_validateCLPs('update')) throw new Error('No permission');
-      return proto.storage.findOneAndUpdate(_decodeQuery(normalize(query)), normalize(_validateFields(update, 'update')));
+      return proto.storage.findOneAndUpdate(_decodeQuery(normalize(query)), normalize(_validateFields(update, 'update', PathValidator)));
     },
     findOneAndReplace(
       query: FindOneOptions,
@@ -189,7 +190,7 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
       recursiveCheck(replacement);
       if (!_.has(proto.schema, className)) throw new Error('No permission');
       if (!options?.master && !_validateCLPs('update')) throw new Error('No permission');
-      return proto.storage.findOneAndReplace(_decodeQuery(normalize(query)), normalize(_validateFields(replacement, 'update')));
+      return proto.storage.findOneAndReplace(_decodeQuery(normalize(query)), normalize(_validateFields(replacement, 'update', PathValidator)));
     },
     findOneAndUpsert(
       query: FindOneOptions,
@@ -201,7 +202,7 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
       recursiveCheck(setOnInsert);
       if (!_.has(proto.schema, className)) throw new Error('No permission');
       if (!options?.master && !_validateCLPs('create', 'update')) throw new Error('No permission');
-      return proto.storage.findOneAndUpsert(_decodeQuery(normalize(query)), normalize(_validateFields(update, 'update')), normalize(_validateFields(setOnInsert, 'create')));
+      return proto.storage.findOneAndUpsert(_decodeQuery(normalize(query)), normalize(_validateFields(update, 'update', PathValidator)), normalize(_validateFields(setOnInsert, 'create', NameValidator)));
     },
     findOneAndDelete(
       query: FindOneOptions,
