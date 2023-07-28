@@ -47,16 +47,24 @@ export class CoditionalSelector extends QuerySelector {
   }
 }
 
-export class FieldSelector<T extends keyof TQuerySelector> extends QuerySelector {
+export class FieldSelector extends QuerySelector {
 
-  type: T;
+  type: keyof TQuerySelector;
   field: string;
-  expr: SelectorInstance<TQuerySelector[T]>;
+  expr: QuerySelector;
 
-  constructor(type: T, field: string, expr: SelectorInstance<TQuerySelector[T]>) {
+  constructor(type: keyof TQuerySelector, field: string, expr: QuerySelector) {
     super();
     this.type = type;
     this.field = field;
     this.expr = expr;
+  }
+
+  simplify(): QuerySelector {
+    return new FieldSelector(
+      this.type,
+      this.field,
+      this.expr instanceof QuerySelector ? this.expr.simplify() : this.expr
+    );
   }
 }
