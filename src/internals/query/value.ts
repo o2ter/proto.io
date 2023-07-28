@@ -37,7 +37,7 @@ export const isPrimitiveValue = (x?: TValue): x is TPrimitiveValue => {
   return false;
 }
 
-export const cloneValue = <T extends TValue>(x?: T): T => {
+export const cloneValue = <T extends TValue>(x: T): T => {
   if (isPrimitiveValue(x) || x instanceof TObject) return x;
   if (_.isArray(x)) return x.map(v => cloneValue(v)) as T;
   return _.mapValues(x, v => cloneValue(v)) as T;

@@ -118,10 +118,10 @@ export class TObject {
     return _.uniq([..._.keys(this[PVK].attributes), ..._.keys(this[PVK].mutated)]);
   }
 
-  #attrValue(key: string): TValue | undefined {
-    let value: TValue | undefined = this[PVK].attributes;
+  #attrValue(key: string): TValue {
+    let value: TValue = this[PVK].attributes;
     for (const k of _.toPath(key)) {
-      if (isPrimitiveValue(value)) return undefined;
+      if (isPrimitiveValue(value)) return null;
       if (value instanceof TObject) {
         value = value.get(k);
       } else {
