@@ -26,6 +26,6 @@
 import { TQuerySelector } from '../../../internals';
 import { QuerySelector } from './types';
 
-export const decomposeFilter = (filter: TQuerySelector) => {
+export const decomposeFilter = (filter: TQuerySelector | TQuerySelector[]) => {
 
 }
