@@ -36,7 +36,7 @@ import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions } from '../st
 import { QuerySelector } from './parser';
 import { TSchema } from '../schema';
 
-export const QueryPathValidator = /^[a-z_]\w*(\[\*\]|\.\*|\[\d+\]|\.\d*|(\.[a-z_]\w*))*$/gi;
+export const QueryPathValidator = /^[a-z_]\w*(\[\*\]|\.\*|\[\d+\]|\.\d*|\.[a-z_]\w*)*$/gi;
 export const PathValidator = /^[a-z_]\w*(\[\d+\]|\.\d*|\.[a-z_]\w*)*$/gi;
 export const NameValidator = /^[a-z_]\w*$/gi;
 
