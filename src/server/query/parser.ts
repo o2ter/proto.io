@@ -32,16 +32,12 @@ export class QuerySelector {
     const exprs: QuerySelector[] = [];
     for (const selector of _.castArray(selectors)) {
       for (const [key, query] of _.toPairs(selector)) {
-        if (key in TCoditionalKeys) {
-          if (!_.isArray(query)) throw Error('Invalid expression');
+        if (key in TCoditionalKeys && _.isArray(query)) {
           exprs.push(new CoditionalSelector(key as any, _.map(query, x => QuerySelector.decode(x))));
+        } else if (!key.startsWith('$') && !_.isArray(query)) {
+          exprs.push(new FieldSelector(key, FieldExpression.decode(query)));
         } else {
-          if (_.isArray(query)) throw Error('Invalid expression');
-          for (const [type, expr] of _.toPairs(query)) {
-            if (type === '$elemMatch') {
-
-            }
-          }
+          throw Error('Invalid expression');
         }
       }
     }
@@ -91,6 +87,15 @@ export class CoditionalSelector extends QuerySelector {
 }
 
 class FieldExpression {
+
+  static decode(selector: TFieldQuerySelector): FieldExpression {
+    for (const [type, expr] of _.toPairs(selector)) {
+      if (type === '$elemMatch') {
+
+      }
+    }
+    throw Error('Implemented');
+  }
 
   type: keyof TFieldQuerySelector;
   expr: FieldExpression | QuerySelector | RegExp | TValue;
