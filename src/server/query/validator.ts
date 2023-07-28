@@ -87,7 +87,7 @@ const decodeQuery = <Q extends ExplainOptions | FindOptions | FindOneOptions>(
   const perms = schema.fieldLevelPermissions ?? {};
   const filter = QuerySelector.decode(query.filter ?? []).simplify();
   const fields = _.keys(schema.fields).filter(key => _validateKey(key, perms, 'read', acls));
-  filter.validate(fields);
+  if (!filter.validate(fields)) throw new Error('No permission');
   return { ...query, filter }
 };
 
