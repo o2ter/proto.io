@@ -24,7 +24,7 @@
 //
 
 import { expect, test } from '@jest/globals';
-import { generateId } from '../../src/internals';
+import { generateId } from '../../src/server/crypto';
 
 test('test generateId', async () => {
   const id = generateId(12);
