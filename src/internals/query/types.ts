@@ -24,7 +24,6 @@
 //
 
 import _ from 'lodash';
-import { TQuery } from './index';
 import { TValue } from './value';
 
 export enum TComparisonKeys {
@@ -66,8 +65,3 @@ export type TFieldQuerySelector = {
 
 export type TCoditionalQuerySelector = { [x in keyof typeof TCoditionalKeys]?: TQuerySelector[]; };
 export type TQuerySelector = TCoditionalQuerySelector & { [x: string]: TFieldQuerySelector; };
-
-type CommonFindOptions = { className: string; };
-export type ExplainOptions = CommonFindOptions & Omit<TQuery.Options, 'returning' | 'skip' | 'limit'>;
-export type FindOptions = CommonFindOptions & Omit<TQuery.Options, 'returning'>;
-export type FindOneOptions = CommonFindOptions & Omit<TQuery.Options, 'skip' | 'limit'>;

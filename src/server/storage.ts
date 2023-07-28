@@ -28,11 +28,14 @@ import {
   TObject,
   UpdateOp,
   TSchema,
-  FindOptions,
-  FindOneOptions,
-  ExplainOptions,
   TValue,
+  TQuery,
 } from '../internals';
+
+type CommonFindOptions = { className: string; };
+export type ExplainOptions = CommonFindOptions & Omit<TQuery.Options, 'returning' | 'skip' | 'limit'>;
+export type FindOptions = CommonFindOptions & Omit<TQuery.Options, 'returning'>;
+export type FindOneOptions = CommonFindOptions & Omit<TQuery.Options, 'skip' | 'limit'>;
 
 export interface TStorage {
 

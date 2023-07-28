@@ -23,20 +23,17 @@
 //  THE SOFTWARE.
 //
 
-import _, { ValueIteratee } from 'lodash';
+import _ from 'lodash';
 import { Proto } from '../index';
 import {
+  TValue,
+  TObject,
   TSchema,
-  FindOptions,
-  FindOneOptions,
   UpdateOp,
   ExtraOptions,
-  TValue,
   isPrimitiveValue,
-  TObject,
-  TQuerySelector,
-  TFieldQuerySelector,
 } from '../../internals';
+import { ExplainOptions, FindOneOptions, FindOptions } from '../storage';
 
 const validateCLPs = (
   clps: TSchema.CLPs,
@@ -99,7 +96,7 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
 
   return {
     explain(
-      query: FindOptions,
+      query: ExplainOptions,
     ) {
       recursiveCheck(query);
       if (!_.has(proto.schema, className)) throw new Error('No permission');

@@ -24,8 +24,8 @@
 //
 
 import _ from 'lodash';
-import { TSchema, storageSchedule, FindOptions, FindOneOptions, UpdateOp, ExplainOptions, TValue } from '../../../internals';
-import { TStorage } from '../../../server/storage';
+import { TSchema, storageSchedule, UpdateOp, TValue } from '../../../internals';
+import { ExplainOptions, FindOneOptions, FindOptions, TStorage } from '../../../server/storage';
 
 export class MemoryStorage implements TStorage {
 
