@@ -31,7 +31,7 @@ type TPrimitiveValue = boolean | number | Decimal | string | Date | null;
 type TDictionaryValue = { [x: string]: TValue };
 export type TValue = TDictionaryValue | TValue[] | TPrimitiveValue | TObject;
 
-export const enum TComparisonKeys {
+export enum TComparisonKeys {
   $eq = '$eq',
   $gt = '$gt',
   $gte = '$gte',
@@ -40,13 +40,13 @@ export const enum TComparisonKeys {
   $ne = '$ne',
 };
 
-export const enum TValueListKeys {
+export enum TValueListKeys {
   $in = '$in',
   $nin = '$nin',
   $all = '$all',
 };
 
-export const enum TCoditionalKeys {
+export enum TCoditionalKeys {
   $and = '$and',
   $nor = '$nor',
   $or = '$or',
