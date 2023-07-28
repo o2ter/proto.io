@@ -43,6 +43,10 @@ export class CoditionalSelector extends QuerySelector {
     this.type = type;
     this.exprs = exprs;
   }
+
+  simplify(): QuerySelector {
+    return new CoditionalSelector(this.type, _.map(this.exprs, x => x.simplify()));
+  }
 }
 
 export class FieldSelector extends QuerySelector {
