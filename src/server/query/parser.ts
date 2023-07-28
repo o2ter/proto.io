@@ -84,12 +84,12 @@ export class CoditionalSelector extends QuerySelector {
       case '$and':
         return new CoditionalSelector(this.type, _.flatMap(
           this.exprs, x => x instanceof CoditionalSelector && x.type === '$and' ? _.map(x.exprs, y => y.simplify()) : [x.simplify()]
-        ));
+        )) as QuerySelector;
       case '$nor':
       case '$or':
         return new CoditionalSelector(this.type, _.flatMap(
           this.exprs, x => x instanceof CoditionalSelector && x.type === '$or' ? _.map(x.exprs, y => y.simplify()) : [x.simplify()]
-        ));
+        )) as QuerySelector;
     }
   }
 
@@ -97,10 +97,10 @@ export class CoditionalSelector extends QuerySelector {
     return _.every(this.exprs, x => x.validate(fields));
   }
 
-  encode(): TCoditionalQuerySelector {
+  encode() {
     return {
       [this.type]: _.map(this.exprs, x => x.encode()),
-    };
+    } as TQuerySelector;
   }
 }
 
