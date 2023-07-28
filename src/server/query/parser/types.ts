@@ -45,7 +45,19 @@ export class CoditionalSelector extends QuerySelector {
   }
 
   simplify(): QuerySelector {
-    return new CoditionalSelector(this.type, _.map(this.exprs, x => x.simplify()));
+    switch (this.type) {
+      case '$and':
+        return new CoditionalSelector(this.type, _.flatMap(
+          this.exprs, x => x instanceof CoditionalSelector && x.type === '$and' ? _.map(x.exprs, y => y.simplify()) : [x.simplify()]
+        ));
+      case '$nor':
+      case '$or':
+        return new CoditionalSelector(this.type, _.flatMap(
+          this.exprs, x => x instanceof CoditionalSelector && x.type === '$or' ? _.map(x.exprs, y => y.simplify()) : [x.simplify()]
+        ));
+      default:
+        return new CoditionalSelector(this.type, _.map(this.exprs, x => x.simplify()));
+    }
   }
 }
 
