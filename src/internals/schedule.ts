@@ -25,13 +25,14 @@
 
 import _ from 'lodash';
 import { TStorage } from '../server/storage';
+import { QuerySelector } from '../server/query/parser';
 
 const scheduleOp = {
   expireDocument: async (storage: TStorage) => {
     for (const className of await storage.classes()) {
       await storage.findAndDelete({
         className,
-        filter: { _expired_at: { $lt: new Date() } },
+        filter: QuerySelector.decode({ _expired_at: { $lt: new Date() } }),
       });
     }
   }
