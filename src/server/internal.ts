@@ -57,6 +57,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
   };
 
   constructor(proto: Proto<Ext>, options: Required<ProtoOptions<Ext>>) {
+    if (!_.isNil(options.schema['_Schema'])) throw Error('Reserved name of class');
     this.proto = proto;
     this.options = {
       ...options,
