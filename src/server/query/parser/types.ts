@@ -30,6 +30,9 @@ type SelectorInstance<T> = T extends TQuerySelector | TCoditionalQuerySelector ?
 
 export class QuerySelector {
 
+  simplify(): QuerySelector {
+    return this;
+  }
 }
 
 export class CoditionalSelector extends QuerySelector {
