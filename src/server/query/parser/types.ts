@@ -33,9 +33,9 @@ export interface QuerySelector {
 export class RootQuerySelector implements QuerySelector {
 
   type: keyof typeof TCoditionalKeys;
-  exprs: TRootQuerySelector[];
+  exprs: RootQuerySelector[];
 
-  constructor(type: keyof typeof TCoditionalKeys, exprs: TRootQuerySelector[]) {
+  constructor(type: keyof typeof TCoditionalKeys, exprs: RootQuerySelector[]) {
     this.type = type;
     this.exprs = exprs;
   }
