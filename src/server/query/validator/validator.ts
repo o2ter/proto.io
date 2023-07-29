@@ -181,7 +181,7 @@ export class QueryValidator {
     const includes = this.#decodeIncludes(query.className, query.includes ?? ['*']);
     if (!_.every(_.keys(query.sort), k => includes.includes(k))) throw new Error('Invalid sort keys');
 
-    return { ...query, filter, includes };
+    return { ...query, filter, includes, acls: this.acls, master: this.master };
   }
 
   isGetMethod(query: QuerySelector) {
