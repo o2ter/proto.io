@@ -39,9 +39,9 @@ class PostgresClientDriver {
   query(text: string, values: any[] = [], batchSize: number = 256) {
     const client = this.client;
     const iterator = async function* () {
-      const cursor = new QueryStream(text, values, { batchSize });
-      client.query(cursor);
-      for await (const row of cursor) yield row;
+      const stream = new QueryStream(text, values, { batchSize });
+      client.query(stream);
+      for await (const row of stream) yield row;
     };
     return {
       then(...args: Parameters<Promise<any[]>['then']>) {
