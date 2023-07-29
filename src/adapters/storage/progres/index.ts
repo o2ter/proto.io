@@ -24,27 +24,26 @@
 //
 
 import _ from 'lodash';
-import pg, { IConnectionOptions, IDatabase } from 'pg-promise';
+import { IConnectionOptions } from 'pg-promise';
 import { UpdateOp, TValue } from '../../../internals';
 import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions, TStorage } from '../../../server/storage';
 import { storageSchedule } from '../../../server/schedule';
 import { TSchema } from '../../../server/schema';
-
-const pgp = pg({});
+import { PostgresDriver } from './driver';
 
 export class PostgresStorage implements TStorage {
 
   schedule = storageSchedule(this, ['expireDocument']);
 
-  connection: IDatabase<{}>;
   schema: Record<string, TSchema> = {};
+  driver: PostgresDriver;
 
   constructor(uri: string) {
-    this.connection = pgp(uri);
+    this.driver = new PostgresDriver(uri);
   }
 
   async connect(options?: IConnectionOptions) {
-    await this.connection.connect(options);
+    await this.driver.connect(options);
     return this;
   }
 

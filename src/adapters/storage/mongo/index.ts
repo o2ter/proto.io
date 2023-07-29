@@ -34,8 +34,8 @@ export class MongoStorage implements TStorage {
 
   schedule = storageSchedule(this, []);
 
-  connection: MongoClient;
   schema: Record<string, TSchema> = {};
+  connection: MongoClient;
 
   constructor(uri: string, options?: MongoClientOptions) {
     this.connection = new MongoClient(uri, options);
