@@ -25,6 +25,7 @@
 
 import _ from 'lodash';
 import { Pool, PoolConfig } from 'pg';
+import Cursor from 'pg-cursor';
 
 export class PostgresDriver {
 
@@ -38,7 +39,12 @@ export class PostgresDriver {
     await this.database.end();
   }
 
-  async query(query: string, values: any[]) {
-    
+  async* query(text: string, values: any[] = [], batchSize: number = 100) {
+    const cursor = this.database.query(new Cursor(text, values));
+    while (true) {
+      const rows = await cursor.read(batchSize);
+      if (rows.length === 0) return;
+      for (const row of rows) yield row;
+    }
   }
 }
