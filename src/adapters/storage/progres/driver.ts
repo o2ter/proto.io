@@ -99,6 +99,32 @@ class PostgresClientDriver {
     ));
   }
 
+  async columns(table: string, namespace?: string) {
+    const columns = await this.query(`
+      SELECT
+          a.attname AS column_name,
+          format_type(a.atttypid, a.atttypmod) AS data_type,
+          a.attnum ,
+          a.attnotnull
+      FROM
+          pg_namespace n,
+          pg_class t,
+          pg_attribute a
+      WHERE
+          a.attnum > 0
+          AND n.oid = t.relnamespace
+          AND a.attrelid = t.oid
+          AND NOT a.attisdropped
+          AND t.relname = '${table}'
+          ${namespace ? `AND n.nspname = '${namespace}'` : ''}
+    `);
+    return _.map(columns, ({ column_name, data_type, attnotnull }) => ({
+      name: column_name as string,
+      type: data_type as string,
+      required: !!attnotnull,
+    }));
+  }
+
 }
 
 export class PostgresDriver extends PostgresClientDriver {

@@ -58,27 +58,27 @@ export class PostgresStorage implements TStorage {
 
   #postgresType(type: TSchema.Primitive | TSchema.Relation) {
     switch (type) {
-      case 'boolean': return 'boolean';
-      case 'number': return 'double precision';
-      case 'decimal': return 'decimal';
-      case 'string': return 'text';
-      case 'date': return 'timestamp with time zone';
-      case 'object': return 'jsonb';
-      case 'array': return 'jsonb';
-      case 'pointer': return 'text';
-      case 'relation': return 'text[]';
+      case 'boolean': return 'BOOLEAN';
+      case 'number': return 'DOUBLE PRECISION';
+      case 'decimal': return 'DECIMAL';
+      case 'string': return 'TEXT';
+      case 'date': return 'TIMESTAMP';
+      case 'object': return 'JSONB';
+      case 'array': return 'JSONB';
+      case 'pointer': return 'TEXT';
+      case 'relation': return 'TEXT[]';
     }
   }
 
   async #createTable(className: string, schema: TSchema) {
     await this.driver.query(`
       CREATE TABLE IF NOT EXISTS ${escapeIdentifier(className)} (
-        _id text PRIMARY KEY,
-        __v integer,
-        _created_at timestamp with time zone,
-        _updated_at timestamp with time zone,
-        _expired_at timestamp with time zone,
-        _acl text[],
+        _id TEXT PRIMARY KEY,
+        __v INTEGER NOT NULL DEFAULT 0,
+        _created_at TIMESTAMP NOT NULL DEFAULT now(),
+        _updated_at TIMESTAMP NOT NULL DEFAULT now(),
+        _expired_at TIMESTAMP,
+        _acl TEXT[],
         ${_.map(schema.fields, (type, col) => `
           ${escapeIdentifier(col)} ${this.#postgresType(_.isString(type) ? type : type.type)}
         `).join(',')}
