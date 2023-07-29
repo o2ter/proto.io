@@ -111,6 +111,7 @@ export class QueryValidator {
     if (_.isString(dataType)) return true;
     if (dataType.type !== 'pointer' && dataType.type !== 'relation') return true;
     if (_.isNil(this.schema[dataType.target])) return false;
+    if (type === 'read' && !this.validateCLPs(dataType.target, 'get')) return false;
 
     return this.validateKey(dataType.target, isElem ? subpath.slice(1) : subpath, type, validator);
   }
