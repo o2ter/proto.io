@@ -60,14 +60,16 @@ proto.define('echo', (req) => {
 
 beforeAll(async () => {
 
-  console.log('version: ', await database.version());
-
   const app = express();
 
   app.use(await ProtoRoute({
     jwtToken: (new UUID()).toString(),
     proto: proto,
   }));
+
+  console.log('version: ', await database.version());
+  console.log('databases: ', await database.driver.databases());
+  console.log('tables: ', await database.driver.tables());
 
   httpServer = require('http-shutdown')(require('http').createServer(app));
   httpServer.listen(8080, () => console.log('listening on port 8080'));

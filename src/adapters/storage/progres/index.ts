@@ -25,6 +25,7 @@
 
 import _ from 'lodash';
 import { PoolConfig } from 'pg';
+import { escapeIdentifier } from 'pg/lib/utils';
 import { UpdateOp, TValue } from '../../../internals';
 import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions, TStorage } from '../../../server/storage';
 import { storageSchedule } from '../../../server/schedule';
@@ -50,6 +51,39 @@ export class PostgresStorage implements TStorage {
   async prepare(schema: Record<string, TSchema>) {
     this.schema = schema;
     this.schedule?.execute();
+    for (const [className, _schema] of _.toPairs(schema)) {
+      await this.#createTable(className, _schema);
+    }
+  }
+
+  #postgresType(type: TSchema.Primitive | TSchema.Relation) {
+    switch (type) {
+      case 'boolean': return 'boolean';
+      case 'number': return 'double precision';
+      case 'decimal': return 'decimal';
+      case 'string': return 'text';
+      case 'date': return 'timestamp with time zone';
+      case 'object': return 'jsonb';
+      case 'array': return 'jsonb';
+      case 'pointer': return 'text';
+      case 'relation': return 'text[]';
+    }
+  }
+
+  async #createTable(className: string, schema: TSchema) {
+    await this.driver.query(`
+      CREATE TABLE IF NOT EXISTS ${escapeIdentifier(className)} (
+        _id text PRIMARY KEY,
+        __v integer,
+        _created_at timestamp with time zone,
+        _updated_at timestamp with time zone,
+        _expired_at timestamp with time zone,
+        _acl text[],
+        ${_.map(schema.fields, (type, col) => `
+          ${escapeIdentifier(col)} ${this.#postgresType(_.isString(type) ? type : type.type)}
+        `).join(',')}
+      );
+    `);
   }
 
   classes() {
