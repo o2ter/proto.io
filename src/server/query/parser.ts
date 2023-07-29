@@ -138,7 +138,7 @@ class FieldExpression {
             } else {
               throw Error('Invalid expression');
             }
-          case '$search':
+          case '$pattern':
             if (_.isString(expr) || _.isRegExp(expr)) {
               return new FieldExpression(type, expr);
             } else {
