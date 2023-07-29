@@ -68,10 +68,10 @@ beforeAll(async () => {
   }));
 
   console.log('version: ', await database.version());
-  console.log('databases: ', await database.driver.databases());
-  console.log('tables: ', await database.driver.tables());
-  console.log('indices of _User: ', await database.driver.indices('_User'));
-  console.log('indices of _Role: ', await database.driver.indices('_Role'));
+  console.log('databases: ', await database.databases());
+  console.log('tables: ', await database.tables());
+  console.log('indices of _User: ', await database.indices('_User'));
+  console.log('indices of _Role: ', await database.indices('_Role'));
 
   httpServer = require('http-shutdown')(require('http').createServer(app));
   httpServer.listen(8080, () => console.log('listening on port 8080'));

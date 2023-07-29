@@ -122,6 +122,30 @@ export class PostgresStorage implements TStorage {
     return this.driver.version();
   }
 
+  async databases() {
+    return this.driver.databases();
+  }
+
+  async tables() {
+    return this.driver.tables();
+  }
+
+  async views() {
+    return this.driver.views();
+  }
+
+  async materializedViews() {
+    return this.driver.materializedViews();
+  }
+
+  async columns(table: string, namespace?: string) {
+    return this.driver.columns(table, namespace);
+  }
+
+  async indices(table: string, namespace?: string) {
+    return this.driver.indices(table, namespace);
+  }
+
   async explain(query: DecodedQuery<ExplainOptions>) {
     return 0;
   }
