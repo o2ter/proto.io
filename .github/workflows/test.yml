@@ -1,9 +1,36 @@
 name: Test
 on: [push, pull_request]
+env:
+  POSTGRES_DATABASE: postgres
+  POSTGRES_USERNAME: o2ter
+  POSTGRES_PASSWORD: o2ter
+  MONGO_DATABASE: o2ter
+  MONGO_USERNAME: o2ter
+  MONGO_PASSWORD: o2ter
+  MONGO_AUTHSOURCE: admin
+  MONGO_REPLICA_SET: rs0
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres
+        ports: 
+          - 5432:5432
+        env:
+          POSTGRES_USER: ${{ env.POSTGRES_USERNAME }}
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ env.POSTGRES_DATABASE }}
     steps:
+      - name: Start MongoDB
+        uses: SusanDoggie/mongodb-action@0.0.1
+        with:
+          network: ${{ job.container.network }}
+          host: mongo
+          username: ${{ env.MONGO_USERNAME }}
+          password: ${{ env.MONGO_PASSWORD }}
+          database: ${{ env.MONGO_DATABASE }}
+          replica_set: ${{ env.MONGO_REPLICA_SET }}
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
@@ -14,3 +41,6 @@ jobs:
         run: yarn rollup
       - name: Run tests
         run: yarn test
+        env:
+          POSTGRES_HOST: postgres
+          MONGO_HOST: mongo
