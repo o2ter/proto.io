@@ -60,7 +60,7 @@ proto.define('echo', (req) => {
 
 beforeAll(async () => {
 
-  console.log('PostgreSQL version: ', await database.version())
+  console.log('version: ', await database.version());
 
   const app = express();
 

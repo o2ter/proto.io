@@ -61,6 +61,44 @@ class PostgresClientDriver {
     const rows = await this.query('SELECT version()');
     return rows[0].version as string;
   }
+
+  async databases() {
+    return _.compact(_.map(
+      await this.query('SELECT datname FROM pg_catalog.pg_database'),
+      x => x.datname as string
+    ));
+  }
+
+  async tables() {
+    return _.compact(_.map(
+      await this.query(`
+        SELECT tablename FROM pg_catalog.pg_tables
+        WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema'
+      `),
+      x => x.tablename as string
+    ));
+  }
+
+  async views() {
+    return _.compact(_.map(
+      await this.query(`
+        SELECT viewname FROM pg_catalog.pg_views
+        WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema'
+      `),
+      x => x.viewname as string
+    ));
+  }
+
+  async materializedViews() {
+    return _.compact(_.map(
+      await this.query(`
+        SELECT matviewname FROM pg_catalog.pg_matviews
+        WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema'
+      `),
+      x => x.matviewname as string
+    ));
+  }
+
 }
 
 export class PostgresDriver extends PostgresClientDriver {
