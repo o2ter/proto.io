@@ -68,6 +68,8 @@ export class QueryValidator {
     type: keyof TSchema.ACLs,
     perms: Record<string, TSchema.ACLs> | undefined,
   ) {
+    if (type === 'read' && TObject.defaultKeys.includes(key)) return true;
+    if (type !== 'read' && TObject.defaultReadonlyKeys.includes(key)) return false;
     return !_.every(perms?.[key]?.[type] ?? ['*'], x => !_.includes(this.acls, x));
   }
 
@@ -159,6 +161,7 @@ export class QueryValidator {
       _includes.push(..._.map(subpaths, x => `${key}.${x}`));
     }
 
+    _includes.push(...TObject.defaultKeys);
     return _.uniq(_includes);
   }
 
