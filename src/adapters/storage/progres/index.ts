@@ -58,7 +58,7 @@ export class PostgresStorage implements TStorage {
     }
   }
 
-  #postgresType(type: TSchema.Primitive | TSchema.Relation) {
+  #toPGType(type: TSchema.Primitive | TSchema.Relation) {
     switch (type) {
       case 'boolean': return 'BOOLEAN';
       case 'number': return 'DOUBLE PRECISION';
@@ -85,7 +85,7 @@ export class PostgresStorage implements TStorage {
         _expired_at TIMESTAMP,
         _acl TEXT[],
         ${_.map(schema.fields, (type, col) => `
-          ${escapeIdentifier(col)} ${this.#postgresType(_.isString(type) ? type : type.type)}
+          ${escapeIdentifier(col)} ${this.#toPGType(_.isString(type) ? type : type.type)}
         `).join(',')}
       )
     `);
