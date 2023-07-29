@@ -48,8 +48,8 @@ class PostgresClientDriver {
       }
     };
     return {
-      get then() {
-        return asyncIterableToArray({ [Symbol.asyncIterator]: iterator }).then;
+      then(...args: Parameters<Promise<any[]>['then']>) {
+        return asyncIterableToArray({ [Symbol.asyncIterator]: iterator }).then(...args);
       },
       [Symbol.asyncIterator]: iterator,
     };

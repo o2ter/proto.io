@@ -83,8 +83,8 @@ export const applyQueryMethods = <T extends string, E>(
           ...queryOptions(this),
         }, requestOpt(this)) as Promise<TObject[]>;
         return {
-          get then() {
-            return request().then;
+          then(...args: Parameters<Promise<TObject[]>['then']>) {
+            return request().then(...args);
           },
           [Symbol.asyncIterator]: async function* () {
             for (const object of await request()) yield object;
