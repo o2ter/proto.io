@@ -39,6 +39,7 @@ import { TSchema } from '../schema';
 export const QueryPathValidator = /^[a-z_]\w*(\[\*\]|\.\*|\[\d+\]|\.\d*|\.[a-z_]\w*)*$/gi;
 export const PathValidator = /^[a-z_]\w*(\[\d+\]|\.\d*|\.[a-z_]\w*)*$/gi;
 export const NameValidator = /^[a-z_]\w*$/gi;
+const digits = /^\d+$/g
 
 const validateCLPs = (
   clps: TSchema.CLPs,
@@ -76,14 +77,17 @@ const validateKey = (
   if (_.isEmpty(subpath)) return true;
 
   const dataType = schema.fields[keyRoot];
+  const isElem = _.first(subpath) === '*' || _.first(subpath)?.match(digits);
+  if (isElem) {
+    if (dataType === 'array') return true;
+    if (!_.isString(dataType) && dataType.type !== 'relation') return false;
+  }
+
   if (_.isString(dataType)) return true;
   if (dataType.type !== 'pointer' && dataType.type !== 'relation') return true;
   if (_.isNil(info.schema[dataType.target])) return false;
 
-  if (dataType.type === 'relation' && _.first(subpath) === '*') {
-    return validateKey(subpath.slice(1), type, info);
-  }
-  return validateKey(subpath, type, info);
+  return validateKey(isElem ? subpath.slice(1) : subpath, type, info);
 };
 
 const validateFields = <T extends Record<string, any>>(
