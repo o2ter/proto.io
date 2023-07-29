@@ -36,6 +36,7 @@ import {
   isFileBuffer,
   isFileStream,
   base64ToBuffer,
+  TObject,
 } from '../internals';
 import { generateId } from './crypto';
 import { TSchema } from './schema';
@@ -59,6 +60,30 @@ const validateSchema = (schema: Record<string, TSchema>) => {
   }
 }
 
+const mergeSchema = (...schemas: Record<string, TSchema>[]) => _.reduce(schemas, (acc, schema) => ({
+  ...acc,
+  ..._.mapValues(schema, (s, className) => ({
+    fields: {
+      ..._.omit(s.fields, ...TObject.defaultKeys),
+      ...(acc[className]?.fields ?? {}),
+    },
+    classLevelPermissions: _.mergeWith(
+      acc[className]?.classLevelPermissions,
+      s.classLevelPermissions,
+      (l, r) => _.isArray(l) ? [...l, ...r] : undefined,
+    ),
+    fieldLevelPermissions: _.mergeWith(
+      acc[className]?.fieldLevelPermissions,
+      s.fieldLevelPermissions,
+      (l, r) => _.isArray(l) ? [...l, ...r] : undefined,
+    ),
+    indexes: [
+      ...(acc[className]?.indexes ?? []),
+      ...(s.indexes ?? [])
+    ],
+  })),
+}), {} as Record<string, TSchema>);
+
 export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
 
   proto: Proto<Ext>;
@@ -81,7 +106,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     this.proto = proto;
     this.options = {
       ...options,
-      schema: _.merge({}, defaultSchema, options.fileStorage.schema, options.schema),
+      schema: mergeSchema(defaultSchema, options.fileStorage.schema, options.schema),
     };
     this.functions = {};
     this.triggers = {};
