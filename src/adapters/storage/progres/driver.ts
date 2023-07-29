@@ -35,7 +35,7 @@ class PostgresClientDriver {
     this.client = client;
   }
 
-  async* query(text: string, values: any[] = [], batchSize: number = 100) {
+  async* query(text: string, values: any[] = [], batchSize: number = 512) {
     const cursor = this.client.query(new Cursor(text, values));
     while (true) {
       const rows = await cursor.read(batchSize);
