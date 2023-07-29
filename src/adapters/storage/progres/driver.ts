@@ -42,7 +42,7 @@ class PostgresClientDriver {
       const cursor = client.query(new Cursor(text, values));
       while (true) {
         const rows = await cursor.read(batchSize);
-        if (rows.length === 0) return;
+        if (rows.length === 0) return await cursor.close();
         for (const row of rows) yield row;
       }
     };
