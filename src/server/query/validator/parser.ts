@@ -106,11 +106,11 @@ export class CoditionalSelector extends QuerySelector {
 class FieldExpression {
 
   type: keyof TFieldQuerySelector;
-  expr: FieldExpression | RegExp | TValue;
+  value: FieldExpression | RegExp | TValue;
 
-  constructor(type: keyof TFieldQuerySelector, expr: FieldExpression | RegExp | TValue) {
+  constructor(type: keyof TFieldQuerySelector, value: FieldExpression | RegExp | TValue) {
     this.type = type;
-    this.expr = expr;
+    this.value = value;
   }
 
   static decode(selector: TFieldQuerySelector): FieldExpression {
@@ -158,27 +158,27 @@ class FieldExpression {
   }
 
   simplify(): FieldExpression {
-    if (this.expr instanceof FieldExpression) {
-      return new FieldExpression(this.type, this.expr.simplify());
+    if (this.value instanceof FieldExpression) {
+      return new FieldExpression(this.type, this.value.simplify());
     }
-    return new FieldExpression(this.type, this.expr);
+    return new FieldExpression(this.type, this.value);
   }
 
   validate(callback: (key: string) => boolean): boolean {
-    if (this.expr instanceof FieldExpression) {
-      return this.expr.validate(callback);
+    if (this.value instanceof FieldExpression) {
+      return this.value.validate(callback);
     }
     return true;
   }
 
   encode(): any {
-    if (this.expr instanceof FieldExpression) {
-      return { [this.type]: this.expr.encode() };
+    if (this.value instanceof FieldExpression) {
+      return { [this.type]: this.value.encode() };
     }
-    if (this.expr instanceof QuerySelector) {
-      return { [this.type]: this.expr.encode() };
+    if (this.value instanceof QuerySelector) {
+      return { [this.type]: this.value.encode() };
     }
-    return { [this.type]: this.expr };
+    return { [this.type]: this.value };
   }
 }
 

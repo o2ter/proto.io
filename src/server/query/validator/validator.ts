@@ -29,7 +29,7 @@ import {
   isPrimitiveValue,
 } from '../../../internals';
 import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions } from '../../storage';
-import { QuerySelector } from './parser';
+import { CoditionalSelector, FieldSelector, QuerySelector } from './parser';
 import { TSchema } from '../../schema';
 
 export const recursiveCheck = (x: any, stack: any[]) => {
@@ -49,7 +49,7 @@ export class QueryValidator {
     path: /^[a-z_]\w*(\[\d+\]|\.\d*|\.[a-z_]\w*)*$/gi,
     name: /^[a-z_]\w*$/gi,
     digits: /^\d+$/g,
-  };
+  }
 
   constructor(
     schema: Record<string, TSchema>,
@@ -113,7 +113,7 @@ export class QueryValidator {
     if (_.isNil(this.schema[dataType.target])) return false;
 
     return this.validateKey(dataType.target, isElem ? subpath.slice(1) : subpath, type, validator);
-  };
+  }
 
   validateFields<T extends Record<string, any>>(
     className: string,
@@ -176,6 +176,33 @@ export class QueryValidator {
     if (!_.every(_.keys(query.sort), k => includes.includes(k))) throw new Error('Invalid sort keys');
 
     return { ...query, filter, includes };
-  };
+  }
+
+  isGetMethod(query: QuerySelector) {
+
+    const objectIds = [];
+
+    if (query instanceof CoditionalSelector && query.type === '$and') {
+      for (const expr of query.exprs) {
+        if (
+          expr instanceof FieldSelector &&
+          expr.field === '_id' &&
+          expr.expr.type === '$eq'
+        ) {
+          if (!_.isString(expr.expr.value)) return false;
+          objectIds.push(expr.expr.value);
+        }
+      }
+    } else if (
+      query instanceof FieldSelector &&
+      query.field === '_id' &&
+      query.expr.type === '$eq'
+    ) {
+      if (!_.isString(query.expr.value)) return false;
+      objectIds.push(query.expr.value);
+    }
+
+    return _.uniq(objectIds).length === 1;
+  }
 
 }

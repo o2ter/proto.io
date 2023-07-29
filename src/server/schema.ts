@@ -30,6 +30,7 @@ export namespace TSchema {
   export type Relation = 'pointer' | 'relation';
   export type DataType = Primitive | { type: Primitive } | { type: Relation, target: string };
   export type CLPs = {
+    get?: TSchema.ACL;
     find?: TSchema.ACL;
     count?: TSchema.ACL;
     create?: TSchema.ACL;

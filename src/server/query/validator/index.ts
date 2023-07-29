@@ -70,9 +70,12 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
 
       QueryValidator.recursiveCheck(query);
       const _validator = validator();
-      if (!options?.master && !_validator.validateCLPs(className, 'find')) throw new Error('No permission');
+      const decoded = _validator.decodeQuery(normalize(query));
+      const isGet = _validator.isGetMethod(decoded.filter);
 
-      return proto.storage.find(_validator.decodeQuery(normalize(query)));
+      if (!options?.master && !_validator.validateCLPs(className, isGet ? 'get' : 'find')) throw new Error('No permission');
+
+      return proto.storage.find(decoded);
     },
     insert(
       className: string,
