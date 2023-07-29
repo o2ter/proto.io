@@ -32,7 +32,6 @@ export const defaultSchema: Record<string, TSchema> = {
       password: 'string',
     },
     classLevelPermissions: {
-      get: [],
       find: [],
       count: [],
       delete: [],
