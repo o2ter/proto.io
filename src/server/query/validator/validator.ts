@@ -63,14 +63,14 @@ export class QueryValidator {
     recursiveCheck(x, []);
   }
 
-  validatePerm(
+  validateKeyPerm(
     key: string,
     type: keyof TSchema.ACLs,
-    perms: Record<string, TSchema.ACLs> | undefined,
+    schema: TSchema,
   ) {
     if (type === 'read' && TObject.defaultKeys.includes(key)) return true;
     if (type !== 'read' && TObject.defaultReadonlyKeys.includes(key)) return false;
-    return !_.every(perms?.[key]?.[type] ?? ['*'], x => !_.includes(this.acls, x));
+    return !_.every(schema.fieldLevelPermissions?.[key]?.[type] ?? ['*'], x => !_.includes(this.acls, x));
   }
 
   validateCLPs(
@@ -98,7 +98,7 @@ export class QueryValidator {
 
     const [root, ...subpath] = _.toPath(_key);
     if (_.isEmpty(root) || !_.has(schema.fields, root)) throw Error(`Invalid path: ${_key}`);
-    if (!this.validatePerm(root, type, schema.fieldLevelPermissions)) return false;
+    if (!this.validateKeyPerm(root, type, schema)) return false;
     if (_.isEmpty(subpath)) return true;
 
     const dataType = schema.fields[root];
@@ -138,11 +138,11 @@ export class QueryValidator {
 
     for (const include of includes) {
       if (include === '*') {
-        _includes.push(..._.filter(primitive, k => this.validatePerm(k, 'read', schema.fieldLevelPermissions)));
+        _includes.push(..._.filter(primitive, k => this.validateKeyPerm(k, 'read', schema)));
       } else {
         const [root, ...subpath] = include.split('.');
         if (_.isEmpty(root) || !_.has(schema.fields, root)) throw Error(`Invalid path: ${include}`);
-        if (!this.validatePerm(root, 'read', schema.fieldLevelPermissions)) throw new Error('No permission');
+        if (!this.validateKeyPerm(root, 'read', schema)) throw new Error('No permission');
 
         const dataType = schema.fields[root];
         if (!_.isString(dataType) && (dataType.type === 'pointer' || dataType.type === 'relation')) {
