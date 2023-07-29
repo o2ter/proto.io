@@ -33,7 +33,11 @@ export type ExplainOptions = CommonFindOptions & Omit<TQuery.Options, 'returning
 export type FindOptions = CommonFindOptions & Omit<TQuery.Options, 'returning'>;
 export type FindOneOptions = CommonFindOptions & Omit<TQuery.Options, 'skip' | 'limit'>;
 
-export type DecodedQuery<T> = Omit<T, 'filter'> & { filter: QuerySelector; };
+export type DecodedQuery<T> = Omit<T, 'filter'> & {
+  filter: QuerySelector;
+  excludes?: string[];
+  populates?: string[];
+};
 
 export interface TStorage {
 
