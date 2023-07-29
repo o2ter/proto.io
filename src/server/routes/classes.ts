@@ -62,7 +62,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
 
         switch (operation) {
           case 'explain':
-            if (!payload.isMaster) throw new Error('No permission');
+            if (!payload.isMaster) throw Error('No permission');
             return query.explain();
           case 'count': return query.count();
           case 'find': return await query.find();
@@ -72,7 +72,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
           case 'findOneAndUpsert': return query.findOneAndUpsert(update, setOnInsert);
           case 'findOneAndDelete': return query.findOneAndDelete();
           case 'findAndDelete': return query.findAndDelete();
-          default: throw new Error('Invalid operation');
+          default: throw Error('Invalid operation');
         }
       });
     }

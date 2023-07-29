@@ -71,7 +71,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
 
     if (res.status !== 200) {
       const error = JSON.parse(res.data);
-      throw new Error(error.message, { cause: error });
+      throw Error(error.message, { cause: error });
     }
 
     return applyObjectMethods(deserialize(res.data), this.proto);
@@ -125,7 +125,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
 
     if (res.status !== 200) {
       const error = JSON.parse(res.data);
-      throw new Error(error.message, { cause: error });
+      throw Error(error.message, { cause: error });
     }
 
     const created = deserialize(res.data) as TFile;
@@ -176,7 +176,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     return iterableToStream(res.then(x => {
       if (x.status !== 200) {
         const error = JSON.parse(x.data);
-        throw new Error(error.message, { cause: error });
+        throw Error(error.message, { cause: error });
       }
       if (Symbol.asyncIterator in x.data || x.data instanceof ReadableStream) {
         return streamToIterable(x.data);

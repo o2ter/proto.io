@@ -127,15 +127,15 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
 
     const func = this.functions?.[name];
 
-    if (_.isNil(func)) throw new Error('Function not found');
+    if (_.isNil(func)) throw Error('Function not found');
     if (_.isFunction(func)) return func(payload ?? this.proto);
 
     const { callback, validator } = func;
 
-    if (!!validator?.requireUser && !this.proto.user) throw new Error('No permission');
-    if (!!validator?.requireMaster && !options?.master) throw new Error('No permission');
-    if (!_.find(validator?.requireAnyUserRoles, x => _.includes(this.proto.roles, x))) throw new Error('No permission');
-    if (_.find(validator?.requireAllUserRoles, x => !_.includes(this.proto.roles, x))) throw new Error('No permission');
+    if (!!validator?.requireUser && !this.proto.user) throw Error('No permission');
+    if (!!validator?.requireMaster && !options?.master) throw Error('No permission');
+    if (!_.find(validator?.requireAnyUserRoles, x => _.includes(this.proto.roles, x))) throw Error('No permission');
+    if (_.find(validator?.requireAllUserRoles, x => !_.includes(this.proto.roles, x))) throw Error('No permission');
 
     return callback(payload ?? this.proto);
   }

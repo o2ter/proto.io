@@ -48,7 +48,7 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
       const _validator = validator();
       const decoded = _validator.decodeQuery(normalize(query));
       const isGet = _validator.isGetMethod(decoded.filter);
-      if (!_validator.validateCLPs(className, isGet ? 'get' : 'find')) throw new Error('No permission');
+      if (!_validator.validateCLPs(className, isGet ? 'get' : 'find')) throw Error('No permission');
       return proto.storage.explain(decoded);
     },
     count(
@@ -56,7 +56,7 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
     ) {
       QueryValidator.recursiveCheck(query);
       const _validator = validator();
-      if (!_validator.validateCLPs(className, 'count')) throw new Error('No permission');
+      if (!_validator.validateCLPs(className, 'count')) throw Error('No permission');
       return proto.storage.count(_validator.decodeQuery(normalize(query)));
     },
     find(
@@ -66,7 +66,7 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
       const _validator = validator();
       const decoded = _validator.decodeQuery(normalize(query));
       const isGet = _validator.isGetMethod(decoded.filter);
-      if (!_validator.validateCLPs(className, isGet ? 'get' : 'find')) throw new Error('No permission');
+      if (!_validator.validateCLPs(className, isGet ? 'get' : 'find')) throw Error('No permission');
       return proto.storage.find(decoded);
     },
     insert(
@@ -75,7 +75,7 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
     ) {
       QueryValidator.recursiveCheck(attrs);
       const _validator = validator();
-      if (!_validator.validateCLPs(className, 'create')) throw new Error('No permission');
+      if (!_validator.validateCLPs(className, 'create')) throw Error('No permission');
       return proto.storage.insert(
         className,
         normalize(_validator.validateFields(className, attrs, 'create', QueryValidator.patterns.name)),
@@ -87,7 +87,7 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
     ) {
       QueryValidator.recursiveCheck(query, update);
       const _validator = validator();
-      if (!_validator.validateCLPs(className, 'update')) throw new Error('No permission');
+      if (!_validator.validateCLPs(className, 'update')) throw Error('No permission');
       return proto.storage.findOneAndUpdate(
         _validator.decodeQuery(normalize(query)),
         normalize(_validator.validateFields(className, update, 'update', QueryValidator.patterns.path)),
@@ -99,7 +99,7 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
     ) {
       QueryValidator.recursiveCheck(query, replacement);
       const _validator = validator();
-      if (!_validator.validateCLPs(className, 'update')) throw new Error('No permission');
+      if (!_validator.validateCLPs(className, 'update')) throw Error('No permission');
       return proto.storage.findOneAndReplace(
         _validator.decodeQuery(normalize(query)),
         normalize(_validator.validateFields(className, replacement, 'update', QueryValidator.patterns.path)),
@@ -112,7 +112,7 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
     ) {
       QueryValidator.recursiveCheck(query, update, setOnInsert);
       const _validator = validator();
-      if (!_validator.validateCLPs(className, 'create', 'update')) throw new Error('No permission');
+      if (!_validator.validateCLPs(className, 'create', 'update')) throw Error('No permission');
       return proto.storage.findOneAndUpsert(
         _validator.decodeQuery(normalize(query)),
         normalize(_validator.validateFields(className, update, 'update', QueryValidator.patterns.path)),
@@ -124,7 +124,7 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
     ) {
       QueryValidator.recursiveCheck(query);
       const _validator = validator();
-      if (!_validator.validateCLPs(className, 'delete')) throw new Error('No permission');
+      if (!_validator.validateCLPs(className, 'delete')) throw Error('No permission');
       return proto.storage.findOneAndDelete(_validator.decodeQuery(normalize(query)));
     },
     findAndDelete(
@@ -132,7 +132,7 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
     ) {
       QueryValidator.recursiveCheck(query);
       const _validator = validator();
-      if (!_validator.validateCLPs(className, 'delete')) throw new Error('No permission');
+      if (!_validator.validateCLPs(className, 'delete')) throw Error('No permission');
       return proto.storage.findAndDelete(_validator.decodeQuery(normalize(query)));
     },
   };

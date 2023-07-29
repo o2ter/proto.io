@@ -80,7 +80,7 @@ export class QueryValidator {
     className: string,
     ...keys: (keyof TSchema.CLPs)[]
   ) {
-    if (!_.has(this.schema, className)) throw new Error('No permission');
+    if (!_.has(this.schema, className)) throw Error('No permission');
     if (this.master) return true;
     const perms = this.schema[className].classLevelPermissions ?? {};
     for (const key of keys) {
@@ -128,7 +128,7 @@ export class QueryValidator {
   ) {
     const _values = { ...values };
     for (const key of _.keys(_values)) {
-      if (!this.validateKey(className, key, type, validator)) throw new Error('No permission');
+      if (!this.validateKey(className, key, type, validator)) throw Error('No permission');
     }
     return _values;
   }
@@ -147,11 +147,11 @@ export class QueryValidator {
       } else {
         const [root, ...subpath] = include.split('.');
         if (_.isEmpty(root) || !_.has(schema.fields, root)) throw Error(`Invalid path: ${include}`);
-        if (!this.validateKeyPerm(root, 'read', schema)) throw new Error('No permission');
+        if (!this.validateKeyPerm(root, 'read', schema)) throw Error('No permission');
 
         const dataType = schema.fields[root];
         if (!_.isString(dataType) && (dataType.type === 'pointer' || dataType.type === 'relation')) {
-          if (!this.validateCLPs(dataType.target, 'get')) throw new Error('No permission');
+          if (!this.validateCLPs(dataType.target, 'get')) throw Error('No permission');
           if (!populates[root]) populates[root] = { className: dataType.target, subpaths: [] };
           populates[root].subpaths.push(_.isEmpty(subpath) ? '*' : subpath.join('.'));
         } else if (!_.isEmpty(subpath)) {
@@ -176,10 +176,10 @@ export class QueryValidator {
     const filter = QuerySelector.decode(query.filter ?? []).simplify();
     if (
       !filter.validate(key => this.validateKey(query.className, key, 'read', QueryValidator.patterns.queryPath))
-    ) throw new Error('No permission');
+    ) throw Error('No permission');
 
     const includes = this.#decodeIncludes(query.className, query.includes ?? ['*']);
-    if (!_.every(_.keys(query.sort), k => includes.includes(k))) throw new Error('Invalid sort keys');
+    if (!_.every(_.keys(query.sort), k => includes.includes(k))) throw Error('Invalid sort keys');
 
     return { ...query, filter, includes, acls: this.acls, master: this.master };
   }

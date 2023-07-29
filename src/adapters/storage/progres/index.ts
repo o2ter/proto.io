@@ -69,6 +69,7 @@ export class PostgresStorage implements TStorage {
       case 'array': return 'JSONB';
       case 'pointer': return 'TEXT';
       case 'relation': return 'TEXT[]';
+      default: throw Error('Unknown data type');
     }
   }
 
