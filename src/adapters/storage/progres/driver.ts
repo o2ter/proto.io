@@ -30,9 +30,9 @@ import { asyncIterableToArray } from '../../../internals';
 
 class PostgresClientDriver {
 
-  client: Pool | PoolClient;
+  client: PoolClient;
 
-  constructor(client: Pool | PoolClient) {
+  constructor(client: PoolClient) {
     this.client = client;
   }
 
@@ -61,14 +61,12 @@ class PostgresClientDriver {
   }
 }
 
-export class PostgresDriver extends PostgresClientDriver {
+export class PostgresDriver {
 
   database: Pool;
 
   constructor(config: string | PoolConfig) {
-    const database = new Pool(_.isString(config) ? { connectionString: config } : config);
-    super(database);
-    this.database = database;
+    this.database = new Pool(_.isString(config) ? { connectionString: config } : config);
   }
 
   async shutdown() {
@@ -82,5 +80,30 @@ export class PostgresDriver extends PostgresClientDriver {
     } finally {
       client.release();
     }
+  }
+
+  query(text: string, values: any[] = [], batchSize?: number) {
+    const database = this.database;
+    const iterator = async function* () {
+      const _client = await database.connect();
+      const client = new PostgresClientDriver(_client);
+      try {
+        const stream = client.query(text, values, batchSize);
+        for await (const row of stream) yield row;
+      } finally {
+        _client.release();
+      }
+    };
+    return {
+      then(...args: Parameters<Promise<any[]>['then']>) {
+        return asyncIterableToArray({ [Symbol.asyncIterator]: iterator }).then(...args);
+      },
+      [Symbol.asyncIterator]: iterator,
+    };
+  }
+
+  async version() {
+    const rows = await this.query('SELECT version()');
+    return rows[0].version as string;
   }
 }
