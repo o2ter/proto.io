@@ -24,21 +24,26 @@
 //
 
 import _ from 'lodash';
-import pg, { IConnectionOptions, IDatabase } from 'pg-promise';
+import pg, { IConnectionOptions } from 'pg-promise';
 
 const pgp = pg({});
 
 export class PostgresDriver {
 
-  connection: IDatabase<{}>;
+  database: ReturnType<typeof pgp>;
+  client?: Awaited<ReturnType<ReturnType<typeof pgp>['connect']>>;
 
   constructor(uri: string) {
-    this.connection = pgp(uri);
+    this.database = pgp(uri);
   }
 
   async connect(options?: IConnectionOptions) {
-    await this.connection.connect(options);
+    this.client = await this.database.connect(options);
     return this;
+  }
+
+  async shutdown() {
+    await this.client?.done();
   }
 
   static async connect(uri: string, options?: IConnectionOptions) {

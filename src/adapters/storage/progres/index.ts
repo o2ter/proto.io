@@ -49,6 +49,7 @@ export class PostgresStorage implements TStorage {
 
   async shutdown() {
     this.schedule?.destory();
+    await this.driver.shutdown();
   }
 
   static async connect(uri: string, options?: IConnectionOptions) {
