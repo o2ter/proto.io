@@ -125,6 +125,36 @@ class PostgresClientDriver {
     }));
   }
 
+  async indices(table: string, namespace?: string) {
+    const indices = await this.query(`
+      SELECT
+          n.nspname AS schema_name,
+          t.relname AS table_name,
+          i.relname AS index_name,
+          ix.indisprimary AS is_primary,
+          ix.indisunique AS is_unique,
+          a.attname AS column_name,
+          k.indseq AS seq
+      FROM
+          pg_namespace n,
+          pg_class t,
+          pg_class i,
+          pg_index ix,
+          UNNEST(ix.indkey) WITH ORDINALITY k(attnum, indseq),
+          pg_attribute a
+      WHERE
+          t.oid = ix.indrelid
+          AND n.oid = t.relnamespace
+          AND i.oid = ix.indexrelid
+          AND a.attrelid = t.oid
+          AND a.attnum = k.attnum
+          AND t.relkind = 'r'
+          AND t.relname = '${table}'
+          ${namespace ? `AND n.nspname = '${namespace}'` : ''}
+    `);
+    return indices;
+  }
+
 }
 
 export class PostgresDriver extends PostgresClientDriver {

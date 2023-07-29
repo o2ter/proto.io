@@ -53,6 +53,7 @@ export class PostgresStorage implements TStorage {
     this.schedule?.execute();
     for (const [className, _schema] of _.toPairs(schema)) {
       await this.#createTable(className, _schema);
+      await this.#createIndices(className, _schema);
     }
   }
 
@@ -72,7 +73,9 @@ export class PostgresStorage implements TStorage {
 
   async #createTable(className: string, schema: TSchema) {
     await this.driver.query(`
-      CREATE TABLE IF NOT EXISTS ${escapeIdentifier(className)} (
+      CREATE TABLE
+      IF NOT EXISTS ${escapeIdentifier(className)}
+      (
         _id TEXT PRIMARY KEY,
         __v INTEGER NOT NULL DEFAULT 0,
         _created_at TIMESTAMP NOT NULL DEFAULT now(),
@@ -82,8 +85,33 @@ export class PostgresStorage implements TStorage {
         ${_.map(schema.fields, (type, col) => `
           ${escapeIdentifier(col)} ${this.#postgresType(_.isString(type) ? type : type.type)}
         `).join(',')}
-      );
+      )
     `);
+  }
+
+  async #createIndices(className: string, schema: TSchema) {
+    const relations = _.pickBy(schema.fields, v => !_.isString(v) && v.type === 'relation');
+    const indexes = [
+      ..._.map(_.keys(relations), k => ({ keys: { [k]: 1 } }) as TSchema.Indexes),
+      ...(schema.indexes ?? []),
+    ];
+    for (const index of indexes) {
+      if (_.isEmpty(index.keys)) continue;
+      const name = `${className}$${_.map(index.keys, (v, k) => `${k}:${v}`).join('$')}`;
+      const isAcl = _.isEqual(index.keys, { _acl: 1 });
+      const isRelation = _.has(relations, _.last(_.keys(index.keys)) as string);
+      await this.driver.query(`
+        CREATE ${index.unique ? 'UNIQUE' : ''} INDEX
+        IF NOT EXISTS ${escapeIdentifier(name)}
+        ON ${escapeIdentifier(className)}
+        ${isAcl || isRelation ? 'USING GIN' : ''}
+        (
+          ${_.map(index.keys, (v, k) => `
+            ${escapeIdentifier(k)} ${isAcl || isRelation ? '' : v === 1 ? 'ASC' : 'DESC'}
+          `).join(',')}
+        )
+      `);
+    }
   }
 
   classes() {
