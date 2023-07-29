@@ -152,7 +152,16 @@ class PostgresClientDriver {
           AND t.relname = '${table}'
           ${namespace ? `AND n.nspname = '${namespace}'` : ''}
     `);
-    return indices;
+    return _.mapValues(_.groupBy(indices, 'index_name'), v => ({
+      keys: _.map(_.sortBy(v, ({ seq }) => parseInt(seq)), 'column_name'),
+      ..._.pick(_.first(v), [
+        'schema_name',
+        'table_name',
+        'index_name',
+        'is_primary',
+        'is_unique',
+      ])
+    }));
   }
 
 }
