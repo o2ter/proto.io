@@ -70,6 +70,9 @@ export class DatabaseFileStorage implements TFileStorage {
           update: [],
           delete: [],
         },
+        fieldLevelPermissions: {
+          _expired_at: { create: [], update: [] },
+        },
         indexes: [
           { keys: { token: 1, start: 1, end: 1 } },
           { keys: { token: 1, end: 1 } },

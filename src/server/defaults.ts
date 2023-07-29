@@ -38,6 +38,7 @@ export const defaultSchema: Record<string, TSchema> = {
     },
     fieldLevelPermissions: {
       password: { read: [], update: [] },
+      _expired_at: { create: [], update: [] },
     },
   },
   '_Role': {
@@ -52,6 +53,9 @@ export const defaultSchema: Record<string, TSchema> = {
       create: [],
       update: [],
       delete: [],
+    },
+    fieldLevelPermissions: {
+      _expired_at: { create: [], update: [] },
     },
     indexes: [
       {
@@ -71,12 +75,15 @@ export const defaultSchema: Record<string, TSchema> = {
     classLevelPermissions: {
       find: [],
       count: [],
+      update: [],
+      delete: [],
     },
     fieldLevelPermissions: {
       size: { update: [] },
       type: { update: [] },
       token: { update: [] },
       content: { update: [] },
+      _expired_at: { create: [], update: [] },
     },
   },
 }
