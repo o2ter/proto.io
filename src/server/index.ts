@@ -85,10 +85,6 @@ export class Proto<Ext> implements ProtoType<Ext> {
     });
   }
 
-  async shutdown() {
-    await this.storage.shutdown();
-  }
-
   classes(): string[] {
     return _.keys(this[PVK].options.schema);
   }

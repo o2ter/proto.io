@@ -27,15 +27,30 @@ import _ from 'lodash';
 import express from 'express';
 import { Proto, ProtoRoute, UUID } from '../../src/index';
 import { beforeAll, afterAll } from '@jest/globals';
-import { MemoryStorage } from '../../src/adapters/storage/memory';
 import DatabaseFileStorage from '../../src/adapters/file/database';
+import PostgresStorage from '../../src/adapters/storage/progres';
 
 let httpServer: any;
+
+const db_host = process.env['POSTGRES_HOST'] ?? "localhost";
+const db_user = process.env['POSTGRES_USERNAME'];
+const db_pass = process.env['POSTGRES_PASSWORD'];
+const db = `/${process.env['POSTGRES_DATABASE'] ?? ''}`;
+const db_ssl = process.env['POSTGRES_SSLMODE'];
+
+const uri = _.compact([
+  'postgres://',
+  db_user && db_pass && `${db_user}:${db_pass}@`,
+  db_host, db,
+  db_ssl && `?ssl=true&sslmode=${db_ssl}`
+]).join('');
+
+const database = new PostgresStorage(uri);
 
 const proto = new Proto({
   endpoint: 'http://localhost:8080',
   schema: {},
-  storage: new MemoryStorage(),
+  storage: database,
   fileStorage: new DatabaseFileStorage(),
 });
 
@@ -44,6 +59,8 @@ proto.define('echo', (req) => {
 });
 
 beforeAll(async () => {
+
+  console.log('PostgreSQL version: ', await database.version())
 
   const app = express();
 
@@ -57,6 +74,6 @@ beforeAll(async () => {
 });
 
 afterAll(() => new Promise<void>(async (res) => {
-  await proto.shutdown();
+  await database.shutdown();
   httpServer.shutdown(res);
 }));

@@ -26,6 +26,7 @@
 import _ from 'lodash';
 import { Pool, PoolConfig, PoolClient } from 'pg';
 import Cursor from 'pg-cursor';
+import { asyncIterableToArray } from '../../../internals';
 
 class PostgresClientDriver {
 
@@ -35,13 +36,27 @@ class PostgresClientDriver {
     this.client = client;
   }
 
-  async* query(text: string, values: any[] = [], batchSize: number = 256) {
-    const cursor = this.client.query(new Cursor(text, values));
-    while (true) {
-      const rows = await cursor.read(batchSize);
-      if (rows.length === 0) return;
-      for (const row of rows) yield row;
-    }
+  query(text: string, values: any[] = [], batchSize: number = 256) {
+    const client = this.client;
+    const iterator = async function* () {
+      const cursor = client.query(new Cursor(text, values));
+      while (true) {
+        const rows = await cursor.read(batchSize);
+        if (rows.length === 0) return;
+        for (const row of rows) yield row;
+      }
+    };
+    return {
+      get then() {
+        return asyncIterableToArray({ [Symbol.asyncIterator]: iterator }).then;
+      },
+      [Symbol.asyncIterator]: iterator,
+    };
+  }
+
+  async version() {
+    const rows = await this.query('SELECT version()');
+    return rows[0].version as string;
   }
 }
 

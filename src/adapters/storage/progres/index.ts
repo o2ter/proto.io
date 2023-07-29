@@ -56,6 +56,10 @@ export class PostgresStorage implements TStorage {
     return Object.keys(this.schema);
   }
 
+  async version() {
+    return this.driver.version();
+  }
+
   async explain(query: DecodedQuery<ExplainOptions>) {
     return 0;
   }
