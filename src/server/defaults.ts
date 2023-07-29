@@ -32,6 +32,7 @@ export const defaultSchema: Record<string, TSchema> = {
       password: 'string',
     },
     classLevelPermissions: {
+      get: [],
       find: [],
       count: [],
       delete: [],
@@ -48,8 +49,6 @@ export const defaultSchema: Record<string, TSchema> = {
       roles: { type: 'relation', target: '_Role' },
     },
     classLevelPermissions: {
-      find: [],
-      count: [],
       create: [],
       update: [],
       delete: [],

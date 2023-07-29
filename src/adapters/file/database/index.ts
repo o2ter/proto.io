@@ -64,6 +64,7 @@ export class DatabaseFileStorage implements TFileStorage {
           base64: 'string',
         },
         classLevelPermissions: {
+          get: [],
           find: [],
           count: [],
           create: [],
