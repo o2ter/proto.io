@@ -24,31 +24,32 @@
 //
 
 import _ from 'lodash';
-import { MongoClient, MongoClientOptions } from 'mongodb';
+import { MongoClientOptions } from 'mongodb';
 import { UpdateOp, TValue } from '../../../internals';
 import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions, TStorage } from '../../../server/storage';
 import { storageSchedule } from '../../../server/schedule';
 import { TSchema } from '../../../server/schema';
+import { MongoDriver } from './driver';
 
 export class MongoStorage implements TStorage {
 
   schedule = storageSchedule(this, []);
 
   schema: Record<string, TSchema> = {};
-  connection: MongoClient;
+  driver: MongoDriver;
 
   constructor(uri: string, options?: MongoClientOptions) {
-    this.connection = new MongoClient(uri, options);
+    this.driver = new MongoDriver(uri, options);
   }
 
   async connect() {
-    await this.connection.connect();
+    await this.driver.connect();
     return this;
   }
 
   async shutdown() {
     this.schedule?.destory();
-    await this.connection.close();
+    await this.driver.shutdown();
   }
 
   static async connect(uri: string, options?: MongoClientOptions) {
