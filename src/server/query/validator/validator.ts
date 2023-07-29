@@ -146,6 +146,7 @@ export class QueryValidator {
 
         const dataType = schema.fields[root];
         if (!_.isString(dataType) && (dataType.type === 'pointer' || dataType.type === 'relation')) {
+          if (!this.validateCLPs(dataType.target, 'get')) throw new Error('No permission');
           if (!populates[root]) populates[root] = { className: dataType.target, subpaths: [] };
           populates[root].subpaths.push(_.isEmpty(subpath) ? '*' : subpath.join('.'));
         } else if (!_.isEmpty(subpath)) {
