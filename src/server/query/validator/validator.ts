@@ -43,6 +43,7 @@ export class QueryValidator {
 
   schema: Record<string, TSchema>;
   acls: string[];
+  master: boolean;
 
   static patterns = {
     queryPath: /^[a-z_]\w*(\[\*\]|\.\*|\[\d+\]|\.\d*|\.[a-z_]\w*)*$/gi,
@@ -54,9 +55,11 @@ export class QueryValidator {
   constructor(
     schema: Record<string, TSchema>,
     acls: string[],
+    master: boolean,
   ) {
     this.schema = schema;
     this.acls = _.uniq(['*', ...acls]);
+    this.master = master;
   }
 
   static recursiveCheck(...x: any[]) {
