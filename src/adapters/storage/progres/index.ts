@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { IConnectionOptions } from 'pg-promise';
+import { PoolConfig } from 'pg';
 import { UpdateOp, TValue } from '../../../internals';
 import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions, TStorage } from '../../../server/storage';
 import { storageSchedule } from '../../../server/schedule';
@@ -38,23 +38,13 @@ export class PostgresStorage implements TStorage {
   schema: Record<string, TSchema> = {};
   driver: PostgresDriver;
 
-  constructor(uri: string) {
-    this.driver = new PostgresDriver(uri);
-  }
-
-  async connect(options?: IConnectionOptions) {
-    await this.driver.connect(options);
-    return this;
+  constructor(config: string | PoolConfig) {
+    this.driver = new PostgresDriver(config);
   }
 
   async shutdown() {
     this.schedule?.destory();
     await this.driver.shutdown();
-  }
-
-  static async connect(uri: string, options?: IConnectionOptions) {
-    const storage = new PostgresStorage(uri);
-    return storage.connect(options);
   }
 
   async prepare(schema: Record<string, TSchema>) {

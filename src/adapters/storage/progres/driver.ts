@@ -24,30 +24,21 @@
 //
 
 import _ from 'lodash';
-import pg, { IConnectionOptions } from 'pg-promise';
-
-const pgp = pg({});
+import { Pool, PoolConfig } from 'pg';
 
 export class PostgresDriver {
 
-  database: ReturnType<typeof pgp>;
-  client?: Awaited<ReturnType<ReturnType<typeof pgp>['connect']>>;
+  database: Pool;
 
-  constructor(uri: string) {
-    this.database = pgp(uri);
-  }
-
-  async connect(options?: IConnectionOptions) {
-    this.client = await this.database.connect(options);
-    return this;
+  constructor(config: string | PoolConfig) {
+    this.database = new Pool(_.isString(config) ? { connectionString: config } : config);
   }
 
   async shutdown() {
-    await this.client?.done();
+    await this.database.end();
   }
 
-  static async connect(uri: string, options?: IConnectionOptions) {
-    const storage = new PostgresDriver(uri);
-    return storage.connect(options);
+  async query(query: string, values: any[]) {
+    
   }
 }
