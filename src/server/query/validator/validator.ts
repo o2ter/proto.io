@@ -173,7 +173,7 @@ export class QueryValidator {
     ) throw new Error('No permission');
 
     const includes = this.#decodeIncludes(query.className, query.includes ?? ['*']);
-    if (!_.every(_.keys(query.sort), k => includes.includes(k))) throw new Error(`Invalid sort keys`);
+    if (!_.every(_.keys(query.sort), k => includes.includes(k))) throw new Error('Invalid sort keys');
 
     return { ...query, filter, includes };
   };
