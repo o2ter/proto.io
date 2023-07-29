@@ -40,7 +40,7 @@ export interface TStorage {
   prepare(schema: Record<string, TSchema>): PromiseLike<void>;
   shutdown(): PromiseLike<void>;
 
-  classes(): string[] | PromiseLike<string[]>;
+  classes(): string[];
 
   explain(query: DecodedQuery<ExplainOptions>): PromiseLike<any>;
 

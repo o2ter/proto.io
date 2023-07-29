@@ -38,7 +38,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
     async (req, res) => {
 
       const { name } = req.params;
-      const classes = await proto.classes();
+      const classes = proto.classes();
 
       if (!_.includes(classes, name)) return res.sendStatus(404);
 
@@ -84,7 +84,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
     async (req, res) => {
 
       const { name } = req.params;
-      const classes = await proto.classes();
+      const classes = proto.classes();
 
       if (!_.includes(classes, name)) return res.sendStatus(404);
 
@@ -121,7 +121,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
     async (req, res) => {
 
       const { name, id } = req.params;
-      const classes = await proto.classes();
+      const classes = proto.classes();
 
       if (!_.includes(classes, name)) return res.sendStatus(404);
 
@@ -139,7 +139,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
     async (req, res) => {
 
       const { name, id } = req.params;
-      const classes = await proto.classes();
+      const classes = proto.classes();
 
       if (!_.includes(classes, name)) return res.sendStatus(404);
 
@@ -158,7 +158,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
     async (req, res) => {
 
       const { name, id } = req.params;
-      const classes = await proto.classes();
+      const classes = proto.classes();
 
       if (!_.includes(classes, name)) return res.sendStatus(404);
 
@@ -180,7 +180,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
       if (!_.isEmpty(req.body)) return res.sendStatus(400);
 
       const { name, id } = req.params;
-      const classes = await proto.classes();
+      const classes = proto.classes();
 
       if (!_.includes(classes, name)) return res.sendStatus(404);
 

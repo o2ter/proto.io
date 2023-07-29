@@ -23,6 +23,7 @@
 //  THE SOFTWARE.
 //
 
+import _ from 'lodash';
 import { applyQueryMethods } from './query';
 import { ProtoInternal } from './internal';
 import {
@@ -88,8 +89,8 @@ export class Proto<Ext> implements ProtoType<Ext> {
     await this.storage.shutdown();
   }
 
-  classes(): string[] | PromiseLike<string[]> {
-    return this.storage.classes();
+  classes(): string[] {
+    return _.keys(this[PVK].options.schema);
   }
 
   Object<T extends string>(className: T, objectId?: string): TObjectType<T, Ext> {
