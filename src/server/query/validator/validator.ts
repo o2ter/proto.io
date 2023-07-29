@@ -73,7 +73,7 @@ export class QueryValidator {
   ) {
     if (type === 'read' && TObject.defaultKeys.includes(key)) return true;
     if (type !== 'read' && TObject.defaultReadonlyKeys.includes(key)) return false;
-    return !_.every(schema.fieldLevelPermissions?.[key]?.[type] ?? ['*'], x => !_.includes(this.acls, x));
+    return this.master || !_.every(schema.fieldLevelPermissions?.[key]?.[type] ?? ['*'], x => !_.includes(this.acls, x));
   }
 
   validateCLPs(
@@ -81,6 +81,7 @@ export class QueryValidator {
     ...keys: (keyof TSchema.CLPs)[]
   ) {
     if (!_.has(this.schema, className)) throw new Error('No permission');
+    if (this.master) return true;
     const perms = this.schema[className].classLevelPermissions ?? {};
     for (const key of keys) {
       if (_.every(perms[key] ?? ['*'], x => !_.includes(this.acls, x))) return false;
