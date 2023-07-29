@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { Pool, PoolConfig, PoolClient } from 'pg';
-import Cursor from 'pg-cursor';
+import QueryStream from 'pg-query-stream';
 import { asyncIterableToArray } from '../../../internals';
 
 class PostgresClientDriver {
@@ -39,13 +39,9 @@ class PostgresClientDriver {
   query(text: string, values: any[] = [], batchSize: number = 256) {
     const client = this.client;
     const iterator = async function* () {
-      const cursor = new Cursor(text, values);
+      const cursor = new QueryStream(text, values, { batchSize });
       client.query(cursor);
-      while (true) {
-        const rows = await cursor.read(batchSize);
-        if (rows.length === 0) return await cursor.close();
-        for (const row of rows) yield row;
-      }
+      for await (const row of cursor) yield row;
     };
     return {
       then(...args: Parameters<Promise<any[]>['then']>) {
