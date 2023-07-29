@@ -53,6 +53,7 @@ export class PostgresStorage implements TStorage {
     this.schedule?.execute();
     for (const [className, _schema] of _.toPairs(schema)) {
       await this.#createTable(className, _schema);
+      await this.#dropIndices(className, _schema);
       await this.#createIndices(className, _schema);
     }
   }
@@ -87,6 +88,23 @@ export class PostgresStorage implements TStorage {
         `).join(',')}
       )
     `);
+  }
+
+  async #dropIndices(className: string, schema: TSchema) {
+    const relations = _.pickBy(schema.fields, v => !_.isString(v) && v.type === 'relation');
+    const indexes = [
+      ..._.map(_.keys(relations), k => ({ keys: { [k]: 1 } }) as TSchema.Indexes),
+      ...(schema.indexes ?? []),
+    ];
+    const names: string[] = [];
+    for (const index of indexes) {
+      if (_.isEmpty(index.keys)) continue;
+      names.push(`${className}$${_.map(index.keys, (v, k) => `${k}:${v}`).join('$')}`);
+    }
+    for (const [name, { is_primary }] of _.toPairs(await this.indices(className))) {
+      if (is_primary || names.includes(name)) continue;
+      await this.driver.query(`DROP INDEX CONCURRENTLY IF EXISTS ${escapeIdentifier(name)}`);
+    }
   }
 
   async #createIndices(className: string, schema: TSchema) {
