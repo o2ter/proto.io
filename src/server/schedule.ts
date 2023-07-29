@@ -33,7 +33,7 @@ const scheduleOp = {
       await storage.findAndDelete({
         className,
         filter: QuerySelector.decode({ _expired_at: { $lt: new Date() } }),
-        includes: []
+        includes: ['_id'],
       });
     }
   }
