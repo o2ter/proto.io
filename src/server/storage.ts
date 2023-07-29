@@ -35,7 +35,7 @@ export type FindOneOptions = CommonFindOptions & Omit<TQuery.Options, 'skip' | '
 
 export type DecodedQuery<T> = Omit<T, 'filter'> & {
   filter: QuerySelector;
-  populates?: string[];
+  includes: string[];
 };
 
 export interface TStorage {

@@ -59,6 +59,16 @@ type ValidateKeyInfo = {
   acls: string[];
 };
 
+const validatePerm = (
+  key: string,
+  type: keyof TSchema.ACLs,
+  perms: Record<string, TSchema.ACLs> | undefined,
+  acls: string[],
+): boolean => {
+  const _perms = perms?.[key]?.[type] ?? ['*'];
+  return _.includes(_perms, '*') || !_.every(_perms, x => !_.includes(acls, x));
+};
+
 const validateKey = (
   key: string | string[],
   type: keyof TSchema.ACLs,
@@ -69,14 +79,12 @@ const validateKey = (
   const _key = _.isArray(key) ? key.join('.') : key;
   if (!_key.match(info.validator)) throw Error(`Invalid key: ${_key}`);
 
-  const [keyRoot, ...subpath] = _.toPath(_key);
-  if (_.isEmpty(keyRoot) || !_.has(schema.fields, keyRoot)) throw Error(`Invalid path: ${_key}`);
-
-  const perms = schema.fieldLevelPermissions?.[keyRoot]?.[type] ?? ['*'];
-  if (!_.includes(perms, '*') && _.every(perms, x => !_.includes(info.acls, x))) return false;
+  const [root, ...subpath] = _.toPath(_key);
+  if (_.isEmpty(root) || !_.has(schema.fields, root)) throw Error(`Invalid path: ${_key}`);
+  if (!validatePerm(root, type, schema.fieldLevelPermissions, info.acls)) return false;
   if (_.isEmpty(subpath)) return true;
 
-  const dataType = schema.fields[keyRoot];
+  const dataType = schema.fields[root];
   const isElem = _.first(subpath) === '*' || _.first(subpath)?.match(digits);
   if (isElem) {
     if (dataType === 'array') return true;
@@ -87,7 +95,7 @@ const validateKey = (
   if (dataType.type !== 'pointer' && dataType.type !== 'relation') return true;
   if (_.isNil(info.schema[dataType.target])) return false;
 
-  return validateKey(isElem ? subpath.slice(1) : subpath, type, info);
+  return validateKey(isElem ? subpath.slice(1) : subpath, type, { ...info, className: dataType.target });
 };
 
 const validateFields = <T extends Record<string, any>>(
@@ -110,14 +118,43 @@ const normalize = <T>(x: T): T => {
   return x;
 };
 
+const decodeIncludes = (
+  includes: string[],
+  info: ValidateKeyInfo,
+): string[] => {
+
+  const schema = info.schema[info.className] ?? {};
+  const primitive = _.keys(_.filter(schema.fields, v => _.isString(v) || (v.type !== 'pointer' && v.type !== 'relation')));
+
+  const result: string[] = [];
+  for (const include of includes) {
+    if (include === '*') {
+      result.push(..._.filter(primitive, k => validatePerm(k, 'read', schema.fieldLevelPermissions, info.acls)));
+    } else {
+      const [root, ...subpath] = include.split('.');
+      if (_.isEmpty(root) || !_.has(schema.fields, root)) throw Error(`Invalid path: ${include}`);
+      if (!validatePerm(root, 'read', schema.fieldLevelPermissions, info.acls)) throw new Error('No permission');
+      if (_.isEmpty(subpath)) {
+        result.push(root);
+      } else {
+
+      }
+    }
+  }
+  return _.uniq(result);
+}
+
 const decodeQuery = <Q extends ExplainOptions | FindOptions | FindOneOptions>(
   query: Q,
   info: ValidateKeyInfo,
 ): DecodedQuery<Q> => {
   const filter = QuerySelector.decode(query.filter ?? []).simplify();
   if (!filter.validate(key => validateKey(key, 'read', { ...info, validator: QueryPathValidator }))) throw new Error('No permission');
-  if (!_.every(query.includes, key => validateKey(key, 'read', { ...info, validator: PathValidator }))) throw new Error('No permission');
-  return { ...query, filter }
+  return {
+    ...query,
+    filter,
+    includes: decodeIncludes(query.includes ?? ['*'], info),
+  }
 };
 
 const recursiveCheck = (x: any, stack: any[] = []) => {
