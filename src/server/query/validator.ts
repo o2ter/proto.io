@@ -126,22 +126,35 @@ const decodeIncludes = (
   const schema = info.schema[info.className] ?? {};
   const primitive = _.keys(_.filter(schema.fields, v => _.isString(v) || (v.type !== 'pointer' && v.type !== 'relation')));
 
-  const result: string[] = [];
+  const _includes: string[] = [];
+  const populates: Record<string, { className: string; subpaths: string[]; }> = {};
+
   for (const include of includes) {
     if (include === '*') {
-      result.push(..._.filter(primitive, k => validatePerm(k, 'read', schema.fieldLevelPermissions, info.acls)));
+      _includes.push(..._.filter(primitive, k => validatePerm(k, 'read', schema.fieldLevelPermissions, info.acls)));
     } else {
       const [root, ...subpath] = include.split('.');
       if (_.isEmpty(root) || !_.has(schema.fields, root)) throw Error(`Invalid path: ${include}`);
       if (!validatePerm(root, 'read', schema.fieldLevelPermissions, info.acls)) throw new Error('No permission');
-      if (_.isEmpty(subpath)) {
-        result.push(root);
-      } else {
 
+      const dataType = schema.fields[root];
+      if (!_.isString(dataType) && (dataType.type === 'pointer' || dataType.type === 'relation')) {
+        if (!populates[root]) populates[root] = { className: dataType.target, subpaths: [] };
+        populates[root].subpaths.push(_.isEmpty(subpath) ? '*' : subpath.join('.'));
+      } else if (!_.isEmpty(subpath)) {
+        _includes.push(root);
+      } else {
+        throw Error(`Invalid path: ${include}`);
       }
     }
   }
-  return _.uniq(result);
+
+  for (const [key, populate] of _.toPairs(populates)) {
+    const subpaths = decodeIncludes(populate.subpaths, { ...info, className: populate.className });
+    _includes.push(..._.map(subpaths, x => `${key}.${x}`));
+  }
+
+  return _.uniq(_includes);
 }
 
 const decodeQuery = <Q extends ExplainOptions | FindOptions | FindOneOptions>(

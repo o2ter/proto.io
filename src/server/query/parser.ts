@@ -139,12 +139,6 @@ class FieldExpression {
               throw Error('Invalid expression');
             }
           case '$search':
-            if (_.isString(expr)) {
-              return new FieldExpression(type, expr);
-            } else {
-              throw Error('Invalid expression');
-            }
-          case '$regex':
             if (_.isString(expr) || _.isRegExp(expr)) {
               return new FieldExpression(type, expr);
             } else {

@@ -110,7 +110,7 @@ export class TQuery<T extends string, Ext> {
     return this.filter({ [key]: { $gte: value ?? null } });
   }
 
-  contains(key: string, value: string) {
+  contains(key: string, value: RegExp | string) {
     return this.filter({ [key]: { $search: value ?? null } });
   }
 
