@@ -79,7 +79,7 @@ const mergeSchema = (...schemas: Record<string, TSchema>[]) => _.reduce(schemas,
     ),
     indexes: [
       ...(acc[className]?.indexes ?? []),
-      ...(s.indexes ?? [])
+      ...(s.indexes ?? []),
     ],
   })),
 }), {} as Record<string, TSchema>);
