@@ -39,7 +39,7 @@ import {
 } from '../internals';
 import { generateId } from './crypto';
 import { TSchema } from './schema';
-import { NameValidator } from './query/validator';
+import { QueryValidator } from './query/validator/validator';
 
 const validateSchema = (schema: Record<string, TSchema>) => {
 
@@ -47,11 +47,11 @@ const validateSchema = (schema: Record<string, TSchema>) => {
 
   for (const [className, _schema] of _.toPairs(schema)) {
 
-    if (!className.match(NameValidator)) throw Error(`Invalid class name: ${className}`);
+    if (!className.match(QueryValidator.patterns.name)) throw Error(`Invalid class name: ${className}`);
 
     const fields = _.keys(_schema.fields);
     for (const key of fields) {
-      if (!key.match(NameValidator)) throw Error(`Invalid field name: ${key}`);
+      if (!key.match(QueryValidator.patterns.name)) throw Error(`Invalid field name: ${key}`);
     }
     for (const key of _.keys(_schema.fieldLevelPermissions)) {
       if (!fields.includes(key)) throw Error(`Invalid field permission: ${key}`);

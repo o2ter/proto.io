@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { TObject, UpdateOp, TValue, TQuery } from '../internals';
-import { QuerySelector } from './query/parser';
+import { QuerySelector } from './query/validator/parser';
 import { TSchema } from './schema';
 
 type CommonFindOptions = { className: string; };

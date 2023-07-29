@@ -33,7 +33,7 @@ import {
   TComparisonKeys,
   TValueListKeys,
   allFieldQueryKeys,
-} from '../../internals';
+} from '../../../internals';
 
 export class QuerySelector {
 
