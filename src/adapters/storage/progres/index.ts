@@ -101,7 +101,7 @@ export class PostgresStorage implements TStorage {
       const isAcl = _.isEqual(index.keys, { _acl: 1 });
       const isRelation = _.has(relations, _.last(_.keys(index.keys)) as string);
       await this.driver.query(`
-        CREATE ${index.unique ? 'UNIQUE' : ''} INDEX
+        CREATE ${index.unique ? 'UNIQUE' : ''} INDEX CONCURRENTLY
         IF NOT EXISTS ${escapeIdentifier(name)}
         ON ${escapeIdentifier(className)}
         ${isAcl || isRelation ? 'USING GIN' : ''}
