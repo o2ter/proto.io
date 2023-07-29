@@ -161,13 +161,14 @@ const decodeQuery = <Q extends ExplainOptions | FindOptions | FindOneOptions>(
   query: Q,
   info: ValidateKeyInfo,
 ): DecodedQuery<Q> => {
+
   const filter = QuerySelector.decode(query.filter ?? []).simplify();
   if (!filter.validate(key => validateKey(key, 'read', { ...info, validator: QueryPathValidator }))) throw new Error('No permission');
-  return {
-    ...query,
-    filter,
-    includes: decodeIncludes(query.includes ?? ['*'], info),
-  }
+
+  const includes = decodeIncludes(query.includes ?? ['*'], info);
+  if (!_.every(_.keys(query.sort), k => includes.includes(k))) throw new Error(`Invalid sort keys`);
+
+  return { ...query, filter, includes };
 };
 
 const recursiveCheck = (x: any, stack: any[] = []) => {
