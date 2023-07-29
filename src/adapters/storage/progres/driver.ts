@@ -24,27 +24,47 @@
 //
 
 import _ from 'lodash';
-import { Pool, PoolConfig } from 'pg';
+import { Pool, PoolConfig, PoolClient } from 'pg';
 import Cursor from 'pg-cursor';
 
-export class PostgresDriver {
+class PostgresClientDriver {
+
+  client: Pool | PoolClient;
+
+  constructor(client: Pool | PoolClient) {
+    this.client = client;
+  }
+
+  async* query(text: string, values: any[] = [], batchSize: number = 100) {
+    const cursor = this.client.query(new Cursor(text, values));
+    while (true) {
+      const rows = await cursor.read(batchSize);
+      if (rows.length === 0) return;
+      for (const row of rows) yield row;
+    }
+  }
+}
+
+export class PostgresDriver extends PostgresClientDriver {
 
   database: Pool;
 
   constructor(config: string | PoolConfig) {
-    this.database = new Pool(_.isString(config) ? { connectionString: config } : config);
+    const database = new Pool(_.isString(config) ? { connectionString: config } : config);
+    super(database);
+    this.database = database;
   }
 
   async shutdown() {
     await this.database.end();
   }
 
-  async* query(text: string, values: any[] = [], batchSize: number = 100) {
-    const cursor = this.database.query(new Cursor(text, values));
-    while (true) {
-      const rows = await cursor.read(batchSize);
-      if (rows.length === 0) return;
-      for (const row of rows) yield row;
+  async withClient<T>(callback: (client: PostgresClientDriver) => PromiseLike<T>) {
+    const client = await this.database.connect();
+    try {
+      return await callback(new PostgresClientDriver(client));
+    } finally {
+      client.release();
     }
   }
 }
