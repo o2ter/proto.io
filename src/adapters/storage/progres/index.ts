@@ -90,12 +90,19 @@ export class PostgresStorage implements TStorage {
     `);
   }
 
-  async #dropIndices(className: string, schema: TSchema) {
+  #indicesOf(schema: TSchema) {
     const relations = _.pickBy(schema.fields, v => !_.isString(v) && v.type === 'relation');
-    const indexes = [
-      ..._.map(_.keys(relations), k => ({ keys: { [k]: 1 } }) as TSchema.Indexes),
-      ...(schema.indexes ?? []),
-    ];
+    return {
+      relations,
+      indexes: [
+        ..._.map(_.keys(relations), k => ({ keys: { [k]: 1 } }) as TSchema.Indexes),
+        ...(schema.indexes ?? []),
+      ],
+    };
+  }
+
+  async #dropIndices(className: string, schema: TSchema) {
+    const { indexes } = this.#indicesOf(schema);
     const names: string[] = [];
     for (const index of indexes) {
       if (_.isEmpty(index.keys)) continue;
@@ -108,11 +115,7 @@ export class PostgresStorage implements TStorage {
   }
 
   async #createIndices(className: string, schema: TSchema) {
-    const relations = _.pickBy(schema.fields, v => !_.isString(v) && v.type === 'relation');
-    const indexes = [
-      ..._.map(_.keys(relations), k => ({ keys: { [k]: 1 } }) as TSchema.Indexes),
-      ...(schema.indexes ?? []),
-    ];
+    const { relations, indexes } = this.#indicesOf(schema);
     for (const index of indexes) {
       if (_.isEmpty(index.keys)) continue;
       const name = `${className}$${_.map(index.keys, (v, k) => `${k}:${v}`).join('$')}`;
