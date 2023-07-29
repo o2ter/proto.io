@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { PoolConfig } from 'pg';
 import { escapeIdentifier } from 'pg/lib/utils';
-import { UpdateOp, TValue } from '../../../internals';
+import { UpdateOp, TValue, TObject } from '../../../internals';
 import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions, TStorage } from '../../../server/storage';
 import { storageSchedule } from '../../../server/schedule';
 import { TSchema } from '../../../server/schema';
@@ -54,6 +54,7 @@ export class PostgresStorage implements TStorage {
     for (const [className, _schema] of _.toPairs(schema)) {
       await this.#createTable(className, _schema);
       await this.#dropIndices(className, _schema);
+      await this.#rebuildColumns(className, _schema);
       await this.#createIndices(className, _schema);
     }
   }
@@ -113,6 +114,29 @@ export class PostgresStorage implements TStorage {
       if (is_primary || names.includes(name)) continue;
       await this.driver.query(`DROP INDEX CONCURRENTLY IF EXISTS ${escapeIdentifier(name)}`);
     }
+  }
+
+  async #rebuildColumns(className: string, schema: TSchema) {
+    const columns = await this.columns(className);
+    const typeMap: Record<string, string> = {
+      'timestamp without time zone': 'timestamp',
+    };
+    const rebuild: { name: string; type: string; }[] = [];
+    for (const column of columns) {
+      if (TObject.defaultKeys.includes(column.name)) continue;
+      const type = schema.fields[column.name];
+      const pgType = this.#pgType(_.isString(type) ? type : type.type);
+      if (pgType === typeMap[column.type] ?? column.type) continue;
+      rebuild.push({ name: column.name, type: pgType });
+    }
+    if (_.isEmpty(rebuild)) return;
+    await this.driver.query(`
+      ALTER TABLE ${escapeIdentifier(className)}
+      ${_.map(rebuild, ({ name, type }) => `
+        DROP COLUMN IF EXISTS ${escapeIdentifier(name)},
+        ADD COLUMN ${escapeIdentifier(name)} ${type}
+      `).join(',')}
+    `);
   }
 
   async #createIndices(className: string, schema: TSchema) {
