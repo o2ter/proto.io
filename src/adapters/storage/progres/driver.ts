@@ -30,21 +30,23 @@ import { asyncIterableToArray } from '../../../internals';
 
 class PostgresClientDriver {
 
-  client: PoolClient;
+  db: Pool | PoolClient;
 
-  constructor(client: PoolClient) {
-    this.client = client;
+  constructor(db: Pool | PoolClient) {
+    this.db = db;
   }
 
   query(text: string, values: any[] = [], batchSize?: number) {
-    const client = this.client;
+    const db = this.db;
     const iterator = async function* () {
+      const client = db instanceof Pool ? await db.connect() : db;
       const stream = new QueryStream(text, values, { batchSize });
       client.query(stream);
       try {
         for await (const row of stream) yield row;
       } finally {
         stream.destroy();
+        if (db instanceof Pool) client.release();
       }
     };
     return {
@@ -61,12 +63,14 @@ class PostgresClientDriver {
   }
 }
 
-export class PostgresDriver {
+export class PostgresDriver extends PostgresClientDriver {
 
   database: Pool;
 
   constructor(config: string | PoolConfig) {
-    this.database = new Pool(_.isString(config) ? { connectionString: config } : config);
+    const database = new Pool(_.isString(config) ? { connectionString: config } : config);
+    super(database);
+    this.database = database;
   }
 
   async shutdown() {
@@ -80,30 +84,5 @@ export class PostgresDriver {
     } finally {
       client.release();
     }
-  }
-
-  query(text: string, values: any[] = [], batchSize?: number) {
-    const database = this.database;
-    const iterator = async function* () {
-      const _client = await database.connect();
-      const client = new PostgresClientDriver(_client);
-      try {
-        const stream = client.query(text, values, batchSize);
-        for await (const row of stream) yield row;
-      } finally {
-        _client.release();
-      }
-    };
-    return {
-      then(...args: Parameters<Promise<any[]>['then']>) {
-        return asyncIterableToArray({ [Symbol.asyncIterator]: iterator }).then(...args);
-      },
-      [Symbol.asyncIterator]: iterator,
-    };
-  }
-
-  async version() {
-    const rows = await this.query('SELECT version()');
-    return rows[0].version as string;
   }
 }
