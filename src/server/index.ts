@@ -30,17 +30,11 @@ import {
   PVK,
   ProtoType,
   TExtensions,
-  TObject,
   TObjectType,
-  TObjectTypes,
-  isObjKey,
-  FileData,
-  applyObjectMethods,
   TQuery,
   TSerializable,
   TUser,
   ExtraOptions,
-  TValue,
 } from '../internals';
 import { TFileStorage } from './filesys';
 import { TStorage } from './storage';

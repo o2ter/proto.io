@@ -30,15 +30,8 @@ import {
   PVK,
   ProtoType,
   TExtensions,
-  TObject,
-  TObjectType,
-  TObjectTypes,
-  isObjKey,
-  FileData,
-  applyObjectMethods,
   TQuery,
   TSerializable,
-  TValue,
 } from '../internals';
 
 export * from '../common';
