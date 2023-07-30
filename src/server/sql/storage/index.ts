@@ -27,9 +27,9 @@ import _ from 'lodash';
 import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions, TStorage } from '../../storage';
 import { TSchema } from '../../schema';
 import { storageSchedule } from '../../schedule';
-import { TValue, UpdateOp } from '../../../internals';
+import { TValue, UpdateOp, asyncStream } from '../../../internals';
 
-export class SqlStorage implements TStorage {
+export abstract class SqlStorage implements TStorage {
 
   schedule = storageSchedule(this, ['expireDocument']);
   schema: Record<string, TSchema> = {};
@@ -46,6 +46,8 @@ export class SqlStorage implements TStorage {
   classes() {
     return Object.keys(this.schema);
   }
+
+  abstract query(text: string, values: any[]): ReturnType<typeof asyncStream<any>>
 
   async explain(query: DecodedQuery<ExplainOptions>) {
     return 0;

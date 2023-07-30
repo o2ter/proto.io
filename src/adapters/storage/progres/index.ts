@@ -71,7 +71,7 @@ export class PostgresStorage extends SqlStorage {
   }
 
   async #createTable(className: string, schema: TSchema) {
-    await this.driver.query(`
+    await this.query(`
       CREATE TABLE
       IF NOT EXISTS ${escapeIdentifier(className)}
       (
@@ -108,7 +108,7 @@ export class PostgresStorage extends SqlStorage {
     }
     for (const [name, { is_primary }] of _.toPairs(await this.indices(className))) {
       if (is_primary || names.includes(name)) continue;
-      await this.driver.query(`DROP INDEX CONCURRENTLY IF EXISTS ${escapeIdentifier(name)}`);
+      await this.query(`DROP INDEX CONCURRENTLY IF EXISTS ${escapeIdentifier(name)}`);
     }
   }
 
@@ -126,7 +126,7 @@ export class PostgresStorage extends SqlStorage {
       rebuild.push({ name: column.name, type: pgType });
     }
     if (_.isEmpty(rebuild)) return;
-    await this.driver.query(`
+    await this.query(`
       ALTER TABLE ${escapeIdentifier(className)}
       ${_.map(rebuild, ({ name, type }) => `
         DROP COLUMN IF EXISTS ${escapeIdentifier(name)},
@@ -142,7 +142,7 @@ export class PostgresStorage extends SqlStorage {
       const name = `${className}$${_.map(index.keys, (v, k) => `${k}:${v}`).join('$')}`;
       const isAcl = _.isEqual(index.keys, { _acl: 1 });
       const isRelation = _.has(relations, _.last(_.keys(index.keys)) as string);
-      await this.driver.query(`
+      await this.query(`
         CREATE ${index.unique ? 'UNIQUE' : ''} INDEX CONCURRENTLY
         IF NOT EXISTS ${escapeIdentifier(name)}
         ON ${escapeIdentifier(className)}
@@ -154,6 +154,10 @@ export class PostgresStorage extends SqlStorage {
         )
       `);
     }
+  }
+
+  query(text: string, values: any[] = [], batchSize?: number) {
+    return this.driver.query(text, values, batchSize);
   }
 
   classes() {
