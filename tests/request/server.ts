@@ -88,6 +88,7 @@ beforeAll(async () => {
     className: '_Role',
     acls: [],
     master: false,
+    objectIdSize: 10,
   }))
 
   httpServer = require('http-shutdown')(require('http').createServer(app));
