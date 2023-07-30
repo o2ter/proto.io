@@ -110,21 +110,9 @@ export class QueryCompiler {
   private _decodeCoditionalSelector(filter: CoditionalSelector): SQL {
     const queries = _.compact(_.map(filter.exprs, x => this._decodeFilter(x)));
     switch (filter.type) {
-      case '$and':
-        return sql`${{
-          literal: _.map(queries, x => sql`(${x})`),
-          separator: ' AND ',
-        }}`;
-      case '$nor':
-        return sql`${{
-          literal: _.map(queries, x => sql`NOT (${x})`),
-          separator: ' AND ',
-        }}`;
-      case '$or':
-        return sql`${{
-          literal: _.map(queries, x => sql`(${x})`),
-          separator: ' OR ',
-        }}`;
+      case '$and': return sql`${{ literal: _.map(queries, x => sql`(${x})`), separator: ' AND ' }}`;
+      case '$nor': return sql`${{ literal: _.map(queries, x => sql`NOT (${x})`), separator: ' AND ' }}`;
+      case '$or': return sql`${{ literal: _.map(queries, x => sql`(${x})`), separator: ' OR ' }}`;
     }
   }
 
