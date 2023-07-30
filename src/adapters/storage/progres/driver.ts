@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { Pool, PoolConfig, PoolClient } from 'pg';
 import QueryStream from 'pg-query-stream';
-import { asyncIterableToArray } from '../../../internals';
+import { asyncStream } from '../../../internals';
 
 class PostgresClientDriver {
 
@@ -38,23 +38,17 @@ class PostgresClientDriver {
 
   query(text: string, values: any[] = [], batchSize?: number) {
     const db = this.db;
-    const iterator = async function* () {
+    return asyncStream(async function* () {
       const client = db instanceof Pool ? await db.connect() : db;
       const stream = new QueryStream(text, values, { batchSize });
       client.query(stream);
       try {
-        for await (const row of stream) yield row;
+        yield* stream;
       } finally {
         stream.destroy();
         if (db instanceof Pool) client.release();
       }
-    };
-    return {
-      then(...args: Parameters<Promise<any[]>['then']>) {
-        return asyncIterableToArray({ [Symbol.asyncIterator]: iterator }).then(...args);
-      },
-      [Symbol.asyncIterator]: iterator,
-    };
+    });
   }
 
   async version() {

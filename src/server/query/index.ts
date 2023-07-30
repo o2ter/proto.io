@@ -34,6 +34,7 @@ import {
   applyObjectMethods,
   asyncIterableToArray,
   TValue,
+  asyncStream,
 } from '../../internals';
 import { queryValidator } from './validator';
 
@@ -65,15 +66,9 @@ export const applyQueryMethods = <T extends string, E>(
     find: {
       value() {
         const objects = () => storage(this).find(queryOptions(this));
-        const iterator = async function* () {
+        return asyncStream(async function* () {
           for await (const object of objects()) yield applyObjectMethods(object, proto);
-        };
-        return {
-          then(...args: Parameters<Promise<TObject[]>['then']>) {
-            return asyncIterableToArray({ [Symbol.asyncIterator]: iterator }).then(...args);
-          },
-          [Symbol.asyncIterator]: iterator,
-        };
+        });
       },
     },
     insert: {

@@ -32,6 +32,7 @@ import {
   TObject,
   UpdateOp,
   TValue,
+  asyncStream,
 } from '../internals';
 
 export const applyQueryMethods = <T extends string, E>(
@@ -82,14 +83,7 @@ export const applyQueryMethods = <T extends string, E>(
           context: context ?? {},
           ...queryOptions(this),
         }, requestOpt(this)) as Promise<TObject[]>;
-        return {
-          then(...args: Parameters<Promise<TObject[]>['then']>) {
-            return request().then(...args);
-          },
-          [Symbol.asyncIterator]: async function* () {
-            for (const object of await request()) yield object;
-          },
-        };
+        return asyncStream(request);
       },
     },
     insert: {

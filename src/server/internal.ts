@@ -271,7 +271,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
       [Symbol.asyncIterator]: async function* () {
         object = await object.fetchIfNeeded(['token'], options);
         const chunks = self.options.fileStorage.fileData(self.proto, object.token);
-        for await (const chunk of chunks) yield chunk;
+        yield* chunks;
       }
     });
   }

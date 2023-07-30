@@ -25,10 +25,27 @@
 
 import _ from 'lodash';
 
-export const isObjKey = <T extends object>(key: PropertyKey, obj: T): key is keyof T  => key in obj;
+export const isObjKey = <T extends object>(key: PropertyKey, obj: T): key is keyof T => key in obj;
 
 export const asyncIterableToArray = async <T>(asyncIterable: AsyncIterable<T>) => {
   const array: T[] = [];
   for await (const obj of asyncIterable) array.push(obj);
   return array;
 };
+
+export const arrayToAsyncGenerator = <T>(array: T[] | PromiseLike<T[]>) => async function* () {
+  yield* await array;
+}();
+
+export const asyncStream = <T>(callback: () => Promise<T[]> | AsyncIterable<T>) => ({
+  then(...args: Parameters<Promise<T[]>['then']>) {
+    const base = callback();
+    const promise = base instanceof Promise ? base : asyncIterableToArray(base);
+    return promise.then(...args);
+  },
+  [Symbol.asyncIterator]() {
+    const base = callback();
+    const iterable = base instanceof Promise ? arrayToAsyncGenerator(base) : base;
+    return iterable[Symbol.asyncIterator]();
+  },
+});
