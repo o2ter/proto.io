@@ -116,9 +116,7 @@ export abstract class SqlStorage implements TStorage {
     return this._compile(template, () => idx++);
   }
 
-  private buildFilter(filter: QuerySelector) {
-
-
+  private _compile_filter(filter: QuerySelector) {
 
   }
 

@@ -38,24 +38,24 @@ import {
 
 export class ProtoClientQuery<T extends string, E> extends TQuery<T, E> {
 
-  private proto: ProtoClient<E>;
-  private options?: RequestOptions;
+  private _proto: ProtoClient<E>;
+  private _options?: RequestOptions;
 
   constructor(className: T, proto: ProtoClient<E>, options?: RequestOptions) {
     super(className);
-    this.proto = proto;
-    this.options = options;
+    this._proto = proto;
+    this._options = options;
   }
 
-  private get queryOptions() {
+  private get _queryOptions() {
     return {
       className: this[PVK].className,
       ...this[PVK].options,
     } as any;
   }
 
-  private get requestOpt() {
-    const { context, ...opts } = this.options ?? {};
+  private get _requestOpt() {
+    const { context, ...opts } = this._options ?? {};
     return {
       method: 'post',
       url: `classes/${this.className}`,
@@ -67,86 +67,86 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E> {
   }
 
   clone(options?: TQuery.Options) {
-    const clone = new ProtoClientQuery(this.className, this.proto, this.options);
+    const clone = new ProtoClientQuery(this.className, this._proto, this._options);
     clone[PVK].options = options ?? { ...this[PVK].options };
     return clone;
   }
 
   explain() {
-    return this.proto[PVK].request({
+    return this._proto[PVK].request({
       operation: 'explain',
-      context: this.options?.context ?? {},
-      ...this.queryOptions,
-    }, this.requestOpt);
+      context: this._options?.context ?? {},
+      ...this._queryOptions,
+    }, this._requestOpt);
   }
 
   count() {
-    return this.proto[PVK].request({
+    return this._proto[PVK].request({
       operation: 'count',
-      context: this.options?.context ?? {},
-      ...this.queryOptions,
-    }, this.requestOpt) as any;
+      context: this._options?.context ?? {},
+      ...this._queryOptions,
+    }, this._requestOpt) as any;
   }
 
   find() {
-    const request = () => this.proto[PVK].request({
+    const request = () => this._proto[PVK].request({
       operation: 'find',
-      context: this.options?.context ?? {},
-      ...this.queryOptions,
-    }, this.requestOpt) as Promise<TObjectType<T, E>[]>;
+      context: this._options?.context ?? {},
+      ...this._queryOptions,
+    }, this._requestOpt) as Promise<TObjectType<T, E>[]>;
     return asyncStream(request);
   }
 
   insert(attrs: Record<string, TValue>) {
-    return this.proto[PVK].request({
+    return this._proto[PVK].request({
       operation: 'insert',
-      context: this.options?.context ?? {},
+      context: this._options?.context ?? {},
       attributes: attrs,
-    }, this.requestOpt) as any;
+    }, this._requestOpt) as any;
   }
 
   findOneAndUpdate(update: Record<string, [UpdateOp, TValue]>) {
-    return this.proto[PVK].request({
+    return this._proto[PVK].request({
       operation: 'findOneAndUpdate',
-      context: this.options?.context ?? {},
+      context: this._options?.context ?? {},
       update,
-      ...this.queryOptions,
-    }, this.requestOpt) as any;
+      ...this._queryOptions,
+    }, this._requestOpt) as any;
   }
 
   findOneAndReplace(replacement: Record<string, TValue>) {
-    return this.proto[PVK].request({
+    return this._proto[PVK].request({
       operation: 'findOneAndReplace',
-      context: this.options?.context ?? {},
+      context: this._options?.context ?? {},
       replacement,
-      ...this.queryOptions,
-    }, this.requestOpt) as any;
+      ...this._queryOptions,
+    }, this._requestOpt) as any;
   }
 
   findOneAndUpsert(update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>) {
-    return this.proto[PVK].request({
+    return this._proto[PVK].request({
       operation: 'findOneAndUpsert',
-      context: this.options?.context ?? {},
+      context: this._options?.context ?? {},
       update,
       setOnInsert,
-      ...this.queryOptions,
-    }, this.requestOpt) as any;
+      ...this._queryOptions,
+    }, this._requestOpt) as any;
   }
 
   findOneAndDelete() {
-    return this.proto[PVK].request({
+    return this._proto[PVK].request({
       operation: 'findOneAndDelete',
-      context: this.options?.context ?? {},
-      ...this.queryOptions,
-    }, this.requestOpt) as any;
+      context: this._options?.context ?? {},
+      ...this._queryOptions,
+    }, this._requestOpt) as any;
   }
 
   findAndDelete() {
-    return this.proto[PVK].request({
+    return this._proto[PVK].request({
       operation: 'findAndDelete',
-      context: this.options?.context ?? {},
-      ...this.queryOptions,
-    }, this.requestOpt) as any;
+      context: this._options?.context ?? {},
+      ...this._queryOptions,
+    }, this._requestOpt) as any;
   }
 
 }

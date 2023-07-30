@@ -33,29 +33,29 @@ import { PostgresDialect } from './dialect';
 
 export class PostgresStorage extends SqlStorage {
 
-  private driver: PostgresDriver;
+  private _driver: PostgresDriver;
 
   constructor(config: string | PoolConfig) {
     super();
-    this.driver = new PostgresDriver(config);
+    this._driver = new PostgresDriver(config);
   }
 
   async shutdown() {
     await super.shutdown();
-    await this.driver.shutdown();
+    await this._driver.shutdown();
   }
 
   async prepare(schema: Record<string, TSchema>) {
     await super.prepare(schema);
     for (const [className, _schema] of _.toPairs(schema)) {
-      await this.createTable(className, _schema);
-      await this.dropIndices(className, _schema);
-      await this.rebuildColumns(className, _schema);
-      await this.createIndices(className, _schema);
+      await this._createTable(className, _schema);
+      await this._dropIndices(className, _schema);
+      await this._rebuildColumns(className, _schema);
+      await this._createIndices(className, _schema);
     }
   }
 
-  private pgType(type: TSchema.Primitive | TSchema.Relation) {
+  private _pgType(type: TSchema.Primitive | TSchema.Relation) {
     switch (type) {
       case 'boolean': return 'BOOLEAN';
       case 'number': return 'DOUBLE PRECISION';
@@ -70,7 +70,7 @@ export class PostgresStorage extends SqlStorage {
     }
   }
 
-  private async createTable(className: string, schema: TSchema) {
+  private async _createTable(className: string, schema: TSchema) {
     await this.query(sql`
       CREATE TABLE
       IF NOT EXISTS ${{ identifier: className }}
@@ -82,13 +82,13 @@ export class PostgresStorage extends SqlStorage {
         _expired_at TIMESTAMP,
         _acl TEXT[],
         ${_.map(schema.fields, (type, col) => sql`
-          ${{ identifier: col }} ${{ literal: this.pgType(_.isString(type) ? type : type.type) }}
+          ${{ identifier: col }} ${{ literal: this._pgType(_.isString(type) ? type : type.type) }}
         `)}
       )
     `);
   }
 
-  private indicesOf(schema: TSchema) {
+  private _indicesOf(schema: TSchema) {
     const relations = _.pickBy(schema.fields, v => !_.isString(v) && v.type === 'relation');
     return {
       relations,
@@ -99,8 +99,8 @@ export class PostgresStorage extends SqlStorage {
     };
   }
 
-  private async dropIndices(className: string, schema: TSchema) {
-    const { indexes } = this.indicesOf(schema);
+  private async _dropIndices(className: string, schema: TSchema) {
+    const { indexes } = this._indicesOf(schema);
     const names: string[] = [];
     for (const index of indexes) {
       if (_.isEmpty(index.keys)) continue;
@@ -112,7 +112,7 @@ export class PostgresStorage extends SqlStorage {
     }
   }
 
-  private async rebuildColumns(className: string, schema: TSchema) {
+  private async _rebuildColumns(className: string, schema: TSchema) {
     const columns = await this.columns(className);
     const typeMap: Record<string, string> = {
       'timestamp without time zone': 'timestamp',
@@ -121,7 +121,7 @@ export class PostgresStorage extends SqlStorage {
     for (const column of columns) {
       if (TObject.defaultKeys.includes(column.name)) continue;
       const type = schema.fields[column.name];
-      const pgType = this.pgType(_.isString(type) ? type : type.type);
+      const pgType = this._pgType(_.isString(type) ? type : type.type);
       if (pgType === typeMap[column.type] ?? column.type) continue;
       rebuild.push({ name: column.name, type: pgType });
     }
@@ -135,8 +135,8 @@ export class PostgresStorage extends SqlStorage {
     `);
   }
 
-  private async createIndices(className: string, schema: TSchema) {
-    const { relations, indexes } = this.indicesOf(schema);
+  private async _createIndices(className: string, schema: TSchema) {
+    const { relations, indexes } = this._indicesOf(schema);
     for (const index of indexes) {
       if (_.isEmpty(index.keys)) continue;
       const name = `${className}$${_.map(index.keys, (v, k) => `${k}:${v}`).join('$')}`;
@@ -159,7 +159,7 @@ export class PostgresStorage extends SqlStorage {
   }
 
   _query(text: string, values: any[] = [], batchSize?: number) {
-    return this.driver.query(text, values, batchSize);
+    return this._driver.query(text, values, batchSize);
   }
 
   classes() {
@@ -167,31 +167,31 @@ export class PostgresStorage extends SqlStorage {
   }
 
   async version() {
-    return this.driver.version();
+    return this._driver.version();
   }
 
   async databases() {
-    return this.driver.databases();
+    return this._driver.databases();
   }
 
   async tables() {
-    return this.driver.tables();
+    return this._driver.tables();
   }
 
   async views() {
-    return this.driver.views();
+    return this._driver.views();
   }
 
   async materializedViews() {
-    return this.driver.materializedViews();
+    return this._driver.materializedViews();
   }
 
   async columns(table: string, namespace?: string) {
-    return this.driver.columns(table, namespace);
+    return this._driver.columns(table, namespace);
   }
 
   async indices(table: string, namespace?: string) {
-    return this.driver.indices(table, namespace);
+    return this._driver.indices(table, namespace);
   }
 
 }
