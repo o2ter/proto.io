@@ -86,6 +86,12 @@ export class PostgresStorage extends SqlStorage {
         `)}
       )
     `);
+    await this.query(sql`
+      CREATE UNIQUE INDEX CONCURRENTLY
+      IF NOT EXISTS ${{ identifier: `${className}$_id` }}
+      ON ${{ identifier: className }}
+      ((${{ quote: className + '$' }} || _id))
+    `);
   }
 
   private _indicesOf(schema: TSchema) {

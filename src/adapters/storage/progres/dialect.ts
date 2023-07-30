@@ -24,12 +24,15 @@
 //
 
 import _ from 'lodash';
-import { escapeIdentifier } from 'pg/lib/utils';
+import { escapeIdentifier, escapeLiteral } from 'pg/lib/utils';
 import { sql } from '../../../server/sql';
 
 export const PostgresDialect = {
   get rowId() {
     return 'CTID';
+  },
+  quote(str: string) {
+    return escapeLiteral(str);
   },
   identifier(name: string) {
     return escapeIdentifier(name);

@@ -27,6 +27,7 @@ import { SQL } from './sql';
 
 export interface SqlDialect {
   rowId: String;
+  quote(str: string): string;
   identifier(name: string): string;
   placeholder(idx: number): string;
   boolean(value: boolean): string;

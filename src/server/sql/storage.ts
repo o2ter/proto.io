@@ -77,6 +77,8 @@ export abstract class SqlStorage implements TStorage {
       } else if (isPrimitiveValue(value)) {
         query += `${this.dialect.placeholder(nextIdx())}${str}`;
         values.push(value);
+      } else if ('quote' in value) {
+        query += `${this.dialect.quote(value.quote)}${str}`;
       } else if ('identifier' in value) {
         query += `${this.dialect.identifier(value.identifier)}${str}`;
       } else if ('literal' in value) {
@@ -134,14 +136,14 @@ export abstract class SqlStorage implements TStorage {
       ...attrs,
     });
 
-    const result = this.query(sql`
-      INSERT INTO ${{ identifier: options.className }} 
+    const result = _.first(await this.query(sql`
+      INSERT INTO ${{ identifier: options.className }}
       (${_.map(_attrs, x => sql`${{ identifier: x[0] }}`)})
       VALUES (${_.map(_attrs, x => sql`${{ value: x[1] }}`)})
       RETURNING *
-    `);
+    `));
 
-    console.log(await result)
+    console.log(result)
 
     return undefined;
   }

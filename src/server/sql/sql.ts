@@ -28,7 +28,8 @@ import { TPrimitiveValue, TValue } from '../../internals';
 
 type SQLLiteral = SQL | SQL[] | { literal: string | SQL[], separator?: string };
 type SQLIdentifier = { identifier: string };
-type SQLValue = TPrimitiveValue | { value: TValue } | SQLIdentifier | SQLLiteral;
+type SQLEscapeString = { quote: string };
+type SQLValue = TPrimitiveValue | { value: TValue } | SQLIdentifier | SQLLiteral | SQLEscapeString;
 
 export class SQL {
 
