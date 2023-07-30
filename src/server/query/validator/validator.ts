@@ -172,10 +172,7 @@ export class QueryValidator {
     return _.uniq(_includes);
   }
 
-  decodeQuery<Q extends ExplainOptions | FindOptions | FindOneOptions>(
-    query: Q,
-    isUpdate: boolean,
-  ): DecodedQuery<Q> {
+  decodeQuery<Q extends ExplainOptions | FindOptions | FindOneOptions>(query: Q): DecodedQuery<Q> {
 
     const filter = QuerySelector.decode(query.filter ?? []).simplify();
     if (
