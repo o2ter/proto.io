@@ -68,7 +68,7 @@ export class QueryValidator {
 
   validateKeyPerm(
     key: string,
-    type: keyof TSchema.ACLs,
+    type: keyof TSchema.FLPs,
     schema: TSchema,
   ) {
     if (type === 'read' && TObject.defaultKeys.includes(key)) return true;
@@ -92,7 +92,7 @@ export class QueryValidator {
   validateKey(
     className: string,
     key: string | string[],
-    type: keyof TSchema.ACLs,
+    type: keyof TSchema.FLPs,
     validator: RegExp,
   ): boolean {
 
@@ -124,7 +124,7 @@ export class QueryValidator {
   validateFields<T extends Record<string, any>>(
     className: string,
     values: T,
-    type: keyof TSchema.ACLs,
+    type: keyof TSchema.FLPs,
     validator: RegExp,
   ) {
     const _values = { ...values };
@@ -172,7 +172,10 @@ export class QueryValidator {
     return _.uniq(_includes);
   }
 
-  decodeQuery<Q extends ExplainOptions | FindOptions | FindOneOptions>(query: Q): DecodedQuery<Q> {
+  decodeQuery<Q extends ExplainOptions | FindOptions | FindOneOptions>(
+    query: Q,
+    isUpdate: boolean,
+  ): DecodedQuery<Q> {
 
     const filter = QuerySelector.decode(query.filter ?? []).simplify();
     if (

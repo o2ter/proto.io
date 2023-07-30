@@ -25,7 +25,7 @@
 
 export namespace TSchema {
   export type ACL = string[];
-  export type ACLs = { read?: TSchema.ACL; create?: TSchema.ACL; update?: TSchema.ACL; };
+  export type ACLs = { read?: TSchema.ACL; update?: TSchema.ACL; };
   export type Primitive = 'boolean' | 'number' | 'decimal' | 'string' | 'date' | 'object' | 'array';
   export type Relation = 'pointer' | 'relation';
   export type DataType = Primitive | { type: Primitive } | { type: Relation, target: string };
@@ -37,6 +37,11 @@ export namespace TSchema {
     update?: TSchema.ACL;
     delete?: TSchema.ACL;
   };
+  export type FLPs = {
+    read?: TSchema.ACL;
+    create?: TSchema.ACL;
+    update?: TSchema.ACL;
+  };
   export type Indexes = {
     keys: Record<string, 1 | -1>;
     unique?: boolean;
@@ -46,7 +51,7 @@ export namespace TSchema {
 export interface TSchema {
   fields: Record<string, TSchema.DataType>;
   classLevelPermissions?: TSchema.CLPs;
-  fieldLevelPermissions?: Record<string, TSchema.ACLs>;
+  fieldLevelPermissions?: Record<string, TSchema.FLPs>;
   indexes?: TSchema.Indexes[];
 }
 
