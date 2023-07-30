@@ -66,7 +66,7 @@ export class QueryCompiler {
     return this.idx++;
   }
 
-  private _decodeIncludes(className: string, includes: string[], path: string[] = []) {
+  private _decodeIncludes(className: string, includes: string[], parent?: string) {
 
     const schema = this.schema[className] ?? {};
     const populates: Record<string, { className: string; type: TSchema.Relation; subpaths: string[]; }> = {};
@@ -80,7 +80,7 @@ export class QueryCompiler {
         if (!populates[colname]) populates[colname] = { className: dataType.target, type: dataType.type, subpaths: [] };
         populates[colname].subpaths.push(subpath.join('.'));
       } else if (!_.isEmpty(subpath)) {
-        this.names[[...path, colname].join('.')] = {
+        this.names[parent ? `${parent}.${colname}` : colname] = {
           type: dataType,
           name: `v${this.nextIdx()}`,
         };
@@ -91,8 +91,8 @@ export class QueryCompiler {
 
     for (const [colname, populate] of _.toPairs(populates)) {
       const name = `t${this.nextIdx()}`;
-      this.populates[[...path, colname].join('.')] = { className: populate.className, name };
-      this._decodeIncludes(populate.className, populate.subpaths, [name]);
+      this.populates[parent ? `${parent}.${colname}` : colname] = { className: populate.className, name };
+      this._decodeIncludes(populate.className, populate.subpaths, name);
     }
   }
 
