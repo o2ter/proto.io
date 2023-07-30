@@ -80,6 +80,11 @@ beforeAll(async () => {
       'roles.roles.roles._id',
       'roles.roles.roles.roles._id',
     ],
+    sort: {
+      'users._id': 1,
+      'roles.roles._id': -1,
+      'roles.roles.roles._id': 1,
+    },
     className: '_Role',
     acls: [],
     master: false,

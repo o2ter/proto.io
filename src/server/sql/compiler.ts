@@ -40,6 +40,7 @@ export class QueryCompiler {
   idx = 0;
   names: Record<string, { type: TSchema.DataType; name: string; }> = {};
   populates: Record<string, { className: string; name: string; }> = {};
+  sorting: Record<string, 1 | -1> = {};
 
   constructor(schema: Record<string, TSchema>, query: QueryCompilerOptions, dialect: SqlDialect) {
     this.schema = schema;
@@ -98,7 +99,28 @@ export class QueryCompiler {
     }
   }
 
+  private _resolveName(key: string) {
+    let resolved: string | undefined;
+    for (const colname of key.split('.')) {
+      const name = resolved ? `${resolved}.${colname}` : colname;
+      const found = this.populates[name] ?? this.populates[`${name}.*`] ?? this.names[name];
+      if (!found) throw Error(`Invalid path: ${key}`);
+      resolved = found.name;
+    }
+    return resolved;
+  }
+
+  private _decodeSorting() {
+    const sorting = this.query.sort ?? {};
+    for (const [key, order] of _.toPairs(sorting)) {
+      const resolved = this._resolveName(key);
+      if (!resolved) throw Error(`Invalid path: ${key}`);
+      this.sorting[resolved] = order;
+    }
+  }
+
   compile() {
     this._decodeIncludes(this.query.className, this.includes);
+    this._decodeSorting();
   }
 }
