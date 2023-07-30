@@ -37,8 +37,8 @@ export class QueryCompiler {
   dialect: SqlDialect;
 
   idx = 0;
-  names: Record<string, string> = {};
-  populates: Record<string, string> = {};
+  names: Record<string, { type: TSchema.DataType; name: string; }> = {};
+  populates: Record<string, { className: string; name: string; }> = {};
 
   constructor(schema: Record<string, TSchema>, query: QueryCompilerOptions, dialect: SqlDialect) {
     this.schema = schema;
@@ -66,14 +66,33 @@ export class QueryCompiler {
     return this.idx++;
   }
 
-  private _decodeIncludes(className: string, includes: string[]) {
+  private _decodeIncludes(className: string, includes: string[], path: string[] = []) {
 
     const schema = this.schema[className] ?? {};
+    const populates: Record<string, { className: string; type: TSchema.Relation; subpaths: string[]; }> = {};
 
     for (const include of includes) {
       const [colname, ...subpath] = include.split('.');
 
+      const dataType = schema.fields[colname];
+      if (!_.isString(dataType) && (dataType.type === 'pointer' || dataType.type === 'relation')) {
+        if (_.isEmpty(subpath)) throw Error(`Invalid path: ${include}`);
+        if (!populates[colname]) populates[colname] = { className: dataType.target, type: dataType.type, subpaths: [] };
+        populates[colname].subpaths.push(subpath.join('.'));
+      } else if (!_.isEmpty(subpath)) {
+        this.names[[...path, colname].join('.')] = {
+          type: dataType,
+          name: `v${this.nextIdx()}`,
+        };
+      } else {
+        throw Error(`Invalid path: ${include}`);
+      }
+    }
 
+    for (const [colname, populate] of _.toPairs(populates)) {
+      const name = `t${this.nextIdx()}`;
+      this.populates[[...path, colname].join('.')] = { className: populate.className, name };
+      this._decodeIncludes(populate.className, populate.subpaths, [name]);
     }
   }
 
