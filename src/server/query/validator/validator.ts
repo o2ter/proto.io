@@ -100,12 +100,12 @@ export class QueryValidator {
     const _key = _.isArray(key) ? key.join('.') : key;
     if (!_key.match(validator)) throw Error(`Invalid key: ${_key}`);
 
-    const [root, ...subpath] = _.toPath(_key);
-    if (_.isEmpty(root) || !_.has(schema.fields, root)) throw Error(`Invalid path: ${_key}`);
-    if (!this.validateKeyPerm(root, type, schema)) return false;
+    const [colname, ...subpath] = _.toPath(_key);
+    if (_.isEmpty(colname) || !_.has(schema.fields, colname)) throw Error(`Invalid path: ${_key}`);
+    if (!this.validateKeyPerm(colname, type, schema)) return false;
     if (_.isEmpty(subpath)) return true;
 
-    const dataType = schema.fields[root];
+    const dataType = schema.fields[colname];
     const isElem = _.first(subpath) === '*' || _.first(subpath)?.match(QueryValidator.patterns.digits);
     if (isElem) {
       if (dataType === 'array') return true;
@@ -145,17 +145,17 @@ export class QueryValidator {
       if (include === '*') {
         _includes.push(..._.filter(primitive, k => this.validateKeyPerm(k, 'read', schema)));
       } else {
-        const [root, ...subpath] = include.split('.');
-        if (_.isEmpty(root) || !_.has(schema.fields, root)) throw Error(`Invalid path: ${include}`);
-        if (!this.validateKeyPerm(root, 'read', schema)) throw Error('No permission');
+        const [colname, ...subpath] = include.split('.');
+        if (_.isEmpty(colname) || !_.has(schema.fields, colname)) throw Error(`Invalid path: ${include}`);
+        if (!this.validateKeyPerm(colname, 'read', schema)) throw Error('No permission');
 
-        const dataType = schema.fields[root];
+        const dataType = schema.fields[colname];
         if (!_.isString(dataType) && (dataType.type === 'pointer' || dataType.type === 'relation')) {
           if (!this.validateCLPs(dataType.target, 'get')) throw Error('No permission');
-          if (!populates[root]) populates[root] = { className: dataType.target, subpaths: [] };
-          populates[root].subpaths.push(_.isEmpty(subpath) ? '*' : subpath.join('.'));
+          if (!populates[colname]) populates[colname] = { className: dataType.target, subpaths: [] };
+          populates[colname].subpaths.push(_.isEmpty(subpath) ? '*' : subpath.join('.'));
         } else if (!_.isEmpty(subpath)) {
-          _includes.push(root);
+          _includes.push(colname);
         } else {
           throw Error(`Invalid path: ${include}`);
         }

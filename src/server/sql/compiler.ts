@@ -26,11 +26,13 @@
 import _ from 'lodash';
 import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions } from '../storage';
 import { SqlDialect } from './dialect';
+import { TSchema } from '../schema';
 
 export type QueryCompilerOptions = DecodedQuery<ExplainOptions> | DecodedQuery<FindOptions> | DecodedQuery<FindOneOptions>;
 
 export class QueryCompiler {
 
+  schema: Record<string, TSchema>;
   query: QueryCompilerOptions;
   dialect: SqlDialect;
 
@@ -38,16 +40,44 @@ export class QueryCompiler {
   names: Record<string, string> = {};
   populates: Record<string, string> = {};
 
-  constructor(query: QueryCompilerOptions, dialect: SqlDialect) {
+  constructor(schema: Record<string, TSchema>, query: QueryCompilerOptions, dialect: SqlDialect) {
+    this.schema = schema;
     this.query = query;
     this.dialect = dialect;
+  }
+
+  get filter() {
+    return this.query.filter;
+  }
+
+  get includes() {
+    return this.query.includes;
+  }
+
+  get acls() {
+    return this.query.acls;
+  }
+
+  get master() {
+    return this.query.master;
   }
 
   nextIdx() {
     return this.idx++;
   }
 
-  compile() {
+  private _decodeIncludes(className: string, includes: string[]) {
 
+    const schema = this.schema[className] ?? {};
+
+    for (const include of this.includes) {
+      const [colname, ...subpath] = include.split('.');
+
+
+    }
+  }
+
+  compile() {
+    this._decodeIncludes(this.query.className, this.includes);
   }
 }
