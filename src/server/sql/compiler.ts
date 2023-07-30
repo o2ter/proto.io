@@ -107,7 +107,7 @@ export class QueryCompiler {
     }
   }
 
-  private _decodeCoditionalSelector(filter: CoditionalSelector): SQL | undefined {
+  private _decodeCoditionalSelector(filter: CoditionalSelector) {
     const queries = _.compact(_.map(filter.exprs, x => this._decodeFilter(x)));
     if (_.isEmpty(queries)) return;
     switch (filter.type) {
