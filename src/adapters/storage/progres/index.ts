@@ -29,7 +29,7 @@ import { escapeIdentifier } from 'pg/lib/utils';
 import { TObject } from '../../../internals';
 import { TSchema } from '../../../server/schema';
 import { PostgresDriver } from './driver';
-import { SqlStorage } from '../../../server/sql/storage';
+import { SqlStorage } from '../../../server/sql';
 
 export class PostgresStorage extends SqlStorage {
 
