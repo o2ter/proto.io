@@ -107,8 +107,9 @@ export class QueryCompiler {
     }
   }
 
-  private _decodeCoditionalSelector(filter: CoditionalSelector): SQL {
+  private _decodeCoditionalSelector(filter: CoditionalSelector): SQL | undefined {
     const queries = _.compact(_.map(filter.exprs, x => this._decodeFilter(x)));
+    if (_.isEmpty(queries)) return;
     switch (filter.type) {
       case '$and': return sql`${{ literal: _.map(queries, x => sql`(${x})`), separator: ' AND ' }}`;
       case '$nor': return sql`${{ literal: _.map(queries, x => sql`NOT (${x})`), separator: ' AND ' }}`;
@@ -121,7 +122,7 @@ export class QueryCompiler {
       return this._decodeCoditionalSelector(filter);
     }
     if (filter instanceof FieldSelector) {
-
+      
     }
   }
 
