@@ -25,11 +25,11 @@
 
 import _ from 'lodash';
 import { PoolConfig } from 'pg';
-import { escapeIdentifier } from 'pg/lib/utils';
 import { TObject } from '../../../internals';
 import { TSchema } from '../../../server/schema';
 import { PostgresDriver } from './driver';
-import { SQL, SqlStorage } from '../../../server/sql';
+import { SqlStorage, sql } from '../../../server/sql';
+import { PostgresDialect } from './dialect';
 
 export class PostgresStorage extends SqlStorage {
 
@@ -71,9 +71,9 @@ export class PostgresStorage extends SqlStorage {
   }
 
   private async createTable(className: string, schema: TSchema) {
-    await this.query(`
+    await this.query(sql`
       CREATE TABLE
-      IF NOT EXISTS ${escapeIdentifier(className)}
+      IF NOT EXISTS ${{ identifier: className }}
       (
         _id TEXT PRIMARY KEY,
         __v INTEGER NOT NULL DEFAULT 0,
@@ -81,9 +81,9 @@ export class PostgresStorage extends SqlStorage {
         _updated_at TIMESTAMP NOT NULL DEFAULT now(),
         _expired_at TIMESTAMP,
         _acl TEXT[],
-        ${_.map(schema.fields, (type, col) => `
-          ${escapeIdentifier(col)} ${this.pgType(_.isString(type) ? type : type.type)}
-        `).join(',')}
+        ${_.map(schema.fields, (type, col) => sql`
+          ${{ identifier: col }} ${{ literal: this.pgType(_.isString(type) ? type : type.type) }}
+        `)}
       )
     `);
   }
@@ -108,7 +108,7 @@ export class PostgresStorage extends SqlStorage {
     }
     for (const [name, { is_primary }] of _.toPairs(await this.indices(className))) {
       if (is_primary || names.includes(name)) continue;
-      await this.query(`DROP INDEX CONCURRENTLY IF EXISTS ${escapeIdentifier(name)}`);
+      await this.query(sql`DROP INDEX CONCURRENTLY IF EXISTS ${{ identifier: name }}`);
     }
   }
 
@@ -126,12 +126,12 @@ export class PostgresStorage extends SqlStorage {
       rebuild.push({ name: column.name, type: pgType });
     }
     if (_.isEmpty(rebuild)) return;
-    await this.query(`
-      ALTER TABLE ${escapeIdentifier(className)}
-      ${_.map(rebuild, ({ name, type }) => `
-        DROP COLUMN IF EXISTS ${escapeIdentifier(name)},
-        ADD COLUMN ${escapeIdentifier(name)} ${type}
-      `).join(',')}
+    await this.query(sql`
+      ALTER TABLE ${{ identifier: className }}
+      ${_.map(rebuild, ({ name, type }) => sql`
+        DROP COLUMN IF EXISTS ${{ identifier: name }},
+        ADD COLUMN ${{ identifier: name }} ${{ literal: type }}
+      `)}
     `);
   }
 
@@ -142,21 +142,25 @@ export class PostgresStorage extends SqlStorage {
       const name = `${className}$${_.map(index.keys, (v, k) => `${k}:${v}`).join('$')}`;
       const isAcl = _.isEqual(index.keys, { _acl: 1 });
       const isRelation = _.has(relations, _.last(_.keys(index.keys)) as string);
-      await this.query(`
-        CREATE ${index.unique ? 'UNIQUE' : ''} INDEX CONCURRENTLY
-        IF NOT EXISTS ${escapeIdentifier(name)}
-        ON ${escapeIdentifier(className)}
-        ${isAcl || isRelation ? 'USING GIN' : ''}
+      await this.query(sql`
+        CREATE ${{ literal: index.unique ? 'UNIQUE' : '' }} INDEX CONCURRENTLY
+        IF NOT EXISTS ${{ identifier: name }}
+        ON ${{ identifier: className }}
+        ${{ literal: isAcl || isRelation ? 'USING GIN' : '' }}
         (
-          ${_.map(index.keys, (v, k) => `
-            ${escapeIdentifier(k)} ${isAcl || isRelation ? '' : v === 1 ? 'ASC' : 'DESC'}
-          `).join(',')}
+          ${_.map(index.keys, (v, k) => sql`
+            ${{ identifier: k }} ${{ literal: isAcl || isRelation ? '' : v === 1 ? 'ASC' : 'DESC' }}
+          `)}
         )
       `);
     }
   }
 
-  query(text: string, values: any[] = [], batchSize?: number) {
+  get dialect() {
+    return PostgresDialect;
+  }
+
+  _query(text: string, values: any[] = [], batchSize?: number) {
     return this.driver.query(text, values, batchSize);
   }
 

@@ -31,6 +31,15 @@ import { TValue, UpdateOp, asyncStream } from '../../../internals';
 import { QuerySelector } from '../../query/validator/parser';
 import { SQL } from '../sql';
 
+export interface SqlDialect {
+  rowId: String;
+  identifier(name: string): string;
+  placeholder(idx: number): string;
+  boolean(value: boolean): string;
+  nullSafeEqual(lhs: any, rhs: any): SQL;
+  nullSafeNotEqual(lhs: any, rhs: any): SQL;
+}
+
 export abstract class SqlStorage implements TStorage {
 
   schedule = storageSchedule(this, ['expireDocument']);
@@ -49,22 +58,57 @@ export abstract class SqlStorage implements TStorage {
     return Object.keys(this.schema);
   }
 
-  abstract query(text: string, values: any[]): ReturnType<typeof asyncStream<any>>
+  abstract get dialect(): SqlDialect
+  protected abstract _query(text: string, values: any[]): ReturnType<typeof asyncStream<any>>
 
   private _compile(template: SQL, next: () => number) {
     let [query, ...strings] = template.strings;
     const values: any[] = [];
-    for (const [value, str] of _.zip(values, strings)) {
+    for (const [value, str] of _.zip(template.values, strings)) {
       if (value instanceof SQL) {
         const { query: _query, values: _values } = this._compile(value, next);
-        query += _query;
+        query += `${_query}${str}`;
         values.push(..._values);
       } else {
-        query += `$${next()}${str}`;
-        values.push(value);
+        if (_.isBoolean(value)) {
+          query += `${this.dialect.boolean(value)}${str}`;
+        } else if (_.isArray(value) && _.every(value, x => x instanceof SQL)) {
+          const queries: string[] = [];
+          for (const subquery of value) {
+            const { query: _query, values: _values } = this._compile(subquery, next);
+            queries.push(_query);
+            values.push(..._values);
+          }
+          query += `${queries.join(', ')}${str}`;
+        } else if (_.isPlainObject(value)) {
+          if ('identifier' in value && _.isString(value.identifier)) {
+            query += `${this.dialect.identifier(value.identifier)}${str}`;
+          } else if ('literal' in value && _.isString(value.literal)) {
+            query += `${value.literal}${str}`;
+          } else if ('literal' in value && _.isArray(value.literal)) {
+            const queries: string[] = [];
+            for (const subquery of value.literal) {
+              const { query: _query, values: _values } = this._compile(subquery, next);
+              queries.push(_query);
+              values.push(..._values);
+            }
+            query += `${queries.join(value.separator ?? ', ')}${str}`;
+          } else {
+            query += `${this.dialect.placeholder(next())}${str}`;
+            values.push(value);
+          }
+        } else {
+          query += `${this.dialect.placeholder(next())}${str}`;
+          values.push(value);
+        }
       }
     }
     return { query, values };
+  }
+
+  query(sql: SQL) {
+    const { query, values } = this.compile(sql);
+    return this._query(query, values);
   }
 
   compile(template: SQL) {
