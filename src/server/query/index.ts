@@ -51,7 +51,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
     this.options = options;
   }
 
-  get #queryOptions() {
+  private get queryOptions() {
     return {
       className: this.className,
       options: this.options ?? {},
@@ -59,16 +59,16 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
     };
   }
 
-  get #storage() {
+  private get storage() {
     return queryValidator(this.proto, this.className, this.options);
   }
 
   explain() {
-    return this.#storage.explain(this.#queryOptions);
+    return this.storage.explain(this.queryOptions);
   }
 
   count() {
-    return this.#storage.count(this.#queryOptions);
+    return this.storage.count(this.queryOptions);
   }
 
   clone(options?: TQuery.Options) {
@@ -84,7 +84,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
   find() {
     const self = this;
     return asyncStream(async function* () {
-      const objects = self.#storage.find(self.#queryOptions);
+      const objects = self.storage.find(self.queryOptions);
       for await (const object of objects) yield self.objectMethods(object);
     });
   }
@@ -103,7 +103,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
     if (_.isFunction(beforeSave)) await beforeSave(Object.setPrototypeOf({ object, context }, this.proto));
 
     const result = this.objectMethods(
-      await this.#storage.insert(this.className, _.fromPairs(object.keys().map(k => [k, object.get(k)])))
+      await this.storage.insert(this.className, _.fromPairs(object.keys().map(k => [k, object.get(k)])))
     );
     if (!result) throw Error('Unable to insert document');
     if (_.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, this.proto));
@@ -119,7 +119,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
     if (_.isFunction(beforeSave)) {
 
       const object = this.objectMethods(
-        _.first(await asyncIterableToArray(this.#storage.find({ ...this.#queryOptions, limit: 1 })))
+        _.first(await asyncIterableToArray(this.storage.find({ ...this.queryOptions, limit: 1 })))
       );
       if (!object) return undefined;
 
@@ -130,7 +130,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
     }
 
     const result = this.objectMethods(
-      await this.#storage.findOneAndUpdate(this.#queryOptions, update)
+      await this.storage.findOneAndUpdate(this.queryOptions, update)
     );
     if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, this.proto));
     return result;
@@ -145,7 +145,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
     if (_.isFunction(beforeSave)) {
 
       const object = this.objectMethods(
-        _.first(await asyncIterableToArray(this.#storage.find({ ...this.#queryOptions, limit: 1 })))
+        _.first(await asyncIterableToArray(this.storage.find({ ...this.queryOptions, limit: 1 })))
       );
       if (!object) return undefined;
 
@@ -159,7 +159,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
     }
 
     const result = this.objectMethods(
-      await this.#storage.findOneAndReplace(this.#queryOptions, replacement)
+      await this.storage.findOneAndReplace(this.queryOptions, replacement)
     );
     if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, this.proto));
     return result;
@@ -174,7 +174,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
     if (_.isFunction(beforeSave)) {
 
       let object = this.objectMethods(
-        _.first(await asyncIterableToArray(this.#storage.find({ ...this.#queryOptions, limit: 1 })))
+        _.first(await asyncIterableToArray(this.storage.find({ ...this.queryOptions, limit: 1 })))
       );
 
       if (object) {
@@ -201,7 +201,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
     }
 
     const result = this.objectMethods(
-      await this.#storage.findOneAndUpsert(this.#queryOptions, update, setOnInsert)
+      await this.storage.findOneAndUpsert(this.queryOptions, update, setOnInsert)
     );
     if (!result) throw Error('Unable to upsert document');
     if (_.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, this.proto));
@@ -218,22 +218,22 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
     if (_.isFunction(beforeDelete)) {
 
       const object = this.objectMethods(
-        _.first(await asyncIterableToArray(this.#storage.find({ ...this.#queryOptions, limit: 1 })))
+        _.first(await asyncIterableToArray(this.storage.find({ ...this.queryOptions, limit: 1 })))
       );
       if (!object) return undefined;
 
       await beforeDelete(Object.setPrototypeOf({ object, context }, this.proto));
 
       result = this.objectMethods(
-        await this.#storage.findOneAndDelete({
-          ...this.#queryOptions,
+        await this.storage.findOneAndDelete({
+          ...this.queryOptions,
           filter: { _id: { $eq: object.objectId } },
         })
       );
 
     } else {
       result = this.objectMethods(
-        await this.#storage.findOneAndDelete(this.#queryOptions)
+        await this.storage.findOneAndDelete(this.queryOptions)
       );
     }
 
@@ -249,15 +249,15 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
 
     if (_.isFunction(beforeDelete) || _.isFunction(afterDelete)) {
 
-      const objects = this.objectMethods(await asyncIterableToArray(this.#storage.find(this.#queryOptions)));
+      const objects = this.objectMethods(await asyncIterableToArray(this.storage.find(this.queryOptions)));
       if (_.isEmpty(objects)) return 0;
 
       if (_.isFunction(beforeDelete)) {
         await Promise.all(_.map(objects, object => beforeDelete(Object.setPrototypeOf({ object, context }, this.proto))));
       }
 
-      await this.#storage.findAndDelete({
-        ...this.#queryOptions,
+      await this.storage.findAndDelete({
+        ...this.queryOptions,
         filter: { _id: { $in: _.map(objects, x => x.objectId as string) } },
       });
 
@@ -268,7 +268,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
       return objects.length;
     }
 
-    return this.#storage.findAndDelete(this.#queryOptions);
+    return this.storage.findAndDelete(this.queryOptions);
   }
 
 }

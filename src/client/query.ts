@@ -47,14 +47,14 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E> {
     this.options = options;
   }
 
-  get #queryOptions() {
+  private get queryOptions() {
     return {
       className: this[PVK].className,
       ...this[PVK].options,
     } as any;
   }
 
-  get #requestOpt() {
+  private get requestOpt() {
     const { context, ...opts } = this.options ?? {};
     return {
       method: 'post',
@@ -76,24 +76,24 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E> {
     return this.proto[PVK].request({
       operation: 'explain',
       context: this.options?.context ?? {},
-      ...this.#queryOptions,
-    }, this.#requestOpt);
+      ...this.queryOptions,
+    }, this.requestOpt);
   }
 
   count() {
     return this.proto[PVK].request({
       operation: 'count',
       context: this.options?.context ?? {},
-      ...this.#queryOptions,
-    }, this.#requestOpt) as any;
+      ...this.queryOptions,
+    }, this.requestOpt) as any;
   }
 
   find() {
     const request = () => this.proto[PVK].request({
       operation: 'find',
       context: this.options?.context ?? {},
-      ...this.#queryOptions,
-    }, this.#requestOpt) as Promise<TObjectType<T, E>[]>;
+      ...this.queryOptions,
+    }, this.requestOpt) as Promise<TObjectType<T, E>[]>;
     return asyncStream(request);
   }
 
@@ -102,7 +102,7 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E> {
       operation: 'insert',
       context: this.options?.context ?? {},
       attributes: attrs,
-    }, this.#requestOpt) as any;
+    }, this.requestOpt) as any;
   }
 
   findOneAndUpdate(update: Record<string, [UpdateOp, TValue]>) {
@@ -110,8 +110,8 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E> {
       operation: 'findOneAndUpdate',
       context: this.options?.context ?? {},
       update,
-      ...this.#queryOptions,
-    }, this.#requestOpt) as any;
+      ...this.queryOptions,
+    }, this.requestOpt) as any;
   }
 
   findOneAndReplace(replacement: Record<string, TValue>) {
@@ -119,8 +119,8 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E> {
       operation: 'findOneAndReplace',
       context: this.options?.context ?? {},
       replacement,
-      ...this.#queryOptions,
-    }, this.#requestOpt) as any;
+      ...this.queryOptions,
+    }, this.requestOpt) as any;
   }
 
   findOneAndUpsert(update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>) {
@@ -129,24 +129,24 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E> {
       context: this.options?.context ?? {},
       update,
       setOnInsert,
-      ...this.#queryOptions,
-    }, this.#requestOpt) as any;
+      ...this.queryOptions,
+    }, this.requestOpt) as any;
   }
 
   findOneAndDelete() {
     return this.proto[PVK].request({
       operation: 'findOneAndDelete',
       context: this.options?.context ?? {},
-      ...this.#queryOptions,
-    }, this.#requestOpt) as any;
+      ...this.queryOptions,
+    }, this.requestOpt) as any;
   }
 
   findAndDelete() {
     return this.proto[PVK].request({
       operation: 'findAndDelete',
       context: this.options?.context ?? {},
-      ...this.#queryOptions,
-    }, this.#requestOpt) as any;
+      ...this.queryOptions,
+    }, this.requestOpt) as any;
   }
 
 }
