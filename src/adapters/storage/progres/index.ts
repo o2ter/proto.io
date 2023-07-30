@@ -26,31 +26,27 @@
 import _ from 'lodash';
 import { PoolConfig } from 'pg';
 import { escapeIdentifier } from 'pg/lib/utils';
-import { UpdateOp, TValue, TObject } from '../../../internals';
-import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions, TStorage } from '../../../server/storage';
-import { storageSchedule } from '../../../server/schedule';
+import { TObject } from '../../../internals';
 import { TSchema } from '../../../server/schema';
 import { PostgresDriver } from './driver';
+import { SqlStorage } from '../../../server/sql/storage';
 
-export class PostgresStorage implements TStorage {
+export class PostgresStorage extends SqlStorage {
 
-  schedule = storageSchedule(this, ['expireDocument']);
-
-  schema: Record<string, TSchema> = {};
   driver: PostgresDriver;
 
   constructor(config: string | PoolConfig) {
+    super();
     this.driver = new PostgresDriver(config);
   }
 
   async shutdown() {
-    this.schedule?.destory();
+    await super.shutdown();
     await this.driver.shutdown();
   }
 
   async prepare(schema: Record<string, TSchema>) {
-    this.schema = schema;
-    this.schedule?.execute();
+    await super.prepare(schema);
     for (const [className, _schema] of _.toPairs(schema)) {
       await this.#createTable(className, _schema);
       await this.#dropIndices(className, _schema);
@@ -190,42 +186,6 @@ export class PostgresStorage implements TStorage {
 
   async indices(table: string, namespace?: string) {
     return this.driver.indices(table, namespace);
-  }
-
-  async explain(query: DecodedQuery<ExplainOptions>) {
-    return 0;
-  }
-
-  async count(query: DecodedQuery<FindOptions>) {
-    return 0;
-  }
-
-  async* find(query: DecodedQuery<FindOptions>) {
-    return [];
-  }
-
-  async insert(className: string, attrs: Record<string, TValue>) {
-    return undefined;
-  }
-
-  async findOneAndUpdate(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>) {
-    return undefined;
-  }
-
-  async findOneAndReplace(query: DecodedQuery<FindOneOptions>, replacement: Record<string, TValue>) {
-    return undefined;
-  }
-
-  async findOneAndUpsert(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>) {
-    return undefined;
-  }
-
-  async findOneAndDelete(query: DecodedQuery<FindOneOptions>) {
-    return undefined;
-  }
-
-  async findAndDelete(query: DecodedQuery<FindOptions>) {
-    return 0;
   }
 
 }
