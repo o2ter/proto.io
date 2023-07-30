@@ -1,5 +1,5 @@
 //
-//  index.ts
+//  storage.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -24,12 +24,12 @@
 //
 
 import _ from 'lodash';
-import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions, TStorage } from '../../storage';
-import { TSchema } from '../../schema';
-import { storageSchedule } from '../../schedule';
-import { TValue, UpdateOp, asyncStream } from '../../../internals';
-import { QuerySelector } from '../../query/validator/parser';
-import { SQL } from '../sql';
+import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions, TStorage } from '../storage';
+import { TSchema } from '../schema';
+import { storageSchedule } from '../schedule';
+import { TValue, UpdateOp, asyncStream } from '../../internals';
+import { QuerySelector } from '../query/validator/parser';
+import { SQL } from './sql';
 
 export interface SqlDialect {
   rowId: String;
