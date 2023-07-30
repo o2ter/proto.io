@@ -28,6 +28,8 @@ import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions, TStorage } f
 import { TSchema } from '../../schema';
 import { storageSchedule } from '../../schedule';
 import { TValue, UpdateOp, asyncStream } from '../../../internals';
+import { QuerySelector } from '../../query/validator/parser';
+import { SQL } from '../sql';
 
 export abstract class SqlStorage implements TStorage {
 
@@ -48,6 +50,33 @@ export abstract class SqlStorage implements TStorage {
   }
 
   abstract query(text: string, values: any[]): ReturnType<typeof asyncStream<any>>
+
+  private _compile(template: SQL, next: () => number) {
+    let [query, ...strings] = template.strings;
+    const values: any[] = [];
+    for (const [value, str] of _.zip(values, strings)) {
+      if (value instanceof SQL) {
+        const { query: _query, values: _values } = this._compile(value, next);
+        query += _query;
+        values.push(..._values);
+      } else {
+        query += `$${next()}${str}`;
+        values.push(value);
+      }
+    }
+    return { query, values };
+  }
+
+  compile(template: SQL) {
+    let idx = 1;
+    return this._compile(template, () => idx++);
+  }
+
+  private buildFilter(filter: QuerySelector) {
+
+
+
+  }
 
   async explain(query: DecodedQuery<ExplainOptions>) {
     return 0;

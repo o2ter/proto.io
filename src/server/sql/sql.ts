@@ -1,5 +1,5 @@
 //
-//  index.ts
+//  sql.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -23,5 +23,17 @@
 //  THE SOFTWARE.
 //
 
-export * from './storage';
-export * from './sql';
+import _ from 'lodash';
+
+export class SQL {
+
+  strings: TemplateStringsArray;
+  values: any[];
+
+  constructor(templates: TemplateStringsArray, values: any[]) {
+    this.strings = templates;
+    this.values = values;
+  }
+}
+
+export const sql = (templates: TemplateStringsArray, ...values: any[]) => new SQL(templates, values);

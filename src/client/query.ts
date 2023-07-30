@@ -38,13 +38,13 @@ import {
 
 export class ProtoClientQuery<T extends string, E> extends TQuery<T, E> {
 
-  #proto: ProtoClient<E>;
-  #options?: RequestOptions;
+  private proto: ProtoClient<E>;
+  private options?: RequestOptions;
 
   constructor(className: T, proto: ProtoClient<E>, options?: RequestOptions) {
     super(className);
-    this.#proto = proto;
-    this.#options = options;
+    this.proto = proto;
+    this.options = options;
   }
 
   get #queryOptions() {
@@ -55,7 +55,7 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E> {
   }
 
   get #requestOpt() {
-    const { context, ...opts } = this.#options ?? {};
+    const { context, ...opts } = this.options ?? {};
     return {
       method: 'post',
       url: `classes/${this.className}`,
@@ -67,66 +67,66 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E> {
   }
 
   clone(options?: TQuery.Options) {
-    const clone = new ProtoClientQuery(this.className, this.#proto, this.#options);
+    const clone = new ProtoClientQuery(this.className, this.proto, this.options);
     clone[PVK].options = options ?? { ...this[PVK].options };
     return clone;
   }
 
   explain() {
-    return this.#proto[PVK].request({
+    return this.proto[PVK].request({
       operation: 'explain',
-      context: this.#options?.context ?? {},
+      context: this.options?.context ?? {},
       ...this.#queryOptions,
     }, this.#requestOpt);
   }
 
   count() {
-    return this.#proto[PVK].request({
+    return this.proto[PVK].request({
       operation: 'count',
-      context: this.#options?.context ?? {},
+      context: this.options?.context ?? {},
       ...this.#queryOptions,
     }, this.#requestOpt) as any;
   }
 
   find() {
-    const request = () => this.#proto[PVK].request({
+    const request = () => this.proto[PVK].request({
       operation: 'find',
-      context: this.#options?.context ?? {},
+      context: this.options?.context ?? {},
       ...this.#queryOptions,
     }, this.#requestOpt) as Promise<TObjectType<T, E>[]>;
     return asyncStream(request);
   }
 
   insert(attrs: Record<string, TValue>) {
-    return this.#proto[PVK].request({
+    return this.proto[PVK].request({
       operation: 'insert',
-      context: this.#options?.context ?? {},
+      context: this.options?.context ?? {},
       attributes: attrs,
     }, this.#requestOpt) as any;
   }
 
   findOneAndUpdate(update: Record<string, [UpdateOp, TValue]>) {
-    return this.#proto[PVK].request({
+    return this.proto[PVK].request({
       operation: 'findOneAndUpdate',
-      context: this.#options?.context ?? {},
+      context: this.options?.context ?? {},
       update,
       ...this.#queryOptions,
     }, this.#requestOpt) as any;
   }
 
   findOneAndReplace(replacement: Record<string, TValue>) {
-    return this.#proto[PVK].request({
+    return this.proto[PVK].request({
       operation: 'findOneAndReplace',
-      context: this.#options?.context ?? {},
+      context: this.options?.context ?? {},
       replacement,
       ...this.#queryOptions,
     }, this.#requestOpt) as any;
   }
 
   findOneAndUpsert(update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>) {
-    return this.#proto[PVK].request({
+    return this.proto[PVK].request({
       operation: 'findOneAndUpsert',
-      context: this.#options?.context ?? {},
+      context: this.options?.context ?? {},
       update,
       setOnInsert,
       ...this.#queryOptions,
@@ -134,17 +134,17 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E> {
   }
 
   findOneAndDelete() {
-    return this.#proto[PVK].request({
+    return this.proto[PVK].request({
       operation: 'findOneAndDelete',
-      context: this.#options?.context ?? {},
+      context: this.options?.context ?? {},
       ...this.#queryOptions,
     }, this.#requestOpt) as any;
   }
 
   findAndDelete() {
-    return this.#proto[PVK].request({
+    return this.proto[PVK].request({
       operation: 'findAndDelete',
-      context: this.#options?.context ?? {},
+      context: this.options?.context ?? {},
       ...this.#queryOptions,
     }, this.#requestOpt) as any;
   }

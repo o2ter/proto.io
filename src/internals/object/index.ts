@@ -118,7 +118,7 @@ export class TObject {
     return _.uniq([..._.keys(this[PVK].attributes), ..._.keys(this[PVK].mutated)]);
   }
 
-  #attrValue(key: string): TValue {
+  private attrValue(key: string): TValue {
     let value: TValue = this[PVK].attributes;
     for (const k of _.toPath(key)) {
       if (isPrimitiveValue(value)) return null;
@@ -133,9 +133,9 @@ export class TObject {
 
   get(key: string) {
     if (_.isEmpty(key)) throw Error('Invalid key');
-    if (_.isNil(this[PVK].mutated[key])) return this.#attrValue(key);
+    if (_.isNil(this[PVK].mutated[key])) return this.attrValue(key);
     const [op, value] = this[PVK].mutated[key];
-    return op === UpdateOp.set ? value : this.#attrValue(key);
+    return op === UpdateOp.set ? value : this.attrValue(key);
   }
 
   set(key: string, value: TValue | undefined) {
