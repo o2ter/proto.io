@@ -46,4 +46,8 @@ export class QueryCompiler {
   nextIdx() {
     return this.idx++;
   }
+
+  compile() {
+
+  }
 }
