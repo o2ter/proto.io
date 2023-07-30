@@ -135,7 +135,7 @@ export abstract class SqlStorage implements TStorage {
     });
 
     const result = this.query(sql`
-      INSERT INTO films (${_.map(_attrs, x => sql`${{ identifier: x[0] }}`)})
+      INSERT INTO ${{ identifier: options.className }} (${_.map(_attrs, x => sql`${{ identifier: x[0] }}`)})
       VALUES (${_.map(_attrs, x => sql`${{ value: x[1] }}`)})
       RETURNING *
     `);
