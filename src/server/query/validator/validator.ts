@@ -103,6 +103,7 @@ export class QueryValidator {
     const [colname, ...subpath] = _.toPath(_key);
     if (_.isEmpty(colname) || !_.has(schema.fields, colname)) throw Error(`Invalid path: ${_key}`);
     if (!this.validateKeyPerm(colname, type, schema)) return false;
+    if (_.isEmpty(subpath) && TObject.defaultKeys.includes(colname)) return true;
     if (_.isEmpty(subpath)) return true;
 
     const dataType = schema.fields[colname];
