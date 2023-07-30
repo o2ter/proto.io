@@ -27,6 +27,7 @@ import _ from 'lodash';
 import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions } from '../storage';
 import { SqlDialect } from './dialect';
 import { TSchema } from '../schema';
+import { defaultObjectKeyTypes } from '../schema';
 
 export type QueryCompilerOptions = DecodedQuery<ExplainOptions> | DecodedQuery<FindOptions> | DecodedQuery<FindOneOptions>;
 
@@ -74,12 +75,12 @@ export class QueryCompiler {
     for (const include of includes) {
       const [colname, ...subpath] = include.split('.');
 
-      const dataType = schema.fields[colname];
+      const dataType = schema.fields[colname] ?? defaultObjectKeyTypes[colname];
       if (!_.isString(dataType) && (dataType.type === 'pointer' || dataType.type === 'relation')) {
         if (_.isEmpty(subpath)) throw Error(`Invalid path: ${include}`);
         if (!populates[colname]) populates[colname] = { className: dataType.target, type: dataType.type, subpaths: [] };
         populates[colname].subpaths.push(subpath.join('.'));
-      } else if (!_.isEmpty(subpath)) {
+      } else if (_.isEmpty(subpath)) {
         this.names[parent ? `${parent}.${colname}` : colname] = {
           type: dataType,
           name: `v${this.nextIdx()}`,

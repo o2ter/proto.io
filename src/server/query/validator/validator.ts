@@ -155,7 +155,7 @@ export class QueryValidator {
           if (!this.validateCLPs(dataType.target, 'get')) throw Error('No permission');
           if (!populates[colname]) populates[colname] = { className: dataType.target, subpaths: [] };
           populates[colname].subpaths.push(_.isEmpty(subpath) ? '*' : subpath.join('.'));
-        } else if (!_.isEmpty(subpath)) {
+        } else if (_.isEmpty(subpath)) {
           _includes.push(colname);
         } else {
           throw Error(`Invalid path: ${include}`);

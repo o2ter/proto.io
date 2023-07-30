@@ -49,3 +49,12 @@ export interface TSchema {
   fieldLevelPermissions?: Record<string, TSchema.ACLs>;
   indexes?: TSchema.Indexes[];
 }
+
+export const defaultObjectKeyTypes: Record<string, TSchema.DataType> = {
+  _id: 'string',
+  __v: 'number',
+  _created_at: 'date',
+  _updated_at: 'date',
+  _expired_at: 'date',
+  _acl: 'array',
+};

@@ -29,7 +29,7 @@ import { Proto, ProtoRoute, UUID } from '../../src/index';
 import { beforeAll, afterAll } from '@jest/globals';
 import DatabaseFileStorage from '../../src/adapters/file/database';
 import PostgresStorage from '../../src/adapters/storage/progres';
-import { sql } from '../../src/server/sql';
+import { QuerySelector } from '../../src/server/query/validator/parser';
 
 let httpServer: any;
 
@@ -69,6 +69,14 @@ beforeAll(async () => {
   }));
 
   console.log('version: ', await database.version());
+
+  console.log(database._queryCompiler({
+    filter: new QuerySelector,
+    includes: ['users._id'],
+    className: '_Role',
+    acls: [],
+    master: false,
+  }))
 
   httpServer = require('http-shutdown')(require('http').createServer(app));
   httpServer.listen(8080, () => console.log('listening on port 8080'));
