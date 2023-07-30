@@ -1,5 +1,5 @@
 //
-//  index.ts
+//  dialect.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -23,6 +23,13 @@
 //  THE SOFTWARE.
 //
 
-export * from './storage';
-export * from './dialect';
-export * from './sql';
+import { SQL } from './sql';
+
+export interface SqlDialect {
+  rowId: String;
+  identifier(name: string): string;
+  placeholder(idx: number): string;
+  boolean(value: boolean): string;
+  nullSafeEqual(lhs: any, rhs: any): SQL;
+  nullSafeNotEqual(lhs: any, rhs: any): SQL;
+}

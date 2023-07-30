@@ -1,5 +1,5 @@
 //
-//  index.ts
+//  compiler.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -23,6 +23,27 @@
 //  THE SOFTWARE.
 //
 
-export * from './storage';
-export * from './dialect';
-export * from './sql';
+import _ from 'lodash';
+import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions } from '../storage';
+import { SqlDialect } from './dialect';
+
+export type QueryCompilerOptions = DecodedQuery<ExplainOptions> | DecodedQuery<FindOptions> | DecodedQuery<FindOneOptions>;
+
+export class QueryCompiler {
+
+  query: QueryCompilerOptions;
+  dialect: SqlDialect;
+
+  idx = 0;
+  names: Record<string, string> = {};
+  populates: Record<string, string> = {};
+
+  constructor(query: QueryCompilerOptions, dialect: SqlDialect) {
+    this.query = query;
+    this.dialect = dialect;
+  }
+
+  nextIdx() {
+    return this.idx++;
+  }
+}

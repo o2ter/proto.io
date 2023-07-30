@@ -28,17 +28,9 @@ import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions, TStorage } f
 import { TSchema } from '../schema';
 import { storageSchedule } from '../schedule';
 import { TValue, UpdateOp, asyncStream } from '../../internals';
-import { QuerySelector } from '../query/validator/parser';
 import { SQL } from './sql';
-
-export interface SqlDialect {
-  rowId: String;
-  identifier(name: string): string;
-  placeholder(idx: number): string;
-  boolean(value: boolean): string;
-  nullSafeEqual(lhs: any, rhs: any): SQL;
-  nullSafeNotEqual(lhs: any, rhs: any): SQL;
-}
+import { SqlDialect } from './dialect';
+import { QueryCompiler, QueryCompilerOptions } from './compiler';
 
 export abstract class SqlStorage implements TStorage {
 
@@ -61,12 +53,12 @@ export abstract class SqlStorage implements TStorage {
   abstract get dialect(): SqlDialect
   protected abstract _query(text: string, values: any[]): ReturnType<typeof asyncStream<any>>
 
-  private _compile(template: SQL, next: () => number) {
+  private _compile(template: SQL, nextIdx: () => number) {
     let [query, ...strings] = template.strings;
     const values: any[] = [];
     for (const [value, str] of _.zip(template.values, strings)) {
       if (value instanceof SQL) {
-        const { query: _query, values: _values } = this._compile(value, next);
+        const { query: _query, values: _values } = this._compile(value, nextIdx);
         query += `${_query}${str}`;
         values.push(..._values);
       } else {
@@ -75,7 +67,7 @@ export abstract class SqlStorage implements TStorage {
         } else if (_.isArray(value) && _.every(value, x => x instanceof SQL)) {
           const queries: string[] = [];
           for (const subquery of value) {
-            const { query: _query, values: _values } = this._compile(subquery, next);
+            const { query: _query, values: _values } = this._compile(subquery, nextIdx);
             queries.push(_query);
             values.push(..._values);
           }
@@ -88,17 +80,17 @@ export abstract class SqlStorage implements TStorage {
           } else if ('literal' in value && _.isArray(value.literal)) {
             const queries: string[] = [];
             for (const subquery of value.literal) {
-              const { query: _query, values: _values } = this._compile(subquery, next);
+              const { query: _query, values: _values } = this._compile(subquery, nextIdx);
               queries.push(_query);
               values.push(..._values);
             }
             query += `${queries.join(value.separator ?? ', ')}${str}`;
           } else {
-            query += `${this.dialect.placeholder(next())}${str}`;
+            query += `${this.dialect.placeholder(nextIdx())}${str}`;
             values.push(value);
           }
         } else {
-          query += `${this.dialect.placeholder(next())}${str}`;
+          query += `${this.dialect.placeholder(nextIdx())}${str}`;
           values.push(value);
         }
       }
@@ -116,8 +108,8 @@ export abstract class SqlStorage implements TStorage {
     return this._compile(template, () => idx++);
   }
 
-  private _compile_filter(filter: QuerySelector) {
-
+  private _queryCompiler(query: QueryCompilerOptions) {
+    return new QueryCompiler(query, this.dialect);
   }
 
   async explain(query: DecodedQuery<ExplainOptions>) {
