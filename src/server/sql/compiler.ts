@@ -70,7 +70,7 @@ export class QueryCompiler {
 
     const schema = this.schema[className] ?? {};
 
-    for (const include of this.includes) {
+    for (const include of includes) {
       const [colname, ...subpath] = include.split('.');
 
 
