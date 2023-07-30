@@ -38,6 +38,12 @@ export type DecodedQuery<T> = Omit<T, 'filter'> & {
   includes: string[];
   acls: string[];
   master: boolean;
+  objectIdSize: number;
+};
+
+export type InsertOptions = {
+  className: string;
+  objectIdSize: number;
 };
 
 export interface TStorage {
@@ -52,7 +58,7 @@ export interface TStorage {
   count(query: DecodedQuery<FindOptions>): PromiseLike<number>;
   find(query: DecodedQuery<FindOptions>): AsyncIterable<TObject>;
 
-  insert(className: string, attrs: Record<string, TValue>): PromiseLike<TObject | undefined>;
+  insert(options: InsertOptions, attrs: Record<string, TValue>): PromiseLike<TObject | undefined>;
 
   findOneAndUpdate(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>): PromiseLike<TObject | undefined>;
   findOneAndReplace(query: DecodedQuery<FindOneOptions>, replacement: Record<string, TValue>): PromiseLike<TObject | undefined>;

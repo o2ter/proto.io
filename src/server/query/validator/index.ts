@@ -24,7 +24,7 @@
 //
 import _ from "lodash";
 import { Proto } from "../../index";
-import { ExtraOptions, TValue, UpdateOp } from "../../../internals";
+import { ExtraOptions, PVK, TValue, UpdateOp } from "../../../internals";
 import { QueryValidator } from "./validator";
 import { ExplainOptions, FindOneOptions, FindOptions } from '../../storage';
 
@@ -38,7 +38,7 @@ export const normalize = <T>(x: T): T => {
 export const queryValidator = <E>(proto: Proto<E>, className: string, options?: ExtraOptions) => {
 
   const acls = () => _.compact([..._.map(proto.roles, x => `role:${x}`), proto.user?.objectId]);
-  const validator = () => new QueryValidator(proto.schema, acls(), options?.master ?? false);
+  const validator = () => new QueryValidator(proto, acls(), options?.master ?? false);
 
   return {
     explain(
@@ -77,7 +77,7 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
       const _validator = validator();
       if (!_validator.validateCLPs(className, 'create')) throw Error('No permission');
       return proto.storage.insert(
-        className,
+        { className, objectIdSize: proto[PVK].options.objectIdSize },
         normalize(_validator.validateFields(className, attrs, 'create', QueryValidator.patterns.name)),
       );
     },

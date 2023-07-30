@@ -25,12 +25,14 @@
 
 import _ from 'lodash';
 import {
+  PVK,
   TObject,
   isPrimitiveValue,
 } from '../../../internals';
 import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions } from '../../storage';
 import { CoditionalSelector, FieldSelector, QuerySelector } from './parser';
 import { TSchema } from '../../schema';
+import { Proto } from '../..';
 
 export const recursiveCheck = (x: any, stack: any[]) => {
   if (_.indexOf(stack, x) !== -1) throw Error('Recursive data detected');
@@ -39,9 +41,9 @@ export const recursiveCheck = (x: any, stack: any[]) => {
   children.forEach(v => recursiveCheck(v, [...stack, x]));
 }
 
-export class QueryValidator {
+export class QueryValidator<E> {
 
-  schema: Record<string, TSchema>;
+  proto: Proto<E>
   acls: string[];
   master: boolean;
 
@@ -53,13 +55,21 @@ export class QueryValidator {
   }
 
   constructor(
-    schema: Record<string, TSchema>,
+    proto: Proto<E>,
     acls: string[],
     master: boolean,
   ) {
-    this.schema = schema;
+    this.proto = proto;
     this.acls = _.uniq(['*', ...acls]);
     this.master = master;
+  }
+
+  get schema() {
+    return this.proto.schema;
+  }
+
+  get objectIdSize() {
+    return this.proto[PVK].options.objectIdSize;
   }
 
   static recursiveCheck(...x: any[]) {
@@ -182,7 +192,14 @@ export class QueryValidator {
     const includes = this._decodeIncludes(query.className, query.includes ?? ['*']);
     if (!_.every(_.keys(query.sort), k => includes.includes(k))) throw Error('Invalid sort keys');
 
-    return { ...query, filter, includes, acls: this.acls, master: this.master };
+    return {
+      ...query,
+      filter,
+      includes,
+      acls: this.acls,
+      master: this.master,
+      objectIdSize: this.objectIdSize,
+    };
   }
 
   isGetMethod(query: QuerySelector) {

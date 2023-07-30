@@ -24,13 +24,14 @@
 //
 
 import _ from 'lodash';
-import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions, TStorage } from '../storage';
+import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions, InsertOptions, TStorage } from '../storage';
 import { TSchema } from '../schema';
 import { storageSchedule } from '../schedule';
 import { TValue, UpdateOp, asyncStream, isPrimitiveValue } from '../../internals';
 import { SQL } from './sql';
 import { SqlDialect } from './dialect';
 import { QueryCompiler, QueryCompilerOptions } from './compiler';
+import { generateId } from '../crypto';
 
 const isSQLArray = (v: any): v is SQL[] => _.isArray(v) && _.every(v, x => x instanceof SQL);
 export abstract class SqlStorage implements TStorage {
@@ -128,7 +129,13 @@ export abstract class SqlStorage implements TStorage {
     return [];
   }
 
-  async insert(className: string, attrs: Record<string, TValue>) {
+  async insert(options: InsertOptions, attrs: Record<string, TValue>) {
+
+    const _attrs = {
+      _id: generateId(options.objectIdSize),
+      ...attrs,
+    };
+
     return undefined;
   }
 
