@@ -28,7 +28,7 @@ import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions } from '../st
 import { SqlDialect } from './dialect';
 import { TSchema } from '../schema';
 import { defaultObjectKeyTypes } from '../schema';
-import { CoditionalSelector, FieldSelector, QuerySelector } from '../query/validator/parser';
+import { CoditionalSelector, FieldExpression, FieldSelector, QuerySelector } from '../query/validator/parser';
 import { SQL, sql } from './sql';
 
 export type QueryCompilerOptions = DecodedQuery<ExplainOptions> | DecodedQuery<FindOptions> | DecodedQuery<FindOneOptions>;
@@ -115,6 +115,10 @@ export class QueryCompiler {
       case '$nor': return sql`${{ literal: _.map(queries, x => sql`NOT (${x})`), separator: ' AND ' }}`;
       case '$or': return sql`${{ literal: _.map(queries, x => sql`(${x})`), separator: ' OR ' }}`;
     }
+  }
+
+  private _decodeFieldExpression(field: string, expr: FieldExpression) {
+
   }
 
   private _decodeFilter(filter: QuerySelector): SQL | undefined {

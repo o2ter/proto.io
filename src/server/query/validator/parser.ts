@@ -93,7 +93,7 @@ export class CoditionalSelector extends QuerySelector {
   }
 }
 
-class FieldExpression {
+export class FieldExpression {
 
   type: keyof TFieldQuerySelector;
   value: FieldExpression | RegExp | TValue;
