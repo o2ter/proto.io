@@ -61,10 +61,6 @@ export class QuerySelector {
   validate(callback: (key: string) => boolean) {
     return true;
   }
-
-  encode(): TQuerySelector {
-    return {};
-  }
 }
 
 export class CoditionalSelector extends QuerySelector {
@@ -94,12 +90,6 @@ export class CoditionalSelector extends QuerySelector {
 
   validate(callback: (key: string) => boolean) {
     return _.every(this.exprs, x => x.validate(callback));
-  }
-
-  encode() {
-    return {
-      [this.type]: _.map(this.exprs, x => x.encode()),
-    } as TQuerySelector;
   }
 }
 
@@ -170,16 +160,6 @@ class FieldExpression {
     }
     return true;
   }
-
-  encode(): any {
-    if (this.value instanceof FieldExpression) {
-      return { [this.type]: this.value.encode() };
-    }
-    if (this.value instanceof QuerySelector) {
-      return { [this.type]: this.value.encode() };
-    }
-    return { [this.type]: this.value };
-  }
 }
 
 export class FieldSelector extends QuerySelector {
@@ -199,11 +179,5 @@ export class FieldSelector extends QuerySelector {
 
   validate(callback: (key: string) => boolean) {
     return callback(this.field) && this.expr.validate(callback);
-  }
-
-  encode(): TQuerySelector {
-    return {
-      [this.field]: this.expr.encode(),
-    };
   }
 }
