@@ -72,7 +72,14 @@ beforeAll(async () => {
 
   console.log(database._queryCompiler({
     filter: new QuerySelector,
-    includes: ['users._id'],
+    includes: [
+      '_id',
+      'users._id',
+      'roles._id',
+      'roles.roles._id',
+      'roles.roles.roles._id',
+      'roles.roles.roles.roles._id',
+    ],
     className: '_Role',
     acls: [],
     master: false,
