@@ -26,9 +26,14 @@
 import { PVK } from './private';
 import { ExtraOptions } from './options';
 import { TQuery } from './query';
-import { TExtensions, TObjectType } from './object/types';
+import { TExtensions, TObjectType, TObjectTypes } from './object/types';
 import { TFile } from './object/file';
 import { FileData, FileStream } from './buffer';
+import { isObjKey } from './utils';
+import { applyObjectMethods } from './object/methods';
+import { TValue } from './query/value';
+import { TObject } from './object';
+import { TSerializable } from './codec';
 
 export interface ProtoInternalType<Ext> {
 
@@ -43,12 +48,24 @@ export interface ProtoInternalType<Ext> {
   fileData(object: TFile, options?: ExtraOptions): FileStream;
 }
 
-export interface ProtoType<Ext> {
+export abstract class ProtoType<Ext> {
 
-  [PVK]: ProtoInternalType<Ext>;
+  abstract [PVK]: ProtoInternalType<Ext>;
 
-  Object<T extends string>(className: T): TObjectType<T, Ext>;
-  File(filename: string, data: FileData, type?: string): TObjectType<'_File', Ext>;
+  abstract run(name: string, data?: TSerializable, options?: ExtraOptions): Promise<TSerializable>
+  abstract Query<T extends string>(className: T, options?: ExtraOptions): TQuery<T, Ext>;
 
-  Query<T extends string>(className: T, options?: ExtraOptions): TQuery<T, Ext>;
+  Object<T extends string>(className: T, objectId?: string): TObjectType<T, Ext> {
+    const attrs: Record<string, TValue> = objectId ? { _id: objectId } : {};
+    const obj = isObjKey(className, TObjectTypes) ? new TObjectTypes[className](attrs) : new TObject(className, attrs);
+    return applyObjectMethods(obj as TObjectType<T, Ext>, this);
+  }
+
+  File(filename: string, data: FileData, type?: string) {
+    const file = this.Object('_File');
+    file.set('filename', filename);
+    file.set('type', type);
+    file[PVK].extra.data = data;
+    return file;
+  }
 };

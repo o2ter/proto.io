@@ -72,11 +72,12 @@ export type ProtoOptions<Ext> = {
   maxUploadSize?: number | ((proto: Proto<Ext>) => number | PromiseLike<number>);
 };
 
-export class Proto<Ext> implements ProtoType<Ext> {
+export class Proto<Ext> extends ProtoType<Ext> {
 
   [PVK]: ProtoInternal<Ext>;
 
   constructor(options: ProtoOptions<Ext>) {
+    super();
     this[PVK] = new ProtoInternal(this, {
       objectIdSize: 10,
       maxUploadSize: 20 * 1024 * 1024,
@@ -87,20 +88,6 @@ export class Proto<Ext> implements ProtoType<Ext> {
 
   classes(): string[] {
     return _.keys(this[PVK].options.schema);
-  }
-
-  Object<T extends string>(className: T, objectId?: string): TObjectType<T, Ext> {
-    const attrs: Record<string, TValue> = objectId ? { _id: objectId } : {};
-    const obj = isObjKey(className, TObjectTypes) ? new TObjectTypes[className](attrs) : new TObject(className, attrs);
-    return applyObjectMethods(obj as TObjectType<T, Ext>, this);
-  }
-
-  File(filename: string, data: FileData, type?: string) {
-    const file = this.Object('_File');
-    file.set('filename', filename);
-    file.set('type', type);
-    file[PVK].extra.data = data;
-    return file;
   }
 
   Query<T extends string>(className: T, options?: ExtraOptions): TQuery<T, Ext> {

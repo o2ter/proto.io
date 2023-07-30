@@ -48,38 +48,24 @@ export type ProtoOptions<Ext> = {
   classExtends?: TExtensions<Ext>;
 }
 
-export class ProtoClient<Ext> implements ProtoType<Ext> {
+export class ProtoClient<Ext> extends ProtoType<Ext> {
 
   [PVK]: ProtoClientInternal<Ext>;
 
   constructor(options: ProtoOptions<Ext>) {
+    super();
     this[PVK] = new ProtoClientInternal(this, { ...options });
-  }
-
-  Object<T extends string>(className: T, objectId?: string): TObjectType<T, Ext> {
-    const attrs: Record<string, TValue> = objectId ? { _id: objectId } : {};
-    const obj = isObjKey(className, TObjectTypes) ? new TObjectTypes[className](attrs) : new TObject(className, attrs);
-    return applyObjectMethods(obj as TObjectType<T, Ext>, this);
-  }
-
-  File(filename: string, data: FileData, type?: string) {
-    const file = this.Object('_File');
-    file.set('filename', filename);
-    file.set('type', type);
-    file[PVK].extra.data = data;
-    return file;
   }
 
   Query<T extends string>(className: T, options?: RequestOptions): TQuery<T, Ext> {
     return new ProtoClientQuery<T, Ext>(className, this, options);
   }
 
-  async run(
+  run(
     name: string,
     data?: TSerializable,
     options?: RequestOptions,
-  ) {
-
+  ): Promise<TSerializable> {
     return this[PVK].request(data, {
       method: 'post',
       url: `functions/${name}`,
