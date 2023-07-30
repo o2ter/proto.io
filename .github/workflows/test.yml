@@ -42,5 +42,5 @@ jobs:
       - name: Run tests
         run: yarn test
         env:
-          POSTGRES_HOST: postgres
+          POSTGRES_HOST: localhost
           MONGO_HOST: mongo
