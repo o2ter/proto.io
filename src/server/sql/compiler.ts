@@ -48,22 +48,6 @@ export class QueryCompiler {
     this.dialect = dialect;
   }
 
-  get filter() {
-    return this.query.filter;
-  }
-
-  get includes() {
-    return this.query.includes;
-  }
-
-  get acls() {
-    return this.query.acls;
-  }
-
-  get master() {
-    return this.query.master;
-  }
-
   nextIdx() {
     return this.idx++;
   }
@@ -120,7 +104,7 @@ export class QueryCompiler {
   }
 
   compile() {
-    this._decodeIncludes(this.query.className, this.includes);
+    this._decodeIncludes(this.query.className, this.query.includes);
     this._decodeSorting();
   }
 }
