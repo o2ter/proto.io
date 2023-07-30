@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { MongoClientOptions } from 'mongodb';
 import { UpdateOp, TValue } from '../../../internals';
-import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions, TStorage } from '../../../server/storage';
+import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions, InsertOptions, TStorage } from '../../../server/storage';
 import { storageSchedule } from '../../../server/schedule';
 import { TSchema } from '../../../server/schema';
 import { MongoDriver } from './driver';
@@ -78,7 +78,7 @@ export class MongoStorage implements TStorage {
     return [];
   }
 
-  async insert(className: string, attrs: Record<string, TValue>) {
+  async insert(options: InsertOptions, attrs: Record<string, TValue>) {
     return undefined;
   }
 
