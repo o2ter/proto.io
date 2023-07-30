@@ -23,7 +23,7 @@
 //  THE SOFTWARE.
 //
 
-import { applyQueryMethods } from './query';
+import { ProtoClientQuery } from './query';
 import { RequestOptions } from './options';
 import { ProtoClientInternal } from './internal';
 import {
@@ -70,8 +70,8 @@ export class ProtoClient<Ext> implements ProtoType<Ext> {
     return file;
   }
 
-  Query<T extends string>(className: T, options?: RequestOptions) {
-    return applyQueryMethods(new TQuery<T, Ext>(className), this, options);
+  Query<T extends string>(className: T, options?: RequestOptions): TQuery<T, Ext> {
+    return new ProtoClientQuery<T, Ext>(className, this, options);
   }
 
   async run(

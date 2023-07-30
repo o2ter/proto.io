@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { applyQueryMethods } from './query';
+import { ProtoQuery } from './query';
 import { ProtoInternal } from './internal';
 import {
   PVK,
@@ -103,8 +103,8 @@ export class Proto<Ext> implements ProtoType<Ext> {
     return file;
   }
 
-  Query<T extends string>(className: T, options?: ExtraOptions) {
-    return applyQueryMethods(new TQuery<T, Ext>(className), this, options);
+  Query<T extends string>(className: T, options?: ExtraOptions): TQuery<T, Ext> {
+    return new ProtoQuery<T, Ext>(className, this, options);
   }
 
   get user(): TUser | undefined {

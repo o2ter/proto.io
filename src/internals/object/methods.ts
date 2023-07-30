@@ -27,10 +27,14 @@ import _ from 'lodash';
 import { TObject } from './index';
 import { PVK } from '../private';
 import { ExtraOptions } from '../options';
-import { TExtensions } from './types';
+import { TExtensions, TObjectType } from './types';
 import { ProtoType } from '../proto';
 import { TSerializable } from '../codec';
 import { TFile } from './file';
+
+export type TExtended<U, T extends string, E> = U extends TObject ?
+  TObjectType<T, E> : U extends (infer U)[] ?
+  TExtended<U, T, E>[] : U;
 
 export const applyObjectMethods = <T extends TSerializable | undefined, E>(
   object: T,

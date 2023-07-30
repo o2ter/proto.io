@@ -29,6 +29,7 @@ import { TValue } from './value';
 import { UpdateOp } from '../object';
 import { PVK } from '../private';
 import { TObjectType } from '../object/types';
+import { asyncStream } from '../utils';
 
 export namespace TQuery {
   export interface Options {
@@ -41,19 +42,7 @@ export namespace TQuery {
   }
 }
 
-export interface TQuery<T extends string, Ext> {
-  explain(): PromiseLike<any>;
-  count(): PromiseLike<number>;
-  find(): PromiseLike<TObjectType<T, Ext>[]> & AsyncIterable<TObjectType<T, Ext>>;
-  insert(attrs: Record<string, TValue>): PromiseLike<TObjectType<T, Ext>>;
-  findOneAndUpdate(update: Record<string, [UpdateOp, TValue]>): PromiseLike<TObjectType<T, Ext> | undefined>;
-  findOneAndReplace(replacement: Record<string, TValue>): PromiseLike<TObjectType<T, Ext> | undefined>;
-  findOneAndUpsert(update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>): PromiseLike<TObjectType<T, Ext>>;
-  findOneAndDelete(): PromiseLike<TObjectType<T, Ext> | undefined>;
-  findAndDelete(): PromiseLike<number>;
-}
-
-export class TQuery<T extends string, Ext> {
+export abstract class TQuery<T extends string, Ext> {
 
   [PVK]: {
     className: T;
@@ -71,9 +60,16 @@ export class TQuery<T extends string, Ext> {
     return this[PVK].className;
   }
 
-  clone() {
-    return new TQuery<T, Ext>(this.className, { ...this[PVK].options });
-  }
+  abstract clone(options?: TQuery.Options): TQuery<T, Ext>;
+  abstract explain(): PromiseLike<any>;
+  abstract count(): PromiseLike<number>;
+  abstract find(): ReturnType<typeof asyncStream<TObjectType<T, Ext>>>;
+  abstract insert(attrs: Record<string, TValue>): PromiseLike<TObjectType<T, Ext>>;
+  abstract findOneAndUpdate(update: Record<string, [UpdateOp, TValue]>): PromiseLike<TObjectType<T, Ext> | undefined>;
+  abstract findOneAndReplace(replacement: Record<string, TValue>): PromiseLike<TObjectType<T, Ext> | undefined>;
+  abstract findOneAndUpsert(update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>): PromiseLike<TObjectType<T, Ext>>;
+  abstract findOneAndDelete(): PromiseLike<TObjectType<T, Ext> | undefined>;
+  abstract findAndDelete(): PromiseLike<number>;
 
   filter(filter: TQuerySelector) {
     if (_.isNil(this[PVK].options.filter)) {
@@ -152,7 +148,7 @@ export class TQuery<T extends string, Ext> {
   }
 
   async get(id: string) {
-    const query = new TQuery(this.className);
+    const query = this.clone({});
     if (this[PVK].options.includes) query.includes(...this[PVK].options.includes);
     return _.first(await query.equalTo('_id', id).limit(1).find());
   }

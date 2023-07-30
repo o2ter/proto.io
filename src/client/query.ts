@@ -33,118 +33,120 @@ import {
   UpdateOp,
   TValue,
   asyncStream,
+  TObjectType,
 } from '../internals';
 
-export const applyQueryMethods = <T extends string, E>(
-  query: TQuery<T, E>,
-  proto: ProtoClient<E>,
-  options?: RequestOptions,
-) => {
+export class ProtoClientQuery<T extends string, E> extends TQuery<T, E> {
 
-  const { context, ...opts } = options ?? {};
+  #proto: ProtoClient<E>;
+  #options?: RequestOptions;
 
-  const queryOptions = (query: TQuery<T, E>) => ({
-    className: query[PVK].className,
-    ...query[PVK].options,
-  }) as any;
+  constructor(className: T, proto: ProtoClient<E>, options?: RequestOptions) {
+    super(className);
+    this.#proto = proto;
+    this.#options = options;
+  }
 
-  const requestOpt = (query: TQuery<T, E>) => ({
-    method: 'post',
-    url: `classes/${query.className}`,
-    serializeOpts: {
-      objAttrs: TObject.defaultReadonlyKeys,
-    },
-    ...opts,
-  });
+  get #queryOptions() {
+    return {
+      className: this[PVK].className,
+      ...this[PVK].options,
+    } as any;
+  }
 
-  const props: PropertyDescriptorMap & ThisType<TQuery<T, E>> = {
-    explain: {
-      value() {
-        return proto[PVK].request({
-          operation: 'explain',
-          context: context ?? {},
-          ...queryOptions(this),
-        }, requestOpt(this));
+  get #requestOpt() {
+    const { context, ...opts } = this.#options ?? {};
+    return {
+      method: 'post',
+      url: `classes/${this.className}`,
+      serializeOpts: {
+        objAttrs: TObject.defaultReadonlyKeys,
       },
-    },
-    count: {
-      value() {
-        return proto[PVK].request({
-          operation: 'count',
-          context: context ?? {},
-          ...queryOptions(this),
-        }, requestOpt(this));
-      },
-    },
-    find: {
-      value() {
-        const request = () => proto[PVK].request({
-          operation: 'find',
-          context: context ?? {},
-          ...queryOptions(this),
-        }, requestOpt(this)) as Promise<TObject[]>;
-        return asyncStream(request);
-      },
-    },
-    insert: {
-      value(attrs: Record<string, TValue>) {
-        return proto[PVK].request({
-          operation: 'insert',
-          context: context ?? {},
-          attributes: attrs,
-        }, requestOpt(this));
-      },
-    },
-    findOneAndUpdate: {
-      value(update: Record<string, [UpdateOp, TValue]>) {
-        return proto[PVK].request({
-          operation: 'findOneAndUpdate',
-          context: context ?? {},
-          update,
-          ...queryOptions(this),
-        }, requestOpt(this));
-      },
-    },
-    findOneAndReplace: {
-      value(replacement: Record<string, TValue>) {
-        return proto[PVK].request({
-          operation: 'findOneAndReplace',
-          context: context ?? {},
-          replacement,
-          ...queryOptions(this),
-        }, requestOpt(this));
-      },
-    },
-    findOneAndUpsert: {
-      value(update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>) {
-        return proto[PVK].request({
-          operation: 'findOneAndUpsert',
-          context: context ?? {},
-          update,
-          setOnInsert,
-          ...queryOptions(this),
-        }, requestOpt(this));
-      },
-    },
-    findOneAndDelete: {
-      value() {
-        return proto[PVK].request({
-          operation: 'findOneAndDelete',
-          context: context ?? {},
-          ...queryOptions(this),
-        }, requestOpt(this));
-      },
-    },
-    findAndDelete: {
-      value() {
-        return proto[PVK].request({
-          operation: 'findAndDelete',
-          context: context ?? {},
-          ...queryOptions(this),
-        }, requestOpt(this));
-      },
-    },
-  };
+      ...opts,
+    };
+  }
 
-  return Object.defineProperties(query, props);
+  clone(options?: TQuery.Options) {
+    const clone = new ProtoClientQuery(this.className, this.#proto, this.#options);
+    clone[PVK].options = options ?? { ...this[PVK].options };
+    return clone;
+  }
+
+  explain() {
+    return this.#proto[PVK].request({
+      operation: 'explain',
+      context: this.#options?.context ?? {},
+      ...this.#queryOptions,
+    }, this.#requestOpt);
+  }
+
+  count() {
+    return this.#proto[PVK].request({
+      operation: 'count',
+      context: this.#options?.context ?? {},
+      ...this.#queryOptions,
+    }, this.#requestOpt) as any;
+  }
+
+  find() {
+    const request = () => this.#proto[PVK].request({
+      operation: 'find',
+      context: this.#options?.context ?? {},
+      ...this.#queryOptions,
+    }, this.#requestOpt) as Promise<TObjectType<T, E>[]>;
+    return asyncStream(request);
+  }
+
+  insert(attrs: Record<string, TValue>) {
+    return this.#proto[PVK].request({
+      operation: 'insert',
+      context: this.#options?.context ?? {},
+      attributes: attrs,
+    }, this.#requestOpt) as any;
+  }
+
+  findOneAndUpdate(update: Record<string, [UpdateOp, TValue]>) {
+    return this.#proto[PVK].request({
+      operation: 'findOneAndUpdate',
+      context: this.#options?.context ?? {},
+      update,
+      ...this.#queryOptions,
+    }, this.#requestOpt) as any;
+  }
+
+  findOneAndReplace(replacement: Record<string, TValue>) {
+    return this.#proto[PVK].request({
+      operation: 'findOneAndReplace',
+      context: this.#options?.context ?? {},
+      replacement,
+      ...this.#queryOptions,
+    }, this.#requestOpt) as any;
+  }
+
+  findOneAndUpsert(update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>) {
+    return this.#proto[PVK].request({
+      operation: 'findOneAndUpsert',
+      context: this.#options?.context ?? {},
+      update,
+      setOnInsert,
+      ...this.#queryOptions,
+    }, this.#requestOpt) as any;
+  }
+
+  findOneAndDelete() {
+    return this.#proto[PVK].request({
+      operation: 'findOneAndDelete',
+      context: this.#options?.context ?? {},
+      ...this.#queryOptions,
+    }, this.#requestOpt) as any;
+  }
+
+  findAndDelete() {
+    return this.#proto[PVK].request({
+      operation: 'findAndDelete',
+      context: this.#options?.context ?? {},
+      ...this.#queryOptions,
+    }, this.#requestOpt) as any;
+  }
+
 }

@@ -35,226 +35,240 @@ import {
   asyncIterableToArray,
   TValue,
   asyncStream,
+  TExtended,
+  TObjectType,
 } from '../../internals';
 import { queryValidator } from './validator';
 
-export const applyQueryMethods = <T extends string, E>(
-  query: TQuery<T, E>,
-  proto: Proto<E>,
-  options?: ExtraOptions,
-) => {
+export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
 
-  const queryOptions = (query: TQuery<T, E>) => ({
-    className: query.className,
-    options: options ?? {},
-    ...query[PVK].options,
-  });
+  #proto: Proto<E>;
+  #options?: ExtraOptions;
 
-  const storage = (query: TQuery<T, E>) => queryValidator(proto, query.className, options);
+  constructor(className: T, proto: Proto<E>, options?: ExtraOptions) {
+    super(className);
+    this.#proto = proto;
+    this.#options = options;
+  }
 
-  const props: PropertyDescriptorMap & ThisType<TQuery<T, E>> = {
-    explain: {
-      value() {
-        return storage(this).explain(queryOptions(this));
-      },
-    },
-    count: {
-      value() {
-        return storage(this).count(queryOptions(this));
-      },
-    },
-    find: {
-      value() {
-        const objects = () => storage(this).find(queryOptions(this));
-        return asyncStream(async function* () {
-          for await (const object of objects()) yield applyObjectMethods(object, proto);
-        });
-      },
-    },
-    insert: {
-      async value(attrs: Record<string, TValue>) {
-        const beforeSave = proto[PVK].triggers?.beforeSave?.[this.className];
-        const afterSave = proto[PVK].triggers?.afterSave?.[this.className];
+  get #queryOptions() {
+    return {
+      className: this.className,
+      options: this.#options ?? {},
+      ...this[PVK].options,
+    };
+  }
 
-        const context = options?.context ?? {};
+  get #storage() {
+    return queryValidator(this.#proto, this.className, this.#options);
+  }
 
-        const object = proto.Object(this.className);
-        for (const [key, value] of _.toPairs(attrs)) {
+  explain() {
+    return this.#storage.explain(this.#queryOptions);
+  }
+
+  count() {
+    return this.#storage.count(this.#queryOptions);
+  }
+
+  clone(options?: TQuery.Options) {
+    const clone = new ProtoQuery(this.className, this.#proto, this.#options);
+    clone[PVK].options = options ?? { ...this[PVK].options };
+    return clone;
+  }
+
+  #objectMethods<U extends TObject | TObject[] | undefined>(object: U) {
+    return applyObjectMethods(object, this.#proto) as TExtended<U, T, E>;
+  }
+
+  find() {
+    const self = this;
+    return asyncStream(async function* () {
+      const objects = self.#storage.find(self.#queryOptions);
+      for await (const object of objects) yield self.#objectMethods(object);
+    });
+  }
+
+  async insert(attrs: Record<string, TValue>) {
+    const beforeSave = this.#proto[PVK].triggers?.beforeSave?.[this.className];
+    const afterSave = this.#proto[PVK].triggers?.afterSave?.[this.className];
+
+    const context = this.#options?.context ?? {};
+
+    const object = this.#proto.Object(this.className);
+    for (const [key, value] of _.toPairs(attrs)) {
+      object[PVK].mutated[key] = [UpdateOp.set, value as any];
+    }
+
+    if (_.isFunction(beforeSave)) await beforeSave(Object.setPrototypeOf({ object, context }, this.#proto));
+
+    const result = this.#objectMethods(
+      await this.#storage.insert(this.className, _.fromPairs(object.keys().map(k => [k, object.get(k)])))
+    );
+    if (!result) throw Error('Unable to insert document');
+    if (_.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, this.#proto));
+    return result;
+  }
+
+  async findOneAndUpdate(update: Record<string, [UpdateOp, TValue]>) {
+    const beforeSave = this.#proto[PVK].triggers?.beforeSave?.[this.className];
+    const afterSave = this.#proto[PVK].triggers?.afterSave?.[this.className];
+
+    const context = this.#options?.context ?? {};
+
+    if (_.isFunction(beforeSave)) {
+
+      const object = this.#objectMethods(
+        _.first(await asyncIterableToArray(this.#storage.find({ ...this.#queryOptions, limit: 1 })))
+      );
+      if (!object) return undefined;
+
+      object[PVK].mutated = update;
+      await beforeSave(Object.setPrototypeOf({ object, context }, this.#proto));
+
+      update = object[PVK].mutated;
+    }
+
+    const result = this.#objectMethods(
+      await this.#storage.findOneAndUpdate(this.#queryOptions, update)
+    );
+    if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, this.#proto));
+    return result;
+  }
+
+  async findOneAndReplace(replacement: Record<string, TValue>) {
+    const beforeSave = this.#proto[PVK].triggers?.beforeSave?.[this.className];
+    const afterSave = this.#proto[PVK].triggers?.afterSave?.[this.className];
+
+    const context = this.#options?.context ?? {};
+
+    if (_.isFunction(beforeSave)) {
+
+      const object = this.#objectMethods(
+        _.first(await asyncIterableToArray(this.#storage.find({ ...this.#queryOptions, limit: 1 })))
+      );
+      if (!object) return undefined;
+
+      object[PVK].mutated = _.mapValues(replacement, v => [UpdateOp.set, v]) as any;
+      await beforeSave(Object.setPrototypeOf({ object, context }, this.#proto));
+
+      replacement = {};
+      for (const key of object.keys()) {
+        replacement[key] = object.get(key);
+      }
+    }
+
+    const result = this.#objectMethods(
+      await this.#storage.findOneAndReplace(this.#queryOptions, replacement)
+    );
+    if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, this.#proto));
+    return result;
+  }
+
+  async findOneAndUpsert(update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>) {
+    const beforeSave = this.#proto[PVK].triggers?.beforeSave?.[this.className];
+    const afterSave = this.#proto[PVK].triggers?.afterSave?.[this.className];
+
+    const context = this.#options?.context ?? {};
+
+    if (_.isFunction(beforeSave)) {
+
+      let object = this.#objectMethods(
+        _.first(await asyncIterableToArray(this.#storage.find({ ...this.#queryOptions, limit: 1 })))
+      );
+
+      if (object) {
+        object[PVK].mutated = update;
+      } else {
+        object = this.#proto.Object(this.className);
+        for (const [key, value] of _.toPairs(setOnInsert)) {
           object[PVK].mutated[key] = [UpdateOp.set, value as any];
         }
+      }
 
-        if (_.isFunction(beforeSave)) await beforeSave(Object.setPrototypeOf({ object, context }, proto));
+      await beforeSave(Object.setPrototypeOf({ object, context }, this.#proto));
 
-        const result = applyObjectMethods(
-          await storage(this).insert(this.className, _.fromPairs(object.keys().map(k => [k, object.get(k)]))),
-          proto,
-        );
-        if (!result) throw Error('Unable to insert document');
-        if (_.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, proto));
-        return result;
-      },
-    },
-    findOneAndUpdate: {
-      async value(update: Record<string, [UpdateOp, TValue]>) {
-        const beforeSave = proto[PVK].triggers?.beforeSave?.[this.className];
-        const afterSave = proto[PVK].triggers?.afterSave?.[this.className];
-
-        const context = options?.context ?? {};
-
-        if (_.isFunction(beforeSave)) {
-
-          const object = applyObjectMethods(_.first(await asyncIterableToArray(storage(this).find({ ...queryOptions(this), limit: 1 }))), proto);
-          if (!object) return undefined;
-
-          object[PVK].mutated = update;
-          await beforeSave(Object.setPrototypeOf({ object, context }, proto));
-
-          update = object[PVK].mutated;
-        }
-
-        const result = applyObjectMethods(
-          await storage(this).findOneAndUpdate(queryOptions(this), update), proto
-        );
-        if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, proto));
-        return result;
-      },
-    },
-    findOneAndReplace: {
-      async value(replacement: Record<string, TValue>) {
-        const beforeSave = proto[PVK].triggers?.beforeSave?.[this.className];
-        const afterSave = proto[PVK].triggers?.afterSave?.[this.className];
-
-        const context = options?.context ?? {};
-
-        if (_.isFunction(beforeSave)) {
-
-          const object = applyObjectMethods(_.first(await asyncIterableToArray(storage(this).find({ ...queryOptions(this), limit: 1 }))), proto);
-          if (!object) return undefined;
-
-          object[PVK].mutated = _.mapValues(replacement, v => [UpdateOp.set, v]) as any;
-          await beforeSave(Object.setPrototypeOf({ object, context }, proto));
-
-          replacement = {};
-          for (const key of object.keys()) {
-            replacement[key] = object.get(key);
+      if (object.objectId) {
+        update = object[PVK].mutated;
+      } else {
+        setOnInsert = {};
+        for (const [key, [op, value]] of _.toPairs(object[PVK].mutated)) {
+          if (op === UpdateOp.set) {
+            setOnInsert[key] = value;
           }
         }
+      }
+    }
 
-        const result = applyObjectMethods(
-          await storage(this).findOneAndReplace(queryOptions(this), replacement), proto
-        );
-        if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, proto));
-        return result;
-      },
-    },
-    findOneAndUpsert: {
-      async value(update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>) {
-        const beforeSave = proto[PVK].triggers?.beforeSave?.[this.className];
-        const afterSave = proto[PVK].triggers?.afterSave?.[this.className];
+    const result = this.#objectMethods(
+      await this.#storage.findOneAndUpsert(this.#queryOptions, update, setOnInsert)
+    );
+    if (!result) throw Error('Unable to upsert document');
+    if (_.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, this.#proto));
+    return result;
+  }
 
-        const context = options?.context ?? {};
+  async findOneAndDelete() {
+    const beforeDelete = this.#proto[PVK].triggers?.beforeDelete?.[this.className];
+    const afterDelete = this.#proto[PVK].triggers?.afterDelete?.[this.className];
 
-        if (_.isFunction(beforeSave)) {
+    const context = this.#options?.context ?? {};
+    let result: TObjectType<T, E> | undefined;
 
-          let object = applyObjectMethods(_.first(await asyncIterableToArray(storage(this).find({ ...queryOptions(this), limit: 1 }))), proto);
+    if (_.isFunction(beforeDelete)) {
 
-          if (object) {
-            object[PVK].mutated = update;
-          } else {
-            object = proto.Object(this.className);
-            for (const [key, value] of _.toPairs(setOnInsert)) {
-              object[PVK].mutated[key] = [UpdateOp.set, value as any];
-            }
-          }
+      const object = this.#objectMethods(
+        _.first(await asyncIterableToArray(this.#storage.find({ ...this.#queryOptions, limit: 1 })))
+      );
+      if (!object) return undefined;
 
-          await beforeSave(Object.setPrototypeOf({ object, context }, proto));
+      await beforeDelete(Object.setPrototypeOf({ object, context }, this.#proto));
 
-          if (object.objectId) {
-            update = object[PVK].mutated;
-          } else {
-            setOnInsert = {};
-            for (const [key, [op, value]] of _.toPairs(object[PVK].mutated)) {
-              if (op === UpdateOp.set) {
-                setOnInsert[key] = value;
-              }
-            }
-          }
-        }
+      result = this.#objectMethods(
+        await this.#storage.findOneAndDelete({
+          ...this.#queryOptions,
+          filter: { _id: { $eq: object.objectId } },
+        })
+      );
 
-        const result = applyObjectMethods(
-          await storage(this).findOneAndUpsert(queryOptions(this), update, setOnInsert), proto
-        );
-        if (!result) throw Error('Unable to upsert document');
-        if (_.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, proto));
-        return result;
-      },
-    },
-    findOneAndDelete: {
-      async value() {
-        const beforeDelete = proto[PVK].triggers?.beforeDelete?.[this.className];
-        const afterDelete = proto[PVK].triggers?.afterDelete?.[this.className];
+    } else {
+      result = this.#objectMethods(
+        await this.#storage.findOneAndDelete(this.#queryOptions)
+      );
+    }
 
-        const context = options?.context ?? {};
-        let result: TObject | undefined;
+    if (result && _.isFunction(afterDelete)) await afterDelete(Object.setPrototypeOf({ object: result, context }, this.#proto));
+    return result;
+  }
 
-        if (_.isFunction(beforeDelete)) {
+  async findAndDelete() {
+    const beforeDelete = this.#proto[PVK].triggers?.beforeDelete?.[this.className];
+    const afterDelete = this.#proto[PVK].triggers?.afterDelete?.[this.className];
 
-          const object = applyObjectMethods(_.first(await asyncIterableToArray(storage(this).find({ ...queryOptions(this), limit: 1 }))), proto);
-          if (!object) return undefined;
+    const context = this.#options?.context ?? {};
 
-          await beforeDelete(Object.setPrototypeOf({ object, context }, proto));
+    if (_.isFunction(beforeDelete) || _.isFunction(afterDelete)) {
 
-          result = applyObjectMethods(
-            await storage(this).findOneAndDelete({
-              ...queryOptions(this),
-              filter: { _id: { $eq: object.objectId } },
-            }),
-            proto,
-          );
+      const objects = this.#objectMethods(await asyncIterableToArray(this.#storage.find(this.#queryOptions)));
+      if (_.isEmpty(objects)) return 0;
 
-        } else {
-          result = applyObjectMethods(
-            await storage(this).findOneAndDelete(queryOptions(this)),
-            proto,
-          );
-        }
+      if (_.isFunction(beforeDelete)) {
+        await Promise.all(_.map(objects, object => beforeDelete(Object.setPrototypeOf({ object, context }, this.#proto))));
+      }
 
-        if (result && _.isFunction(afterDelete)) await afterDelete(Object.setPrototypeOf({ object: result, context }, proto));
-        return result;
-      },
-    },
-    findAndDelete: {
-      async value() {
-        const beforeDelete = proto[PVK].triggers?.beforeDelete?.[this.className];
-        const afterDelete = proto[PVK].triggers?.afterDelete?.[this.className];
+      await this.#storage.findAndDelete({
+        ...this.#queryOptions,
+        filter: { _id: { $in: _.map(objects, x => x.objectId as string) } },
+      });
 
-        const context = options?.context ?? {};
+      if (_.isFunction(afterDelete)) {
+        await Promise.all(_.map(objects, object => afterDelete(Object.setPrototypeOf({ object, context }, this.#proto))));
+      }
 
-        if (_.isFunction(beforeDelete) || _.isFunction(afterDelete)) {
+      return objects.length;
+    }
 
-          const objects = applyObjectMethods(await asyncIterableToArray(storage(this).find(queryOptions(this))), proto);
-          if (_.isEmpty(objects)) return 0;
+    return this.#storage.findAndDelete(this.#queryOptions);
+  }
 
-          if (_.isFunction(beforeDelete)) {
-            await Promise.all(_.map(objects, object => beforeDelete(Object.setPrototypeOf({ object, context }, proto))));
-          }
-
-          await storage(this).findAndDelete({
-            ...queryOptions(this),
-            filter: { _id: { $in: _.map(objects, x => x.objectId as string) } },
-          });
-
-          if (_.isFunction(afterDelete)) {
-            await Promise.all(_.map(objects, object => afterDelete(Object.setPrototypeOf({ object, context }, proto))));
-          }
-
-          return objects.length;
-        }
-
-        return storage(this).findAndDelete(queryOptions(this));
-      },
-    },
-  };
-
-  return Object.defineProperties(query, props);
 }
