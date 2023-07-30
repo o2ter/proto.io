@@ -141,6 +141,8 @@ export abstract class SqlStorage implements TStorage {
       RETURNING *
     `);
 
+    console.log(await result)
+
     return undefined;
   }
 
