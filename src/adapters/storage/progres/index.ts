@@ -33,16 +33,16 @@ import { SqlStorage } from '../../../server/sql/storage';
 
 export class PostgresStorage extends SqlStorage {
 
-  driver: PostgresDriver;
+  #driver: PostgresDriver;
 
   constructor(config: string | PoolConfig) {
     super();
-    this.driver = new PostgresDriver(config);
+    this.#driver = new PostgresDriver(config);
   }
 
   async shutdown() {
     await super.shutdown();
-    await this.driver.shutdown();
+    await this.#driver.shutdown();
   }
 
   async prepare(schema: Record<string, TSchema>) {
@@ -157,7 +157,7 @@ export class PostgresStorage extends SqlStorage {
   }
 
   query(text: string, values: any[] = [], batchSize?: number) {
-    return this.driver.query(text, values, batchSize);
+    return this.#driver.query(text, values, batchSize);
   }
 
   classes() {
@@ -165,31 +165,31 @@ export class PostgresStorage extends SqlStorage {
   }
 
   async version() {
-    return this.driver.version();
+    return this.#driver.version();
   }
 
   async databases() {
-    return this.driver.databases();
+    return this.#driver.databases();
   }
 
   async tables() {
-    return this.driver.tables();
+    return this.#driver.tables();
   }
 
   async views() {
-    return this.driver.views();
+    return this.#driver.views();
   }
 
   async materializedViews() {
-    return this.driver.materializedViews();
+    return this.#driver.materializedViews();
   }
 
   async columns(table: string, namespace?: string) {
-    return this.driver.columns(table, namespace);
+    return this.#driver.columns(table, namespace);
   }
 
   async indices(table: string, namespace?: string) {
-    return this.driver.indices(table, namespace);
+    return this.#driver.indices(table, namespace);
   }
 
 }
