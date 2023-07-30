@@ -24,16 +24,21 @@
 //
 
 import _ from 'lodash';
+import { TPrimitiveValue, TValue } from '../../internals';
+
+type SQLLiteral = SQL | SQL[] | { literal: string | SQL[], separator?: string };
+type SQLIdentifier = { identifier: string };
+type SQLValue = TPrimitiveValue | { value: TValue } | SQLIdentifier | SQLLiteral;
 
 export class SQL {
 
   strings: TemplateStringsArray;
-  values: any[];
+  values: SQLValue[];
 
-  constructor(templates: TemplateStringsArray, values: any[]) {
+  constructor(templates: TemplateStringsArray, values: SQLValue[]) {
     this.strings = templates;
     this.values = values;
   }
 }
 
-export const sql = (templates: TemplateStringsArray, ...values: any[]) => new SQL(templates, values);
+export const sql = (templates: TemplateStringsArray, ...values: SQLValue[]) => new SQL(templates, values);

@@ -27,8 +27,8 @@ import _ from 'lodash';
 import { Decimal } from 'decimal.js';
 import { TObject } from '../object';
 
-type TPrimitiveValue = boolean | number | Decimal | string | Date | null;
-type TDictionaryValue = { [x: string]: TValue; };
+export type TPrimitiveValue = boolean | number | Decimal | string | Date | null;
+export type TDictionaryValue = { [x: string]: TValue; };
 export type TValue = TDictionaryValue | TValue[] | TPrimitiveValue | TObject;
 
 export const isPrimitiveValue = (x: any): x is TPrimitiveValue => {

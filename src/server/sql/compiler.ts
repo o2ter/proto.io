@@ -28,6 +28,8 @@ import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions } from '../st
 import { SqlDialect } from './dialect';
 import { TSchema } from '../schema';
 import { defaultObjectKeyTypes } from '../schema';
+import { CoditionalSelector, FieldSelector, QuerySelector } from '../query/validator/parser';
+import { SQL, sql } from './sql';
 
 export type QueryCompilerOptions = DecodedQuery<ExplainOptions> | DecodedQuery<FindOptions> | DecodedQuery<FindOneOptions>;
 
@@ -41,6 +43,8 @@ export class QueryCompiler {
   names: Record<string, { type: TSchema.DataType; name: string; }> = {};
   populates: Record<string, { className: string; name: string; }> = {};
   sorting: Record<string, 1 | -1> = {};
+
+  filter?: SQL;
 
   constructor(schema: Record<string, TSchema>, query: QueryCompilerOptions, dialect: SqlDialect) {
     this.schema = schema;
@@ -103,8 +107,43 @@ export class QueryCompiler {
     }
   }
 
+  private _decodeFilter(filter: QuerySelector): SQL | undefined {
+    if (filter instanceof CoditionalSelector) {
+      switch (filter.type) {
+        case '$and':
+          {
+            const queries = _.compact(_.map(filter.exprs, x => this._decodeFilter(x)));
+            return sql`${{
+              literal: _.map(queries, x => sql`(${x})`),
+              separator: ' AND ',
+            }}`;
+          }
+        case '$nor':
+          {
+            const queries = _.compact(_.map(filter.exprs, x => this._decodeFilter(x)));
+            return sql`${{
+              literal: _.map(queries, x => sql`NOT (${x})`),
+              separator: ' AND ',
+            }}`;
+          }
+        case '$or':
+          {
+            const queries = _.compact(_.map(filter.exprs, x => this._decodeFilter(x)));
+            return sql`${{
+              literal: _.map(queries, x => sql`(${x})`),
+              separator: ' OR ',
+            }}`;
+          }
+      }
+    }
+    if (filter instanceof FieldSelector) {
+
+    }
+  }
+
   compile() {
     this._decodeIncludes(this.query.className, this.query.includes);
     this._decodeSorting();
+    this.filter = this._decodeFilter(this.query.filter);
   }
 }
