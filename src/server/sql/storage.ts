@@ -28,7 +28,7 @@ import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions, InsertOption
 import { TSchema } from '../schema';
 import { storageSchedule } from '../schedule';
 import { TValue, UpdateOp, asyncStream, isPrimitiveValue } from '../../internals';
-import { SQL } from './sql';
+import { SQL, sql } from './sql';
 import { SqlDialect } from './dialect';
 import { QueryCompiler, QueryCompilerOptions } from './compiler';
 import { generateId } from '../crypto';
@@ -64,38 +64,36 @@ export abstract class SqlStorage implements TStorage {
         const { query: _query, values: _values } = this._compile(value, nextIdx);
         query += `${_query}${str}`;
         values.push(..._values);
-      } else {
-        if (_.isBoolean(value)) {
-          query += `${this.dialect.boolean(value)}${str}`;
-        } else if (isSQLArray(value)) {
+      } else if (_.isBoolean(value)) {
+        query += `${this.dialect.boolean(value)}${str}`;
+      } else if (isSQLArray(value)) {
+        const queries: string[] = [];
+        for (const subquery of value) {
+          const { query: _query, values: _values } = this._compile(subquery, nextIdx);
+          queries.push(_query);
+          values.push(..._values);
+        }
+        query += `${queries.join(', ')}${str}`;
+      } else if (isPrimitiveValue(value)) {
+        query += `${this.dialect.placeholder(nextIdx())}${str}`;
+        values.push(value);
+      } else if ('identifier' in value) {
+        query += `${this.dialect.identifier(value.identifier)}${str}`;
+      } else if ('literal' in value) {
+        if (_.isString(value.literal)) {
+          query += `${value.literal}${str}`;
+        } else {
           const queries: string[] = [];
-          for (const subquery of value) {
+          for (const subquery of value.literal) {
             const { query: _query, values: _values } = this._compile(subquery, nextIdx);
             queries.push(_query);
             values.push(..._values);
           }
-          query += `${queries.join(', ')}${str}`;
-        } else if (!isPrimitiveValue(value)) {
-          if ('identifier' in value && _.isString(value.identifier)) {
-            query += `${this.dialect.identifier(value.identifier)}${str}`;
-          } else if ('literal' in value && _.isString(value.literal)) {
-            query += `${value.literal}${str}`;
-          } else if ('literal' in value && _.isArray(value.literal)) {
-            const queries: string[] = [];
-            for (const subquery of value.literal) {
-              const { query: _query, values: _values } = this._compile(subquery, nextIdx);
-              queries.push(_query);
-              values.push(..._values);
-            }
-            query += `${queries.join(value.separator ?? ', ')}${str}`;
-          } else {
-            query += `${this.dialect.placeholder(nextIdx())}${str}`;
-            values.push(value);
-          }
-        } else {
-          query += `${this.dialect.placeholder(nextIdx())}${str}`;
-          values.push(value);
+          query += `${queries.join(value.separator ?? ', ')}${str}`;
         }
+      } else {
+        query += `${this.dialect.placeholder(nextIdx())}${str}`;
+        values.push('value' in value ? value.value : value);
       }
     }
     return { query, values };
@@ -131,10 +129,15 @@ export abstract class SqlStorage implements TStorage {
 
   async insert(options: InsertOptions, attrs: Record<string, TValue>) {
 
-    const _attrs = {
+    const _attrs: [string, TValue][] = _.toPairs({
       _id: generateId(options.objectIdSize),
       ...attrs,
-    };
+    });
+
+    const result = this.query(sql`
+      INSERT INTO films (${_.map(_attrs, x => sql`${{ identifier: x[0] }}`)})
+      VALUES (${_.map(_attrs, x => sql`${{ value: x[1] }}`)})
+    `);
 
     return undefined;
   }
