@@ -147,11 +147,9 @@ export class PostgresStorage extends SqlStorage {
         IF NOT EXISTS ${{ identifier: name }}
         ON ${{ identifier: className }}
         ${{ literal: isAcl || isRelation ? 'USING GIN' : '' }}
-        (
-          ${_.map(index.keys, (v, k) => sql`
-            ${{ identifier: k }} ${{ literal: isAcl || isRelation ? '' : v === 1 ? 'ASC' : 'DESC' }}
-          `)}
-        )
+        (${_.map(index.keys, (v, k) => sql`
+          ${{ identifier: k }} ${{ literal: isAcl || isRelation ? '' : v === 1 ? 'ASC' : 'DESC' }}
+        `)})
       `);
     }
   }
