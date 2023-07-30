@@ -126,6 +126,7 @@ export class QueryCompiler {
       return this._decodeCoditionalSelector(filter);
     }
     if (filter instanceof FieldSelector) {
+      const [colname, ...subpath] = _.toPath(filter.field);
       
     }
   }
