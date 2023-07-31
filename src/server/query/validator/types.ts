@@ -46,6 +46,7 @@ export type PathName<T> = T extends `${infer L}.${Digits<infer _U> | FieldName<i
   : T extends FieldName<T> ? T : never;
 
 const check = <T>(path: PathName<T>) => { }
+check('_abc')
 check('_abc.cds')
 check('_abc.cds.cds')
 check('_abc.cds.cds.cds')
