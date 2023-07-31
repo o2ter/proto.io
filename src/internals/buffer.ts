@@ -55,6 +55,7 @@ const _bufferToBase64 = typeof window === 'undefined' ?
 
 export const bufferToBase64 = (buffer: string | FileBuffer) => {
   if (_.isString(buffer)) return _stringToBase64(buffer);
+  if (typeof Buffer !== 'undefined' && buffer instanceof Buffer) return Buffer.from(buffer).toString('base64');
   if (ArrayBuffer.isView(buffer)) buffer = buffer.buffer;
   return _bufferToBase64(buffer);
 }
