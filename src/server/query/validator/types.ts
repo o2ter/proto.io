@@ -44,4 +44,4 @@ type PathComponents<T> = T extends `${PathComponent<infer _C>}${infer Tails}`
   ? Tails extends PathComponents<Tails> | '' ? T : never
   : never;
 
-export type PathName<T> = T extends `${FieldName<infer _U>}${PathComponent<infer _T>}` ? T : never;
+export type PathName<T> = T extends `${FieldName<infer _U>}${PathComponents<infer _T>}` ? T : never;
