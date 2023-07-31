@@ -32,16 +32,16 @@ type _Lower = 'a' | 'b' | 'c' | 'd' | 'e' |
 type _Upper = Uppercase<_Lower>;
 type _Alphabet = _Lower | _Upper;
 
-type _String<T, C extends string | number> = T extends `${C}${infer Tails}`
-  ? Tails extends _String<Tails, C> | '' ? T : never
+type _String<T, C extends string | number> = T extends `${infer Head}${C}`
+  ? Head extends '' | _String<Head, C> ? T : never
   : never;
 
 export type Digits<T> = _String<T, _Digit>;
 export type FieldName<T> = T extends `${'_' | _Alphabet}${_String<infer _U, '_' | _Alphabet | _Digit>}` ? T : never;
 
-type PathComponent<T> = T extends `.${FieldName<infer _U> | Digits<infer _U>}` | `[${Digits<infer _U>}]` ? T : never;
-type PathComponents<T> = T extends `${PathComponent<infer _C>}${infer Tails}`
-  ? Tails extends PathComponents<Tails> | '' ? T : never
+type PathComponent<T> = T extends `[${Digits<infer _U>}]` | `.${Digits<infer _U> | FieldName<infer _U>}` ? T : never;
+type PathComponents<T> = T extends `${infer Head}${PathComponent<infer _C>}`
+  ? Head extends PathComponents<Head> | '' ? T : never
   : never;
 
 export type PathName<T> = T extends `${FieldName<infer _U>}${PathComponents<infer _T>}` ? T : never;
