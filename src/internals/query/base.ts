@@ -100,7 +100,7 @@ export class TQueryBase {
   contains(key: string, callback: (query: TQueryBase) => void) {
     const query = new TQueryBase();
     callback(query);
-    return this.filter({ [key]: { $contains: { $and: _.castArray<TQuerySelector>(query[PVK].options.filter) } } });
+    return this.filter({ [key]: { $some: { $and: _.castArray<TQuerySelector>(query[PVK].options.filter) } } });
   }
 
 }

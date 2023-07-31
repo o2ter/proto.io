@@ -143,7 +143,7 @@ export class FieldExpression {
               throw Error('Invalid expression');
             }
           case '$every':
-          case '$contains':
+          case '$some':
             return new FieldExpression(type, QuerySelector.decode(expr ? { ...expr as any } : {}));
           default: throw Error('Invalid expression');
         }
