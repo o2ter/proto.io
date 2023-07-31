@@ -91,14 +91,14 @@ export class TQueryBase {
     return this.filter({ [key]: { $nin: value ?? null } });
   }
 
-  every(key: string, callback: (query: TQueryBase) => any) {
+  every(key: string, callback: (query: TQueryBase) => void) {
     const query = new TQueryBase();
     callback(query);
     const filter = { $and:_.castArray<TQuerySelector>(query[PVK].options.filter) };
     return this.filter({ [key]: { $every: filter } });
   }
 
-  contains(key: string, callback: (query: TQueryBase) => any) {
+  contains(key: string, callback: (query: TQueryBase) => void) {
     const query = new TQueryBase();
     callback(query);
     const filter = { $and:_.castArray<TQuerySelector>(query[PVK].options.filter) };
