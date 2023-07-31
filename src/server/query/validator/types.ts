@@ -23,6 +23,8 @@
 //  THE SOFTWARE.
 //
 
+import _ from "lodash";
+
 type _Digit = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 type _Lower = 'a' | 'b' | 'c' | 'd' | 'e' |
   'f' | 'g' | 'h' | 'i' | 'j' |
@@ -33,8 +35,13 @@ type _Upper = Uppercase<_Lower>;
 type _Alphabet = _Lower | _Upper;
 
 type _String<T, C extends string | number> = T extends `${C}${infer Tails}`
-  ? Tails extends _String<Tails, C> | '' ? T : never
+  ? Tails extends _String<infer _U, C> | '' ? T : never
   : never;
 
 export type Digits<T> = _String<T, _Digit>;
 export type FieldName<T> = T extends `${'_' | _Alphabet}${_String<infer _U, '_' | _Alphabet | _Digit>}` ? T : never;
+
+type PathComponent<T> = T extends `.${FieldName<infer _U> | Digits<infer _U>}` | `[${Digits<infer _U>}]` ? T : never;
+export type PathName<T> = T extends `${FieldName<infer _U>}${infer Tails}`
+  ? Tails extends _String<infer _C, PathComponent<infer _T>> | '' ? T : never
+  : never;
