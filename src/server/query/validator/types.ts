@@ -41,5 +41,5 @@ export type FieldName<T> = T extends `${'_' | _Alphabet}${_String<infer _U, '_' 
 
 type PathComponent<T> = T extends `.${FieldName<infer _U> | Digits<infer _U>}` | `[${Digits<infer _U>}]` ? T : never;
 export type PathName<T> = T extends `${FieldName<infer _U>}${infer Tails}`
-  ? Tails extends _String<infer _C, PathComponent<infer _T>> | '' ? T : never
+  ? Tails extends _String<Tails, PathComponent<infer _T>> | '' ? T : never
   : never;
