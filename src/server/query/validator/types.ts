@@ -37,4 +37,4 @@ type _String<T, C extends string | number> = T extends `${C}${infer Tails}`
   : never;
 
 export type Digits<T> = _String<T, _Digit>;
-export type Name<T> = T extends `${'_' | _Alphabet}${_String<infer _U, '_' | _Alphabet | _Digit>}` ? T : never;
+export type FieldName<T> = T extends `${'_' | _Alphabet}${_String<infer _U, '_' | _Alphabet | _Digit>}` ? T : never;
