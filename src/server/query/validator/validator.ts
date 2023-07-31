@@ -127,6 +127,9 @@ export class QueryValidator<E> {
     if (_.isNil(this.schema[dataType.target])) return false;
     if (type === 'read' && !this.validateCLPs(dataType.target, 'get')) return false;
     if (dataType.type === 'relation' && !_.isNil(dataType.foreignField)) {
+      const foreignField = this.schema[dataType.target]?.fields[dataType.foreignField];
+      if (_.isNil(foreignField) || _.isString(foreignField)) throw Error(`Invalid path: ${include}`);
+      if (foreignField.type !== 'pointer' && foreignField.type !== 'relation') throw Error(`Invalid path: ${include}`);
       if (!this.validateKeyPerm(dataType.foreignField, type, this.schema[dataType.target])) throw Error('No permission');
     }
 
@@ -166,6 +169,9 @@ export class QueryValidator<E> {
         if (!_.isString(dataType) && (dataType.type === 'pointer' || dataType.type === 'relation')) {
           if (!this.validateCLPs(dataType.target, 'get')) throw Error('No permission');
           if (dataType.type === 'relation' && !_.isNil(dataType.foreignField)) {
+            const foreignField = this.schema[dataType.target]?.fields[dataType.foreignField];
+            if (_.isNil(foreignField) || _.isString(foreignField)) throw Error(`Invalid path: ${include}`);
+            if (foreignField.type !== 'pointer' && foreignField.type !== 'relation') throw Error(`Invalid path: ${include}`);
             if (!this.validateKeyPerm(dataType.foreignField, 'read', this.schema[dataType.target])) throw Error('No permission');
           }
           populates[colname] = populates[colname] ?? { className: dataType.target, subpaths: [] };
