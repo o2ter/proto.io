@@ -97,7 +97,7 @@ export class TQueryBase {
     return this.filter({ [key]: { $every: { $and: _.castArray<TQuerySelector>(query[PVK].options.filter) } } });
   }
 
-  contains(key: string, callback: (query: TQueryBase) => void) {
+  some(key: string, callback: (query: TQueryBase) => void) {
     const query = new TQueryBase();
     callback(query);
     return this.filter({ [key]: { $some: { $and: _.castArray<TQuerySelector>(query[PVK].options.filter) } } });
