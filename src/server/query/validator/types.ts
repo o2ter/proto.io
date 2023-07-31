@@ -42,3 +42,8 @@ export type FieldName<T> = T extends `${'_' | _Alphabet}${_String<infer _U, '_' 
 export type PathName<T> = T extends `${infer L}${`[${Digits<infer _U>}]` | `.${Digits<infer _U> | FieldName<infer _U>}`}`
   ? L extends PathName<L> ? T : never
   : T extends FieldName<T> ? T : never;
+
+const check = <T>(path: PathName<T>) => { }
+check('_abc.cds')
+check('_abc.cds.cds')
+check('_abc.cds.cds.cds')
