@@ -74,9 +74,6 @@ export abstract class SqlStorage implements TStorage {
           values.push(..._values);
         }
         query += `${queries.join(', ')}${str}`;
-      } else if (isPrimitiveValue(value)) {
-        query += `${this.dialect.placeholder(nextIdx())}${str}`;
-        values.push(value);
       } else if ('quote' in value) {
         query += `${this.dialect.quote(value.quote)}${str}`;
       } else if ('identifier' in value) {

@@ -24,12 +24,12 @@
 //
 
 import _ from 'lodash';
-import { TPrimitiveValue, TValue } from '../../internals';
+import { TValue } from '../../internals';
 
 type SQLLiteral = SQL | SQL[] | { literal: string | SQL[], separator?: string };
 type SQLIdentifier = { identifier: string };
 type SQLEscapeString = { quote: string };
-type SQLValue = TPrimitiveValue | { value: TValue } | SQLIdentifier | SQLLiteral | SQLEscapeString;
+type SQLValue = { value: TValue } | SQLIdentifier | SQLLiteral | SQLEscapeString;
 
 export class SQL {
 
