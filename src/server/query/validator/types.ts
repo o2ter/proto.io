@@ -39,9 +39,6 @@ type _String<T, C extends string | number> = T extends `${infer H}${C}`
 export type Digits<T> = _String<T, _Digit>;
 export type FieldName<T> = T extends `${'_' | _Alphabet}${_String<infer _U, '_' | _Alphabet | _Digit>}` ? T : never;
 
-type PathComponent<T> = T extends `[${Digits<infer _U>}]` | `.${Digits<infer _U> | FieldName<infer _U>}` ? T : never;
-type PathComponents<T> = T extends `${infer H}${PathComponent<infer _C>}`
-  ? H extends '' | PathComponents<H> ? T : never
-  : never;
-
-export type PathName<T> = T extends `${FieldName<infer _U>}${PathComponents<infer _T>}` ? T : never;
+export type PathName<T> = T extends `${infer L}${`[${Digits<infer _U>}]` | `.${Digits<infer _U> | FieldName<infer _U>}`}`
+  ? L extends PathName<L> ? T : never
+  : T extends FieldName<T> ? T : never;
