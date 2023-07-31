@@ -161,16 +161,13 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     if (_.isNil(data)) throw Error('Invalid file object');
 
     let file: { _id: string; size: number; } | undefined;
-    let content: string | undefined;
 
     const info = {
       mimeType: object.get('type') as string,
       filename: object.get('filename') as string,
     };
 
-    if (_.isString(data) && data.length < 64 * 1024) {
-      content = data;
-    } else if (_.isString(data) || isFileBuffer(data) || isFileStream(data)) {
+    if (_.isString(data) || isFileBuffer(data) || isFileStream(data)) {
       file = await this.proto.fileStorage.create(this.proto, data, info);
     } else if ('base64' in data) {
       const buffer = base64ToBuffer(data.base64);
@@ -183,13 +180,8 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
 
     try {
 
-      if (file?._id) {
-        object.set('token', file._id);
-        object.set('size', file.size);
-      } else if (content) {
-        object.set('content', content);
-        object.set('size', content.length);
-      }
+      object.set('token', file._id);
+      object.set('size', file.size);
 
       const created = await this.proto.Query(object.className, options)
         .insert(_.fromPairs(object.keys().map(k => [k, object.get(k)])));
@@ -203,9 +195,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
       return object;
 
     } catch (e) {
-
-      if (file?._id) this.destoryFileData(this.proto, file._id);
-
+      this.destoryFileData(this.proto, file._id);
       throw e;
     }
   }
