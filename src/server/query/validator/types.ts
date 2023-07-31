@@ -24,5 +24,17 @@
 //
 
 type _Digit = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+type _Lower = 'a' | 'b' | 'c' | 'd' | 'e' |
+  'f' | 'g' | 'h' | 'i' | 'j' |
+  'k' | 'l' | 'm' | 'n' | 'o' |
+  'p' | 'q' | 'r' | 's' | 't' |
+  'u' | 'v' | 'w' | 'x' | 'y' | 'z';
+type _Upper = Uppercase<_Lower>;
+type _Alphabet = _Lower | _Upper;
 
-export type Digits<T> = T extends `${_Digit}${infer Tails}` ? Tails extends Digits<Tails> | '' ? T : never : never;
+type _String<T, C extends string | number> = T extends `${C}${infer Tails}`
+  ? Tails extends _String<Tails, C> | '' ? T : never
+  : never;
+
+export type Digits<T> = _String<T, _Digit>;
+export type Name<T> = T extends `${'_' | _Alphabet}${_String<infer _U, '_' | _Alphabet | _Digit>}` ? T : never;
