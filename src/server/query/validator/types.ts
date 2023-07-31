@@ -33,7 +33,7 @@ type _Upper = Uppercase<_Lower>;
 type _Alphabet = _Lower | _Upper;
 
 type _String<T, C extends string | number> = T extends `${C}${infer Tails}`
-  ? Tails extends _String<infer _U, C> | '' ? T : never
+  ? Tails extends _String<Tails, C> | '' ? T : never
   : never;
 
 export type Digits<T> = _String<T, _Digit>;
