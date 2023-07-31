@@ -75,6 +75,8 @@ export class CoditionalSelector extends QuerySelector {
   }
 
   simplify() {
+    if (_.isEmpty(this.exprs)) return new QuerySelector;
+    if (this.exprs.length === 1 && this.type !== '$nor') return this.exprs[0];
     switch (this.type) {
       case '$and':
         return new CoditionalSelector(this.type, _.flatMap(
