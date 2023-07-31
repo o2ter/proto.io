@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { TCoditionalQuerySelector, TQuerySelector } from './types';
+import { TQuerySelector } from './types';
 import { TValue } from './value';
 import { PVK } from '../private';
 
