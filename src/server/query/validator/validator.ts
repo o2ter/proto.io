@@ -125,10 +125,10 @@ export class QueryValidator<E> {
     if (_.isString(dataType)) return true;
     if (dataType.type !== 'pointer' && dataType.type !== 'relation') return true;
     if (_.isNil(this.schema[dataType.target])) return false;
+    if (type === 'read' && !this.validateCLPs(dataType.target, 'get')) return false;
     if (dataType.type === 'relation' && !_.isNil(dataType.foreignField)) {
       if (!this.validateKeyPerm(dataType.foreignField, type, this.schema[dataType.target])) throw Error('No permission');
     }
-    if (type === 'read' && !this.validateCLPs(dataType.target, 'get')) return false;
 
     return this.validateKey(dataType.target, isElem ? subpath.slice(1) : subpath, type, validator);
   }
@@ -165,10 +165,10 @@ export class QueryValidator<E> {
         const dataType = schema.fields[colname];
         if (!_.isString(dataType) && (dataType.type === 'pointer' || dataType.type === 'relation')) {
           if (!this.validateCLPs(dataType.target, 'get')) throw Error('No permission');
-          if (!populates[colname]) populates[colname] = { className: dataType.target, subpaths: [] };
           if (dataType.type === 'relation' && !_.isNil(dataType.foreignField)) {
             if (!this.validateKeyPerm(dataType.foreignField, 'read', this.schema[dataType.target])) throw Error('No permission');
           }
+          populates[colname] = populates[colname] ?? { className: dataType.target, subpaths: [] };
           populates[colname].subpaths.push(_.isEmpty(subpath) ? '*' : subpath.join('.'));
         } else if (_.isEmpty(subpath)) {
           _includes.push(colname);

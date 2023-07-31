@@ -41,7 +41,7 @@ export class QueryCompiler {
 
   idx = 0;
   names: Record<string, { type: TSchema.DataType; name: string; }> = {};
-  populates: Record<string, { className: string; name: string; }> = {};
+  populates: Record<string, { className: string; name: string; foreignField?: string; }> = {};
   sorting: Record<string, 1 | -1> = {};
 
   filter?: SQL;
@@ -59,7 +59,7 @@ export class QueryCompiler {
   private _decodeIncludes(className: string, includes: string[], parent?: string) {
 
     const schema = this.schema[className] ?? {};
-    const populates: Record<string, { className: string; type: TSchema.Relation; subpaths: string[]; }> = {};
+    const populates: Record<string, { className: string; type: TSchema.Relation; foreignField?: string; subpaths: string[]; }> = {};
 
     for (const include of includes) {
       const [colname, ...subpath] = include.split('.');
@@ -67,7 +67,12 @@ export class QueryCompiler {
       const dataType = schema.fields[colname] ?? defaultObjectKeyTypes[colname];
       if (!_.isString(dataType) && (dataType.type === 'pointer' || dataType.type === 'relation')) {
         if (_.isEmpty(subpath)) throw Error(`Invalid path: ${include}`);
-        if (!populates[colname]) populates[colname] = { className: dataType.target, type: dataType.type, subpaths: [] };
+        populates[colname] = populates[colname] ?? {
+          className: dataType.target,
+          type: dataType.type,
+          foreignField: dataType.type === 'relation' ? dataType.foreignField : undefined,
+          subpaths: []
+        };
         populates[colname].subpaths.push(subpath.join('.'));
       } else if (_.isEmpty(subpath)) {
         this.names[parent ? `${parent}.${colname}` : colname] = {
@@ -82,7 +87,7 @@ export class QueryCompiler {
     for (const [colname, populate] of _.toPairs(populates)) {
       const name = `t${this.nextIdx()}`;
       const path = parent ? `${parent}.${colname}` : colname;
-      this.populates[populate.type === 'relation' ? `${path}.*` : path] = { className: populate.className, name };
+      this.populates[populate.type === 'relation' ? `${path}.*` : path] = { className: populate.className, foreignField: populate.foreignField, name };
       this._decodeIncludes(populate.className, populate.subpaths, name);
     }
   }
@@ -127,7 +132,7 @@ export class QueryCompiler {
     }
     if (filter instanceof FieldSelector) {
       const [colname, ...subpath] = _.toPath(filter.field);
-      
+
     }
   }
 
