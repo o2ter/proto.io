@@ -24,53 +24,53 @@ docker run -d --rm --name postgres_test_db_${RAND} \
   -e "POSTGRES_DB=${POSTGRES_DATABASE}" \
   postgres
 
-docker run -d --rm --name mongo_test_db_${RAND} \
-  -p 27017:27017 \
-  mongo --replSet ${MONGO_REPLICA_SET}
+# docker run -d --rm --name mongo_test_db_${RAND} \
+#   -p 27017:27017 \
+#   mongo --replSet ${MONGO_REPLICA_SET}
 
 function cleanup {
   docker stop postgres_test_db_${RAND}
-  docker stop mongo_test_db_${RAND}
+  # docker stop mongo_test_db_${RAND}
 }
 
 trap cleanup EXIT
 
 docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" postgres_test_db_${RAND}
-docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" mongo_test_db_${RAND}
+# docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" mongo_test_db_${RAND}
 
-sleep 1
-TIMER=0
+# sleep 1
+# TIMER=0
 
-until docker exec --tty mongo_test_db_${RAND} mongosh 'admin' --eval 'quit(0)'; do
-  sleep 1
-  echo "."
-  TIMER=$((TIMER + 1))
+# until docker exec --tty mongo_test_db_${RAND} mongosh 'admin' --eval 'quit(0)'; do
+#   sleep 1
+#   echo "."
+#   TIMER=$((TIMER + 1))
 
-  if [[ $TIMER -eq 20 ]]; then
-    echo "MongoDB did not initialize within 20 seconds. Exiting."
-    exit 2
-  fi
-done
+#   if [[ $TIMER -eq 20 ]]; then
+#     echo "MongoDB did not initialize within 20 seconds. Exiting."
+#     exit 2
+#   fi
+# done
 
-docker exec --tty mongo_test_db_${RAND} mongosh --eval "
-  rs.initiate({
-    _id: '${MONGO_REPLICA_SET}',
-    members: [{
-       _id: 0,
-      host: 'localhost'
-    }]
-  })
-"
+# docker exec --tty mongo_test_db_${RAND} mongosh --eval "
+#   rs.initiate({
+#     _id: '${MONGO_REPLICA_SET}',
+#     members: [{
+#        _id: 0,
+#       host: 'localhost'
+#     }]
+#   })
+# "
 
-docker exec --tty mongo_test_db_${RAND} mongosh admin --eval "
-  db.createUser({
-    user: '${MONGO_USERNAME}',
-    pwd: '${MONGO_PASSWORD}',
-    roles:[{
-      role: 'root',
-      db: 'admin'
-    }]
-  })
-"
+# docker exec --tty mongo_test_db_${RAND} mongosh admin --eval "
+#   db.createUser({
+#     user: '${MONGO_USERNAME}',
+#     pwd: '${MONGO_PASSWORD}',
+#     roles:[{
+#       role: 'root',
+#       db: 'admin'
+#     }]
+#   })
+# "
 
 yarn test
