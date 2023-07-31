@@ -28,7 +28,8 @@ export namespace TSchema {
   export type ACLs = { read?: TSchema.ACL; update?: TSchema.ACL; };
   export type Primitive = 'boolean' | 'number' | 'decimal' | 'string' | 'date' | 'object' | 'array';
   export type Relation = 'pointer' | 'relation';
-  export type DataType = Primitive | { type: Primitive } | { type: Relation, target: string };
+  export type RelationType = { type: 'relation', target: string, foreignField?: string; };
+  export type DataType = Primitive | { type: Primitive } | { type: 'pointer', target: string } | RelationType;
   export type CLPs = {
     get?: TSchema.ACL;
     find?: TSchema.ACL;

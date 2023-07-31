@@ -71,6 +71,7 @@ export class PostgresStorage extends SqlStorage {
   }
 
   private async _createTable(className: string, schema: TSchema) {
+    const fields = _.pickBy(schema.fields, x => _.isString(x) || x.type !== 'relation' || _.isNil(x.foreignField));
     await this.query(sql`
       CREATE TABLE
       IF NOT EXISTS ${{ identifier: className }}
@@ -81,7 +82,7 @@ export class PostgresStorage extends SqlStorage {
         _updated_at TIMESTAMP NOT NULL DEFAULT now(),
         _expired_at TIMESTAMP,
         _acl TEXT[],
-        ${_.map(schema.fields, (type, col) => sql`
+        ${_.map(fields, (type, col) => sql`
           ${{ identifier: col }} ${{ literal: this._pgType(_.isString(type) ? type : type.type) }}
         `)}
       )
@@ -127,6 +128,7 @@ export class PostgresStorage extends SqlStorage {
     for (const column of columns) {
       if (TObject.defaultKeys.includes(column.name)) continue;
       const type = schema.fields[column.name];
+      if (!_.isString(type) && type.type === 'relation' && !_.isNil(type.foreignField)) continue;
       const pgType = this._pgType(_.isString(type) ? type : type.type);
       if (pgType === typeMap[column.type] ?? column.type) continue;
       rebuild.push({ name: column.name, type: pgType });
