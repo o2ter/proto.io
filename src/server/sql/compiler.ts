@@ -87,7 +87,11 @@ export class QueryCompiler {
     for (const [colname, populate] of _.toPairs(populates)) {
       const name = `t${this.nextIdx()}`;
       const path = parent ? `${parent}.${colname}` : colname;
-      this.populates[populate.type === 'relation' ? `${path}.*` : path] = { className: populate.className, foreignField: populate.foreignField, name };
+      this.populates[populate.type === 'relation' ? `${path}.*` : path] = {
+        name,
+        className: populate.className,
+        foreignField: populate.foreignField,
+      };
       this._decodeIncludes(populate.className, populate.subpaths, name);
     }
   }
