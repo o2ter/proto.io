@@ -128,8 +128,8 @@ export class QueryValidator<E> {
     if (type === 'read' && !this.validateCLPs(dataType.target, 'get')) return false;
     if (dataType.type === 'relation' && !_.isNil(dataType.foreignField)) {
       const foreignField = this.schema[dataType.target]?.fields[dataType.foreignField];
-      if (_.isNil(foreignField) || _.isString(foreignField)) throw Error(`Invalid path: ${include}`);
-      if (foreignField.type !== 'pointer' && foreignField.type !== 'relation') throw Error(`Invalid path: ${include}`);
+      if (_.isNil(foreignField) || _.isString(foreignField)) throw Error(`Invalid path: ${_key}`);
+      if (foreignField.type !== 'pointer' && foreignField.type !== 'relation') throw Error(`Invalid path: ${_key}`);
       if (!this.validateKeyPerm(dataType.foreignField, type, this.schema[dataType.target])) throw Error('No permission');
     }
 
