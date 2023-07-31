@@ -48,7 +48,6 @@ export class QueryValidator<E> {
   master: boolean;
 
   static patterns = {
-    queryPath: /^[a-z_]\w*(\[\*\]|\.\*|\[\d+\]|\.\d*|\.[a-z_]\w*)*$/gi,
     path: /^[a-z_]\w*(\[\d+\]|\.\d*|\.[a-z_]\w*)*$/gi,
     name: /^[a-z_]\w*$/gi,
     digits: /^\d+$/g,
@@ -117,7 +116,7 @@ export class QueryValidator<E> {
     if (_.isEmpty(subpath)) return true;
 
     const dataType = schema.fields[colname];
-    const isElem = _.first(subpath) === '*' || _.first(subpath)?.match(QueryValidator.patterns.digits);
+    const isElem = _.first(subpath)?.match(QueryValidator.patterns.digits);
     if (isElem) {
       if (dataType === 'array') return true;
       if (!_.isString(dataType) && dataType.type !== 'relation') return false;
@@ -186,7 +185,7 @@ export class QueryValidator<E> {
 
     const filter = QuerySelector.decode(query.filter ?? []).simplify();
     if (
-      !filter.validate(key => this.validateKey(query.className, key, 'read', QueryValidator.patterns.queryPath))
+      !filter.validate(key => this.validateKey(query.className, key, 'read', QueryValidator.patterns.path))
     ) throw Error('No permission');
 
     const includes = this._decodeIncludes(query.className, query.includes ?? ['*']);
