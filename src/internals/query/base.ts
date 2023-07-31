@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { TQuerySelector } from './types';
+import { TCoditionalQuerySelector, TQuerySelector } from './types';
 import { TValue } from './value';
 import { PVK } from '../private';
 
@@ -94,15 +94,13 @@ export class TQueryBase {
   every(key: string, callback: (query: TQueryBase) => void) {
     const query = new TQueryBase();
     callback(query);
-    const filter = { $and: _.castArray<TQuerySelector>(query[PVK].options.filter) };
-    return this.filter({ [key]: { $every: filter } });
+    return this.filter({ [key]: { $every: { $and: _.castArray<TQuerySelector>(query[PVK].options.filter) } } });
   }
 
   contains(key: string, callback: (query: TQueryBase) => void) {
     const query = new TQueryBase();
     callback(query);
-    const filter = { $and: _.castArray<TQuerySelector>(query[PVK].options.filter) };
-    return this.filter({ [key]: { $contains: filter } });
+    return this.filter({ [key]: { $contains: { $and: _.castArray<TQuerySelector>(query[PVK].options.filter) } } });
   }
 
 }

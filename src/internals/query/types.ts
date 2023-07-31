@@ -60,8 +60,8 @@ export type TFieldQuerySelector = {
   $size?: number;
   $every?: TQuerySelector;
   $contains?: TQuerySelector;
-} & { [x in keyof typeof TComparisonKeys]?: TValue; } &
-  { [x in keyof typeof TValueListKeys]?: TValue[]; };
+} & { -readonly [x in keyof typeof TComparisonKeys]?: TValue; } &
+  { -readonly [x in keyof typeof TValueListKeys]?: TValue[]; };
 
-export type TCoditionalQuerySelector = { [x in keyof typeof TCoditionalKeys]?: TQuerySelector[]; };
-export type TQuerySelector = TCoditionalQuerySelector & { [x: string]: TFieldQuerySelector; };
+export type TCoditionalQuerySelector = { -readonly [x in keyof typeof TCoditionalKeys]?: TQuerySelector[]; };
+export type TQuerySelector = TCoditionalQuerySelector | { [x: string]: TFieldQuerySelector; };
