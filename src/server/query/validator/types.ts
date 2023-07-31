@@ -49,3 +49,8 @@ const check = <T>(path: PathName<T>) => { }
 check('_abc.cds')
 check('_abc.cds.cds')
 check('_abc.cds.cds.cds')
+check('_abc[123]')
+check('_abc[123].cds')
+check('_abc[123].cds.cds')
+check('_abc[123][123]')
+check('_abc[123].cds[123].cds')
