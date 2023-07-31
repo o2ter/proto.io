@@ -96,9 +96,9 @@ export class CoditionalSelector extends QuerySelector {
 export class FieldExpression {
 
   type: keyof TFieldQuerySelector;
-  value: FieldExpression | RegExp | TValue;
+  value: QuerySelector | FieldExpression | RegExp | TValue;
 
-  constructor(type: keyof TFieldQuerySelector, value: FieldExpression | RegExp | TValue) {
+  constructor(type: keyof TFieldQuerySelector, value: QuerySelector | FieldExpression | RegExp | TValue) {
     this.type = type;
     this.value = value;
   }
@@ -140,6 +140,9 @@ export class FieldExpression {
             } else {
               throw Error('Invalid expression');
             }
+          case '$every':
+          case '$contains':
+            return new FieldExpression(type, QuerySelector.decode(expr ? { ...expr as any } : {}));
           default: throw Error('Invalid expression');
         }
       }
@@ -148,13 +151,19 @@ export class FieldExpression {
   }
 
   simplify(): FieldExpression {
+    if (this.value instanceof QuerySelector) {
+      return new FieldExpression(this.type, this.value.simplify());
+    }
     if (this.value instanceof FieldExpression) {
       return new FieldExpression(this.type, this.value.simplify());
     }
-    return new FieldExpression(this.type, this.value);
+    return this;
   }
 
   validate(callback: (key: string) => boolean): boolean {
+    if (this.value instanceof QuerySelector) {
+      return this.value.validate(callback);
+    }
     if (this.value instanceof FieldExpression) {
       return this.value.validate(callback);
     }
