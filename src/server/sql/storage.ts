@@ -62,10 +62,10 @@ export abstract class SqlStorage implements TStorage {
       if (_.isNil(value)) break;
       if (value instanceof SQL) {
         const { query: _query, values: _values } = this._compile(value, nextIdx);
-        query += `${_query}${str}`;
+        query += _query;
         values.push(..._values);
       } else if (_.isBoolean(value)) {
-        query += `${this.dialect.boolean(value)}${str}`;
+        query += this.dialect.boolean(value);
       } else if (isSQLArray(value)) {
         const queries: string[] = [];
         for (const subquery of value) {
@@ -73,14 +73,14 @@ export abstract class SqlStorage implements TStorage {
           queries.push(_query);
           values.push(..._values);
         }
-        query += `${queries.join(', ')}${str}`;
+        query += queries.join(', ');
       } else if ('quote' in value) {
-        query += `${this.dialect.quote(value.quote)}${str}`;
+        query += this.dialect.quote(value.quote);
       } else if ('identifier' in value) {
-        query += `${this.dialect.identifier(value.identifier)}${str}`;
+        query += this.dialect.identifier(value.identifier);
       } else if ('literal' in value) {
         if (_.isString(value.literal)) {
-          query += `${value.literal}${str}`;
+          query += value.literal;
         } else {
           const queries: string[] = [];
           for (const subquery of value.literal) {
@@ -88,12 +88,13 @@ export abstract class SqlStorage implements TStorage {
             queries.push(_query);
             values.push(..._values);
           }
-          query += `${queries.join(value.separator ?? ', ')}${str}`;
+          query += queries.join(value.separator ?? ', ');
         }
       } else {
-        query += `${this.dialect.placeholder(nextIdx())}${str}`;
+        query += this.dialect.placeholder(nextIdx());
         values.push('value' in value ? value.value : value);
       }
+      query += str;
     }
     return { query, values };
   }
