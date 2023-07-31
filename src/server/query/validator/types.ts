@@ -40,6 +40,10 @@ export type Digits<T> = _String<T, _Digit>;
 export type FieldName<T> = T extends `${'_' | _Alphabet}${_String<infer _U, '_' | _Alphabet | _Digit>}` ? T : never;
 
 type PathComponent<T> = T extends `.${FieldName<infer _U> | Digits<infer _U>}` | `[${Digits<infer _U>}]` ? T : never;
+type PathComponents<T> = T extends `${PathComponent<infer _C>}${infer Tails}`
+  ? Tails extends PathComponents<Tails> | '' ? T : never
+  : never;
+
 export type PathName<T> = T extends `${FieldName<infer _U>}${infer Tails}`
-  ? Tails extends _String<Tails, PathComponent<infer _T>> | '' ? T : never
+  ? Tails extends PathComponents<infer _T> | '' ? T : never
   : never;
