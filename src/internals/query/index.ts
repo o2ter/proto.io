@@ -30,6 +30,7 @@ import { UpdateOp } from '../object';
 import { PVK } from '../private';
 import { TObjectType } from '../object/types';
 import { asyncStream } from '../utils';
+import { TQueryBase } from './base';
 
 export namespace TQuery {
   export interface Options {
@@ -42,7 +43,7 @@ export namespace TQuery {
   }
 }
 
-export abstract class TQuery<T extends string, Ext> {
+export abstract class TQuery<T extends string, Ext> extends TQueryBase {
 
   [PVK]: {
     className: T;
@@ -50,6 +51,7 @@ export abstract class TQuery<T extends string, Ext> {
   }
 
   constructor(className: T, options: TQuery.Options = {}) {
+    super();
     this[PVK] = {
       className,
       options,
@@ -70,57 +72,6 @@ export abstract class TQuery<T extends string, Ext> {
   abstract findOneAndUpsert(update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>): PromiseLike<TObjectType<T, Ext>>;
   abstract findOneAndDelete(): PromiseLike<TObjectType<T, Ext> | undefined>;
   abstract findAndDelete(): PromiseLike<number>;
-
-  filter(filter: TQuerySelector) {
-    if (_.isNil(this[PVK].options.filter)) {
-      this[PVK].options.filter = filter;
-    } else if (_.isArray(this[PVK].options.filter)) {
-      this[PVK].options.filter = [...this[PVK].options.filter, filter];
-    } else {
-      this[PVK].options.filter = [this[PVK].options.filter, filter];
-    }
-    return this;
-  }
-
-  equalTo(key: string, value: TValue | undefined) {
-    return this.filter({ [key]: { $eq: value ?? null } });
-  }
-
-  notEqualTo(key: string, value: TValue | undefined) {
-    return this.filter({ [key]: { $ne: value ?? null } });
-  }
-
-  lessThan(key: string, value: TValue | undefined) {
-    return this.filter({ [key]: { $lt: value ?? null } });
-  }
-
-  greaterThan(key: string, value: TValue | undefined) {
-    return this.filter({ [key]: { $gt: value ?? null } });
-  }
-
-  lessThanOrEqualTo(key: string, value: TValue | undefined) {
-    return this.filter({ [key]: { $lte: value ?? null } });
-  }
-
-  greaterThanOrEqualTo(key: string, value: TValue | undefined) {
-    return this.filter({ [key]: { $gte: value ?? null } });
-  }
-
-  match(key: string, value: RegExp | string) {
-    return this.filter({ [key]: { $pattern: value ?? null } });
-  }
-
-  containsIn(key: string, value: TValue[]) {
-    return this.filter({ [key]: { $in: value ?? null } });
-  }
-
-  containsAll(key: string, value: TValue[]) {
-    return this.filter({ [key]: { $all: value } });
-  }
-
-  notContainsIn(key: string, value: TValue[]) {
-    return this.filter({ [key]: { $nin: value ?? null } });
-  }
 
   sort(sort: Record<string, 1 | -1>) {
     this[PVK].options.sort = sort;
