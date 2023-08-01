@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions, InsertOptions, TStorage } from '../storage';
-import { TSchema } from '../schema';
+import { TSchema, defaultObjectKeyTypes } from '../schema';
 import { storageSchedule } from '../schedule';
 import { PVK, TObject, TValue, UpdateOp, asyncStream, isPrimitiveValue } from '../../internals';
 import { SQL, sql } from './sql';
@@ -121,7 +121,7 @@ export abstract class SqlStorage implements TStorage {
     const fields = this.schema[className].fields;
     const result: Record<string, any> = {};
     for (const [key, value] of _.toPairs(attrs)) {
-      const dataType = fields[key];
+      const dataType = fields[key] ?? defaultObjectKeyTypes[key];
       if (_.isString(dataType)) {
         result[key] = this._encodeData(dataType, value);
       } else if (dataType.type !== 'pointer' && dataType.type !== 'relation') {
@@ -143,7 +143,7 @@ export abstract class SqlStorage implements TStorage {
     const fields = this.schema[className].fields;
     const obj = new TObject(className);
     for (const [key, value] of _.toPairs(attrs)) {
-      const dataType = fields[key];
+      const dataType = fields[key] ?? defaultObjectKeyTypes[key];
       if (_.isString(dataType)) {
         obj[PVK].attributes[key] = this._decodeData(dataType, value);
       } else if (dataType.type !== 'pointer' && dataType.type !== 'relation') {
