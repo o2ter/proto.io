@@ -43,6 +43,7 @@ export type DecodedQuery<T> = Omit<T, 'filter'> & {
 
 export type InsertOptions = {
   className: string;
+  includes: string[];
   objectIdSize: number;
 };
 

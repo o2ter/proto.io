@@ -150,7 +150,7 @@ export class QueryValidator<E> {
     return _values;
   }
 
-  private _decodeIncludes(className: string, includes: string[]): string[] {
+  decodeIncludes(className: string, includes: string[]): string[] {
 
     const schema = this.schema[className] ?? {};
     const primitive = _.keys(_.filter(schema.fields, v => _.isString(v) || (v.type !== 'pointer' && v.type !== 'relation')));
@@ -187,7 +187,7 @@ export class QueryValidator<E> {
     }
 
     for (const [key, populate] of _.toPairs(populates)) {
-      const subpaths = this._decodeIncludes(populate.className, populate.subpaths);
+      const subpaths = this.decodeIncludes(populate.className, populate.subpaths);
       _includes.push(..._.map(subpaths, x => `${key}.${x}`));
     }
 
@@ -202,7 +202,7 @@ export class QueryValidator<E> {
       !filter.validate(key => this.validateKey(query.className, key, 'read', QueryValidator.patterns.path))
     ) throw Error('No permission');
 
-    const includes = this._decodeIncludes(query.className, query.includes ?? ['*']);
+    const includes = this.decodeIncludes(query.className, query.includes ?? ['*']);
     if (!_.every(_.keys(query.sort), k => includes.includes(k))) throw Error('Invalid sort keys');
 
     return {

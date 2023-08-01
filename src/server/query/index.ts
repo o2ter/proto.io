@@ -60,7 +60,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
   }
 
   private get _storage() {
-    return queryValidator(this._proto, this.className, this._options);
+    return queryValidator(this._proto, this._options);
   }
 
   explain() {
@@ -103,7 +103,10 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
     if (_.isFunction(beforeSave)) await beforeSave(Object.setPrototypeOf({ object, context }, this._proto));
 
     const result = this._objectMethods(
-      await this._storage.insert(this.className, _.fromPairs(object.keys().map(k => [k, object.get(k)])))
+      await this._storage.insert({
+        className: this.className,
+        includes: this[PVK].options.includes,
+      }, _.fromPairs(object.keys().map(k => [k, object.get(k)])))
     );
     if (!result) throw Error('Unable to insert document');
     if (_.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, this._proto));
