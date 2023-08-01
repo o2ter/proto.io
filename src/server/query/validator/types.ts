@@ -44,10 +44,14 @@ export type IncludePath<T extends string> = T extends FieldName<T> ? T
   ? `${FieldName<L>}.${IncludePath<R>}`
   : never;
 
+type PathArrayGetter<T extends string> = T extends `[${Digits<infer _T>}]` ? T
+  : T extends `[${Digits<infer L>}]${infer R}`
+  ? `[${L}]${PathArrayGetter<R>}`
+  : never;
 
 type PathComponent<T extends string> = T extends Digits<T> | FieldName<T> ? T
   : T extends `${Digits<infer L> | FieldName<infer L>}[${infer _R}`
-  ? _R extends `${Digits<infer D>}]` ? `${L}[${D}]` : never
+  ? `${L}${PathArrayGetter<`[${_R}`>}`
   : never;
 
 type PathComponents<T extends string> = T extends PathComponent<T> ? T
@@ -59,19 +63,3 @@ export type PathName<T extends string> = T extends PathComponent<T> ? T
   : T extends `${infer L}.${infer R}`
   ? `${PathComponent<L>}.${PathComponents<R>}`
   : never;
-
-const check = <T extends string>(path: PathName<T>) => { }
-const check2 = <T extends string>(path: IncludePath<T>) => { }
-check('_abc')
-check('_abc.cds')
-check('_abc.cds.123.cds')
-check('_abc.cds.cds.cds')
-check('_abc.def.ghi[123]')
-check('_abc[123]')
-check('_abc[123].cds')
-check('_abc[123].cds.cds')
-check('_abc[123][123]')
-check('_abc[123].cds[123].cds')
-check2('_abc')
-check2('_abc.cds')
-check2('_abc.cds.cds.cds')
