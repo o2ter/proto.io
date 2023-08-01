@@ -99,6 +99,11 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
     save: {
       async value(options?: ExtraOptions & { cascadeSave?: boolean }) {
         const mutated = _.values(object[PVK].mutated);
+        if (options?.cascadeSave !== false) {
+          for (const [, value] of _.values(mutated)) {
+            if (value instanceof TObject && value.isDirty) await value.save(options);
+          }
+        }
         if (this.objectId) {
           const updated = await query(options).equalTo('_id', this.objectId).updateOne(object[PVK].mutated);
           if (!updated) throw Error('Unable to save document');
@@ -108,11 +113,6 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
           const created = await query(options).insert(_.fromPairs(this.keys().map(k => [k, this.get(k)])));
           object[PVK].attributes = created.attributes;
           object[PVK].mutated = {};
-        }
-        if (options?.cascadeSave !== false) {
-          for (const [, value] of _.values(mutated)) {
-            if (value instanceof TObject && value.isDirty) await value.save(options);
-          }
         }
         return object;
       },
