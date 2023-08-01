@@ -39,21 +39,29 @@ type _String<T extends string, C extends string | number> = T extends `${infer H
 export type Digits<T extends string> = _String<T, _Digit>;
 export type FieldName<T extends string> = T extends `${'_' | _Alphabet}${_String<infer _U, '_' | _Alphabet | _Digit>}` ? T : never;
 
-type PathComponents<T extends string> = T extends Digits<T> | FieldName<T> ? T
-  : T extends `${Digits<infer L> | FieldName<infer L>}.${PathComponents<infer R>}`
-  ? `${L}.${R}`
-  : T extends `${Digits<infer L> | FieldName<infer L>}[${Digits<infer D>}]`
-  ? `${L}[${D}]`
-  : never;
-
-export type PathName<T extends string> = T extends FieldName<T> ? T
+export type IncludePath<T extends string> = T extends FieldName<T> ? T
   : T extends `${infer L}.${infer R}`
-  ? `${PathComponents<L>}.${PathComponents<R>}`
-  : T extends `${infer L}[${Digits<infer D>}]`
-  ? `${PathComponents<L>}[${D}]`
+  ? `${FieldName<L>}.${IncludePath<R>}`
   : never;
 
-const check = <T>(path: PathName<T>) => { }
+
+type PathComponent<T extends string> = T extends Digits<T> | FieldName<T> ? T
+  : T extends `${Digits<infer L> | FieldName<infer L>}[${infer _R}`
+  ? _R extends `${Digits<infer D>}]` ? `${L}[${D}]` : never
+  : never;
+
+type PathComponents<T extends string> = T extends PathComponent<T> ? T
+  : T extends `${PathComponent<infer L>}.${PathComponents<infer R>}`
+  ? `${L}.${R}`
+  : never;
+
+export type PathName<T extends string> = T extends PathComponent<T> ? T
+  : T extends `${infer L}.${infer R}`
+  ? `${PathComponent<L>}.${PathComponents<R>}`
+  : never;
+
+const check = <T extends string>(path: PathName<T>) => { }
+const check2 = <T extends string>(path: IncludePath<T>) => { }
 check('_abc')
 check('_abc.cds')
 check('_abc.cds.123.cds')
@@ -64,3 +72,6 @@ check('_abc[123].cds')
 check('_abc[123].cds.cds')
 check('_abc[123][123]')
 check('_abc[123].cds[123].cds')
+check2('_abc')
+check2('_abc.cds')
+check2('_abc.cds.cds.cds')
