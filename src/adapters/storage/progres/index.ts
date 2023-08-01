@@ -170,6 +170,10 @@ export class PostgresStorage extends SqlStorage {
     return this._driver.query(text, values, batchSize);
   }
 
+  _encodeData(type: TSchema.Primitive, value: TValue): any {
+    return value;
+  }
+
   _decodeData(type: TSchema.Primitive, value: any): TValue {
     switch (type) {
       case 'boolean':

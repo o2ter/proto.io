@@ -54,6 +54,7 @@ export abstract class SqlStorage implements TStorage {
 
   abstract get dialect(): SqlDialect
   protected abstract _query(text: string, values: any[]): ReturnType<typeof asyncStream<any>>
+  protected abstract _encodeData(type: TSchema.Primitive, value: TValue): any
   protected abstract _decodeData(type: TSchema.Primitive, value: any): TValue
 
   private _compile(template: SQL, nextIdx: () => number) {
@@ -114,6 +115,28 @@ export abstract class SqlStorage implements TStorage {
     const compiler = new QueryCompiler(this.schema, query, this.dialect);
     compiler.compile();
     return compiler;
+  }
+
+  _encodeAttrs(className: string, attrs: Record<string, TValue>): Record<string, any> {
+    const fields = this.schema[className].fields;
+    const result: Record<string, any> = {};
+    for (const [key, value] of _.toPairs(attrs)) {
+      const dataType = fields[key];
+      if (_.isString(dataType)) {
+        result[key] = this._encodeData(dataType, value);
+      } else if (dataType.type !== 'pointer' && dataType.type !== 'relation') {
+        result[key] = this._encodeData(dataType.type, value);
+      } else if (dataType.type === 'pointer') {
+        if (value instanceof TObject) {
+          result[key] = `${value.className}$${value.objectId}`;
+        }
+      } else if (dataType.type === 'relation') {
+        if (_.isArray(value)) {
+          result[key] = _.uniq(_.compact(value.map(x => x instanceof TObject ? `${x.className}$${x.objectId}` : undefined)));
+        }
+      }
+    }
+    return result;
   }
 
   _decodeObject(className: string, attrs: Record<string, any>): TObject {
