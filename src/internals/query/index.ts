@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { IncludePaths, TQuerySelector } from './types';
+import { IncludePaths, PathNameMap, TQuerySelector } from './types';
 import { TValue } from './value';
 import { UpdateOp } from '../object';
 import { PVK } from '../private';
@@ -66,14 +66,14 @@ export abstract class TQuery<T extends string, Ext> extends TQueryBase {
   abstract explain(): PromiseLike<any>;
   abstract count(): PromiseLike<number>;
   abstract find(): ReturnType<typeof asyncStream<TObjectType<T, Ext>>>;
-  abstract insert(attrs: Record<string, TValue>): PromiseLike<TObjectType<T, Ext>>;
-  abstract updateOne(update: Record<string, [UpdateOp, TValue]>): PromiseLike<TObjectType<T, Ext> | undefined>;
-  abstract replaceOne(replacement: Record<string, TValue>): PromiseLike<TObjectType<T, Ext> | undefined>;
-  abstract upsertOne(update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>): PromiseLike<TObjectType<T, Ext>>;
+  abstract insert<S extends Record<string, TValue>>(attrs: PathNameMap<S>): PromiseLike<TObjectType<T, Ext>>;
+  abstract updateOne<U extends Record<string, [UpdateOp, TValue]>>(update: PathNameMap<U>): PromiseLike<TObjectType<T, Ext> | undefined>;
+  abstract replaceOne<S extends Record<string, TValue>>(replacement: PathNameMap<S>): PromiseLike<TObjectType<T, Ext> | undefined>;
+  abstract upsertOne<U extends Record<string, [UpdateOp, TValue]>, S extends Record<string, TValue>>(update: PathNameMap<U>, setOnInsert: PathNameMap<S>): PromiseLike<TObjectType<T, Ext>>;
   abstract deleteOne(): PromiseLike<TObjectType<T, Ext> | undefined>;
   abstract deleteMany(): PromiseLike<number>;
 
-  sort(sort: Record<string, 1 | -1>) {
+  sort<T extends Record<string, 1 | -1>>(sort: PathNameMap<T>) {
     this[PVK].options.sort = sort;
     return this;
   }

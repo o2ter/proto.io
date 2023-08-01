@@ -110,3 +110,5 @@ export type IncludePath<T extends string> = T extends FieldName<T> ? T
 export type IncludePaths<T> = T extends [] ? [] :
   T extends [infer H extends string, ...infer R] ?
   H extends undefined ? IncludePaths<R> : [IncludePath<H>, ...IncludePaths<R>] : T;
+
+export type PathNameMap<T extends object> = Extract<T, Extract<{ [K in keyof T as K extends string ? PathName<K> : never]: T[K] }, T>>;
