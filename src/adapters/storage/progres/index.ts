@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { PoolConfig } from 'pg';
-import { TObject } from '../../../internals';
+import { TObject, TValue } from '../../../internals';
 import { TSchema } from '../../../server/schema';
 import { PostgresDriver } from './driver';
 import { SqlStorage, sql } from '../../../server/sql';
@@ -168,6 +168,10 @@ export class PostgresStorage extends SqlStorage {
 
   _query(text: string, values: any[] = [], batchSize?: number) {
     return this._driver.query(text, values, batchSize);
+  }
+
+  _decodeData(type: string, value: any): TValue {
+    return value;
   }
 
   classes() {

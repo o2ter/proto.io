@@ -27,7 +27,7 @@ import _ from 'lodash';
 import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions, InsertOptions, TStorage } from '../storage';
 import { TSchema } from '../schema';
 import { storageSchedule } from '../schedule';
-import { TValue, UpdateOp, asyncStream, isPrimitiveValue } from '../../internals';
+import { PVK, TObject, TValue, UpdateOp, asyncStream, isPrimitiveValue } from '../../internals';
 import { SQL, sql } from './sql';
 import { SqlDialect } from './dialect';
 import { QueryCompiler, QueryCompilerOptions } from './compiler';
@@ -54,6 +54,7 @@ export abstract class SqlStorage implements TStorage {
 
   abstract get dialect(): SqlDialect
   protected abstract _query(text: string, values: any[]): ReturnType<typeof asyncStream<any>>
+  protected abstract _decodeData(type: string, value: any): TValue
 
   private _compile(template: SQL, nextIdx: () => number) {
     let [query, ...strings] = template.strings;
@@ -115,6 +116,24 @@ export abstract class SqlStorage implements TStorage {
     return compiler;
   }
 
+  _decodeObject(className: string, attrs: Record<string, any>): TObject {
+    const fields = this.schema[className].fields;
+    const obj = new TObject(className);
+    for (const [key, value] of _.toPairs(attrs)) {
+      const dataType = fields[key];
+      if (_.isString(dataType)) {
+        obj[PVK].attributes[key] = this._decodeData(dataType, value);
+      } else if (dataType.type !== 'pointer' && dataType.type !== 'relation') {
+        obj[PVK].attributes[key] = this._decodeData(dataType.type, value);
+      } else if (dataType.type === 'pointer') {
+        if (_.isPlainObject(value)) obj[PVK].attributes[key] = this._decodeObject(dataType.target, value);
+      } else if (dataType.type === 'relation') {
+        if (_.isArray(value)) obj[PVK].attributes[key] = value.map(x => this._decodeObject(dataType.target, x));
+      }
+    }
+    return obj;
+  }
+
   async explain(query: DecodedQuery<ExplainOptions>) {
     return 0;
   }
@@ -141,9 +160,7 @@ export abstract class SqlStorage implements TStorage {
       RETURNING *
     `));
 
-    console.log(result)
-
-    return undefined;
+    return _.isNil(result) ? undefined : this._decodeObject(options.className, result);
   }
 
   async updateOne(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>) {
