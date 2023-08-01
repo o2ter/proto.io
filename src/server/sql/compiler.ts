@@ -100,12 +100,12 @@ export class QueryCompiler {
     }
 
     for (const populate of _.values(populates)) {
-      const { names, populates } = this._decodeIncludes(populate.className, populate.subpaths);
-      populate.includes = names;
+      const { includes, populates } = this._decodeIncludes(populate.className, populate.subpaths);
+      populate.includes = includes;
       populate.populates = populates;
     }
 
-    return { names, populates };
+    return { includes: names, populates };
   }
 
   private _resolveName(key: string) {
@@ -164,8 +164,8 @@ export class QueryCompiler {
   }
 
   compile() {
-    const { names, populates } = this._decodeIncludes(this.query.className, this.query.includes);
-    this.includes = names;
+    const { includes, populates } = this._decodeIncludes(this.query.className, this.query.includes);
+    this.includes = includes;
     this.populates = populates;
     if (this.query.sort) this._decodeSorting();
     if (this.query.filter) this.filter = this._decodeFilter(this.query.filter);
