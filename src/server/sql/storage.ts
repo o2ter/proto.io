@@ -117,41 +117,49 @@ export abstract class SqlStorage implements TStorage {
     return compiler;
   }
 
-  _encodeAttrs(className: string, attrs: Record<string, TValue>): Record<string, any> {
+  private _encodeObjectAttrs(className: string, attrs: Record<string, TValue>): Record<string, any> {
     const fields = this.schema[className].fields;
     const result: Record<string, any> = {};
     for (const [key, value] of _.toPairs(attrs)) {
-      const dataType = fields[key] ?? defaultObjectKeyTypes[key];
-      if (_.isString(dataType)) {
-        result[key] = this._encodeData(dataType, value);
-      } else if (dataType.type !== 'pointer' && dataType.type !== 'relation') {
-        result[key] = this._encodeData(dataType.type, value);
-      } else if (dataType.type === 'pointer') {
-        if (value instanceof TObject && value.objectId) {
-          result[key] = `${value.className}$${value.objectId}`;
-        }
-      } else if (dataType.type === 'relation') {
-        if (_.isArray(value)) {
-          result[key] = _.uniq(_.compact(value.map(x => x instanceof TObject && x.objectId ? `${x.className}$${x.objectId}` : undefined)));
+      if (key === '_acl') {
+
+      } else {
+        const dataType = fields[key] ?? defaultObjectKeyTypes[key];
+        if (_.isString(dataType)) {
+          result[key] = this._encodeData(dataType, value);
+        } else if (dataType.type !== 'pointer' && dataType.type !== 'relation') {
+          result[key] = this._encodeData(dataType.type, value);
+        } else if (dataType.type === 'pointer') {
+          if (value instanceof TObject && value.objectId) {
+            result[key] = `${value.className}$${value.objectId}`;
+          }
+        } else if (dataType.type === 'relation') {
+          if (_.isArray(value)) {
+            result[key] = _.uniq(_.compact(value.map(x => x instanceof TObject && x.objectId ? `${x.className}$${x.objectId}` : undefined)));
+          }
         }
       }
     }
     return result;
   }
 
-  _decodeObject(className: string, attrs: Record<string, any>): TObject {
+  private _decodeObject(className: string, attrs: Record<string, any>): TObject {
     const fields = this.schema[className].fields;
     const obj = new TObject(className);
     for (const [key, value] of _.toPairs(attrs)) {
-      const dataType = fields[key] ?? defaultObjectKeyTypes[key];
-      if (_.isString(dataType)) {
-        obj[PVK].attributes[key] = this._decodeData(dataType, value);
-      } else if (dataType.type !== 'pointer' && dataType.type !== 'relation') {
-        obj[PVK].attributes[key] = this._decodeData(dataType.type, value);
-      } else if (dataType.type === 'pointer') {
-        if (_.isPlainObject(value)) obj[PVK].attributes[key] = this._decodeObject(dataType.target, value);
-      } else if (dataType.type === 'relation') {
-        if (_.isArray(value)) obj[PVK].attributes[key] = value.map(x => this._decodeObject(dataType.target, x));
+      if (key === '_acl') {
+
+      } else {
+        const dataType = fields[key] ?? defaultObjectKeyTypes[key];
+        if (_.isString(dataType)) {
+          obj[PVK].attributes[key] = this._decodeData(dataType, value);
+        } else if (dataType.type !== 'pointer' && dataType.type !== 'relation') {
+          obj[PVK].attributes[key] = this._decodeData(dataType.type, value);
+        } else if (dataType.type === 'pointer') {
+          if (_.isPlainObject(value)) obj[PVK].attributes[key] = this._decodeObject(dataType.target, value);
+        } else if (dataType.type === 'relation') {
+          if (_.isArray(value)) obj[PVK].attributes[key] = value.map(x => this._decodeObject(dataType.target, x));
+        }
       }
     }
     return obj;
@@ -173,7 +181,7 @@ export abstract class SqlStorage implements TStorage {
 
     const _attrs: [string, TValue][] = _.toPairs({
       _id: generateId(options.objectIdSize),
-      ...this._encodeAttrs(options.className, attrs),
+      ...this._encodeObjectAttrs(options.className, attrs),
     });
 
     const result = _.first(await this.query(sql`
