@@ -48,7 +48,9 @@ type PathComponents<T> = T extends Digits<T> | FieldName<T> ? T
 
 export type PathName<T> = T extends FieldName<T> ? T
   : T extends `${infer L}.${infer R}`
-  ? `${FieldName<L>}.${PathComponents<R>}`
+  ? `${PathComponents<L>}.${PathComponents<R>}`
+  : T extends `${infer L}[${infer R}]`
+  ? `${PathComponents<L>}[${Digits<R>}]`
   : never;
 
 const check = <T>(path: PathName<T>) => { }
@@ -56,6 +58,7 @@ check('_abc')
 check('_abc.cds')
 check('_abc.cds.123.cds')
 check('_abc.cds.cds.cds')
+check('_abc.def.ghi[123]')
 check('_abc[123]')
 check('_abc[123].cds')
 check('_abc[123].cds.cds')
