@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { TQuerySelector } from './types';
+import { PathName, TQuerySelector } from './types';
 import { TValue } from './value';
 import { PVK } from '../private';
 
@@ -51,53 +51,53 @@ export class TQueryBase {
     return this;
   }
 
-  equalTo(key: string, value: TValue | undefined) {
+  equalTo<T extends string>(key: PathName<T>, value: TValue | undefined) {
     return this.filter({ [key]: { $eq: value ?? null } });
   }
 
-  notEqualTo(key: string, value: TValue | undefined) {
+  notEqualTo<T extends string>(key: PathName<T>, value: TValue | undefined) {
     return this.filter({ [key]: { $ne: value ?? null } });
   }
 
-  lessThan(key: string, value: TValue | undefined) {
+  lessThan<T extends string>(key: PathName<T>, value: TValue | undefined) {
     return this.filter({ [key]: { $lt: value ?? null } });
   }
 
-  greaterThan(key: string, value: TValue | undefined) {
+  greaterThan<T extends string>(key: PathName<T>, value: TValue | undefined) {
     return this.filter({ [key]: { $gt: value ?? null } });
   }
 
-  lessThanOrEqualTo(key: string, value: TValue | undefined) {
+  lessThanOrEqualTo<T extends string>(key: PathName<T>, value: TValue | undefined) {
     return this.filter({ [key]: { $lte: value ?? null } });
   }
 
-  greaterThanOrEqualTo(key: string, value: TValue | undefined) {
+  greaterThanOrEqualTo<T extends string>(key: PathName<T>, value: TValue | undefined) {
     return this.filter({ [key]: { $gte: value ?? null } });
   }
 
-  match(key: string, value: RegExp | string) {
+  match<T extends string>(key: PathName<T>, value: RegExp | string) {
     return this.filter({ [key]: { $pattern: value ?? null } });
   }
 
-  containsIn(key: string, value: TValue[]) {
+  containsIn<T extends string>(key: PathName<T>, value: TValue[]) {
     return this.filter({ [key]: { $in: value ?? null } });
   }
 
-  containsAll(key: string, value: TValue[]) {
+  containsAll<T extends string>(key: PathName<T>, value: TValue[]) {
     return this.filter({ [key]: { $all: value } });
   }
 
-  notContainsIn(key: string, value: TValue[]) {
+  notContainsIn<T extends string>(key: PathName<T>, value: TValue[]) {
     return this.filter({ [key]: { $nin: value ?? null } });
   }
 
-  every(key: string, callback: (query: TQueryBase) => void) {
+  every<T extends string>(key: PathName<T>, callback: (query: TQueryBase) => void) {
     const query = new TQueryBase();
     callback(query);
     return this.filter({ [key]: { $every: { $and: _.castArray<TQuerySelector>(query[PVK].options.filter) } } });
   }
 
-  some(key: string, callback: (query: TQueryBase) => void) {
+  some<T extends string>(key: PathName<T>, callback: (query: TQueryBase) => void) {
     const query = new TQueryBase();
     callback(query);
     return this.filter({ [key]: { $some: { $and: _.castArray<TQuerySelector>(query[PVK].options.filter) } } });
