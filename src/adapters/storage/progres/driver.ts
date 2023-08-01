@@ -24,9 +24,14 @@
 //
 
 import _ from 'lodash';
-import { Pool, PoolConfig, PoolClient } from 'pg';
+import { Pool, PoolConfig, PoolClient, types } from 'pg';
 import QueryStream from 'pg-query-stream';
 import { asyncStream } from '../../../internals';
+
+const typeParser = (oid: number, format?: any) => {
+  console.log({ oid, format });
+  return types.getTypeParser(oid, format);
+};
 
 class PostgresClientDriver {
 
@@ -165,7 +170,8 @@ export class PostgresDriver extends PostgresClientDriver {
   database: Pool;
 
   constructor(config: string | PoolConfig) {
-    const database = new Pool(_.isString(config) ? { connectionString: config } : config);
+    const _types = { getTypeParser: typeParser as typeof types.getTypeParser };
+    const database = new Pool(_.isString(config) ? { connectionString: config, types: _types } : { ...config, types: _types });
     super(database);
     this.database = database;
   }
