@@ -153,7 +153,7 @@ export class QueryValidator<E> {
   decodeIncludes(className: string, includes: string[]): string[] {
 
     const schema = this.schema[className] ?? {};
-    const primitive = _.keys(_.filter(schema.fields, v => _.isString(v) || (v.type !== 'pointer' && v.type !== 'relation')));
+    const primitive = _.keys(_.pickBy(schema.fields, v => _.isString(v) || (v.type !== 'pointer' && v.type !== 'relation')));
 
     const _includes: string[] = [];
     const populates: Record<string, { className: string; subpaths: string[]; }> = {};

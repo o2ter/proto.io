@@ -24,14 +24,18 @@
 //
 
 import _ from 'lodash';
-import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions } from '../storage';
 import { SqlDialect } from './dialect';
 import { TSchema } from '../schema';
 import { defaultObjectKeyTypes } from '../schema';
 import { CoditionalSelector, FieldExpression, FieldSelector, QuerySelector } from '../query/validator/parser';
 import { SQL, sql } from './sql';
 
-export type QueryCompilerOptions = DecodedQuery<ExplainOptions> | DecodedQuery<FindOptions> | DecodedQuery<FindOneOptions>;
+export type QueryCompilerOptions = {
+  className: string;
+  filter?: QuerySelector;
+  sort?: Record<string, 1 | -1>;
+  includes: string[];
+}
 
 export class QueryCompiler {
 
@@ -108,8 +112,7 @@ export class QueryCompiler {
   }
 
   private _decodeSorting() {
-    const sorting = this.query.sort ?? {};
-    for (const [key, order] of _.toPairs(sorting)) {
+    for (const [key, order] of _.toPairs(this.query.sort)) {
       const resolved = this._resolveName(key);
       if (!resolved) throw Error(`Invalid path: ${key}`);
       this.sorting[resolved] = order;
@@ -142,7 +145,7 @@ export class QueryCompiler {
 
   compile() {
     this._decodeIncludes(this.query.className, this.query.includes);
-    this._decodeSorting();
-    this.filter = this._decodeFilter(this.query.filter);
+    if (this.query.sort) this._decodeSorting();
+    if (this.query.filter) this.filter = this._decodeFilter(this.query.filter);
   }
 }

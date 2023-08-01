@@ -45,7 +45,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
       await response(res, async () => {
 
         const {
-          operation = 'insert',
+          operation,
           context,
           attributes,
           update,

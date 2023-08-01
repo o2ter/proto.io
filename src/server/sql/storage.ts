@@ -172,12 +172,19 @@ export abstract class SqlStorage implements TStorage {
       ...this._encodeObjectAttrs(options.className, attrs),
     });
 
+    const compiler = this._queryCompiler({
+      className: options.className,
+      includes: options.includes,
+    });
+
     const result = _.first(await this.query(sql`
       INSERT INTO ${{ identifier: options.className }}
       (${_.map(_attrs, x => sql`${{ identifier: x[0] }}`)})
       VALUES (${_.map(_attrs, x => sql`${{ value: x[1] }}`)})
       RETURNING *
     `));
+
+    console.log(compiler)
 
     return _.isNil(result) ? undefined : this._decodeObject(options.className, result);
   }
