@@ -80,6 +80,9 @@ beforeAll(async () => {
       'roles.roles.roles._id',
       'roles.roles.roles.roles._id',
     ],
+    sort: {
+      '_id': 1,
+    },
   }))
 
   httpServer = require('http-shutdown')(require('http').createServer(app));
