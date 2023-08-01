@@ -106,3 +106,7 @@ export type IncludePath<T extends string> = T extends FieldName<T> ? T
   : T extends `${infer L}.${infer R}`
   ? `${FieldName<L>}.${IncludePath<R>}`
   : never;
+
+export type IncludePaths<T> = T extends [] ? [] :
+  T extends [infer H extends string, ...infer R] ?
+  H extends undefined ? IncludePaths<R> : [IncludePath<H>, ...IncludePaths<R>] : T;

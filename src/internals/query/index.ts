@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { TQuerySelector } from './types';
+import { IncludePaths, TQuerySelector } from './types';
 import { TValue } from './value';
 import { UpdateOp } from '../object';
 import { PVK } from '../private';
@@ -78,7 +78,7 @@ export abstract class TQuery<T extends string, Ext> extends TQueryBase {
     return this;
   }
 
-  includes(...includes: string[]) {
+  includes<T extends string[]>(...includes: IncludePaths<T>) {
     this[PVK].options.includes = this[PVK].options.includes ? [...this[PVK].options.includes, ...includes] : includes;
     return this;
   }
