@@ -52,7 +52,7 @@ export interface TObject {
 export class TObject {
 
   static defaultReadonlyKeys = ['_id', '__v', '_created_at', '_updated_at'];
-  static defaultKeys = [...TObject.defaultReadonlyKeys, '_expired_at', '_acl'];
+  static defaultKeys = [...TObject.defaultReadonlyKeys, '_expired_at', '_rperm', '_wperm'];
 
   [PVK]: {
     className: string;
@@ -107,11 +107,15 @@ export class TObject {
   }
 
   get acl(): TSchema.ACLs {
-    return this.get('_acl') as TSchema.ACLs ?? {};
+    return {
+      read: this.get('_rperm') as TSchema.ACL,
+      update: this.get('_wperm') as TSchema.ACL,
+    };
   }
 
   set acl(value: TSchema.ACLs) {
-    this.set('_acl', value);
+    this.set('_rperm', value.read);
+    this.set('_wperm', value.update);
   }
 
   keys(): string[] {

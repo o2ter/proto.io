@@ -81,7 +81,8 @@ export class PostgresStorage extends SqlStorage {
         _created_at TIMESTAMP NOT NULL DEFAULT now(),
         _updated_at TIMESTAMP NOT NULL DEFAULT now(),
         _expired_at TIMESTAMP,
-        _acl TEXT[],
+        _rperm TEXT[],
+        _wperm TEXT[],
         ${_.map(fields, (type, col) => sql`
           ${{ identifier: col }} ${{ literal: this._pgType(_.isString(type) ? type : type.type) }}
         `)}
@@ -148,7 +149,7 @@ export class PostgresStorage extends SqlStorage {
     for (const index of indexes) {
       if (_.isEmpty(index.keys)) continue;
       const name = `${className}$${_.map(index.keys, (v, k) => `${k}:${v}`).join('$')}`;
-      const isAcl = _.isEqual(index.keys, { _acl: 1 });
+      const isAcl = _.isEqual(index.keys, { _rperm: 1 }) || _.isEqual(index.keys, { _wperm: 1 });
       const isRelation = _.has(relations, _.last(_.keys(index.keys)) as string);
       await this.query(sql`
         CREATE ${{ literal: index.unique ? 'UNIQUE' : '' }} INDEX CONCURRENTLY

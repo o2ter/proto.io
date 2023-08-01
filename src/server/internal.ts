@@ -79,7 +79,8 @@ const mergeSchema = (...schemas: Record<string, TSchema>[]) => _.reduce(schemas,
     ),
     indexes: [
       ...(acc[className]?.indexes ?? [
-        { keys: { _acl: 1 } },
+        { keys: { _rperm: 1 } },
+        { keys: { _wperm: 1 } },
         { keys: { _expired_at: 1 } },
       ]),
       ...(s.indexes ?? []),

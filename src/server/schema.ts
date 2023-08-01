@@ -62,5 +62,6 @@ export const defaultObjectKeyTypes: Record<string, TSchema.DataType> = {
   _created_at: 'date',
   _updated_at: 'date',
   _expired_at: 'date',
-  _acl: 'array',
+  _rperm: 'array',
+  _wperm: 'array',
 };
