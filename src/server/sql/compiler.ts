@@ -108,7 +108,7 @@ export class QueryCompiler {
     return { includes: names, populates };
   }
 
-  private _resolveName(key: string) {
+  private _resolveSortingName(key: string) {
     let resolved: string | undefined;
     let includes = this.includes;
     let populates = this.populates;
@@ -133,7 +133,7 @@ export class QueryCompiler {
 
   private _decodeSorting() {
     for (const [key, order] of _.toPairs(this.query.sort)) {
-      const resolved = this._resolveName(key);
+      const resolved = this._resolveSortingName(key);
       if (!resolved) throw Error(`Invalid path: ${key}`);
       this.sorting[resolved] = order;
     }
