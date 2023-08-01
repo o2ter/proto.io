@@ -173,7 +173,7 @@ export abstract class SqlStorage implements TStorage {
 
     const _attrs: [string, TValue][] = _.toPairs({
       _id: generateId(options.objectIdSize),
-      ...attrs,
+      ...this._encodeAttrs(options.className, attrs),
     });
 
     const result = _.first(await this.query(sql`
