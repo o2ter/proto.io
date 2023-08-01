@@ -113,7 +113,7 @@ export class QueryCompiler {
     let includes = this.includes;
     let populates = this.populates;
     let resolvedField = false;
-    for (const colname of key.split('.')) {
+    for (const colname of _.toPath(key)) {
       const name = resolved ? `${resolved}.${colname}` : colname;
       if (resolvedField) {
         resolved = name;
