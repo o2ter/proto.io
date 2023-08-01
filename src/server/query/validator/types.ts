@@ -32,25 +32,25 @@ type _Lower = 'a' | 'b' | 'c' | 'd' | 'e' |
 type _Upper = Uppercase<_Lower>;
 type _Alphabet = _Lower | _Upper;
 
-type _String<T, C extends string | number> = T extends `${infer H}${C}`
+type _String<T extends string, C extends string | number> = T extends `${infer H}${C}`
   ? H extends '' | _String<H, C> ? T : never
   : never;
 
-export type Digits<T> = _String<T, _Digit>;
-export type FieldName<T> = T extends `${'_' | _Alphabet}${_String<infer _U, '_' | _Alphabet | _Digit>}` ? T : never;
+export type Digits<T extends string> = _String<T, _Digit>;
+export type FieldName<T extends string> = T extends `${'_' | _Alphabet}${_String<infer _U, '_' | _Alphabet | _Digit>}` ? T : never;
 
-type PathComponents<T> = T extends Digits<T> | FieldName<T> ? T
-  : T extends `${infer L}.${infer R}`
-  ? `${PathComponents<L>}.${PathComponents<R>}`
-  : T extends `${infer L}[${infer R}]`
-  ? `${PathComponents<L>}[${Digits<R>}]`
+type PathComponents<T extends string> = T extends Digits<T> | FieldName<T> ? T
+  : T extends `${Digits<infer L> | FieldName<infer L>}.${infer R}`
+  ? `${L}.${PathComponents<R>}`
+  : T extends `${Digits<infer L> | FieldName<infer L>}[${infer D}]`
+  ? `${L}[${Digits<D>}]`
   : never;
 
-export type PathName<T> = T extends FieldName<T> ? T
+export type PathName<T extends string> = T extends FieldName<T> ? T
   : T extends `${infer L}.${infer R}`
   ? `${PathComponents<L>}.${PathComponents<R>}`
-  : T extends `${infer L}[${infer R}]`
-  ? `${PathComponents<L>}[${Digits<R>}]`
+  : T extends `${infer L}[${infer D}]`
+  ? `${PathComponents<L>}[${Digits<D>}]`
   : never;
 
 const check = <T>(path: PathName<T>) => { }
