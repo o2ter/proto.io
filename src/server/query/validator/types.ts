@@ -40,17 +40,17 @@ export type Digits<T extends string> = _String<T, _Digit>;
 export type FieldName<T extends string> = T extends `${'_' | _Alphabet}${_String<infer _U, '_' | _Alphabet | _Digit>}` ? T : never;
 
 type PathComponents<T extends string> = T extends Digits<T> | FieldName<T> ? T
-  : T extends `${Digits<infer L> | FieldName<infer L>}.${infer R}`
-  ? `${L}.${PathComponents<R>}`
-  : T extends `${Digits<infer L> | FieldName<infer L>}[${infer D}]`
-  ? `${L}[${Digits<D>}]`
+  : T extends `${Digits<infer L> | FieldName<infer L>}.${PathComponents<infer R>}`
+  ? `${L}.${R}`
+  : T extends `${Digits<infer L> | FieldName<infer L>}[${Digits<infer D>}]`
+  ? `${L}[${D}]`
   : never;
 
 export type PathName<T extends string> = T extends FieldName<T> ? T
   : T extends `${infer L}.${infer R}`
   ? `${PathComponents<L>}.${PathComponents<R>}`
-  : T extends `${infer L}[${infer D}]`
-  ? `${PathComponents<L>}[${Digits<D>}]`
+  : T extends `${infer L}[${Digits<infer D>}]`
+  ? `${PathComponents<L>}[${D}]`
   : never;
 
 const check = <T>(path: PathName<T>) => { }
