@@ -26,10 +26,16 @@
 import _ from 'lodash';
 import { Pool, PoolConfig, PoolClient, types } from 'pg';
 import QueryStream from 'pg-query-stream';
-import { asyncStream } from '../../../internals';
+import { Decimal, asyncStream } from '../../../internals';
 
 const typeParser = (oid: number, format?: any) => {
-  console.log({ oid, format });
+  format = format ?? 'text';
+  if (format === 'text') {
+    switch (oid) {
+      case types.builtins.MONEY:
+        return (value: string) => new Decimal(value);
+    }
+  }
   return types.getTypeParser(oid, format);
 };
 
