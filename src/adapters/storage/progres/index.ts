@@ -177,6 +177,10 @@ export class PostgresStorage extends SqlStorage {
         break;
       case 'number':
         if (_.isNumber(value)) return value;
+        if (_.isString(value)) {
+          const float = parseFloat(value);
+          return _.isNaN(float) ? null : float;
+        }
         break;
       case 'decimal':
         if (_.isString(value) || _.isNumber(value)) return new Decimal(value);
