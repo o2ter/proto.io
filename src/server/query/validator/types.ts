@@ -39,16 +39,22 @@ type _String<T, C extends string | number> = T extends `${infer H}${C}`
 export type Digits<T> = _String<T, _Digit>;
 export type FieldName<T> = T extends `${'_' | _Alphabet}${_String<infer _U, '_' | _Alphabet | _Digit>}` ? T : never;
 
-export type PathName<T> = T extends `${infer L}.${Digits<infer _U> | FieldName<infer _U>}`
-  ? L extends PathName<L> ? T : never
-  : T extends `${infer L}[${Digits<infer _U>}]`
-  ? L extends PathName<L> ? T : never
-  : T extends FieldName<T> ? T : never;
+type PathComponents<T> = T extends Digits<T> | FieldName<T> ? T
+  : T extends `${infer L}.${infer R}`
+  ? `${PathComponents<L>}.${PathComponents<R>}`
+  : T extends `${infer L}[${infer R}]`
+  ? `${PathComponents<L>}[${Digits<R>}]`
+  : never;
+
+export type PathName<T> = T extends FieldName<T> ? T
+  : T extends `${infer L}.${infer R}`
+  ? `${FieldName<L>}.${PathComponents<R>}`
+  : never;
 
 const check = <T>(path: PathName<T>) => { }
 check('_abc')
 check('_abc.cds')
-check('_abc.cds.cds')
+check('_abc.cds.123.cds')
 check('_abc.cds.cds.cds')
 check('_abc[123]')
 check('_abc[123].cds')
