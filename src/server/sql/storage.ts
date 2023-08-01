@@ -186,7 +186,7 @@ export abstract class SqlStorage implements TStorage {
         VALUES (${_.map(_attrs, x => sql`${{ value: x[1] }}`)})
         RETURNING *
       )
-      SELECT * FROM ${{ identifier: tempName }};
+      SELECT * FROM ${{ identifier: tempName }}
     `));
 
     console.log(compiler)
