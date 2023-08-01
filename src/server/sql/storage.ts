@@ -177,11 +177,16 @@ export abstract class SqlStorage implements TStorage {
       includes: options.includes,
     });
 
+    const tempName = `_temp_${options.className.toLowerCase()}`;
+
     const result = _.first(await this.query(sql`
-      INSERT INTO ${{ identifier: options.className }}
-      (${_.map(_attrs, x => sql`${{ identifier: x[0] }}`)})
-      VALUES (${_.map(_attrs, x => sql`${{ value: x[1] }}`)})
-      RETURNING *
+      WITH ${{ identifier: tempName }} AS (
+        INSERT INTO ${{ identifier: options.className }}
+        (${_.map(_attrs, x => sql`${{ identifier: x[0] }}`)})
+        VALUES (${_.map(_attrs, x => sql`${{ value: x[1] }}`)})
+        RETURNING *
+      )
+      SELECT * FROM ${{ identifier: tempName }};
     `));
 
     console.log(compiler)
