@@ -82,11 +82,6 @@ type _String<T extends string, C extends string | number> = T extends `${infer H
 export type Digits<T extends string> = _String<T, _Digit>;
 export type FieldName<T extends string> = T extends `${'_' | _Alphabet}${_String<infer _U, '_' | _Alphabet | _Digit>}` ? T : never;
 
-export type IncludePath<T extends string> = T extends FieldName<T> ? T
-  : T extends `${infer L}.${infer R}`
-  ? `${FieldName<L>}.${IncludePath<R>}`
-  : never;
-
 type PathArrayGetter<T extends string> = T extends `[${Digits<infer _T>}]` ? T
   : T extends `[${Digits<infer L>}]${infer R}`
   ? `[${L}]${PathArrayGetter<R>}`
@@ -106,4 +101,8 @@ export type PathName<T extends string> = T extends PathComponent<T> ? T
   : T extends `${infer L}.${infer R}`
   ? `${PathComponent<L>}.${PathComponents<R>}`
   : never;
-  
+
+export type IncludePath<T extends string> = T extends FieldName<T> ? T
+  : T extends `${infer L}.${infer R}`
+  ? `${FieldName<L>}.${IncludePath<R>}`
+  : never;
