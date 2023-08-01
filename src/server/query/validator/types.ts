@@ -55,11 +55,12 @@ type PathComponent<T extends string> = T extends Digits<T> | FieldName<T> ? T
   : never;
 
 type PathComponents<T extends string> = T extends PathComponent<T> ? T
-  : T extends `${PathComponent<infer L>}.${PathComponents<infer R>}`
-  ? `${L}.${R}`
+  : T extends `${PathComponent<infer L>}.${infer R}`
+  ? `${L}.${PathComponents<R>}`
   : never;
 
 export type PathName<T extends string> = T extends PathComponent<T> ? T
   : T extends `${infer L}.${infer R}`
   ? `${PathComponent<L>}.${PathComponents<R>}`
   : never;
+  
