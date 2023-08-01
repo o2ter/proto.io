@@ -37,6 +37,16 @@ export type QueryCompilerOptions = {
   includes: string[];
 }
 
+type Populate = {
+  name: string;
+  className: string;
+  type: TSchema.Relation;
+  foreignField?: string;
+  subpaths: string[];
+  includes: Record<string, { type: TSchema.DataType; name: string; }>;
+  populates: Record<string, Populate>;
+}
+
 export class QueryCompiler {
 
   schema: Record<string, TSchema>;
@@ -44,8 +54,8 @@ export class QueryCompiler {
   dialect: SqlDialect;
 
   idx = 0;
-  names: Record<string, { type: TSchema.DataType; name: string; }> = {};
-  populates: Record<string, { className: string; name: string; foreignField?: string; }> = {};
+  includes: Record<string, { type: TSchema.DataType; name: string; }> = {};
+  populates: Record<string, Populate> = {};
   sorting: Record<string, 1 | -1> = {};
 
   filter?: SQL;
@@ -60,10 +70,11 @@ export class QueryCompiler {
     return this.idx++;
   }
 
-  private _decodeIncludes(className: string, includes: string[], parent?: string) {
+  private _decodeIncludes(className: string, includes: string[]) {
 
     const schema = this.schema[className] ?? {};
-    const populates: Record<string, { className: string; type: TSchema.Relation; foreignField?: string; subpaths: string[]; }> = {};
+    const names: Record<string, { type: TSchema.DataType; name: string; }> = {};
+    const populates: Record<string, Populate> = {};
 
     for (const include of includes) {
       const [colname, ...subpath] = include.split('.');
@@ -72,14 +83,14 @@ export class QueryCompiler {
       if (!_.isString(dataType) && (dataType.type === 'pointer' || dataType.type === 'relation')) {
         if (_.isEmpty(subpath)) throw Error(`Invalid path: ${include}`);
         populates[colname] = populates[colname] ?? {
+          name: `t${this.nextIdx()}`,
           className: dataType.target,
-          type: dataType.type,
-          foreignField: dataType.type === 'relation' ? dataType.foreignField : undefined,
-          subpaths: []
+          subpaths: [],
+          ...dataType,
         };
         populates[colname].subpaths.push(subpath.join('.'));
       } else if (_.isEmpty(subpath)) {
-        this.names[parent ? `${parent}.${colname}` : colname] = {
+        names[colname] = {
           type: dataType,
           name: `v${this.nextIdx()}`,
         };
@@ -88,25 +99,34 @@ export class QueryCompiler {
       }
     }
 
-    for (const [colname, populate] of _.toPairs(populates)) {
-      const name = `t${this.nextIdx()}`;
-      const path = parent ? `${parent}.${colname}` : colname;
-      this.populates[populate.type === 'relation' ? `${path}.*` : path] = {
-        name,
-        className: populate.className,
-        foreignField: populate.foreignField,
-      };
-      this._decodeIncludes(populate.className, populate.subpaths, name);
+    for (const populate of _.values(populates)) {
+      const { names, populates } = this._decodeIncludes(populate.className, populate.subpaths);
+      populate.includes = names;
+      populate.populates = populates;
     }
+
+    return { names, populates };
   }
 
   private _resolveName(key: string) {
     let resolved: string | undefined;
+    let includes = this.includes;
+    let populates = this.populates;
+    let resolvedField = false;
     for (const colname of key.split('.')) {
       const name = resolved ? `${resolved}.${colname}` : colname;
-      const found = this.populates[name] ?? this.populates[`${name}.*`] ?? this.names[name];
-      if (!found) throw Error(`Invalid path: ${key}`);
-      resolved = found.name;
+      if (resolvedField) {
+        resolved = name;
+      } else if (includes[name]) {
+        resolved = includes[name].name;
+        resolvedField = true;
+      } else if (populates[name]) {
+        resolved = populates[name].name;
+        includes = populates[name].includes;
+        populates = populates[name].populates;
+      } else {
+        throw Error(`Invalid path: ${key}`);
+      }
     }
     return resolved;
   }
@@ -144,7 +164,9 @@ export class QueryCompiler {
   }
 
   compile() {
-    this._decodeIncludes(this.query.className, this.query.includes);
+    const { names, populates } = this._decodeIncludes(this.query.className, this.query.includes);
+    this.includes = names;
+    this.populates = populates;
     if (this.query.sort) this._decodeSorting();
     if (this.query.filter) this.filter = this._decodeFilter(this.query.filter);
   }

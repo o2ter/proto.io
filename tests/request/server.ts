@@ -71,7 +71,7 @@ beforeAll(async () => {
   console.log('version: ', await database.version());
 
   console.log(database._queryCompiler({
-    filter: new QuerySelector,
+    className: '_Role',
     includes: [
       '_id',
       'users._id',
@@ -80,15 +80,6 @@ beforeAll(async () => {
       'roles.roles.roles._id',
       'roles.roles.roles.roles._id',
     ],
-    sort: {
-      'users._id': 1,
-      'roles.roles._id': -1,
-      'roles.roles.roles._id': 1,
-    },
-    className: '_Role',
-    acls: [],
-    master: false,
-    objectIdSize: 10,
   }))
 
   httpServer = require('http-shutdown')(require('http').createServer(app));
