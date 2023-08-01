@@ -144,7 +144,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
 
     const updated = await this.proto.Query(object.className, options)
       .equalTo('_id', object.objectId)
-      .findOneAndUpdate(object[PVK].mutated);
+      .updateOne(object[PVK].mutated);
 
     if (updated) {
       object[PVK].attributes = updated.attributes;
@@ -238,7 +238,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
 
     const deleted = await this.proto.Query(object.className, options)
       .equalTo('_id', object.objectId)
-      .findOneAndDelete();
+      .deleteOne();
 
     if (deleted) {
       object[PVK].attributes = deleted.attributes;

@@ -30,7 +30,7 @@ import { QuerySelector } from './query/validator/parser';
 const scheduleOp = {
   expireDocument: async (storage: TStorage) => {
     for (const className of storage.classes()) {
-      await storage.findAndDelete({
+      await storage.deleteMany({
         className,
         filter: QuerySelector.decode({ _expired_at: { $lt: new Date() } }),
         includes: ['_id'],

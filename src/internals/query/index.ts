@@ -67,11 +67,11 @@ export abstract class TQuery<T extends string, Ext> extends TQueryBase {
   abstract count(): PromiseLike<number>;
   abstract find(): ReturnType<typeof asyncStream<TObjectType<T, Ext>>>;
   abstract insert(attrs: Record<string, TValue>): PromiseLike<TObjectType<T, Ext>>;
-  abstract findOneAndUpdate(update: Record<string, [UpdateOp, TValue]>): PromiseLike<TObjectType<T, Ext> | undefined>;
-  abstract findOneAndReplace(replacement: Record<string, TValue>): PromiseLike<TObjectType<T, Ext> | undefined>;
-  abstract findOneAndUpsert(update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>): PromiseLike<TObjectType<T, Ext>>;
-  abstract findOneAndDelete(): PromiseLike<TObjectType<T, Ext> | undefined>;
-  abstract findAndDelete(): PromiseLike<number>;
+  abstract updateOne(update: Record<string, [UpdateOp, TValue]>): PromiseLike<TObjectType<T, Ext> | undefined>;
+  abstract replaceOne(replacement: Record<string, TValue>): PromiseLike<TObjectType<T, Ext> | undefined>;
+  abstract upsertOne(update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>): PromiseLike<TObjectType<T, Ext>>;
+  abstract deleteOne(): PromiseLike<TObjectType<T, Ext> | undefined>;
+  abstract deleteMany(): PromiseLike<number>;
 
   sort(sort: Record<string, 1 | -1>) {
     this[PVK].options.sort = sort;
@@ -114,23 +114,4 @@ export abstract class TQuery<T extends string, Ext> extends TQueryBase {
     return !_.isNil(await query.limit(1).find());
   }
 
-  async updateOne(update: Record<string, [UpdateOp, TValue]>) {
-    return this.findOneAndUpdate(update);
-  }
-
-  async replaceOne(replacement: Record<string, TValue>) {
-    return this.findOneAndReplace(replacement);
-  }
-
-  async upsertOne(update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>) {
-    return this.findOneAndUpsert(update, setOnInsert);
-  }
-
-  async deleteOne() {
-    return this.findOneAndDelete();
-  }
-
-  async deleteAll() {
-    return this.findAndDelete();
-  }
 }

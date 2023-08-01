@@ -100,7 +100,7 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
       async value(options?: ExtraOptions & { cascadeSave?: boolean }) {
         const mutated = _.values(object[PVK].mutated);
         if (this.objectId) {
-          const updated = await query(options).equalTo('_id', this.objectId).findOneAndUpdate(object[PVK].mutated);
+          const updated = await query(options).equalTo('_id', this.objectId).updateOne(object[PVK].mutated);
           if (!updated) throw Error('Unable to save document');
           object[PVK].attributes = updated.attributes;
           object[PVK].mutated = {};
@@ -119,7 +119,7 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
     },
     destory: {
       async value(options?: ExtraOptions) {
-        const deleted = await query(options).equalTo('_id', this.objectId).findOneAndDelete();
+        const deleted = await query(options).equalTo('_id', this.objectId).deleteOne();
         if (!deleted) throw Error('Unable to destory document');
         object[PVK].attributes = deleted.attributes;
         object[PVK].mutated = {};

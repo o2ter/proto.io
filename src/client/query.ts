@@ -105,27 +105,27 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E> {
     }, this._requestOpt) as any;
   }
 
-  findOneAndUpdate(update: Record<string, [UpdateOp, TValue]>) {
+  updateOne(update: Record<string, [UpdateOp, TValue]>) {
     return this._proto[PVK].request({
-      operation: 'findOneAndUpdate',
+      operation: 'updateOne',
       context: this._options?.context ?? {},
       update,
       ...this._queryOptions,
     }, this._requestOpt) as any;
   }
 
-  findOneAndReplace(replacement: Record<string, TValue>) {
+  replaceOne(replacement: Record<string, TValue>) {
     return this._proto[PVK].request({
-      operation: 'findOneAndReplace',
+      operation: 'replaceOne',
       context: this._options?.context ?? {},
       replacement,
       ...this._queryOptions,
     }, this._requestOpt) as any;
   }
 
-  findOneAndUpsert(update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>) {
+  upsertOne(update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>) {
     return this._proto[PVK].request({
-      operation: 'findOneAndUpsert',
+      operation: 'upsertOne',
       context: this._options?.context ?? {},
       update,
       setOnInsert,
@@ -133,17 +133,17 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E> {
     }, this._requestOpt) as any;
   }
 
-  findOneAndDelete() {
+  deleteOne() {
     return this._proto[PVK].request({
-      operation: 'findOneAndDelete',
+      operation: 'deleteOne',
       context: this._options?.context ?? {},
       ...this._queryOptions,
     }, this._requestOpt) as any;
   }
 
-  findAndDelete() {
+  deleteMany() {
     return this._proto[PVK].request({
-      operation: 'findAndDelete',
+      operation: 'deleteMany',
       context: this._options?.context ?? {},
       ...this._queryOptions,
     }, this._requestOpt) as any;

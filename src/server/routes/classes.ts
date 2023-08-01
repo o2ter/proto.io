@@ -67,11 +67,11 @@ export default <E>(router: Router, proto: Proto<E>) => {
           case 'count': return query.count();
           case 'find': return await query.find();
           case 'insert': return query.insert(attributes);
-          case 'findOneAndUpdate': return query.findOneAndUpdate(update);
-          case 'findOneAndReplace': return query.findOneAndReplace(replacement);
-          case 'findOneAndUpsert': return query.findOneAndUpsert(update, setOnInsert);
-          case 'findOneAndDelete': return query.findOneAndDelete();
-          case 'findAndDelete': return query.findAndDelete();
+          case 'updateOne': return query.updateOne(update);
+          case 'replaceOne': return query.replaceOne(replacement);
+          case 'upsertOne': return query.upsertOne(update, setOnInsert);
+          case 'deleteOne': return query.deleteOne();
+          case 'deleteMany': return query.deleteMany();
           default: throw Error('Invalid operation');
         }
       });
@@ -148,7 +148,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
       }, proto);
       const query = payload.Query(name, { master: payload.isMaster }).equalTo('_id', id);
 
-      await response(res, async () => query.findOneAndReplace(deserialize(req.body) as any));
+      await response(res, async () => query.replaceOne(deserialize(req.body) as any));
     }
   );
 
@@ -168,7 +168,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
       const query = payload.Query(name, { master: payload.isMaster }).equalTo('_id', id);
 
       const update = _.mapValues(deserialize(req.body) as any, v => [UpdateOp.set, v]);
-      await response(res, async () => query.findOneAndUpdate(update as any));
+      await response(res, async () => query.updateOne(update as any));
     }
   );
 
@@ -189,7 +189,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
       }, proto);
       const query = payload.Query(name, { master: payload.isMaster }).equalTo('_id', id);
 
-      await response(res, async () => query.findOneAndDelete());
+      await response(res, async () => query.deleteOne());
     }
   );
 

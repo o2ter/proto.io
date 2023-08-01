@@ -110,7 +110,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
     return result;
   }
 
-  async findOneAndUpdate(update: Record<string, [UpdateOp, TValue]>) {
+  async updateOne(update: Record<string, [UpdateOp, TValue]>) {
     const beforeSave = this._proto[PVK].triggers?.beforeSave?.[this.className];
     const afterSave = this._proto[PVK].triggers?.afterSave?.[this.className];
 
@@ -130,13 +130,13 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
     }
 
     const result = this._objectMethods(
-      await this._storage.findOneAndUpdate(this._queryOptions, update)
+      await this._storage.updateOne(this._queryOptions, update)
     );
     if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, this._proto));
     return result;
   }
 
-  async findOneAndReplace(replacement: Record<string, TValue>) {
+  async replaceOne(replacement: Record<string, TValue>) {
     const beforeSave = this._proto[PVK].triggers?.beforeSave?.[this.className];
     const afterSave = this._proto[PVK].triggers?.afterSave?.[this.className];
 
@@ -159,13 +159,13 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
     }
 
     const result = this._objectMethods(
-      await this._storage.findOneAndReplace(this._queryOptions, replacement)
+      await this._storage.replaceOne(this._queryOptions, replacement)
     );
     if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, this._proto));
     return result;
   }
 
-  async findOneAndUpsert(update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>) {
+  async upsertOne(update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>) {
     const beforeSave = this._proto[PVK].triggers?.beforeSave?.[this.className];
     const afterSave = this._proto[PVK].triggers?.afterSave?.[this.className];
 
@@ -201,14 +201,14 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
     }
 
     const result = this._objectMethods(
-      await this._storage.findOneAndUpsert(this._queryOptions, update, setOnInsert)
+      await this._storage.upsertOne(this._queryOptions, update, setOnInsert)
     );
     if (!result) throw Error('Unable to upsert document');
     if (_.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, this._proto));
     return result;
   }
 
-  async findOneAndDelete() {
+  async deleteOne() {
     const beforeDelete = this._proto[PVK].triggers?.beforeDelete?.[this.className];
     const afterDelete = this._proto[PVK].triggers?.afterDelete?.[this.className];
 
@@ -225,7 +225,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
       await beforeDelete(Object.setPrototypeOf({ object, context }, this._proto));
 
       result = this._objectMethods(
-        await this._storage.findOneAndDelete({
+        await this._storage.deleteOne({
           ...this._queryOptions,
           filter: { _id: { $eq: object.objectId } },
         })
@@ -233,7 +233,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
 
     } else {
       result = this._objectMethods(
-        await this._storage.findOneAndDelete(this._queryOptions)
+        await this._storage.deleteOne(this._queryOptions)
       );
     }
 
@@ -241,7 +241,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
     return result;
   }
 
-  async findAndDelete() {
+  async deleteMany() {
     const beforeDelete = this._proto[PVK].triggers?.beforeDelete?.[this.className];
     const afterDelete = this._proto[PVK].triggers?.afterDelete?.[this.className];
 
@@ -256,7 +256,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
         await Promise.all(_.map(objects, object => beforeDelete(Object.setPrototypeOf({ object, context }, this._proto))));
       }
 
-      await this._storage.findAndDelete({
+      await this._storage.deleteMany({
         ...this._queryOptions,
         filter: { _id: { $in: _.map(objects, x => x.objectId as string) } },
       });
@@ -268,7 +268,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
       return objects.length;
     }
 
-    return this._storage.findAndDelete(this._queryOptions);
+    return this._storage.deleteMany(this._queryOptions);
   }
 
 }

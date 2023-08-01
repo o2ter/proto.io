@@ -165,7 +165,7 @@ export class DatabaseFileStorage implements TFileStorage {
   }
 
   async destory<E>(proto: Proto<E>, id: string) {
-    await proto.Query('_FileChunk', { master: true }).equalTo('token', id).findAndDelete();
+    await proto.Query('_FileChunk', { master: true }).equalTo('token', id).deleteMany();
   }
 
   async* fileData<E>(proto: Proto<E>, id: string, start?: number, end?: number) {

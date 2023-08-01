@@ -60,10 +60,10 @@ export interface TStorage {
 
   insert(options: InsertOptions, attrs: Record<string, TValue>): PromiseLike<TObject | undefined>;
 
-  findOneAndUpdate(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>): PromiseLike<TObject | undefined>;
-  findOneAndReplace(query: DecodedQuery<FindOneOptions>, replacement: Record<string, TValue>): PromiseLike<TObject | undefined>;
-  findOneAndUpsert(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>): PromiseLike<TObject | undefined>;
-  findOneAndDelete(query: DecodedQuery<FindOneOptions>): PromiseLike<TObject | undefined>;
+  updateOne(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>): PromiseLike<TObject | undefined>;
+  replaceOne(query: DecodedQuery<FindOneOptions>, replacement: Record<string, TValue>): PromiseLike<TObject | undefined>;
+  upsertOne(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>): PromiseLike<TObject | undefined>;
+  deleteOne(query: DecodedQuery<FindOneOptions>): PromiseLike<TObject | undefined>;
 
-  findAndDelete(query: DecodedQuery<FindOptions>): PromiseLike<number>;
+  deleteMany(query: DecodedQuery<FindOptions>): PromiseLike<number>;
 }

@@ -82,23 +82,23 @@ export class MongoStorage implements TStorage {
     return undefined;
   }
 
-  async findOneAndUpdate(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>) {
+  async updateOne(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>) {
     return undefined;
   }
 
-  async findOneAndReplace(query: DecodedQuery<FindOneOptions>, replacement: Record<string, TValue>) {
+  async replaceOne(query: DecodedQuery<FindOneOptions>, replacement: Record<string, TValue>) {
     return undefined;
   }
 
-  async findOneAndUpsert(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>) {
+  async upsertOne(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>) {
     return undefined;
   }
 
-  async findOneAndDelete(query: DecodedQuery<FindOneOptions>) {
+  async deleteOne(query: DecodedQuery<FindOneOptions>) {
     return undefined;
   }
 
-  async findAndDelete(query: DecodedQuery<FindOptions>) {
+  async deleteMany(query: DecodedQuery<FindOptions>) {
     return 0;
   }
 

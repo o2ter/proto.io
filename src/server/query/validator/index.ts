@@ -81,31 +81,31 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
         normalize(_validator.validateFields(className, attrs, 'create', QueryValidator.patterns.name)),
       );
     },
-    findOneAndUpdate(
+    updateOne(
       query: FindOneOptions,
       update: Record<string, [UpdateOp, TValue]>
     ) {
       QueryValidator.recursiveCheck(query, update);
       const _validator = validator();
       if (!_validator.validateCLPs(className, 'update')) throw Error('No permission');
-      return proto.storage.findOneAndUpdate(
+      return proto.storage.updateOne(
         _validator.decodeQuery(normalize(query)),
         normalize(_validator.validateFields(className, update, 'update', QueryValidator.patterns.path)),
       );
     },
-    findOneAndReplace(
+    replaceOne(
       query: FindOneOptions,
       replacement: Record<string, TValue>
     ) {
       QueryValidator.recursiveCheck(query, replacement);
       const _validator = validator();
       if (!_validator.validateCLPs(className, 'update')) throw Error('No permission');
-      return proto.storage.findOneAndReplace(
+      return proto.storage.replaceOne(
         _validator.decodeQuery(normalize(query)),
         normalize(_validator.validateFields(className, replacement, 'update', QueryValidator.patterns.path)),
       );
     },
-    findOneAndUpsert(
+    upsertOne(
       query: FindOneOptions,
       update: Record<string, [UpdateOp, TValue]>,
       setOnInsert: Record<string, TValue>
@@ -113,27 +113,27 @@ export const queryValidator = <E>(proto: Proto<E>, className: string, options?: 
       QueryValidator.recursiveCheck(query, update, setOnInsert);
       const _validator = validator();
       if (!_validator.validateCLPs(className, 'create', 'update')) throw Error('No permission');
-      return proto.storage.findOneAndUpsert(
+      return proto.storage.upsertOne(
         _validator.decodeQuery(normalize(query)),
         normalize(_validator.validateFields(className, update, 'update', QueryValidator.patterns.path)),
         normalize(_validator.validateFields(className, setOnInsert, 'create', QueryValidator.patterns.name)),
       );
     },
-    findOneAndDelete(
+    deleteOne(
       query: FindOneOptions
     ) {
       QueryValidator.recursiveCheck(query);
       const _validator = validator();
       if (!_validator.validateCLPs(className, 'delete')) throw Error('No permission');
-      return proto.storage.findOneAndDelete(_validator.decodeQuery(normalize(query)));
+      return proto.storage.deleteOne(_validator.decodeQuery(normalize(query)));
     },
-    findAndDelete(
+    deleteMany(
       query: FindOptions
     ) {
       QueryValidator.recursiveCheck(query);
       const _validator = validator();
       if (!_validator.validateCLPs(className, 'delete')) throw Error('No permission');
-      return proto.storage.findAndDelete(_validator.decodeQuery(normalize(query)));
+      return proto.storage.deleteMany(_validator.decodeQuery(normalize(query)));
     },
   };
 };
