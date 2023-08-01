@@ -127,12 +127,12 @@ export abstract class SqlStorage implements TStorage {
       } else if (dataType.type !== 'pointer' && dataType.type !== 'relation') {
         result[key] = this._encodeData(dataType.type, value);
       } else if (dataType.type === 'pointer') {
-        if (value instanceof TObject) {
+        if (value instanceof TObject && value.objectId) {
           result[key] = `${value.className}$${value.objectId}`;
         }
       } else if (dataType.type === 'relation') {
         if (_.isArray(value)) {
-          result[key] = _.uniq(_.compact(value.map(x => x instanceof TObject ? `${x.className}$${x.objectId}` : undefined)));
+          result[key] = _.uniq(_.compact(value.map(x => x instanceof TObject && x.objectId ? `${x.className}$${x.objectId}` : undefined)));
         }
       }
     }
