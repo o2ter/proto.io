@@ -54,7 +54,7 @@ export abstract class SqlStorage implements TStorage {
 
   abstract get dialect(): SqlDialect
   protected abstract _query(text: string, values: any[]): ReturnType<typeof asyncStream<any>>
-  protected abstract _decodeData(type: string, value: any): TValue
+  protected abstract _decodeData(type: TSchema.Primitive, value: any): TValue
 
   private _compile(template: SQL, nextIdx: () => number) {
     let [query, ...strings] = template.strings;

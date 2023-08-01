@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { PoolConfig } from 'pg';
-import { TObject, TValue } from '../../../internals';
+import { Decimal, TObject, TValue } from '../../../internals';
 import { TSchema } from '../../../server/schema';
 import { PostgresDriver } from './driver';
 import { SqlStorage, sql } from '../../../server/sql';
@@ -170,8 +170,33 @@ export class PostgresStorage extends SqlStorage {
     return this._driver.query(text, values, batchSize);
   }
 
-  _decodeData(type: string, value: any): TValue {
-    return value;
+  _decodeData(type: TSchema.Primitive, value: any): TValue {
+    switch (type) {
+      case 'boolean':
+        if (_.isBoolean(value)) return value;
+        break;
+      case 'number':
+        if (_.isNumber(value)) return value;
+        break;
+      case 'decimal':
+        if (_.isString(value) || _.isNumber(value)) return new Decimal(value);
+        if (value instanceof Decimal) return value;
+        break;
+      case 'string':
+        if (_.isString(value)) return value;
+        break;
+      case 'date':
+        if (_.isDate(value)) return value;
+        break;
+      case 'object':
+        if (_.isPlainObject(value)) return value;
+        break;
+      case 'array':
+        if (_.isArray(value)) return value;
+        break;
+      default: break;
+    }
+    return null;
   }
 
   classes() {
