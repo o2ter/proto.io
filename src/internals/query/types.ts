@@ -65,3 +65,45 @@ export type TFieldQuerySelector = {
 
 export type TCoditionalQuerySelector = { [x in keyof typeof TCoditionalKeys]?: TQuerySelector[]; };
 export type TQuerySelector = TCoditionalQuerySelector | { [x: string]: TFieldQuerySelector; };
+
+type _Digit = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+type _Lower = 'a' | 'b' | 'c' | 'd' | 'e' |
+  'f' | 'g' | 'h' | 'i' | 'j' |
+  'k' | 'l' | 'm' | 'n' | 'o' |
+  'p' | 'q' | 'r' | 's' | 't' |
+  'u' | 'v' | 'w' | 'x' | 'y' | 'z';
+type _Upper = Uppercase<_Lower>;
+type _Alphabet = _Lower | _Upper;
+
+type _String<T extends string, C extends string | number> = T extends `${infer H}${C}`
+  ? H extends '' | _String<H, C> ? T : never
+  : never;
+
+export type Digits<T extends string> = _String<T, _Digit>;
+export type FieldName<T extends string> = T extends `${'_' | _Alphabet}${_String<infer _U, '_' | _Alphabet | _Digit>}` ? T : never;
+
+export type IncludePath<T extends string> = T extends FieldName<T> ? T
+  : T extends `${infer L}.${infer R}`
+  ? `${FieldName<L>}.${IncludePath<R>}`
+  : never;
+
+type PathArrayGetter<T extends string> = T extends `[${Digits<infer _T>}]` ? T
+  : T extends `[${Digits<infer L>}]${infer R}`
+  ? `[${L}]${PathArrayGetter<R>}`
+  : never;
+
+type PathComponent<T extends string> = T extends Digits<T> | FieldName<T> ? T
+  : T extends `${Digits<infer L> | FieldName<infer L>}[${infer _R}`
+  ? `${L}${PathArrayGetter<`[${_R}`>}`
+  : never;
+
+type PathComponents<T extends string> = T extends PathComponent<T> ? T
+  : T extends `${PathComponent<infer L>}.${infer R}`
+  ? `${L}.${PathComponents<R>}`
+  : never;
+
+export type PathName<T extends string> = T extends PathComponent<T> ? T
+  : T extends `${infer L}.${infer R}`
+  ? `${PathComponent<L>}.${PathComponents<R>}`
+  : never;
+  
