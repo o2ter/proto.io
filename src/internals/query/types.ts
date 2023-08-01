@@ -25,6 +25,7 @@
 
 import _ from 'lodash';
 import { TValue } from './value';
+import { Exact } from '../types';
 
 export enum TComparisonKeys {
   $eq = '$eq',
@@ -111,4 +112,4 @@ export type IncludePaths<T> = T extends [] ? [] :
   T extends [infer H extends string, ...infer R] ?
   H extends undefined ? IncludePaths<R> : [IncludePath<H>, ...IncludePaths<R>] : T;
 
-export type PathNameMap<T extends object> = Extract<T, Extract<{ [K in keyof T as K extends string ? PathName<K> : never]: T[K] }, T>>;
+export type PathNameMap<T extends object> = Exact<T, { [K in keyof T as K extends string ? PathName<K> : never]: T[K] }>;
