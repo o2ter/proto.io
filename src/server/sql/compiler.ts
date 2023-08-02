@@ -52,16 +52,14 @@ type Populate = {
 export class QueryCompiler {
 
   schema: Record<string, TSchema>;
-  dialect: SqlDialect;
 
   idx = 0;
   includes: Record<string, { type: TSchema.DataType; name: string; }> = {};
   populates: Record<string, Populate> = {};
   sorting: Record<string, 1 | -1> = {};
 
-  constructor(schema: Record<string, TSchema>, dialect: SqlDialect) {
+  constructor(schema: Record<string, TSchema>) {
     this.schema = schema;
-    this.dialect = dialect;
   }
 
   nextIdx() {
