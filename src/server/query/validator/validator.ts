@@ -210,7 +210,10 @@ export class QueryValidator<E> {
 
       _matches[colname] = {
         filter: QuerySelector.decode(_rperm).simplify(),
-        matches: {},
+        matches: this.decodeMatches(
+          dataType.target, {},
+          includes.filter(x => x.startsWith(`${colname}.`)).map(x => x.slice(colname.length + 1)),
+        ),
       };
     }
 
