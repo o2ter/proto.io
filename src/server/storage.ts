@@ -24,15 +24,15 @@
 //
 
 import _ from 'lodash';
-import { TObject, UpdateOp, TValue, TQuery } from '../internals';
+import { TObject, UpdateOp, TValue, TQueryOptions } from '../internals';
 import { QuerySelector } from './query/validator/parser';
 import { TSchema } from './schema';
 import { TQueryBaseOptions } from '../internals/query/base';
 
 type CommonFindOptions = { className: string; };
-export type ExplainOptions = CommonFindOptions & Omit<TQuery.Options, 'returning' | 'skip' | 'limit'>;
-export type FindOptions = CommonFindOptions & Omit<TQuery.Options, 'returning'>;
-export type FindOneOptions = CommonFindOptions & Omit<TQuery.Options, 'skip' | 'limit'>;
+export type ExplainOptions = CommonFindOptions & Omit<TQueryOptions, 'returning' | 'skip' | 'limit'>;
+export type FindOptions = CommonFindOptions & Omit<TQueryOptions, 'returning'>;
+export type FindOneOptions = CommonFindOptions & Omit<TQueryOptions, 'skip' | 'limit'>;
 
 export type DecodedQuery<T> = Omit<T, 'filter'> & {
   filter: QuerySelector;

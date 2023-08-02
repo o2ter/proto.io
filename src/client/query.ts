@@ -34,6 +34,7 @@ import {
   TValue,
   asyncStream,
   TObjectType,
+  TQueryOptions,
 } from '../internals';
 
 export class ProtoClientQuery<T extends string, E> extends TQuery<T, E> {
@@ -66,7 +67,7 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E> {
     };
   }
 
-  clone(options?: TQuery.Options) {
+  clone(options?: TQueryOptions) {
     const clone = new ProtoClientQuery(this.className, this._proto, this._options);
     clone[PVK].options = options ?? { ...this[PVK].options };
     return clone;

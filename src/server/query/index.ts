@@ -37,6 +37,7 @@ import {
   asyncStream,
   TExtended,
   TObjectType,
+  TQueryOptions,
 } from '../../internals';
 import { queryValidator } from './validator';
 
@@ -71,7 +72,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
     return this._storage.count(this._queryOptions);
   }
 
-  clone(options?: TQuery.Options) {
+  clone(options?: TQueryOptions) {
     const clone = new ProtoQuery(this.className, this._proto, this._options);
     clone[PVK].options = options ?? { ...this[PVK].options };
     return clone;

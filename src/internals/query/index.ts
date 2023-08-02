@@ -32,24 +32,22 @@ import { TObjectType } from '../object/types';
 import { asyncStream } from '../utils';
 import { TQueryBase, TQueryBaseOptions } from './base';
 
-export namespace TQuery {
-  export interface Options extends TQueryBaseOptions {
-    sort?: Record<string, 1 | -1>;
-    includes?: string[];
-    skip?: number;
-    limit?: number;
-    returning?: 'old' | 'new';
-  }
-}
+export interface TQueryOptions extends TQueryBaseOptions {
+  sort?: Record<string, 1 | -1>;
+  includes?: string[];
+  skip?: number;
+  limit?: number;
+  returning?: 'old' | 'new';
+};
 
 export abstract class TQuery<T extends string, Ext> extends TQueryBase {
 
   [PVK]: {
     className: T;
-    options: TQuery.Options;
+    options: TQueryOptions;
   }
 
-  constructor(className: T, options: TQuery.Options = {}) {
+  constructor(className: T, options: TQueryOptions = {}) {
     super();
     this[PVK] = {
       className,
@@ -61,7 +59,7 @@ export abstract class TQuery<T extends string, Ext> extends TQueryBase {
     return this[PVK].className;
   }
 
-  abstract clone(options?: TQuery.Options): TQuery<T, Ext>;
+  abstract clone(options?: TQueryOptions): TQuery<T, Ext>;
   abstract explain(): PromiseLike<any>;
   abstract count(): PromiseLike<number>;
   abstract find(): ReturnType<typeof asyncStream<TObjectType<T, Ext>>>;
