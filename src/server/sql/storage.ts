@@ -178,31 +178,33 @@ export abstract class SqlStorage implements TStorage {
     }
   }
 
-  private _decodeSubquery(populate: Populate): Record<string, SQL> {
+  private _decodeSubquery(populate: {
+    name?: string;
+    className: string;
+    populates: Record<string, Populate>;
+  }): Record<string, SQL> {
     const populates = _.mapValues(populate.populates, v => ({
       ...v,
       populate: this._decodeSubquery(v),
     }));
-    const filter = _.compact([
-      ..._.map(populates, ({ name, foreignField, className }, field) => sql`${{ identifier: field }} IN (
-        SELECT *
-        FROM ${{ identifier: className }} AS ${{ identifier: name }}
-        WHERE ${foreignField
-          ? sql`(${{ quote: populate.className + '$' }} || ${{ identifier: populate.className }}._id)`
-          : { identifier: field }} = ${foreignField
-            ? { identifier: foreignField }
-            : sql`(${{ quote: name + '$' }} || ${{ identifier: name }}._id)`}
-      )`),
-      this._decodeFilter(populate.filter),
-    ]);
-    const query = sql`
-      SELECT * FROM ${{ identifier: populate.className }}
-      ${filter ? sql`WHERE ${{ literal: filter, separator: ' AND ' }}` : sql``}
-    `;
+    const filter = _.map(populates, ({ name, className, foreignField, filter }, field) => sql`${{ identifier: field }} IN (
+      SELECT *
+      FROM ${{ identifier: className }} AS ${{ identifier: name }}
+      WHERE ${foreignField
+        ? sql`(${{ quote: populate.className + '$' }} || ${{ identifier: populate.className }}._id)`
+        : { identifier: field }} = ${foreignField
+          ? { identifier: foreignField }
+          : sql`(${{ quote: name + '$' }} || ${{ identifier: name }}._id)`}
+        AND ${this._decodeFilter(filter) ?? sql``}
+    )`);
     return _.reduce(_.values(populates), (acc, { populate }) => ({
       ...populate,
       ...acc,
-    }), { [populate.name]: query });;
+    }), populate.name ? {
+      [populate.name]: sql`
+    SELECT * FROM ${{ identifier: populate.className }}
+    ${filter ? sql`WHERE ${{ literal: filter, separator: ' AND ' }}` : sql``}
+  ` } : {});;
   }
 
   async explain(query: DecodedQuery<ExplainOptions>) {
@@ -210,7 +212,10 @@ export abstract class SqlStorage implements TStorage {
     const compiler = this._queryCompiler(query);
 
     console.dir(compiler, { depth: null })
-    console.log(_.mapValues(compiler.populates, v => _.mapValues(this._decodeSubquery(v), sql => sql.toString())))
+    console.log(_.mapValues(this._decodeSubquery({
+      className: query.className,
+      populates: compiler.populates,
+    }), sql => sql.toString()))
 
     return 0;
   }
