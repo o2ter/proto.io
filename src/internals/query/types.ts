@@ -100,7 +100,7 @@ type PathComponents<T extends string> = T extends PathComponent<T> ? T
   ? `${L}.${PathComponents<R>}`
   : never;
 
-export type PathName<T extends string> = T extends PathComponent<T> ? T
+export type PathName<T extends string> = T extends '$' | PathComponent<T> ? T
   : T extends `${infer L}.${infer R}`
   ? `${PathComponent<L>}.${PathComponents<R>}`
   : never;
