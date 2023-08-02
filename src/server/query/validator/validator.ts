@@ -30,7 +30,7 @@ import {
   TQuerySelector,
   isPrimitiveValue,
 } from '../../../internals';
-import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions } from '../../storage';
+import { DecodedBaseQuery, DecodedQuery, ExplainOptions, FindOneOptions, FindOptions } from '../../storage';
 import { CoditionalSelector, FieldSelector, QuerySelector } from './parser';
 import { TSchema } from '../../schema';
 import { Proto } from '../..';
@@ -197,9 +197,9 @@ export class QueryValidator<E> {
     return _.uniq(_includes);
   }
 
-  decodeMatches(className: string, matches: Record<string, TQueryBaseOptions>): Record<string, TQueryBaseOptions> {
+  decodeMatches(className: string, matches: Record<string, TQueryBaseOptions>): Record<string, DecodedBaseQuery> {
 
-    const _matches: Record<string, TQueryBaseOptions> = {};
+    const _matches: Record<string, DecodedBaseQuery> = {};
 
     const schema = this.schema[className] ?? {};
     for (const [colname, match] of _.toPairs(matches)) {
@@ -217,9 +217,9 @@ export class QueryValidator<E> {
           if (!this.validateKeyPerm(dataType.foreignField, 'read', this.schema[dataType.target])) throw Error('No permission');
         }
         _matches[colname] = {
-          filter: [
+          filter: QuerySelector.decode([
             ..._.castArray<TQuerySelector>(match.filter),
-          ],
+          ]),
           matches: this.decodeMatches(dataType.target, match.matches ?? {}),
         };
       } else {

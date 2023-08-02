@@ -34,10 +34,13 @@ export type ExplainOptions = CommonFindOptions & Omit<TQueryOptions, 'returning'
 export type FindOptions = CommonFindOptions & Omit<TQueryOptions, 'returning'>;
 export type FindOneOptions = CommonFindOptions & Omit<TQueryOptions, 'skip' | 'limit'>;
 
-export type DecodedQuery<T> = Omit<T, 'filter'> & {
+export type DecodedBaseQuery = {
   filter: QuerySelector;
+  matches: Record<string, DecodedBaseQuery>;
+};
+
+export type DecodedQuery<T> = Omit<T, 'filter'> & DecodedBaseQuery & {
   includes: string[];
-  matches: Record<string, TQueryBaseOptions>;
   acls: string[];
   master: boolean;
   objectIdSize: number;
@@ -46,7 +49,7 @@ export type DecodedQuery<T> = Omit<T, 'filter'> & {
 export type InsertOptions = {
   className: string;
   includes: string[];
-  matches: Record<string, TQueryBaseOptions>;
+  matches: Record<string, DecodedBaseQuery>;
   objectIdSize: number;
 };
 
