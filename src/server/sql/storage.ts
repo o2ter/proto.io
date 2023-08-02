@@ -35,31 +35,6 @@ import { generateId } from '../crypto';
 import { CoditionalSelector, FieldExpression, FieldSelector, QuerySelector } from '../query/validator/parser';
 
 const isSQLArray = (v: any): v is SQL[] => _.isArray(v) && _.every(v, x => x instanceof SQL);
-
-const _decodeCoditionalSelector = (filter: CoditionalSelector) => {
-  const queries = _.compact(_.map(filter.exprs, x => _decodeFilter(x)));
-  if (_.isEmpty(queries)) return;
-  switch (filter.type) {
-    case '$and': return sql`${{ literal: _.map(queries, x => sql`(${x})`), separator: ' AND ' }}`;
-    case '$nor': return sql`${{ literal: _.map(queries, x => sql`NOT (${x})`), separator: ' AND ' }}`;
-    case '$or': return sql`${{ literal: _.map(queries, x => sql`(${x})`), separator: ' OR ' }}`;
-  }
-}
-
-const _decodeFieldExpression = (field: string, expr: FieldExpression) => {
-
-}
-
-const _decodeFilter = (filter: QuerySelector): SQL | undefined => {
-  if (filter instanceof CoditionalSelector) {
-    return _decodeCoditionalSelector(filter);
-  }
-  if (filter instanceof FieldSelector) {
-    const [colname, ...subpath] = _.toPath(filter.field);
-
-  }
-}
-
 export abstract class SqlStorage implements TStorage {
 
   schedule = storageSchedule(this, ['expireDocument']);
@@ -177,6 +152,30 @@ export abstract class SqlStorage implements TStorage {
       }
     }
     return obj;
+  }
+
+  private _decodeCoditionalSelector(filter: CoditionalSelector) {
+    const queries = _.compact(_.map(filter.exprs, x => this._decodeFilter(x)));
+    if (_.isEmpty(queries)) return;
+    switch (filter.type) {
+      case '$and': return sql`${{ literal: _.map(queries, x => sql`(${x})`), separator: ' AND ' }}`;
+      case '$nor': return sql`${{ literal: _.map(queries, x => sql`NOT (${x})`), separator: ' AND ' }}`;
+      case '$or': return sql`${{ literal: _.map(queries, x => sql`(${x})`), separator: ' OR ' }}`;
+    }
+  }
+
+  private _decodeFieldExpression(field: string, expr: FieldExpression) {
+
+  }
+
+  private _decodeFilter(filter: QuerySelector): SQL | undefined {
+    if (filter instanceof CoditionalSelector) {
+      return this._decodeCoditionalSelector(filter);
+    }
+    if (filter instanceof FieldSelector) {
+      const [colname, ...subpath] = _.toPath(filter.field);
+
+    }
   }
 
   async explain(query: DecodedQuery<ExplainOptions>) {
