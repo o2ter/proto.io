@@ -80,6 +80,11 @@ export class QueryCompiler {
       const [colname, ...subpath] = include.split('.');
 
       const dataType = schema.fields[colname] ?? defaultObjectKeyTypes[colname];
+      names[colname] = {
+        type: dataType,
+        name: `v${this.nextIdx()}`,
+      };
+
       if (!_.isString(dataType) && (dataType.type === 'pointer' || dataType.type === 'relation')) {
         if (_.isEmpty(subpath)) throw Error(`Invalid path: ${include}`);
         populates[colname] = populates[colname] ?? {
@@ -89,12 +94,7 @@ export class QueryCompiler {
           ...dataType,
         };
         populates[colname].subpaths.push(subpath.join('.'));
-      } else if (_.isEmpty(subpath)) {
-        names[colname] = {
-          type: dataType,
-          name: `v${this.nextIdx()}`,
-        };
-      } else {
+      } else if (!_.isEmpty(subpath)) {
         throw Error(`Invalid path: ${include}`);
       }
     }
