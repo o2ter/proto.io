@@ -199,9 +199,24 @@ export class QueryValidator<E> {
 
   decodeMatches(className: string, matches: Record<string, TQueryBaseOptions>, includes: string[]): Record<string, DecodedBaseQuery> {
 
+    const schema = this.schema[className] ?? {};
     const _matches: Record<string, DecodedBaseQuery> = {};
 
-    const schema = this.schema[className] ?? {};
+    for (const colname of includes) {
+      if (_.isEmpty(colname) || !_.has(schema.fields, colname)) continue;
+      if (!this.validateKeyPerm(colname, 'read', schema)) continue;
+
+      const dataType = schema.fields[colname];
+      if (_.isString(dataType) || (dataType.type !== 'pointer' && dataType.type !== 'relation')) continue;
+
+      _matches[colname] = {
+        filter: QuerySelector.decode([
+          ...this.master ? [] : [{ _rperm: { $some: { $: { $in: this.acls } } } }],
+        ]).simplify(),
+        matches: {},
+      };
+    }
+
     for (const [colname, match] of _.toPairs(matches)) {
       if (_.isEmpty(colname) || !_.has(schema.fields, colname)) throw Error(`Invalid match: ${colname}`);
       if (!this.validateKeyPerm(colname, 'read', schema)) throw Error('No permission');
