@@ -253,8 +253,6 @@ export class QueryValidator<E> {
       filter,
       matches,
       includes,
-      acls: this.acls,
-      master: this.master,
       objectIdSize: this.objectIdSize,
     };
   }

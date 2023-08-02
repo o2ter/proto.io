@@ -41,8 +41,6 @@ export type DecodedBaseQuery = {
 
 export type DecodedQuery<T> = Omit<T, keyof DecodedBaseQuery> & DecodedBaseQuery & {
   includes: string[];
-  acls: string[];
-  master: boolean;
   objectIdSize: number;
 };
 
