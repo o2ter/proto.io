@@ -112,8 +112,8 @@ export abstract class SqlStorage implements TStorage {
   }
 
   private _queryCompiler(query: QueryCompilerOptions) {
-    const compiler = new QueryCompiler(this.schema, query, this.dialect);
-    compiler.compile();
+    const compiler = new QueryCompiler(this.schema, this.dialect);
+    compiler.compile(query);
     return compiler;
   }
 

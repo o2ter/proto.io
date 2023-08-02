@@ -45,6 +45,7 @@ type Populate = {
   type: TSchema.Relation;
   foreignField?: string;
   subpaths: string[];
+  filter: QuerySelector;
   includes: Record<string, { type: TSchema.DataType; name: string; }>;
   populates: Record<string, Populate>;
 }
@@ -52,7 +53,6 @@ type Populate = {
 export class QueryCompiler {
 
   schema: Record<string, TSchema>;
-  query: QueryCompilerOptions;
   dialect: SqlDialect;
 
   idx = 0;
@@ -60,11 +60,8 @@ export class QueryCompiler {
   populates: Record<string, Populate> = {};
   sorting: Record<string, 1 | -1> = {};
 
-  filter?: SQL;
-
-  constructor(schema: Record<string, TSchema>, query: QueryCompilerOptions, dialect: SqlDialect) {
+  constructor(schema: Record<string, TSchema>, dialect: SqlDialect) {
     this.schema = schema;
-    this.query = query;
     this.dialect = dialect;
   }
 
@@ -72,7 +69,7 @@ export class QueryCompiler {
     return this.idx++;
   }
 
-  private _decodeIncludes(className: string, includes: string[]) {
+  private _decodeIncludes(className: string, includes: string[], matches: Record<string, DecodedBaseQuery>) {
 
     const schema = this.schema[className] ?? {};
     const names: Record<string, { type: TSchema.DataType; name: string; }> = {};
@@ -93,6 +90,7 @@ export class QueryCompiler {
           name: `t${this.nextIdx()}`,
           className: dataType.target,
           subpaths: [],
+          matches: matches[colname].filter,
           ...dataType,
         };
         populates[colname].subpaths.push(subpath.join('.'));
@@ -101,8 +99,8 @@ export class QueryCompiler {
       }
     }
 
-    for (const populate of _.values(populates)) {
-      const { includes, populates } = this._decodeIncludes(populate.className, populate.subpaths);
+    for (const [colname, populate] of _.toPairs(populates)) {
+      const { includes, populates } = this._decodeIncludes(populate.className, populate.subpaths, matches[colname].matches);
       populate.includes = includes;
       populate.populates = populates;
     }
@@ -133,8 +131,8 @@ export class QueryCompiler {
     return resolved;
   }
 
-  private _decodeSorting() {
-    for (const [key, order] of _.toPairs(this.query.sort)) {
+  private _decodeSorting(sort: Record<string, 1 | -1>) {
+    for (const [key, order] of _.toPairs(sort)) {
       const resolved = this._resolveSortingName(key);
       if (!resolved) throw Error(`Invalid path: ${key}`);
       this.sorting[resolved] = order;
@@ -142,7 +140,7 @@ export class QueryCompiler {
   }
 
   private _decodeCoditionalSelector(filter: CoditionalSelector) {
-    const queries = _.compact(_.map(filter.exprs, x => this._decodeFilter(x)));
+    const queries = _.compact(_.map(filter.exprs, x => this.decodeFilter(x)));
     if (_.isEmpty(queries)) return;
     switch (filter.type) {
       case '$and': return sql`${{ literal: _.map(queries, x => sql`(${x})`), separator: ' AND ' }}`;
@@ -155,7 +153,7 @@ export class QueryCompiler {
 
   }
 
-  private _decodeFilter(filter: QuerySelector): SQL | undefined {
+  decodeFilter(filter: QuerySelector): SQL | undefined {
     if (filter instanceof CoditionalSelector) {
       return this._decodeCoditionalSelector(filter);
     }
@@ -165,11 +163,10 @@ export class QueryCompiler {
     }
   }
 
-  compile() {
-    const { includes, populates } = this._decodeIncludes(this.query.className, this.query.includes);
+  compile(query: QueryCompilerOptions) {
+    const { includes, populates } = this._decodeIncludes(query.className, query.includes, query.matches);
     this.includes = includes;
     this.populates = populates;
-    if (this.query.sort) this._decodeSorting();
-    if (this.query.filter) this.filter = this._decodeFilter(this.query.filter);
+    if (query.sort) this._decodeSorting(query.sort);
   }
 }
