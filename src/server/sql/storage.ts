@@ -178,12 +178,31 @@ export abstract class SqlStorage implements TStorage {
     }
   }
 
-  private _decodeSubquery(populate: Populate): SQL {
-    const filter = this._decodeFilter(populate.filter);
-    return sql`
+  private _decodeSubquery(populate: Populate): Record<string, SQL> {
+    const populates = _.mapValues(populate.populates, v => ({
+      ...v,
+      populate: this._decodeSubquery(v),
+    }));
+    const filter = _.compact([
+      ..._.map(populates, ({ name, foreignField, className }, field) => sql`${{ identifier: field }} IN (
+        SELECT *
+        FROM ${{ identifier: className }} AS ${{ identifier: name }}
+        WHERE ${foreignField
+          ? sql`(${{ quote: populate.className + '$' }} || ${{ identifier: populate.className }}._id)`
+          : { identifier: field }} = ${foreignField
+            ? { identifier: foreignField }
+            : sql`(${{ quote: name + '$' }} || ${{ identifier: name }}._id)`}
+      )`),
+      this._decodeFilter(populate.filter),
+    ]);
+    const query = sql`
       SELECT * FROM ${{ identifier: populate.className }}
       ${filter ? sql`WHERE ${filter}` : sql``}
-    `
+    `;
+    return _.reduce(_.values(populates), (acc, { populate }) => ({
+      ...populate,
+      ...acc,
+    }), { [populate.name]: query });;
   }
 
   async explain(query: DecodedQuery<ExplainOptions>) {
