@@ -54,10 +54,8 @@ test('test codec', async () => {
 test('test files', async () => {
   const file = proto.File('test.txt', 'hello, world', 'text/plain');
   await file.save();
-  console.log(file);
 });
 test('test files 2', async () => {
   const file = proto.File('test.txt', fs.createReadStream(__filename), 'text/plain');
   await file.save();
-  console.log(file);
 });
