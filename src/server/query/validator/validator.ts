@@ -222,6 +222,9 @@ export class QueryValidator<E> {
           ]),
           matches: this.decodeMatches(dataType.target, match.matches ?? {}),
         };
+        if (
+          !_matches[colname].filter.validate(key => this.validateKey(dataType.target, key, 'read', QueryValidator.patterns.path))
+        ) throw Error('No permission');
       } else {
         throw Error(`Invalid match: ${colname}`);
       }
