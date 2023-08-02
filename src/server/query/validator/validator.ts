@@ -196,12 +196,26 @@ export class QueryValidator<E> {
     return _.uniq(_includes);
   }
 
-  decodeMatches(className: string, matches: Record<string, TQueryBaseOptions>): Record<string, TQueryBaseOptions> {
-
-    const _matches: Record<string, TQueryBaseOptions> = {};
-
-
-    return _matches;
+  validateMatches(className: string, matches: Record<string, TQueryBaseOptions>) {
+    const schema = this.schema[className] ?? {};
+    for (const [colname, match] of _.toPairs(matches)) {
+      if (_.isEmpty(colname) || !_.has(schema.fields, colname)) throw Error(`Invalid match: ${colname}`);
+      if (!this.validateKeyPerm(colname, 'read', schema)) throw Error('No permission');
+      const dataType = schema.fields[colname];
+      if (!_.isString(dataType) && (dataType.type === 'pointer' || dataType.type === 'relation')) {
+        if (!this.validateCLPs(dataType.target, 'get')) throw Error('No permission');
+        if (dataType.type === 'relation' && !_.isNil(dataType.foreignField)) {
+          const foreignField = this.schema[dataType.target]?.fields[dataType.foreignField];
+          if (_.isNil(foreignField) || _.isString(foreignField)) throw Error(`Invalid path: ${colname}`);
+          if (foreignField.type !== 'pointer' && foreignField.type !== 'relation') throw Error(`Invalid path: ${colname}`);
+          if (foreignField.type === 'relation' && !_.isNil(foreignField.foreignField)) throw Error(`Invalid path: ${colname}`);
+          if (!this.validateKeyPerm(dataType.foreignField, 'read', this.schema[dataType.target])) throw Error('No permission');
+        }
+        this.validateMatches(dataType.target, match.matches ?? {});
+      } else {
+        throw Error(`Invalid match: ${colname}`);
+      }
+    }
   }
 
   decodeQuery<Q extends ExplainOptions | FindOptions | FindOneOptions>(query: Q): DecodedQuery<Q> {
@@ -213,6 +227,8 @@ export class QueryValidator<E> {
 
     const includes = this.decodeIncludes(query.className, query.includes ?? ['*']);
     if (!_.every(_.keys(query.sort), k => includes.includes(k))) throw Error('Invalid sort keys');
+
+    this.validateMatches(query.className, query.matches ?? {});
 
     return {
       ...query,

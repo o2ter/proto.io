@@ -24,9 +24,10 @@
 //
 import _ from "lodash";
 import { Proto } from "../../index";
-import { ExtraOptions, PVK, TQuerySelector, TValue, UpdateOp } from "../../../internals";
+import { ExtraOptions, PVK, TValue, UpdateOp } from "../../../internals";
 import { QueryValidator } from "./validator";
-import { ExplainOptions, FindOneOptions, FindOptions, InsertOptions } from '../../storage';
+import { ExplainOptions, FindOneOptions, FindOptions } from '../../storage';
+import { TQueryBaseOptions } from "../../../internals/query/base";
 
 export const normalize = <T>(x: T): T => {
   if (_.isString(x)) return x.normalize('NFD') as T;
@@ -80,12 +81,12 @@ export const queryValidator = <E>(proto: Proto<E>, options?: ExtraOptions) => {
       QueryValidator.recursiveCheck(attrs);
       const _validator = validator();
       const _includes = _validator.decodeIncludes(options.className, options.includes ?? ['*']);
-      const _matches = _validator.decodeMatches(options.className, options.matches ?? {});
+      _validator.validateMatches(options.className, options.matches ?? {});
       if (!_validator.validateCLPs(options.className, 'create')) throw Error('No permission');
       return proto.storage.insert({
         className: options.className,
         includes: _includes,
-        matches: _matches,
+        matches: options.matches ?? {},
         objectIdSize: proto[PVK].options.objectIdSize
       }, normalize(_validator.validateFields(options.className, attrs, 'create', QueryValidator.patterns.name)));
     },
