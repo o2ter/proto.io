@@ -70,20 +70,16 @@ beforeAll(async () => {
 
   console.log('version: ', await database.version());
 
-  console.dir(database._queryCompiler({
-    className: '_Role',
-    includes: [
-      '_id',
-      'users._id',
-      'roles._id',
-      'roles.roles._id',
-      'roles.roles.roles._id',
-      'roles.roles.roles.roles._id',
-    ],
-    sort: {
-      '_id': 1,
-    },
-  }), { depth: null })
+  console.log(await proto.Query('_Role').includes(
+    '_id',
+    'users._id',
+    'roles._id',
+    'roles.roles._id',
+    'roles.roles.roles._id',
+    'roles.roles.roles.roles._id',
+  ).sort({
+    '_id': 1,
+  }).explain());
 
   httpServer = require('http-shutdown')(require('http').createServer(app));
   httpServer.listen(8080, () => console.log('listening on port 8080'));

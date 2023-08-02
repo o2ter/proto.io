@@ -111,7 +111,7 @@ export abstract class SqlStorage implements TStorage {
     return this._compile(template, () => idx++);
   }
 
-  _queryCompiler(query: QueryCompilerOptions) {
+  private _queryCompiler(query: QueryCompilerOptions) {
     const compiler = new QueryCompiler(this.schema, query, this.dialect);
     compiler.compile();
     return compiler;
@@ -154,14 +154,25 @@ export abstract class SqlStorage implements TStorage {
   }
 
   async explain(query: DecodedQuery<ExplainOptions>) {
+
+    const compiler = this._queryCompiler(query);
+
+    console.dir(compiler, { depth: null })
+
     return 0;
   }
 
   async count(query: DecodedQuery<FindOptions>) {
+
+    const compiler = this._queryCompiler(query);
+
     return 0;
   }
 
   async* find(query: DecodedQuery<FindOptions>) {
+
+    const compiler = this._queryCompiler(query);
+
     return [];
   }
 
@@ -196,22 +207,42 @@ export abstract class SqlStorage implements TStorage {
   }
 
   async updateOne(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>) {
+
+    const compiler = this._queryCompiler(query);
+
     return undefined;
   }
 
   async replaceOne(query: DecodedQuery<FindOneOptions>, replacement: Record<string, TValue>) {
+
+    const compiler = this._queryCompiler(query);
+
     return undefined;
   }
 
   async upsertOne(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>) {
+
+    const _setOnInsert: [string, TValue][] = _.toPairs({
+      _id: generateId(query.objectIdSize),
+      ...this._encodeObjectAttrs(query.className, setOnInsert),
+    });
+
+    const compiler = this._queryCompiler(query);
+
     return undefined;
   }
 
   async deleteOne(query: DecodedQuery<FindOneOptions>) {
+
+    const compiler = this._queryCompiler(query);
+
     return undefined;
   }
 
   async deleteMany(query: DecodedQuery<FindOptions>) {
+
+    const compiler = this._queryCompiler(query);
+
     return 0;
   }
 
