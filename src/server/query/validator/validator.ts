@@ -201,6 +201,7 @@ export class QueryValidator<E> {
 
     const schema = this.schema[className] ?? {};
     const _matches: Record<string, DecodedBaseQuery> = {};
+    const _rperm = this.master ? [] : [{ _rperm: { $some: { $: { $in: this.acls } } } }];
 
     for (const colname of includes) {
       if (_.isEmpty(colname) || !_.has(schema.fields, colname)) continue;
@@ -210,9 +211,7 @@ export class QueryValidator<E> {
       if (_.isString(dataType) || (dataType.type !== 'pointer' && dataType.type !== 'relation')) continue;
 
       _matches[colname] = {
-        filter: QuerySelector.decode([
-          ...this.master ? [] : [{ _rperm: { $some: { $: { $in: this.acls } } } }],
-        ]).simplify(),
+        filter: QuerySelector.decode(_rperm).simplify(),
         matches: {},
       };
     }
@@ -232,10 +231,7 @@ export class QueryValidator<E> {
           if (!this.validateKeyPerm(dataType.foreignField, 'read', this.schema[dataType.target])) throw Error('No permission');
         }
         _matches[colname] = {
-          filter: QuerySelector.decode([
-            ..._.castArray<TQuerySelector>(match.filter),
-            ...this.master ? [] : [{ _rperm: { $some: { $: { $in: this.acls } } } }],
-          ]).simplify(),
+          filter: QuerySelector.decode([..._rperm, ..._.castArray<TQuerySelector>(match.filter)]).simplify(),
           matches: this.decodeMatches(dataType.target, match.matches ?? {}, []),
         };
         if (
