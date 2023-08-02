@@ -240,10 +240,9 @@ export class QueryValidator<E> {
       !filter.validate(key => this.validateKey(query.className, key, 'read', QueryValidator.patterns.path))
     ) throw Error('No permission');
 
+    const matches = this.decodeMatches(query.className, query.matches ?? {});
     const includes = this.decodeIncludes(query.className, query.includes ?? ['*']);
     if (!_.every(_.keys(query.sort), k => includes.includes(k))) throw Error('Invalid sort keys');
-
-    const matches = this.decodeMatches(query.className, query.matches ?? {});
 
     return {
       ..._.omit(query, 'filter', 'matches'),
