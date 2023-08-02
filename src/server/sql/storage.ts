@@ -197,7 +197,7 @@ export abstract class SqlStorage implements TStorage {
     ]);
     const query = sql`
       SELECT * FROM ${{ identifier: populate.className }}
-      ${filter ? sql`WHERE ${filter}` : sql``}
+      ${filter ? sql`WHERE ${{ literal: filter, separator: ' AND ' }}` : sql``}
     `;
     return _.reduce(_.values(populates), (acc, { populate }) => ({
       ...populate,
