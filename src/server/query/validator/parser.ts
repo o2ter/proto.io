@@ -37,12 +37,14 @@ import {
 
 export class QuerySelector {
 
-  static decode(selectors: _.Many<TQuerySelector>): QuerySelector {
+  static decode(selectors: _.Many<TQuerySelector>, dollerSign: boolean = false): QuerySelector {
     const exprs: QuerySelector[] = [];
     for (const selector of _.castArray(selectors)) {
       for (const [key, query] of _.toPairs(selector)) {
         if (key in TCoditionalKeys && _.isArray(query)) {
           exprs.push(new CoditionalSelector(key as any, _.map(query, x => QuerySelector.decode(x))));
+        } else if (dollerSign && key === '$' && !_.isArray(query)) {
+          exprs.push(new FieldSelector(key, FieldExpression.decode(query)));
         } else if (!key.startsWith('$') && !_.isArray(query)) {
           exprs.push(new FieldSelector(key, FieldExpression.decode(query)));
         } else {
@@ -144,7 +146,7 @@ export class FieldExpression {
             }
           case '$every':
           case '$some':
-            return new FieldExpression(type, QuerySelector.decode(expr ? { ...expr as any } : {}));
+            return new FieldExpression(type, QuerySelector.decode(expr ? { ...expr as any } : {}, true));
           default: throw Error('Invalid expression');
         }
       }

@@ -216,9 +216,11 @@ export class QueryValidator<E> {
           if (foreignField.type === 'relation' && !_.isNil(foreignField.foreignField)) throw Error(`Invalid path: ${colname}`);
           if (!this.validateKeyPerm(dataType.foreignField, 'read', this.schema[dataType.target])) throw Error('No permission');
         }
+        const _rperm: TQuerySelector = { _rperm: { $some: { $: { $in: this.acls } } } };
         _matches[colname] = {
           filter: QuerySelector.decode([
             ..._.castArray<TQuerySelector>(match.filter),
+            ...this.master ? [] : [_rperm],
           ]).simplify(),
           matches: this.decodeMatches(dataType.target, match.matches ?? {}),
         };

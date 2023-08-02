@@ -54,13 +54,15 @@ export const allFieldQueryKeys = [
   ..._.keys(TValueListKeys),
 ];
 
+type TThisQuerySelector = { $?: TFieldQuerySelector; };
+
 export type TFieldQuerySelector = {
   $not?: TFieldQuerySelector;
   $type?: string | string[];
   $pattern?: RegExp | string;
   $size?: number;
-  $every?: TQuerySelector;
-  $some?: TQuerySelector;
+  $every?: TQuerySelector | TThisQuerySelector;
+  $some?: TQuerySelector | TThisQuerySelector;
 } & { [x in keyof typeof TComparisonKeys]?: TValue; } &
   { [x in keyof typeof TValueListKeys]?: TValue[]; };
 
