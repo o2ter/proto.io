@@ -28,13 +28,28 @@ import { FieldName, PathName, TQuerySelector } from './types';
 import { TValue } from './value';
 import { PVK } from '../private';
 
+export interface TQueryBaseOptions {
+  filter?: TQuerySelector | TQuerySelector[];
+  matches?: Record<string, TQueryBaseOptions>;
+};
+
+const mergeOpts = (lhs: TQueryBaseOptions, rhs: TQueryBaseOptions): TQueryBaseOptions => {
+  return {
+    filter: [
+      ..._.castArray<TQuerySelector>(lhs.filter), 
+      ..._.castArray<TQuerySelector>(rhs.filter)
+    ],
+    matches: {
+      ...lhs.matches,
+      ..._.mapValues(rhs.matches, (opts, key) => lhs.matches?.[key] ? mergeOpts(lhs.matches[key], opts) : opts),
+    },
+  };
+}
+
 export class TQueryBase {
 
   [PVK]: {
-    options: {
-      filter?: TQuerySelector | TQuerySelector[];
-      matches?: Record<string, TQuerySelector[]>;
-    };
+    options: TQueryBaseOptions;
   }
 
   constructor() {
@@ -107,14 +122,12 @@ export class TQueryBase {
   match<T extends string>(key: FieldName<T>, callback: (query: TQueryBase) => void) {
     const query = new TQueryBase();
     callback(query);
-    const filter = _.castArray<TQuerySelector>(query[PVK].options.filter);
     if (_.isNil(this[PVK].options.matches)) {
-      this[PVK].options.matches = { [key]: filter };
+      this[PVK].options.matches = { [key]: query[PVK].options };
+    } else if (_.isNil(this[PVK].options.matches[key])) {
+      this[PVK].options.matches[key] = query[PVK].options;
     } else {
-      this[PVK].options.matches[key] = [
-        ..._.castArray(this[PVK].options.matches[key]), 
-        ...filter
-      ];
+      this[PVK].options.matches[key] = mergeOpts(this[PVK].options.matches[key], query[PVK].options);
     }
     return this;
   }

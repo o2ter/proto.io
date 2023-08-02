@@ -27,13 +27,13 @@ import _ from 'lodash';
 import {
   PVK,
   TObject,
-  TQuerySelector,
   isPrimitiveValue,
 } from '../../../internals';
 import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions } from '../../storage';
 import { CoditionalSelector, FieldSelector, QuerySelector } from './parser';
 import { TSchema } from '../../schema';
 import { Proto } from '../..';
+import { TQueryBaseOptions } from '../../../internals/query/base';
 
 export const recursiveCheck = (x: any, stack: any[]) => {
   if (_.indexOf(stack, x) !== -1) throw Error('Recursive data detected');
@@ -196,9 +196,9 @@ export class QueryValidator<E> {
     return _.uniq(_includes);
   }
 
-  decodeMatches(className: string, matches: Record<string, TQuerySelector[]>): Record<string, TQuerySelector[]> {
+  decodeMatches(className: string, matches: Record<string, TQueryBaseOptions>): Record<string, TQueryBaseOptions> {
 
-    const _matches: Record<string, TQuerySelector[]> = {};
+    const _matches: Record<string, TQueryBaseOptions> = {};
 
 
     return _matches;

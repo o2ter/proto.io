@@ -30,13 +30,11 @@ import { UpdateOp } from '../object';
 import { PVK } from '../private';
 import { TObjectType } from '../object/types';
 import { asyncStream } from '../utils';
-import { TQueryBase } from './base';
+import { TQueryBase, TQueryBaseOptions } from './base';
 
 export namespace TQuery {
-  export interface Options {
-    filter?: TQuerySelector | TQuerySelector[];
+  export interface Options extends TQueryBaseOptions {
     sort?: Record<string, 1 | -1>;
-    matches?: Record<string, TQuerySelector[]>;
     includes?: string[];
     skip?: number;
     limit?: number;

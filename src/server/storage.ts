@@ -24,9 +24,10 @@
 //
 
 import _ from 'lodash';
-import { TObject, UpdateOp, TValue, TQuery, TQuerySelector } from '../internals';
+import { TObject, UpdateOp, TValue, TQuery } from '../internals';
 import { QuerySelector } from './query/validator/parser';
 import { TSchema } from './schema';
+import { TQueryBaseOptions } from '../internals/query/base';
 
 type CommonFindOptions = { className: string; };
 export type ExplainOptions = CommonFindOptions & Omit<TQuery.Options, 'returning' | 'skip' | 'limit'>;
@@ -44,7 +45,7 @@ export type DecodedQuery<T> = Omit<T, 'filter'> & {
 export type InsertOptions = {
   className: string;
   includes: string[];
-  matches: Record<string, TQuerySelector[]>;
+  matches: Record<string, TQueryBaseOptions>;
   objectIdSize: number;
 };
 

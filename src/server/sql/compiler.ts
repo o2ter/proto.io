@@ -29,14 +29,14 @@ import { TSchema } from '../schema';
 import { defaultObjectKeyTypes } from '../schema';
 import { CoditionalSelector, FieldExpression, FieldSelector, QuerySelector } from '../query/validator/parser';
 import { SQL, sql } from './sql';
-import { TQuerySelector } from '../../internals';
+import { TQueryBaseOptions } from '../../internals/query/base';
 
 export type QueryCompilerOptions = {
   className: string;
   filter?: QuerySelector;
   sort?: Record<string, 1 | -1>;
   includes: string[];
-  matches: Record<string, TQuerySelector[]>;
+  matches: Record<string, TQueryBaseOptions>;
 }
 
 type Populate = {

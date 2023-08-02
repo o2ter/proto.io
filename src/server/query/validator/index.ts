@@ -73,7 +73,7 @@ export const queryValidator = <E>(proto: Proto<E>, options?: ExtraOptions) => {
       options: {
         className: string;
         includes?: string[];
-        matches?: Record<string, TQuerySelector[]>;
+        matches?: Record<string, TQueryBaseOptions>;
       },
       attrs: Record<string, TValue>,
     ) {
