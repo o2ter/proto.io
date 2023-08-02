@@ -27,8 +27,7 @@ import _ from 'lodash';
 import { SqlDialect } from './dialect';
 import { TSchema } from '../schema';
 import { defaultObjectKeyTypes } from '../schema';
-import { CoditionalSelector, FieldExpression, FieldSelector, QuerySelector } from '../query/validator/parser';
-import { SQL, sql } from './sql';
+import { QuerySelector } from '../query/validator/parser';
 import { DecodedBaseQuery } from '../storage';
 
 export type QueryCompilerOptions = {
@@ -136,30 +135,6 @@ export class QueryCompiler {
       const resolved = this._resolveSortingName(key);
       if (!resolved) throw Error(`Invalid path: ${key}`);
       this.sorting[resolved] = order;
-    }
-  }
-
-  private _decodeCoditionalSelector(filter: CoditionalSelector) {
-    const queries = _.compact(_.map(filter.exprs, x => this.decodeFilter(x)));
-    if (_.isEmpty(queries)) return;
-    switch (filter.type) {
-      case '$and': return sql`${{ literal: _.map(queries, x => sql`(${x})`), separator: ' AND ' }}`;
-      case '$nor': return sql`${{ literal: _.map(queries, x => sql`NOT (${x})`), separator: ' AND ' }}`;
-      case '$or': return sql`${{ literal: _.map(queries, x => sql`(${x})`), separator: ' OR ' }}`;
-    }
-  }
-
-  private _decodeFieldExpression(field: string, expr: FieldExpression) {
-
-  }
-
-  decodeFilter(filter: QuerySelector): SQL | undefined {
-    if (filter instanceof CoditionalSelector) {
-      return this._decodeCoditionalSelector(filter);
-    }
-    if (filter instanceof FieldSelector) {
-      const [colname, ...subpath] = _.toPath(filter.field);
-
     }
   }
 

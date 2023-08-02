@@ -27,13 +27,39 @@ import _ from 'lodash';
 import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions, InsertOptions, TStorage } from '../storage';
 import { TSchema, defaultObjectKeyTypes } from '../schema';
 import { storageSchedule } from '../schedule';
-import { PVK, TObject, TValue, UpdateOp, asyncStream, isPrimitiveValue } from '../../internals';
+import { PVK, TObject, TValue, UpdateOp, asyncStream } from '../../internals';
 import { SQL, sql } from './sql';
 import { SqlDialect } from './dialect';
 import { QueryCompiler, QueryCompilerOptions } from './compiler';
 import { generateId } from '../crypto';
+import { CoditionalSelector, FieldExpression, FieldSelector, QuerySelector } from '../query/validator/parser';
 
 const isSQLArray = (v: any): v is SQL[] => _.isArray(v) && _.every(v, x => x instanceof SQL);
+
+const _decodeCoditionalSelector = (filter: CoditionalSelector) => {
+  const queries = _.compact(_.map(filter.exprs, x => _decodeFilter(x)));
+  if (_.isEmpty(queries)) return;
+  switch (filter.type) {
+    case '$and': return sql`${{ literal: _.map(queries, x => sql`(${x})`), separator: ' AND ' }}`;
+    case '$nor': return sql`${{ literal: _.map(queries, x => sql`NOT (${x})`), separator: ' AND ' }}`;
+    case '$or': return sql`${{ literal: _.map(queries, x => sql`(${x})`), separator: ' OR ' }}`;
+  }
+}
+
+const _decodeFieldExpression = (field: string, expr: FieldExpression) => {
+
+}
+
+const _decodeFilter = (filter: QuerySelector): SQL | undefined => {
+  if (filter instanceof CoditionalSelector) {
+    return _decodeCoditionalSelector(filter);
+  }
+  if (filter instanceof FieldSelector) {
+    const [colname, ...subpath] = _.toPath(filter.field);
+
+  }
+}
+
 export abstract class SqlStorage implements TStorage {
 
   schedule = storageSchedule(this, ['expireDocument']);
