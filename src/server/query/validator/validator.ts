@@ -219,7 +219,7 @@ export class QueryValidator<E> {
         _matches[colname] = {
           filter: QuerySelector.decode([
             ..._.castArray<TQuerySelector>(match.filter),
-          ]),
+          ]).simplify(),
           matches: this.decodeMatches(dataType.target, match.matches ?? {}),
         };
         if (
@@ -235,7 +235,9 @@ export class QueryValidator<E> {
 
   decodeQuery<Q extends ExplainOptions | FindOptions | FindOneOptions>(query: Q): DecodedQuery<Q> {
 
-    const filter = QuerySelector.decode(query.filter ?? []).simplify();
+    const filter = QuerySelector.decode([
+      ..._.castArray<TQuerySelector>(query.filter),
+    ]).simplify();
     if (
       !filter.validate(key => this.validateKey(query.className, key, 'read', QueryValidator.patterns.path))
     ) throw Error('No permission');
