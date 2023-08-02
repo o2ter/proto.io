@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { TObject, UpdateOp, TValue, TQuery } from '../internals';
+import { TObject, UpdateOp, TValue, TQuery, TQuerySelector } from '../internals';
 import { QuerySelector } from './query/validator/parser';
 import { TSchema } from './schema';
 
@@ -44,6 +44,7 @@ export type DecodedQuery<T> = Omit<T, 'filter'> & {
 export type InsertOptions = {
   className: string;
   includes: string[];
+  matches: Record<string, TQuerySelector[]>;
   objectIdSize: number;
 };
 

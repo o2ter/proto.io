@@ -36,6 +36,7 @@ export namespace TQuery {
   export interface Options {
     filter?: TQuerySelector | TQuerySelector[];
     sort?: Record<string, 1 | -1>;
+    matches?: Record<string, TQuerySelector[]>;
     includes?: string[];
     skip?: number;
     limit?: number;

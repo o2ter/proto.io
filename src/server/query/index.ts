@@ -106,6 +106,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
       await this._storage.insert({
         className: this.className,
         includes: this[PVK].options.includes,
+        matches: this[PVK].options.matches,
       }, _.fromPairs(object.keys().map(k => [k, object.get(k)])))
     );
     if (!result) throw Error('Unable to insert document');

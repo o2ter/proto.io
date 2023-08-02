@@ -33,6 +33,7 @@ export class TQueryBase {
   [PVK]: {
     options: {
       filter?: TQuerySelector | TQuerySelector[];
+      matches?: Record<string, TQuerySelector[]>;
     };
   }
 
@@ -106,7 +107,16 @@ export class TQueryBase {
   match<T extends string>(key: FieldName<T>, callback: (query: TQueryBase) => void) {
     const query = new TQueryBase();
     callback(query);
-    return this.filter({ [key]: { $match: { $and: _.castArray<TQuerySelector>(query[PVK].options.filter) } } });
+    const filter = _.castArray<TQuerySelector>(query[PVK].options.filter);
+    if (_.isNil(this[PVK].options.matches)) {
+      this[PVK].options.matches = { [key]: filter };
+    } else {
+      this[PVK].options.matches[key] = [
+        ..._.castArray(this[PVK].options.matches[key]), 
+        ...filter
+      ];
+    }
+    return this;
   }
 
 }

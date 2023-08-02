@@ -27,6 +27,7 @@ import _ from 'lodash';
 import {
   PVK,
   TObject,
+  TQuerySelector,
   isPrimitiveValue,
 } from '../../../internals';
 import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions } from '../../storage';
@@ -193,6 +194,14 @@ export class QueryValidator<E> {
 
     _includes.push(...TObject.defaultKeys);
     return _.uniq(_includes);
+  }
+
+  decodeMatches(className: string, matches: Record<string, TQuerySelector[]>): Record<string, TQuerySelector[]> {
+
+    const _matches: Record<string, TQuerySelector[]> = {};
+
+
+    return _matches;
   }
 
   decodeQuery<Q extends ExplainOptions | FindOptions | FindOneOptions>(query: Q): DecodedQuery<Q> {
