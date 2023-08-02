@@ -32,7 +32,7 @@ import {
 } from '../../../internals';
 import { DecodedBaseQuery, DecodedQuery, ExplainOptions, FindOneOptions, FindOptions } from '../../storage';
 import { CoditionalSelector, FieldSelector, QuerySelector } from './parser';
-import { TSchema } from '../../schema';
+import { TSchema, defaultObjectKeyTypes } from '../../schema';
 import { Proto } from '../..';
 import { TQueryBaseOptions } from '../../../internals/query/base';
 
@@ -82,6 +82,7 @@ export class QueryValidator<E> {
     type: keyof TSchema.FLPs,
     schema: TSchema,
   ) {
+    if (_.isEmpty(key) || (!_.has(schema.fields, key) && !TObject.defaultKeys.includes(key))) throw Error(`Invalid path: ${key}`);
     if (type === 'read' && TObject.defaultKeys.includes(key)) return true;
     if (type !== 'read' && TObject.defaultReadonlyKeys.includes(key)) return false;
     return this.master || !_.every(schema.fieldLevelPermissions?.[key]?.[type] ?? ['*'], x => !_.includes(this.acls, x));
@@ -112,7 +113,6 @@ export class QueryValidator<E> {
     if (!_key.match(validator)) throw Error(`Invalid key: ${_key}`);
 
     const [colname, ...subpath] = _.toPath(_key);
-    if (_.isEmpty(colname) || !_.has(schema.fields, colname)) throw Error(`Invalid path: ${_key}`);
     if (!this.validateKeyPerm(colname, type, schema)) return false;
     if (_.isEmpty(subpath) && TObject.defaultKeys.includes(colname)) return true;
     if (_.isEmpty(subpath)) return true;
@@ -165,10 +165,9 @@ export class QueryValidator<E> {
         _includes.push(..._.filter(primitive, k => this.validateKeyPerm(k, 'read', schema)));
       } else {
         const [colname, ...subpath] = include.split('.');
-        if (_.isEmpty(colname) || !_.has(schema.fields, colname)) throw Error(`Invalid path: ${include}`);
         if (!this.validateKeyPerm(colname, 'read', schema)) throw Error('No permission');
 
-        const dataType = schema.fields[colname];
+        const dataType = schema.fields[colname] ?? defaultObjectKeyTypes[colname];
         if (!_.isString(dataType) && (dataType.type === 'pointer' || dataType.type === 'relation')) {
           if (!this.validateCLPs(dataType.target, 'get')) throw Error('No permission');
           if (dataType.type === 'relation' && !_.isNil(dataType.foreignField)) {
@@ -204,10 +203,9 @@ export class QueryValidator<E> {
     const _rperm = this.master ? [] : [{ _rperm: { $some: { $: { $in: this.acls } } } }];
 
     for (const colname of _.uniq(_.compact(includes.map(x => _.first(x.split('.')))))) {
-      if (_.isEmpty(colname) || !_.has(schema.fields, colname)) continue;
       if (!this.validateKeyPerm(colname, 'read', schema)) continue;
 
-      const dataType = schema.fields[colname];
+      const dataType = schema.fields[colname] ?? defaultObjectKeyTypes[colname];
       if (_.isString(dataType) || (dataType.type !== 'pointer' && dataType.type !== 'relation')) continue;
 
       _matches[colname] = {
@@ -217,10 +215,9 @@ export class QueryValidator<E> {
     }
 
     for (const [colname, match] of _.toPairs(matches)) {
-      if (_.isEmpty(colname) || !_.has(schema.fields, colname)) throw Error(`Invalid match: ${colname}`);
       if (!this.validateKeyPerm(colname, 'read', schema)) throw Error('No permission');
 
-      const dataType = schema.fields[colname];
+      const dataType = schema.fields[colname] ?? defaultObjectKeyTypes[colname];
       if (!_.isString(dataType) && (dataType.type === 'pointer' || dataType.type === 'relation')) {
         if (!this.validateCLPs(dataType.target, 'get')) throw Error('No permission');
         if (dataType.type === 'relation' && !_.isNil(dataType.foreignField)) {

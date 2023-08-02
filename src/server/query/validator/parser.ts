@@ -191,6 +191,6 @@ export class FieldSelector extends QuerySelector {
   }
 
   validate(callback: (key: string) => boolean) {
-    return callback(this.field) && this.expr.validate(callback);
+    return (this.field === '$' || callback(this.field)) && this.expr.validate(callback);
   }
 }
