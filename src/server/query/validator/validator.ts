@@ -248,8 +248,8 @@ export class QueryValidator<E> {
     return {
       ..._.omit(query, 'filter', 'matches'),
       filter,
-      includes,
       matches,
+      includes,
       acls: this.acls,
       master: this.master,
       objectIdSize: this.objectIdSize,
