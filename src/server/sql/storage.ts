@@ -30,7 +30,7 @@ import { storageSchedule } from '../schedule';
 import { PVK, TObject, TValue, UpdateOp, asyncStream } from '../../internals';
 import { SQL, sql } from './sql';
 import { SqlDialect } from './dialect';
-import { QueryCompiler, QueryCompilerOptions } from './compiler';
+import { Populate, QueryCompiler, QueryCompilerOptions } from './compiler';
 import { generateId } from '../crypto';
 import { CoditionalSelector, FieldExpression, FieldSelector, QuerySelector } from '../query/validator/parser';
 
@@ -176,6 +176,14 @@ export abstract class SqlStorage implements TStorage {
       const [colname, ...subpath] = _.toPath(filter.field);
 
     }
+  }
+
+  private _decodeSubquery(populate: Populate): SQL {
+    const filter = this._decodeFilter(populate.filter);
+    return sql`
+      SELECT * FROM ${{ identifier: populate.className }}
+      ${filter ? sql`WHERE ${filter}` : sql``}
+    `
   }
 
   async explain(query: DecodedQuery<ExplainOptions>) {

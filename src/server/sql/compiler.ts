@@ -38,7 +38,7 @@ export type QueryCompilerOptions = {
   matches: Record<string, DecodedBaseQuery>;
 }
 
-type Populate = {
+export type Populate = {
   name: string;
   className: string;
   type: TSchema.Relation;
