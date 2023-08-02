@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { IncludePaths, PathNameMap, TQuerySelector } from './types';
+import { IncludePaths, PathNameMap } from './types';
 import { TValue } from './value';
 import { UpdateOp } from '../object';
 import { PVK } from '../private';

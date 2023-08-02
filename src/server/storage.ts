@@ -37,6 +37,7 @@ export type FindOneOptions = CommonFindOptions & Omit<TQueryOptions, 'skip' | 'l
 export type DecodedQuery<T> = Omit<T, 'filter'> & {
   filter: QuerySelector;
   includes: string[];
+  matches: Record<string, TQueryBaseOptions>;
   acls: string[];
   master: boolean;
   objectIdSize: number;

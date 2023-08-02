@@ -27,6 +27,7 @@ import _ from 'lodash';
 import {
   PVK,
   TObject,
+  TQuerySelector,
   isPrimitiveValue,
 } from '../../../internals';
 import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions } from '../../storage';
@@ -196,11 +197,15 @@ export class QueryValidator<E> {
     return _.uniq(_includes);
   }
 
-  validateMatches(className: string, matches: Record<string, TQueryBaseOptions>) {
+  decodeMatches(className: string, matches: Record<string, TQueryBaseOptions>): Record<string, TQueryBaseOptions> {
+
+    const _matches: Record<string, TQueryBaseOptions> = {};
+
     const schema = this.schema[className] ?? {};
     for (const [colname, match] of _.toPairs(matches)) {
       if (_.isEmpty(colname) || !_.has(schema.fields, colname)) throw Error(`Invalid match: ${colname}`);
       if (!this.validateKeyPerm(colname, 'read', schema)) throw Error('No permission');
+
       const dataType = schema.fields[colname];
       if (!_.isString(dataType) && (dataType.type === 'pointer' || dataType.type === 'relation')) {
         if (!this.validateCLPs(dataType.target, 'get')) throw Error('No permission');
@@ -211,11 +216,18 @@ export class QueryValidator<E> {
           if (foreignField.type === 'relation' && !_.isNil(foreignField.foreignField)) throw Error(`Invalid path: ${colname}`);
           if (!this.validateKeyPerm(dataType.foreignField, 'read', this.schema[dataType.target])) throw Error('No permission');
         }
-        this.validateMatches(dataType.target, match.matches ?? {});
+        _matches[colname] = {
+          filter: [
+            ..._.castArray<TQuerySelector>(match.filter),
+          ],
+          matches: this.decodeMatches(dataType.target, match.matches ?? {}),
+        };
       } else {
         throw Error(`Invalid match: ${colname}`);
       }
     }
+
+    return _matches;
   }
 
   decodeQuery<Q extends ExplainOptions | FindOptions | FindOneOptions>(query: Q): DecodedQuery<Q> {
@@ -228,12 +240,13 @@ export class QueryValidator<E> {
     const includes = this.decodeIncludes(query.className, query.includes ?? ['*']);
     if (!_.every(_.keys(query.sort), k => includes.includes(k))) throw Error('Invalid sort keys');
 
-    this.validateMatches(query.className, query.matches ?? {});
+    const matches = this.decodeMatches(query.className, query.matches ?? {});
 
     return {
       ...query,
       filter,
       includes,
+      matches,
       acls: this.acls,
       master: this.master,
       objectIdSize: this.objectIdSize,
