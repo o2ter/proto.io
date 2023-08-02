@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { PathName, TQuerySelector } from './types';
+import { FieldName, PathName, TQuerySelector } from './types';
 import { TValue } from './value';
 import { PVK } from '../private';
 
@@ -75,7 +75,7 @@ export class TQueryBase {
     return this.filter({ [key]: { $gte: value ?? null } });
   }
 
-  match<T extends string>(key: PathName<T>, value: RegExp | string) {
+  pattern<T extends string>(key: PathName<T>, value: RegExp | string) {
     return this.filter({ [key]: { $pattern: value ?? null } });
   }
 
@@ -101,6 +101,12 @@ export class TQueryBase {
     const query = new TQueryBase();
     callback(query);
     return this.filter({ [key]: { $some: { $and: _.castArray<TQuerySelector>(query[PVK].options.filter) } } });
+  }
+
+  match<T extends string>(key: FieldName<T>, callback: (query: TQueryBase) => void) {
+    const query = new TQueryBase();
+    callback(query);
+    return this.filter({ [key]: { $match: { $and: _.castArray<TQuerySelector>(query[PVK].options.filter) } } });
   }
 
 }

@@ -144,6 +144,7 @@ export class FieldExpression {
             }
           case '$every':
           case '$some':
+          case '$match':
             return new FieldExpression(type, QuerySelector.decode(expr ? { ...expr as any } : {}));
           default: throw Error('Invalid expression');
         }
