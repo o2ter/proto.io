@@ -40,6 +40,13 @@ export class SQL {
     this.strings = templates;
     this.values = values;
   }
+
+  toString() {
+    let idx = 1;
+    let str = _.first(this.strings) ?? '';
+    for (const part of this.strings.slice(1)) str += `${idx++}${part}`;
+    return str;
+  }
 }
 
 export const sql = (templates: TemplateStringsArray, ...values: SQLValue[]) => new SQL(templates, values);

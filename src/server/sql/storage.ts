@@ -210,6 +210,7 @@ export abstract class SqlStorage implements TStorage {
     const compiler = this._queryCompiler(query);
 
     console.dir(compiler, { depth: null })
+    console.log(_.mapValues(compiler.populates, v => _.mapValues(this._decodeSubquery(v), sql => sql.toString())))
 
     return 0;
   }
