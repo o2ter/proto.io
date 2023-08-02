@@ -36,6 +36,8 @@ export default <E>(router: Router, proto: Proto<E>) => {
     express.text({ type: '*/*' }),
     async (req, res) => {
 
+      res.setHeader('Cache-Control', 'no-cache');
+
       const { name } = req.params;
       if (_.isNil(proto[PVK].functions[name])) return res.sendStatus(404);
 

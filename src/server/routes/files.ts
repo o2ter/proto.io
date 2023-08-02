@@ -36,6 +36,8 @@ export default <E>(router: Router, proto: Proto<E>) => {
     '/files',
     async (req, res) => {
 
+      res.setHeader('Cache-Control', 'no-cache');
+
       await response(res, async () => {
 
         const { attributes, file } = await decodeFormStream(req, (file, info) => proto.fileStorage.create(proto, file, info));
