@@ -47,7 +47,7 @@ export const queryValidator = <E>(proto: Proto<E>, options?: ExtraOptions) => {
     ) {
       QueryValidator.recursiveCheck(query);
       const _validator = validator();
-      const decoded = _validator.decodeQuery(normalize(query));
+      const decoded = _validator.decodeQuery(normalize(query), 'read');
       const isGet = _validator.isGetMethod(decoded.filter);
       if (!_validator.validateCLPs(query.className, isGet ? 'get' : 'find')) throw Error('No permission');
       return proto.storage.explain(decoded);
@@ -58,14 +58,14 @@ export const queryValidator = <E>(proto: Proto<E>, options?: ExtraOptions) => {
       QueryValidator.recursiveCheck(query);
       const _validator = validator();
       if (!_validator.validateCLPs(query.className, 'count')) throw Error('No permission');
-      return proto.storage.count(_validator.decodeQuery(normalize(query)));
+      return proto.storage.count(_validator.decodeQuery(normalize(query), 'read'));
     },
     find(
       query: FindOptions
     ) {
       QueryValidator.recursiveCheck(query);
       const _validator = validator();
-      const decoded = _validator.decodeQuery(normalize(query));
+      const decoded = _validator.decodeQuery(normalize(query), 'read');
       const isGet = _validator.isGetMethod(decoded.filter);
       if (!_validator.validateCLPs(query.className, isGet ? 'get' : 'find')) throw Error('No permission');
       return proto.storage.find(decoded);
@@ -98,7 +98,7 @@ export const queryValidator = <E>(proto: Proto<E>, options?: ExtraOptions) => {
       const _validator = validator();
       if (!_validator.validateCLPs(query.className, 'update')) throw Error('No permission');
       return proto.storage.updateOne(
-        _validator.decodeQuery(normalize(query)),
+        _validator.decodeQuery(normalize(query), 'update'),
         normalize(_validator.validateFields(query.className, update, 'update', QueryValidator.patterns.path)),
       );
     },
@@ -110,7 +110,7 @@ export const queryValidator = <E>(proto: Proto<E>, options?: ExtraOptions) => {
       const _validator = validator();
       if (!_validator.validateCLPs(query.className, 'update')) throw Error('No permission');
       return proto.storage.replaceOne(
-        _validator.decodeQuery(normalize(query)),
+        _validator.decodeQuery(normalize(query), 'update'),
         normalize(_validator.validateFields(query.className, replacement, 'update', QueryValidator.patterns.path)),
       );
     },
@@ -123,7 +123,7 @@ export const queryValidator = <E>(proto: Proto<E>, options?: ExtraOptions) => {
       const _validator = validator();
       if (!_validator.validateCLPs(query.className, 'create', 'update')) throw Error('No permission');
       return proto.storage.upsertOne(
-        _validator.decodeQuery(normalize(query)),
+        _validator.decodeQuery(normalize(query), 'update'),
         normalize(_validator.validateFields(query.className, update, 'update', QueryValidator.patterns.path)),
         normalize(_validator.validateFields(query.className, setOnInsert, 'create', QueryValidator.patterns.name)),
       );
@@ -134,7 +134,7 @@ export const queryValidator = <E>(proto: Proto<E>, options?: ExtraOptions) => {
       QueryValidator.recursiveCheck(query);
       const _validator = validator();
       if (!_validator.validateCLPs(query.className, 'delete')) throw Error('No permission');
-      return proto.storage.deleteOne(_validator.decodeQuery(normalize(query)));
+      return proto.storage.deleteOne(_validator.decodeQuery(normalize(query), 'update'));
     },
     deleteMany(
       query: FindOptions
@@ -142,7 +142,7 @@ export const queryValidator = <E>(proto: Proto<E>, options?: ExtraOptions) => {
       QueryValidator.recursiveCheck(query);
       const _validator = validator();
       if (!_validator.validateCLPs(query.className, 'delete')) throw Error('No permission');
-      return proto.storage.deleteMany(_validator.decodeQuery(normalize(query)));
+      return proto.storage.deleteMany(_validator.decodeQuery(normalize(query), 'update'));
     },
   };
 };
