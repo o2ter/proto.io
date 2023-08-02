@@ -203,7 +203,7 @@ export class QueryValidator<E> {
     const _matches: Record<string, DecodedBaseQuery> = {};
     const _rperm = this.master ? [] : [{ _rperm: { $some: { $: { $in: this.acls } } } }];
 
-    for (const colname of includes) {
+    for (const colname of _.uniq(_.compact(includes.map(x => _.first(x.split('.')))))) {
       if (_.isEmpty(colname) || !_.has(schema.fields, colname)) continue;
       if (!this.validateKeyPerm(colname, 'read', schema)) continue;
 
