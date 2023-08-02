@@ -36,7 +36,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
     '/files',
     async (req, res) => {
 
-      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Cache-Control', ['no-cache', 'no-store']);
 
       await response(res, async () => {
 

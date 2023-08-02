@@ -37,7 +37,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
     express.text({ type: '*/*' }),
     async (req, res) => {
 
-      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Cache-Control', ['no-cache', 'no-store']);
 
       const { name } = req.params;
       const classes = proto.classes();
@@ -85,7 +85,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
     queryType.middleware(),
     async (req, res) => {
 
-      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Cache-Control', ['no-cache', 'no-store']);
 
       const { name } = req.params;
       const classes = proto.classes();
@@ -124,7 +124,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
     '/classes/:name/:id',
     async (req, res) => {
 
-      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Cache-Control', ['no-cache', 'no-store']);
 
       const { name, id } = req.params;
       const classes = proto.classes();
@@ -144,7 +144,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
     express.text({ type: '*/*' }),
     async (req, res) => {
 
-      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Cache-Control', ['no-cache', 'no-store']);
 
       const { name, id } = req.params;
       const classes = proto.classes();
@@ -165,7 +165,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
     express.text({ type: '*/*' }),
     async (req, res) => {
 
-      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Cache-Control', ['no-cache', 'no-store']);
 
       const { name, id } = req.params;
       const classes = proto.classes();
@@ -187,7 +187,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
     express.text({ type: '*/*' }),
     async (req, res) => {
 
-      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Cache-Control', ['no-cache', 'no-store']);
 
       if (!_.isEmpty(req.body)) return res.sendStatus(400);
 
