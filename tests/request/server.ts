@@ -70,7 +70,7 @@ beforeAll(async () => {
 
   console.log('version: ', await database.version());
 
-  console.log(database._queryCompiler({
+  console.dir(database._queryCompiler({
     className: '_Role',
     includes: [
       '_id',
@@ -83,7 +83,7 @@ beforeAll(async () => {
     sort: {
       '_id': 1,
     },
-  }))
+  }), { depth: null })
 
   httpServer = require('http-shutdown')(require('http').createServer(app));
   httpServer.listen(8080, () => console.log('listening on port 8080'));
