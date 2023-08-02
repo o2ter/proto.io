@@ -81,7 +81,7 @@ export const queryValidator = <E>(proto: Proto<E>, options?: ExtraOptions) => {
       QueryValidator.recursiveCheck(attrs);
       const _validator = validator();
       const _includes = _validator.decodeIncludes(options.className, options.includes ?? ['*']);
-      const _matches = _validator.decodeMatches(options.className, options.matches ?? {});
+      const _matches = _validator.decodeMatches(options.className, options.matches ?? {}, _includes);
       if (!_validator.validateCLPs(options.className, 'create')) throw Error('No permission');
       return proto.storage.insert({
         className: options.className,

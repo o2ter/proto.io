@@ -197,7 +197,7 @@ export class QueryValidator<E> {
     return _.uniq(_includes);
   }
 
-  decodeMatches(className: string, matches: Record<string, TQueryBaseOptions>): Record<string, DecodedBaseQuery> {
+  decodeMatches(className: string, matches: Record<string, TQueryBaseOptions>, includes: string[]): Record<string, DecodedBaseQuery> {
 
     const _matches: Record<string, DecodedBaseQuery> = {};
 
@@ -221,7 +221,7 @@ export class QueryValidator<E> {
             ..._.castArray<TQuerySelector>(match.filter),
             ...this.master ? [] : [{ _rperm: { $some: { $: { $in: this.acls } } } }],
           ]).simplify(),
-          matches: this.decodeMatches(dataType.target, match.matches ?? {}),
+          matches: this.decodeMatches(dataType.target, match.matches ?? {}, []),
         };
         if (
           !_matches[colname].filter.validate(key => this.validateKey(dataType.target, key, 'read', QueryValidator.patterns.path))
@@ -244,8 +244,8 @@ export class QueryValidator<E> {
       !filter.validate(key => this.validateKey(query.className, key, 'read', QueryValidator.patterns.path))
     ) throw Error('No permission');
 
-    const matches = this.decodeMatches(query.className, query.matches ?? {});
     const includes = this.decodeIncludes(query.className, query.includes ?? ['*']);
+    const matches = this.decodeMatches(query.className, query.matches ?? {}, includes);
     if (!_.every(_.keys(query.sort), k => includes.includes(k))) throw Error('Invalid sort keys');
 
     return {
