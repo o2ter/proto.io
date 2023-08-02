@@ -232,7 +232,10 @@ export class QueryValidator<E> {
         }
         _matches[colname] = {
           filter: QuerySelector.decode([..._rperm, ..._.castArray<TQuerySelector>(match.filter)]).simplify(),
-          matches: this.decodeMatches(dataType.target, match.matches ?? {}, []),
+          matches: this.decodeMatches(
+            dataType.target, match.matches ?? {},
+            includes.filter(x => x.startsWith(`${colname}.`)).map(x => x.slice(colname.length + 1)),
+          ),
         };
         if (
           !_matches[colname].filter.validate(key => this.validateKey(dataType.target, key, 'read', QueryValidator.patterns.path))
