@@ -246,7 +246,7 @@ export class QueryValidator<E> {
     const matches = this.decodeMatches(query.className, query.matches ?? {});
 
     return {
-      ...query,
+      ..._.omit(query, 'filter', 'matches'),
       filter,
       includes,
       matches,

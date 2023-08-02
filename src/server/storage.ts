@@ -39,7 +39,7 @@ export type DecodedBaseQuery = {
   matches: Record<string, DecodedBaseQuery>;
 };
 
-export type DecodedQuery<T> = Omit<T, 'filter'> & DecodedBaseQuery & {
+export type DecodedQuery<T> = Omit<T, keyof DecodedBaseQuery> & DecodedBaseQuery & {
   includes: string[];
   acls: string[];
   master: boolean;
