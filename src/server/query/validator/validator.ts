@@ -82,7 +82,7 @@ export class QueryValidator<E> {
     type: keyof TSchema.FLPs,
     schema: TSchema,
   ) {
-    if (_.isEmpty(key) || (!_.has(schema.fields, key) && !TObject.defaultKeys.includes(key))) throw Error(`Invalid path: ${key}`);
+    if (_.isEmpty(key) || (!_.has(schema.fields, key) && !TObject.defaultKeys.includes(key))) throw Error(`Invalid key: ${key}`);
     if (type === 'read' && TObject.defaultKeys.includes(key)) return true;
     if (type !== 'read' && TObject.defaultReadonlyKeys.includes(key)) return false;
     return this.master || !_.every(schema.fieldLevelPermissions?.[key]?.[type] ?? ['*'], x => !_.includes(this.acls, x));
@@ -130,9 +130,9 @@ export class QueryValidator<E> {
     if (type === 'read' && !this.validateCLPs(dataType.target, 'get')) return false;
     if (dataType.type === 'relation' && !_.isNil(dataType.foreignField)) {
       const foreignField = this.schema[dataType.target]?.fields[dataType.foreignField];
-      if (_.isNil(foreignField) || _.isString(foreignField)) throw Error(`Invalid path: ${_key}`);
-      if (foreignField.type !== 'pointer' && foreignField.type !== 'relation') throw Error(`Invalid path: ${_key}`);
-      if (foreignField.type === 'relation' && !_.isNil(foreignField.foreignField)) throw Error(`Invalid path: ${_key}`);
+      if (_.isNil(foreignField) || _.isString(foreignField)) throw Error(`Invalid key: ${_key}`);
+      if (foreignField.type !== 'pointer' && foreignField.type !== 'relation') throw Error(`Invalid key: ${_key}`);
+      if (foreignField.type === 'relation' && !_.isNil(foreignField.foreignField)) throw Error(`Invalid key: ${_key}`);
       if (!this.validateKeyPerm(dataType.foreignField, type, this.schema[dataType.target])) throw Error('No permission');
     }
 
@@ -172,9 +172,9 @@ export class QueryValidator<E> {
           if (!this.validateCLPs(dataType.target, 'get')) throw Error('No permission');
           if (dataType.type === 'relation' && !_.isNil(dataType.foreignField)) {
             const foreignField = this.schema[dataType.target]?.fields[dataType.foreignField];
-            if (_.isNil(foreignField) || _.isString(foreignField)) throw Error(`Invalid path: ${include}`);
-            if (foreignField.type !== 'pointer' && foreignField.type !== 'relation') throw Error(`Invalid path: ${include}`);
-            if (foreignField.type === 'relation' && !_.isNil(foreignField.foreignField)) throw Error(`Invalid path: ${include}`);
+            if (_.isNil(foreignField) || _.isString(foreignField)) throw Error(`Invalid include: ${include}`);
+            if (foreignField.type !== 'pointer' && foreignField.type !== 'relation') throw Error(`Invalid include: ${include}`);
+            if (foreignField.type === 'relation' && !_.isNil(foreignField.foreignField)) throw Error(`Invalid include: ${include}`);
             if (!this.validateKeyPerm(dataType.foreignField, 'read', this.schema[dataType.target])) throw Error('No permission');
           }
           populates[colname] = populates[colname] ?? { className: dataType.target, subpaths: [] };
@@ -182,7 +182,7 @@ export class QueryValidator<E> {
         } else if (_.isEmpty(subpath)) {
           _includes.push(colname);
         } else {
-          throw Error(`Invalid path: ${include}`);
+          throw Error(`Invalid include: ${include}`);
         }
       }
     }
@@ -225,9 +225,9 @@ export class QueryValidator<E> {
         if (!this.validateCLPs(dataType.target, 'get')) throw Error('No permission');
         if (dataType.type === 'relation' && !_.isNil(dataType.foreignField)) {
           const foreignField = this.schema[dataType.target]?.fields[dataType.foreignField];
-          if (_.isNil(foreignField) || _.isString(foreignField)) throw Error(`Invalid path: ${colname}`);
-          if (foreignField.type !== 'pointer' && foreignField.type !== 'relation') throw Error(`Invalid path: ${colname}`);
-          if (foreignField.type === 'relation' && !_.isNil(foreignField.foreignField)) throw Error(`Invalid path: ${colname}`);
+          if (_.isNil(foreignField) || _.isString(foreignField)) throw Error(`Invalid match: ${colname}`);
+          if (foreignField.type !== 'pointer' && foreignField.type !== 'relation') throw Error(`Invalid match: ${colname}`);
+          if (foreignField.type === 'relation' && !_.isNil(foreignField.foreignField)) throw Error(`Invalid match: ${colname}`);
           if (!this.validateKeyPerm(dataType.foreignField, 'read', this.schema[dataType.target])) throw Error('No permission');
         }
         _matches[colname] = {
