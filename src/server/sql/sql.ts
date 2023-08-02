@@ -44,7 +44,7 @@ export class SQL {
   toString() {
     let idx = 1;
     let str = _.first(this.strings) ?? '';
-    for (const part of this.strings.slice(1)) str += `${idx++}${part}`;
+    for (const part of this.strings.slice(1)) str += `$${idx++}${part}`;
     return str;
   }
 }
