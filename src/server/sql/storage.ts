@@ -189,7 +189,7 @@ export abstract class SqlStorage implements TStorage {
       SELECT * FROM ${{ identifier: tempName }}
     `));
 
-    console.log(compiler)
+    console.dir(compiler, { depth: null })
 
     return _.isNil(result) ? undefined : this._decodeObject(options.className, result);
   }
