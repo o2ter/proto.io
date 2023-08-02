@@ -175,6 +175,7 @@ export abstract class SqlStorage implements TStorage {
     const compiler = this._queryCompiler({
       className: options.className,
       includes: options.includes,
+      matches: options.matches,
     });
 
     const tempName = `_temp_${options.className.toLowerCase()}`;
