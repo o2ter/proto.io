@@ -129,8 +129,16 @@ export abstract class SqlStorage implements TStorage {
   }
 
   private _decodePopulate(parentClass: string, parent: string, field: string, populate: Populate): SQL {
-    const { name, className, type, foreignField, filter } = populate;
-    const _filter = this._decodeFilter(filter);
+    const { name, className, type, foreignField, filter, includes, populates } = populate;
+    const _filter = _.compact([
+      this._decodeFilter(filter),
+      ..._.map(populates, (populate, field) => this._decodePopulate(
+        className,
+        name,
+        includes[field]?.name ?? field,
+        populate
+      )),
+    ]);
     if (type === 'pointer') {
       return sql`${{ identifier: field }} IN (
         SELECT *
@@ -183,7 +191,8 @@ export abstract class SqlStorage implements TStorage {
       ...acc,
     }), query.name ? {
       [query.name]: sql`
-        SELECT * FROM ${{ identifier: query.className }}
+        SELECT *
+        FROM ${{ identifier: query.className }}
         ${filter ? sql`WHERE ${{ literal: filter, separator: ' AND ' }}` : sql``}
       `} : {});
   }
