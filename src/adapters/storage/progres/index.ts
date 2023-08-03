@@ -245,7 +245,8 @@ export class PostgresStorage extends SqlStorage {
       ...acc,
     }), {
       [parent.name]: sql`
-        SELECT ${selects}
+        SELECT 
+        ${{ literal: selects, separator: ',\n' }}
         FROM ${{ identifier: parent.className }} AS ${{ identifier: parent.name }}${_filter ? sql` WHERE ${_filter}` : sql``}
       `,
     });
