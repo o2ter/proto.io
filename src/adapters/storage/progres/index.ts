@@ -234,9 +234,7 @@ export class PostgresStorage extends SqlStorage {
           `;
         }
         return sql`
-          ARRAY(SELECT row_to_json(
-            SELECT * FROM ${{ identifier: populate.name }} WHERE ${cond}
-          )) AS ${{ identifier: parent.includes[field].name }}
+          ARRAY(SELECT row_to_json(SELECT * FROM ${{ identifier: populate.name }} WHERE ${cond})) AS ${{ identifier: parent.includes[field].name }}
         `;
       })
     ];
