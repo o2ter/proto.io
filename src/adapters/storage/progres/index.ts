@@ -225,9 +225,7 @@ export class PostgresStorage extends SqlStorage {
         } else {
           cond = sql`ARRAY[${sql`(${{ quote: parent.className + '$' }} || ${{ identifier: parent.name }}._id)`}] <@ ${{ identifier: foreignField.colname }}`;
         }
-        return sql`
-          ARRAY(SELECT row_to_json(SELECT * FROM ${{ identifier: populate.name }} WHERE ${cond})) AS ${{ identifier: parent.includes[field].name }}
-        `;
+        return sql`ARRAY(SELECT row_to_json(SELECT * FROM ${{ identifier: populate.name }} WHERE ${cond})) AS ${{ identifier: parent.includes[field].name }}`;
       })
     ];
     return _.reduce(parent.populates, (acc, populate, field) => ({
