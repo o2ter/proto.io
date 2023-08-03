@@ -138,12 +138,21 @@ export abstract class SqlStorage implements TStorage {
           AND ${this._decodeFilter(filter) ?? sql``}
       )`;
     } else if (foreignField) {
-      return sql`${{ identifier: field }} IN (
-        SELECT *
-        FROM ${{ identifier: className }} AS ${{ identifier: name }}
-        WHERE ${sql`(${{ quote: parent + '$' }} || ${{ identifier: parent }}._id)`} = ${{ identifier: foreignField.colname }}
-          AND ${this._decodeFilter(filter) ?? sql``}
-      )`;
+      if (foreignField.type === 'pointer') {
+        return sql`${{ identifier: field }} IN (
+          SELECT *
+          FROM ${{ identifier: className }} AS ${{ identifier: name }}
+          WHERE ${sql`(${{ quote: parent + '$' }} || ${{ identifier: parent }}._id)`} = ${{ identifier: foreignField.colname }}
+            AND ${this._decodeFilter(filter) ?? sql``}
+        )`;
+      } else {
+        return sql`${{ identifier: field }} IN (
+          SELECT *
+          FROM ${{ identifier: className }} AS ${{ identifier: name }}
+          WHERE ARRAY[${sql`(${{ quote: parent + '$' }} || ${{ identifier: parent }}._id)`}] <@ ${{ identifier: foreignField.colname }}
+            AND ${this._decodeFilter(filter) ?? sql``}
+        )`;
+      }
     } else {
       return sql`${{ identifier: field }} IN (
         SELECT *
