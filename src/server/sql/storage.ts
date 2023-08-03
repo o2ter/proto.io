@@ -138,11 +138,11 @@ export abstract class SqlStorage implements TStorage {
     const compiler = this._queryCompiler(query);
 
     console.dir(compiler, { depth: null })
-    console.log(_.mapValues(_.mapValues(compiler.populates, (populate, field) => this._decodePopulate({
+    console.log(_.mapValues(compiler.populates, (populate, field) => this._decodePopulate({
       className: query.className,
       colname: field,
       varname: compiler.includes[field]?.name ?? field,
-    }, populate)), sql => sql.toString()))
+    }, populate).toString()))
 
     return 0;
   }
