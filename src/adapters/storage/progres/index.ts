@@ -217,21 +217,13 @@ export class PostgresStorage extends SqlStorage {
         const { name, className, type, foreignField } = populate;
         let cond: SQL;
         if (type === 'pointer') {
-          cond = sql`
-            ${{ identifier: parent.name }}.${{ identifier: parent.colname }} = ${sql`(${{ quote: className + '$' }} || ${{ identifier: name }}._id)`}
-          `;
+          cond = sql`${{ identifier: parent.name }}.${{ identifier: parent.colname }} = ${sql`(${{ quote: className + '$' }} || ${{ identifier: name }}._id)`}`;
         } else if (_.isNil(foreignField)) {
-          cond = sql`
-            ${{ identifier: parent.name }}.${{ identifier: parent.colname }} @> ARRAY[${sql`(${{ quote: className + '$' }} || ${{ identifier: name }}._id)`}]
-          `;
+          cond = sql`${{ identifier: parent.name }}.${{ identifier: parent.colname }} @> ARRAY[${sql`(${{ quote: className + '$' }} || ${{ identifier: name }}._id)`}]`;
         } else if (foreignField.type === 'pointer') {
-          cond = sql`
-            ${sql`(${{ quote: parent.className + '$' }} || ${{ identifier: parent.name }}._id)`} = ${{ identifier: foreignField.colname }}
-          `;
+          cond = sql`${sql`(${{ quote: parent.className + '$' }} || ${{ identifier: parent.name }}._id)`} = ${{ identifier: foreignField.colname }}`;
         } else {
-          cond = sql`
-            ARRAY[${sql`(${{ quote: parent.className + '$' }} || ${{ identifier: parent.name }}._id)`}] <@ ${{ identifier: foreignField.colname }}
-          `;
+          cond = sql`ARRAY[${sql`(${{ quote: parent.className + '$' }} || ${{ identifier: parent.name }}._id)`}] <@ ${{ identifier: foreignField.colname }}`;
         }
         return sql`
           ARRAY(SELECT row_to_json(SELECT * FROM ${{ identifier: populate.name }} WHERE ${cond})) AS ${{ identifier: parent.includes[field].name }}
