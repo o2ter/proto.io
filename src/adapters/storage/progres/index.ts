@@ -209,24 +209,30 @@ export class PostgresStorage extends SqlStorage {
     return null;
   }
 
+  protected _selectPopulate(
+    parent: Pick<Populate, 'className' | 'name' | 'includes'> & { colname: string },
+    populate: Populate,
+    field: string,
+  ): SQL {
+    const { name, className, type, foreignField } = populate;
+    let cond: SQL;
+    if (type === 'pointer') {
+      cond = sql`${{ identifier: parent.name }}.${{ identifier: parent.colname }} = ${sql`(${{ quote: className + '$' }} || ${{ identifier: name }}._id)`}`;
+    } else if (_.isNil(foreignField)) {
+      cond = sql`${{ identifier: parent.name }}.${{ identifier: parent.colname }} @> ARRAY[${sql`(${{ quote: className + '$' }} || ${{ identifier: name }}._id)`}]`;
+    } else if (foreignField.type === 'pointer') {
+      cond = sql`${sql`(${{ quote: parent.className + '$' }} || ${{ identifier: parent.name }}._id)`} = ${{ identifier: foreignField.colname }}`;
+    } else {
+      cond = sql`ARRAY[${sql`(${{ quote: parent.className + '$' }} || ${{ identifier: parent.name }}._id)`}] <@ ${{ identifier: foreignField.colname }}`;
+    }
+    return sql`ARRAY(SELECT row_to_json(SELECT * FROM ${{ identifier: populate.name }} WHERE ${cond})) AS ${{ identifier: parent.includes[field].name }}`;
+  }
+
   protected _decodePopulate(parent: Populate & { colname: string }): Record<string, SQL> {
     const _filter = this._decodeFilter(parent.filter);
     const selects = [
-      ...this._decodeIncludes(parent.name, parent.includes, true),
-      ..._.map(parent.populates, (populate, field) => {
-        const { name, className, type, foreignField } = populate;
-        let cond: SQL;
-        if (type === 'pointer') {
-          cond = sql`${{ identifier: parent.name }}.${{ identifier: parent.colname }} = ${sql`(${{ quote: className + '$' }} || ${{ identifier: name }}._id)`}`;
-        } else if (_.isNil(foreignField)) {
-          cond = sql`${{ identifier: parent.name }}.${{ identifier: parent.colname }} @> ARRAY[${sql`(${{ quote: className + '$' }} || ${{ identifier: name }}._id)`}]`;
-        } else if (foreignField.type === 'pointer') {
-          cond = sql`${sql`(${{ quote: parent.className + '$' }} || ${{ identifier: parent.name }}._id)`} = ${{ identifier: foreignField.colname }}`;
-        } else {
-          cond = sql`ARRAY[${sql`(${{ quote: parent.className + '$' }} || ${{ identifier: parent.name }}._id)`}] <@ ${{ identifier: foreignField.colname }}`;
-        }
-        return sql`ARRAY(SELECT row_to_json(SELECT * FROM ${{ identifier: populate.name }} WHERE ${cond})) AS ${{ identifier: parent.includes[field].name }}`;
-      })
+      ...this._decodeIncludes(parent.name, parent.includes),
+      ..._.map(parent.populates, (populate, field) => this._selectPopulate(parent, populate, field)),
     ];
     return _.reduce(parent.populates, (acc, populate, field) => ({
       ...this._decodePopulate({ ...populate, colname: field }),

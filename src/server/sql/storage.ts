@@ -128,41 +128,66 @@ export abstract class SqlStorage implements TStorage {
     }
   }
 
-  protected _decodeIncludes(className: string, includes: Record<string, { type: TSchema.DataType; name: string; }>, primitive: Boolean): SQL[] {
-    const _includes = primitive ? _.pickBy(includes, v => _.isString(v.type) || (v.type.type !== 'pointer' && v.type.type !== 'relation')) : includes;
+  protected _decodeIncludes(
+    className: string,
+    includes: Record<string, { type: TSchema.DataType; name: string; }>,
+  ): SQL[] {
+    const _includes = _.pickBy(includes, v => _.isString(v.type) || (v.type.type !== 'pointer' && v.type.type !== 'relation'));
     return _.map(_includes, ({ name }, colname) => sql`${{ identifier: className }}.${{ identifier: colname }} AS ${{ identifier: name }}`);
   }
 
+  protected abstract _selectPopulate(
+    parent: Pick<Populate, 'className' | 'name' | 'includes'> & { colname: string },
+    populate: Populate,
+    field: string,
+  ): SQL
   protected abstract _decodePopulate(parent: Populate & { colname: string }): Record<string, SQL>
 
-  async explain(query: DecodedQuery<FindOptions>) {
+  protected _selectQuery(query: DecodedQuery<FindOptions>) {
 
     const compiler = this._queryCompiler(query);
     const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }));
     const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
 
-    console.dir(compiler, { depth: null })
-    console.log(sql`
+    const tempName = `_temp_$${query.className.toLowerCase()}`;
+
+    const selects = [
+      ...this._decodeIncludes(query.className, compiler.includes),
+      ..._.map(compiler.populates, (populate, field) => this._selectPopulate({
+        className: query.className,
+        name: tempName,
+        includes: compiler.includes,
+        colname: field,
+      }, populate, field)),
+    ];
+
+    return sql`
       ${!_.isEmpty(queries) ? sql`WITH ${_.map(queries, (q, n) => sql`${{ identifier: n }} AS (${q})`)}` : sql``}
-    `.toString())
+      SELECT
+      ${{ literal: selects, separator: ',\n' }}
+      FROM ${{ identifier: query.className }} AS ${{ identifier: tempName }}
+    `;
+  }
+
+  async explain(query: DecodedQuery<FindOptions>) {
+
+    const _query = this._selectQuery(query);
+
+    console.log(_query.toString())
 
     return 0;
   }
 
   async count(query: DecodedQuery<FindOptions>) {
 
-    const compiler = this._queryCompiler(query);
-    const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }));
-    const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
+    const _query = this._selectQuery(query);
 
     return 0;
   }
 
   async* find(query: DecodedQuery<FindOptions>) {
 
-    const compiler = this._queryCompiler(query);
-    const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }));
-    const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
+    const _query = this._selectQuery(query);
 
     return [];
   }
@@ -182,7 +207,7 @@ export abstract class SqlStorage implements TStorage {
     const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }));
     const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
 
-    const tempName = `_temp_${options.className.toLowerCase()}`;
+    const tempName = `_temp_$${options.className.toLowerCase()}`;
 
     const result = _.first(await this.query(sql`
       WITH ${{ identifier: tempName }} AS (
