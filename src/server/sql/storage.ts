@@ -141,7 +141,7 @@ export abstract class SqlStorage implements TStorage {
         field: includes[field]?.name ?? field,
       }, populate)),
     ]);
-    const selects = _.keys(populates).map(x => sql`${{ identifier: includes[x]?.name ?? x }}`);
+    const selects = _.keys(populates).map(x => sql`${{ identifier: name }}.${{ identifier: x }} AS ${{ identifier: includes[x]?.name ?? x }}`);
     if (type === 'pointer') {
       return sql`${{ identifier: parent.field }} IN (
         SELECT * ${!_.isEmpty(selects) ? sql`, ${selects}` : sql``}
