@@ -130,33 +130,34 @@ export abstract class SqlStorage implements TStorage {
 
   private _decodePopulate(parentClass: string, parent: string, field: string, populate: Populate): SQL {
     const { name, className, type, foreignField, filter } = populate;
+    const _filter = this._decodeFilter(filter);
     if (type === 'pointer') {
       return sql`${{ identifier: field }} IN (
         SELECT *
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
         WHERE ${{ identifier: field }} = ${sql`(${{ quote: className + '$' }} || ${{ identifier: name }}._id)`}
-          ${filter ? sql`AND ${this._decodeFilter(filter) ?? sql``}` : sql``}
+          ${_filter ? sql`AND ${_filter}` : sql``}
       )`;
     } else if (_.isNil(foreignField)) {
       return sql`${{ identifier: field }} IN (
         SELECT *
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
         WHERE ${{ identifier: field }} @> ARRAY[${sql`(${{ quote: className + '$' }} || ${{ identifier: name }}._id)`}]
-          ${filter ? sql`AND ${this._decodeFilter(filter) ?? sql``}` : sql``}
+          ${_filter ? sql`AND ${_filter}` : sql``}
       )`;
     } else if (foreignField.type === 'pointer') {
       return sql`${{ identifier: field }} IN (
         SELECT *
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
         WHERE ${sql`(${{ quote: parentClass + '$' }} || ${{ identifier: parent }}._id)`} = ${{ identifier: foreignField.colname }}
-          ${filter ? sql`AND ${this._decodeFilter(filter) ?? sql``}` : sql``}
+          ${_filter ? sql`AND ${_filter}` : sql``}
       )`;
     } else {
       return sql`${{ identifier: field }} IN (
         SELECT *
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
         WHERE ARRAY[${sql`(${{ quote: parentClass + '$' }} || ${{ identifier: parent }}._id)`}] <@ ${{ identifier: foreignField.colname }}
-          ${filter ? sql`AND ${this._decodeFilter(filter) ?? sql``}` : sql``}
+          ${_filter ? sql`AND ${_filter}` : sql``}
       )`;
     }
   }
