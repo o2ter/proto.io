@@ -158,7 +158,7 @@ export abstract class SqlStorage implements TStorage {
       ${!_.isEmpty(queries) ? sql`WITH ${_.map(queries, (q, n) => sql`${{ identifier: n }} AS (${q})`)}` : sql``}
       SELECT
       ${select ? select : { literal: [
-        ...this._decodeIncludes(query.className, compiler.includes),
+        ...this._decodeIncludes(tempName, compiler.includes),
         ..._.map(compiler.populates, (populate, field) => this._selectPopulate({
           className: query.className,
           name: tempName,
