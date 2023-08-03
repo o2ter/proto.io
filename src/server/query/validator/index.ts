@@ -22,12 +22,12 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
 //
-import _ from "lodash";
-import { Proto } from "../../index";
-import { ExtraOptions, PVK, TValue, UpdateOp } from "../../../internals";
-import { QueryValidator } from "./validator";
+import _ from 'lodash';
+import { Proto } from '../../index';
+import { ExtraOptions, PVK, TValue, UpdateOp } from '../../../internals';
+import { QueryValidator } from './validator';
 import { ExplainOptions, FindOneOptions, FindOptions } from '../../storage';
-import { TQueryBaseOptions } from "../../../internals/query/base";
+import { TQueryBaseOptions } from '../../../internals/query/base';
 
 export const normalize = <T>(x: T): T => {
   if (_.isString(x)) return x.normalize('NFD') as T;

@@ -29,7 +29,8 @@ import { TObject } from '../object';
 
 export type TPrimitiveValue = boolean | number | Decimal | string | Date | null;
 export type TDictionaryValue = { [x: string]: TValue; };
-export type TValue = TDictionaryValue | TValue[] | TPrimitiveValue | TObject;
+export type _TValue = TDictionaryValue | TValue[] | TPrimitiveValue;
+export type TValue = _TValue | TObject;
 
 export const isPrimitiveValue = (x: any): x is TPrimitiveValue => {
   if (_.isNil(x) || _.isNumber(x) || _.isBoolean(x) || _.isString(x) || _.isDate(x)) return true;
