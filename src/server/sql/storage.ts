@@ -135,28 +135,28 @@ export abstract class SqlStorage implements TStorage {
         SELECT *
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
         WHERE ${{ identifier: field }} = ${sql`(${{ quote: className + '$' }} || ${{ identifier: name }}._id)`}
-          AND ${this._decodeFilter(filter) ?? sql``}
+          ${filter ? sql`AND ${this._decodeFilter(filter) ?? sql``}` : sql``}
       )`;
     } else if (_.isNil(foreignField)) {
       return sql`${{ identifier: field }} IN (
         SELECT *
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
         WHERE ${{ identifier: field }} @> ARRAY[${sql`(${{ quote: className + '$' }} || ${{ identifier: name }}._id)`}]
-          AND ${this._decodeFilter(filter) ?? sql``}
+          ${filter ? sql`AND ${this._decodeFilter(filter) ?? sql``}` : sql``}
       )`;
     } else if (foreignField.type === 'pointer') {
       return sql`${{ identifier: field }} IN (
         SELECT *
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
         WHERE ${sql`(${{ quote: parentClass + '$' }} || ${{ identifier: parent }}._id)`} = ${{ identifier: foreignField.colname }}
-          AND ${this._decodeFilter(filter) ?? sql``}
+          ${filter ? sql`AND ${this._decodeFilter(filter) ?? sql``}` : sql``}
       )`;
     } else {
       return sql`${{ identifier: field }} IN (
         SELECT *
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
         WHERE ARRAY[${sql`(${{ quote: parentClass + '$' }} || ${{ identifier: parent }}._id)`}] <@ ${{ identifier: foreignField.colname }}
-          AND ${this._decodeFilter(filter) ?? sql``}
+          ${filter ? sql`AND ${this._decodeFilter(filter) ?? sql``}` : sql``}
       )`;
     }
   }
@@ -176,9 +176,9 @@ export abstract class SqlStorage implements TStorage {
       ...acc,
     }), query.name ? {
       [query.name]: sql`
-    SELECT * FROM ${{ identifier: query.className }}
-    ${filter ? sql`WHERE ${{ literal: filter, separator: ' AND ' }}` : sql``}
-  ` } : {});;
+        SELECT * FROM ${{ identifier: query.className }}
+        ${filter ? sql`WHERE ${{ literal: filter, separator: ' AND ' }}` : sql``}
+      `} : {});
   }
 
   async explain(query: DecodedQuery<ExplainOptions>) {
