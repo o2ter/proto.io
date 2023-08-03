@@ -215,7 +215,7 @@ export class PostgresStorage extends SqlStorage {
     const selects = [
       ..._.map(primitive, ({ name }, colname) => sql`${{ identifier: parent.name }}.${{ identifier: colname }} AS ${{ identifier: name }}`),
       ..._.map(parent.populates, (populate, field) => {
-        const { name, className, type, foreignField, includes } = populate;
+        const { name, className, type, foreignField } = populate;
         let cond: SQL;
         if (type === 'pointer') {
           cond = sql`
@@ -237,7 +237,7 @@ export class PostgresStorage extends SqlStorage {
         return sql`
           ARRAY(SELECT row_to_json(
             SELECT * FROM ${{ identifier: populate.name }} WHERE ${cond}
-          )) AS ${{ identifier: includes[field]?.name ?? field }}
+          )) AS ${{ identifier: parent.includes[field].name }}
         `;
       })
     ];
