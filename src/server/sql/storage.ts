@@ -142,8 +142,6 @@ export abstract class SqlStorage implements TStorage {
     const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
 
     console.dir(compiler, { depth: null })
-    console.log(_.mapValues(queries, sql => sql.toString()))
-
     console.log(sql`
       ${!_.isEmpty(queries) ? sql`WITH ${_.map(queries, (q, n) => sql`${{ identifier: n }} AS (${q})`)}` : sql``}
     `.toString())
