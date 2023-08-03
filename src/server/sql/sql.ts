@@ -86,7 +86,7 @@ export class SQL {
       }
       query += str;
     }
-    return { query, values };
+    return { query: _.compact(query.split('\n')).map(x => x.trim()).join('\n'), values };
   }
 
   compile(dialect: SqlDialect) {
