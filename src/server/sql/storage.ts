@@ -128,31 +128,48 @@ export abstract class SqlStorage implements TStorage {
     }
   }
 
-  private _decodeSubquery(populate: {
+  private _decodePopulate(parent: string, field: string, populate: Populate): SQL {
+    const { name, className, type, foreignField, filter } = populate;
+    if (type === 'pointer') {
+      return sql`${{ identifier: field }} IN (
+        SELECT *
+        FROM ${{ identifier: className }} AS ${{ identifier: name }}
+        WHERE ${{ identifier: field }} = ${sql`(${{ quote: name + '$' }} || ${{ identifier: name }}._id)`}
+          AND ${this._decodeFilter(filter) ?? sql``}
+      )`;
+    } else if (foreignField) {
+      return sql`${{ identifier: field }} IN (
+        SELECT *
+        FROM ${{ identifier: className }} AS ${{ identifier: name }}
+        WHERE ${sql`(${{ quote: parent + '$' }} || ${{ identifier: parent }}._id)`} = ${{ identifier: foreignField.colname }}
+          AND ${this._decodeFilter(filter) ?? sql``}
+      )`;
+    } else {
+      return sql`${{ identifier: field }} IN (
+        SELECT *
+        FROM ${{ identifier: className }} AS ${{ identifier: name }}
+        WHERE ${{ identifier: field }} @> ARRAY[${sql`(${{ quote: name + '$' }} || ${{ identifier: name }}._id)`}]
+          AND ${this._decodeFilter(filter) ?? sql``}
+      )`;
+    }
+  }
+
+  private _decodeSubquery(query: {
     name?: string;
     className: string;
     populates: Record<string, Populate>;
   }): Record<string, SQL> {
-    const populates = _.mapValues(populate.populates, v => ({
+    const populates = _.mapValues(query.populates, v => ({
       ...v,
       populate: this._decodeSubquery(v),
     }));
-    const filter = _.map(populates, ({ name, className, foreignField, filter }, field) => sql`${{ identifier: field }} IN (
-      SELECT *
-      FROM ${{ identifier: className }} AS ${{ identifier: name }}
-      WHERE ${foreignField
-        ? sql`(${{ quote: populate.className + '$' }} || ${{ identifier: populate.className }}._id)`
-        : { identifier: field }} = ${foreignField
-          ? { identifier: foreignField }
-          : sql`(${{ quote: name + '$' }} || ${{ identifier: name }}._id)`}
-        AND ${this._decodeFilter(filter) ?? sql``}
-    )`);
+    const filter = _.map(populates, (populate, field) => this._decodePopulate(query.className, field, populate));
     return _.reduce(_.values(populates), (acc, { populate }) => ({
       ...populate,
       ...acc,
-    }), populate.name ? {
-      [populate.name]: sql`
-    SELECT * FROM ${{ identifier: populate.className }}
+    }), query.name ? {
+      [query.name]: sql`
+    SELECT * FROM ${{ identifier: query.className }}
     ${filter ? sql`WHERE ${{ literal: filter, separator: ' AND ' }}` : sql``}
   ` } : {});;
   }

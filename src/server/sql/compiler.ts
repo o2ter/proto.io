@@ -42,7 +42,7 @@ export type Populate = {
   name: string;
   className: string;
   type: TSchema.Relation;
-  foreignField?: string;
+  foreignField?: { colname: string; type: TSchema.Relation; };
   subpaths: string[];
   filter: QuerySelector;
   includes: Record<string, { type: TSchema.DataType; name: string; }>;
