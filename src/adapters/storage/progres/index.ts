@@ -222,33 +222,33 @@ export class PostgresStorage extends SqlStorage {
       varname: includes[field]?.name ?? field,
     }, populate)} AS ${{ identifier: includes[field]?.name ?? field }}`);
     if (type === 'pointer') {
-      return sql`ARRAY(
+      return sql`ARRAY(SELECT row_to_json(*) FROM (
         SELECT * ${!_.isEmpty(selects) ? sql`, ${selects}` : sql``}
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
         WHERE ${{ identifier: parent.name ?? parent.className }}.${{ identifier: parent.colname }} = ${sql`(${{ quote: className + '$' }} || ${{ identifier: name }}._id)`}
           ${!_.isNil(_filter) ? sql`AND ${_filter}` : sql``}
-      )`;
+      ))`;
     } else if (_.isNil(foreignField)) {
-      return sql`ARRAY(
+      return sql`ARRAY(SELECT row_to_json(*) FROM (
         SELECT * ${!_.isEmpty(selects) ? sql`, ${selects}` : sql``}
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
         WHERE ${{ identifier: parent.name ?? parent.className }}.${{ identifier: parent.colname }} @> ARRAY[${sql`(${{ quote: className + '$' }} || ${{ identifier: name }}._id)`}]
           ${!_.isNil(_filter) ? sql`AND ${_filter}` : sql``}
-      )`;
+      ))`;
     } else if (foreignField.type === 'pointer') {
-      return sql`ARRAY(
+      return sql`ARRAY(SELECT row_to_json(*) FROM (
         SELECT * ${!_.isEmpty(selects) ? sql`, ${selects}` : sql``}
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
         WHERE ${sql`(${{ quote: parent.className + '$' }} || ${{ identifier: parent.name ?? parent.className }}._id)`} = ${{ identifier: foreignField.colname }}
           ${!_.isNil(_filter) ? sql`AND ${_filter}` : sql``}
-      )`;
+      ))`;
     } else {
-      return sql`ARRAY(
+      return sql`ARRAY(SELECT row_to_json(*) FROM (
         SELECT * ${!_.isEmpty(selects) ? sql`, ${selects}` : sql``}
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
         WHERE ARRAY[${sql`(${{ quote: parent.className + '$' }} || ${{ identifier: parent.name ?? parent.className }}._id)`}] <@ ${{ identifier: foreignField.colname }}
           ${!_.isNil(_filter) ? sql`AND ${_filter}` : sql``}
-      )`;
+      ))`;
     }
   }
 
