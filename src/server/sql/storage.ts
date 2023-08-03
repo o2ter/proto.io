@@ -128,6 +128,11 @@ export abstract class SqlStorage implements TStorage {
     }
   }
 
+  protected _decodeIncludes(className: string, includes: Record<string, { type: TSchema.DataType; name: string; }>, primitive: Boolean): SQL[] {
+    const _includes = primitive ? _.pickBy(includes, v => _.isString(v.type) || (v.type.type !== 'pointer' && v.type.type !== 'relation')) : includes;
+    return _.map(_includes, ({ name }, colname) => sql`${{ identifier: className }}.${{ identifier: colname }} AS ${{ identifier: name }}`);
+  }
+
   protected abstract _decodePopulate(parent: Populate & { colname: string }): Record<string, SQL>
 
   async explain(query: DecodedQuery<ExplainOptions>) {

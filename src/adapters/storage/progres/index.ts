@@ -211,9 +211,8 @@ export class PostgresStorage extends SqlStorage {
 
   protected _decodePopulate(parent: Populate & { colname: string }): Record<string, SQL> {
     const _filter = this._decodeFilter(parent.filter);
-    const primitive = _.pickBy(parent.includes, v => _.isString(v.type) || (v.type.type !== 'pointer' && v.type.type !== 'relation'));
     const selects = [
-      ..._.map(primitive, ({ name }, colname) => sql`${{ identifier: parent.name }}.${{ identifier: colname }} AS ${{ identifier: name }}`),
+      ...this._decodeIncludes(parent.name, parent.includes, true),
       ..._.map(parent.populates, (populate, field) => {
         const { name, className, type, foreignField } = populate;
         let cond: SQL;
