@@ -64,7 +64,7 @@ export class PostgresStorage extends SqlStorage {
       case 'string': return 'TEXT';
       case 'date': return 'TIMESTAMP';
       case 'object': return 'JSONB';
-      case 'array': return 'JSONB';
+      case 'array': return 'JSONB[]';
       case 'pointer': return 'TEXT';
       case 'relation': return 'TEXT[]';
       default: throw Error('Unknown data type');
