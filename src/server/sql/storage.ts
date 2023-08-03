@@ -62,13 +62,13 @@ export abstract class SqlStorage implements TStorage {
     return this._query(query, values);
   }
 
-  private _queryCompiler(query: QueryCompilerOptions) {
+  protected _queryCompiler(query: QueryCompilerOptions) {
     const compiler = new QueryCompiler(this.schema);
     compiler.compile(query);
     return compiler;
   }
 
-  private _encodeObjectAttrs(className: string, attrs: Record<string, TValue>): Record<string, any> {
+  protected _encodeObjectAttrs(className: string, attrs: Record<string, TValue>): Record<string, any> {
     const fields = this.schema[className].fields;
     const result: Record<string, any> = {};
     for (const [key, value] of _.toPairs(attrs)) {
@@ -86,7 +86,7 @@ export abstract class SqlStorage implements TStorage {
     return result;
   }
 
-  private _decodeObject(className: string, attrs: Record<string, any>): TObject {
+  protected _decodeObject(className: string, attrs: Record<string, any>): TObject {
     const fields = this.schema[className].fields;
     const obj = new TObject(className);
     for (const [key, value] of _.toPairs(attrs)) {
@@ -104,7 +104,7 @@ export abstract class SqlStorage implements TStorage {
     return obj;
   }
 
-  private _decodeCoditionalSelector(filter: CoditionalSelector) {
+  protected _decodeCoditionalSelector(filter: CoditionalSelector) {
     const queries = _.compact(_.map(filter.exprs, x => this._decodeFilter(x)));
     if (_.isEmpty(queries)) return;
     switch (filter.type) {
@@ -114,11 +114,11 @@ export abstract class SqlStorage implements TStorage {
     }
   }
 
-  private _decodeFieldExpression(field: string, expr: FieldExpression) {
+  protected _decodeFieldExpression(field: string, expr: FieldExpression) {
 
   }
 
-  private _decodeFilter(filter: QuerySelector): SQL | undefined {
+  protected _decodeFilter(filter: QuerySelector): SQL | undefined {
     if (filter instanceof CoditionalSelector) {
       return this._decodeCoditionalSelector(filter);
     }
@@ -128,50 +128,10 @@ export abstract class SqlStorage implements TStorage {
     }
   }
 
-  private _decodePopulate(
+  protected abstract _decodePopulate(
     parent: { className: string; name?: string; field: string; },
     populate: Populate
-  ): SQL {
-    const { name, className, type, foreignField, filter, includes, populates } = populate;
-    const _filter = _.compact([
-      this._decodeFilter(filter),
-      ..._.map(populates, (populate, field) => this._decodePopulate({
-        className,
-        name,
-        field: includes[field]?.name ?? field,
-      }, populate)),
-    ]);
-    const selects = _.keys(populates).map(x => sql`${{ identifier: name }}.${{ identifier: x }} AS ${{ identifier: includes[x]?.name ?? x }}`);
-    if (type === 'pointer') {
-      return sql`${{ identifier: parent.field }} IN (
-        SELECT * ${!_.isEmpty(selects) ? sql`, ${selects}` : sql``}
-        FROM ${{ identifier: className }} AS ${{ identifier: name }}
-        WHERE ${{ identifier: parent.field }} = ${sql`(${{ quote: className + '$' }} || ${{ identifier: name }}._id)`}
-          ${!_.isEmpty(_filter) ? sql`AND ${{ literal: _filter, separator: ' AND ' }}` : sql``}
-      )`;
-    } else if (_.isNil(foreignField)) {
-      return sql`${{ identifier: parent.field }} IN (
-        SELECT * ${!_.isEmpty(selects) ? sql`, ${selects}` : sql``}
-        FROM ${{ identifier: className }} AS ${{ identifier: name }}
-        WHERE ${{ identifier: parent.field }} @> ARRAY[${sql`(${{ quote: className + '$' }} || ${{ identifier: name }}._id)`}]
-          ${!_.isEmpty(_filter) ? sql`AND ${{ literal: _filter, separator: ' AND ' }}` : sql``}
-      )`;
-    } else if (foreignField.type === 'pointer') {
-      return sql`${{ identifier: parent.field }} IN (
-        SELECT * ${!_.isEmpty(selects) ? sql`, ${selects}` : sql``}
-        FROM ${{ identifier: className }} AS ${{ identifier: name }}
-        WHERE ${sql`(${{ quote: parent.className + '$' }} || ${{ identifier: parent.name ?? parent.className }}._id)`} = ${{ identifier: foreignField.colname }}
-          ${!_.isEmpty(_filter) ? sql`AND ${{ literal: _filter, separator: ' AND ' }}` : sql``}
-      )`;
-    } else {
-      return sql`${{ identifier: parent.field }} IN (
-        SELECT * ${!_.isEmpty(selects) ? sql`, ${selects}` : sql``}
-        FROM ${{ identifier: className }} AS ${{ identifier: name }}
-        WHERE ARRAY[${sql`(${{ quote: parent.className + '$' }} || ${{ identifier: parent.name ?? parent.className }}._id)`}] <@ ${{ identifier: foreignField.colname }}
-          ${!_.isEmpty(_filter) ? sql`AND ${{ literal: _filter, separator: ' AND ' }}` : sql``}
-      )`;
-    }
-  }
+  ): SQL
 
   async explain(query: DecodedQuery<ExplainOptions>) {
 
