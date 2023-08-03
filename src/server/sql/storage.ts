@@ -139,9 +139,10 @@ export abstract class SqlStorage implements TStorage {
 
     const compiler = this._queryCompiler(query);
     const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }));
+    const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
 
     console.dir(compiler, { depth: null })
-    console.log(_.mapValues(populates, populate => _.mapValues(populate, sql => sql.toString())))
+    console.log(_.mapValues(queries, sql => sql.toString()))
 
     return 0;
   }
@@ -150,6 +151,7 @@ export abstract class SqlStorage implements TStorage {
 
     const compiler = this._queryCompiler(query);
     const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }));
+    const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
 
     return 0;
   }
@@ -158,6 +160,7 @@ export abstract class SqlStorage implements TStorage {
 
     const compiler = this._queryCompiler(query);
     const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }));
+    const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
 
     return [];
   }
@@ -175,6 +178,7 @@ export abstract class SqlStorage implements TStorage {
       matches: options.matches,
     });
     const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }));
+    const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
 
     const tempName = `_temp_${options.className.toLowerCase()}`;
 
@@ -195,6 +199,7 @@ export abstract class SqlStorage implements TStorage {
 
     const compiler = this._queryCompiler(query);
     const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }));
+    const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
 
     return undefined;
   }
@@ -203,6 +208,7 @@ export abstract class SqlStorage implements TStorage {
 
     const compiler = this._queryCompiler(query);
     const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }));
+    const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
 
     return undefined;
   }
@@ -216,6 +222,7 @@ export abstract class SqlStorage implements TStorage {
 
     const compiler = this._queryCompiler(query);
     const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }));
+    const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
 
     return undefined;
   }
@@ -224,6 +231,7 @@ export abstract class SqlStorage implements TStorage {
 
     const compiler = this._queryCompiler(query);
     const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }));
+    const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
 
     return undefined;
   }
@@ -232,6 +240,7 @@ export abstract class SqlStorage implements TStorage {
 
     const compiler = this._queryCompiler(query);
     const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }));
+    const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
 
     return 0;
   }
