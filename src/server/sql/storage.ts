@@ -141,33 +141,34 @@ export abstract class SqlStorage implements TStorage {
         field: includes[field]?.name ?? field,
       }, populate)),
     ]);
+    const selects = _.keys(populates).map(x => sql`${{ identifier: includes[x]?.name ?? x }}`);
     if (type === 'pointer') {
       return sql`${{ identifier: parent.field }} IN (
-        SELECT *
+        SELECT * ${!_.isEmpty(selects) ? sql`, ${selects}` : sql``}
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
         WHERE ${{ identifier: parent.field }} = ${sql`(${{ quote: className + '$' }} || ${{ identifier: name }}._id)`}
-          ${!_.isEmpty(_filter) ? sql`AND ${_filter}` : sql``}
+          ${!_.isEmpty(_filter) ? sql`AND ${{ literal: _filter, separator: ' AND ' }}` : sql``}
       )`;
     } else if (_.isNil(foreignField)) {
       return sql`${{ identifier: parent.field }} IN (
         SELECT *
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
         WHERE ${{ identifier: parent.field }} @> ARRAY[${sql`(${{ quote: className + '$' }} || ${{ identifier: name }}._id)`}]
-          ${!_.isEmpty(_filter) ? sql`AND ${_filter}` : sql``}
+          ${!_.isEmpty(_filter) ? sql`AND ${{ literal: _filter, separator: ' AND ' }}` : sql``}
       )`;
     } else if (foreignField.type === 'pointer') {
       return sql`${{ identifier: parent.field }} IN (
         SELECT *
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
         WHERE ${sql`(${{ quote: parent.className + '$' }} || ${{ identifier: parent.name ?? parent.className }}._id)`} = ${{ identifier: foreignField.colname }}
-          ${!_.isEmpty(_filter) ? sql`AND ${_filter}` : sql``}
+          ${!_.isEmpty(_filter) ? sql`AND ${{ literal: _filter, separator: ' AND ' }}` : sql``}
       )`;
     } else {
       return sql`${{ identifier: parent.field }} IN (
         SELECT *
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
         WHERE ARRAY[${sql`(${{ quote: parent.className + '$' }} || ${{ identifier: parent.name ?? parent.className }}._id)`}] <@ ${{ identifier: foreignField.colname }}
-          ${!_.isEmpty(_filter) ? sql`AND ${_filter}` : sql``}
+          ${!_.isEmpty(_filter) ? sql`AND ${{ literal: _filter, separator: ' AND ' }}` : sql``}
       )`;
     }
   }
