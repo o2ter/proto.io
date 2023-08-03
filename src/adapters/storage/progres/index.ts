@@ -210,7 +210,7 @@ export class PostgresStorage extends SqlStorage {
   }
 
   protected _decodePopulate(
-    parent: { className: string; name?: string; colname: string; field: string; },
+    parent: { className: string; name?: string; colname: string; varname: string; },
     populate: Populate
   ): SQL {
     const { name, className, type, foreignField, filter, includes, populates } = populate;
@@ -219,7 +219,7 @@ export class PostgresStorage extends SqlStorage {
       className,
       name,
       colname: field,
-      field: includes[field]?.name ?? field,
+      varname: includes[field]?.name ?? field,
     }, populate)} AS ${{ identifier: includes[field]?.name ?? field }}`);
     if (type === 'pointer') {
       return sql`ARRAY(
