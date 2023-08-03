@@ -31,6 +31,7 @@ import { PostgresDriver } from './driver';
 import { SQL, SqlStorage, sql } from '../../../server/sql';
 import { PostgresDialect } from './dialect';
 import { Populate } from '../../../server/sql/compiler';
+import { DecodedQuery, FindOptions } from '../../../server/storage';
 
 export class PostgresStorage extends SqlStorage {
 
@@ -252,6 +253,11 @@ export class PostgresStorage extends SqlStorage {
         FROM ${{ identifier: parent.className }} AS ${{ identifier: parent.name }}${_filter ? sql` WHERE ${_filter}` : sql``}
       `,
     });
+  }
+
+  async explain(query: DecodedQuery<FindOptions>) {
+    const explains = await this.query(sql`EXPLAIN (FORMAT JSON) ${this._selectQuery(query)}`);
+    return _.first(explains)['QUERY PLAN'];
   }
 
   classes() {

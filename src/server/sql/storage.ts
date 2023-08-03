@@ -59,7 +59,6 @@ export abstract class SqlStorage implements TStorage {
 
   query(sql: SQL) {
     const { query, values } = sql.compile(this.dialect);
-    console.log(query)
     return this._query(query, values);
   }
 
@@ -157,22 +156,22 @@ export abstract class SqlStorage implements TStorage {
     return sql`
       ${!_.isEmpty(queries) ? sql`WITH ${_.map(queries, (q, n) => sql`${{ identifier: n }} AS (${q})`)}` : sql``}
       SELECT
-      ${select ? select : { literal: [
-        ...this._decodeIncludes(tempName, compiler.includes),
-        ..._.map(compiler.populates, (populate, field) => this._selectPopulate({
-          className: query.className,
-          name: tempName,
-          includes: compiler.includes,
-          colname: field,
-        }, populate, field)),
-      ], separator: ',\n' }}
+      ${select ? select : {
+        literal: [
+          ...this._decodeIncludes(tempName, compiler.includes),
+          ..._.map(compiler.populates, (populate, field) => this._selectPopulate({
+            className: query.className,
+            name: tempName,
+            includes: compiler.includes,
+            colname: field,
+          }, populate, field)),
+        ], separator: ',\n'
+      }}
       FROM ${{ identifier: query.className }} AS ${{ identifier: tempName }}${_filter ? sql` WHERE ${_filter}` : sql``}
     `;
   }
 
-  async explain(query: DecodedQuery<FindOptions>) {
-    return await this.query(sql`EXPLAIN ANALYZE ${this._selectQuery(query)}`);
-  }
+  abstract explain(query: DecodedQuery<FindOptions>): PromiseLike<any>
 
   async count(query: DecodedQuery<FindOptions>) {
     const _query = await this.query(this._selectQuery(query, sql`COUNT(*) AS count`));
