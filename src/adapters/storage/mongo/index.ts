@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { MongoClientOptions } from 'mongodb';
 import { UpdateOp, TValue } from '../../../internals';
-import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions, InsertOptions, TStorage } from '../../../server/storage';
+import { DecodedQuery, FindOptions, FindOneOptions, InsertOptions, TStorage } from '../../../server/storage';
 import { storageSchedule } from '../../../server/schedule';
 import { TSchema } from '../../../server/schema';
 import { MongoDriver } from './driver';
@@ -66,7 +66,7 @@ export class MongoStorage implements TStorage {
     return Object.keys(this.schema);
   }
 
-  async explain(query: DecodedQuery<ExplainOptions>) {
+  async explain(query: DecodedQuery<FindOptions>) {
     return 0;
   }
 

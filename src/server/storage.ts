@@ -30,7 +30,6 @@ import { TSchema } from './schema';
 import { TQueryBaseOptions } from '../internals/query/base';
 
 type CommonFindOptions = { className: string; };
-export type ExplainOptions = CommonFindOptions & Omit<TQueryOptions, 'returning' | 'skip' | 'limit'>;
 export type FindOptions = CommonFindOptions & Omit<TQueryOptions, 'returning'>;
 export type FindOneOptions = CommonFindOptions & Omit<TQueryOptions, 'skip' | 'limit'>;
 
@@ -58,7 +57,7 @@ export interface TStorage {
 
   classes(): string[];
 
-  explain(query: DecodedQuery<ExplainOptions>): PromiseLike<any>;
+  explain(query: DecodedQuery<FindOptions>): PromiseLike<any>;
 
   count(query: DecodedQuery<FindOptions>): PromiseLike<number>;
   find(query: DecodedQuery<FindOptions>): AsyncIterable<TObject>;

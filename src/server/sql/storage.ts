@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { DecodedQuery, ExplainOptions, FindOneOptions, FindOptions, InsertOptions, TStorage } from '../storage';
+import { DecodedQuery, FindOptions, FindOneOptions, InsertOptions, TStorage } from '../storage';
 import { TSchema, defaultObjectKeyTypes } from '../schema';
 import { storageSchedule } from '../schedule';
 import { PVK, TObject, TValue, UpdateOp, asyncStream } from '../../internals';
@@ -135,7 +135,7 @@ export abstract class SqlStorage implements TStorage {
 
   protected abstract _decodePopulate(parent: Populate & { colname: string }): Record<string, SQL>
 
-  async explain(query: DecodedQuery<ExplainOptions>) {
+  async explain(query: DecodedQuery<FindOptions>) {
 
     const compiler = this._queryCompiler(query);
     const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }));

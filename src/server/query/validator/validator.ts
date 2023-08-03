@@ -30,7 +30,7 @@ import {
   TQuerySelector,
   isPrimitiveValue,
 } from '../../../internals';
-import { DecodedBaseQuery, DecodedQuery, ExplainOptions, FindOneOptions, FindOptions } from '../../storage';
+import { DecodedBaseQuery, DecodedQuery, FindOptions, FindOneOptions, FindOptions } from '../../storage';
 import { CoditionalSelector, FieldSelector, QuerySelector } from './parser';
 import { TSchema, defaultObjectKeyTypes } from '../../schema';
 import { Proto } from '../..';
@@ -248,7 +248,7 @@ export class QueryValidator<E> {
     return _matches;
   }
 
-  decodeQuery<Q extends ExplainOptions | FindOptions | FindOneOptions>(query: Q, action: keyof TSchema.ACLs): DecodedQuery<Q> {
+  decodeQuery<Q extends FindOptions | FindOptions | FindOneOptions>(query: Q, action: keyof TSchema.ACLs): DecodedQuery<Q> {
 
     const filter = QuerySelector.decode([
       ..._.castArray<TQuerySelector>(query.filter),

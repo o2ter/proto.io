@@ -26,7 +26,7 @@ import _ from 'lodash';
 import { Proto } from '../../index';
 import { ExtraOptions, PVK, TValue, UpdateOp } from '../../../internals';
 import { QueryValidator } from './validator';
-import { ExplainOptions, FindOneOptions, FindOptions } from '../../storage';
+import { FindOptions, FindOneOptions, FindOptions } from '../../storage';
 import { TQueryBaseOptions } from '../../../internals/query/base';
 
 export const normalize = <T>(x: T): T => {
@@ -43,7 +43,7 @@ export const queryValidator = <E>(proto: Proto<E>, options?: ExtraOptions) => {
 
   return {
     explain(
-      query: ExplainOptions
+      query: FindOptions
     ) {
       QueryValidator.recursiveCheck(query);
       const _validator = validator();
