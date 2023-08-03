@@ -128,21 +128,14 @@ export abstract class SqlStorage implements TStorage {
     }
   }
 
-  protected abstract _decodePopulate(
-    parent: { className: string; name?: string; colname: string; varname: string; },
-    populate: Populate
-  ): SQL
+  protected abstract _decodePopulate(parent: Populate & { colname: string }): Record<string, SQL>
 
   async explain(query: DecodedQuery<ExplainOptions>) {
 
     const compiler = this._queryCompiler(query);
 
     console.dir(compiler, { depth: null })
-    console.log(_.mapValues(compiler.populates, (populate, field) => this._decodePopulate({
-      className: query.className,
-      colname: field,
-      varname: compiler.includes[field]?.name ?? field,
-    }, populate).toString()))
+    console.log(_.mapValues(compiler.populates, (populate, field) => _.mapValues(this._decodePopulate({ ...populate, colname: field }), sql => sql.toString())))
 
     return 0;
   }

@@ -209,40 +209,43 @@ export class PostgresStorage extends SqlStorage {
     return null;
   }
 
-  protected _decodePopulate(
-    parent: { className: string; name?: string; colname: string; varname: string; },
-    populate: Populate
-  ): SQL {
-    const { name, className, type, foreignField, filter, includes, populates } = populate;
-    let cond: SQL;
-    if (type === 'pointer') {
-      cond = sql`
-        ${{ identifier: parent.name ?? parent.className }}.${{ identifier: parent.colname }} = ${sql`(${{ quote: className + '$' }} || ${{ identifier: name }}._id)`}
+  protected _decodePopulate(parent: Populate & { colname: string }): Record<string, SQL> {
+    const _filter = this._decodeFilter(parent.filter);
+    const selects = _.map(parent.populates, (populate, field) => {
+      const { name, className, type, foreignField, includes } = populate;
+      let cond: SQL;
+      if (type === 'pointer') {
+        cond = sql`
+          ${{ identifier: parent.name ?? parent.className }}.${{ identifier: parent.colname }} = ${sql`(${{ quote: className + '$' }} || ${{ identifier: name }}._id)`}
+        `;
+      } else if (_.isNil(foreignField)) {
+        cond = sql`
+          ${{ identifier: parent.name ?? parent.className }}.${{ identifier: parent.colname }} @> ARRAY[${sql`(${{ quote: className + '$' }} || ${{ identifier: name }}._id)`}]
+        `;
+      } else if (foreignField.type === 'pointer') {
+        cond = sql`
+          ${sql`(${{ quote: parent.className + '$' }} || ${{ identifier: parent.name ?? parent.className }}._id)`} = ${{ identifier: foreignField.colname }}
+        `;
+      } else {
+        cond = sql`
+          ARRAY[${sql`(${{ quote: parent.className + '$' }} || ${{ identifier: parent.name ?? parent.className }}._id)`}] <@ ${{ identifier: foreignField.colname }}
+        `;
+      }
+      return sql`
+        ARRAY(SELECT row_to_json(
+          SELECT * FROM ${{ identifier: populate.name }} WHERE ${cond}
+        )) AS ${{ identifier: includes[field]?.name ?? field }}
       `;
-    } else if (_.isNil(foreignField)) {
-      cond = sql`
-        ${{ identifier: parent.name ?? parent.className }}.${{ identifier: parent.colname }} @> ARRAY[${sql`(${{ quote: className + '$' }} || ${{ identifier: name }}._id)`}]
-      `;
-    } else if (foreignField.type === 'pointer') {
-      cond = sql`
-        ${sql`(${{ quote: parent.className + '$' }} || ${{ identifier: parent.name ?? parent.className }}._id)`} = ${{ identifier: foreignField.colname }}
-      `;
-    } else {
-      cond = sql`
-        ARRAY[${sql`(${{ quote: parent.className + '$' }} || ${{ identifier: parent.name ?? parent.className }}._id)`}] <@ ${{ identifier: foreignField.colname }}
-      `;
-    }
-    const selects = _.map(populates, (populate, field) => sql`${this._decodePopulate({
-      className,
-      name,
-      colname: field,
-      varname: includes[field]?.name ?? field,
-    }, populate)} AS ${{ identifier: includes[field]?.name ?? field }}`);
-    return sql`ARRAY(SELECT row_to_json(
-      SELECT * ${!_.isEmpty(selects) ? sql`, ${selects}` : sql``}
-      FROM ${{ identifier: className }} AS ${{ identifier: name }}
-      WHERE ${{ literal: _.compact([cond, this._decodeFilter(filter)]), separator: ' AND ' }}
-    ))`;
+    });
+    return _.reduce(parent.populates, (acc, populate, field) => ({
+      ...this._decodePopulate({ ...populate, colname: field }),
+      ...acc,
+    }), {
+      [parent.name]: sql`
+        SELECT * ${!_.isEmpty(selects) ? sql`, ${selects}` : sql``}
+        FROM ${{ identifier: parent.className }} AS ${{ identifier: parent.name }} ${_filter ? sql`WHERE ${_filter}` : sql``}
+      `,
+    });
   }
 
   classes() {
