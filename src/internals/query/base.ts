@@ -96,7 +96,7 @@ export class TQueryBase {
   }
 
   containsIn<T extends string>(key: PathName<T>, value: TValue[]) {
-    return this.filter({ [key]: { $in: value ?? null } });
+    return this.filter({ [key]: { $in: value } });
   }
 
   containsAll<T extends string>(key: PathName<T>, value: TValue[]) {
@@ -104,7 +104,23 @@ export class TQueryBase {
   }
 
   notContainsIn<T extends string>(key: PathName<T>, value: TValue[]) {
-    return this.filter({ [key]: { $nin: value ?? null } });
+    return this.filter({ [key]: { $nin: value } });
+  }
+
+  isSubset<T extends string>(key: PathName<T>, value: TValue[]) {
+    return this.filter({ [key]: { $subset: value } });
+  }
+
+  isSuperset<T extends string>(key: PathName<T>, value: TValue[]) {
+    return this.filter({ [key]: { $superset: value } });
+  }
+
+  isDisjoint<T extends string>(key: PathName<T>, value: TValue[]) {
+    return this.filter({ [key]: { $disjoint: value } });
+  }
+
+  isIntersect<T extends string>(key: PathName<T>, value: TValue[]) {
+    return this.filter({ [key]: { $intersect: value } });
   }
 
   every<T extends string>(key: PathName<T>, callback: (query: TQueryBase) => void) {

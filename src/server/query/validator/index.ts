@@ -26,7 +26,7 @@ import _ from 'lodash';
 import { Proto } from '../../index';
 import { ExtraOptions, PVK, TValue, UpdateOp } from '../../../internals';
 import { QueryValidator } from './validator';
-import { FindOptions, FindOneOptions, FindOptions } from '../../storage';
+import { FindOptions, FindOneOptions } from '../../storage';
 import { TQueryBaseOptions } from '../../../internals/query/base';
 
 export const normalize = <T>(x: T): T => {

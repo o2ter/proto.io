@@ -40,6 +40,10 @@ export enum TValueListKeys {
   $in = '$in',
   $nin = '$nin',
   $all = '$all',
+  $subset = '$subset',
+  $superset = '$superset',
+  $disjoint = '$disjoint',
+  $intersect = '$intersect',
 };
 
 export enum TCoditionalKeys {

@@ -30,7 +30,7 @@ import {
   TQuerySelector,
   isPrimitiveValue,
 } from '../../../internals';
-import { DecodedBaseQuery, DecodedQuery, FindOptions, FindOneOptions, FindOptions } from '../../storage';
+import { DecodedBaseQuery, DecodedQuery, FindOptions, FindOneOptions } from '../../storage';
 import { CoditionalSelector, FieldSelector, QuerySelector } from './parser';
 import { TSchema, defaultObjectKeyTypes } from '../../schema';
 import { Proto } from '../..';
@@ -200,7 +200,7 @@ export class QueryValidator<E> {
 
     const schema = this.schema[className] ?? {};
     const _matches: Record<string, DecodedBaseQuery> = {};
-    const _rperm = this.master ? [] : [{ _rperm: { $some: { $: { $in: this.acls } } } }];
+    const _rperm = this.master ? [] : [{ _rperm: { $intersect: this.acls } }];
 
     for (const colname of _.uniq(_.compact(includes.map(x => _.first(x.split('.')))))) {
       if (!this.validateKeyPerm(colname, 'read', schema)) continue;
@@ -252,7 +252,7 @@ export class QueryValidator<E> {
 
     const filter = QuerySelector.decode([
       ..._.castArray<TQuerySelector>(query.filter),
-      ...this.master ? [] : [{ [action === 'read' ? '_rperm' : '_wperm']: { $some: { $: { $in: this.acls } } } }],
+      ...this.master ? [] : [{ [action === 'read' ? '_rperm' : '_wperm']: { $intersect: this.acls } }],
     ]).simplify();
     if (
       !filter.validate(key => this.validateKey(query.className, key, 'read', QueryValidator.patterns.path))
