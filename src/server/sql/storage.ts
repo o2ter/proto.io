@@ -165,13 +165,19 @@ export abstract class SqlStorage implements TStorage {
   private _decodeSubquery(query: {
     name?: string;
     className: string;
+    includes: Record<string, { name: string; }>;
     populates: Record<string, Populate>;
   }): Record<string, SQL> {
     const populates = _.mapValues(query.populates, v => ({
       ...v,
       populate: this._decodeSubquery(v),
     }));
-    const filter = _.map(populates, (populate, field) => this._decodePopulate(query.className, query.name ?? query.className, field, populate));
+    const filter = _.map(populates, (populate, field) => this._decodePopulate(
+      query.className,
+      query.name ?? query.className,
+      query.includes[field]?.name ?? field,
+      populate
+    ));
     return _.reduce(_.values(populates), (acc, { populate }) => ({
       ...populate,
       ...acc,
@@ -189,6 +195,7 @@ export abstract class SqlStorage implements TStorage {
     console.dir(compiler, { depth: null })
     console.log(_.mapValues(this._decodeSubquery({
       className: query.className,
+      includes: compiler.includes,
       populates: compiler.populates,
     }), sql => sql.toString()))
 
