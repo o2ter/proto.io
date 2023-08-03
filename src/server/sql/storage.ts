@@ -144,6 +144,10 @@ export abstract class SqlStorage implements TStorage {
     console.dir(compiler, { depth: null })
     console.log(_.mapValues(queries, sql => sql.toString()))
 
+    console.log(sql`
+      ${!_.isEmpty(queries) ? sql`WITH ${_.map(queries, (q, n) => sql`${{ identifier: n }} AS (${q})`)}` : sql``}
+    `.toString())
+
     return 0;
   }
 
@@ -188,7 +192,7 @@ export abstract class SqlStorage implements TStorage {
         (${_.map(_attrs, x => sql`${{ identifier: x[0] }}`)})
         VALUES (${_.map(_attrs, x => sql`${{ value: x[1] }}`)})
         RETURNING *
-      )
+      )${!_.isEmpty(queries) ? sql`, ${_.map(queries, (q, n) => sql`${{ identifier: n }} AS (${q})`)}` : sql``}
       SELECT * FROM ${{ identifier: tempName }}
     `));
 
