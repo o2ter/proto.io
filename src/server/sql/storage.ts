@@ -128,7 +128,7 @@ export abstract class SqlStorage implements TStorage {
     }
   }
 
-  private _decodePopulate(parent: string, field: string, populate: Populate): SQL {
+  private _decodePopulate(parentClass: string, parent: string, field: string, populate: Populate): SQL {
     const { name, className, type, foreignField, filter } = populate;
     if (type === 'pointer') {
       return sql`${{ identifier: field }} IN (
@@ -148,14 +148,14 @@ export abstract class SqlStorage implements TStorage {
       return sql`${{ identifier: field }} IN (
         SELECT *
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
-        WHERE ${sql`(${{ quote: parent + '$' }} || ${{ identifier: parent }}._id)`} = ${{ identifier: foreignField.colname }}
+        WHERE ${sql`(${{ quote: parentClass + '$' }} || ${{ identifier: parent }}._id)`} = ${{ identifier: foreignField.colname }}
           AND ${this._decodeFilter(filter) ?? sql``}
       )`;
     } else {
       return sql`${{ identifier: field }} IN (
         SELECT *
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
-        WHERE ARRAY[${sql`(${{ quote: parent + '$' }} || ${{ identifier: parent }}._id)`}] <@ ${{ identifier: foreignField.colname }}
+        WHERE ARRAY[${sql`(${{ quote: parentClass + '$' }} || ${{ identifier: parent }}._id)`}] <@ ${{ identifier: foreignField.colname }}
           AND ${this._decodeFilter(filter) ?? sql``}
       )`;
     }
@@ -170,7 +170,7 @@ export abstract class SqlStorage implements TStorage {
       ...v,
       populate: this._decodeSubquery(v),
     }));
-    const filter = _.map(populates, (populate, field) => this._decodePopulate(query.className, field, populate));
+    const filter = _.map(populates, (populate, field) => this._decodePopulate(query.className, query.name ?? query.className, field, populate));
     return _.reduce(_.values(populates), (acc, { populate }) => ({
       ...populate,
       ...acc,
