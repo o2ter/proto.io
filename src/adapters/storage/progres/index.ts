@@ -214,42 +214,39 @@ export class PostgresStorage extends SqlStorage {
     populate: Populate
   ): SQL {
     const { name, className, type, foreignField, filter, includes, populates } = populate;
-    const _filter = _.compact([
-      this._decodeFilter(filter),
-      ..._.map(populates, (populate, field) => this._decodePopulate({
-        className,
-        name,
-        field: includes[field]?.name ?? field,
-      }, populate)),
-    ]);
-    const selects = _.keys(populates).map(x => sql`${{ identifier: name }}.${{ identifier: x }} AS ${{ identifier: includes[x]?.name ?? x }}`);
+    const _filter = this._decodeFilter(filter);
+    const selects = _.map(populates, (populate, field) => sql`${this._decodePopulate({
+      className,
+      name,
+      field: includes[field]?.name ?? field,
+    }, populate)} AS ${{ identifier: includes[field]?.name ?? field }}`);
     if (type === 'pointer') {
-      return sql`${{ identifier: parent.field }} IN (
+      return sql`ARRAY(
         SELECT * ${!_.isEmpty(selects) ? sql`, ${selects}` : sql``}
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
-        WHERE ${{ identifier: parent.field }} = ${sql`(${{ quote: className + '$' }} || ${{ identifier: name }}._id)`}
-          ${!_.isEmpty(_filter) ? sql`AND ${{ literal: _filter, separator: ' AND ' }}` : sql``}
+        WHERE ${{ identifier: parent.name ?? parent.className }}.${{ identifier: parent.field }} = ${sql`(${{ quote: className + '$' }} || ${{ identifier: name }}._id)`}
+          ${!_.isNil(_filter) ? sql`AND ${_filter}` : sql``}
       )`;
     } else if (_.isNil(foreignField)) {
-      return sql`${{ identifier: parent.field }} IN (
+      return sql`ARRAY(
         SELECT * ${!_.isEmpty(selects) ? sql`, ${selects}` : sql``}
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
-        WHERE ${{ identifier: parent.field }} @> ARRAY[${sql`(${{ quote: className + '$' }} || ${{ identifier: name }}._id)`}]
-          ${!_.isEmpty(_filter) ? sql`AND ${{ literal: _filter, separator: ' AND ' }}` : sql``}
+        WHERE ${{ identifier: parent.name ?? parent.className }}.${{ identifier: parent.field }} @> ARRAY[${sql`(${{ quote: className + '$' }} || ${{ identifier: name }}._id)`}]
+          ${!_.isNil(_filter) ? sql`AND ${_filter}` : sql``}
       )`;
     } else if (foreignField.type === 'pointer') {
-      return sql`${{ identifier: parent.field }} IN (
+      return sql`ARRAY(
         SELECT * ${!_.isEmpty(selects) ? sql`, ${selects}` : sql``}
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
         WHERE ${sql`(${{ quote: parent.className + '$' }} || ${{ identifier: parent.name ?? parent.className }}._id)`} = ${{ identifier: foreignField.colname }}
-          ${!_.isEmpty(_filter) ? sql`AND ${{ literal: _filter, separator: ' AND ' }}` : sql``}
+          ${!_.isNil(_filter) ? sql`AND ${_filter}` : sql``}
       )`;
     } else {
-      return sql`${{ identifier: parent.field }} IN (
+      return sql`ARRAY(
         SELECT * ${!_.isEmpty(selects) ? sql`, ${selects}` : sql``}
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
         WHERE ARRAY[${sql`(${{ quote: parent.className + '$' }} || ${{ identifier: parent.name ?? parent.className }}._id)`}] <@ ${{ identifier: foreignField.colname }}
-          ${!_.isEmpty(_filter) ? sql`AND ${{ literal: _filter, separator: ' AND ' }}` : sql``}
+          ${!_.isNil(_filter) ? sql`AND ${_filter}` : sql``}
       )`;
     }
   }
