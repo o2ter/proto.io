@@ -82,8 +82,8 @@ export class PostgresStorage extends SqlStorage {
         _created_at TIMESTAMP NOT NULL DEFAULT now(),
         _updated_at TIMESTAMP NOT NULL DEFAULT now(),
         _expired_at TIMESTAMP,
-        _rperm TEXT[],
-        _wperm TEXT[],
+        _rperm TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
+        _wperm TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
         ${_.map(fields, (type, col) => sql`
           ${{ identifier: col }} ${{ literal: this._pgType(_.isString(type) ? type : type.type) }}
         `)}
