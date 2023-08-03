@@ -34,7 +34,6 @@ import { Populate, QueryCompiler, QueryCompilerOptions } from './compiler';
 import { generateId } from '../crypto';
 import { CoditionalSelector, FieldExpression, FieldSelector, QuerySelector } from '../query/validator/parser';
 
-const isSQLArray = (v: any): v is SQL[] => _.isArray(v) && _.every(v, x => x instanceof SQL);
 export abstract class SqlStorage implements TStorage {
 
   schedule = storageSchedule(this, ['expireDocument']);
@@ -58,58 +57,9 @@ export abstract class SqlStorage implements TStorage {
   protected abstract _encodeData(type: TSchema.Primitive, value: TValue): any
   protected abstract _decodeData(type: TSchema.Primitive, value: any): TValue
 
-  private _compile(template: SQL, nextIdx: () => number) {
-    let [query, ...strings] = template.strings;
-    const values: any[] = [];
-    for (const [value, str] of _.zip(template.values, strings)) {
-      if (_.isNil(value)) break;
-      if (value instanceof SQL) {
-        const { query: _query, values: _values } = this._compile(value, nextIdx);
-        query += _query;
-        values.push(..._values);
-      } else if (_.isBoolean(value)) {
-        query += this.dialect.boolean(value);
-      } else if (isSQLArray(value)) {
-        const queries: string[] = [];
-        for (const subquery of value) {
-          const { query: _query, values: _values } = this._compile(subquery, nextIdx);
-          queries.push(_query);
-          values.push(..._values);
-        }
-        query += queries.join(', ');
-      } else if ('quote' in value) {
-        query += this.dialect.quote(value.quote);
-      } else if ('identifier' in value) {
-        query += this.dialect.identifier(value.identifier);
-      } else if ('literal' in value) {
-        if (_.isString(value.literal)) {
-          query += value.literal;
-        } else {
-          const queries: string[] = [];
-          for (const subquery of value.literal) {
-            const { query: _query, values: _values } = this._compile(subquery, nextIdx);
-            queries.push(_query);
-            values.push(..._values);
-          }
-          query += queries.join(value.separator ?? ', ');
-        }
-      } else {
-        query += this.dialect.placeholder(nextIdx());
-        values.push('value' in value ? value.value : value);
-      }
-      query += str;
-    }
-    return { query, values };
-  }
-
   query(sql: SQL) {
-    const { query, values } = this.compile(sql);
+    const { query, values } = sql.compile(this.dialect);
     return this._query(query, values);
-  }
-
-  compile(template: SQL) {
-    let idx = 1;
-    return this._compile(template, () => idx++);
   }
 
   private _queryCompiler(query: QueryCompilerOptions) {

@@ -25,11 +25,15 @@
 
 import _ from 'lodash';
 import { TValue } from '../../internals';
+import { SqlDialect } from './dialect';
+import { PostgresDialect } from '../../adapters/storage/progres/dialect';
 
 type SQLLiteral = SQL | SQL[] | { literal: string | SQL[], separator?: string };
 type SQLIdentifier = { identifier: string };
 type SQLEscapeString = { quote: string };
 type SQLValue = { value: TValue } | SQLIdentifier | SQLLiteral | SQLEscapeString;
+
+const isSQLArray = (v: any): v is SQL[] => _.isArray(v) && _.every(v, x => x instanceof SQL);
 
 export class SQL {
 
@@ -41,11 +45,57 @@ export class SQL {
     this.values = values;
   }
 
-  toString() {
+  private _compile(dialect: SqlDialect, nextIdx: () => number) {
+    let [query, ...strings] = this.strings;
+    const values: any[] = [];
+    for (const [value, str] of _.zip(this.values, strings)) {
+      if (_.isNil(value)) break;
+      if (value instanceof SQL) {
+        const { query: _query, values: _values } = value._compile(dialect, nextIdx);
+        query += _query;
+        values.push(..._values);
+      } else if (_.isBoolean(value)) {
+        query += dialect.boolean(value);
+      } else if (isSQLArray(value)) {
+        const queries: string[] = [];
+        for (const subquery of value) {
+          const { query: _query, values: _values } = subquery._compile(dialect, nextIdx);
+          queries.push(_query);
+          values.push(..._values);
+        }
+        query += queries.join(', ');
+      } else if ('quote' in value) {
+        query += dialect.quote(value.quote);
+      } else if ('identifier' in value) {
+        query += dialect.identifier(value.identifier);
+      } else if ('literal' in value) {
+        if (_.isString(value.literal)) {
+          query += value.literal;
+        } else {
+          const queries: string[] = [];
+          for (const subquery of value.literal) {
+            const { query: _query, values: _values } = subquery._compile(dialect, nextIdx);
+            queries.push(_query);
+            values.push(..._values);
+          }
+          query += queries.join(value.separator ?? ', ');
+        }
+      } else {
+        query += dialect.placeholder(nextIdx());
+        values.push('value' in value ? value.value : value);
+      }
+      query += str;
+    }
+    return { query, values };
+  }
+
+  compile(dialect: SqlDialect) {
     let idx = 1;
-    let str = _.first(this.strings) ?? '';
-    for (const part of this.strings.slice(1)) str += `$${idx++}${part}`;
-    return str;
+    return this._compile(dialect, () => idx++);
+  }
+
+  toString() {
+    return this.compile(PostgresDialect);
   }
 }
 
