@@ -40,6 +40,9 @@ export enum TValueListKeys {
   $in = '$in',
   $nin = '$nin',
   $all = '$all',
+};
+
+export enum TValueSetKeys {
   $subset = '$subset',
   $superset = '$superset',
   $disjoint = '$disjoint',
@@ -56,6 +59,7 @@ export const allFieldQueryKeys = [
   '$not', '$type', '$pattern', '$size', '$every', '$some',
   ..._.keys(TCoditionalKeys),
   ..._.keys(TValueListKeys),
+  ..._.keys(TValueSetKeys),
 ];
 
 type TThisQuerySelector = { $?: TFieldQuerySelector; };

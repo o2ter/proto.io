@@ -33,6 +33,7 @@ import {
   TComparisonKeys,
   TValueListKeys,
   allFieldQueryKeys,
+  TValueSetKeys,
 } from '../../../internals';
 
 export class QuerySelector {
@@ -112,7 +113,7 @@ export class FieldExpression {
       if (type in TComparisonKeys) {
         if (!isValue(expr)) throw Error('Invalid expression');
         return new FieldExpression(type as any, expr);
-      } else if (type in TValueListKeys) {
+      } else if (type in TValueListKeys || type in TValueSetKeys) {
         if (!isValue(expr) || !_.isArray(expr)) throw Error('Invalid expression');
         return new FieldExpression(type as any, expr);
       } else {
