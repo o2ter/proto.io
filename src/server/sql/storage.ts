@@ -151,21 +151,21 @@ export abstract class SqlStorage implements TStorage {
       )`;
     } else if (_.isNil(foreignField)) {
       return sql`${{ identifier: parent.field }} IN (
-        SELECT *
+        SELECT * ${!_.isEmpty(selects) ? sql`, ${selects}` : sql``}
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
         WHERE ${{ identifier: parent.field }} @> ARRAY[${sql`(${{ quote: className + '$' }} || ${{ identifier: name }}._id)`}]
           ${!_.isEmpty(_filter) ? sql`AND ${{ literal: _filter, separator: ' AND ' }}` : sql``}
       )`;
     } else if (foreignField.type === 'pointer') {
       return sql`${{ identifier: parent.field }} IN (
-        SELECT *
+        SELECT * ${!_.isEmpty(selects) ? sql`, ${selects}` : sql``}
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
         WHERE ${sql`(${{ quote: parent.className + '$' }} || ${{ identifier: parent.name ?? parent.className }}._id)`} = ${{ identifier: foreignField.colname }}
           ${!_.isEmpty(_filter) ? sql`AND ${{ literal: _filter, separator: ' AND ' }}` : sql``}
       )`;
     } else {
       return sql`${{ identifier: parent.field }} IN (
-        SELECT *
+        SELECT * ${!_.isEmpty(selects) ? sql`, ${selects}` : sql``}
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
         WHERE ARRAY[${sql`(${{ quote: parent.className + '$' }} || ${{ identifier: parent.name ?? parent.className }}._id)`}] <@ ${{ identifier: foreignField.colname }}
           ${!_.isEmpty(_filter) ? sql`AND ${{ literal: _filter, separator: ' AND ' }}` : sql``}
