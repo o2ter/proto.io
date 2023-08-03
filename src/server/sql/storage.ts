@@ -138,9 +138,10 @@ export abstract class SqlStorage implements TStorage {
   async explain(query: DecodedQuery<ExplainOptions>) {
 
     const compiler = this._queryCompiler(query);
+    const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }));
 
     console.dir(compiler, { depth: null })
-    console.log(_.mapValues(compiler.populates, (populate, field) => _.mapValues(this._decodePopulate({ ...populate, colname: field }), sql => sql.toString())))
+    console.log(_.mapValues(populates, sql => sql.toString()))
 
     return 0;
   }
@@ -148,6 +149,7 @@ export abstract class SqlStorage implements TStorage {
   async count(query: DecodedQuery<FindOptions>) {
 
     const compiler = this._queryCompiler(query);
+    const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }));
 
     return 0;
   }
@@ -155,6 +157,7 @@ export abstract class SqlStorage implements TStorage {
   async* find(query: DecodedQuery<FindOptions>) {
 
     const compiler = this._queryCompiler(query);
+    const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }));
 
     return [];
   }
@@ -171,6 +174,7 @@ export abstract class SqlStorage implements TStorage {
       includes: options.includes,
       matches: options.matches,
     });
+    const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }));
 
     const tempName = `_temp_${options.className.toLowerCase()}`;
 
@@ -190,6 +194,7 @@ export abstract class SqlStorage implements TStorage {
   async updateOne(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>) {
 
     const compiler = this._queryCompiler(query);
+    const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }));
 
     return undefined;
   }
@@ -197,6 +202,7 @@ export abstract class SqlStorage implements TStorage {
   async replaceOne(query: DecodedQuery<FindOneOptions>, replacement: Record<string, TValue>) {
 
     const compiler = this._queryCompiler(query);
+    const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }));
 
     return undefined;
   }
@@ -209,6 +215,7 @@ export abstract class SqlStorage implements TStorage {
     });
 
     const compiler = this._queryCompiler(query);
+    const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }));
 
     return undefined;
   }
@@ -216,6 +223,7 @@ export abstract class SqlStorage implements TStorage {
   async deleteOne(query: DecodedQuery<FindOneOptions>) {
 
     const compiler = this._queryCompiler(query);
+    const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }));
 
     return undefined;
   }
@@ -223,6 +231,7 @@ export abstract class SqlStorage implements TStorage {
   async deleteMany(query: DecodedQuery<FindOptions>) {
 
     const compiler = this._queryCompiler(query);
+    const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }));
 
     return 0;
   }
