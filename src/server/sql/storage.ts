@@ -129,7 +129,7 @@ export abstract class SqlStorage implements TStorage {
   }
 
   protected abstract _decodePopulate(
-    parent: { className: string; name?: string; field: string; },
+    parent: { className: string; name?: string; colname: string; field: string; },
     populate: Populate
   ): SQL
 
@@ -140,6 +140,7 @@ export abstract class SqlStorage implements TStorage {
     console.dir(compiler, { depth: null })
     console.log(_.mapValues(_.mapValues(compiler.populates, (populate, field) => this._decodePopulate({
       className: query.className,
+      colname: field,
       field: compiler.includes[field]?.name ?? field,
     }, populate)), sql => sql.toString()))
 

@@ -210,7 +210,7 @@ export class PostgresStorage extends SqlStorage {
   }
 
   protected _decodePopulate(
-    parent: { className: string; name?: string; field: string; },
+    parent: { className: string; name?: string; colname: string; field: string; },
     populate: Populate
   ): SQL {
     const { name, className, type, foreignField, filter, includes, populates } = populate;
@@ -218,20 +218,21 @@ export class PostgresStorage extends SqlStorage {
     const selects = _.map(populates, (populate, field) => sql`${this._decodePopulate({
       className,
       name,
+      colname: field,
       field: includes[field]?.name ?? field,
     }, populate)} AS ${{ identifier: includes[field]?.name ?? field }}`);
     if (type === 'pointer') {
       return sql`ARRAY(
         SELECT * ${!_.isEmpty(selects) ? sql`, ${selects}` : sql``}
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
-        WHERE ${{ identifier: parent.name ?? parent.className }}.${{ identifier: parent.field }} = ${sql`(${{ quote: className + '$' }} || ${{ identifier: name }}._id)`}
+        WHERE ${{ identifier: parent.name ?? parent.className }}.${{ identifier: parent.colname }} = ${sql`(${{ quote: className + '$' }} || ${{ identifier: name }}._id)`}
           ${!_.isNil(_filter) ? sql`AND ${_filter}` : sql``}
       )`;
     } else if (_.isNil(foreignField)) {
       return sql`ARRAY(
         SELECT * ${!_.isEmpty(selects) ? sql`, ${selects}` : sql``}
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
-        WHERE ${{ identifier: parent.name ?? parent.className }}.${{ identifier: parent.field }} @> ARRAY[${sql`(${{ quote: className + '$' }} || ${{ identifier: name }}._id)`}]
+        WHERE ${{ identifier: parent.name ?? parent.className }}.${{ identifier: parent.colname }} @> ARRAY[${sql`(${{ quote: className + '$' }} || ${{ identifier: name }}._id)`}]
           ${!_.isNil(_filter) ? sql`AND ${_filter}` : sql``}
       )`;
     } else if (foreignField.type === 'pointer') {
