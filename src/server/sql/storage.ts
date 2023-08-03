@@ -128,7 +128,7 @@ export abstract class SqlStorage implements TStorage {
     }
   }
 
-  private _decodePopulate(parentClass: string, parent: string, field: string, populate: Populate): SQL {
+  private _decodePopulate(parentClass: string, parentName: string, field: string, populate: Populate): SQL {
     const { name, className, type, foreignField, filter, includes, populates } = populate;
     const _filter = _.compact([
       this._decodeFilter(filter),
@@ -157,14 +157,14 @@ export abstract class SqlStorage implements TStorage {
       return sql`${{ identifier: field }} IN (
         SELECT *
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
-        WHERE ${sql`(${{ quote: parentClass + '$' }} || ${{ identifier: parent }}._id)`} = ${{ identifier: foreignField.colname }}
+        WHERE ${sql`(${{ quote: parentClass + '$' }} || ${{ identifier: parentName }}._id)`} = ${{ identifier: foreignField.colname }}
           ${_filter ? sql`AND ${_filter}` : sql``}
       )`;
     } else {
       return sql`${{ identifier: field }} IN (
         SELECT *
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
-        WHERE ARRAY[${sql`(${{ quote: parentClass + '$' }} || ${{ identifier: parent }}._id)`}] <@ ${{ identifier: foreignField.colname }}
+        WHERE ARRAY[${sql`(${{ quote: parentClass + '$' }} || ${{ identifier: parentName }}._id)`}] <@ ${{ identifier: foreignField.colname }}
           ${_filter ? sql`AND ${_filter}` : sql``}
       )`;
     }
