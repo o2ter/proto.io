@@ -137,27 +137,25 @@ export abstract class SqlStorage implements TStorage {
         WHERE ${{ identifier: field }} = ${sql`(${{ quote: name + '$' }} || ${{ identifier: name }}._id)`}
           AND ${this._decodeFilter(filter) ?? sql``}
       )`;
-    } else if (foreignField) {
-      if (foreignField.type === 'pointer') {
-        return sql`${{ identifier: field }} IN (
-          SELECT *
-          FROM ${{ identifier: className }} AS ${{ identifier: name }}
-          WHERE ${sql`(${{ quote: parent + '$' }} || ${{ identifier: parent }}._id)`} = ${{ identifier: foreignField.colname }}
-            AND ${this._decodeFilter(filter) ?? sql``}
-        )`;
-      } else {
-        return sql`${{ identifier: field }} IN (
-          SELECT *
-          FROM ${{ identifier: className }} AS ${{ identifier: name }}
-          WHERE ARRAY[${sql`(${{ quote: parent + '$' }} || ${{ identifier: parent }}._id)`}] <@ ${{ identifier: foreignField.colname }}
-            AND ${this._decodeFilter(filter) ?? sql``}
-        )`;
-      }
-    } else {
+    } else if (!_.isNil(foreignField)) {
       return sql`${{ identifier: field }} IN (
         SELECT *
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
         WHERE ${{ identifier: field }} @> ARRAY[${sql`(${{ quote: name + '$' }} || ${{ identifier: name }}._id)`}]
+          AND ${this._decodeFilter(filter) ?? sql``}
+      )`;
+    } else if (foreignField.type === 'pointer') {
+      return sql`${{ identifier: field }} IN (
+        SELECT *
+        FROM ${{ identifier: className }} AS ${{ identifier: name }}
+        WHERE ${sql`(${{ quote: parent + '$' }} || ${{ identifier: parent }}._id)`} = ${{ identifier: foreignField.colname }}
+          AND ${this._decodeFilter(filter) ?? sql``}
+      )`;
+    } else {
+      return sql`${{ identifier: field }} IN (
+        SELECT *
+        FROM ${{ identifier: className }} AS ${{ identifier: name }}
+        WHERE ARRAY[${sql`(${{ quote: parent + '$' }} || ${{ identifier: parent }}._id)`}] <@ ${{ identifier: foreignField.colname }}
           AND ${this._decodeFilter(filter) ?? sql``}
       )`;
     }
