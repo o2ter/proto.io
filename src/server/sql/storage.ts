@@ -146,28 +146,28 @@ export abstract class SqlStorage implements TStorage {
         SELECT *
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
         WHERE ${{ identifier: parent.field }} = ${sql`(${{ quote: className + '$' }} || ${{ identifier: name }}._id)`}
-          ${_filter ? sql`AND ${_filter}` : sql``}
+          ${!_.isEmpty(_filter) ? sql`AND ${_filter}` : sql``}
       )`;
     } else if (_.isNil(foreignField)) {
       return sql`${{ identifier: parent.field }} IN (
         SELECT *
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
         WHERE ${{ identifier: parent.field }} @> ARRAY[${sql`(${{ quote: className + '$' }} || ${{ identifier: name }}._id)`}]
-          ${_filter ? sql`AND ${_filter}` : sql``}
+          ${!_.isEmpty(_filter) ? sql`AND ${_filter}` : sql``}
       )`;
     } else if (foreignField.type === 'pointer') {
       return sql`${{ identifier: parent.field }} IN (
         SELECT *
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
         WHERE ${sql`(${{ quote: parent.className + '$' }} || ${{ identifier: parent.name ?? parent.className }}._id)`} = ${{ identifier: foreignField.colname }}
-          ${_filter ? sql`AND ${_filter}` : sql``}
+          ${!_.isEmpty(_filter) ? sql`AND ${_filter}` : sql``}
       )`;
     } else {
       return sql`${{ identifier: parent.field }} IN (
         SELECT *
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
         WHERE ARRAY[${sql`(${{ quote: parent.className + '$' }} || ${{ identifier: parent.name ?? parent.className }}._id)`}] <@ ${{ identifier: foreignField.colname }}
-          ${_filter ? sql`AND ${_filter}` : sql``}
+          ${!_.isEmpty(_filter) ? sql`AND ${_filter}` : sql``}
       )`;
     }
   }
