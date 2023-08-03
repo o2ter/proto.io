@@ -70,7 +70,7 @@ beforeAll(async () => {
 
   console.log('version: ', await database.version());
 
-  console.log(await proto.Query('_Role').includes(
+  console.dir(await proto.Query('_Role').includes(
     '_id',
     'users._id',
     'roles._id',
@@ -79,7 +79,7 @@ beforeAll(async () => {
     'roles.roles.roles.roles._id',
   ).sort({
     '_id': 1,
-  }).explain());
+  }).explain(), { depth: null });
 
   httpServer = require('http-shutdown')(require('http').createServer(app));
   httpServer.listen(8080, () => console.log('listening on port 8080'));
