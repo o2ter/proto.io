@@ -59,6 +59,7 @@ export abstract class SqlStorage implements TStorage {
 
   query(sql: SQL) {
     const { query, values } = sql.compile(this.dialect);
+    console.log(query)
     return this._query(query, values);
   }
 

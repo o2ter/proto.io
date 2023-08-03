@@ -225,7 +225,12 @@ export class PostgresStorage extends SqlStorage {
     } else {
       cond = sql`ARRAY[${sql`(${{ quote: parent.className + '$' }} || ${{ identifier: parent.name }}._id)`}] <@ ${{ identifier: foreignField.colname }}`;
     }
-    return sql`ARRAY(SELECT row_to_json(SELECT * FROM ${{ identifier: populate.name }} WHERE ${cond})) AS ${{ identifier: parent.includes[field].name }}`;
+    return sql`ARRAY(
+      SELECT row_to_json(${{ identifier: `_row_$${populate.name}` }}) 
+      FROM (
+        SELECT * FROM ${{ identifier: populate.name }} WHERE ${cond}
+      ) AS ${{ identifier: `_row_$${populate.name}` }}
+    ) AS ${{ identifier: parent.includes[field].name }}`;
   }
 
   protected _decodePopulate(parent: Populate & { colname: string }): Record<string, SQL> {
@@ -236,10 +241,12 @@ export class PostgresStorage extends SqlStorage {
     }), {
       [parent.name]: sql`
         SELECT
-        ${{ literal: [
-          ...this._decodeIncludes(parent.name, parent.includes),
-          ..._.map(parent.populates, (populate, field) => this._selectPopulate(parent, populate, field)),
-        ], separator: ',\n' }}
+        ${{
+          literal: [
+            ...this._decodeIncludes(parent.name, parent.includes),
+            ..._.map(parent.populates, (populate, field) => this._selectPopulate(parent, populate, field)),
+          ], separator: ',\n'
+        }}
         FROM ${{ identifier: parent.className }} AS ${{ identifier: parent.name }}${_filter ? sql` WHERE ${_filter}` : sql``}
       `,
     });
