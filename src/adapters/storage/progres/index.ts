@@ -230,17 +230,16 @@ export class PostgresStorage extends SqlStorage {
 
   protected _decodePopulate(parent: Populate & { colname: string }): Record<string, SQL> {
     const _filter = this._decodeFilter(parent.filter);
-    const selects = [
-      ...this._decodeIncludes(parent.name, parent.includes),
-      ..._.map(parent.populates, (populate, field) => this._selectPopulate(parent, populate, field)),
-    ];
     return _.reduce(parent.populates, (acc, populate, field) => ({
       ...this._decodePopulate({ ...populate, colname: field }),
       ...acc,
     }), {
       [parent.name]: sql`
         SELECT
-        ${{ literal: selects, separator: ',\n' }}
+        ${{ literal: [
+          ...this._decodeIncludes(parent.name, parent.includes),
+          ..._.map(parent.populates, (populate, field) => this._selectPopulate(parent, populate, field)),
+        ], separator: ',\n' }}
         FROM ${{ identifier: parent.className }} AS ${{ identifier: parent.name }}${_filter ? sql` WHERE ${_filter}` : sql``}
       `,
     });

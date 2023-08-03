@@ -143,7 +143,7 @@ export abstract class SqlStorage implements TStorage {
   ): SQL
   protected abstract _decodePopulate(parent: Populate & { colname: string }): Record<string, SQL>
 
-  protected _selectQuery(query: DecodedQuery<FindOptions>) {
+  protected _selectQuery(query: DecodedQuery<FindOptions>, select?: SQL) {
 
     const compiler = this._queryCompiler(query);
     const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }));
@@ -151,45 +151,35 @@ export abstract class SqlStorage implements TStorage {
 
     const tempName = `_temp_$${query.className.toLowerCase()}`;
 
-    const selects = [
-      ...this._decodeIncludes(query.className, compiler.includes),
-      ..._.map(compiler.populates, (populate, field) => this._selectPopulate({
-        className: query.className,
-        name: tempName,
-        includes: compiler.includes,
-        colname: field,
-      }, populate, field)),
-    ];
+    const _filter = this._decodeFilter(query.filter);
 
     return sql`
       ${!_.isEmpty(queries) ? sql`WITH ${_.map(queries, (q, n) => sql`${{ identifier: n }} AS (${q})`)}` : sql``}
       SELECT
-      ${{ literal: selects, separator: ',\n' }}
-      FROM ${{ identifier: query.className }} AS ${{ identifier: tempName }}
+      ${select ? select : { literal: [
+        ...this._decodeIncludes(query.className, compiler.includes),
+        ..._.map(compiler.populates, (populate, field) => this._selectPopulate({
+          className: query.className,
+          name: tempName,
+          includes: compiler.includes,
+          colname: field,
+        }, populate, field)),
+      ], separator: ',\n' }}
+      FROM ${{ identifier: query.className }} AS ${{ identifier: tempName }}${_filter ? sql` WHERE ${_filter}` : sql``}
     `;
   }
 
   async explain(query: DecodedQuery<FindOptions>) {
-
-    const _query = this._selectQuery(query);
-
-    console.log(_query.toString())
-
-    return 0;
+    return await this.query(sql`EXPLAIN ANALYZE ${this._selectQuery(query)}`);
   }
 
   async count(query: DecodedQuery<FindOptions>) {
-
-    const _query = this._selectQuery(query);
-
-    return 0;
+    const _query = await this.query(this._selectQuery(query, sql`COUNT(*) AS count`));
+    return _.first(_query).count as number;
   }
 
-  async* find(query: DecodedQuery<FindOptions>) {
-
-    const _query = this._selectQuery(query);
-
-    return [];
+  find(query: DecodedQuery<FindOptions>) {
+    return this.query(this._selectQuery(query));
   }
 
   async insert(options: InsertOptions, attrs: Record<string, TValue>) {
