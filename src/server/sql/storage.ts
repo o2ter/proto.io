@@ -128,73 +128,48 @@ export abstract class SqlStorage implements TStorage {
     }
   }
 
-  private _decodePopulate(parentClass: string, parentName: string, field: string, populate: Populate): SQL {
+  private _decodePopulate(
+    parent: { className: string; name?: string; field: string; },
+    populate: Populate
+  ): SQL {
     const { name, className, type, foreignField, filter, includes, populates } = populate;
     const _filter = _.compact([
       this._decodeFilter(filter),
-      ..._.map(populates, (populate, field) => this._decodePopulate(
+      ..._.map(populates, (populate, field) => this._decodePopulate({
         className,
         name,
-        includes[field]?.name ?? field,
-        populate
-      )),
+        field: includes[field]?.name ?? field,
+      }, populate)),
     ]);
     if (type === 'pointer') {
-      return sql`${{ identifier: field }} IN (
+      return sql`${{ identifier: parent.field }} IN (
         SELECT *
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
-        WHERE ${{ identifier: field }} = ${sql`(${{ quote: className + '$' }} || ${{ identifier: name }}._id)`}
+        WHERE ${{ identifier: parent.field }} = ${sql`(${{ quote: className + '$' }} || ${{ identifier: name }}._id)`}
           ${_filter ? sql`AND ${_filter}` : sql``}
       )`;
     } else if (_.isNil(foreignField)) {
-      return sql`${{ identifier: field }} IN (
+      return sql`${{ identifier: parent.field }} IN (
         SELECT *
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
-        WHERE ${{ identifier: field }} @> ARRAY[${sql`(${{ quote: className + '$' }} || ${{ identifier: name }}._id)`}]
+        WHERE ${{ identifier: parent.field }} @> ARRAY[${sql`(${{ quote: className + '$' }} || ${{ identifier: name }}._id)`}]
           ${_filter ? sql`AND ${_filter}` : sql``}
       )`;
     } else if (foreignField.type === 'pointer') {
-      return sql`${{ identifier: field }} IN (
+      return sql`${{ identifier: parent.field }} IN (
         SELECT *
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
-        WHERE ${sql`(${{ quote: parentClass + '$' }} || ${{ identifier: parentName }}._id)`} = ${{ identifier: foreignField.colname }}
+        WHERE ${sql`(${{ quote: parent.className + '$' }} || ${{ identifier: parent.name ?? parent.className }}._id)`} = ${{ identifier: foreignField.colname }}
           ${_filter ? sql`AND ${_filter}` : sql``}
       )`;
     } else {
-      return sql`${{ identifier: field }} IN (
+      return sql`${{ identifier: parent.field }} IN (
         SELECT *
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
-        WHERE ARRAY[${sql`(${{ quote: parentClass + '$' }} || ${{ identifier: parentName }}._id)`}] <@ ${{ identifier: foreignField.colname }}
+        WHERE ARRAY[${sql`(${{ quote: parent.className + '$' }} || ${{ identifier: parent.name ?? parent.className }}._id)`}] <@ ${{ identifier: foreignField.colname }}
           ${_filter ? sql`AND ${_filter}` : sql``}
       )`;
     }
-  }
-
-  private _decodeSubquery(query: {
-    name?: string;
-    className: string;
-    includes: Record<string, { name: string; }>;
-    populates: Record<string, Populate>;
-  }): Record<string, SQL> {
-    const populates = _.mapValues(query.populates, v => ({
-      ...v,
-      populate: this._decodeSubquery(v),
-    }));
-    const filter = _.map(populates, (populate, field) => this._decodePopulate(
-      query.className,
-      query.name ?? query.className,
-      query.includes[field]?.name ?? field,
-      populate
-    ));
-    return _.reduce(_.values(populates), (acc, { populate }) => ({
-      ...populate,
-      ...acc,
-    }), query.name ? {
-      [query.name]: sql`
-        SELECT *
-        FROM ${{ identifier: query.className }}
-        ${filter ? sql`WHERE ${{ literal: filter, separator: ' AND ' }}` : sql``}
-      `} : {});
   }
 
   async explain(query: DecodedQuery<ExplainOptions>) {
@@ -202,11 +177,10 @@ export abstract class SqlStorage implements TStorage {
     const compiler = this._queryCompiler(query);
 
     console.dir(compiler, { depth: null })
-    console.log(_.mapValues(this._decodeSubquery({
+    console.log(_.mapValues(_.mapValues(compiler.populates, (populate, field) => this._decodePopulate({
       className: query.className,
-      includes: compiler.includes,
-      populates: compiler.populates,
-    }), sql => sql.toString()))
+      field: compiler.includes[field]?.name ?? field,
+    }, populate)), sql => sql.toString()))
 
     return 0;
   }
