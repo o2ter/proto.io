@@ -137,7 +137,7 @@ export abstract class SqlStorage implements TStorage {
         WHERE ${{ identifier: field }} = ${sql`(${{ quote: className + '$' }} || ${{ identifier: name }}._id)`}
           AND ${this._decodeFilter(filter) ?? sql``}
       )`;
-    } else if (!_.isNil(foreignField)) {
+    } else if (_.isNil(foreignField)) {
       return sql`${{ identifier: field }} IN (
         SELECT *
         FROM ${{ identifier: className }} AS ${{ identifier: name }}
