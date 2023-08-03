@@ -141,7 +141,7 @@ export abstract class SqlStorage implements TStorage {
     const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }));
 
     console.dir(compiler, { depth: null })
-    console.log(_.mapValues(populates, sql => sql.toString()))
+    console.log(_.mapValues(populates, populate => _.mapValues(populate, sql => sql.toString())))
 
     return 0;
   }
