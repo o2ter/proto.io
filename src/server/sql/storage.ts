@@ -168,6 +168,8 @@ export abstract class SqlStorage implements TStorage {
         ], separator: ',\n'
       }}
       FROM ${{ identifier: query.className }} AS ${{ identifier: tempName }}${_filter ? sql` WHERE ${_filter}` : sql``}
+      ${query.limit ? sql`LIMIT ${{ literal: `${query.limit}` }}` : sql``}
+      ${query.skip ? sql`OFFSET ${{ literal: `${query.skip}` }}` : sql``}
     `;
   }
 
