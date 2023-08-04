@@ -109,9 +109,7 @@ export class QueryCompiler {
     let resolvedField = false;
     for (const colname of _.toPath(key)) {
       const name = resolved ? `${resolved}.${colname}` : colname;
-      if (resolvedField) {
-        resolved = name;
-      } else if (includes[name]) {
+      if (resolvedField || includes[name]) {
         resolved = name;
         resolvedField = true;
       } else if (populates[name]) {
