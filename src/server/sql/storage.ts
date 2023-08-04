@@ -244,12 +244,10 @@ export abstract class SqlStorage implements TStorage {
 
     queries[tempName] = sql`
       SELECT
-      ${{
-        literal: [
-          ...this._decodeIncludes(tempName, compiler.includes),
-          ..._.map(_populates, ({ column }) => column),
-        ], separator: ',\n'
-      }}
+      ${{ literal: [
+        ...this._decodeIncludes(tempName, compiler.includes),
+        ..._.map(_populates, ({ column }) => column),
+      ], separator: ',\n' }}
       FROM ${{ identifier: query.className }} AS ${{ identifier: tempName }}
       ${!_.isEmpty(_joins) ? _joins : sql``}
       ${_filter ? sql`WHERE ${_filter}` : sql``}
