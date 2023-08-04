@@ -248,6 +248,18 @@ export class QueryValidator<E> {
     return _matches;
   }
 
+  validateSort(
+    matches: Record<string, DecodedBaseQuery>,
+    includes: string[],
+    parent?: string,
+  ) {
+    for (const [colname, match] of _.toPairs(matches)) {
+      const path = parent ? `${parent}.${colname}` : colname;
+      if (!_.every(_.keys(match.sort), k => includes.includes(`${path}.${k}`))) throw Error('Invalid sort keys');
+      this.validateSort(match.matches, includes, path)
+    }
+  }
+
   decodeQuery<Q extends FindOptions | FindOptions | FindOneOptions>(query: Q, action: keyof TSchema.ACLs): DecodedQuery<Q> {
 
     const filter = QuerySelector.decode([
@@ -260,10 +272,12 @@ export class QueryValidator<E> {
 
     const includes = this.decodeIncludes(query.className, query.includes ?? ['*']);
     const matches = this.decodeMatches(query.className, query.matches ?? {}, includes);
+
     if (!_.every(_.keys(query.sort), k => includes.includes(k))) throw Error('Invalid sort keys');
+    this.validateSort(matches, includes);
 
     return {
-      ..._.omit(query, 'filter', 'matches'),
+      ...query,
       filter,
       matches,
       includes,

@@ -35,12 +35,19 @@ export type FindOneOptions = CommonFindOptions & Omit<TQueryOptions, 'skip' | 'l
 export type DecodedBaseQuery = {
   filter: QuerySelector;
   matches: Record<string, DecodedBaseQuery>;
+  sort?: Record<string, 1 | -1>;
+  skip?: number;
+  limit?: number;
 };
 
-export type DecodedQuery<T> = Omit<T, keyof DecodedBaseQuery> & DecodedBaseQuery & {
+type Modify<T, R> = Omit<T, keyof R> & R;
+
+export type DecodedQuery<T> = Modify<T, {
+  filter: QuerySelector;
+  matches: Record<string, DecodedBaseQuery>;
   includes: string[];
   objectIdSize: number;
-};
+}>;
 
 export type InsertOptions = {
   className: string;

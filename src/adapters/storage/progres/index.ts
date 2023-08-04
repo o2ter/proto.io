@@ -215,7 +215,7 @@ export class PostgresStorage extends SqlStorage {
     populate: Populate,
     field: string,
   ): { column: SQL, join?: SQL } {
-    const { name, className, type, foreignField, includes } = populate;
+    const { name, className, type, foreignField } = populate;
     const _local = (field: string) => sql`${{ identifier: parent.name }}.${{ identifier: field }}`;
     const _foreign = (field: string) => sql`${{ identifier: name }}.${{ identifier: field }}`;
 
@@ -242,6 +242,9 @@ export class PostgresStorage extends SqlStorage {
         ARRAY(
           SELECT row_to_json(${{ identifier: populate.name }})
           FROM ${{ identifier: populate.name }} WHERE ${cond}
+          ${populate.sort ? sql`ORDER BY ${this._decodeSort(populate.name, populate.sort)}` : sql``}
+          ${populate.limit ? sql`LIMIT ${{ literal: `${populate.limit}` }}` : sql``}
+          ${populate.skip ? sql`OFFSET ${{ literal: `${populate.skip}` }}` : sql``}
         ) AS ${{ identifier: field }}
       `,
     };

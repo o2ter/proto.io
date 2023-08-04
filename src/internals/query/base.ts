@@ -24,13 +24,16 @@
 //
 
 import _ from 'lodash';
-import { FieldName, PathName, TQuerySelector } from './types';
+import { FieldName, PathName, PathNameMap, TQuerySelector } from './types';
 import { TValue } from './value';
 import { PVK } from '../private';
 
 export interface TQueryBaseOptions {
   filter?: TQuerySelector | TQuerySelector[];
   matches?: Record<string, TQueryBaseOptions>;
+  sort?: Record<string, 1 | -1>;
+  skip?: number;
+  limit?: number;
 };
 
 const mergeOpts = (lhs: TQueryBaseOptions, rhs: TQueryBaseOptions): TQueryBaseOptions => {
@@ -64,6 +67,23 @@ export class TQueryBase {
     } else {
       this[PVK].options.filter = [this[PVK].options.filter, filter];
     }
+    return this;
+  }
+
+  sort<T extends Record<string, 1 | -1>>(sort: PathNameMap<T>) {
+    this[PVK].options.sort = sort;
+    return this;
+  }
+
+  skip(skip: number) {
+    if (!_.isInteger(skip) || skip < 0) throw Error('Invalid skip number');
+    this[PVK].options.skip = skip;
+    return this;
+  }
+
+  limit(limit: number) {
+    if (!_.isInteger(limit) || limit < 0) throw Error('Invalid limit number');
+    this[PVK].options.limit = limit;
     return this;
   }
 

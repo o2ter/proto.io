@@ -47,6 +47,9 @@ export type Populate = {
   filter: QuerySelector;
   includes: Record<string, TSchema.DataType>;
   populates: Record<string, Populate>;
+  sort?: Record<string, 1 | -1>;
+  skip?: number;
+  limit?: number;
 }
 
 export class QueryCompiler {
@@ -85,6 +88,9 @@ export class QueryCompiler {
           className: dataType.target,
           subpaths: [],
           matches: matches[colname].filter,
+          sort: matches[colname].sort,
+          skip: matches[colname].skip,
+          limit: matches[colname].limit,
           ...dataType,
         };
         populates[colname].subpaths.push(subpath.join('.'));

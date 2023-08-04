@@ -108,7 +108,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
         className: this.className,
         includes: this[PVK].options.includes,
         matches: this[PVK].options.matches,
-      }, _.fromPairs(object.keys().map(k => [k, object.get(k)])))
+      }, _.fromPairs(object.keys().map(k => [k, object.get(k as any)])))
     );
     if (!result) throw Error('Unable to insert document');
     if (_.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, this._proto));
@@ -159,7 +159,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
 
       replacement = {};
       for (const key of object.keys()) {
-        replacement[key] = object.get(key);
+        replacement[key] = object.get(key as any);
       }
     }
 

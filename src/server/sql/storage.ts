@@ -145,6 +145,20 @@ export abstract class SqlStorage implements TStorage {
   ): { column: SQL, join?: SQL }
   protected abstract _decodePopulate(parent: Populate & { colname: string }): Record<string, SQL>
 
+  protected _decodeSortKey(className: string, key: string ): SQL {
+    const [colname, ...subpath] = _.toPath(key);
+    if (_.isEmpty(subpath)) return sql`${{ identifier: className }}.${{ identifier: colname }}`;
+    return sql`jsonb_extract_path(
+      ${{ identifier: className }}.${{ identifier: colname }},
+      ${_.map(subpath, x => sql`${{ quote: x }}`)}
+    )`;
+  }
+  protected _decodeSort(className: string, sort: Record<string, 1 | -1> ): SQL {
+    return sql`${_.map(sort, (order, key) => sql`
+      ${this._decodeSortKey(className, key)} ${{ literal: order === 1 ? 'ASC' : 'DESC' }}
+    `)}`;
+  }
+
   protected _baseSelectQuery(
     query: DecodedQuery<FindOptions>,
     compiler: QueryCompiler,
@@ -180,6 +194,7 @@ export abstract class SqlStorage implements TStorage {
         FROM ${{ identifier: query.className }} AS ${{ identifier: tempName }}
         ${!_.isEmpty(_joins) ? _joins : sql``}
         ${_filter ? sql`WHERE ${_filter}` : sql``}
+        ${query.sort ? sql`ORDER BY ${this._decodeSort(tempName, query.sort)}` : sql``}
         ${query.limit ? sql`LIMIT ${{ literal: `${query.limit}` }}` : sql``}
         ${query.skip ? sql`OFFSET ${{ literal: `${query.skip}` }}` : sql``}
       `,

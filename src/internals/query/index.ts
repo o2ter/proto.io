@@ -33,10 +33,7 @@ import { asyncStream } from '../utils';
 import { TQueryBase, TQueryBaseOptions } from './base';
 
 export interface TQueryOptions extends TQueryBaseOptions {
-  sort?: Record<string, 1 | -1>;
   includes?: string[];
-  skip?: number;
-  limit?: number;
   returning?: 'old' | 'new';
 };
 
@@ -70,25 +67,8 @@ export abstract class TQuery<T extends string, Ext> extends TQueryBase {
   abstract deleteOne(): PromiseLike<TObjectType<T, Ext> | undefined>;
   abstract deleteMany(): PromiseLike<number>;
 
-  sort<T extends Record<string, 1 | -1>>(sort: PathNameMap<T>) {
-    this[PVK].options.sort = sort;
-    return this;
-  }
-
   includes<T extends string[]>(...includes: IncludePaths<T>) {
     this[PVK].options.includes = this[PVK].options.includes ? [...this[PVK].options.includes, ...includes] : includes;
-    return this;
-  }
-
-  skip(skip: number) {
-    if (!_.isInteger(skip) || skip < 0) throw Error('Invalid skip number');
-    this[PVK].options.skip = skip;
-    return this;
-  }
-
-  limit(limit: number) {
-    if (!_.isInteger(limit) || limit < 0) throw Error('Invalid limit number');
-    this[PVK].options.limit = limit;
     return this;
   }
 
