@@ -81,11 +81,13 @@ export abstract class TQuery<T extends string, Ext> extends TQueryBase {
   }
 
   skip(skip: number) {
+    if (!_.isInteger(skip) || skip < 0) throw Error('Invalid skip number');
     this[PVK].options.skip = skip;
     return this;
   }
 
   limit(limit: number) {
+    if (!_.isInteger(limit) || limit < 0) throw Error('Invalid limit number');
     this[PVK].options.limit = limit;
     return this;
   }
