@@ -26,6 +26,7 @@
 import _ from 'lodash';
 import { TObject } from './index';
 import { TValue } from '../query/value';
+import { TUser } from './user';
 
 export class TRole extends TObject {
 
@@ -37,5 +38,21 @@ export class TRole extends TObject {
 
   get name(): string {
     return this.get('name') as string;
+  }
+
+  get users(): TUser[] {
+    return this.get('users') as TUser[];
+  }
+
+  set users(value: TUser[]) {
+    this.set('users', value);
+  }
+
+  get roles(): TRole[] {
+    return this.get('roles') as TRole[];
+  }
+
+  set roles(value: TRole[]) {
+    this.set('roles', value);
   }
 }
