@@ -132,7 +132,7 @@ export class TObject {
         value = _.get(value, k);
       }
     }
-    return value;
+    return cloneValue(value);
   }
 
   get(key: string) {
