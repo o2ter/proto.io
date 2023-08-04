@@ -104,7 +104,7 @@ export abstract class SqlStorage implements TStorage {
     return obj;
   }
 
-  protected _decodeCoditionalSelector(className: string, filter: CoditionalSelector) {
+  protected _decodeCoditionalSelector(className: string, filter: CoditionalSelector): SQL | undefined {
     const queries = _.compact(_.map(filter.exprs, x => this._decodeFilter(className, x)));
     if (_.isEmpty(queries)) return;
     switch (filter.type) {
@@ -114,8 +114,11 @@ export abstract class SqlStorage implements TStorage {
     }
   }
 
-  protected _decodeFieldExpression(className: string, field: string, expr: FieldExpression) {
+  protected _decodeFieldExpression(className: string, field: string, expr: FieldExpression): SQL | undefined {
+    const [colname, ...subpath] = _.toPath(field);
 
+
+    
   }
 
   protected _decodeFilter(className: string, filter: QuerySelector): SQL | undefined {
@@ -123,8 +126,7 @@ export abstract class SqlStorage implements TStorage {
       return this._decodeCoditionalSelector(className, filter);
     }
     if (filter instanceof FieldSelector) {
-      const [colname, ...subpath] = _.toPath(filter.field);
-
+      return this._decodeFieldExpression(className, filter.field, filter.expr);
     }
   }
 
