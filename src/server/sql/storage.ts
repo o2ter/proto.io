@@ -132,10 +132,10 @@ export abstract class SqlStorage implements TStorage {
 
   protected _decodeIncludes(
     className: string,
-    includes: Record<string, { type: TSchema.DataType; name: string; }>,
+    includes: Record<string, TSchema.DataType>,
   ): SQL[] {
-    const _includes = _.pickBy(includes, v => _.isString(v.type) || (v.type.type !== 'pointer' && v.type.type !== 'relation'));
-    return _.map(_includes, ({ name }, colname) => sql`${{ identifier: className }}.${{ identifier: colname }} AS ${{ identifier: name }}`);
+    const _includes = _.pickBy(includes, v => _.isString(v) || (v.type !== 'pointer' && v.type !== 'relation'));
+    return _.map(_.keys(_includes), (colname) => sql`${{ identifier: className }}.${{ identifier: colname }} AS ${{ identifier: colname }}`);
   }
 
   protected abstract _selectPopulate(

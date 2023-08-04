@@ -45,7 +45,7 @@ export type Populate = {
   foreignField?: { colname: string; type: TSchema.Relation; };
   subpaths: string[];
   filter: QuerySelector;
-  includes: Record<string, { type: TSchema.DataType; name: string; }>;
+  includes: Record<string, TSchema.DataType>;
   populates: Record<string, Populate>;
 }
 
@@ -54,7 +54,7 @@ export class QueryCompiler {
   schema: Record<string, TSchema>;
 
   idx = 0;
-  includes: Record<string, { type: TSchema.DataType; name: string; }> = {};
+  includes: Record<string, TSchema.DataType> = {};
   populates: Record<string, Populate> = {};
   sorting: Record<string, 1 | -1> = {};
 
@@ -69,17 +69,14 @@ export class QueryCompiler {
   private _decodeIncludes(className: string, includes: string[], matches: Record<string, DecodedBaseQuery>) {
 
     const schema = this.schema[className] ?? {};
-    const names: Record<string, { type: TSchema.DataType; name: string; }> = {};
+    const names: Record<string, TSchema.DataType> = {};
     const populates: Record<string, Populate> = {};
 
     for (const include of includes) {
       const [colname, ...subpath] = include.split('.');
 
       const dataType = schema.fields[colname] ?? defaultObjectKeyTypes[colname];
-      names[colname] = {
-        type: dataType,
-        name: `v${this.nextIdx()}`,
-      };
+      names[colname] = dataType;
 
       if (!_.isString(dataType) && (dataType.type === 'pointer' || dataType.type === 'relation')) {
         if (_.isEmpty(subpath)) throw Error(`Invalid path: ${include}`);
@@ -115,7 +112,7 @@ export class QueryCompiler {
       if (resolvedField) {
         resolved = name;
       } else if (includes[name]) {
-        resolved = includes[name].name;
+        resolved = name;
         resolvedField = true;
       } else if (populates[name]) {
         resolved = populates[name].name;

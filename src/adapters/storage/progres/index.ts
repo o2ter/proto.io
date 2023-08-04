@@ -217,11 +217,11 @@ export class PostgresStorage extends SqlStorage {
   ): { column: SQL, join?: SQL } {
     const { name, className, type, foreignField, includes } = populate;
     const _local = (field: string) => sql`${{ identifier: parent.name }}.${{ identifier: field }}`;
-    const _foreign = (field: string) => sql`${{ identifier: name }}.${{ identifier: includes[field].name }}`;
+    const _foreign = (field: string) => sql`${{ identifier: name }}.${{ identifier: field }}`;
 
     if (type === 'pointer') {
       return {
-        column: sql`row_to_json(${{ identifier: populate.name }}) AS ${{ identifier: parent.includes[field].name }}`,
+        column: sql`row_to_json(${{ identifier: populate.name }}) AS ${{ identifier: field }}`,
         join: sql`
           LEFT JOIN ${{ identifier: populate.name }}
           ON ${sql`(${{ quote: className + '$' }} || ${_foreign('_id')})`} = ${_local(parent.colname)}
@@ -242,7 +242,7 @@ export class PostgresStorage extends SqlStorage {
         ARRAY(
           SELECT row_to_json(${{ identifier: populate.name }})
           FROM ${{ identifier: populate.name }} WHERE ${cond}
-        ) AS ${{ identifier: parent.includes[field].name }}
+        ) AS ${{ identifier: field }}
       `,
     };
   }
