@@ -226,7 +226,7 @@ export class PostgresStorage extends SqlStorage {
     } else if (foreignField.type === 'pointer') {
       cond = sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ${_foreign(foreignField.colname)}`;
     } else {
-      cond = sql`ARRAY[${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`}] = ANY(${_foreign(foreignField.colname)})`;
+      cond = sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ANY(${_foreign(foreignField.colname)})`;
     }
     return sql`ARRAY(
       SELECT row_to_json(${{ identifier: `_row_$${populate.name}` }}) 
