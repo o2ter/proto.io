@@ -275,7 +275,7 @@ export class PostgresStorage extends SqlStorage {
 
   async explain(query: DecodedQuery<FindOptions>) {
     const compiler = this._queryCompiler(query);
-    const explains = await this.query(sql`EXPLAIN (FORMAT JSON) ${this._selectQuery(query, compiler)}`);
+    const explains = await this.query(sql`EXPLAIN (ANALYZE, FORMAT JSON) ${this._selectQuery(query, compiler)}`);
     return _.first(explains)['QUERY PLAN'];
   }
 
