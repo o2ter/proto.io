@@ -104,7 +104,7 @@ export abstract class SqlStorage implements TStorage {
     return obj;
   }
 
-  protected _decodeCoditionalSelector(className: string, filter: CoditionalSelector): SQL | undefined {
+  protected _decodeCoditionalSelector(className: string, filter: CoditionalSelector) {
     const queries = _.compact(_.map(filter.exprs, x => this._decodeFilter(className, x)));
     if (_.isEmpty(queries)) return;
     switch (filter.type) {
