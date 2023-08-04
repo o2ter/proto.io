@@ -140,7 +140,7 @@ export abstract class SqlStorage implements TStorage {
     parent: Pick<Populate, 'className' | 'name' | 'includes'> & { colname: string },
     populate: Populate,
     field: string,
-  ): SQL
+  ): { column: SQL, join?: SQL }
   protected abstract _decodePopulate(parent: Populate & { colname: string }): Record<string, SQL>
 
   protected _selectQuery(query: DecodedQuery<FindOptions>, select?: SQL) {
@@ -152,6 +152,13 @@ export abstract class SqlStorage implements TStorage {
     const tempName = `_temp_$${query.className.toLowerCase()}`;
 
     const _filter = this._decodeFilter(query.filter);
+    const _populates = _.map(compiler.populates, (populate, field) => this._selectPopulate({
+      className: query.className,
+      name: tempName,
+      includes: compiler.includes,
+      colname: field,
+    }, populate, field));
+    const _joins = _.compact(_.map(_populates, ({ join }) => join));
 
     return sql`
       ${!_.isEmpty(queries) ? sql`WITH ${_.map(queries, (q, n) => sql`${{ identifier: n }} AS (${q})`)}` : sql``}
@@ -159,15 +166,12 @@ export abstract class SqlStorage implements TStorage {
       ${select ? select : {
         literal: [
           ...this._decodeIncludes(tempName, compiler.includes),
-          ..._.map(compiler.populates, (populate, field) => this._selectPopulate({
-            className: query.className,
-            name: tempName,
-            includes: compiler.includes,
-            colname: field,
-          }, populate, field)),
+          ..._.map(_populates, ({ column }) => column),
         ], separator: ',\n'
       }}
-      FROM ${{ identifier: query.className }} AS ${{ identifier: tempName }}${_filter ? sql` WHERE ${_filter}` : sql``}
+      FROM ${{ identifier: query.className }} AS ${{ identifier: tempName }}
+      ${!_.isEmpty(_joins) ? _joins : sql``}
+      ${_filter ? sql` WHERE ${_filter}` : sql``}
       ${query.limit ? sql`LIMIT ${{ literal: `${query.limit}` }}` : sql``}
       ${query.skip ? sql`OFFSET ${{ literal: `${query.skip}` }}` : sql``}
     `;

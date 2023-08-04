@@ -50,7 +50,13 @@ const database = new PostgresStorage(uri);
 
 const proto = new Proto({
   endpoint: 'http://localhost:8080',
-  schema: {},
+  schema: {
+    '_Role': {
+      fields: {
+        createdBy: { type: 'pointer', target: '_User' },
+      }
+    }
+  },
   storage: database,
   fileStorage: new DatabaseFileStorage(),
 });
@@ -72,6 +78,7 @@ beforeAll(async () => {
 
   console.dir(await proto.Query('_Role').includes(
     '_id',
+    'createdBy._id',
     'users._id',
     'roles._id',
     'roles.roles._id',

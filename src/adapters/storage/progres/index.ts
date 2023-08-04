@@ -214,30 +214,46 @@ export class PostgresStorage extends SqlStorage {
     parent: Pick<Populate, 'className' | 'name' | 'includes'> & { colname: string },
     populate: Populate,
     field: string,
-  ): SQL {
+  ): { column: SQL, join?: SQL } {
     const { name, className, type, foreignField, includes } = populate;
     const _local = (field: string) => sql`${{ identifier: parent.name }}.${{ identifier: field }}`;
     const _foreign = (field: string) => sql`${{ identifier: name }}.${{ identifier: includes[field].name }}`;
-    let cond: SQL;
+
     if (type === 'pointer') {
-      cond = sql`${sql`(${{ quote: className + '$' }} || ${_foreign('_id')})`} = ${_local(parent.colname)}`;
-    } else if (_.isNil(foreignField)) {
+      return {
+        column: sql`row_to_json(${{ identifier: populate.name }}) AS ${{ identifier: parent.includes[field].name }}`,
+        join: sql`
+          LEFT JOIN
+            ${{ identifier: populate.name }}
+            ON ${sql`(${{ quote: className + '$' }} || ${_foreign('_id')})`} = ${_local(parent.colname)}
+        `,
+      };
+    }
+
+    let cond: SQL;
+    if (_.isNil(foreignField)) {
       cond = sql`${sql`(${{ quote: className + '$' }} || ${_foreign('_id')})`} = ANY(${_local(parent.colname)})`;
     } else if (foreignField.type === 'pointer') {
       cond = sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ${_foreign(foreignField.colname)}`;
     } else {
       cond = sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ANY(${_foreign(foreignField.colname)})`;
     }
-    return sql`ARRAY(
-      SELECT row_to_json(${{ identifier: `_row_$${populate.name}` }}) 
-      FROM (
-        SELECT * FROM ${{ identifier: populate.name }} WHERE ${cond}
-      ) AS ${{ identifier: `_row_$${populate.name}` }}
-    ) AS ${{ identifier: parent.includes[field].name }}`;
+    return {
+      column: sql`
+        ARRAY(
+          SELECT row_to_json(${{ identifier: `_row_$${populate.name}` }}) 
+          FROM (
+            SELECT * FROM ${{ identifier: populate.name }} WHERE ${cond}
+          ) AS ${{ identifier: `_row_$${populate.name}` }}
+        ) AS ${{ identifier: parent.includes[field].name }}
+      `,
+    };
   }
 
   protected _decodePopulate(parent: Populate & { colname: string }): Record<string, SQL> {
     const _filter = this._decodeFilter(parent.filter);
+    const _populates = _.map(parent.populates, (populate, field) => this._selectPopulate(parent, populate, field));
+    const _joins = _.compact(_.map(_populates, ({ join }) => join));
     return _.reduce(parent.populates, (acc, populate, field) => ({
       ...this._decodePopulate({ ...populate, colname: field }),
       ...acc,
@@ -247,10 +263,12 @@ export class PostgresStorage extends SqlStorage {
         ${{
           literal: [
             ...this._decodeIncludes(parent.name, parent.includes),
-            ..._.map(parent.populates, (populate, field) => this._selectPopulate(parent, populate, field)),
+            ..._.map(_populates, ({ column }) => column),
           ], separator: ',\n'
         }}
-        FROM ${{ identifier: parent.className }} AS ${{ identifier: parent.name }}${_filter ? sql` WHERE ${_filter}` : sql``}
+        FROM ${{ identifier: parent.className }} AS ${{ identifier: parent.name }}
+        ${!_.isEmpty(_joins) ? _joins : sql``}
+        ${_filter ? sql` WHERE ${_filter}` : sql``}
       `,
     });
   }
