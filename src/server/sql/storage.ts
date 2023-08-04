@@ -228,7 +228,7 @@ export abstract class SqlStorage implements TStorage {
       tempName: string,
       populates: {
         column: SQL;
-        join?: SQL | undefined;
+        join?: SQL;
       }[]
     ) => SQL
   ) {
