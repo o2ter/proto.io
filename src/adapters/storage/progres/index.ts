@@ -223,9 +223,8 @@ export class PostgresStorage extends SqlStorage {
       return {
         column: sql`row_to_json(${{ identifier: populate.name }}) AS ${{ identifier: parent.includes[field].name }}`,
         join: sql`
-          LEFT JOIN
-            ${{ identifier: populate.name }}
-            ON ${sql`(${{ quote: className + '$' }} || ${_foreign('_id')})`} = ${_local(parent.colname)}
+          LEFT JOIN ${{ identifier: populate.name }}
+          ON ${sql`(${{ quote: className + '$' }} || ${_foreign('_id')})`} = ${_local(parent.colname)}
         `,
       };
     }
@@ -241,10 +240,8 @@ export class PostgresStorage extends SqlStorage {
     return {
       column: sql`
         ARRAY(
-          SELECT row_to_json(${{ identifier: `_row_$${populate.name}` }}) 
-          FROM (
-            SELECT * FROM ${{ identifier: populate.name }} WHERE ${cond}
-          ) AS ${{ identifier: `_row_$${populate.name}` }}
+          SELECT row_to_json(${{ identifier: populate.name }})
+          FROM ${{ identifier: populate.name }} WHERE ${cond}
         ) AS ${{ identifier: parent.includes[field].name }}
       `,
     };
