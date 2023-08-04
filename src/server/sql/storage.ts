@@ -104,8 +104,8 @@ export abstract class SqlStorage implements TStorage {
     return obj;
   }
 
-  protected _decodeCoditionalSelector(filter: CoditionalSelector) {
-    const queries = _.compact(_.map(filter.exprs, x => this._decodeFilter(x)));
+  protected _decodeCoditionalSelector(className: string, filter: CoditionalSelector) {
+    const queries = _.compact(_.map(filter.exprs, x => this._decodeFilter(className, x)));
     if (_.isEmpty(queries)) return;
     switch (filter.type) {
       case '$and': return sql`(${{ literal: _.map(queries, x => sql`(${x})`), separator: ' AND ' }})`;
@@ -114,13 +114,13 @@ export abstract class SqlStorage implements TStorage {
     }
   }
 
-  protected _decodeFieldExpression(field: string, expr: FieldExpression) {
+  protected _decodeFieldExpression(className: string, field: string, expr: FieldExpression) {
 
   }
 
-  protected _decodeFilter(filter: QuerySelector): SQL | undefined {
+  protected _decodeFilter(className: string, filter: QuerySelector): SQL | undefined {
     if (filter instanceof CoditionalSelector) {
-      return this._decodeCoditionalSelector(filter);
+      return this._decodeCoditionalSelector(className, filter);
     }
     if (filter instanceof FieldSelector) {
       const [colname, ...subpath] = _.toPath(filter.field);
@@ -151,7 +151,7 @@ export abstract class SqlStorage implements TStorage {
 
     const tempName = `_temp_$${query.className.toLowerCase()}`;
 
-    const _filter = this._decodeFilter(query.filter);
+    const _filter = this._decodeFilter(query.className, query.filter);
     const _populates = _.map(compiler.populates, (populate, field) => this._selectPopulate({
       className: query.className,
       name: tempName,
