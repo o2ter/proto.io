@@ -265,7 +265,7 @@ export class PostgresStorage extends SqlStorage {
         }}
         FROM ${{ identifier: parent.className }} AS ${{ identifier: parent.name }}
         ${!_.isEmpty(_joins) ? _joins : sql``}
-        ${_filter ? sql` WHERE ${_filter}` : sql``}
+        ${_filter ? sql`WHERE ${_filter}` : sql``}
       `,
     });
   }
