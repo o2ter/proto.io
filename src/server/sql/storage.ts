@@ -145,7 +145,11 @@ export abstract class SqlStorage implements TStorage {
   ): { column: SQL, join?: SQL }
   protected abstract _decodePopulate(parent: Populate & { colname: string }): Record<string, SQL>
 
-  protected _selectQuery(query: DecodedQuery<FindOptions>, compiler: QueryCompiler, select?: SQL) {
+  protected _baseSelectQuery(
+    query: DecodedQuery<FindOptions>,
+    compiler: QueryCompiler,
+    select?: SQL
+  ) {
 
     const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }));
     const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
@@ -161,20 +165,51 @@ export abstract class SqlStorage implements TStorage {
     }, populate, field));
     const _joins = _.compact(_.map(_populates, ({ join }) => join));
 
+    return {
+      queries,
+      tempName,
+      populates: _populates,
+      query: sql`
+        SELECT
+        ${select ? select : {
+          literal: [
+            ...this._decodeIncludes(tempName, compiler.includes),
+            ..._.map(_populates, ({ column }) => column),
+          ], separator: ',\n'
+        }}
+        FROM ${{ identifier: query.className }} AS ${{ identifier: tempName }}
+        ${!_.isEmpty(_joins) ? _joins : sql``}
+        ${_filter ? sql`WHERE ${_filter}` : sql``}
+        ${query.limit ? sql`LIMIT ${{ literal: `${query.limit}` }}` : sql``}
+        ${query.skip ? sql`OFFSET ${{ literal: `${query.skip}` }}` : sql``}
+      `,
+    };
+  }
+
+  protected _selectQuery(query: DecodedQuery<FindOptions>, compiler: QueryCompiler, select?: SQL) {
+    const { queries, populates: _populates, query: _query } = this._baseSelectQuery(query, compiler, select);
     return sql`
       ${!_.isEmpty(queries) ? sql`WITH ${_.map(queries, (q, n) => sql`${{ identifier: n }} AS (${q})`)}` : sql``}
-      SELECT
-      ${select ? select : {
-        literal: [
-          ...this._decodeIncludes(tempName, compiler.includes),
-          ..._.map(_populates, ({ column }) => column),
-        ], separator: ',\n'
-      }}
-      FROM ${{ identifier: query.className }} AS ${{ identifier: tempName }}
-      ${!_.isEmpty(_joins) ? _joins : sql``}
-      ${_filter ? sql`WHERE ${_filter}` : sql``}
-      ${query.limit ? sql`LIMIT ${{ literal: `${query.limit}` }}` : sql``}
-      ${query.skip ? sql`OFFSET ${{ literal: `${query.skip}` }}` : sql``}
+      ${_query}
+    `;
+  }
+
+  protected _modifyQuery(
+    query: DecodedQuery<FindOneOptions> & { limit?: number },
+    compiler: QueryCompiler,
+    action: (
+      tempName: string,
+      populates: {
+        column: SQL;
+        join?: SQL;
+      }[]
+    ) => SQL
+  ) {
+    const { queries, tempName, populates: _populates, query: _query } = this._baseSelectQuery(query, compiler);
+    queries[tempName] = _query;
+    return sql`
+      ${!_.isEmpty(queries) ? sql`WITH ${_.map(queries, (q, n) => sql`${{ identifier: n }} AS (${q})`)}` : sql``}
+      ${action(tempName, _populates)}
     `;
   }
 
@@ -219,52 +254,6 @@ export abstract class SqlStorage implements TStorage {
     `));
 
     return _.isNil(result) ? undefined : this._decodeObject(options.className, result);
-  }
-
-  protected _modifyQuery(
-    query: DecodedQuery<FindOneOptions> & { limit?: number },
-    compiler: QueryCompiler,
-    action: (
-      tempName: string,
-      populates: {
-        column: SQL;
-        join?: SQL;
-      }[]
-    ) => SQL
-  ) {
-
-    const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }));
-    const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
-
-    const tempName = `_temp_$${query.className.toLowerCase()}`;
-
-    const _filter = this._decodeFilter(query.className, query.filter);
-    const _populates = _.map(compiler.populates, (populate, field) => this._selectPopulate({
-      className: query.className,
-      name: tempName,
-      includes: compiler.includes,
-      colname: field,
-    }, populate, field));
-    const _joins = _.compact(_.map(_populates, ({ join }) => join));
-
-    queries[tempName] = sql`
-      SELECT
-      ${{
-        literal: [
-          ...this._decodeIncludes(tempName, compiler.includes),
-          ..._.map(_populates, ({ column }) => column),
-        ], separator: ',\n'
-      }}
-      FROM ${{ identifier: query.className }} AS ${{ identifier: tempName }}
-      ${!_.isEmpty(_joins) ? _joins : sql``}
-      ${_filter ? sql`WHERE ${_filter}` : sql``}
-      ${query.limit ? sql`LIMIT ${{ literal: `${query.limit}` }}` : sql``}
-    `;
-
-    return sql`
-      ${!_.isEmpty(queries) ? sql`WITH ${_.map(queries, (q, n) => sql`${{ identifier: n }} AS (${q})`)}` : sql``}
-      ${action(tempName, _populates)}
-    `;
   }
 
   async updateOne(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>) {
