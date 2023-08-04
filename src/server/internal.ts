@@ -185,7 +185,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
       object.set('size', file.size);
 
       const created = await this.proto.Query(object.className, options)
-        .insert(_.fromPairs(object.keys().map(k => [k, object.get(k)])));
+        .insert(_.fromPairs(object.keys().map(k => [k, object.get(k as any)])));
 
       if (created) {
         object[PVK].attributes = created.attributes;

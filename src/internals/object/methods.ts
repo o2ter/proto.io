@@ -110,7 +110,7 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
           object[PVK].attributes = updated.attributes;
           object[PVK].mutated = {};
         } else {
-          const created = await query(options).insert(_.fromPairs(this.keys().map(k => [k, this.get(k)])));
+          const created = await query(options).insert(_.fromPairs(this.keys().map(k => [k, this.get(k as any)])));
           object[PVK].attributes = created.attributes;
           object[PVK].mutated = {};
         }

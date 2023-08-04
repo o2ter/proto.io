@@ -28,6 +28,7 @@ import { PVK } from '../private';
 import { ExtraOptions } from '../options';
 import { TValue, cloneValue, isPrimitiveValue } from '../query/value';
 import { TSchema } from '../../server/schema';
+import { PathName } from '../query/types';
 
 export const enum UpdateOp {
   set = 'set',
@@ -127,7 +128,7 @@ export class TObject {
     for (const k of _.toPath(key)) {
       if (isPrimitiveValue(value)) return null;
       if (value instanceof TObject) {
-        value = value.get(k);
+        value = value.get(k as any);
       } else {
         value = _.get(value, k);
       }
@@ -135,14 +136,14 @@ export class TObject {
     return cloneValue(value);
   }
 
-  get(key: string) {
+  get<T extends string>(key: PathName<T>) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (_.isNil(this[PVK].mutated[key])) return this.attrValue(key);
     const [op, value] = this[PVK].mutated[key];
     return op === UpdateOp.set ? value : this.attrValue(key);
   }
 
-  set(key: string, value: TValue | undefined) {
+  set<T extends string>(key: PathName<T>, value: TValue | undefined) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key)) as string)) return;
     this[PVK].mutated[key] = [UpdateOp.set, value ?? null];
@@ -152,67 +153,67 @@ export class TObject {
     return !_.isEmpty(this[PVK].mutated);
   }
 
-  increment(key: string, value: number) {
+  increment<T extends string>(key: PathName<T>, value: number) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key)) as string)) return;
     this[PVK].mutated[key] = [UpdateOp.increment, value];
   }
 
-  decrement(key: string, value: number) {
+  decrement<T extends string>(key: PathName<T>, value: number) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key)) as string)) return;
     this[PVK].mutated[key] = [UpdateOp.increment, -value];
   }
 
-  multiply(key: string, value: number) {
+  multiply<T extends string>(key: PathName<T>, value: number) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key)) as string)) return;
     this[PVK].mutated[key] = [UpdateOp.multiply, value];
   }
 
-  divide(key: string, value: number) {
+  divide<T extends string>(key: PathName<T>, value: number) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key)) as string)) return;
     this[PVK].mutated[key] = [UpdateOp.multiply, 1 / value];
   }
 
-  max(key: string, value: TValue) {
+  max<T extends string>(key: PathName<T>, value: TValue) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key)) as string)) return;
     this[PVK].mutated[key] = [UpdateOp.max, value];
   }
 
-  min(key: string, value: TValue) {
+  min<T extends string>(key: PathName<T>, value: TValue) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key)) as string)) return;
     this[PVK].mutated[key] = [UpdateOp.min, value];
   }
 
-  addToSet(key: string, values: TValue[]) {
+  addToSet<T extends string>(key: PathName<T>, values: TValue[]) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key)) as string)) return;
     this[PVK].mutated[key] = [UpdateOp.addToSet, values];
   }
 
-  push(key: string, values: TValue[]) {
+  push<T extends string>(key: PathName<T>, values: TValue[]) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key)) as string)) return;
     this[PVK].mutated[key] = [UpdateOp.push, values];
   }
 
-  removeAll(key: string, values: TValue[]) {
+  removeAll<T extends string>(key: PathName<T>, values: TValue[]) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key)) as string)) return;
     this[PVK].mutated[key] = [UpdateOp.removeAll, values];
   }
 
-  popFirst(key: string) {
+  popFirst<T extends string>(key: PathName<T>) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key)) as string)) return;
     this[PVK].mutated[key] = [UpdateOp.popFirst, null];
   }
 
-  popLast(key: string) {
+  popLast<T extends string>(key: PathName<T>) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key)) as string)) return;
     this[PVK].mutated[key] = [UpdateOp.popLast, null];
