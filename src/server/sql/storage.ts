@@ -114,7 +114,7 @@ export abstract class SqlStorage implements TStorage {
     }
   }
 
-  protected _decodeFieldExpression(className: string, field: string, expr: FieldExpression): SQL | undefined {
+  protected _decodeFieldExpression(className: string, field: string, expr: FieldExpression): any {
     const [colname, ...subpath] = _.toPath(field);
 
 
@@ -145,9 +145,8 @@ export abstract class SqlStorage implements TStorage {
   ): { column: SQL, join?: SQL }
   protected abstract _decodePopulate(parent: Populate & { colname: string }): Record<string, SQL>
 
-  protected _selectQuery(query: DecodedQuery<FindOptions>, select?: SQL) {
+  protected _selectQuery(query: DecodedQuery<FindOptions>, compiler: QueryCompiler, select?: SQL) {
 
-    const compiler = this._queryCompiler(query);
     const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }));
     const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
 
@@ -182,12 +181,14 @@ export abstract class SqlStorage implements TStorage {
   abstract explain(query: DecodedQuery<FindOptions>): PromiseLike<any>
 
   async count(query: DecodedQuery<FindOptions>) {
-    const _query = await this.query(this._selectQuery(query, sql`COUNT(*) AS count`));
+    const compiler = this._queryCompiler(query);
+    const _query = await this.query(this._selectQuery(query, compiler, sql`COUNT(*) AS count`));
     return _.first(_query).count as number;
   }
 
   find(query: DecodedQuery<FindOptions>) {
-    return this.query(this._selectQuery(query));
+    const compiler = this._queryCompiler(query);
+    return this.query(this._selectQuery(query, compiler));
   }
 
   async insert(options: InsertOptions, attrs: Record<string, TValue>) {
