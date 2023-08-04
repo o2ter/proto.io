@@ -221,12 +221,17 @@ export abstract class SqlStorage implements TStorage {
     return _.isNil(result) ? undefined : this._decodeObject(options.className, result);
   }
 
-  protected _modifyQuery(query: DecodedQuery<FindOneOptions> & { limit?: number }, compiler: QueryCompiler, action: (
-    tempName: string,
-    populates: {
-      column: SQL;
-      join?: SQL | undefined;
-    }[]) => SQL) {
+  protected _modifyQuery(
+    query: DecodedQuery<FindOneOptions> & { limit?: number },
+    compiler: QueryCompiler,
+    action: (
+      tempName: string,
+      populates: {
+        column: SQL;
+        join?: SQL | undefined;
+      }[]
+    ) => SQL
+  ) {
 
     const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }));
     const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
@@ -244,10 +249,12 @@ export abstract class SqlStorage implements TStorage {
 
     queries[tempName] = sql`
       SELECT
-      ${{ literal: [
-        ...this._decodeIncludes(tempName, compiler.includes),
-        ..._.map(_populates, ({ column }) => column),
-      ], separator: ',\n' }}
+      ${{
+        literal: [
+          ...this._decodeIncludes(tempName, compiler.includes),
+          ..._.map(_populates, ({ column }) => column),
+        ], separator: ',\n'
+      }}
       FROM ${{ identifier: query.className }} AS ${{ identifier: tempName }}
       ${!_.isEmpty(_joins) ? _joins : sql``}
       ${_filter ? sql`WHERE ${_filter}` : sql``}
