@@ -220,7 +220,7 @@ export class PostgresStorage extends SqlStorage {
     const _foreign = (field: string) => sql`${{ identifier: name }}.${{ identifier: includes[field].name }}`;
     let cond: SQL;
     if (type === 'pointer') {
-      cond = sql`${_local(parent.colname)} = ${sql`(${{ quote: className + '$' }} || ${_foreign('_id')})`}`;
+      cond = sql`${sql`(${{ quote: className + '$' }} || ${_foreign('_id')})`} = ${_local(parent.colname)}`;
     } else if (_.isNil(foreignField)) {
       cond = sql`${sql`(${{ quote: className + '$' }} || ${_foreign('_id')})`} = ANY(${_local(parent.colname)})`;
     } else if (foreignField.type === 'pointer') {
