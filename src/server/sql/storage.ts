@@ -253,6 +253,7 @@ export abstract class SqlStorage implements TStorage {
       FROM ${{ identifier: query.className }} AS ${{ identifier: tempName }}
       ${!_.isEmpty(_joins) ? _joins : sql``}
       ${_filter ? sql`WHERE ${_filter}` : sql``}
+      LIMIT 1
     `;
 
     return sql`
