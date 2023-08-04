@@ -119,7 +119,7 @@ export class TObject {
   }
 
   keys(): string[] {
-    return _.uniq([..._.keys(this[PVK].attributes), ..._.compact(_.map(_.keys(this[PVK].mutated), x => _.first(x.split('.'))))]);
+    return _.uniq([..._.keys(this[PVK].attributes), ..._.compact(_.map(_.keys(this[PVK].mutated), x => _.first(_.toPath(x))))]);
   }
 
   private attrValue(key: string): TValue {
