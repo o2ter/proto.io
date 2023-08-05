@@ -62,8 +62,8 @@ const proto = new Proto({
         date: 'date',
         object: 'object',
         array: 'array',
-        user: { type: 'pointer', target: 'Test' },
-        tests: { type: 'relation', target: 'Test' },
+        pointer: { type: 'pointer', target: 'Test' },
+        relation: { type: 'relation', target: 'Test' },
       }
     }
   },
