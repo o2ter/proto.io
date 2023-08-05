@@ -55,7 +55,13 @@ const proto = new Proto({
   schema: {
     'Test': {
       fields: {
-        value: 'string',
+        boolean: 'boolean',
+        number: 'number',
+        decimal: 'decimal',
+        string: 'string',
+        date: 'date',
+        object: 'object',
+        array: 'array',
         user: { type: 'pointer', target: 'Test' },
         tests: { type: 'relation', target: 'Test' },
       }

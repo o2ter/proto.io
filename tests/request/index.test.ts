@@ -61,39 +61,57 @@ test('test files 2', async () => {
   await file.save();
 });
 
-test('test explain', async () => {
-
-  console.dir(await proto.Query('Test', { master: true }).includes(
-    '_id',
-    'user._id',
-    'tests._id',
-    'tests.tests._id',
-    'tests.tests.tests._id',
-    'tests.tests.tests.tests._id',
-  ).sort({
-    '_id': 1,
-  }).explain(), { depth: null });
-});
-
 test('test insert', async () => {
-  const inserted = await proto.Query('Test').insert({ value: 'hello' });
+  const inserted = await proto.Query('Test').insert({ string: 'hello' });
   expect(inserted.objectId).toBeTruthy();
-  expect(inserted.get('value')).toStrictEqual('hello');
+  expect(inserted.get('string')).toStrictEqual('hello');
+})
+
+test('test types', async () => {
+  const date = new Date;
+  const inserted = await proto.Query('Test').insert({
+    boolean: true,
+    number: 42,
+    decimal: new Decimal(42),
+    string: 'hello',
+    date: date,
+    object: {
+      boolean: true,
+      number: 42,
+      decimal: new Decimal(42),
+      string: 'hello',
+      date: date,
+    },
+    array: [1, 2, 3, date, new Decimal(42)],
+  });
+  expect(inserted.get('boolean')).toStrictEqual(true);
+  expect(inserted.get('number')).toStrictEqual(42);
+  expect(inserted.get('decimal')).toStrictEqual(new Decimal(42));
+  expect(inserted.get('string')).toStrictEqual('hello');
+  expect(inserted.get('date')).toStrictEqual(date);
+  expect(inserted.get('object')).toStrictEqual({
+    boolean: true,
+    number: 42,
+    decimal: new Decimal(42),
+    string: 'hello',
+    date: date,
+  });
+  expect(inserted.get('array')).toStrictEqual([1, 2, 3, date, new Decimal(42)]);
 })
 
 test('test upsert', async () => {
   const upserted = await proto.Query('Test')
     .equalTo('_id', '')
-    .upsertOne({ value: [UpdateOp.set, 'update'] }, { value: 'insert' });
+    .upsertOne({ string: [UpdateOp.set, 'update'] }, { string: 'insert' });
   expect(upserted?.objectId).toBeTruthy();
-  expect(upserted?.get('value')).toStrictEqual('insert');
+  expect(upserted?.get('string')).toStrictEqual('insert');
 })
 
 test('test upsert 2', async () => {
   const inserted = await proto.Query('Test').insert({});
   const upserted = await proto.Query('Test')
     .equalTo('_id', inserted.objectId)
-    .upsertOne({ value: [UpdateOp.set, 'update'] }, { value: 'insert' });
+    .upsertOne({ string: [UpdateOp.set, 'update'] }, { string: 'insert' });
   expect(upserted?.objectId).toStrictEqual(inserted.objectId);
-  expect(upserted?.get('value')).toStrictEqual('update');
+  expect(upserted?.get('string')).toStrictEqual('update');
 })
