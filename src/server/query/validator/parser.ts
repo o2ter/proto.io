@@ -110,10 +110,10 @@ export class FieldExpression {
 
   static decode(selector: TFieldQuerySelector): FieldExpression {
     for (const [type, expr] of _.toPairs(selector)) {
-      if (type in TComparisonKeys) {
+      if (type in TComparisonKeys || type in TValueListKeys) {
         if (!isValue(expr)) throw Error('Invalid expression');
         return new FieldExpression(type as any, expr);
-      } else if (type in TValueListKeys || type in TValueSetKeys) {
+      } else if (type in TValueSetKeys) {
         if (!isValue(expr) || !_.isArray(expr)) throw Error('Invalid expression');
         return new FieldExpression(type as any, expr);
       } else {

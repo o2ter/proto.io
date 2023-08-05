@@ -39,7 +39,6 @@ export enum TComparisonKeys {
 export enum TValueListKeys {
   $in = '$in',
   $nin = '$nin',
-  $all = '$all',
 };
 
 export enum TValueSetKeys {
@@ -72,7 +71,7 @@ export type TFieldQuerySelector = {
   $every?: TQuerySelector | TThisQuerySelector;
   $some?: TQuerySelector | TThisQuerySelector;
 } & { [x in keyof typeof TComparisonKeys]?: TValue; } &
-  { [x in keyof typeof TValueListKeys]?: TValue[]; } &
+  { [x in keyof typeof TValueListKeys]?: TValue; } &
   { [x in keyof typeof TValueSetKeys]?: TValue[]; };
 
 export type TCoditionalQuerySelector = { [x in keyof typeof TCoditionalKeys]?: TQuerySelector[]; };

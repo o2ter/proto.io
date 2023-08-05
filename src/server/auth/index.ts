@@ -27,7 +27,7 @@ import _ from 'lodash';
 import { RequestHandler } from 'express';
 import jwt from 'jsonwebtoken';
 import { Proto } from '../index';
-import { PVK } from '../../internals';
+import { PVK, TRole, TUser } from '../../internals';
 import { MASTER_KEY_HEADER_NAME, MASTER_PASS_HEADER_NAME, MASTER_USER_HEADER_NAME } from '../../common/const';
 
 export default <E>(proto: Proto<E>, jwtToken?: string): RequestHandler => async (req: any, res, next) => {
@@ -63,6 +63,21 @@ export default <E>(proto: Proto<E>, jwtToken?: string): RequestHandler => async 
       req.user = await proto.Query('_User', { master: true }).get(payload.user);
       req.isMaster = payload.master;
     }
+  }
+
+  if (req.user instanceof TUser) {
+    let roles: TRole[] = [];
+    let queue = await proto.Query('_Role', { master: true })
+      .containsIn('users', req.user)
+      .find();
+    while (!_.isEmpty(queue)) {
+      roles = _.uniqBy([...roles, ...queue], x => x.objectId);
+      queue = await proto.Query('_Role', { master: true })
+        .notContainsIn('_id', _.compact(_.map(roles, x => x.objectId)))
+        .containsIn('users', req.user)
+        .find();
+    }
+    req.roles = roles;
   }
 
   const token = jwt.sign({
