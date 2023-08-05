@@ -324,9 +324,7 @@ export abstract class SqlStorage implements TStorage {
         return sql`
           , ${{ identifier: name }} AS (
             DELETE FROM ${{ identifier: query.className }} AS ${{ identifier: name }}
-            WHERE ${{ identifier: name }}._id IN (
-              SELECT ${{ identifier: tempName }}._id FROM ${{ identifier: tempName }}
-            )
+            WHERE _id IN (SELECT _id FROM ${{ identifier: tempName }})
             RETURNING *
           )
           SELECT ${{
