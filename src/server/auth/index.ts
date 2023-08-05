@@ -86,4 +86,5 @@ export default <E>(proto: Proto<E>, jwtToken?: string): RequestHandler => async 
   }, jwtToken);
 
   res.cookie('x-auth', token);
+  return next();
 };
