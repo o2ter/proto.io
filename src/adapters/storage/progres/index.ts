@@ -240,8 +240,7 @@ export class PostgresStorage extends SqlStorage {
 
   protected _decodeFieldExpression(className: string | null, field: string, expr: FieldExpression): SQL {
     const [colname, ...subpath] = _.toPath(field);
-    const fields = className ? this.schema[className].fields : null;
-    const type = className ? fields?.[colname] ?? defaultObjectKeyTypes[colname] : null;
+    const type = className && _.isEmpty(subpath) ? this.schema[className].fields[colname] ?? defaultObjectKeyTypes[colname] : null;
     let element = sql`${{ identifier: className ? colname : '$' }}`;
     if (!className || !_.isEmpty(subpath)) {
       element = sql`jsonb_extract_path(${element}, ${_.map(
