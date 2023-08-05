@@ -28,7 +28,7 @@ import fs from 'fs';
 import { test, expect } from '@jest/globals';
 import { UUID } from 'bson';
 import Decimal from 'decimal.js';
-import ProtoClient from '../../src/client';
+import ProtoClient, { UpdateOp } from '../../src/client';
 
 const proto = new ProtoClient({
   endpoint: 'http://localhost:8080',
@@ -76,15 +76,17 @@ test('test explain', async () => {
 });
 
 test('test insert', async () => {
-  const inserted = await proto.Query('Test').insert({});
+  const inserted = await proto.Query('Test').insert({ value: 'hello' });
   expect(inserted?.objectId).toBeTruthy();
+  expect(inserted?.get('value')).toStrictEqual('hello');
 })
 
 test('test upsert', async () => {
   const inserted = await proto.Query('Test').insert({});
   const upserted = await proto.Query('Test')
   .equalTo('_id', inserted.objectId)
-  .upsertOne({}, {});
+  .upsertOne({ value: [UpdateOp.set, 'update'] }, { value: 'insert' });
   console.log(upserted)
   expect(upserted?.objectId).toBeTruthy();
+  expect(inserted?.get('value')).toStrictEqual('update');
 })

@@ -26,5 +26,6 @@
 import { TExtensions } from '../internals';
 
 export * from '../internals/codec';
+export { UpdateOp } from '../internals';
 
 export const classExtends = <E>(x: TExtensions<E>) => x;
