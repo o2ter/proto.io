@@ -115,11 +115,11 @@ export class TQueryBase {
     return this.filter({ [key]: { $pattern: value ?? null } });
   }
 
-  containsIn<T extends string>(key: PathName<T>, value: TValue) {
+  containsIn<T extends string>(key: PathName<T>, value: TValue[]) {
     return this.filter({ [key]: { $in: value } });
   }
 
-  notContainsIn<T extends string>(key: PathName<T>, value: TValue) {
+  notContainsIn<T extends string>(key: PathName<T>, value: TValue[]) {
     return this.filter({ [key]: { $nin: value } });
   }
 

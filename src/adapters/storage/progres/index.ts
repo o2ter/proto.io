@@ -298,21 +298,13 @@ export class PostgresStorage extends SqlStorage {
         }
       case '$in':
         {
-          if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
-          if (type === 'array' || (!_.isString(type) && type?.type === 'array')) {
-            return sql`${{ value: this.dialect.encodeValue(expr.value) }} = ANY(${element})`;
-          } else if (_.isArray(expr.value)) {
-            return sql`${element} = ANY(${{ value: this.dialect.encodeValue(expr.value) }})`;
-          }
+          if (!_.isArray(expr.value)) break;
+          return sql`${element} = ANY(${{ value: this.dialect.encodeValue(expr.value) }})`;
         }
       case '$nin':
         {
-          if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
-          if (type === 'array' || (!_.isString(type) && type?.type === 'array')) {
-            return sql`${{ value: this.dialect.encodeValue(expr.value) }} <> ALL(${element})`;
-          } else if (_.isArray(expr.value)) {
-            return sql`${element} <> ALL(${{ value: this.dialect.encodeValue(expr.value) }})`;
-          }
+          if (!_.isArray(expr.value)) break;
+          return sql`${element} <> ALL(${{ value: this.dialect.encodeValue(expr.value) }})`;
         }
       case '$subset':
         {
