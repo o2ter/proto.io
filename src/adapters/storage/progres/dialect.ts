@@ -32,6 +32,7 @@ import { TSchema } from '../../../server/schema';
 const _decodeValue = (value: _TValue): _TValue => {
   if (isPrimitiveValue(value)) return value;
   if (_.isArray(value)) return _.map(value, x => _decodeValue(x));
+  if (_.isString(value.$date)) return new Date(value.$date);
   if (_.isString(value.$decimal)) return new Decimal(value.$decimal);
   return _.transform(value, (r, v, k) => {
     r[k.startsWith('$') ? k.substring(1) : k] = _decodeValue(v);
@@ -40,6 +41,7 @@ const _decodeValue = (value: _TValue): _TValue => {
 
 const _encodeValue = (value: TValue): any => {
   if (value instanceof TObject) throw Error('Invalid data type');
+  if (_.isDate(value)) return { $date: value.toISOString() };
   if (value instanceof Decimal) return { $decimal: value.toString() };
   if (isPrimitiveValue(value)) return value;
   if (_.isArray(value)) return _.map(value, x => _encodeValue(x));
