@@ -58,7 +58,6 @@ export type ProtoFunctionOptions<E> = {
 
 export type ProtoOptions<Ext> = {
   endpoint: string;
-  masterKey: string;
   schema: Record<string, TSchema>;
   storage: TStorage;
   fileStorage: TFileStorage;
@@ -67,11 +66,15 @@ export type ProtoOptions<Ext> = {
   maxUploadSize?: number | ((proto: Proto<Ext>) => number | PromiseLike<number>);
 };
 
+export type ProtoKeyOptions = {
+  masterKey?: string;
+};
+
 export class Proto<Ext> extends ProtoType<Ext> {
 
   [PVK]: ProtoInternal<Ext>;
 
-  constructor(options: ProtoOptions<Ext>) {
+  constructor(options: ProtoOptions<Ext> & ProtoKeyOptions) {
     super();
     this[PVK] = new ProtoInternal(this, {
       objectIdSize: 10,

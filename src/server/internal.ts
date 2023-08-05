@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { Readable } from 'node:stream';
 import { defaultSchema } from './defaults';
-import { Proto, ProtoOptions, ProtoFunction, ProtoFunctionOptions, ProtoTrigger } from './index';
+import { Proto, ProtoOptions, ProtoFunction, ProtoFunctionOptions, ProtoTrigger, ProtoKeyOptions } from './index';
 import {
   PVK,
   TFile,
@@ -91,7 +91,7 @@ const mergeSchema = (...schemas: Record<string, TSchema>[]) => _.reduce(schemas,
 export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
 
   proto: Proto<Ext>;
-  options: Required<ProtoOptions<Ext>>;
+  options: Required<ProtoOptions<Ext>> & ProtoKeyOptions;
 
   functions: Record<string, ProtoFunction<Ext> | ProtoFunctionOptions<Ext>>;
   triggers: {
@@ -105,7 +105,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     afterDeleteFile?: ProtoTrigger<'_File', Ext>;
   };
 
-  constructor(proto: Proto<Ext>, options: Required<ProtoOptions<Ext>>) {
+  constructor(proto: Proto<Ext>, options: Required<ProtoOptions<Ext>> & ProtoKeyOptions) {
     validateSchema(options.schema);
     this.proto = proto;
     this.options = {
