@@ -254,7 +254,7 @@ export abstract class SqlStorage implements TStorage {
       matches: options.matches,
     });
 
-    const tempName = `_temp_$${options.className.toLowerCase()}`;
+    const tempName = `_insert_$${options.className.toLowerCase()}`;
 
     const populates = this._selectPopulateMap(options.className, tempName, compiler);
     const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
