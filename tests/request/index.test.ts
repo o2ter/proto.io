@@ -60,3 +60,18 @@ test('test files 2', async () => {
   const file = proto.File('test.txt', fs.createReadStream(__filename), 'text/plain');
   await file.save();
 });
+
+test('test explain', async () => {
+
+  console.dir(await proto.Query('_Role', { master: true }).includes(
+    '_id',
+    'createdBy._id',
+    'users._id',
+    'roles._id',
+    'roles.roles._id',
+    'roles.roles.roles._id',
+    'roles.roles.roles.roles._id',
+  ).sort({
+    '_id': 1,
+  }).explain(), { depth: null });
+})
