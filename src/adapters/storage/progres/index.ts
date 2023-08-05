@@ -81,8 +81,8 @@ export class PostgresStorage extends SqlStorage {
       (
         _id TEXT PRIMARY KEY,
         __v INTEGER NOT NULL DEFAULT 0,
-        _created_at TIMESTAMP NOT NULL DEFAULT now(),
-        _updated_at TIMESTAMP NOT NULL DEFAULT now(),
+        _created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        _updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
         _expired_at TIMESTAMP,
         _rperm TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
         _wperm TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],

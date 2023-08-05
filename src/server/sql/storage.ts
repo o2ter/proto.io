@@ -280,17 +280,39 @@ export abstract class SqlStorage implements TStorage {
     return _.isNil(result) ? undefined : this._decodeObject(options.className, result);
   }
 
+  protected _encodeUpdateAttrs(attrs: Record<string, [UpdateOp, TValue]>): SQL {
+    return sql``;
+  }
+
   async updateOne(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>) {
-
-    const _update: [string, [UpdateOp, TValue]][] = _.toPairs(
-      this._encodeObjectAttrs(query.className, update)
-    );
-
     const compiler = this._queryCompiler(query);
-    const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }));
-    const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
-
-    return undefined;
+    const updated = await this.query(this._modifyQuery(
+      query,
+      compiler,
+      (tempName) => {
+        const name = `_delete_$${query.className.toLowerCase()}`;
+        const populates = this._selectPopulateMap(query.className, name, compiler);
+        const joins = _.compact(_.map(populates, ({ join }) => join));
+        return sql`
+          , ${{ identifier: name }} AS (
+            UPDATE ${{ identifier: query.className }} AS ${{ identifier: name }}
+            SET __v = __v + 1, _updated_at = NOW()
+            ${_.isEmpty(update) ? this._encodeUpdateAttrs(update) : sql``}
+            WHERE _id IN (SELECT _id FROM ${{ identifier: tempName }})
+            RETURNING *
+          )
+          SELECT ${{
+            literal: [
+              ...this._decodeIncludes(name, compiler.includes),
+              ..._.map(populates, ({ column }) => column),
+            ], separator: ',\n'
+          }}
+          FROM ${{ identifier: name }}
+          ${!_.isEmpty(joins) ? joins : sql``}
+        `;
+      }
+    ));
+    return _.first(updated);
   }
 
   async upsertOne(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>) {
