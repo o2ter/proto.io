@@ -26,6 +26,8 @@
 import _ from 'lodash';
 import { escapeIdentifier, escapeLiteral } from 'pg/lib/utils';
 import { sql } from '../../../server/sql';
+import { TObject, TValue, UpdateOp, _TValue, isPrimitiveValue } from '../../../internals';
+import { TSchema } from '../../../server/schema';
 
 export const PostgresDialect = {
   get rowId() {
@@ -48,5 +50,35 @@ export const PostgresDialect = {
   },
   nullSafeNotEqual(lhs: any, rhs: any) {
     return sql`${lhs} IS DISTINCT FROM ${rhs}`;
+  },
+  typeCast(value: TValue, type?: TSchema.DataType): _TValue {
+    if (value instanceof TObject) return `${value.className}$${value.objectId}`;
+    if (isPrimitiveValue(value)) return value;
+    if (_.isArray(value)) return _.map(value, x => this.typeCast(x));
+    return _.mapValues(value, x => this.typeCast(x));
+  },
+  updateOperation(path: string, type: TSchema.DataType, operation: [UpdateOp, TValue]) {
+    const [column, ...subpath] = _.toPath(path);
+    const [op, value] = operation;
+    if (_.isEmpty(subpath)) {
+      const _value = this.typeCast(value, type);
+      switch (op) {
+        case UpdateOp.set: return sql`${{ value: _value }}`;
+        case UpdateOp.increment: return sql`${{ identifier: column }} + ${{ value: _value }}`;
+        case UpdateOp.decrement: return sql`${{ identifier: column }} - ${{ value: _value }}`;
+        case UpdateOp.multiply: return sql`${{ identifier: column }} * ${{ value: _value }}`;
+        case UpdateOp.divide: return sql`${{ identifier: column }} / ${{ value: _value }}`;
+        case UpdateOp.max: return sql`GREATEST(${{ identifier: column }}, ${{ value: _value }})`;
+        case UpdateOp.min: return sql`LEAST(${{ identifier: column }}, ${{ value: _value }})`;
+        case UpdateOp.addToSet: return sql`${{ value: _value }}`;
+        case UpdateOp.push: return sql`${{ value: _value }}`;
+        case UpdateOp.removeAll: return sql`${{ value: _value }}`;
+        case UpdateOp.popFirst: return sql`${{ value: _value }}`;
+        case UpdateOp.popLast: return sql`${{ value: _value }}`;
+        default: throw Error('Invalid update operation');
+      }
+    } else {
+      throw Error('Invalid update operation');
+    }
   },
 };

@@ -23,6 +23,8 @@
 //  THE SOFTWARE.
 //
 
+import { TValue, UpdateOp } from '../../internals';
+import { TSchema } from '../schema';
 import { SQL } from './sql';
 
 export interface SqlDialect {
@@ -33,4 +35,6 @@ export interface SqlDialect {
   boolean(value: boolean): string;
   nullSafeEqual(lhs: any, rhs: any): SQL;
   nullSafeNotEqual(lhs: any, rhs: any): SQL;
+  typeCast(value: TValue, type: TSchema.DataType): any;
+  updateOperation(column: string, type: TSchema.DataType, operation: [UpdateOp, TValue]): SQL;
 }

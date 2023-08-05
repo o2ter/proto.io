@@ -28,9 +28,8 @@ import { Decimal } from 'decimal.js';
 import { TObject } from '../object';
 
 export type TPrimitiveValue = boolean | number | Decimal | string | Date | null;
-export type TDictionaryValue = { [x: string]: TValue; };
-export type _TValue = TDictionaryValue | TValue[] | TPrimitiveValue;
-export type TValue = _TValue | TObject;
+export type _TValue = { [x: string]: _TValue; } | _TValue[] | TPrimitiveValue;
+export type TValue = { [x: string]: TValue; } | TValue[] | TPrimitiveValue | TObject;
 
 export const isPrimitiveValue = (x: any): x is TPrimitiveValue => {
   if (_.isNil(x) || _.isNumber(x) || _.isBoolean(x) || _.isString(x) || _.isDate(x)) return true;

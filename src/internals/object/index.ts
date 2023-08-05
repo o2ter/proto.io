@@ -33,7 +33,9 @@ import { PathName } from '../query/types';
 export const enum UpdateOp {
   set = 'set',
   increment = 'inc',
+  decrement = 'dec',
   multiply = 'mul',
+  divide = 'div',
   max = 'max',
   min = 'min',
   addToSet = 'addToSet',
@@ -162,7 +164,7 @@ export class TObject {
   decrement<T extends string>(key: PathName<T>, value: number) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key)) as string)) return;
-    this[PVK].mutated[key] = [UpdateOp.increment, -value];
+    this[PVK].mutated[key] = [UpdateOp.decrement, value];
   }
 
   multiply<T extends string>(key: PathName<T>, value: number) {
@@ -174,7 +176,7 @@ export class TObject {
   divide<T extends string>(key: PathName<T>, value: number) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key)) as string)) return;
-    this[PVK].mutated[key] = [UpdateOp.multiply, 1 / value];
+    this[PVK].mutated[key] = [UpdateOp.divide, value];
   }
 
   max<T extends string>(key: PathName<T>, value: TValue) {
