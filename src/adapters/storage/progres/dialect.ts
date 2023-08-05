@@ -51,17 +51,17 @@ export const PostgresDialect = {
   nullSafeNotEqual(lhs: any, rhs: any) {
     return sql`${lhs} IS DISTINCT FROM ${rhs}`;
   },
-  typeCast(value: TValue, type?: TSchema.DataType): _TValue {
+  encodeType(value: TValue, type?: TSchema.DataType): _TValue {
     if (value instanceof TObject) return `${value.className}$${value.objectId}`;
     if (isPrimitiveValue(value)) return value;
-    if (_.isArray(value)) return _.map(value, x => this.typeCast(x));
-    return _.mapValues(value, x => this.typeCast(x));
+    if (_.isArray(value)) return _.map(value, x => this.encodeType(x));
+    return _.mapValues(value, x => this.encodeType(x));
   },
   updateOperation(path: string, type: TSchema.DataType, operation: [UpdateOp, TValue]) {
     const [column, ...subpath] = _.toPath(path);
     const [op, value] = operation;
     if (_.isEmpty(subpath)) {
-      const _value = this.typeCast(value, type);
+      const _value = this.encodeType(value, type);
       switch (op) {
         case UpdateOp.set: return sql`${{ value: _value }}`;
         case UpdateOp.increment: return sql`${{ identifier: column }} + ${{ value: _value }}`;
