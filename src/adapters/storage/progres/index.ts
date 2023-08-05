@@ -288,7 +288,7 @@ export class PostgresStorage extends SqlStorage {
         {
           if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
           if (type === 'array' || (!_.isString(type) && type?.type === 'array')) {
-            return sql`to_jsonb(${{ value: this.dialect.encodeValue(expr.value) }}) = ANY(${element})`;
+            return sql`${{ value: this.dialect.encodeValue(expr.value) }} = ANY(${element})`;
           } else if (_.isArray(expr.value)) {
             return sql`${element} = ANY(${{ value: this.dialect.encodeValue(expr.value) }})`;
           }
@@ -297,7 +297,7 @@ export class PostgresStorage extends SqlStorage {
         {
           if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
           if (type === 'array' || (!_.isString(type) && type?.type === 'array')) {
-            return sql`to_jsonb(${{ value: this.dialect.encodeValue(expr.value) }}) <> ALL(${element})`;
+            return sql`${{ value: this.dialect.encodeValue(expr.value) }} <> ALL(${element})`;
           } else if (_.isArray(expr.value)) {
             return sql`${element} <> ALL(${{ value: this.dialect.encodeValue(expr.value) }})`;
           }
@@ -306,28 +306,28 @@ export class PostgresStorage extends SqlStorage {
         {
           if (!_.isArray(expr.value)) break;
           if (type === 'array' || (!_.isString(type) && type?.type === 'array')) {
-            return sql`${element} <@ to_jsonb(${{ value: this.dialect.encodeValue(expr.value) }})`;
+            return sql`${element} <@ ${{ value: this.dialect.encodeValue(expr.value) }}`;
           }
         }
       case '$superset':
         {
           if (!_.isArray(expr.value)) break;
           if (type === 'array' || (!_.isString(type) && type?.type === 'array')) {
-            return sql`${element} @> to_jsonb(${{ value: this.dialect.encodeValue(expr.value) }})`;
+            return sql`${element} @> ${{ value: this.dialect.encodeValue(expr.value) }}`;
           }
         }
       case '$disjoint':
         {
           if (!_.isArray(expr.value)) break;
           if (type === 'array' || (!_.isString(type) && type?.type === 'array')) {
-            return sql`NOT ${element} && to_jsonb(${{ value: this.dialect.encodeValue(expr.value) }})`;
+            return sql`NOT ${element} && ${{ value: this.dialect.encodeValue(expr.value) }}`;
           }
         }
       case '$intersect':
         {
           if (!_.isArray(expr.value)) break;
           if (type === 'array' || (!_.isString(type) && type?.type === 'array')) {
-            return sql`${element} && to_jsonb(${{ value: this.dialect.encodeValue(expr.value) }})`;
+            return sql`${element} && ${{ value: this.dialect.encodeValue(expr.value) }}`;
           }
         }
       case '$not':
