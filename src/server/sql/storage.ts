@@ -54,7 +54,7 @@ export abstract class SqlStorage implements TStorage {
   abstract get dialect(): SqlDialect
   protected abstract _query(text: string, values: any[]): ReturnType<typeof asyncStream<any>>
   protected abstract _decodeFieldExpression(className: string | null, field: string, expr: FieldExpression): SQL
-  
+
   query(sql: SQL) {
     const { query, values } = sql.compile(this.dialect);
     return this._query(query, values);
@@ -221,8 +221,14 @@ export abstract class SqlStorage implements TStorage {
   }
 
   find(query: DecodedQuery<FindOptions>) {
-    const compiler = this._queryCompiler(query);
-    return this.query(this._selectQuery(query, compiler));
+    const self = this;
+    return asyncStream(async function* () {
+      const compiler = self._queryCompiler(query);
+      const objects = self.query(self._selectQuery(query, compiler));
+      for await (const object of objects) {
+        yield self._decodeObject(query.className, object);
+      }
+    });
   }
 
   async insert(options: InsertOptions, attrs: Record<string, TValue>) {

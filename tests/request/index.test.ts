@@ -97,6 +97,12 @@ test('test types', async () => {
     date: date,
   });
   expect(inserted.get('array')).toStrictEqual([1, 2, 3, date, new Decimal(42)]);
+
+  expect((await proto.Query('Test').equalTo('boolean', true).first())?.get('boolean')).toStrictEqual(true);
+  expect((await proto.Query('Test').equalTo('number', 42).first())?.get('number')).toStrictEqual(42);
+  expect((await proto.Query('Test').equalTo('decimal', new Decimal(42)).first())?.get('decimal')).toStrictEqual(new Decimal(42));
+  expect((await proto.Query('Test').equalTo('string', 'hello').first())?.get('string')).toStrictEqual('hello');
+  expect((await proto.Query('Test').equalTo('date', date).first())?.get('date')).toStrictEqual(date);
 })
 
 test('test upsert', async () => {
