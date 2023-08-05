@@ -26,8 +26,27 @@
 import _ from 'lodash';
 import { escapeIdentifier, escapeLiteral } from 'pg/lib/utils';
 import { sql } from '../../../server/sql';
-import { TObject, TValue, UpdateOp, _TValue, isPrimitiveValue } from '../../../internals';
+import { Decimal, TObject, TValue, UpdateOp, _TValue, isPrimitiveValue } from '../../../internals';
 import { TSchema } from '../../../server/schema';
+
+const decodeObject = (value: _TValue): _TValue => {
+  if (isPrimitiveValue(value)) return value;
+  if (_.isArray(value)) return _.map(value, x => decodeObject(x));
+  if (_.isString(value.$decimal)) return new Decimal(value.$decimal);
+  return _.transform(value, (r, v, k) => {
+    r[k.startsWith('$') ? k.substring(1) : k] = decodeObject(v);
+  }, {} as any);
+}
+
+const encodeObject = (value: TValue): any => {
+  if (value instanceof TObject) throw Error('Invalid data type');
+  if (value instanceof Decimal) return { $decimal: value.toString() };
+  if (isPrimitiveValue(value)) return value;
+  if (_.isArray(value)) return _.map(value, x => encodeObject(x));
+  return _.transform(value, (r, v, k) => {
+    r[k.startsWith('$') ? `$${k}` : k] = encodeObject(v);
+  }, {} as any);
+}
 
 export const PostgresDialect = {
   get rowId() {
@@ -51,30 +70,92 @@ export const PostgresDialect = {
   nullSafeNotEqual(lhs: any, rhs: any) {
     return sql`${lhs} IS DISTINCT FROM ${rhs}`;
   },
-  encodeType(value: TValue, type?: TSchema.DataType): _TValue {
-    if (value instanceof TObject) return `${value.className}$${value.objectId}`;
-    if (isPrimitiveValue(value)) return value;
-    if (_.isArray(value)) return _.map(value, x => this.encodeType(x));
-    return _.mapValues(value, x => this.encodeType(x));
+  encodeType(type: TSchema.DataType, value: TValue) {
+    switch (_.isString(type) ? type : type.type) {
+      case 'boolean':
+        if (_.isBoolean(value)) return sql`${{ value }}`;
+        break;
+      case 'number':
+        if (_.isNumber(value) && _.isFinite(value)) return sql`${{ value }}`;
+        if (value instanceof Decimal) return sql`${{ value: value.toNumber() }}`;
+        break;
+      case 'decimal':
+        if (_.isNumber(value) && _.isFinite(value)) return sql`CAST(${{ quote: (new Decimal(value)).toString() }} AS DECIMAL)`;
+        if (value instanceof Decimal) return sql`CAST(${{ quote: value.toString() }} AS DECIMAL)`;
+        break;
+      case 'string':
+        if (_.isString(value)) return sql`${{ value }}`;
+        break;
+      case 'date':
+        if (_.isDate(value)) return sql`${{ value }}`;
+        break;
+      case 'object':
+        if (_.isPlainObject(value)) return sql`${{ value: encodeObject(value) }}`;
+        break;
+      case 'array':
+        if (_.isArray(value)) return sql`${{ value: encodeObject(value) }}`;
+        break;
+      case 'pointer':
+        if (value instanceof TObject && value.objectId) return sql`${{ value: `${value.className}$${value.objectId}` }}`;
+        break;
+      case 'relation':
+        if (_.isArray(value) && _.every(value, x => x instanceof TObject && x.objectId)) {
+          return sql`ARRAY[${{ value: _.uniq(_.map(value, (x: TObject) => `${x.className}$${x.objectId}`)) }}]`;
+        }
+        break;
+      default: break;
+    }
+    throw Error('Invalid data type');
+  },
+  decodeType(type: TSchema.Primitive, value: any): TValue {
+    switch (type) {
+      case 'boolean':
+        if (_.isBoolean(value)) return value;
+        break;
+      case 'number':
+        if (_.isNumber(value)) return value;
+        if (_.isString(value)) {
+          const float = parseFloat(value);
+          return _.isNaN(float) ? null : float;
+        }
+        break;
+      case 'decimal':
+        if (_.isString(value) || _.isNumber(value)) return new Decimal(value);
+        if (value instanceof Decimal) return value;
+        break;
+      case 'string':
+        if (_.isString(value)) return value;
+        break;
+      case 'date':
+        if (_.isDate(value)) return value;
+        break;
+      case 'object':
+        if (_.isPlainObject(value)) return decodeObject(value);
+        break;
+      case 'array':
+        if (_.isArray(value)) return decodeObject(value);
+        break;
+      default: break;
+    }
+    return null;
   },
   updateOperation(path: string, type: TSchema.DataType, operation: [UpdateOp, TValue]) {
     const [column, ...subpath] = _.toPath(path);
     const [op, value] = operation;
     if (_.isEmpty(subpath)) {
-      const _value = this.encodeType(value, type);
       switch (op) {
-        case UpdateOp.set: return sql`${{ value: _value }}`;
-        case UpdateOp.increment: return sql`${{ identifier: column }} + ${{ value: _value }}`;
-        case UpdateOp.decrement: return sql`${{ identifier: column }} - ${{ value: _value }}`;
-        case UpdateOp.multiply: return sql`${{ identifier: column }} * ${{ value: _value }}`;
-        case UpdateOp.divide: return sql`${{ identifier: column }} / ${{ value: _value }}`;
-        case UpdateOp.max: return sql`GREATEST(${{ identifier: column }}, ${{ value: _value }})`;
-        case UpdateOp.min: return sql`LEAST(${{ identifier: column }}, ${{ value: _value }})`;
-        case UpdateOp.addToSet:  throw Error('Invalid update operation');
-        case UpdateOp.push:  throw Error('Invalid update operation');
-        case UpdateOp.removeAll:  throw Error('Invalid update operation');
-        case UpdateOp.popFirst:  throw Error('Invalid update operation');
-        case UpdateOp.popLast:  throw Error('Invalid update operation');
+        case UpdateOp.set: return sql`${this.encodeType(type, value)}`;
+        case UpdateOp.increment: return sql`${{ identifier: column }} + ${this.encodeType(type, value)}`;
+        case UpdateOp.decrement: return sql`${{ identifier: column }} - ${this.encodeType(type, value)}`;
+        case UpdateOp.multiply: return sql`${{ identifier: column }} * ${this.encodeType(type, value)}`;
+        case UpdateOp.divide: return sql`${{ identifier: column }} / ${this.encodeType(type, value)}`;
+        case UpdateOp.max: return sql`GREATEST(${{ identifier: column }}, ${this.encodeType(type, value)})`;
+        case UpdateOp.min: return sql`LEAST(${{ identifier: column }}, ${this.encodeType(type, value)})`;
+        case UpdateOp.addToSet: throw Error('Invalid update operation');
+        case UpdateOp.push: throw Error('Invalid update operation');
+        case UpdateOp.removeAll: throw Error('Invalid update operation');
+        case UpdateOp.popFirst: throw Error('Invalid update operation');
+        case UpdateOp.popLast: throw Error('Invalid update operation');
         default: throw Error('Invalid update operation');
       }
     } else {

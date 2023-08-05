@@ -35,6 +35,7 @@ export interface SqlDialect {
   boolean(value: boolean): string;
   nullSafeEqual(lhs: any, rhs: any): SQL;
   nullSafeNotEqual(lhs: any, rhs: any): SQL;
-  encodeType(value: TValue, type?: TSchema.DataType): any;
+  encodeType(type: TSchema.DataType, value: TValue): SQL;
+  decodeType(type: TSchema.Primitive, value: any): TValue;
   updateOperation(column: string, type: TSchema.DataType, operation: [UpdateOp, TValue]): SQL;
 }

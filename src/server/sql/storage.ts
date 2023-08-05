@@ -53,7 +53,6 @@ export abstract class SqlStorage implements TStorage {
 
   abstract get dialect(): SqlDialect
   protected abstract _query(text: string, values: any[]): ReturnType<typeof asyncStream<any>>
-  protected abstract _decodeData(type: TSchema.Primitive, value: any): TValue
 
   query(sql: SQL) {
     const { query, values } = sql.compile(this.dialect);
@@ -66,20 +65,12 @@ export abstract class SqlStorage implements TStorage {
     return compiler;
   }
 
-  protected _encodeObjectAttrs(className: string, attrs: Record<string, TValue>): Record<string, any> {
+  protected _encodeObjectAttrs(className: string, attrs: Record<string, TValue>): Record<string, SQL> {
     const fields = this.schema[className].fields;
-    const result: Record<string, any> = {};
+    const result: Record<string, SQL> = {};
     for (const [key, value] of _.toPairs(attrs)) {
       const dataType = fields[key] ?? defaultObjectKeyTypes[key];
-      if (_.isString(dataType)) {
-        result[key] = this.dialect.encodeType(value, dataType);
-      } else if (dataType.type !== 'pointer' && dataType.type !== 'relation') {
-        result[key] = this.dialect.encodeType(value, dataType);
-      } else if (dataType.type === 'pointer') {
-        if (value instanceof TObject && value.objectId) result[key] = `${value.className}$${value.objectId}`;
-      } else if (dataType.type === 'relation') {
-        if (_.isArray(value)) result[key] = _.uniq(_.compact(value.map(x => x instanceof TObject && x.objectId ? `${x.className}$${x.objectId}` : undefined)));
-      }
+      result[key] = this.dialect.encodeType(dataType, value);
     }
     return result;
   }
@@ -90,9 +81,9 @@ export abstract class SqlStorage implements TStorage {
     for (const [key, value] of _.toPairs(attrs)) {
       const dataType = fields[key] ?? defaultObjectKeyTypes[key];
       if (_.isString(dataType)) {
-        obj[PVK].attributes[key] = this._decodeData(dataType, value);
+        obj[PVK].attributes[key] = this.dialect.decodeType(dataType, value);
       } else if (dataType.type !== 'pointer' && dataType.type !== 'relation') {
-        obj[PVK].attributes[key] = this._decodeData(dataType.type, value);
+        obj[PVK].attributes[key] = this.dialect.decodeType(dataType.type, value);
       } else if (dataType.type === 'pointer') {
         if (_.isPlainObject(value)) obj[PVK].attributes[key] = this._decodeObject(dataType.target, value);
       } else if (dataType.type === 'relation') {
@@ -114,6 +105,7 @@ export abstract class SqlStorage implements TStorage {
 
   protected _decodeFieldExpression(className: string, field: string, expr: FieldExpression): any {
     const [colname, ...subpath] = _.toPath(field);
+    const fields = this.schema[className].fields;
 
 
 
@@ -242,8 +234,8 @@ export abstract class SqlStorage implements TStorage {
 
   async insert(options: InsertOptions, attrs: Record<string, TValue>) {
 
-    const _attrs: [string, TValue][] = _.toPairs({
-      _id: generateId(options.objectIdSize),
+    const _attrs: [string, SQL][] = _.toPairs({
+      _id: sql`${{ value: generateId(options.objectIdSize) }}`,
       ...this._encodeObjectAttrs(options.className, attrs),
     });
 
@@ -263,7 +255,7 @@ export abstract class SqlStorage implements TStorage {
       WITH ${{ identifier: tempName }} AS (
         INSERT INTO ${{ identifier: options.className }}
         (${_.map(_attrs, x => sql`${{ identifier: x[0] }}`)})
-        VALUES (${_.map(_attrs, x => sql`${{ value: x[1] }}`)})
+        VALUES (${_.map(_attrs, x => sql`${x[1]}`)})
         RETURNING *
       )${!_.isEmpty(queries) ? sql`, ${_.map(queries, (q, n) => sql`${{ identifier: n }} AS (${q})`)}` : sql``}
       SELECT ${{
@@ -322,8 +314,8 @@ export abstract class SqlStorage implements TStorage {
 
   async upsertOne(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>) {
     const compiler = this._queryCompiler(query);
-    const _insert: [string, TValue][] = _.toPairs({
-      _id: generateId(query.objectIdSize),
+    const _insert: [string, SQL][] = _.toPairs({
+      _id: sql`${{ value: generateId(query.objectIdSize) }}`,
       ...this._encodeObjectAttrs(query.className, setOnInsert),
     });
     const upserted = _.first(await this.query(this._modifyQuery(
@@ -346,7 +338,7 @@ export abstract class SqlStorage implements TStorage {
           , ${{ identifier: insertName }} AS (
             INSERT INTO ${{ identifier: query.className }}
             (${_.map(_insert, x => sql`${{ identifier: x[0] }}`)})
-            SELECT ${_.map(_insert, x => sql`${{ value: x[1] }} AS ${{ identifier: x[0] }}`)}
+            SELECT ${_.map(_insert, x => sql`${x[1]} AS ${{ identifier: x[0] }}`)}
             WHERE NOT EXISTS(SELECT * FROM ${{ identifier: updateName }})
             ${query.returning !== 'old' ? sql`RETURNING *` : sql``}
           )
