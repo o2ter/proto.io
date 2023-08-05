@@ -107,81 +107,87 @@ export abstract class SqlStorage implements TStorage {
     const [colname, ...subpath] = _.toPath(field);
     const fields = className ? this.schema[className].fields : null;
     const type = fields?.[colname] ?? defaultObjectKeyTypes[colname];
+    let element = sql`${{ identifier: className ? colname : '$' }}`;
+    if (!className || !_.isEmpty(subpath)) {
+      element = sql`jsonb_extract_path(${element}, ${_.map(
+        className ? subpath : [colname, ...subpath], x => sql`${{ quote: x }}`
+      )})`;
+    }
     switch (expr.type) {
       case '$eq':
         if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
-        return sql`${{ identifier: colname }} ${this.dialect.nullSafeEqual()} ${this.dialect.encodeType(type, expr.value)}`;
+        return sql`${element} ${this.dialect.nullSafeEqual()} ${this.dialect.encodeType(type, expr.value)}`;
       case '$gt':
         if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
-        return sql`${{ identifier: colname }} > ${this.dialect.encodeType(type, expr.value)}`;
+        return sql`${element} > ${this.dialect.encodeType(type, expr.value)}`;
       case '$gte':
         if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
-        return sql`${{ identifier: colname }} >= ${this.dialect.encodeType(type, expr.value)}`;
+        return sql`${element} >= ${this.dialect.encodeType(type, expr.value)}`;
       case '$lt':
         if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
-        return sql`${{ identifier: colname }} < ${this.dialect.encodeType(type, expr.value)}`;
+        return sql`${element} < ${this.dialect.encodeType(type, expr.value)}`;
       case '$lte':
         if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
-        return sql`${{ identifier: colname }} <= ${this.dialect.encodeType(type, expr.value)}`;
+        return sql`${element} <= ${this.dialect.encodeType(type, expr.value)}`;
       case '$ne':
         if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
-        return sql`${{ identifier: colname }} ${this.dialect.nullSafeNotEqual()} ${this.dialect.encodeType(type, expr.value)}`;
+        return sql`${element} ${this.dialect.nullSafeNotEqual()} ${this.dialect.encodeType(type, expr.value)}`;
       case '$in':
         if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
         if (type === 'array' || (!_.isString(type) && type?.type === 'array')) {
-          return sql`${this.dialect.encodeValue(expr.value)} = ANY(${{ identifier: colname }})`;
+          return sql`${this.dialect.encodeValue(expr.value)} = ANY(${element})`;
         } else if (_.isArray(expr.value)) {
-          return sql`${{ identifier: colname }} = ANY(${this.dialect.encodeValue(expr.value)})`;
+          return sql`${element} = ANY(${this.dialect.encodeValue(expr.value)})`;
         }
       case '$nin':
         if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
         if (type === 'array' || (!_.isString(type) && type?.type === 'array')) {
-          return sql`${this.dialect.encodeValue(expr.value)} <> ALL(${{ identifier: colname }})`;
+          return sql`${this.dialect.encodeValue(expr.value)} <> ALL(${element})`;
         } else if (_.isArray(expr.value)) {
-          return sql`${{ identifier: colname }} <> ALL(${this.dialect.encodeValue(expr.value)})`;
+          return sql`${element} <> ALL(${this.dialect.encodeValue(expr.value)})`;
         }
       case '$subset':
         if (!_.isArray(expr.value)) break;
         if (type === 'array' || (!_.isString(type) && type?.type === 'array')) {
-          return sql`${{ identifier: colname }} <@ ${this.dialect.encodeValue(expr.value)}`;
+          return sql`${element} <@ ${this.dialect.encodeValue(expr.value)}`;
         }
       case '$superset':
         if (!_.isArray(expr.value)) break;
         if (type === 'array' || (!_.isString(type) && type?.type === 'array')) {
-          return sql`${{ identifier: colname }} @> ${this.dialect.encodeValue(expr.value)}`;
+          return sql`${element} @> ${this.dialect.encodeValue(expr.value)}`;
         }
       case '$disjoint':
         if (!_.isArray(expr.value)) break;
         if (type === 'array' || (!_.isString(type) && type?.type === 'array')) {
-          return sql`NOT ${{ identifier: colname }} && ${this.dialect.encodeValue(expr.value)}`;
+          return sql`NOT ${element} && ${this.dialect.encodeValue(expr.value)}`;
         }
       case '$intersect':
         if (!_.isArray(expr.value)) break;
         if (type === 'array' || (!_.isString(type) && type?.type === 'array')) {
-          return sql`${{ identifier: colname }} && ${this.dialect.encodeValue(expr.value)}`;
+          return sql`${element} && ${this.dialect.encodeValue(expr.value)}`;
         }
       case '$not':
         if (!(expr.value instanceof FieldExpression)) break;
         return sql`NOT (${this._decodeFieldExpression(className, field, expr.value)})`;
       case '$pattern':
         if (_.isString(expr.value)) {
-          return sql`${{ identifier: colname }} LIKE ${{ value: `%${expr.value.replace(/([\\_%])/g, '\\$1')}%` }}`;
+          return sql`${element} LIKE ${{ value: `%${expr.value.replace(/([\\_%])/g, '\\$1')}%` }}`;
         } else if (_.isRegExp(expr.value)) {
-          if (expr.value.ignoreCase) return sql`${{ identifier: colname }} ~* ${{ value: expr.value.source }}`;
-          return sql`${{ identifier: colname }} ~ ${{ value: expr.value.source }}`;
+          if (expr.value.ignoreCase) return sql`${element} ~* ${{ value: expr.value.source }}`;
+          return sql`${element} ~ ${{ value: expr.value.source }}`;
         }
       case '$size':
         if (!_.isNumber(expr.value) || !_.isInteger(expr.value)) break;
         if (type === 'array' || (!_.isString(type) && type.type === 'relation')) {
-          return sql`array_length(${{ identifier: colname }}, 1) = ${{ value: expr.value }}`;
+          return sql`array_length(${element}, 1) = ${{ value: expr.value }}`;
         }
       case '$every':
         if (!(expr.value instanceof QuerySelector)) break;
         if (type === 'array' || (!_.isString(type) && type.type === 'relation')) {
           const filter = this._decodeFilter(null, expr.value);
           if (!filter) break;
-          return sql`array_length(${{ identifier: colname }}, 1) = array_length(ARRAY(
-              SELECT * FROM (SELECT unset(${{ identifier: colname }}) AS "$") "$"
+          return sql`array_length(${element}, 1) = array_length(ARRAY(
+              SELECT * FROM (SELECT unset(${element}) AS "$") "$"
               WHERE ${filter}
             ), 1)`;
         }
@@ -191,7 +197,7 @@ export abstract class SqlStorage implements TStorage {
           const filter = this._decodeFilter(null, expr.value);
           if (!filter) break;
           return sql`array_length(ARRAY(
-              SELECT * FROM (SELECT unset(${{ identifier: colname }}) AS "$") "$"
+              SELECT * FROM (SELECT unset(${element}) AS "$") "$"
               WHERE ${filter}
             ), 1) > 0`;
         }
