@@ -273,6 +273,10 @@ export abstract class SqlStorage implements TStorage {
 
   async updateOne(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>) {
 
+    const _update: [string, [UpdateOp, TValue]][] = _.toPairs(
+      this._encodeObjectAttrs(query.className, update)
+    );
+
     const compiler = this._queryCompiler(query);
     const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }));
     const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
@@ -282,6 +286,11 @@ export abstract class SqlStorage implements TStorage {
 
   async replaceOne(query: DecodedQuery<FindOneOptions>, replacement: Record<string, TValue>) {
 
+    const _replacement: [string, TValue][] = _.toPairs({
+      _id: generateId(query.objectIdSize),
+      ...this._encodeObjectAttrs(query.className, replacement),
+    });
+
     const compiler = this._queryCompiler(query);
     const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }));
     const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
@@ -290,6 +299,10 @@ export abstract class SqlStorage implements TStorage {
   }
 
   async upsertOne(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>) {
+
+    const _update: [string, [UpdateOp, TValue]][] = _.toPairs(
+      this._encodeObjectAttrs(query.className, update)
+    );
 
     const _setOnInsert: [string, TValue][] = _.toPairs({
       _id: generateId(query.objectIdSize),
