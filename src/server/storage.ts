@@ -27,22 +27,20 @@ import _ from 'lodash';
 import { TObject, UpdateOp, TValue, TQueryOptions } from '../internals';
 import { QuerySelector } from './query/validator/parser';
 import { TSchema } from './schema';
+import { TQueryBaseOptions } from '../internals/query/base';
 
 type CommonFindOptions = { className: string; };
 export type FindOptions = CommonFindOptions & Omit<TQueryOptions, 'returning'>;
 export type FindOneOptions = CommonFindOptions & Omit<TQueryOptions, 'skip' | 'limit'>;
 
-export type DecodedBaseQuery = {
+type Decoded<T, R> = Omit<T, keyof R> & R;
+
+export type DecodedBaseQuery = Decoded<TQueryBaseOptions, {
   filter: QuerySelector;
   matches: Record<string, DecodedBaseQuery>;
-  sort?: Record<string, 1 | -1>;
-  skip?: number;
-  limit?: number;
-};
+}>;
 
-type Modify<T, R> = Omit<T, keyof R> & R;
-
-export type DecodedQuery<T> = Modify<T, {
+export type DecodedQuery<T> = Decoded<T, {
   filter: QuerySelector;
   matches: Record<string, DecodedBaseQuery>;
   includes: string[];

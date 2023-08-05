@@ -24,7 +24,6 @@
 //
 
 import _ from 'lodash';
-import { SqlDialect } from './dialect';
 import { TSchema } from '../schema';
 import { defaultObjectKeyTypes } from '../schema';
 import { QuerySelector } from '../query/validator/parser';
@@ -83,14 +82,14 @@ export class QueryCompiler {
 
       if (!_.isString(dataType) && (dataType.type === 'pointer' || dataType.type === 'relation')) {
         if (_.isEmpty(subpath)) throw Error(`Invalid path: ${include}`);
+        const _matches = matches[colname];
         populates[colname] = populates[colname] ?? {
           name: `t${this.nextIdx()}`,
           className: dataType.target,
           subpaths: [],
-          matches: matches[colname].filter,
-          sort: matches[colname].sort,
-          skip: matches[colname].skip,
-          limit: matches[colname].limit,
+          matches: _matches.filter,
+          skip: _matches.skip,
+          limit: _matches.limit,
           ...dataType,
         };
         populates[colname].subpaths.push(subpath.join('.'));
@@ -100,7 +99,9 @@ export class QueryCompiler {
     }
 
     for (const [colname, populate] of _.toPairs(populates)) {
-      const { includes, populates } = this._decodeIncludes(populate.className, populate.subpaths, matches[colname].matches);
+      const _matches = matches[colname];
+      const { includes, populates } = this._decodeIncludes(populate.className, populate.subpaths, _matches.matches);
+      populate.sort = this._decodeSorting(includes, populates, _matches.sort);
       populate.includes = includes;
       populate.populates = populates;
     }
@@ -108,10 +109,12 @@ export class QueryCompiler {
     return { includes: names, populates };
   }
 
-  private _resolveSortingName(key: string) {
+  private _resolveSortingName(
+    key: string,
+    includes: Record<string, TSchema.DataType>,
+    populates: Record<string, Populate>,
+  ) {
     let resolved: string | undefined;
-    let includes = this.includes;
-    let populates = this.populates;
     let resolvedField = false;
     for (const colname of _.toPath(key)) {
       const name = resolved ? `${resolved}.${colname}` : colname;
@@ -129,18 +132,24 @@ export class QueryCompiler {
     return resolved;
   }
 
-  private _decodeSorting(sort: Record<string, 1 | -1>) {
+  private _decodeSorting(
+    includes: Record<string, TSchema.DataType>,
+    populates: Record<string, Populate>,
+    sort?: Record<string, 1 | -1>,
+  ) {
+    const sorting: Record<string, 1 | -1> = {};
     for (const [key, order] of _.toPairs(sort)) {
-      const resolved = this._resolveSortingName(key);
+      const resolved = this._resolveSortingName(key, includes, populates);
       if (!resolved) throw Error(`Invalid path: ${key}`);
-      this.sorting[resolved] = order;
+      sorting[resolved] = order;
     }
+    return sorting;
   }
 
   compile(query: QueryCompilerOptions) {
     const { includes, populates } = this._decodeIncludes(query.className, query.includes, query.matches);
+    this.sorting = this._decodeSorting(includes, populates, query.sort);
     this.includes = includes;
     this.populates = populates;
-    if (query.sort) this._decodeSorting(query.sort);
   }
 }

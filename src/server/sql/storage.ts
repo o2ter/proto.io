@@ -154,9 +154,9 @@ export abstract class SqlStorage implements TStorage {
     )`;
   }
   protected _decodeSort(className: string, sort: Record<string, 1 | -1> ): SQL {
-    return sql`${_.map(sort, (order, key) => sql`
+    return !_.isEmpty(sort) ? sql`${_.map(sort, (order, key) => sql`
       ${this._decodeSortKey(className, key)} ${{ literal: order === 1 ? 'ASC' : 'DESC' }}
-    `)}`;
+    `)}` : sql``;
   }
 
   protected _baseSelectQuery(
