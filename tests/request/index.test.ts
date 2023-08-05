@@ -77,8 +77,8 @@ test('test explain', async () => {
 
 test('test insert', async () => {
   const inserted = await proto.Query('Test').insert({ value: 'hello' });
-  expect(inserted?.objectId).toBeTruthy();
-  expect(inserted?.get('value')).toStrictEqual('hello');
+  expect(inserted.objectId).toBeTruthy();
+  expect(inserted.get('value')).toStrictEqual('hello');
 })
 
 test('test upsert', async () => {
@@ -86,6 +86,6 @@ test('test upsert', async () => {
   const upserted = await proto.Query('Test')
     .equalTo('_id', inserted.objectId)
     .upsertOne({ value: [UpdateOp.set, 'update'] }, { value: 'insert' });
-  expect(upserted?.objectId).toBeTruthy();
-  expect(upserted?.get('value')).toStrictEqual('update');
+  expect(upserted.objectId).toStrictEqual(inserted.objectId);
+  expect(upserted.get('value')).toStrictEqual('update');
 })
