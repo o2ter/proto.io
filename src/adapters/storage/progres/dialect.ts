@@ -76,7 +76,7 @@ export const PostgresDialect = {
     return _encodeValue(value);
   },
   encodeType(type: TSchema.DataType | null, value: TValue) {
-    if (!type) {
+    if (_.isNil(type)) {
       if (value instanceof Decimal) return sql`CAST(${{ quote: value.toString() }} AS DECIMAL)`;
       if (isPrimitiveValue(value)) return sql`${{ value }}`;
       if (_.isArray(value)) return sql`${{ value: _encodeValue(value) }}`;
