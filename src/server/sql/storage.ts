@@ -103,12 +103,58 @@ export abstract class SqlStorage implements TStorage {
     }
   }
 
-  protected _decodeFieldExpression(className: string, field: string, expr: FieldExpression): any {
+  protected _decodeFieldExpression(className: string, field: string, expr: FieldExpression) {
     const [colname, ...subpath] = _.toPath(field);
     const fields = this.schema[className].fields;
-
-
-
+    if (_.isEmpty(subpath)) {
+      const type = fields[colname];
+      switch (expr.type) {
+        case '$eq':
+          if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
+          return sql`
+            ${{ identifier: colname }} ${this.dialect.nullSafeEqual()} ${this.dialect.encodeType(type, expr.value)}
+          `;
+        case '$gt':
+          if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
+          return sql`
+            ${{ identifier: colname }} > ${this.dialect.encodeType(type, expr.value)}
+          `;
+        case '$gte': 
+          if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
+          return sql`
+            ${{ identifier: colname }} >= ${this.dialect.encodeType(type, expr.value)}
+          `;
+        case '$lt': 
+          if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
+          return sql`
+            ${{ identifier: colname }} < ${this.dialect.encodeType(type, expr.value)}
+          `;
+        case '$lte': 
+          if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
+          return sql`
+            ${{ identifier: colname }} <= ${this.dialect.encodeType(type, expr.value)}
+          `;
+        case '$ne': 
+          if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
+          return sql`
+            ${{ identifier: colname }} ${this.dialect.nullSafeNotEqual()} ${this.dialect.encodeType(type, expr.value)}
+          `;
+        case '$in': break;
+        case '$nin': break;
+        case '$subset': break;
+        case '$superset': break;
+        case '$disjoint': break;
+        case '$intersect': break;
+        case '$not': break;
+        case '$type': break;
+        case '$pattern': break;
+        case '$size': break;
+        case '$every': break;
+        case '$some': break;
+        default: break;
+      }
+    }
+    throw Error('Invalid expression');
   }
 
   protected _decodeFilter(className: string, filter: QuerySelector): SQL | undefined {

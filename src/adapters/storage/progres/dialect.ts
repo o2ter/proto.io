@@ -64,11 +64,11 @@ export const PostgresDialect = {
   boolean(value: boolean) {
     return value ? 'true' : 'false;';
   },
-  nullSafeEqual(lhs: any, rhs: any) {
-    return sql`${lhs} IS NOT DISTINCT FROM ${rhs}`;
+  nullSafeEqual() {
+    return sql`IS NOT DISTINCT FROM`;
   },
-  nullSafeNotEqual(lhs: any, rhs: any) {
-    return sql`${lhs} IS DISTINCT FROM ${rhs}`;
+  nullSafeNotEqual() {
+    return sql`IS DISTINCT FROM`;
   },
   encodeValue(value: TValue) {
     return _encodeValue(value);
@@ -154,15 +154,15 @@ export const PostgresDialect = {
         case UpdateOp.divide: return sql`${{ identifier: column }} / ${this.encodeType(type, value)}`;
         case UpdateOp.max: return sql`GREATEST(${{ identifier: column }}, ${this.encodeType(type, value)})`;
         case UpdateOp.min: return sql`LEAST(${{ identifier: column }}, ${this.encodeType(type, value)})`;
-        case UpdateOp.addToSet: throw Error('Invalid update operation');
-        case UpdateOp.push: throw Error('Invalid update operation');
-        case UpdateOp.removeAll: throw Error('Invalid update operation');
-        case UpdateOp.popFirst: throw Error('Invalid update operation');
-        case UpdateOp.popLast: throw Error('Invalid update operation');
-        default: throw Error('Invalid update operation');
+        case UpdateOp.addToSet: break;
+        case UpdateOp.push: break;
+        case UpdateOp.removeAll: break;
+        case UpdateOp.popFirst: break;
+        case UpdateOp.popLast: break;
+        default: break;
       }
     } else {
-      throw Error('Invalid update operation');
     }
+    throw Error('Invalid update operation');
   },
 };

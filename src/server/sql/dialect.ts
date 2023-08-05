@@ -33,8 +33,8 @@ export interface SqlDialect {
   identifier(name: string): string;
   placeholder(idx: number): string;
   boolean(value: boolean): string;
-  nullSafeEqual(lhs: any, rhs: any): SQL;
-  nullSafeNotEqual(lhs: any, rhs: any): SQL;
+  nullSafeEqual(): SQL;
+  nullSafeNotEqual(): SQL;
   encodeValue(value: TValue): any;
   encodeType(type: TSchema.DataType, value: TValue): SQL;
   decodeType(type: TSchema.Primitive, value: any): TValue;
