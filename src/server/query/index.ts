@@ -141,35 +141,6 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
     return result;
   }
 
-  async replaceOne(replacement: Record<string, TValue>) {
-    const beforeSave = this._proto[PVK].triggers?.beforeSave?.[this.className];
-    const afterSave = this._proto[PVK].triggers?.afterSave?.[this.className];
-
-    const context = this._options?.context ?? {};
-
-    if (_.isFunction(beforeSave)) {
-
-      const object = this._objectMethods(
-        _.first(await asyncIterableToArray(this._storage.find({ ...this._queryOptions, limit: 1 })))
-      );
-      if (!object) return undefined;
-
-      object[PVK].mutated = _.mapValues(replacement, v => [UpdateOp.set, v]) as any;
-      await beforeSave(Object.setPrototypeOf({ object, context }, this._proto));
-
-      replacement = {};
-      for (const key of object.keys()) {
-        replacement[key] = object.get(key as any);
-      }
-    }
-
-    const result = this._objectMethods(
-      await this._storage.replaceOne(this._queryOptions, replacement)
-    );
-    if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, this._proto));
-    return result;
-  }
-
   async upsertOne(update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>) {
     const beforeSave = this._proto[PVK].triggers?.beforeSave?.[this.className];
     const afterSave = this._proto[PVK].triggers?.afterSave?.[this.className];

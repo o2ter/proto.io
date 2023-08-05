@@ -86,10 +86,6 @@ export class MongoStorage implements TStorage {
     return undefined;
   }
 
-  async replaceOne(query: DecodedQuery<FindOneOptions>, replacement: Record<string, TValue>) {
-    return undefined;
-  }
-
   async upsertOne(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>) {
     return undefined;
   }

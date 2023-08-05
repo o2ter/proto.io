@@ -294,20 +294,6 @@ export abstract class SqlStorage implements TStorage {
     return undefined;
   }
 
-  async replaceOne(query: DecodedQuery<FindOneOptions>, replacement: Record<string, TValue>) {
-
-    const _replacement: [string, TValue][] = _.toPairs({
-      _id: generateId(query.objectIdSize),
-      ...this._encodeObjectAttrs(query.className, replacement),
-    });
-
-    const compiler = this._queryCompiler(query);
-    const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }));
-    const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
-
-    return undefined;
-  }
-
   async upsertOne(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>) {
 
     const _update: [string, [UpdateOp, TValue]][] = _.toPairs(

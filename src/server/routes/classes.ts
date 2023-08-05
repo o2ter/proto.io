@@ -70,7 +70,6 @@ export default <E>(router: Router, proto: Proto<E>) => {
           case 'find': return await query.find();
           case 'insert': return query.insert(attributes);
           case 'updateOne': return query.updateOne(update);
-          case 'replaceOne': return query.replaceOne(replacement);
           case 'upsertOne': return query.upsertOne(update, setOnInsert);
           case 'deleteOne': return query.deleteOne();
           case 'deleteMany': return query.deleteMany();
@@ -136,27 +135,6 @@ export default <E>(router: Router, proto: Proto<E>) => {
       }, proto);
 
       await response(res, async () => payload.Query(name, { master: payload.isMaster }).get(id));
-    }
-  );
-
-  router.put(
-    '/classes/:name/:id',
-    express.text({ type: '*/*' }),
-    async (req, res) => {
-
-      res.setHeader('Cache-Control', ['no-cache', 'no-store']);
-
-      const { name, id } = req.params;
-      const classes = proto.classes();
-
-      if (!_.includes(classes, name)) return res.sendStatus(404);
-
-      const payload: Proto<E> = Object.setPrototypeOf({
-        ..._.omit(req, 'body'),
-      }, proto);
-      const query = payload.Query(name, { master: payload.isMaster }).equalTo('_id', id);
-
-      await response(res, async () => query.replaceOne(deserialize(req.body) as any));
     }
   );
 

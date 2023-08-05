@@ -102,18 +102,6 @@ export const queryValidator = <E>(proto: Proto<E>, options?: ExtraOptions) => {
         normalize(_validator.validateFields(query.className, update, 'update', QueryValidator.patterns.path)),
       );
     },
-    replaceOne(
-      query: FindOneOptions,
-      replacement: Record<string, TValue>
-    ) {
-      QueryValidator.recursiveCheck(query, replacement);
-      const _validator = validator();
-      if (!_validator.validateCLPs(query.className, 'update')) throw Error('No permission');
-      return proto.storage.replaceOne(
-        _validator.decodeQuery(normalize(query), 'update'),
-        normalize(_validator.validateFields(query.className, replacement, 'update', QueryValidator.patterns.path)),
-      );
-    },
     upsertOne(
       query: FindOneOptions,
       update: Record<string, [UpdateOp, TValue]>,

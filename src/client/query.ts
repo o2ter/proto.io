@@ -115,15 +115,6 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E> {
     }, this._requestOpt) as any;
   }
 
-  replaceOne(replacement: Record<string, TValue>) {
-    return this._proto[PVK].request({
-      operation: 'replaceOne',
-      context: this._options?.context ?? {},
-      replacement,
-      ...this._queryOptions,
-    }, this._requestOpt) as any;
-  }
-
   upsertOne(update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>) {
     return this._proto[PVK].request({
       operation: 'upsertOne',
