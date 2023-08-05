@@ -165,6 +165,7 @@ export abstract class SqlStorage implements TStorage {
         return sql`NOT (${this._decodeFieldExpression(className, field, expr.value)})`;
       case '$pattern':
         if (_.isString(expr.value)) {
+          return sql`${{ identifier: colname }} LIKE ${{ value: `%${expr.value.replace(/([\\_%])/g, '\\$1')}%` }}`;
         } else if (_.isRegExp(expr.value)) {
           if (expr.value.ignoreCase) return sql`${{ identifier: colname }} ~* ${{ value: expr.value.source }}`;
           return sql`${{ identifier: colname }} ~ ${{ value: expr.value.source }}`;
