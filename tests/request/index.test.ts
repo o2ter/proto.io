@@ -72,35 +72,35 @@ test('test types', async () => {
   const inserted = await proto.Query('Test').insert({
     boolean: true,
     number: 42,
-    decimal: new Decimal(42),
+    decimal: new Decimal('0.001'),
     string: 'hello',
     date: date,
     object: {
       boolean: true,
       number: 42,
-      decimal: new Decimal(42),
+      decimal: new Decimal('0.001'),
       string: 'hello',
       date: date,
     },
-    array: [1, 2, 3, date, new Decimal(42)],
+    array: [1, 2, 3, date, new Decimal('0.001')],
   });
   expect(inserted.get('boolean')).toStrictEqual(true);
   expect(inserted.get('number')).toStrictEqual(42);
-  expect(inserted.get('decimal')).toStrictEqual(new Decimal(42));
+  expect(inserted.get('decimal')).toStrictEqual(new Decimal('0.001'));
   expect(inserted.get('string')).toStrictEqual('hello');
   expect(inserted.get('date')).toStrictEqual(date);
   expect(inserted.get('object')).toStrictEqual({
     boolean: true,
     number: 42,
-    decimal: new Decimal(42),
+    decimal: new Decimal('0.001'),
     string: 'hello',
     date: date,
   });
-  expect(inserted.get('array')).toStrictEqual([1, 2, 3, date, new Decimal(42)]);
+  expect(inserted.get('array')).toStrictEqual([1, 2, 3, date, new Decimal('0.001')]);
 
   expect((await proto.Query('Test').equalTo('boolean', true).first())?.get('boolean')).toStrictEqual(true);
   expect((await proto.Query('Test').equalTo('number', 42).first())?.get('number')).toStrictEqual(42);
-  expect((await proto.Query('Test').equalTo('decimal', new Decimal(42)).first())?.get('decimal')).toStrictEqual(new Decimal(42));
+  expect((await proto.Query('Test').equalTo('decimal', new Decimal('0.001')).first())?.get('decimal')).toStrictEqual(new Decimal('0.001'));
   expect((await proto.Query('Test').equalTo('string', 'hello').first())?.get('string')).toStrictEqual('hello');
   expect((await proto.Query('Test').equalTo('date', date).first())?.get('date')).toStrictEqual(date);
 })
