@@ -128,36 +128,36 @@ export abstract class SqlStorage implements TStorage {
         return sql`${{ identifier: colname }} ${this.dialect.nullSafeNotEqual()} ${this.dialect.encodeType(type, expr.value)}`;
       case '$in':
         if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
-        if (type === 'array' || (!_.isString(type) && type.type === 'array')) {
+        if (type === 'array' || (!_.isString(type) && type?.type === 'array')) {
           return sql`${this.dialect.encodeValue(expr.value)} = ANY(${{ identifier: colname }})`;
         } else if (_.isArray(expr.value)) {
           return sql`${{ identifier: colname }} = ANY(${this.dialect.encodeValue(expr.value)})`;
         }
       case '$nin':
         if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
-        if (type === 'array' || (!_.isString(type) && type.type === 'array')) {
+        if (type === 'array' || (!_.isString(type) && type?.type === 'array')) {
           return sql`${this.dialect.encodeValue(expr.value)} <> ALL(${{ identifier: colname }})`;
         } else if (_.isArray(expr.value)) {
           return sql`${{ identifier: colname }} <> ALL(${this.dialect.encodeValue(expr.value)})`;
         }
       case '$subset':
         if (!_.isArray(expr.value)) break;
-        if (type === 'array' || (!_.isString(type) && type.type === 'array')) {
+        if (type === 'array' || (!_.isString(type) && type?.type === 'array')) {
           return sql`${{ identifier: colname }} <@ ${this.dialect.encodeValue(expr.value)}`;
         }
       case '$superset':
         if (!_.isArray(expr.value)) break;
-        if (type === 'array' || (!_.isString(type) && type.type === 'array')) {
+        if (type === 'array' || (!_.isString(type) && type?.type === 'array')) {
           return sql`${{ identifier: colname }} @> ${this.dialect.encodeValue(expr.value)}`;
         }
       case '$disjoint':
         if (!_.isArray(expr.value)) break;
-        if (type === 'array' || (!_.isString(type) && type.type === 'array')) {
+        if (type === 'array' || (!_.isString(type) && type?.type === 'array')) {
           return sql`NOT ${{ identifier: colname }} && ${this.dialect.encodeValue(expr.value)}`;
         }
       case '$intersect':
         if (!_.isArray(expr.value)) break;
-        if (type === 'array' || (!_.isString(type) && type.type === 'array')) {
+        if (type === 'array' || (!_.isString(type) && type?.type === 'array')) {
           return sql`${{ identifier: colname }} && ${this.dialect.encodeValue(expr.value)}`;
         }
       case '$not':
