@@ -300,7 +300,7 @@ export abstract class SqlStorage implements TStorage {
         const joins = _.compact(_.map(populates, ({ join }) => join));
         return sql`
           , ${{ identifier: name }} AS (
-            UPDATE ${{ identifier: query.className }} AS ${{ identifier: name }}
+            UPDATE ${{ identifier: query.className }}
             SET __v = __v + 1, _updated_at = NOW()
             ${_.isEmpty(update) ? sql`, ${this._encodeUpdateAttrs(query.className, update)}` : sql``}
             WHERE _id IN (SELECT _id FROM ${{ identifier: tempName }})
@@ -337,7 +337,7 @@ export abstract class SqlStorage implements TStorage {
         const joins = _.compact(_.map(populates, ({ join }) => join));
         return sql`
           , ${{ identifier: updateName }} AS (
-            UPDATE ${{ identifier: query.className }} AS ${{ identifier: updateName }}
+            UPDATE ${{ identifier: query.className }}
             SET __v = __v + 1, _updated_at = NOW()
             ${_.isEmpty(update) ? sql`, ${this._encodeUpdateAttrs(query.className, update)}` : sql``}
             WHERE _id IN (SELECT _id FROM ${{ identifier: tempName }})
@@ -380,7 +380,7 @@ export abstract class SqlStorage implements TStorage {
         const joins = _.compact(_.map(populates, ({ join }) => join));
         return sql`
           , ${{ identifier: name }} AS (
-            DELETE FROM ${{ identifier: query.className }} AS ${{ identifier: name }}
+            DELETE FROM ${{ identifier: query.className }}
             WHERE _id IN (SELECT _id FROM ${{ identifier: tempName }})
             RETURNING *
           )
