@@ -154,9 +154,9 @@ export abstract class SqlStorage implements TStorage {
     )`;
   }
   protected _decodeSort(className: string, sort: Record<string, 1 | -1> ): SQL {
-    return !_.isEmpty(sort) ? sql`${_.map(sort, (order, key) => sql`
+    return sql`${_.map(sort, (order, key) => sql`
       ${this._decodeSortKey(className, key)} ${{ literal: order === 1 ? 'ASC' : 'DESC' }}
-    `)}` : sql``;
+    `)}`;
   }
 
   protected _baseSelectQuery(
@@ -194,7 +194,7 @@ export abstract class SqlStorage implements TStorage {
         FROM ${{ identifier: query.className }} AS ${{ identifier: tempName }}
         ${!_.isEmpty(_joins) ? _joins : sql``}
         ${_filter ? sql`WHERE ${_filter}` : sql``}
-        ${query.sort ? sql`ORDER BY ${this._decodeSort(tempName, query.sort)}` : sql``}
+        ${!_.isEmpty(query.sort) ? sql`ORDER BY ${this._decodeSort(tempName, query.sort)}` : sql``}
         ${query.limit ? sql`LIMIT ${{ literal: `${query.limit}` }}` : sql``}
         ${query.skip ? sql`OFFSET ${{ literal: `${query.skip}` }}` : sql``}
       `,

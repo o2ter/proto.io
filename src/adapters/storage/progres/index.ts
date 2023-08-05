@@ -242,7 +242,7 @@ export class PostgresStorage extends SqlStorage {
         ARRAY(
           SELECT row_to_json(${{ identifier: populate.name }})
           FROM ${{ identifier: populate.name }} WHERE ${cond}
-          ${populate.sort ? sql`ORDER BY ${this._decodeSort(populate.name, populate.sort)}` : sql``}
+          ${!_.isEmpty(populate.sort) ? sql`ORDER BY ${this._decodeSort(populate.name, populate.sort)}` : sql``}
           ${populate.limit ? sql`LIMIT ${{ literal: `${populate.limit}` }}` : sql``}
           ${populate.skip ? sql`OFFSET ${{ literal: `${populate.skip}` }}` : sql``}
         ) AS ${{ identifier: field }}
