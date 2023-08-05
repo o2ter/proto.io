@@ -125,14 +125,6 @@ export class FieldExpression {
               if (keys.length !== 1 && !allFieldQueryKeys.includes(keys[0])) throw Error('Invalid expression');
               return new FieldExpression(type, FieldExpression.decode(_expr));
             }
-          case '$type':
-            if (_.isString(expr)) {
-              return new FieldExpression(type, expr);
-            } else if (_.isArray(expr) && _.every(expr, x => _.isString(x))) {
-              return new FieldExpression(type, expr);
-            } else {
-              throw Error('Invalid expression');
-            }
           case '$pattern':
             if (_.isString(expr) || _.isRegExp(expr)) {
               return new FieldExpression(type, expr);

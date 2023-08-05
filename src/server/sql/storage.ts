@@ -103,7 +103,7 @@ export abstract class SqlStorage implements TStorage {
     }
   }
 
-  protected _decodeFieldExpression(className: string, field: string, expr: FieldExpression) {
+  protected _decodeFieldExpression(className: string, field: string, expr: FieldExpression): SQL {
     const [colname, ...subpath] = _.toPath(field);
     const fields = this.schema[className].fields;
     if (_.isEmpty(subpath)) {
@@ -111,42 +111,43 @@ export abstract class SqlStorage implements TStorage {
       switch (expr.type) {
         case '$eq':
           if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
-          return sql`
-            ${{ identifier: colname }} ${this.dialect.nullSafeEqual()} ${this.dialect.encodeType(type, expr.value)}
-          `;
+          return sql`${{ identifier: colname }} ${this.dialect.nullSafeEqual()} ${this.dialect.encodeType(type, expr.value)}`;
         case '$gt':
           if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
-          return sql`
-            ${{ identifier: colname }} > ${this.dialect.encodeType(type, expr.value)}
-          `;
-        case '$gte': 
+          return sql`${{ identifier: colname }} > ${this.dialect.encodeType(type, expr.value)}`;
+        case '$gte':
           if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
-          return sql`
-            ${{ identifier: colname }} >= ${this.dialect.encodeType(type, expr.value)}
-          `;
-        case '$lt': 
+          return sql`${{ identifier: colname }} >= ${this.dialect.encodeType(type, expr.value)}`;
+        case '$lt':
           if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
-          return sql`
-            ${{ identifier: colname }} < ${this.dialect.encodeType(type, expr.value)}
-          `;
-        case '$lte': 
+          return sql`${{ identifier: colname }} < ${this.dialect.encodeType(type, expr.value)}`;
+        case '$lte':
           if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
-          return sql`
-            ${{ identifier: colname }} <= ${this.dialect.encodeType(type, expr.value)}
-          `;
-        case '$ne': 
+          return sql`${{ identifier: colname }} <= ${this.dialect.encodeType(type, expr.value)}`;
+        case '$ne':
           if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
-          return sql`
-            ${{ identifier: colname }} ${this.dialect.nullSafeNotEqual()} ${this.dialect.encodeType(type, expr.value)}
-          `;
-        case '$in': break;
-        case '$nin': break;
+          return sql`${{ identifier: colname }} ${this.dialect.nullSafeNotEqual()} ${this.dialect.encodeType(type, expr.value)}`;
+        case '$in':
+          if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
+          if (type === 'array') {
+            return sql`${this.dialect.encodeType(type, expr.value)} = ANY(${{ identifier: colname }})`;
+          } else if (_.isArray(expr.value)) {
+            return sql`${{ identifier: colname }} = ANY(${this.dialect.encodeType(type, expr.value)})`;
+          }
+        case '$nin':
+          if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
+          if (type === 'array') {
+            return sql`${this.dialect.encodeType(type, expr.value)} <> ALL(${{ identifier: colname }})`;
+          } else if (_.isArray(expr.value)) {
+            return sql`${{ identifier: colname }} <> ALL(${this.dialect.encodeType(type, expr.value)})`;
+          }
         case '$subset': break;
         case '$superset': break;
         case '$disjoint': break;
         case '$intersect': break;
-        case '$not': break;
-        case '$type': break;
+        case '$not':
+          if (!(expr.value instanceof FieldExpression)) break;
+          return sql`NOT (${this._decodeFieldExpression(className, field, expr.value)})`;
         case '$pattern': break;
         case '$size': break;
         case '$every': break;
