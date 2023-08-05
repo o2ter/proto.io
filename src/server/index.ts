@@ -39,6 +39,8 @@ import {
 import { TFileStorage } from './filesys';
 import { TStorage } from './storage';
 import { TSchema } from './schema';
+import { Request } from 'express';
+import { MASTER_KEY_HEADER_NAME, MASTER_PASS_HEADER_NAME, MASTER_USER_HEADER_NAME } from '../common/const';
 
 type Callback<T, R, E> = (request: Proto<E> & T) => R | PromiseLike<R>;
 export type ProtoFunction<E> = Callback<{ data: TSerializable; }, TSerializable, E>;
@@ -68,11 +70,14 @@ export type ProtoOptions<Ext> = {
 
 export type ProtoKeyOptions = {
   masterKey?: string;
+  masterUsers?: { user: string; pass: string; }[];
 };
 
 export class Proto<Ext> extends ProtoType<Ext> {
 
   [PVK]: ProtoInternal<Ext>;
+
+  private req?: Request;
 
   constructor(options: ProtoOptions<Ext> & ProtoKeyOptions) {
     super();
@@ -101,6 +106,17 @@ export class Proto<Ext> extends ProtoType<Ext> {
   }
 
   get isMaster(): boolean {
+    if (!this.req) return false;
+    const key = this.req.header(MASTER_KEY_HEADER_NAME);
+    const user = this.req.header(MASTER_USER_HEADER_NAME);
+    const pass = this.req.header(MASTER_PASS_HEADER_NAME);
+    if (!_.isEmpty(key)) {
+      const masterKey = this[PVK].options.masterKey;
+      return !_.isEmpty(masterKey) && key === masterKey;
+    }
+    if (!_.isEmpty(user) && !_.isEmpty(pass)) {
+      return _.some(this[PVK].options.masterUsers, x => x.user === user && x.pass === pass);
+    }
     return false;
   }
 

@@ -56,9 +56,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
           ...options
         }: any = deserialize(req.body);
 
-        const payload: Proto<E> = Object.setPrototypeOf({
-          ..._.omit(req, 'body'),
-        }, proto);
+        const payload: Proto<E> = Object.setPrototypeOf({ req }, proto);
         const query = payload.Query(name, { master: payload.isMaster, context });
         query[PVK].options = options;
 
@@ -91,9 +89,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
 
       if (!_.includes(classes, name)) return res.sendStatus(404);
 
-      const payload: Proto<E> = Object.setPrototypeOf({
-        ..._.omit(req, 'body'),
-      }, proto);
+      const payload: Proto<E> = Object.setPrototypeOf({ req }, proto);
       const query = payload.Query(name, { master: payload.isMaster });
 
       await response(res, async () => {
@@ -130,9 +126,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
 
       if (!_.includes(classes, name)) return res.sendStatus(404);
 
-      const payload: Proto<E> = Object.setPrototypeOf({
-        ..._.omit(req, 'body'),
-      }, proto);
+      const payload: Proto<E> = Object.setPrototypeOf({ req }, proto);
 
       await response(res, async () => payload.Query(name, { master: payload.isMaster }).get(id));
     }
@@ -150,9 +144,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
 
       if (!_.includes(classes, name)) return res.sendStatus(404);
 
-      const payload: Proto<E> = Object.setPrototypeOf({
-        ..._.omit(req, 'body'),
-      }, proto);
+      const payload: Proto<E> = Object.setPrototypeOf({ req }, proto);
       const query = payload.Query(name, { master: payload.isMaster }).equalTo('_id', id);
 
       const update = _.mapValues(deserialize(req.body) as any, v => [UpdateOp.set, v]);
@@ -174,9 +166,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
 
       if (!_.includes(classes, name)) return res.sendStatus(404);
 
-      const payload: Proto<E> = Object.setPrototypeOf({
-        ..._.omit(req, 'body'),
-      }, proto);
+      const payload: Proto<E> = Object.setPrototypeOf({ req }, proto);
       const query = payload.Query(name, { master: payload.isMaster }).equalTo('_id', id);
 
       await response(res, async () => query.deleteOne());

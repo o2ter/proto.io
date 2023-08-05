@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { XSRF_COOKIE_NAME, XSRF_HEADER_NAME } from '../server/csrf/const';
+import { XSRF_COOKIE_NAME, XSRF_HEADER_NAME } from '../common/const';
 import { RequestOptions } from './options';
 
 export default class {

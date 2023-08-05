@@ -42,6 +42,7 @@ import {
   base64ToBuffer,
 } from '../internals';
 import { iterableToStream, streamToIterable } from './stream';
+import { MASTER_KEY_HEADER_NAME } from '../common/const';
 
 export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
 
@@ -60,12 +61,17 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     options?: Parameters<Service['request']>[0]
   ) {
 
-    const { serializeOpts, context, ...opts } = options ?? {};
+    const { serializeOpts, context, master, ...opts } = options ?? {};
 
     const res = await this.service.request({
       baseURL: this.options.endpoint,
       data: serialize(data ?? null, serializeOpts),
       responseType: 'text',
+      headers: {
+        ...master ? {
+          [MASTER_KEY_HEADER_NAME]: this.proto[PVK].options.masterKey,
+        } : {},
+      },
       ...opts,
     });
 
