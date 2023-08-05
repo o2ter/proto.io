@@ -81,7 +81,7 @@ export class SQL {
       } else if (_.isBoolean(value.value)) {
         query += dialect.boolean(value.value);
       } else if (_.isString(value.value)) {
-        query += dialect.quote(value.value);
+        query += `${dialect.quote(value.value)}::text`;
       } else if (_.isInteger(value.value)) {
         query += `${value.value}`;
       } else {
