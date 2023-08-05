@@ -107,7 +107,7 @@ export abstract class SqlStorage implements TStorage {
     const [colname, ...subpath] = _.toPath(field);
     const fields = this.schema[className].fields;
     if (_.isEmpty(subpath)) {
-      const type = fields[colname];
+      const type = fields[colname] ?? defaultObjectKeyTypes[colname];
       switch (expr.type) {
         case '$eq':
           if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
@@ -343,7 +343,9 @@ export abstract class SqlStorage implements TStorage {
     const fields = this.schema[className].fields;
     for (const [path, op] of _.toPairs(attrs)) {
       const [colname] = _.toPath(path);
-      updates.push(sql`${{ identifier: colname }} = ${this.dialect.updateOperation(path, fields[colname], op)}`);
+      updates.push(sql`${{ identifier: colname }} = ${this.dialect.updateOperation(
+        path, fields[colname] ?? defaultObjectKeyTypes[colname], op
+      )}`);
     }
     return updates;
   }
