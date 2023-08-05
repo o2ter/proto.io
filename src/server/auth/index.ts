@@ -66,16 +66,12 @@ export default <E>(proto: Proto<E>, jwtToken?: string): RequestHandler => async 
   }
 
   if (req.user instanceof TUser) {
+    const query = proto.Query('_Role', { master: true }).containsIn('users', req.user);
     let roles: TRole[] = [];
-    let queue = await proto.Query('_Role', { master: true })
-      .containsIn('users', req.user)
-      .find();
+    let queue = await query.clone().find();
     while (!_.isEmpty(queue)) {
       roles = _.uniqBy([...roles, ...queue], x => x.objectId);
-      queue = await proto.Query('_Role', { master: true })
-        .notContainsIn('_id', _.compact(_.map(roles, x => x.objectId)))
-        .containsIn('users', req.user)
-        .find();
+      queue = await query.clone().notContainsIn('_id', _.compact(_.map(roles, x => x.objectId))).find();
     }
     req.roles = roles;
   }
