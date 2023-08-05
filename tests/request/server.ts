@@ -53,9 +53,10 @@ const proto = new Proto({
   endpoint: 'http://localhost:8080',
   masterKey: masterKey,
   schema: {
-    '_Role': {
+    'Test': {
       fields: {
-        createdBy: { type: 'pointer', target: '_User' },
+        user: { type: 'pointer', target: 'Test' },
+        tests: { type: 'relation', target: 'Test' },
       }
     }
   },

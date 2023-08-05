@@ -63,14 +63,13 @@ test('test files 2', async () => {
 
 test('test explain', async () => {
 
-  console.dir(await proto.Query('_Role', { master: true }).includes(
+  console.dir(await proto.Query('Test', { master: true }).includes(
     '_id',
-    'createdBy._id',
-    'users._id',
-    'roles._id',
-    'roles.roles._id',
-    'roles.roles.roles._id',
-    'roles.roles.roles.roles._id',
+    'user._id',
+    'tests._id',
+    'tests.tests._id',
+    'tests.tests.tests._id',
+    'tests.tests.tests.tests._id',
   ).sort({
     '_id': 1,
   }).explain(), { depth: null });
