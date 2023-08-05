@@ -103,6 +103,12 @@ test('test types', async () => {
   expect((await proto.Query('Test').equalTo('decimal', new Decimal('0.001')).first())?.get('decimal')).toStrictEqual(new Decimal('0.001'));
   expect((await proto.Query('Test').equalTo('string', 'hello').first())?.get('string')).toStrictEqual('hello');
   expect((await proto.Query('Test').equalTo('date', date).first())?.get('date')).toStrictEqual(date);
+
+  expect((await proto.Query('Test').equalTo('array.0', 1).first())?.get('array.0')).toStrictEqual(1);
+  expect((await proto.Query('Test').equalTo('array.1', 2).first())?.get('array.1')).toStrictEqual(2);
+  expect((await proto.Query('Test').equalTo('array.2', 3).first())?.get('array.2')).toStrictEqual(3);
+  expect((await proto.Query('Test').equalTo('array.3', date).first())?.get('array.3')).toStrictEqual(date);
+  expect((await proto.Query('Test').equalTo('array.4', new Decimal('0.001')).first())?.get('array.4')).toStrictEqual(new Decimal('0.001'));
 })
 
 test('test upsert', async () => {
