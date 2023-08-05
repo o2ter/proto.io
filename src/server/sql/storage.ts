@@ -145,7 +145,7 @@ export abstract class SqlStorage implements TStorage {
   ): { column: SQL, join?: SQL }
   protected abstract _decodePopulate(parent: Populate & { colname: string }): Record<string, SQL>
 
-  protected _decodeSortKey(className: string, key: string ): SQL {
+  protected _decodeSortKey(className: string, key: string): SQL {
     const [colname, ...subpath] = _.toPath(key);
     if (_.isEmpty(subpath)) return sql`${{ identifier: className }}.${{ identifier: colname }}`;
     return sql`jsonb_extract_path(
@@ -153,7 +153,7 @@ export abstract class SqlStorage implements TStorage {
       ${_.map(subpath, x => sql`${{ quote: x }}`)}
     )`;
   }
-  protected _decodeSort(className: string, sort: Record<string, 1 | -1> ): SQL {
+  protected _decodeSort(className: string, sort: Record<string, 1 | -1>): SQL {
     return sql`${_.map(sort, (order, key) => sql`
       ${this._decodeSortKey(className, key)} ${{ literal: order === 1 ? 'ASC' : 'DESC' }}
     `)}`;
@@ -317,21 +317,35 @@ export abstract class SqlStorage implements TStorage {
   }
 
   async deleteOne(query: DecodedQuery<FindOneOptions>) {
-
     const compiler = this._queryCompiler(query);
-    const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }));
-    const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
-
-    return undefined;
+    const deleted = await this.query(this._modifyQuery(
+      query,
+      compiler,
+      (tempName, populates) => {
+        const name = `_delete_$${query.className.toLowerCase()}`;
+        const includes = this._decodeIncludes(tempName, compiler.includes);
+        const joins = _.compact(_.map(populates, ({ join }) => join));
+        return sql`
+          , ${{ identifier: name }} AS (
+            DELETE FROM ${{ identifier: tempName }} 
+            RETURNING ${includes}
+          )
+          SELECT *, ${_.map(populates, ({ column }) => column)} FROM ${{ identifier: name }}
+          ${!_.isEmpty(joins) ? joins : sql``}
+        `;
+      }
+    ));
+    return _.first(deleted);
   }
 
   async deleteMany(query: DecodedQuery<FindOptions>) {
-
     const compiler = this._queryCompiler(query);
-    const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }));
-    const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
-
-    return 0;
+    const deleted = await this.query(this._modifyQuery(
+      query,
+      compiler,
+      (tempName) => sql`DELETE FROM ${{ identifier: tempName }} RETURNING 0`
+    ));
+    return deleted.length;
   }
 
 }
