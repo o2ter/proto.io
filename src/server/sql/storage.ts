@@ -297,8 +297,7 @@ export abstract class SqlStorage implements TStorage {
       compiler,
       (tempName) => {
         const name = `_delete_$${query.className.toLowerCase()}`;
-        const returning = query.returning === 'old' ? tempName : name;
-        const populates = this._selectPopulateMap(query.className, returning, compiler);
+        const populates = this._selectPopulateMap(query.className, name, compiler);
         const joins = _.compact(_.map(populates, ({ join }) => join));
         return sql`
           , ${{ identifier: name }} AS (
@@ -306,15 +305,15 @@ export abstract class SqlStorage implements TStorage {
             SET __v = __v + 1, _updated_at = NOW()
             ${_.isEmpty(update) ? sql`, ${this._encodeUpdateAttrs(query.className, update)}` : sql``}
             WHERE _id IN (SELECT _id FROM ${{ identifier: tempName }})
-            ${query.returning !== 'old' ? sql`RETURNING *` : sql``}
+            RETURNING ${query.returning !== 'old' ? sql`*` : sql`${{ identifier: tempName }}.*`}
           )
           SELECT ${{
             literal: [
-              ...this._decodeIncludes(returning, compiler.includes),
+              ...this._decodeIncludes(name, compiler.includes),
               ..._.map(populates, ({ column }) => column),
             ], separator: ',\n'
           }}
-          FROM ${{ identifier: returning }}
+          FROM ${{ identifier: name }}
           ${!_.isEmpty(joins) ? joins : sql``}
         `;
       }
