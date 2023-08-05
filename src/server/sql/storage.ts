@@ -164,7 +164,12 @@ export abstract class SqlStorage implements TStorage {
         case '$not':
           if (!(expr.value instanceof FieldExpression)) break;
           return sql`NOT (${this._decodeFieldExpression(className, field, expr.value)})`;
-        case '$pattern': break;
+        case '$pattern':
+          if (_.isString(expr.value)) {
+          } else if (_.isRegExp(expr.value)) {
+            if (expr.value.ignoreCase) return sql`${{ identifier: colname }} ~* ${{ value: expr.value.source }}`;
+            return sql`${{ identifier: colname }} ~ ${{ value: expr.value.source }}`;
+          }
         case '$size':
           if (!_.isNumber(expr.value) || !_.isInteger(expr.value)) break;
           if (type === 'array' || (!_.isString(type) && type.type === 'relation')) {
