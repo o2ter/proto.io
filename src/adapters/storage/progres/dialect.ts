@@ -29,22 +29,22 @@ import { sql } from '../../../server/sql';
 import { Decimal, TObject, TValue, UpdateOp, _TValue, isPrimitiveValue } from '../../../internals';
 import { TSchema } from '../../../server/schema';
 
-const decodeObject = (value: _TValue): _TValue => {
+const decodeValue = (value: _TValue): _TValue => {
   if (isPrimitiveValue(value)) return value;
-  if (_.isArray(value)) return _.map(value, x => decodeObject(x));
+  if (_.isArray(value)) return _.map(value, x => decodeValue(x));
   if (_.isString(value.$decimal)) return new Decimal(value.$decimal);
   return _.transform(value, (r, v, k) => {
-    r[k.startsWith('$') ? k.substring(1) : k] = decodeObject(v);
+    r[k.startsWith('$') ? k.substring(1) : k] = decodeValue(v);
   }, {} as any);
 }
 
-const encodeObject = (value: TValue): any => {
+const encodeValue = (value: TValue): any => {
   if (value instanceof TObject) throw Error('Invalid data type');
   if (value instanceof Decimal) return { $decimal: value.toString() };
   if (isPrimitiveValue(value)) return value;
-  if (_.isArray(value)) return _.map(value, x => encodeObject(x));
+  if (_.isArray(value)) return _.map(value, x => encodeValue(x));
   return _.transform(value, (r, v, k) => {
-    r[k.startsWith('$') ? `$${k}` : k] = encodeObject(v);
+    r[k.startsWith('$') ? `$${k}` : k] = encodeValue(v);
   }, {} as any);
 }
 
@@ -90,10 +90,10 @@ export const PostgresDialect = {
         if (_.isDate(value)) return sql`${{ value }}`;
         break;
       case 'object':
-        if (_.isPlainObject(value)) return sql`${{ value: encodeObject(value) }}`;
+        if (_.isPlainObject(value)) return sql`${{ value: encodeValue(value) }}`;
         break;
       case 'array':
-        if (_.isArray(value)) return sql`${{ value: encodeObject(value) }}`;
+        if (_.isArray(value)) return sql`${{ value: encodeValue(value) }}`;
         break;
       case 'pointer':
         if (value instanceof TObject && value.objectId) return sql`${{ value: `${value.className}$${value.objectId}` }}`;
@@ -130,10 +130,10 @@ export const PostgresDialect = {
         if (_.isDate(value)) return value;
         break;
       case 'object':
-        if (_.isPlainObject(value)) return decodeObject(value);
+        if (_.isPlainObject(value)) return decodeValue(value);
         break;
       case 'array':
-        if (_.isArray(value)) return decodeObject(value);
+        if (_.isArray(value)) return decodeValue(value);
         break;
       default: break;
     }
