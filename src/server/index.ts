@@ -98,10 +98,12 @@ export class Proto<Ext> extends ProtoType<Ext> {
   }
 
   get user(): TUser | undefined {
-    return;
+    if (this.req && 'user' in this.req) return this.req.user as TUser;
+    return undefined;
   }
 
   get roles(): string[] {
+    if (this.req && 'roles' in this.req) return this.req.roles as string[] ?? [];
     return [];
   }
 
