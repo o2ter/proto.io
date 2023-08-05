@@ -73,4 +73,9 @@ test('test explain', async () => {
   ).sort({
     '_id': 1,
   }).explain(), { depth: null });
+});
+
+test('test insert', async () => {
+  const inserted = await proto.Query('Test').insert({});
+  expect(inserted?.objectId).toBeTruthy();
 })
