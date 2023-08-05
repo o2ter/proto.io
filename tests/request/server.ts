@@ -29,7 +29,6 @@ import { Proto, ProtoRoute, UUID } from '../../src/index';
 import { beforeAll, afterAll } from '@jest/globals';
 import DatabaseFileStorage from '../../src/adapters/file/database';
 import PostgresStorage from '../../src/adapters/storage/progres';
-import { QuerySelector } from '../../src/server/query/validator/parser';
 
 let httpServer: any;
 
@@ -48,8 +47,11 @@ const uri = _.compact([
 
 const database = new PostgresStorage(uri);
 
+export const masterKey = (new UUID).toHexString();
+
 const proto = new Proto({
   endpoint: 'http://localhost:8080',
+  masterKey: masterKey,
   schema: {
     '_Role': {
       fields: {

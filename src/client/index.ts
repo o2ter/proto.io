@@ -38,6 +38,7 @@ export * from '../common';
 
 export type ProtoOptions<Ext> = {
   endpoint: string;
+  masterKey?: string;
   classExtends?: TExtensions<Ext>;
 }
 

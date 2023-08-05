@@ -34,8 +34,8 @@ const scheduleOp = {
         className,
         filter: QuerySelector.decode({ _expired_at: { $lt: new Date() } }),
         includes: ['_id'],
-        acls: [],
-        master: true,
+        matches: {},
+        objectIdSize: 0
       });
     }
   }

@@ -23,7 +23,7 @@
 //  THE SOFTWARE.
 //
 
-import './server';
+import { masterKey } from './server';
 import fs from 'fs';
 import { test, expect } from '@jest/globals';
 import { UUID } from 'bson';
@@ -32,6 +32,7 @@ import ProtoClient from '../../src/client';
 
 const proto = new ProtoClient({
   endpoint: 'http://localhost:8080',
+  masterKey,
 });
 
 test('echo', async () => {

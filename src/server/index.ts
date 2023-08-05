@@ -58,6 +58,7 @@ export type ProtoFunctionOptions<E> = {
 
 export type ProtoOptions<Ext> = {
   endpoint: string;
+  masterKey: string;
   schema: Record<string, TSchema>;
   storage: TStorage;
   fileStorage: TFileStorage;
