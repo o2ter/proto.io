@@ -70,11 +70,11 @@ export const PostgresDialect = {
         case UpdateOp.divide: return sql`${{ identifier: column }} / ${{ value: _value }}`;
         case UpdateOp.max: return sql`GREATEST(${{ identifier: column }}, ${{ value: _value }})`;
         case UpdateOp.min: return sql`LEAST(${{ identifier: column }}, ${{ value: _value }})`;
-        case UpdateOp.addToSet: return sql`${{ value: _value }}`;
-        case UpdateOp.push: return sql`${{ value: _value }}`;
-        case UpdateOp.removeAll: return sql`${{ value: _value }}`;
-        case UpdateOp.popFirst: return sql`${{ value: _value }}`;
-        case UpdateOp.popLast: return sql`${{ value: _value }}`;
+        case UpdateOp.addToSet:  throw Error('Invalid update operation');
+        case UpdateOp.push:  throw Error('Invalid update operation');
+        case UpdateOp.removeAll:  throw Error('Invalid update operation');
+        case UpdateOp.popFirst:  throw Error('Invalid update operation');
+        case UpdateOp.popLast:  throw Error('Invalid update operation');
         default: throw Error('Invalid update operation');
       }
     } else {

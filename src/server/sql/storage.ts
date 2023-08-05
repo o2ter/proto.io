@@ -53,7 +53,6 @@ export abstract class SqlStorage implements TStorage {
 
   abstract get dialect(): SqlDialect
   protected abstract _query(text: string, values: any[]): ReturnType<typeof asyncStream<any>>
-  protected abstract _encodeData(type: TSchema.Primitive, value: TValue): any
   protected abstract _decodeData(type: TSchema.Primitive, value: any): TValue
 
   query(sql: SQL) {
@@ -73,9 +72,9 @@ export abstract class SqlStorage implements TStorage {
     for (const [key, value] of _.toPairs(attrs)) {
       const dataType = fields[key] ?? defaultObjectKeyTypes[key];
       if (_.isString(dataType)) {
-        result[key] = this._encodeData(dataType, value);
+        result[key] = this.dialect.encodeType(value, dataType);
       } else if (dataType.type !== 'pointer' && dataType.type !== 'relation') {
-        result[key] = this._encodeData(dataType.type, value);
+        result[key] = this.dialect.encodeType(value, dataType);
       } else if (dataType.type === 'pointer') {
         if (value instanceof TObject && value.objectId) result[key] = `${value.className}$${value.objectId}`;
       } else if (dataType.type === 'relation') {
@@ -296,7 +295,7 @@ export abstract class SqlStorage implements TStorage {
       query,
       compiler,
       (tempName) => {
-        const name = `_delete_$${query.className.toLowerCase()}`;
+        const name = `_update_$${query.className.toLowerCase()}`;
         const populates = this._selectPopulateMap(query.className, name, compiler);
         const joins = _.compact(_.map(populates, ({ join }) => join));
         return sql`
@@ -322,21 +321,52 @@ export abstract class SqlStorage implements TStorage {
   }
 
   async upsertOne(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>) {
-
-    const _update: [string, [UpdateOp, TValue]][] = _.toPairs(
-      this._encodeObjectAttrs(query.className, update)
-    );
-
-    const _setOnInsert: [string, TValue][] = _.toPairs({
+    const compiler = this._queryCompiler(query);
+    const _insert: [string, TValue][] = _.toPairs({
       _id: generateId(query.objectIdSize),
       ...this._encodeObjectAttrs(query.className, setOnInsert),
     });
-
-    const compiler = this._queryCompiler(query);
-    const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }));
-    const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
-
-    return undefined;
+    const upserted = await this.query(this._modifyQuery(
+      query,
+      compiler,
+      (tempName) => {
+        const updateName = `_update_$${query.className.toLowerCase()}`;
+        const insertName = `_insert_$${query.className.toLowerCase()}`;
+        const upsertName = `_upsert_$${query.className.toLowerCase()}`;
+        const populates = this._selectPopulateMap(query.className, updateName, compiler);
+        const joins = _.compact(_.map(populates, ({ join }) => join));
+        return sql`
+          , ${{ identifier: updateName }} AS (
+            UPDATE ${{ identifier: query.className }} AS ${{ identifier: updateName }}
+            SET __v = __v + 1, _updated_at = NOW()
+            ${_.isEmpty(update) ? sql`, ${this._encodeUpdateAttrs(query.className, update)}` : sql``}
+            WHERE _id IN (SELECT _id FROM ${{ identifier: tempName }})
+            RETURNING ${query.returning !== 'old' ? sql`*` : sql`${{ identifier: tempName }}.*`}
+          )
+          , ${{ identifier: insertName }} AS (
+            INSERT INTO ${{ identifier: query.className }}
+            (${_.map(_insert, x => sql`${{ identifier: x[0] }}`)})
+            SELECT (${_.map(_insert, x => sql`${{ value: x[1] }} AS ${{ identifier: x[0] }}`)})
+            WHERE NOT EXISTS(SELECT * FROM ${{ identifier: updateName }})
+            RETURNING *
+          )
+          , ${{ identifier: upsertName }} AS (
+            SELECT * FROM ${{ identifier: updateName }}
+            UNION
+            SELECT * FROM ${{ identifier: insertName }}
+          )
+          SELECT ${{
+            literal: [
+              ...this._decodeIncludes(upsertName, compiler.includes),
+              ..._.map(populates, ({ column }) => column),
+            ], separator: ',\n'
+          }}
+          FROM ${{ identifier: upsertName }}
+          ${!_.isEmpty(joins) ? joins : sql``}
+        `;
+      }
+    ));
+    return _.first(upserted);
   }
 
   async deleteOne(query: DecodedQuery<FindOneOptions>) {
