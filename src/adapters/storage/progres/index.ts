@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { PoolConfig } from 'pg';
-import { Decimal, TObject, TValue } from '../../../internals';
+import { TObject } from '../../../internals';
 import { TSchema, defaultObjectKeyTypes } from '../../../server/schema';
 import { PostgresDriver } from './driver';
 import { SQL, SqlStorage, sql } from '../../../server/sql';
