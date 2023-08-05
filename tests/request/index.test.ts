@@ -79,3 +79,12 @@ test('test insert', async () => {
   const inserted = await proto.Query('Test').insert({});
   expect(inserted?.objectId).toBeTruthy();
 })
+
+test('test upsert', async () => {
+  const inserted = await proto.Query('Test').insert({});
+  const upserted = await proto.Query('Test')
+  .equalTo('_id', inserted.objectId)
+  .upsertOne({}, {});
+  console.log(upserted)
+  expect(upserted?.objectId).toBeTruthy();
+})
