@@ -80,8 +80,11 @@ export const PostgresDialect = {
       if (value instanceof Decimal) return sql`CAST(${{ quote: value.toString() }} AS DECIMAL)`;
       if (isPrimitiveValue(value)) return sql`${{ value }}`;
       if (_.isArray(value)) return sql`${{ value: _encodeValue(value) }}`;
-      if (value instanceof TObject && value.objectId) return sql`${{ value: `${value.className}$${value.objectId}` }}`;
-      if (_.isPlainObject(value)) return sql`${{ value: _encodeValue(value) }}`;
+      if (value instanceof TObject) {
+        if (value.objectId) return sql`${{ value: `${value.className}$${value.objectId}` }}`;
+      } else if (_.isPlainObject(value)) {
+        return sql`${{ value: _encodeValue(value) }}`;
+      }
     } else {
       switch (_.isString(type) ? type : type.type) {
         case 'boolean':
@@ -118,7 +121,7 @@ export const PostgresDialect = {
         default: break;
       }
     }
-    
+
     throw Error('Invalid data type');
   },
   decodeType(type: TSchema.Primitive, value: any): TValue {
