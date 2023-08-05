@@ -291,8 +291,8 @@ export abstract class SqlStorage implements TStorage {
 
   async updateOne(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>) {
     const compiler = this._queryCompiler(query);
-    const updated = await this.query(this._modifyQuery(
-      query,
+    const updated = _.first(await this.query(this._modifyQuery(
+      { ...query, limit: 1 },
       compiler,
       (tempName) => {
         const name = `_update_$${query.className.toLowerCase()}`;
@@ -316,8 +316,8 @@ export abstract class SqlStorage implements TStorage {
           ${!_.isEmpty(joins) ? joins : sql``}
         `;
       }
-    ));
-    return _.first(updated);
+    )));
+    return _.isNil(updated) ? undefined : this._decodeObject(query.className, updated);
   }
 
   async upsertOne(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>) {
@@ -326,8 +326,8 @@ export abstract class SqlStorage implements TStorage {
       _id: generateId(query.objectIdSize),
       ...this._encodeObjectAttrs(query.className, setOnInsert),
     });
-    const upserted = await this.query(this._modifyQuery(
-      query,
+    const upserted = _.first(await this.query(this._modifyQuery(
+      { ...query, limit: 1 },
       compiler,
       (tempName) => {
         const updateName = `_update_$${query.className.toLowerCase()}`;
@@ -365,14 +365,14 @@ export abstract class SqlStorage implements TStorage {
           ${!_.isEmpty(joins) ? joins : sql``}
         `;
       }
-    ));
-    return _.first(upserted);
+    )));
+    return _.isNil(upserted) ? undefined : this._decodeObject(query.className, upserted);
   }
 
   async deleteOne(query: DecodedQuery<FindOneOptions>) {
     const compiler = this._queryCompiler(query);
-    const deleted = await this.query(this._modifyQuery(
-      query,
+    const deleted = _.first(await this.query(this._modifyQuery(
+      { ...query, limit: 1 },
       compiler,
       (tempName) => {
         const name = `_delete_$${query.className.toLowerCase()}`;
@@ -394,8 +394,8 @@ export abstract class SqlStorage implements TStorage {
           ${!_.isEmpty(joins) ? joins : sql``}
         `;
       }
-    ));
-    return _.first(deleted);
+    )));
+    return _.isNil(deleted) ? undefined : this._decodeObject(query.className, deleted);
   }
 
   async deleteMany(query: DecodedQuery<FindOptions>) {
