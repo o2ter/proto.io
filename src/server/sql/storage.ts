@@ -280,8 +280,24 @@ export abstract class SqlStorage implements TStorage {
     return _.isNil(result) ? undefined : this._decodeObject(options.className, result);
   }
 
-  protected _encodeUpdateAttrs(attrs: Record<string, [UpdateOp, TValue]>): SQL {
-    return sql``;
+  protected _encodeUpdateAttrs(attrs: Record<string, [UpdateOp, TValue]>): SQL[] {
+    const updates: SQL[] = [];
+    for (const [colname, [op, value]] of _.toPairs(attrs)) {
+      switch (op) {
+        case UpdateOp.set: updates.push(sql`${{ identifier: colname }} = ${{ value }}`);
+        case UpdateOp.increment: updates.push(sql`${{ identifier: colname }} = ${{ value }}`);
+        case UpdateOp.multiply: updates.push(sql`${{ identifier: colname }} = ${{ value }}`);
+        case UpdateOp.max: updates.push(sql`${{ identifier: colname }} = ${{ value }}`);
+        case UpdateOp.min: updates.push(sql`${{ identifier: colname }} = ${{ value }}`);
+        case UpdateOp.addToSet: updates.push(sql`${{ identifier: colname }} = ${{ value }}`);
+        case UpdateOp.push: updates.push(sql`${{ identifier: colname }} = ${{ value }}`);
+        case UpdateOp.removeAll: updates.push(sql`${{ identifier: colname }} = ${{ value }}`);
+        case UpdateOp.popFirst: updates.push(sql`${{ identifier: colname }} = ${{ value }}`);
+        case UpdateOp.popLast: updates.push(sql`${{ identifier: colname }} = ${{ value }}`);
+        default: throw Error('Invalid update operation');
+      }
+    }
+    return updates;
   }
 
   async updateOne(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>) {
@@ -297,7 +313,7 @@ export abstract class SqlStorage implements TStorage {
           , ${{ identifier: name }} AS (
             UPDATE ${{ identifier: query.className }} AS ${{ identifier: name }}
             SET __v = __v + 1, _updated_at = NOW()
-            ${_.isEmpty(update) ? this._encodeUpdateAttrs(update) : sql``}
+            ${_.isEmpty(update) ? sql`, ${this._encodeUpdateAttrs(update)}` : sql``}
             WHERE _id IN (SELECT _id FROM ${{ identifier: tempName }})
             RETURNING *
           )
