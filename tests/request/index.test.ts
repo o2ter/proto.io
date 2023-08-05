@@ -87,5 +87,5 @@ test('test upsert', async () => {
     .equalTo('_id', inserted.objectId)
     .upsertOne({ value: [UpdateOp.set, 'update'] }, { value: 'insert' });
   expect(upserted?.objectId).toBeTruthy();
-  expect(inserted?.get('value')).toStrictEqual('update');
+  expect(upserted?.get('value')).toStrictEqual('update');
 })
