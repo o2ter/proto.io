@@ -71,7 +71,10 @@ export default <E>(proto: Proto<E>, jwtToken?: string): RequestHandler => async 
     let queue = await query.clone().find();
     while (!_.isEmpty(queue)) {
       roles = _.uniqBy([...roles, ...queue], x => x.objectId);
-      queue = await query.clone().notContainsIn('_id', _.compact(_.map(roles, x => x.objectId))).find();
+      queue = await query.clone()
+        .isIntersect('_roles', queue)
+        .notContainsIn('_id', _.compact(_.map(roles, x => x.objectId)))
+        .find();
     }
     req.roles = roles;
   }
