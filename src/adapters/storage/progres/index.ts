@@ -55,6 +55,7 @@ export class PostgresStorage extends SqlStorage {
       await this._rebuildColumns(className, _schema);
       await this._createIndices(className, _schema);
     }
+    this.schedule?.execute();
   }
 
   private _pgType(type: TSchema.Primitive | TSchema.Relation) {

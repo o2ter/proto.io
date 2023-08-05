@@ -41,7 +41,6 @@ export abstract class SqlStorage implements TStorage {
 
   async prepare(schema: Record<string, TSchema>) {
     this.schema = schema;
-    this.schedule?.execute();
   }
 
   async shutdown() {
