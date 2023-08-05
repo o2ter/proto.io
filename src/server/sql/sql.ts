@@ -54,8 +54,6 @@ export class SQL {
         const { query: _query, values: _values } = value._compile(dialect, nextIdx);
         query += _query;
         values.push(..._values);
-      } else if (_.isBoolean(value)) {
-        query += dialect.boolean(value);
       } else if (isSQLArray(value)) {
         const queries: string[] = [];
         for (const subquery of value) {
@@ -80,9 +78,15 @@ export class SQL {
           }
           query += queries.join(value.separator ?? ', ');
         }
+      } else if (_.isBoolean(value.value)) {
+        query += dialect.boolean(value.value);
+      } else if (_.isString(value.value)) {
+        query += dialect.quote(value.value);
+      } else if (_.isInteger(value.value)) {
+        query += `${value.value}`;
       } else {
         query += dialect.placeholder(nextIdx());
-        values.push('value' in value ? value.value : value);
+        values.push(value.value);
       }
       query += str;
     }
