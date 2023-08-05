@@ -93,9 +93,9 @@ export abstract class SqlStorage implements TStorage {
     return obj;
   }
 
-  protected _decodeCoditionalSelector(className: string | null, filter: CoditionalSelector): SQL {
+  protected _decodeCoditionalSelector(className: string | null, filter: CoditionalSelector) {
     const queries = _.compact(_.map(filter.exprs, x => this._decodeFilter(className, x)));
-    if (_.isEmpty(queries)) return sql``;
+    if (_.isEmpty(queries)) return;
     switch (filter.type) {
       case '$and': return sql`(${{ literal: _.map(queries, x => sql`(${x})`), separator: ' AND ' }})`;
       case '$nor': return sql`(${{ literal: _.map(queries, x => sql`NOT (${x})`), separator: ' AND ' }})`;
@@ -173,17 +173,21 @@ export abstract class SqlStorage implements TStorage {
         case '$every':
           if (!(expr.value instanceof QuerySelector)) break;
           if (type === 'array' || (!_.isString(type) && type.type === 'relation')) {
+            const filter = this._decodeFilter(null, expr.value);
+            if (!filter) break;
             return sql`array_length(${{ identifier: colname }}, 1) = array_length(ARRAY(
               SELECT * FROM (SELECT unset(${{ identifier: colname }}) AS "$") "$"
-              WHERE ${this._decodeFilter(null, expr.value)}
+              WHERE ${filter}
             ), 1)`;
           }
         case '$some':
           if (!(expr.value instanceof QuerySelector)) break;
           if (type === 'array' || (!_.isString(type) && type.type === 'relation')) {
+            const filter = this._decodeFilter(null, expr.value);
+            if (!filter) break;
             return sql`array_length(ARRAY(
               SELECT * FROM (SELECT unset(${{ identifier: colname }}) AS "$") "$"
-              WHERE ${this._decodeFilter(null, expr.value)}
+              WHERE ${filter}
             ), 1) > 0`;
           }
         default: break;
@@ -192,14 +196,13 @@ export abstract class SqlStorage implements TStorage {
     throw Error('Invalid expression');
   }
 
-  protected _decodeFilter(className: string | null, filter: QuerySelector): SQL {
+  protected _decodeFilter(className: string | null, filter: QuerySelector): SQL | undefined {
     if (filter instanceof CoditionalSelector) {
       return this._decodeCoditionalSelector(className, filter);
     }
     if (filter instanceof FieldSelector) {
       return this._decodeFieldExpression(className, filter.field, filter.expr);
     }
-    return sql``;
   }
 
   protected _decodeIncludes(
