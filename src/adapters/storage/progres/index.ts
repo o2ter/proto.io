@@ -241,7 +241,7 @@ export class PostgresStorage extends SqlStorage {
   protected _decodeFieldExpression(className: string | null, field: string, expr: FieldExpression): SQL {
     const [colname, ...subpath] = _.toPath(field);
     const fields = className ? this.schema[className].fields : null;
-    const type = fields?.[colname] ?? defaultObjectKeyTypes[colname];
+    const type = className ? fields?.[colname] ?? defaultObjectKeyTypes[colname] : null;
     let element = sql`${{ identifier: className ? colname : '$' }}`;
     if (!className || !_.isEmpty(subpath)) {
       element = sql`jsonb_extract_path(${element}, ${_.map(
@@ -313,12 +313,12 @@ export class PostgresStorage extends SqlStorage {
         }
       case '$size':
         if (!_.isNumber(expr.value) || !_.isInteger(expr.value)) break;
-        if (type === 'array' || (!_.isString(type) && type.type === 'relation')) {
+        if (type === 'array' || (!_.isString(type) && type?.type === 'relation')) {
           return sql`array_length(${element}, 1) = ${{ value: expr.value }}`;
         }
       case '$every':
         if (!(expr.value instanceof QuerySelector)) break;
-        if (type === 'array' || (!_.isString(type) && type.type === 'relation')) {
+        if (type === 'array' || (!_.isString(type) && type?.type === 'relation')) {
           const filter = this._decodeFilter(null, expr.value);
           if (!filter) break;
           return sql`array_length(${element}, 1) = array_length(ARRAY(
@@ -328,7 +328,7 @@ export class PostgresStorage extends SqlStorage {
         }
       case '$some':
         if (!(expr.value instanceof QuerySelector)) break;
-        if (type === 'array' || (!_.isString(type) && type.type === 'relation')) {
+        if (type === 'array' || (!_.isString(type) && type?.type === 'relation')) {
           const filter = this._decodeFilter(null, expr.value);
           if (!filter) break;
           return sql`array_length(ARRAY(

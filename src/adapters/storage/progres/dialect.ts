@@ -75,47 +75,58 @@ export const PostgresDialect = {
   encodeValue(value: TValue) {
     return _encodeValue(value);
   },
-  encodeType(type: TSchema.DataType, value: TValue) {
-    switch (_.isString(type) ? type : type.type) {
-      case 'boolean':
-        if (_.isBoolean(value)) return sql`${{ value }}`;
-        break;
-      case 'number':
-        if (_.isNumber(value) && _.isFinite(value)) return sql`${{ value }}`;
-        if (value instanceof Decimal) return sql`${{ value: value.toNumber() }}`;
-        break;
-      case 'decimal':
-        if (_.isNumber(value) && _.isFinite(value)) return sql`CAST(${{ quote: (new Decimal(value)).toString() }} AS DECIMAL)`;
-        if (value instanceof Decimal) return sql`CAST(${{ quote: value.toString() }} AS DECIMAL)`;
-        break;
-      case 'string':
-        if (_.isString(value)) return sql`${{ value }}`;
-        break;
-      case 'date':
-        if (_.isDate(value)) return sql`${{ value }}`;
-        break;
-      case 'object':
-        if (_.isPlainObject(value)) return sql`${{ value: _encodeValue(value) }}`;
-        break;
-      case 'array':
-        if (_.isArray(value)) return sql`${{ value: _encodeValue(value) }}`;
-        break;
-      case 'pointer':
-        if (value instanceof TObject && value.objectId) return sql`${{ value: `${value.className}$${value.objectId}` }}`;
-        break;
-      case 'relation':
-        if (_.isArray(value) && _.every(value, x => x instanceof TObject && x.objectId)) {
-          return sql`ARRAY[${{ value: _.uniq(_.map(value, (x: TObject) => `${x.className}$${x.objectId}`)) }}]`;
-        }
-        break;
-      default: break;
+  encodeType(type: TSchema.DataType | null, value: TValue) {
+    if (!type) {
+      if (value instanceof Decimal) return sql`CAST(${{ quote: value.toString() }} AS DECIMAL)`;
+      if (isPrimitiveValue(value)) return sql`${{ value }}`;
+      if (_.isArray(value)) return sql`${{ value: _encodeValue(value) }}`;
+      if (value instanceof TObject && value.objectId) return sql`${{ value: `${value.className}$${value.objectId}` }}`;
+      if (_.isPlainObject(value)) return sql`${{ value: _encodeValue(value) }}`;
+    } else {
+      switch (_.isString(type) ? type : type.type) {
+        case 'boolean':
+          if (_.isBoolean(value)) return sql`${{ value }}`;
+          break;
+        case 'number':
+          if (_.isNumber(value) && _.isFinite(value)) return sql`${{ value }}`;
+          if (value instanceof Decimal) return sql`${{ value: value.toNumber() }}`;
+          break;
+        case 'decimal':
+          if (_.isNumber(value) && _.isFinite(value)) return sql`CAST(${{ quote: (new Decimal(value)).toString() }} AS DECIMAL)`;
+          if (value instanceof Decimal) return sql`CAST(${{ quote: value.toString() }} AS DECIMAL)`;
+          break;
+        case 'string':
+          if (_.isString(value)) return sql`${{ value }}`;
+          break;
+        case 'date':
+          if (_.isDate(value)) return sql`${{ value }}`;
+          break;
+        case 'object':
+          if (_.isPlainObject(value)) return sql`${{ value: _encodeValue(value) }}`;
+          break;
+        case 'array':
+          if (_.isArray(value)) return sql`${{ value: _encodeValue(value) }}`;
+          break;
+        case 'pointer':
+          if (value instanceof TObject && value.objectId) return sql`${{ value: `${value.className}$${value.objectId}` }}`;
+          break;
+        case 'relation':
+          if (_.isArray(value) && _.every(value, x => x instanceof TObject && x.objectId)) {
+            return sql`ARRAY[${{ value: _.uniq(_.map(value, (x: TObject) => `${x.className}$${x.objectId}`)) }}]`;
+          }
+          break;
+        default: break;
+      }
     }
+    
     throw Error('Invalid data type');
   },
   decodeType(type: TSchema.Primitive, value: any): TValue {
     switch (type) {
       case 'boolean':
         if (_.isBoolean(value)) return value;
+        if (value === 'true') return true;
+        if (value === 'false') return false;
         break;
       case 'number':
         if (_.isNumber(value)) return value;
@@ -133,6 +144,7 @@ export const PostgresDialect = {
         break;
       case 'date':
         if (_.isDate(value)) return value;
+        if (_.isString(value)) return new Date(value);
         break;
       case 'object':
         if (_.isPlainObject(value)) return _decodeValue(value);
