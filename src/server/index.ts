@@ -108,13 +108,8 @@ export class Proto<Ext> extends ProtoType<Ext> {
   }
 
   get isMaster(): boolean {
-    if (!this.req) return false;
-    const key = this.req.header(MASTER_KEY_HEADER_NAME);
-    if (!_.isEmpty(key)) {
-      const masterKey = this[PVK].options.masterKey;
-      return !_.isEmpty(masterKey) && key === masterKey;
-    }
-    return 'isMaster' in this.req && !!this.req.isMaster;
+    if (this.req && 'isMaster' in this.req) return !!this.req.isMaster;
+    return false;
   }
 
   get schema(): ProtoOptions<Ext>['schema'] {

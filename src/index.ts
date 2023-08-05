@@ -28,6 +28,7 @@ import express, { RequestHandler } from 'express';
 import cookieParser from 'cookie-parser';
 import { Proto, ProtoOptions } from './server';
 import csrfHandler from './server/csrf';
+import authHandler from './server/auth';
 import classesRoute from './server/routes/classes';
 import functionRoute from './server/routes/function';
 import filesRoute from './server/routes/files';
@@ -57,6 +58,7 @@ export const ProtoRoute = async <E>(options: {
   const router = express.Router().use(
     cookieParser() as any,
     csrfHandler(csrfToken),
+    authHandler(proto, jwtToken),
     ..._.map(adapters, x => x(proto)),
   );
 
