@@ -111,14 +111,14 @@ export class TObject {
 
   get acl(): TSchema.ACLs {
     return {
-      read: this.get('_rperm') as TSchema.ACL,
-      update: this.get('_wperm') as TSchema.ACL,
+      read: this.get('_rperm') as TSchema.ACL ?? ['*'],
+      update: this.get('_wperm') as TSchema.ACL ?? ['*'],
     };
   }
 
-  set acl(value: TSchema.ACLs) {
-    this.set('_rperm', value.read);
-    this.set('_wperm', value.update);
+  set acl(value: Partial<TSchema.ACLs>) {
+    this.set('_rperm', value.read ?? ['*']);
+    this.set('_wperm', value.update ?? ['*']);
   }
 
   keys(): string[] {

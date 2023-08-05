@@ -85,8 +85,8 @@ export class PostgresStorage extends SqlStorage {
         _created_at TIMESTAMP NOT NULL DEFAULT NOW(),
         _updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
         _expired_at TIMESTAMP,
-        _rperm TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
-        _wperm TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
+        _rperm TEXT[] NOT NULL DEFAULT ARRAY['*']::TEXT[],
+        _wperm TEXT[] NOT NULL DEFAULT ARRAY['*']::TEXT[],
         ${_.map(fields, (type, col) => sql`
           ${{ identifier: col }} ${{ literal: this._pgType(_.isString(type) ? type : type.type) }}
         `)}
@@ -270,36 +270,36 @@ export class PostgresStorage extends SqlStorage {
       case '$in':
         if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
         if (type === 'array' || (!_.isString(type) && type?.type === 'array')) {
-          return sql`${this.dialect.encodeValue(expr.value)} = ANY(${element})`;
+          return sql`${{ value: this.dialect.encodeValue(expr.value) }} = ANY(${element})`;
         } else if (_.isArray(expr.value)) {
-          return sql`${element} = ANY(${this.dialect.encodeValue(expr.value)})`;
+          return sql`${element} = ANY(${{ value: this.dialect.encodeValue(expr.value) }})`;
         }
       case '$nin':
         if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
         if (type === 'array' || (!_.isString(type) && type?.type === 'array')) {
-          return sql`${this.dialect.encodeValue(expr.value)} <> ALL(${element})`;
+          return sql`${{ value: this.dialect.encodeValue(expr.value) }} <> ALL(${element})`;
         } else if (_.isArray(expr.value)) {
-          return sql`${element} <> ALL(${this.dialect.encodeValue(expr.value)})`;
+          return sql`${element} <> ALL(${{ value: this.dialect.encodeValue(expr.value) }})`;
         }
       case '$subset':
         if (!_.isArray(expr.value)) break;
         if (type === 'array' || (!_.isString(type) && type?.type === 'array')) {
-          return sql`${element} <@ ${this.dialect.encodeValue(expr.value)}`;
+          return sql`${element} <@ ${{ value: this.dialect.encodeValue(expr.value) }}`;
         }
       case '$superset':
         if (!_.isArray(expr.value)) break;
         if (type === 'array' || (!_.isString(type) && type?.type === 'array')) {
-          return sql`${element} @> ${this.dialect.encodeValue(expr.value)}`;
+          return sql`${element} @> ${{ value: this.dialect.encodeValue(expr.value) }}`;
         }
       case '$disjoint':
         if (!_.isArray(expr.value)) break;
         if (type === 'array' || (!_.isString(type) && type?.type === 'array')) {
-          return sql`NOT ${element} && ${this.dialect.encodeValue(expr.value)}`;
+          return sql`NOT ${element} && ${{ value: this.dialect.encodeValue(expr.value) }}`;
         }
       case '$intersect':
         if (!_.isArray(expr.value)) break;
         if (type === 'array' || (!_.isString(type) && type?.type === 'array')) {
-          return sql`${element} && ${this.dialect.encodeValue(expr.value)}`;
+          return sql`${element} && ${{ value: this.dialect.encodeValue(expr.value) }}`;
         }
       case '$not':
         if (!(expr.value instanceof FieldExpression)) break;

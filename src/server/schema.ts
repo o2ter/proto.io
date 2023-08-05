@@ -27,7 +27,7 @@ import { _TValue } from '../internals';
 
 export namespace TSchema {
   export type ACL = string[];
-  export type ACLs = { read?: TSchema.ACL; update?: TSchema.ACL; };
+  export type ACLs = { read: TSchema.ACL; update: TSchema.ACL; };
   export type Primitive = 'boolean' | 'number' | 'decimal' | 'string' | 'date' | 'object' | 'array';
   export type Relation = 'pointer' | 'relation';
   export type RelationType = { type: 'relation'; target: string; foreignField?: string; };
