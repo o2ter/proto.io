@@ -93,9 +93,9 @@ export abstract class SqlStorage implements TStorage {
     return obj;
   }
 
-  protected _decodeCoditionalSelector(className: string, filter: CoditionalSelector) {
+  protected _decodeCoditionalSelector(className: string | null, filter: CoditionalSelector): SQL {
     const queries = _.compact(_.map(filter.exprs, x => this._decodeFilter(className, x)));
-    if (_.isEmpty(queries)) return;
+    if (_.isEmpty(queries)) return sql``;
     switch (filter.type) {
       case '$and': return sql`(${{ literal: _.map(queries, x => sql`(${x})`), separator: ' AND ' }})`;
       case '$nor': return sql`(${{ literal: _.map(queries, x => sql`NOT (${x})`), separator: ' AND ' }})`;
@@ -103,10 +103,10 @@ export abstract class SqlStorage implements TStorage {
     }
   }
 
-  protected _decodeFieldExpression(className: string, field: string, expr: FieldExpression): SQL {
+  protected _decodeFieldExpression(className: string | null, field: string, expr: FieldExpression): SQL {
     const [colname, ...subpath] = _.toPath(field);
-    const fields = this.schema[className].fields;
-    if (_.isEmpty(subpath)) {
+    if (_.isEmpty(subpath) && className) {
+      const fields = this.schema[className].fields;
       const type = fields[colname] ?? defaultObjectKeyTypes[colname];
       switch (expr.type) {
         case '$eq':
@@ -170,21 +170,36 @@ export abstract class SqlStorage implements TStorage {
           if (type === 'array' || (!_.isString(type) && type.type === 'relation')) {
             return sql`array_length(${{ identifier: colname }}, 1) = ${{ value: expr.value }}`;
           }
-        case '$every': break;
-        case '$some': break;
+        case '$every':
+          if (!(expr.value instanceof QuerySelector)) break;
+          if (type === 'array' || (!_.isString(type) && type.type === 'relation')) {
+            return sql`array_length(${{ identifier: colname }}, 1) = array_length(ARRAY(
+              SELECT * FROM (SELECT unset(${{ identifier: colname }}) AS "$") "$"
+              WHERE ${this._decodeFilter(null, expr.value)}
+            ), 1)`;
+          }
+        case '$some':
+          if (!(expr.value instanceof QuerySelector)) break;
+          if (type === 'array' || (!_.isString(type) && type.type === 'relation')) {
+            return sql`array_length(ARRAY(
+              SELECT * FROM (SELECT unset(${{ identifier: colname }}) AS "$") "$"
+              WHERE ${this._decodeFilter(null, expr.value)}
+            ), 1) > 0`;
+          }
         default: break;
       }
     }
     throw Error('Invalid expression');
   }
 
-  protected _decodeFilter(className: string, filter: QuerySelector): SQL | undefined {
+  protected _decodeFilter(className: string | null, filter: QuerySelector): SQL {
     if (filter instanceof CoditionalSelector) {
       return this._decodeCoditionalSelector(className, filter);
     }
     if (filter instanceof FieldSelector) {
       return this._decodeFieldExpression(className, filter.field, filter.expr);
     }
+    return sql``;
   }
 
   protected _decodeIncludes(

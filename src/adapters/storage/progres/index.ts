@@ -185,7 +185,7 @@ export class PostgresStorage extends SqlStorage {
 
     if (type === 'pointer') {
       return {
-        column: sql`row_to_json(${{ identifier: populate.name }}) AS ${{ identifier: field }}`,
+        column: sql`to_jsonb(${{ identifier: populate.name }}) AS ${{ identifier: field }}`,
         join: sql`
           LEFT JOIN ${{ identifier: populate.name }}
           ON ${sql`(${{ quote: className + '$' }} || ${_foreign('_id')})`} = ${_local(parent.colname)}
@@ -204,7 +204,7 @@ export class PostgresStorage extends SqlStorage {
     return {
       column: sql`
         ARRAY(
-          SELECT row_to_json(${{ identifier: populate.name }})
+          SELECT to_jsonb(${{ identifier: populate.name }})
           FROM ${{ identifier: populate.name }} WHERE ${cond}
           ${!_.isEmpty(populate.sort) ? sql`ORDER BY ${this._decodeSort(populate.name, populate.sort)}` : sql``}
           ${populate.limit ? sql`LIMIT ${{ literal: `${populate.limit}` }}` : sql``}
