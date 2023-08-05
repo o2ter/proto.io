@@ -291,16 +291,20 @@ export abstract class SqlStorage implements TStorage {
             SET __v = __v + 1, _updated_at = NOW()
             ${_.isEmpty(update) ? sql`, ${this._encodeUpdateAttrs(query.className, update)}` : sql``}
             WHERE _id IN (SELECT _id FROM ${{ identifier: tempName }})
-            RETURNING ${query.returning !== 'old' ? sql`*` : sql`${{ identifier: tempName }}.*`}
+            RETURNING *
           )
-          SELECT ${{
-            literal: [
-              ...this._decodeIncludes(name, compiler.includes),
-              ..._.map(populates, ({ column }) => column),
-            ], separator: ',\n'
-          }}
-          FROM ${{ identifier: name }}
-          ${!_.isEmpty(joins) ? joins : sql``}
+          ${query.returning === 'old' ? sql`
+            SELECT * FROM ${{ identifier: tempName }}
+          ` : sql`
+            SELECT ${{
+              literal: [
+                ...this._decodeIncludes(name, compiler.includes),
+                ..._.map(populates, ({ column }) => column),
+              ], separator: ',\n'
+            }}
+            FROM ${{ identifier: name }}
+            ${!_.isEmpty(joins) ? joins : sql``}
+          `}
         `;
       }
     )));
@@ -328,28 +332,32 @@ export abstract class SqlStorage implements TStorage {
             SET __v = __v + 1, _updated_at = NOW()
             ${_.isEmpty(update) ? sql`, ${this._encodeUpdateAttrs(query.className, update)}` : sql``}
             WHERE _id IN (SELECT _id FROM ${{ identifier: tempName }})
-            RETURNING ${query.returning !== 'old' ? sql`*` : sql`${{ identifier: tempName }}.*`}
+            RETURNING *
           )
           , ${{ identifier: insertName }} AS (
             INSERT INTO ${{ identifier: query.className }}
             (${_.map(_insert, x => sql`${{ identifier: x[0] }}`)})
             SELECT ${_.map(_insert, x => sql`${x[1]} AS ${{ identifier: x[0] }}`)}
             WHERE NOT EXISTS(SELECT * FROM ${{ identifier: updateName }})
-            ${query.returning !== 'old' ? sql`RETURNING *` : sql``}
+            RETURNING *
           )
-          , ${{ identifier: upsertName }} AS (
-            SELECT * FROM ${{ identifier: updateName }}
-            UNION
-            SELECT * FROM ${{ identifier: insertName }}
-          )
-          SELECT ${{
-            literal: [
-              ...this._decodeIncludes(upsertName, compiler.includes),
-              ..._.map(populates, ({ column }) => column),
-            ], separator: ',\n'
-          }}
-          FROM ${{ identifier: upsertName }}
-          ${!_.isEmpty(joins) ? joins : sql``}
+          ${query.returning === 'old' ? sql`
+            SELECT * FROM ${{ identifier: tempName }}
+          ` : sql`
+            , ${{ identifier: upsertName }} AS (
+              SELECT * FROM ${{ identifier: updateName }}
+              UNION
+              SELECT * FROM ${{ identifier: insertName }}
+            )
+            SELECT ${{
+              literal: [
+                ...this._decodeIncludes(upsertName, compiler.includes),
+                ..._.map(populates, ({ column }) => column),
+              ], separator: ',\n'
+            }}
+            FROM ${{ identifier: upsertName }}
+            ${!_.isEmpty(joins) ? joins : sql``}
+          `}
         `;
       }
     )));

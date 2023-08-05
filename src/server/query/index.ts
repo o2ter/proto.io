@@ -179,8 +179,8 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
     const result = this._objectMethods(
       await this._storage.upsertOne(this._queryOptions, update, setOnInsert)
     );
-    if (!result) throw Error('Unable to upsert document');
-    if (_.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, this._proto));
+    if (!result && this[PVK].options.returning !== 'old') throw Error('Unable to upsert document');
+    if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, this._proto));
     return result;
   }
 
