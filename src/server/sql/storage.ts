@@ -289,7 +289,7 @@ export abstract class SqlStorage implements TStorage {
           , ${{ identifier: name }} AS (
             UPDATE ${{ identifier: query.className }}
             SET __v = __v + 1, _updated_at = NOW()
-            ${_.isEmpty(update) ? sql`, ${this._encodeUpdateAttrs(query.className, update)}` : sql``}
+            ${!_.isEmpty(update) ? sql`, ${this._encodeUpdateAttrs(query.className, update)}` : sql``}
             WHERE _id IN (SELECT _id FROM ${{ identifier: tempName }})
             RETURNING *
           )
@@ -330,7 +330,7 @@ export abstract class SqlStorage implements TStorage {
           , ${{ identifier: updateName }} AS (
             UPDATE ${{ identifier: query.className }}
             SET __v = __v + 1, _updated_at = NOW()
-            ${_.isEmpty(update) ? sql`, ${this._encodeUpdateAttrs(query.className, update)}` : sql``}
+            ${!_.isEmpty(update) ? sql`, ${this._encodeUpdateAttrs(query.className, update)}` : sql``}
             WHERE _id IN (SELECT _id FROM ${{ identifier: tempName }})
             RETURNING *
           )
