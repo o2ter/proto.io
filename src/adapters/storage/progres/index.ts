@@ -352,14 +352,14 @@ export class PostgresStorage extends SqlStorage {
       case '$size':
         {
           if (!_.isNumber(expr.value) || !_.isInteger(expr.value)) break;
-          if (type === 'array' || (!_.isString(type) && type?.type === 'relation')) {
+          if (type === 'array' || (!_.isString(type) && (type?.type === 'array' || type?.type === 'relation'))) {
             return sql`array_length(${element}, 1) = ${{ value: expr.value }}`;
           }
         }
       case '$every':
         {
           if (!(expr.value instanceof QuerySelector)) break;
-          if (type === 'array' || (!_.isString(type) && type?.type === 'relation')) {
+          if (type === 'array' || (!_.isString(type) && (type?.type === 'array' || type?.type === 'relation'))) {
             const filter = this._decodeFilter(null, expr.value);
             if (!filter) break;
             return sql`array_length(${element}, 1) = array_length(ARRAY(
@@ -371,7 +371,7 @@ export class PostgresStorage extends SqlStorage {
       case '$some':
         {
           if (!(expr.value instanceof QuerySelector)) break;
-          if (type === 'array' || (!_.isString(type) && type?.type === 'relation')) {
+          if (type === 'array' || (!_.isString(type) && (type?.type === 'array' || type?.type === 'relation'))) {
             const filter = this._decodeFilter(null, expr.value);
             if (!filter) break;
             return sql`array_length(ARRAY(
