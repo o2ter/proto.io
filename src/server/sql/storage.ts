@@ -346,7 +346,7 @@ export abstract class SqlStorage implements TStorage {
           , ${{ identifier: insertName }} AS (
             INSERT INTO ${{ identifier: query.className }}
             (${_.map(_insert, x => sql`${{ identifier: x[0] }}`)})
-            SELECT (${_.map(_insert, x => sql`${{ value: x[1] }} AS ${{ identifier: x[0] }}`)})
+            SELECT ${_.map(_insert, x => sql`${{ value: x[1] }} AS ${{ identifier: x[0] }}`)}
             WHERE NOT EXISTS(SELECT * FROM ${{ identifier: updateName }})
             ${query.returning !== 'old' ? sql`RETURNING *` : sql``}
           )
