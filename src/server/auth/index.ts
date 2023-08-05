@@ -71,11 +71,11 @@ export default <E>(proto: Proto<E>, jwtToken?: string): RequestHandler => async 
       .containsIn('users', req.user)
       .find();
     while (!_.isEmpty(queue)) {
-      roles = _.uniqBy([...roles, ...queue], x => x.objectId);
       queue = await proto.Query('_Role', { master: true })
         .isIntersect('_roles', queue)
         .notContainsIn('_id', _.compact(_.map(roles, x => x.objectId)))
         .find();
+      roles = _.uniqBy([...roles, ...queue], x => x.objectId);
     }
     req.roles = roles;
   }
