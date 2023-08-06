@@ -105,7 +105,7 @@ export const PostgresDialect = {
         break;
       case 'relation':
         if (_.isArray(value) && _.every(value, x => x instanceof TObject && x.objectId)) {
-          return sql`ARRAY[${{ value: _.uniq(_.map(value, (x: TObject) => `${x.className}$${x.objectId}`)) }}]`;
+          return sql`${{ value: _.uniq(_.map(value, (x: TObject) => `${x.className}$${x.objectId}`)) }}`;
         }
         break;
       default: break;
