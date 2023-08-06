@@ -171,17 +171,6 @@ export class QueryCompiler {
     return { includes: names, populates };
   }
 
-  _selectQuery(
-    query: DecodedQuery<FindOptions>,
-    select?: SQL
-  ) {
-    const { stages, query: _query } = this._baseSelectQuery(query, select);
-    return sql`
-      ${!_.isEmpty(stages) ? sql`WITH ${_.map(stages, (q, n) => sql`${{ identifier: n }} AS (${q})`)}` : sql``}
-      ${_query}
-    `;
-  }
-
   private _baseSelectQuery(
     query: DecodedQuery<FindOptions>,
     select?: SQL
@@ -249,6 +238,17 @@ export class QueryCompiler {
       SELECT ${_includes}
       FROM ${{ identifier: name }}
       ${!_.isEmpty(_joins) ? _joins : sql``}
+    `;
+  }
+
+  _selectQuery(
+    query: DecodedQuery<FindOptions>,
+    select?: SQL
+  ) {
+    const { stages, query: _query } = this._baseSelectQuery(query, select);
+    return sql`
+      ${!_.isEmpty(stages) ? sql`WITH ${_.map(stages, (q, n) => sql`${{ identifier: n }} AS (${q})`)}` : sql``}
+      ${_query}
     `;
   }
 
