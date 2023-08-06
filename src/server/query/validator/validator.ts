@@ -201,6 +201,7 @@ export class QueryValidator<E> {
     const schema = this.schema[className] ?? {};
     const _matches: Record<string, DecodedBaseQuery> = {};
     const _rperm = this.master ? [] : [{ _rperm: { $intersect: this.acls } }];
+    const _expiredAt = { $or: [{ _expired_at: { $eq: null } }, { _expired_at: { $gt: new Date() } }] };
 
     for (const colname of _.uniq(_.compact(includes.map(x => _.first(x.split('.')))))) {
       if (!this.validateKeyPerm(colname, 'read', schema)) continue;
@@ -209,7 +210,7 @@ export class QueryValidator<E> {
       if (_.isString(dataType) || (dataType.type !== 'pointer' && dataType.type !== 'relation')) continue;
 
       _matches[colname] = {
-        filter: QuerySelector.decode(_rperm).simplify(),
+        filter: QuerySelector.decode([..._rperm, _expiredAt]).simplify(),
         matches: this.decodeMatches(
           dataType.target, {},
           includes.filter(x => x.startsWith(`${colname}.`)).map(x => x.slice(colname.length + 1)),
@@ -231,7 +232,7 @@ export class QueryValidator<E> {
           if (!this.validateKeyPerm(dataType.foreignField, 'read', this.schema[dataType.target])) throw Error('No permission');
         }
         _matches[colname] = {
-          filter: QuerySelector.decode([..._rperm, ..._.castArray<TQuerySelector>(match.filter)]).simplify(),
+          filter: QuerySelector.decode([..._rperm, _expiredAt, ..._.castArray<TQuerySelector>(match.filter)]).simplify(),
           matches: this.decodeMatches(
             dataType.target, match.matches ?? {},
             includes.filter(x => x.startsWith(`${colname}.`)).map(x => x.slice(colname.length + 1)),
@@ -265,6 +266,7 @@ export class QueryValidator<E> {
     const filter = QuerySelector.decode([
       ..._.castArray<TQuerySelector>(query.filter),
       ...this.master ? [] : [{ [action === 'read' ? '_rperm' : '_wperm']: { $intersect: this.acls } }],
+      { $or: [{ _expired_at: { $eq: null } }, { _expired_at: { $gt: new Date() } }] },
     ]).simplify();
     if (
       !filter.validate(key => this.validateKey(query.className, key, 'read', QueryValidator.patterns.path))
