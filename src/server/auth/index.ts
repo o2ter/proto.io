@@ -85,10 +85,9 @@ export default <E>(proto: Proto<E>, jwtToken?: string): RequestHandler => async 
     req.roles = roles;
   }
 
-  const token = jwt.sign({
-    user: req.user?._id,
-    master: req.isMaster,
-  }, jwtToken);
+  const token = jwt.sign(
+    { user: req.user?._id, master: req.isMaster }, jwtToken, proto[PVK].options.jwtSignOptions
+  );
 
   res.cookie(AUTH_COOKIE_KEY, token, proto[PVK].options.cookieOptions);
   return next();

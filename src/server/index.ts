@@ -40,6 +40,7 @@ import { TFileStorage } from './filesys';
 import { TStorage } from './storage';
 import { TSchema } from './schema';
 import { CookieOptions, Request } from 'express';
+import { SignOptions } from 'jsonwebtoken';
 
 type Callback<T, R, E> = (request: Proto<E> & T) => R | PromiseLike<R>;
 export type ProtoFunction<E> = Callback<{ data: TSerializable; }, TSerializable, E>;
@@ -66,6 +67,7 @@ export type ProtoOptions<Ext> = {
   objectIdSize?: number;
   maxUploadSize?: number | ((proto: Proto<Ext>) => number | PromiseLike<number>);
   cookieOptions?: CookieOptions;
+  jwtSignOptions?: SignOptions;
 };
 
 export type ProtoKeyOptions = {
@@ -84,6 +86,7 @@ export class Proto<Ext> extends ProtoType<Ext> {
       maxUploadSize: 20 * 1024 * 1024,
       classExtends: {} as TExtensions<Ext>,
       cookieOptions: { maxAge: 365 * 24 * 60 * 60 * 1000, httpOnly: true },
+      jwtSignOptions: { expiresIn: '24h' },
       ...options,
     });
   }
