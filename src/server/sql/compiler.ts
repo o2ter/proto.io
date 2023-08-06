@@ -78,7 +78,7 @@ export class QueryCompiler {
     return this.idx++;
   }
 
-  _makeContext(query: InsertOptions & { sort?: Record<string, 1 | -1> }) {
+  private _makeContext(query: InsertOptions & { sort?: Record<string, 1 | -1> }) {
     const context = this._decodeIncludes(query.className, query.includes, query.matches);
     return {
       ...context,
@@ -86,7 +86,7 @@ export class QueryCompiler {
     };
   }
 
-  _decodeIncludes(className: string, includes: string[], matches: Record<string, DecodedBaseQuery>) {
+  private _decodeIncludes(className: string, includes: string[], matches: Record<string, DecodedBaseQuery>) {
 
     const schema = this.schema[className] ?? {};
     const names: Record<string, TSchema.DataType> = {};
@@ -135,7 +135,7 @@ export class QueryCompiler {
     return { includes: names, populates };
   }
 
-  _resolveSortingName(
+  private _resolveSortingName(
     key: string,
     includes: Record<string, TSchema.DataType>,
     populates: Record<string, Populate>,
@@ -158,7 +158,7 @@ export class QueryCompiler {
     return resolved;
   }
 
-  _decodeSorting(
+  private _decodeSorting(
     includes: Record<string, TSchema.DataType>,
     populates: Record<string, Populate>,
     sort?: Record<string, 1 | -1>,
@@ -184,7 +184,7 @@ export class QueryCompiler {
     `;
   }
 
-  _baseSelectQuery(
+  private _baseSelectQuery(
     query: DecodedQuery<FindOptions>,
     context?: CompileContext,
     select?: SQL
@@ -225,7 +225,7 @@ export class QueryCompiler {
     };
   }
 
-  _refetch(
+  private _refetch(
     name: string,
     query: DecodedQuery<FindOneOptions>,
     context: CompileContext,
@@ -255,7 +255,7 @@ export class QueryCompiler {
     `;
   }
 
-  _modifyQuery(
+  private _modifyQuery(
     query: DecodedQuery<FindOneOptions> & { limit?: number },
     action: (fetchName: string, context: CompileContext) => SQL
   ) {
@@ -267,7 +267,7 @@ export class QueryCompiler {
     `;
   }
 
-  _encodeUpdateAttrs(className: string, attrs: Record<string, [UpdateOp, TValue]>): SQL[] {
+  private _encodeUpdateAttrs(className: string, attrs: Record<string, [UpdateOp, TValue]>): SQL[] {
     const updates: SQL[] = [];
     const fields = this.schema[className].fields;
     for (const [path, op] of _.toPairs(attrs)) {
@@ -279,7 +279,7 @@ export class QueryCompiler {
     return updates;
   }
 
-  _defaultInsertOpts(options: InsertOptions) {
+  private _defaultInsertOpts(options: InsertOptions) {
     const objectId = generateId(options.objectIdSize);
     return {
       _id: sql`${{ value: objectId }}`,
@@ -290,7 +290,7 @@ export class QueryCompiler {
     };
   }
 
-  _encodeObjectAttrs(className: string, attrs: Record<string, TValue>
+  private _encodeObjectAttrs(className: string, attrs: Record<string, TValue>
   ): Record<string, SQL> {
     const fields = this.schema[className].fields;
     const result: Record<string, SQL> = {};
@@ -301,7 +301,7 @@ export class QueryCompiler {
     return result;
   }
 
-  _decodeCoditionalSelector(
+  private _decodeCoditionalSelector(
     parent: { className?: string; name: string; },
     filter: CoditionalSelector,
     context: CompileContext,
@@ -328,7 +328,7 @@ export class QueryCompiler {
     }
   }
 
-  _selectIncludes(
+  private _selectIncludes(
     className: string,
     includes: Record<string, TSchema.DataType>,
   ): SQL[] {
@@ -342,7 +342,7 @@ export class QueryCompiler {
     `)}`;
   }
 
-  _selectPopulateMap(
+  private _selectPopulateMap(
     context: CompileContext,
     className: string,
     name: string,
