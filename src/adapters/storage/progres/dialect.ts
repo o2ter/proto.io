@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { escapeIdentifier, escapeLiteral } from 'pg/lib/utils';
-import { SQL, sql } from '../../../server/sql';
+import { SQL, SqlDialect, sql } from '../../../server/sql';
 import { Decimal, TObject, TValue, UpdateOp, _TValue, isPrimitiveValue } from '../../../internals';
 import { TSchema, _typeof, defaultObjectKeyTypes, isPrimitive } from '../../../server/schema';
 import { CompileContext, Populate, QueryCompiler } from '../../../server/sql/compiler';
@@ -57,7 +57,28 @@ const _encodeJsonValue = (value: TValue): SQL => {
   return sql`${{ value: _encodeValue(value) }}`;
 };
 
-export const PostgresDialect = {
+const _decodePopulateIncludes = (
+  className: string,
+  includes: Record<string, TSchema.DataType>,
+): SQL[] => {
+  const _includes = _.pickBy(includes, v => isPrimitive(v));
+  return _.map(_includes, (dataType, colname) => {
+    if (isPrimitive(dataType)) {
+      switch (_typeof(dataType)) {
+        case 'decimal': return sql`jsonb_build_object(
+            '$decimal', CAST(${{ identifier: className }}.${{ identifier: colname }} AS TEXT)
+          ) AS ${{ identifier: colname }}`;
+        case 'date': return sql`jsonb_build_object(
+            '$date', to_char(${{ identifier: className }}.${{ identifier: colname }} AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')
+          ) AS ${{ identifier: colname }}`;
+        default: break;
+      }
+    }
+    return sql`${{ identifier: className }}.${{ identifier: colname }}`;
+  });
+};
+
+export const PostgresDialect: SqlDialect = {
   quote(str: string) {
     return escapeLiteral(str);
   },
@@ -222,26 +243,6 @@ export const PostgresDialect = {
       `,
     };
   },
-  _decodePopulateIncludes(
-    className: string,
-    includes: Record<string, TSchema.DataType>,
-  ): SQL[] {
-    const _includes = _.pickBy(includes, v => isPrimitive(v));
-    return _.map(_includes, (dataType, colname) => {
-      if (isPrimitive(dataType)) {
-        switch (_typeof(dataType)) {
-          case 'decimal': return sql`jsonb_build_object(
-              '$decimal', CAST(${{ identifier: className }}.${{ identifier: colname }} AS TEXT)
-            ) AS ${{ identifier: colname }}`;
-          case 'date': return sql`jsonb_build_object(
-              '$date', to_char(${{ identifier: className }}.${{ identifier: colname }} AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')
-            ) AS ${{ identifier: colname }}`;
-          default: break;
-        }
-      }
-      return sql`${{ identifier: className }}.${{ identifier: colname }}`;
-    });
-  },
   _decodePopulate(
     compiler: QueryCompiler,
     context: CompileContext,
@@ -259,7 +260,7 @@ export const PostgresDialect = {
         SELECT
         ${{
           literal: [
-            ...this._decodePopulateIncludes(parent.name, parent.includes),
+            ..._decodePopulateIncludes(parent.name, parent.includes),
             ...parent.foreignField ? [sql`${{ identifier: parent.name }}.${{ identifier: parent.foreignField.colname }}`] : [],
             ..._.map(_populates, ({ column }) => column),
           ], separator: ',\n'
