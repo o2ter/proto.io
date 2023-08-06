@@ -29,6 +29,7 @@ import { test, expect } from '@jest/globals';
 import { UUID } from 'bson';
 import Decimal from 'decimal.js';
 import ProtoClient, { UpdateOp } from '../../src/client';
+import { TObject } from '../../src/internals';
 
 const proto = new ProtoClient({
   endpoint: 'http://localhost:8080',
@@ -176,6 +177,12 @@ test('test types', async () => {
   expect((await q.clone().containsIn('number', [1, 2, 3, 42]).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().containsIn('array.0', [1, 2, 3, 42, 'hello']).first())?.objectId).toStrictEqual(inserted.objectId);
 
+  expect((await q.clone().equalTo('object.boolean', true).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('object.number', 42).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('object.decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('object.string', 'hello').first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('object.date', date).first())?.objectId).toStrictEqual(inserted.objectId);
+
   expect((await q.clone().notEqualTo('boolean', false).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().notEqualTo('number', 10).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().notEqualTo('decimal', new Decimal('1.001')).first())?.objectId).toStrictEqual(inserted.objectId);
@@ -193,6 +200,73 @@ test('test types', async () => {
   expect((await q.clone().notEqualTo('array.2', 6).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().notEqualTo('array.3', new Date).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().notEqualTo('array.4', new Decimal('1.001')).first())?.objectId).toStrictEqual(inserted.objectId);
+})
+
+test('test pointer', async () => {
+  const date = new Date;
+  const inserted = await proto.Query('Test').insert({
+    boolean: true,
+    number: 42,
+    decimal: new Decimal('0.001'),
+    string: 'hello',
+    date: date,
+    object: {
+      boolean: true,
+      number: 42,
+      decimal: new Decimal('0.001'),
+      string: 'hello',
+      date: date,
+    },
+    array: [1, 2, 3, date, new Decimal('0.001')],
+  });
+  const updated = await proto.Query('Test')
+    .equalTo('_id', inserted.objectId)
+    .includes('pointer')
+    .updateOne({
+      pointer: [UpdateOp.set, inserted],
+    });
+
+  expect(updated?.get('pointer.boolean')).toStrictEqual(true);
+  expect(updated?.get('pointer.number')).toStrictEqual(42);
+  expect(updated?.get('pointer.decimal')).toStrictEqual(new Decimal('0.001'));
+  expect(updated?.get('pointer.string')).toStrictEqual('hello');
+  expect(updated?.get('pointer.date')).toStrictEqual(date);
+
+  const q = proto.Query('Test').equalTo('_id', inserted.objectId);
+
+  expect((await q.clone().equalTo('pointer.boolean', true).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('pointer.number', 42).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('pointer.decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('pointer.string', 'hello').first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('pointer.date', date).first())?.objectId).toStrictEqual(inserted.objectId);
+
+})
+
+test('test relation', async () => {
+  const date = new Date;
+  const inserted = await proto.Query('Test').insert({
+    boolean: true,
+    number: 42,
+    decimal: new Decimal('0.001'),
+    string: 'hello',
+    date: date,
+    object: {
+      boolean: true,
+      number: 42,
+      decimal: new Decimal('0.001'),
+      string: 'hello',
+      date: date,
+    },
+    array: [1, 2, 3, date, new Decimal('0.001')],
+  });
+  const updated = await proto.Query('Test')
+    .equalTo('_id', inserted.objectId)
+    .includes('relation')
+    .updateOne({
+      relation: [UpdateOp.set, [inserted]],
+    });
+
+  console.dir(updated, { depth: null })
 })
 
 test('test update', async () => {
