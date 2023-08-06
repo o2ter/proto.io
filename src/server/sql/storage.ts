@@ -53,7 +53,7 @@ export abstract class SqlStorage implements TStorage {
 
   abstract get dialect(): SqlDialect
   protected abstract _query(text: string, values: any[]): ReturnType<typeof asyncStream<any>>
-  protected abstract _decodeFieldExpression(parent: { className?: string; name: string; }, field: string, expr: FieldExpression): SQL
+  protected abstract _decodeFieldExpression(parent: { className?: string; name: string; }, field: string, expr: FieldExpression, compiler: QueryCompiler): SQL
 
   query(sql: SQL) {
     const { query, values } = sql.compile(this.dialect);
@@ -94,8 +94,8 @@ export abstract class SqlStorage implements TStorage {
     return obj;
   }
 
-  protected _decodeCoditionalSelector(parent: { className?: string; name: string; }, filter: CoditionalSelector) {
-    const queries = _.compact(_.map(filter.exprs, x => this._decodeFilter(parent, x)));
+  protected _decodeCoditionalSelector(parent: { className?: string; name: string; }, filter: CoditionalSelector, compiler: QueryCompiler) {
+    const queries = _.compact(_.map(filter.exprs, x => this._decodeFilter(parent, x, compiler)));
     if (_.isEmpty(queries)) return;
     switch (filter.type) {
       case '$and': return sql`(${{ literal: _.map(queries, x => sql`(${x})`), separator: ' AND ' }})`;
@@ -104,12 +104,12 @@ export abstract class SqlStorage implements TStorage {
     }
   }
 
-  protected _decodeFilter(parent: { className?: string; name: string; }, filter: QuerySelector): SQL | undefined {
+  protected _decodeFilter(parent: { className?: string; name: string; }, filter: QuerySelector, compiler: QueryCompiler): SQL | undefined {
     if (filter instanceof CoditionalSelector) {
-      return this._decodeCoditionalSelector(parent, filter);
+      return this._decodeCoditionalSelector(parent, filter, compiler);
     }
     if (filter instanceof FieldSelector) {
-      return this._decodeFieldExpression(parent, filter.field, filter.expr);
+      return this._decodeFieldExpression(parent, filter.field, filter.expr, compiler);
     }
   }
 
@@ -126,7 +126,7 @@ export abstract class SqlStorage implements TStorage {
     populate: Populate,
     field: string,
   ): { column: SQL, join?: SQL }
-  protected abstract _decodePopulate(parent: Populate & { colname: string }, remix?: { className: string; name: string; }): Record<string, SQL>
+  protected abstract _decodePopulate(parent: Populate & { colname: string }, compiler: QueryCompiler, remix?: { className: string; name: string; }): Record<string, SQL>
 
   protected abstract _decodeSortKey(className: string, key: string): SQL
   protected _decodeSort(className: string, sort: Record<string, 1 | -1>): SQL {
@@ -157,12 +157,12 @@ export abstract class SqlStorage implements TStorage {
     select?: SQL
   ) {
 
-    const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }));
+    const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }, compiler));
     const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
 
     const fetchName = `_fetch_$${query.className.toLowerCase()}`;
 
-    const _filter = this._decodeFilter({ className: query.className, name: fetchName }, query.filter);
+    const _filter = this._decodeFilter({ className: query.className, name: fetchName }, query.filter, compiler);
     const _populates = this._selectPopulateMap(query.className, fetchName, compiler);
     const _joins = _.compact(_.map(_populates, ({ join }) => join));
 
@@ -202,7 +202,7 @@ export abstract class SqlStorage implements TStorage {
 
     const recompiled = compiler._decodeIncludes(query.className, query.includes, query.matches);
     const populates = _.mapValues(
-      recompiled.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }, { className: query.className, name })
+      recompiled.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }, compiler, { className: query.className, name })
     );
     const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
 

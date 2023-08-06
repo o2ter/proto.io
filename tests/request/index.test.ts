@@ -208,6 +208,30 @@ test('test types', async () => {
 
 })
 
+test('test types 2', async () => {
+  const date = new Date;
+  const inserted = await proto.Query('Test').insert({
+    array: [[1, 2, 3], [4, 5, 6]],
+  });
+
+  const q = proto.Query('Test').equalTo('_id', inserted.objectId);
+
+  expect((await q.clone().every('array', q => q.every('$', q => q.notEqualTo('$', 0))).first())?.objectId).toStrictEqual(inserted.objectId);
+
+})
+
+test('test types 3', async () => {
+  const date = new Date;
+  const inserted = await proto.Query('Test').insert({
+    array: [{ array: [1, 2, 3] }, { array: [4, 5, 6] }],
+  });
+
+  const q = proto.Query('Test').equalTo('_id', inserted.objectId);
+
+  expect((await q.clone().every('array', q => q.every('array', q => q.notEqualTo('$', 0))).first())?.objectId).toStrictEqual(inserted.objectId);
+
+})
+
 test('test pointer', async () => {
   const date = new Date;
   const inserted = await proto.Query('Test').insert({

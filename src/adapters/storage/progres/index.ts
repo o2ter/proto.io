@@ -30,7 +30,7 @@ import { TSchema, _typeof, defaultObjectKeyTypes, isPrimitive, isRelation } from
 import { PostgresDriver } from './driver';
 import { SQL, SqlStorage, sql } from '../../../server/sql';
 import { PostgresDialect } from './dialect';
-import { Populate } from '../../../server/sql/compiler';
+import { Populate, QueryCompiler } from '../../../server/sql/compiler';
 import { DecodedQuery, FindOptions } from '../../../server/storage';
 import { FieldExpression, QuerySelector } from '../../../server/query/validator/parser';
 
@@ -238,12 +238,12 @@ export class PostgresStorage extends SqlStorage {
     });
   }
 
-  protected _decodePopulate(parent: Populate & { colname: string }, remix?: { className: string; name: string; }): Record<string, SQL> {
-    const _filter = this._decodeFilter(parent, parent.filter);
+  protected _decodePopulate(parent: Populate & { colname: string }, compiler: QueryCompiler, remix?: { className: string; name: string; }): Record<string, SQL> {
+    const _filter = this._decodeFilter(parent, parent.filter, compiler);
     const _populates = _.map(parent.populates, (populate, field) => this._selectPopulate(parent, populate, field));
     const _joins = _.compact(_.map(_populates, ({ join }) => join));
     return _.reduce(parent.populates, (acc, populate, field) => ({
-      ...this._decodePopulate({ ...populate, colname: field }, remix),
+      ...this._decodePopulate({ ...populate, colname: field }, compiler, remix),
       ...acc,
     }), {
       [parent.name]: sql`
@@ -269,10 +269,10 @@ export class PostgresStorage extends SqlStorage {
     return sql`${{ value: this.dialect.encodeValue(value) }}`;
   }
 
-  protected _decodeFieldExpression(parent: { className?: string; name: string; }, field: string, expr: FieldExpression): SQL {
+  protected _decodeFieldExpression(parent: { className?: string; name: string; }, field: string, expr: FieldExpression, compiler: QueryCompiler): SQL {
     const [colname, ...subpath] = _.toPath(field);
-    const dataType = parent.className && parent.className !== '$' && _.isEmpty(subpath) ? this.schema[parent.className].fields[colname] ?? defaultObjectKeyTypes[colname] : null;
-    let element = sql`${{ identifier: parent.className ? parent.name : '$' }}.${{ identifier: colname }}`;
+    const dataType = parent.className && _.isEmpty(subpath) ? this.schema[parent.className].fields[colname] ?? defaultObjectKeyTypes[colname] : null;
+    let element = sql`${{ identifier: parent.name }}.${{ identifier: parent.name.startsWith('_expr_$') ? '$' : colname }}`;
     if (!parent.className || !_.isEmpty(subpath)) {
       const _type = parent.className ? this.schema[parent.className].fields[colname] ?? defaultObjectKeyTypes[colname] : null;
       if (_type === 'array' || (!_.isString(_type) && (_type?.type === 'array' || _type?.type === 'relation'))) {
@@ -363,7 +363,7 @@ export class PostgresStorage extends SqlStorage {
       case '$not':
         {
           if (!(expr.value instanceof FieldExpression)) break;
-          return sql`NOT (${this._decodeFieldExpression(parent, field, expr.value)})`;
+          return sql`NOT (${this._decodeFieldExpression(parent, field, expr.value, compiler)})`;
         }
       case '$pattern':
         {
@@ -385,18 +385,32 @@ export class PostgresStorage extends SqlStorage {
         {
           if (!(expr.value instanceof QuerySelector)) break;
           if (!dataType || dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
-            const filter = this._decodeFilter({ className: '$', name: '$' }, expr.value);
+            const tempName = `_expr_$${compiler.nextIdx()}`;
+            const filter = this._decodeFilter({ name: tempName }, expr.value, compiler);
             if (!filter) break;
-            return sql`NOT EXISTS(SELECT * FROM UNNEST(${element}) AS "$" WHERE NOT (${filter}))`;
+            return sql`NOT EXISTS(
+              SELECT * FROM (
+                SELECT value AS "$"
+                FROM jsonb_array_elements(to_jsonb(${element}))
+              ) AS ${{ identifier: tempName }}
+              WHERE NOT (${filter})
+            )`;
           }
         }
       case '$some':
         {
           if (!(expr.value instanceof QuerySelector)) break;
           if (!dataType || dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
-            const filter = this._decodeFilter({ className: '$', name: '$' }, expr.value);
+            const tempName = `_expr_$${compiler.nextIdx()}`;
+            const filter = this._decodeFilter({ name: tempName }, expr.value, compiler);
             if (!filter) break;
-            return sql`EXISTS(SELECT * FROM UNNEST(${element}) AS "$" WHERE ${filter})`;
+            return sql`EXISTS(
+              SELECT * FROM (
+                SELECT value AS "$"
+                FROM jsonb_array_elements(to_jsonb(${element}))
+              ) AS ${{ identifier: tempName }}
+              WHERE ${filter}
+            )`;
           }
         }
       default: break;
