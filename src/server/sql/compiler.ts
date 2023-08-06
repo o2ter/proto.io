@@ -175,7 +175,7 @@ export class QueryCompiler {
     query: DecodedQuery<FindOptions>,
     select?: SQL
   ) {
-    const { queries, query: _query } = this._baseSelectQuery(query, undefined, select);
+    const { queries, query: _query } = this._baseSelectQuery(query, select);
     return sql`
       ${!_.isEmpty(queries) ? sql`WITH ${_.map(queries, (q, n) => sql`${{ identifier: n }} AS (${q})`)}` : sql``}
       ${_query}
@@ -184,23 +184,22 @@ export class QueryCompiler {
 
   private _baseSelectQuery(
     query: DecodedQuery<FindOptions>,
-    context?: CompileContext,
     select?: SQL
   ) {
 
-    const _context = context ?? this._makeContext(query);
-    const populates = _.mapValues(_context.populates, (populate, field) => this.dialect.decodePopulate(this, _context, { ...populate, colname: field }));
+    const context = this._makeContext(query);
+    const populates = _.mapValues(context.populates, (populate, field) => this.dialect.decodePopulate(this, context, { ...populate, colname: field }));
     const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
 
     const fetchName = `_fetch_$${query.className.toLowerCase()}`;
 
-    const _filter = this._decodeFilter(_context, { className: query.className, name: fetchName }, query.filter);
-    const _populates = this._selectPopulateMap(_context, query.className, fetchName);
+    const _filter = this._decodeFilter(context, { className: query.className, name: fetchName }, query.filter);
+    const _populates = this._selectPopulateMap(context, query.className, fetchName);
     const _joins = _.compact(_.map(_populates, ({ join }) => join));
 
     const _includes = select ? select : {
       literal: [
-        ...this._selectIncludes(fetchName, _context.includes),
+        ...this._selectIncludes(fetchName, context.includes),
         ..._.map(_populates, ({ column }) => column),
       ], separator: ',\n'
     };
@@ -208,7 +207,7 @@ export class QueryCompiler {
     return {
       queries,
       fetchName,
-      context: _context,
+      context: context,
       query: sql`
         SELECT * FROM (
           SELECT ${_includes}
