@@ -271,7 +271,7 @@ export class PostgresStorage extends SqlStorage {
 
   protected _decodeFieldExpression(parent: { className?: string; name: string; }, field: string, expr: FieldExpression): SQL {
     const [colname, ...subpath] = _.toPath(field);
-    const dataType = parent.className && _.isEmpty(subpath) ? this.schema[parent.className].fields[colname] ?? defaultObjectKeyTypes[colname] : null;
+    const dataType = parent.className && parent.className !== '$' && _.isEmpty(subpath) ? this.schema[parent.className].fields[colname] ?? defaultObjectKeyTypes[colname] : null;
     let element = sql`${{ identifier: parent.className ? parent.name : '$' }}.${{ identifier: colname }}`;
     if (!parent.className || !_.isEmpty(subpath)) {
       const _type = parent.className ? this.schema[parent.className].fields[colname] ?? defaultObjectKeyTypes[colname] : null;
