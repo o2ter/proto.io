@@ -231,7 +231,7 @@ test('test pointer', async () => {
   expect(updated?.get('pointer.string')).toStrictEqual('hello');
   expect(updated?.get('pointer.date')).toStrictEqual(date);
 
-  const q = proto.Query('Test').equalTo('_id', inserted.objectId);
+  const q = proto.Query('Test').equalTo('_id', inserted.objectId).includes('pointer');
 
   expect((await q.clone().equalTo('pointer.boolean', true).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().equalTo('pointer.number', 42).first())?.objectId).toStrictEqual(inserted.objectId);

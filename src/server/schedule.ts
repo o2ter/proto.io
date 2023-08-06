@@ -33,7 +33,7 @@ const scheduleOp = {
       await storage.deleteMany({
         className,
         filter: QuerySelector.decode({ _expired_at: { $lt: new Date() } }),
-        includes: ['_id'],
+        includes: ['_id', '_expired_at'],
         matches: {},
         objectIdSize: 0
       });

@@ -65,7 +65,7 @@ export class PostgresStorage extends SqlStorage {
       case 'number': return 'DOUBLE PRECISION';
       case 'decimal': return 'DECIMAL';
       case 'string': return 'TEXT';
-      case 'date': return 'TIMESTAMP';
+      case 'date': return 'TIMESTAMP WITH TIME ZONE';
       case 'object': return 'JSONB';
       case 'array': return 'JSONB[]';
       case 'pointer': return 'TEXT';
@@ -82,9 +82,9 @@ export class PostgresStorage extends SqlStorage {
       (
         _id TEXT PRIMARY KEY,
         __v INTEGER NOT NULL DEFAULT 0,
-        _created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-        _updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
-        _expired_at TIMESTAMP,
+        _created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+        _updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+        _expired_at TIMESTAMP WITH TIME ZONE,
         _rperm TEXT[] NOT NULL DEFAULT ARRAY['*']::TEXT[],
         _wperm TEXT[] NOT NULL DEFAULT ARRAY['*']::TEXT[],
         ${_.map(fields, (dataType, col) => sql`

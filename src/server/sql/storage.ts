@@ -157,27 +157,30 @@ export abstract class SqlStorage implements TStorage {
     const populates = _.mapValues(compiler.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }));
     const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
 
-    const tempName = `_temp_$${query.className.toLowerCase()}`;
+    const fetchName = `_fetch_$${query.className.toLowerCase()}`;
 
-    const _filter = this._decodeFilter({ className: query.className, name: tempName }, query.filter);
-    const _populates = this._selectPopulateMap(query.className, tempName, compiler);
+    const _filter = this._decodeFilter({ className: query.className, name: fetchName }, query.filter);
+    const _populates = this._selectPopulateMap(query.className, fetchName, compiler);
     const _joins = _.compact(_.map(_populates, ({ join }) => join));
+
+    const _includes = select ? select : {
+      literal: [
+        ...this._decodeIncludes(fetchName, compiler.includes),
+        ..._.map(_populates, ({ column }) => column),
+      ], separator: ',\n'
+    };
 
     return {
       queries,
-      tempName,
+      fetchName,
       query: sql`
-        SELECT
-        ${select ? select : {
-          literal: [
-            ...this._decodeIncludes(tempName, compiler.includes),
-            ..._.map(_populates, ({ column }) => column),
-          ], separator: ',\n'
-        }}
-        FROM ${{ identifier: query.className }} AS ${{ identifier: tempName }}
-        ${!_.isEmpty(_joins) ? _joins : sql``}
+        SELECT * FROM (
+          SELECT ${_includes}
+          FROM ${{ identifier: query.className }} AS ${{ identifier: fetchName }}
+          ${!_.isEmpty(_joins) ? _joins : sql``}
+        ) AS ${{ identifier: fetchName }}
         ${_filter ? sql`WHERE ${_filter}` : sql``}
-        ${!_.isEmpty(query.sort) ? sql`ORDER BY ${this._decodeSort(tempName, query.sort)}` : sql``}
+        ${!_.isEmpty(query.sort) ? sql`ORDER BY ${this._decodeSort(fetchName, query.sort)}` : sql``}
         ${query.limit ? sql`LIMIT ${{ literal: `${query.limit}` }}` : sql``}
         ${query.skip ? sql`OFFSET ${{ literal: `${query.skip}` }}` : sql``}
       `,
@@ -195,13 +198,13 @@ export abstract class SqlStorage implements TStorage {
   protected _modifyQuery(
     query: DecodedQuery<FindOneOptions> & { limit?: number },
     compiler: QueryCompiler,
-    action: (tempName: string) => SQL
+    action: (fetchName: string) => SQL
   ) {
-    const { queries, tempName, query: _query } = this._baseSelectQuery(query, compiler);
-    queries[tempName] = _query;
+    const { queries, fetchName, query: _query } = this._baseSelectQuery(query, compiler);
+    queries[fetchName] = _query;
     return sql`
       ${!_.isEmpty(queries) ? sql`WITH ${_.map(queries, (q, n) => sql`${{ identifier: n }} AS (${q})`)}` : sql``}
-      ${action(tempName)}
+      ${action(fetchName)}
     `;
   }
 
@@ -248,14 +251,14 @@ export abstract class SqlStorage implements TStorage {
       matches: options.matches,
     });
 
-    const tempName = `_insert_$${options.className.toLowerCase()}`;
+    const name = `_insert_$${options.className.toLowerCase()}`;
 
-    const populates = this._selectPopulateMap(options.className, tempName, compiler);
+    const populates = this._selectPopulateMap(options.className, name, compiler);
     const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
     const joins = _.compact(_.map(populates, ({ join }) => join));
 
     const result = _.first(await this.query(sql`
-      WITH ${{ identifier: tempName }} AS (
+      WITH ${{ identifier: name }} AS (
         INSERT INTO ${{ identifier: options.className }}
         (${_.map(_attrs, x => sql`${{ identifier: x[0] }}`)})
         VALUES (${_.map(_attrs, x => sql`${x[1]}`)})
@@ -263,11 +266,11 @@ export abstract class SqlStorage implements TStorage {
       )${!_.isEmpty(queries) ? sql`, ${_.map(queries, (q, n) => sql`${{ identifier: n }} AS (${q})`)}` : sql``}
       SELECT ${{
         literal: [
-          ...this._decodeIncludes(tempName, compiler.includes),
+          ...this._decodeIncludes(name, compiler.includes),
           ..._.map(populates, ({ column }) => column),
         ], separator: ',\n'
       }}
-      FROM ${{ identifier: tempName }}
+      FROM ${{ identifier: name }}
       ${!_.isEmpty(joins) ? joins : sql``}
     `));
 
@@ -291,7 +294,7 @@ export abstract class SqlStorage implements TStorage {
     const updated = _.first(await this.query(this._modifyQuery(
       { ...query, limit: 1 },
       compiler,
-      (tempName) => {
+      (fetchName) => {
         const name = `_update_$${query.className.toLowerCase()}`;
         const populates = this._selectPopulateMap(query.className, name, compiler);
         const joins = _.compact(_.map(populates, ({ join }) => join));
@@ -300,11 +303,11 @@ export abstract class SqlStorage implements TStorage {
             UPDATE ${{ identifier: query.className }}
             SET __v = __v + 1, _updated_at = NOW()
             ${!_.isEmpty(update) ? sql`, ${this._encodeUpdateAttrs(query.className, update)}` : sql``}
-            WHERE ${{ identifier: query.className }}._id IN (SELECT ${{ identifier: tempName }}._id FROM ${{ identifier: tempName }})
+            WHERE ${{ identifier: query.className }}._id IN (SELECT ${{ identifier: fetchName }}._id FROM ${{ identifier: fetchName }})
             RETURNING *
           )
           ${query.returning === 'old' ? sql`
-            SELECT * FROM ${{ identifier: tempName }}
+            SELECT * FROM ${{ identifier: fetchName }}
           ` : sql`
             SELECT ${{
               literal: [
@@ -330,7 +333,7 @@ export abstract class SqlStorage implements TStorage {
     const upserted = _.first(await this.query(this._modifyQuery(
       { ...query, limit: 1 },
       compiler,
-      (tempName) => {
+      (fetchName) => {
         const updateName = `_update_$${query.className.toLowerCase()}`;
         const insertName = `_insert_$${query.className.toLowerCase()}`;
         const upsertName = `_upsert_$${query.className.toLowerCase()}`;
@@ -341,7 +344,7 @@ export abstract class SqlStorage implements TStorage {
             UPDATE ${{ identifier: query.className }}
             SET __v = __v + 1, _updated_at = NOW()
             ${!_.isEmpty(update) ? sql`, ${this._encodeUpdateAttrs(query.className, update)}` : sql``}
-            WHERE ${{ identifier: query.className }}._id IN (SELECT ${{ identifier: tempName }}._id FROM ${{ identifier: tempName }})
+            WHERE ${{ identifier: query.className }}._id IN (SELECT ${{ identifier: fetchName }}._id FROM ${{ identifier: fetchName }})
             RETURNING *
           )
           , ${{ identifier: insertName }} AS (
@@ -352,7 +355,7 @@ export abstract class SqlStorage implements TStorage {
             RETURNING *
           )
           ${query.returning === 'old' ? sql`
-            SELECT * FROM ${{ identifier: tempName }}
+            SELECT * FROM ${{ identifier: fetchName }}
           ` : sql`
             , ${{ identifier: upsertName }} AS (
               SELECT * FROM ${{ identifier: updateName }}
@@ -379,14 +382,14 @@ export abstract class SqlStorage implements TStorage {
     const deleted = _.first(await this.query(this._modifyQuery(
       { ...query, limit: 1 },
       compiler,
-      (tempName) => {
+      (fetchName) => {
         const name = `_delete_$${query.className.toLowerCase()}`;
         const populates = this._selectPopulateMap(query.className, name, compiler);
         const joins = _.compact(_.map(populates, ({ join }) => join));
         return sql`
           , ${{ identifier: name }} AS (
             DELETE FROM ${{ identifier: query.className }}
-            WHERE ${{ identifier: query.className }}._id IN (SELECT ${{ identifier: tempName }}._id FROM ${{ identifier: tempName }})
+            WHERE ${{ identifier: query.className }}._id IN (SELECT ${{ identifier: fetchName }}._id FROM ${{ identifier: fetchName }})
             RETURNING *
           )
           SELECT ${{
@@ -408,9 +411,9 @@ export abstract class SqlStorage implements TStorage {
     const deleted = await this.query(this._modifyQuery(
       query,
       compiler,
-      (tempName) => sql`
+      (fetchName) => sql`
         DELETE FROM ${{ identifier: query.className }}
-        WHERE ${{ identifier: query.className }}._id IN (SELECT ${{ identifier: tempName }}._id FROM ${{ identifier: tempName }})
+        WHERE ${{ identifier: query.className }}._id IN (SELECT ${{ identifier: fetchName }}._id FROM ${{ identifier: fetchName }})
         RETURNING 0
       `
     ));

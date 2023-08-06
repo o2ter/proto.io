@@ -41,8 +41,6 @@ export const response = async <T extends TSerializable>(
 
   } catch (error) {
 
-    console.log(error)
-
     if (error instanceof String) {
       res.status(400).json({ message: error });
     } else if (error instanceof Error) {
