@@ -294,12 +294,12 @@ export class PostgresStorage extends SqlStorage {
       case '$in':
         {
           if (!_.isArray(expr.value)) break;
-          return sql`${element} = ANY(${_.map(expr.value, x => _encodeValue(x))})`;
+          return sql`${element} IN (${_.map(expr.value, x => _encodeValue(x))})`;
         }
       case '$nin':
         {
           if (!_.isArray(expr.value)) break;
-          return sql`${element} <> ALL(${_.map(expr.value, x => _encodeValue(x))})`;
+          return sql`${element} NOT IN (${_.map(expr.value, x => _encodeValue(x))})`;
         }
       case '$subset':
         {
