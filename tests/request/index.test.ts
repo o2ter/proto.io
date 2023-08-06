@@ -116,6 +116,12 @@ test('test types', async () => {
   expect((await proto.Query('Test').equalTo('array.3', date).first())?.get('array.3')).toStrictEqual(date);
   expect((await proto.Query('Test').equalTo('array.4', new Decimal('0.001')).first())?.get('array.4')).toStrictEqual(new Decimal('0.001'));
 
+  expect((await proto.Query('Test').containsIn('number', [1, 2, 3, 42]).first())?.get('number')).toStrictEqual(42);
+  expect((await proto.Query('Test').containsIn('array.0', [1, 2, 3, 42]).first())?.get('array.0')).toStrictEqual(1);
+
+  expect((await proto.Query('Test').notContainsIn('number', [1, 2, 3, 42]).first())?.get('number')).toBe(undefined);
+  expect((await proto.Query('Test').notContainsIn('array.0', [1, 2, 3, 42]).first())?.get('array.0')).toBe(undefined);
+
   expect((await proto.Query('Test').equalTo('_id', inserted.objectId).notEqualTo('boolean', true).first())?.get('boolean')).toBe(undefined);
   expect((await proto.Query('Test').equalTo('_id', inserted.objectId).notEqualTo('number', 42).first())?.get('number')).toBe(undefined);
   expect((await proto.Query('Test').equalTo('_id', inserted.objectId).notEqualTo('decimal', new Decimal('0.001')).first())?.get('decimal')).toBe(undefined);
