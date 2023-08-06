@@ -249,6 +249,7 @@ export class PostgresStorage extends SqlStorage {
         ${{
           literal: [
             ...this._decodePopulateIncludes(parent.name, parent.includes),
+            ...parent.foreignField ? [sql`${{ identifier: parent.name }}.${{ identifier: parent.foreignField.colname }}`] : [],
             ..._.map(_populates, ({ column }) => column),
           ], separator: ',\n'
         }}
