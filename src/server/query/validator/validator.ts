@@ -32,7 +32,7 @@ import {
 } from '../../../internals';
 import { DecodedBaseQuery, DecodedQuery, FindOptions, FindOneOptions } from '../../storage';
 import { CoditionalSelector, FieldSelector, QuerySelector } from './parser';
-import { TSchema, defaultObjectKeyTypes } from '../../schema';
+import { TSchema, defaultObjectKeyTypes, isPointer, isPrimitive, isRelation } from '../../schema';
 import { Proto } from '../..';
 import { TQueryBaseOptions } from '../../../internals/query/base';
 
@@ -124,14 +124,13 @@ export class QueryValidator<E> {
       if (!_.isString(dataType) && dataType.type !== 'relation') return false;
     }
 
-    if (_.isString(dataType)) return true;
-    if (dataType.type !== 'pointer' && dataType.type !== 'relation') return true;
+    if (isPrimitive(dataType)) return true;
     if (_.isNil(this.schema[dataType.target])) return false;
     if (type === 'read' && !this.validateCLPs(dataType.target, 'get')) return false;
     if (dataType.type === 'relation' && !_.isNil(dataType.foreignField)) {
       const foreignField = this.schema[dataType.target]?.fields[dataType.foreignField];
       if (_.isNil(foreignField) || _.isString(foreignField)) throw Error(`Invalid key: ${_key}`);
-      if (foreignField.type !== 'pointer' && foreignField.type !== 'relation') throw Error(`Invalid key: ${_key}`);
+      if (isPrimitive(foreignField)) throw Error(`Invalid key: ${_key}`);
       if (foreignField.type === 'relation' && !_.isNil(foreignField.foreignField)) throw Error(`Invalid key: ${_key}`);
       if (!this.validateKeyPerm(dataType.foreignField, type, this.schema[dataType.target])) throw Error('No permission');
     }
@@ -155,7 +154,7 @@ export class QueryValidator<E> {
   decodeIncludes(className: string, includes: string[]): string[] {
 
     const schema = this.schema[className] ?? {};
-    const primitive = _.keys(_.pickBy(schema.fields, v => _.isString(v) || (v.type !== 'pointer' && v.type !== 'relation')));
+    const primitive = _.keys(_.pickBy(schema.fields, v => isPrimitive(v)));
 
     const _includes: string[] = [];
     const populates: Record<string, { className: string; subpaths: string[]; }> = {};
@@ -168,12 +167,12 @@ export class QueryValidator<E> {
         if (!this.validateKeyPerm(colname, 'read', schema)) throw Error('No permission');
 
         const dataType = schema.fields[colname] ?? defaultObjectKeyTypes[colname];
-        if (!_.isString(dataType) && (dataType.type === 'pointer' || dataType.type === 'relation')) {
+        if (isPointer(dataType) || isRelation(dataType)) {
           if (!this.validateCLPs(dataType.target, 'get')) throw Error('No permission');
           if (dataType.type === 'relation' && !_.isNil(dataType.foreignField)) {
             const foreignField = this.schema[dataType.target]?.fields[dataType.foreignField];
             if (_.isNil(foreignField) || _.isString(foreignField)) throw Error(`Invalid include: ${include}`);
-            if (foreignField.type !== 'pointer' && foreignField.type !== 'relation') throw Error(`Invalid include: ${include}`);
+            if (isPrimitive(foreignField)) throw Error(`Invalid include: ${include}`);
             if (foreignField.type === 'relation' && !_.isNil(foreignField.foreignField)) throw Error(`Invalid include: ${include}`);
             if (!this.validateKeyPerm(dataType.foreignField, 'read', this.schema[dataType.target])) throw Error('No permission');
           }
@@ -207,7 +206,7 @@ export class QueryValidator<E> {
       if (!this.validateKeyPerm(colname, 'read', schema)) continue;
 
       const dataType = schema.fields[colname] ?? defaultObjectKeyTypes[colname];
-      if (_.isString(dataType) || (dataType.type !== 'pointer' && dataType.type !== 'relation')) continue;
+      if (isPrimitive(dataType)) continue;
 
       _matches[colname] = {
         filter: QuerySelector.decode([..._rperm, _expiredAt]).simplify(),
@@ -222,12 +221,12 @@ export class QueryValidator<E> {
       if (!this.validateKeyPerm(colname, 'read', schema)) throw Error('No permission');
 
       const dataType = schema.fields[colname] ?? defaultObjectKeyTypes[colname];
-      if (!_.isString(dataType) && (dataType.type === 'pointer' || dataType.type === 'relation')) {
+      if (isPointer(dataType) || isRelation(dataType)) {
         if (!this.validateCLPs(dataType.target, 'get')) throw Error('No permission');
         if (dataType.type === 'relation' && !_.isNil(dataType.foreignField)) {
           const foreignField = this.schema[dataType.target]?.fields[dataType.foreignField];
           if (_.isNil(foreignField) || _.isString(foreignField)) throw Error(`Invalid match: ${colname}`);
-          if (foreignField.type !== 'pointer' && foreignField.type !== 'relation') throw Error(`Invalid match: ${colname}`);
+          if (isPrimitive(foreignField)) throw Error(`Invalid match: ${colname}`);
           if (foreignField.type === 'relation' && !_.isNil(foreignField.foreignField)) throw Error(`Invalid match: ${colname}`);
           if (!this.validateKeyPerm(dataType.foreignField, 'read', this.schema[dataType.target])) throw Error('No permission');
         }

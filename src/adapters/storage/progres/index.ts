@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { PoolConfig } from 'pg';
 import { TObject, TValue } from '../../../internals';
-import { TSchema, defaultObjectKeyTypes } from '../../../server/schema';
+import { TSchema, _typeof, defaultObjectKeyTypes, isPrimitive } from '../../../server/schema';
 import { PostgresDriver } from './driver';
 import { SQL, SqlStorage, sql } from '../../../server/sql';
 import { PostgresDialect } from './dialect';
@@ -215,6 +215,23 @@ export class PostgresStorage extends SqlStorage {
     };
   }
 
+  protected _decodePopulateIncludes(
+    className: string,
+    includes: Record<string, TSchema.DataType>,
+  ): SQL[] {
+    const _includes = _.pickBy(includes, v => isPrimitive(v));
+    return _.map(_includes, (dataType, colname) => {
+      if (isPrimitive(dataType)) {
+        switch (_typeof(dataType)) {
+          case 'decimal': return sql`jsonb_build_object('$decimal', CAST(${{ identifier: className }}.${{ identifier: colname }} AS text))`;
+          case 'date': return sql`jsonb_build_object('$date', to_char(${{ identifier: className }}.${{ identifier: colname }} AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'))`;
+          default: break;
+        }
+      }
+      return sql`${{ identifier: className }}.${{ identifier: colname }}`;
+    });
+  }
+
   protected _decodePopulate(parent: Populate & { colname: string }): Record<string, SQL> {
     const _filter = this._decodeFilter(parent.className, parent.filter);
     const _populates = _.map(parent.populates, (populate, field) => this._selectPopulate(parent, populate, field));
@@ -227,7 +244,7 @@ export class PostgresStorage extends SqlStorage {
         SELECT
         ${{
           literal: [
-            ...this._decodeIncludes(parent.name, parent.includes),
+            ...this._decodePopulateIncludes(parent.name, parent.includes),
             ..._.map(_populates, ({ column }) => column),
           ], separator: ',\n'
         }}
@@ -259,11 +276,7 @@ export class PostgresStorage extends SqlStorage {
         )})`;
       }
     }
-    if (
-      dataType && !_.isString(dataType) &&
-      dataType.type !== 'pointer' && dataType.type !== 'relation' &&
-      !_.isNil(dataType.default)
-    ) {
+    if (dataType && !_.isString(dataType) && isPrimitive(dataType) && !_.isNil(dataType.default)) {
       element = sql`COALESCE(${element}, ${{ value: dataType.default }})`;
     }
     const _encodeValue = (value: TValue) => dataType ? this.dialect.encodeType(dataType, value) : this._encodeJsonValue(value);

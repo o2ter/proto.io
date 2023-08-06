@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { TSchema } from '../schema';
+import { TSchema, isPointer, isRelation } from '../schema';
 import { defaultObjectKeyTypes } from '../schema';
 import { QuerySelector } from '../query/validator/parser';
 import { DecodedBaseQuery } from '../storage';
@@ -80,7 +80,7 @@ export class QueryCompiler {
       const dataType = schema.fields[colname] ?? defaultObjectKeyTypes[colname];
       names[colname] = dataType;
 
-      if (!_.isString(dataType) && (dataType.type === 'pointer' || dataType.type === 'relation')) {
+      if (isPointer(dataType) || isRelation(dataType)) {
         if (_.isEmpty(subpath)) throw Error(`Invalid path: ${include}`);
         const _matches = matches[colname];
         populates[colname] = populates[colname] ?? {

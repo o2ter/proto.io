@@ -23,6 +23,7 @@
 //  THE SOFTWARE.
 //
 
+import _ from 'lodash';
 import { _TValue } from '../internals';
 
 export namespace TSchema {
@@ -30,8 +31,10 @@ export namespace TSchema {
   export type ACLs = { read: TSchema.ACL; update: TSchema.ACL; };
   export type Primitive = 'boolean' | 'number' | 'decimal' | 'string' | 'date' | 'object' | 'array';
   export type Relation = 'pointer' | 'relation';
+  export type PointerType = { type: 'pointer'; target: string; };
   export type RelationType = { type: 'relation'; target: string; foreignField?: string; };
-  export type DataType = Primitive | { type: Primitive; default?: _TValue; } | { type: 'pointer'; target: string; } | RelationType;
+  export type PrimitiveType = Primitive | { type: Primitive; default?: _TValue; };
+  export type DataType = PrimitiveType | PointerType | RelationType;
   export type CLPs = {
     get?: TSchema.ACL;
     find?: TSchema.ACL;
@@ -50,6 +53,11 @@ export namespace TSchema {
     unique?: boolean;
   };
 }
+
+export const isPrimitive = (x: TSchema.DataType): x is TSchema.PrimitiveType => _.isString(x) || (x.type !== 'pointer' && x.type !== 'relation');
+export const isPointer = (x: TSchema.DataType): x is TSchema.PointerType => !_.isString(x) && x.type === 'pointer';
+export const isRelation = (x: TSchema.DataType): x is TSchema.RelationType => !_.isString(x) && x.type === 'relation';
+export const _typeof = (x: TSchema.DataType) => _.isString(x) ? x : x.type !== 'pointer' && x.type !== 'relation' ? x.type : x.target;
 
 export interface TSchema {
   fields: Record<string, TSchema.DataType>;
