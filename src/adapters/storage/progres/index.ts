@@ -277,8 +277,10 @@ export class PostgresStorage extends SqlStorage {
       const _type = parent.className ? this.schema[parent.className].fields[colname] ?? defaultObjectKeyTypes[colname] : null;
       if (_type === 'array' || (!_.isString(_type) && (_type?.type === 'array' || _type?.type === 'relation'))) {
         element = sql`jsonb_extract_path(to_jsonb(${element}), ${_.map([colname, ...subpath], x => sql`${{ quote: x }}`)})`;
-      } else {
+      } else if (colname !== '$') {
         element = sql`jsonb_extract_path(${element}, ${_.map([colname, ...subpath], x => sql`${{ quote: x }}`)})`;
+      } else if (!_.isEmpty(subpath)) {
+        element = sql`jsonb_extract_path(${element}, ${_.map(subpath, x => sql`${{ quote: x }}`)})`;
       }
     } else if (!_.isEmpty(subpath)) {
       const _type = parent.className ? this.schema[parent.className].fields[colname] ?? defaultObjectKeyTypes[colname] : null;
