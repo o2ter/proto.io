@@ -135,7 +135,7 @@ export class PostgresStorage extends SqlStorage {
       const dataType = schema.fields[column.name];
       if (!_.isString(dataType) && dataType.type === 'relation' && !_.isNil(dataType.foreignField)) continue;
       const pgType = this._pgType(_.isString(dataType) ? dataType : dataType.type);
-      if (pgType === typeMap[column.type] ?? column.type) continue;
+      if (pgType.toLowerCase() === typeMap[column.type] ?? column.type) continue;
       rebuild.push({ name: column.name, type: pgType });
     }
     if (_.isEmpty(rebuild)) return;
