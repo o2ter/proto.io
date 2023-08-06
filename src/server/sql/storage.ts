@@ -224,10 +224,21 @@ export abstract class SqlStorage implements TStorage {
     });
   }
 
+  private _defaultInsertOpts(options: InsertOptions) {
+    const objectId = generateId(options.objectIdSize);
+    return {
+      _id: sql`${{ value: objectId }}`,
+      ...options.className === '_User' ? {
+        _rperm: sql`${{ value: [objectId] }}`,
+        _wperm: sql`${{ value: [objectId] }}`,
+      } : {},
+    };
+  }
+
   async insert(options: InsertOptions, attrs: Record<string, TValue>) {
 
     const _attrs: [string, SQL][] = _.toPairs({
-      _id: sql`${{ value: generateId(options.objectIdSize) }}`,
+      ...this._defaultInsertOpts(options),
       ...this._encodeObjectAttrs(options.className, attrs),
     });
 
@@ -313,7 +324,7 @@ export abstract class SqlStorage implements TStorage {
   async upsertOne(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>) {
     const compiler = this._queryCompiler(query);
     const _insert: [string, SQL][] = _.toPairs({
-      _id: sql`${{ value: generateId(query.objectIdSize) }}`,
+      ...this._defaultInsertOpts(query),
       ...this._encodeObjectAttrs(query.className, setOnInsert),
     });
     const upserted = _.first(await this.query(this._modifyQuery(
