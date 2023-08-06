@@ -67,7 +67,6 @@ export class QueryCompiler {
   dialect: SqlDialect;
 
   idx = 0;
-  stages: Record<string, SQL> = {};
 
   constructor(schema: Record<string, TSchema>, dialect: SqlDialect) {
     this.schema = schema;
