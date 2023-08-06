@@ -259,52 +259,47 @@ export class PostgresStorage extends SqlStorage {
         )})`;
       }
     }
+    const _encodeValue = (value: TValue) => type ? this.dialect.encodeType(type, value) : this._encodeJsonValue(value);
     switch (expr.type) {
       case '$eq':
         {
           if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
-          const value = type ? this.dialect.encodeType(type, expr.value) : this._encodeJsonValue(expr.value);
-          return sql`${element} ${this.dialect.nullSafeEqual()} ${value}`;
+          return sql`${element} ${this.dialect.nullSafeEqual()} ${_encodeValue(expr.value)}`;
         }
       case '$gt':
         {
           if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
-          const value = type ? this.dialect.encodeType(type, expr.value) : this._encodeJsonValue(expr.value);
-          return sql`${element} > ${value}`;
+          return sql`${element} > ${_encodeValue(expr.value)}`;
         }
       case '$gte':
         {
           if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
-          const value = type ? this.dialect.encodeType(type, expr.value) : this._encodeJsonValue(expr.value);
-          return sql`${element} >= ${value}`;
+          return sql`${element} >= ${_encodeValue(expr.value)}`;
         }
       case '$lt':
         {
           if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
-          const value = type ? this.dialect.encodeType(type, expr.value) : this._encodeJsonValue(expr.value);
-          return sql`${element} < ${value}`;
+          return sql`${element} < ${_encodeValue(expr.value)}`;
         }
       case '$lte':
         {
           if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
-          const value = type ? this.dialect.encodeType(type, expr.value) : this._encodeJsonValue(expr.value);
-          return sql`${element} <= ${value}`;
+          return sql`${element} <= ${_encodeValue(expr.value)}`;
         }
       case '$ne':
         {
           if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
-          const value = type ? this.dialect.encodeType(type, expr.value) : this._encodeJsonValue(expr.value);
-          return sql`${element} ${this.dialect.nullSafeNotEqual()} ${value}`;
+          return sql`${element} ${this.dialect.nullSafeNotEqual()} ${_encodeValue(expr.value)}`;
         }
       case '$in':
         {
           if (!_.isArray(expr.value)) break;
-          return sql`${element} = ANY(${{ value: this.dialect.encodeValue(expr.value) }})`;
+          return sql`${element} = ANY(${_.map(expr.value, x => _encodeValue(x))})`;
         }
       case '$nin':
         {
           if (!_.isArray(expr.value)) break;
-          return sql`${element} <> ALL(${{ value: this.dialect.encodeValue(expr.value) }})`;
+          return sql`${element} <> ALL(${_.map(expr.value, x => _encodeValue(x))})`;
         }
       case '$subset':
         {
