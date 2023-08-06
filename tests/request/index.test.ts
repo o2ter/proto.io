@@ -265,7 +265,20 @@ test('test relation', async () => {
       relation: [UpdateOp.set, [inserted]],
     });
 
-  console.dir(updated, { depth: null })
+  expect(updated?.get('relation.0.boolean')).toStrictEqual(true);
+  expect(updated?.get('relation.0.number')).toStrictEqual(42);
+  expect(updated?.get('relation.0.decimal')).toStrictEqual(new Decimal('0.001'));
+  expect(updated?.get('relation.0.string')).toStrictEqual('hello');
+  expect(updated?.get('relation.0.date')).toStrictEqual(date);
+
+  const q = proto.Query('Test').equalTo('_id', inserted.objectId).includes('relation');
+
+  expect((await q.clone().equalTo('relation.0.boolean', true).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('relation.0.number', 42).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('relation.0.decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('relation.0.string', 'hello').first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('relation.0.date', date).first())?.objectId).toStrictEqual(inserted.objectId);
+
 })
 
 test('test update', async () => {
