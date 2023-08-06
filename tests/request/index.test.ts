@@ -384,6 +384,7 @@ test('test update', async () => {
       array: [UpdateOp.set, [1, 2, 3, date, new Decimal('0.001')]],
     });
   expect(updated?.objectId).toStrictEqual(inserted.objectId);
+  expect(updated?.version).toStrictEqual(1);
   expect(updated?.get('boolean')).toStrictEqual(true);
   expect(updated?.get('number')).toStrictEqual(42);
   expect(updated?.get('decimal')).toStrictEqual(new Decimal('0.001'));
