@@ -388,6 +388,15 @@ export class PostgresStorage extends SqlStorage {
     throw Error('Invalid expression');
   }
 
+  protected _decodeSortKey(className: string, key: string): SQL {
+    const [colname, ...subpath] = _.toPath(key);
+    if (_.isEmpty(subpath)) return sql`${{ identifier: className }}.${{ identifier: colname }}`;
+    return sql`jsonb_extract_path(
+      ${{ identifier: className }}.${{ identifier: colname }},
+      ${_.map(subpath, x => sql`${{ quote: x }}`)}
+    )`;
+  }
+
   async explain(query: DecodedQuery<FindOptions>) {
     const compiler = this._queryCompiler(query);
     const explains = await this.query(sql`EXPLAIN (ANALYZE, FORMAT JSON) ${this._selectQuery(query, compiler)}`);
