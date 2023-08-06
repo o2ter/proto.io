@@ -28,7 +28,12 @@ import { RequestHandler } from 'express';
 import jwt from 'jsonwebtoken';
 import { Proto } from '../index';
 import { PVK, TRole, TUser } from '../../internals';
-import { MASTER_KEY_HEADER_NAME, MASTER_PASS_HEADER_NAME, MASTER_USER_HEADER_NAME } from '../../common/const';
+import {
+  AUTH_COOKIE_KEY,
+  MASTER_KEY_HEADER_NAME,
+  MASTER_PASS_HEADER_NAME,
+  MASTER_USER_HEADER_NAME,
+} from '../../common/const';
 
 export default <E>(proto: Proto<E>, jwtToken?: string): RequestHandler => async (req: any, res, next) => {
 
@@ -53,8 +58,8 @@ export default <E>(proto: Proto<E>, jwtToken?: string): RequestHandler => async 
   if (req.headers.authorization) {
     const parts = req.headers.authorization.split(' ');
     if (parts.length === 2 && parts[0] === 'Bearer') authorization = parts[1];
-  } else if (req.cookies['x-proto-auth']) {
-    authorization = req.cookies['x-proto-auth'];
+  } else if (req.cookies[AUTH_COOKIE_KEY]) {
+    authorization = req.cookies[AUTH_COOKIE_KEY];
   }
 
   if (!_.isEmpty(authorization)) {
@@ -85,6 +90,6 @@ export default <E>(proto: Proto<E>, jwtToken?: string): RequestHandler => async 
     master: req.isMaster,
   }, jwtToken);
 
-  res.cookie('x-proto-auth', token);
+  res.cookie(AUTH_COOKIE_KEY, token);
   return next();
 };

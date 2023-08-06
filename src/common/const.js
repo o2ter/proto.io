@@ -29,3 +29,5 @@ export const XSRF_HEADER_NAME = 'X-XSRF-TOKEN';
 export const MASTER_KEY_HEADER_NAME = 'X-PROTO-MASTER-KEY';
 export const MASTER_USER_HEADER_NAME = 'X-PROTO-MASTER-USER';
 export const MASTER_PASS_HEADER_NAME = 'X-PROTO-MASTER-PASS';
+
+export const AUTH_COOKIE_KEY = 'x-proto-auth';
