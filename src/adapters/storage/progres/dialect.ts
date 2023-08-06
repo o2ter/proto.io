@@ -249,7 +249,7 @@ export const PostgresDialect: SqlDialect = {
     parent: Populate & { colname: string },
     remix?: { className: string; name: string; }
   ): Record<string, SQL> {
-    const _filter = compiler._decodeFilter(parent, parent.filter, context);
+    const _filter = compiler._decodeFilter(context, parent, parent.filter);
     const _populates = _.map(parent.populates, (populate, field) => this.selectPopulate(compiler, parent, populate, field));
     const _joins = _.compact(_.map(_populates, ({ join }) => join));
     return _.reduce(parent.populates, (acc, populate, field) => ({
@@ -401,7 +401,7 @@ export const PostgresDialect: SqlDialect = {
           if (!(expr.value instanceof QuerySelector)) break;
           if (!dataType || dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
             const tempName = `_expr_$${compiler.nextIdx()}`;
-            const filter = compiler._decodeFilter({ name: tempName }, expr.value, context);
+            const filter = compiler._decodeFilter(context, { name: tempName }, expr.value);
             if (!filter) break;
             return sql`NOT EXISTS(
               SELECT * FROM (
@@ -417,7 +417,7 @@ export const PostgresDialect: SqlDialect = {
           if (!(expr.value instanceof QuerySelector)) break;
           if (!dataType || dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
             const tempName = `_expr_$${compiler.nextIdx()}`;
-            const filter = compiler._decodeFilter({ name: tempName }, expr.value, context);
+            const filter = compiler._decodeFilter(context, { name: tempName }, expr.value);
             if (!filter) break;
             return sql`EXISTS(
               SELECT * FROM (

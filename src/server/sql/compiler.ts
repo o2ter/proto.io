@@ -196,8 +196,8 @@ export class QueryCompiler {
 
     const fetchName = `_fetch_$${query.className.toLowerCase()}`;
 
-    const _filter = this._decodeFilter({ className: query.className, name: fetchName }, query.filter, _context);
-    const _populates = this._selectPopulateMap(query.className, fetchName, _context);
+    const _filter = this._decodeFilter(_context, { className: query.className, name: fetchName }, query.filter);
+    const _populates = this._selectPopulateMap(_context, query.className, fetchName);
     const _joins = _.compact(_.map(_populates, ({ join }) => join));
 
     const _includes = select ? select : {
@@ -231,18 +231,18 @@ export class QueryCompiler {
     context: CompileContext,
   ) {
 
-    const recompiled = this._decodeIncludes(query.className, query.includes, query.matches);
+    const _context = this._decodeIncludes(query.className, query.includes, query.matches);
     const populates = _.mapValues(
-      recompiled.populates, (populate, field) => this.dialect.decodePopulate(this, context, { ...populate, colname: field }, { className: query.className, name })
+      _context.populates, (populate, field) => this.dialect.decodePopulate(this, context, { ...populate, colname: field }, { className: query.className, name })
     );
     const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
 
-    const _populates = this._selectPopulateMap(query.className, name, recompiled);
+    const _populates = this._selectPopulateMap(_context, query.className, name);
     const _joins = _.compact(_.map(_populates, ({ join }) => join));
 
     const _includes = {
       literal: [
-        ...this._selectIncludes(name, recompiled.includes),
+        ...this._selectIncludes(name, _context.includes),
         ..._.map(_populates, ({ column }) => column),
       ], separator: ',\n'
     };
@@ -306,7 +306,7 @@ export class QueryCompiler {
     filter: CoditionalSelector,
     context: CompileContext,
   ) {
-    const queries = _.compact(_.map(filter.exprs, x => this._decodeFilter(parent, x, context)));
+    const queries = _.compact(_.map(filter.exprs, x => this._decodeFilter(context, parent, x)));
     if (_.isEmpty(queries)) return;
     switch (filter.type) {
       case '$and': return sql`(${{ literal: _.map(queries, x => sql`(${x})`), separator: ' AND ' }})`;
@@ -316,9 +316,9 @@ export class QueryCompiler {
   }
 
   _decodeFilter(
+    context: CompileContext,
     parent: { className?: string; name: string; },
     filter: QuerySelector,
-    context: CompileContext,
   ): SQL | undefined {
     if (filter instanceof CoditionalSelector) {
       return this._decodeCoditionalSelector(parent, filter, context);
@@ -343,9 +343,9 @@ export class QueryCompiler {
   }
 
   _selectPopulateMap(
+    context: CompileContext,
     className: string,
     name: string,
-    context: CompileContext,
   ) {
     return _.map(context.populates, (populate, field) => this.dialect.selectPopulate(
       this, {
@@ -366,7 +366,7 @@ export class QueryCompiler {
     const name = `_insert_$${options.className.toLowerCase()}`;
 
     const context = this._makeContext(options);
-    const populates = this._selectPopulateMap(options.className, name, context);
+    const populates = this._selectPopulateMap(context, options.className, name);
     const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
     const joins = _.compact(_.map(populates, ({ join }) => join));
 
@@ -452,7 +452,7 @@ export class QueryCompiler {
       { ...query, limit: 1 },
       (fetchName, context) => {
         const name = `_delete_$${query.className.toLowerCase()}`;
-        const populates = this._selectPopulateMap(query.className, name, context);
+        const populates = this._selectPopulateMap(context, query.className, name);
         const joins = _.compact(_.map(populates, ({ join }) => join));
         return sql`
           , ${{ identifier: name }} AS (
