@@ -264,6 +264,7 @@ export class PostgresStorage extends SqlStorage {
       case '$eq':
         {
           if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
+          if (_.isNil(expr.value)) return sql`${element} IS NULL`;
           return sql`${element} ${this.dialect.nullSafeEqual()} ${_encodeValue(expr.value)}`;
         }
       case '$gt':
@@ -289,6 +290,7 @@ export class PostgresStorage extends SqlStorage {
       case '$ne':
         {
           if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
+          if (_.isNil(expr.value)) return sql`${element} IS NOT NULL`;
           return sql`${element} ${this.dialect.nullSafeNotEqual()} ${_encodeValue(expr.value)}`;
         }
       case '$in':
