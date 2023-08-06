@@ -100,7 +100,6 @@ test('test types', async () => {
 
   const q = proto.Query('Test').equalTo('_id', inserted.objectId);
 
-  expect((await q.clone().equalTo('default', 42).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().notEqualTo('default', 42).first())?.objectId).toBe(undefined);
 
   expect((await q.clone().notEqualTo('object.null', null).first())?.objectId).toBe(undefined);
@@ -115,44 +114,17 @@ test('test types', async () => {
   expect((await q.clone().notEqualTo('null_string', null).first())?.objectId).toBe(undefined);
   expect((await q.clone().notEqualTo('null_date', null).first())?.objectId).toBe(undefined);
 
-  expect((await q.clone().equalTo('object.null', null).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().equalTo('object.null', null).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().equalTo('object.null', null).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().equalTo('object.null', null).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().equalTo('object.null', null).first())?.objectId).toStrictEqual(inserted.objectId);
-
-  expect((await q.clone().equalTo('null_boolean', null).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().equalTo('null_number', null).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().equalTo('null_decimal', null).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().equalTo('null_string', null).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().equalTo('null_date', null).first())?.objectId).toStrictEqual(inserted.objectId);
-
   expect((await q.clone().equalTo('object.null', true).first())?.objectId).toBe(undefined);
   expect((await q.clone().equalTo('object.null', 42).first())?.objectId).toBe(undefined);
   expect((await q.clone().equalTo('object.null', new Decimal('0.001')).first())?.objectId).toBe(undefined);
   expect((await q.clone().equalTo('object.null', 'hello').first())?.objectId).toBe(undefined);
   expect((await q.clone().equalTo('object.null', date).first())?.objectId).toBe(undefined);
 
-  expect((await q.clone().notEqualTo('object.null', true).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().notEqualTo('object.null', 42).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().notEqualTo('object.null', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().notEqualTo('object.null', 'hello').first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().notEqualTo('object.null', date).first())?.objectId).toStrictEqual(inserted.objectId);
-
   expect((await q.clone().equalTo('null_boolean', true).first())?.objectId).toBe(undefined);
   expect((await q.clone().equalTo('null_number', 42).first())?.objectId).toBe(undefined);
   expect((await q.clone().equalTo('null_decimal', new Decimal('0.001')).first())?.objectId).toBe(undefined);
   expect((await q.clone().equalTo('null_string', 'hello').first())?.objectId).toBe(undefined);
   expect((await q.clone().equalTo('null_date', date).first())?.objectId).toBe(undefined);
-
-  expect((await q.clone().notEqualTo('null_boolean', true).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().notEqualTo('null_number', 42).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().notEqualTo('null_decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().notEqualTo('null_string', 'hello').first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().notEqualTo('null_date', date).first())?.objectId).toStrictEqual(inserted.objectId);
-
-  expect((await q.clone().containsIn('number', [1, 2, 3, 42]).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().containsIn('array.0', [1, 2, 3, 42, 'hello']).first())?.objectId).toStrictEqual(inserted.objectId);
 
   expect((await q.clone().notContainsIn('number', [1, 2, 3, 42]).first())?.objectId).toBe(undefined);
   expect((await q.clone().notContainsIn('array.0', [1, 2, 3, 42, 'hello']).first())?.objectId).toBe(undefined);
@@ -174,6 +146,35 @@ test('test types', async () => {
   expect((await q.clone().notEqualTo('array.2', 3).first())?.objectId).toBe(undefined);
   expect((await q.clone().notEqualTo('array.3', date).first())?.objectId).toBe(undefined);
   expect((await q.clone().notEqualTo('array.4', new Decimal('0.001')).first())?.objectId).toBe(undefined);
+
+  expect((await q.clone().equalTo('default', 42).first())?.objectId).toStrictEqual(inserted.objectId);
+
+  expect((await q.clone().equalTo('object.null', null).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('object.null', null).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('object.null', null).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('object.null', null).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('object.null', null).first())?.objectId).toStrictEqual(inserted.objectId);
+
+  expect((await q.clone().equalTo('null_boolean', null).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('null_number', null).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('null_decimal', null).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('null_string', null).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('null_date', null).first())?.objectId).toStrictEqual(inserted.objectId);
+
+  expect((await q.clone().notEqualTo('object.null', true).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().notEqualTo('object.null', 42).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().notEqualTo('object.null', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().notEqualTo('object.null', 'hello').first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().notEqualTo('object.null', date).first())?.objectId).toStrictEqual(inserted.objectId);
+
+  expect((await q.clone().notEqualTo('null_boolean', true).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().notEqualTo('null_number', 42).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().notEqualTo('null_decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().notEqualTo('null_string', 'hello').first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().notEqualTo('null_date', date).first())?.objectId).toStrictEqual(inserted.objectId);
+
+  expect((await q.clone().containsIn('number', [1, 2, 3, 42]).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().containsIn('array.0', [1, 2, 3, 42, 'hello']).first())?.objectId).toStrictEqual(inserted.objectId);
 
   expect((await q.clone().notEqualTo('boolean', false).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().notEqualTo('number', 10).first())?.objectId).toStrictEqual(inserted.objectId);
