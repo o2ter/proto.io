@@ -195,6 +195,15 @@ test('test types', async () => {
   expect((await q.clone().notEqualTo('array.4', new Decimal('1.001')).first())?.objectId).toStrictEqual(inserted.objectId);
 })
 
+test('test update', async () => {
+  const inserted = await proto.Query('Test').insert({});
+  const upserted = await proto.Query('Test')
+    .equalTo('_id', inserted.objectId)
+    .updateOne({ string: [UpdateOp.set, 'update'] });
+  expect(upserted?.objectId).toStrictEqual(inserted.objectId);
+  expect(upserted?.get('string')).toStrictEqual('update');
+})
+
 test('test upsert', async () => {
   const upserted = await proto.Query('Test')
     .equalTo('_id', '')
