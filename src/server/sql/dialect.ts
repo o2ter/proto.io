@@ -41,14 +41,14 @@ export interface SqlDialect {
   decodeType(type: TSchema.Primitive, value: any): TValue;
   updateOperation(column: string, type: TSchema.DataType, operation: [UpdateOp, TValue]): SQL;
 
-  _selectPopulate(
+  selectPopulate(
     compiler: QueryCompiler,
     parent: Pick<Populate, 'className' | 'name' | 'includes'> & { colname: string },
     populate: Populate,
     field: string,
   ): { column: SQL, join?: SQL }
 
-  _decodeFieldExpression(
+  decodeFieldExpression(
     compiler: QueryCompiler,
     context: CompileContext,
     parent: { className?: string; name: string; },
@@ -56,14 +56,14 @@ export interface SqlDialect {
     expr: FieldExpression,
   ): SQL
 
-  _decodePopulate(
+  decodePopulate(
     compiler: QueryCompiler,
     context: CompileContext,
     parent: Populate & { colname: string },
     remix?: { className: string; name: string; }
   ): Record<string, SQL>
 
-  _decodeSortKey(
+  decodeSortKey(
     className: string,
     key: string
   ): SQL

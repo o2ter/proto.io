@@ -201,7 +201,7 @@ export const PostgresDialect: SqlDialect = {
     }
     throw Error('Invalid update operation');
   },
-  _selectPopulate(
+  selectPopulate(
     compiler: QueryCompiler,
     parent: Pick<Populate, 'className' | 'name' | 'includes'> & { colname: string },
     populate: Populate,
@@ -243,17 +243,17 @@ export const PostgresDialect: SqlDialect = {
       `,
     };
   },
-  _decodePopulate(
+  decodePopulate(
     compiler: QueryCompiler,
     context: CompileContext,
     parent: Populate & { colname: string },
     remix?: { className: string; name: string; }
   ): Record<string, SQL> {
     const _filter = compiler._decodeFilter(parent, parent.filter, context);
-    const _populates = _.map(parent.populates, (populate, field) => this._selectPopulate(compiler, parent, populate, field));
+    const _populates = _.map(parent.populates, (populate, field) => this.selectPopulate(compiler, parent, populate, field));
     const _joins = _.compact(_.map(_populates, ({ join }) => join));
     return _.reduce(parent.populates, (acc, populate, field) => ({
-      ...this._decodePopulate(compiler, context, { ...populate, colname: field }, remix),
+      ...this.decodePopulate(compiler, context, { ...populate, colname: field }, remix),
       ...acc,
     }), {
       [parent.name]: sql`
@@ -273,7 +273,7 @@ export const PostgresDialect: SqlDialect = {
       `,
     });
   },
-  _decodeFieldExpression(
+  decodeFieldExpression(
     compiler: QueryCompiler,
     context: CompileContext,
     parent: { className?: string; name: string; },
@@ -378,7 +378,7 @@ export const PostgresDialect: SqlDialect = {
       case '$not':
         {
           if (!(expr.value instanceof FieldExpression)) break;
-          return sql`NOT (${this._decodeFieldExpression(compiler, context, parent, field, expr.value)})`;
+          return sql`NOT (${this.decodeFieldExpression(compiler, context, parent, field, expr.value)})`;
         }
       case '$pattern':
         {
@@ -432,7 +432,7 @@ export const PostgresDialect: SqlDialect = {
     }
     throw Error('Invalid expression');
   },
-  _decodeSortKey(className: string, key: string): SQL {
+  decodeSortKey(className: string, key: string): SQL {
     const [colname, ...subpath] = _.toPath(key);
     if (_.isEmpty(subpath)) return sql`${{ identifier: className }}.${{ identifier: colname }}`;
     return sql`jsonb_extract_path(

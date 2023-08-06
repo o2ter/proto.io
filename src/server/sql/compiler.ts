@@ -191,7 +191,7 @@ export class QueryCompiler {
   ) {
 
     const _context = context ?? this._makeContext(query);
-    const populates = _.mapValues(_context.populates, (populate, field) => this.dialect._decodePopulate(this, _context, { ...populate, colname: field }));
+    const populates = _.mapValues(_context.populates, (populate, field) => this.dialect.decodePopulate(this, _context, { ...populate, colname: field }));
     const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
 
     const fetchName = `_fetch_$${query.className.toLowerCase()}`;
@@ -233,7 +233,7 @@ export class QueryCompiler {
 
     const recompiled = this._decodeIncludes(query.className, query.includes, query.matches);
     const populates = _.mapValues(
-      recompiled.populates, (populate, field) => this.dialect._decodePopulate(this, context, { ...populate, colname: field }, { className: query.className, name })
+      recompiled.populates, (populate, field) => this.dialect.decodePopulate(this, context, { ...populate, colname: field }, { className: query.className, name })
     );
     const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
 
@@ -324,7 +324,7 @@ export class QueryCompiler {
       return this._decodeCoditionalSelector(parent, filter, context);
     }
     if (filter instanceof FieldSelector) {
-      return this.dialect._decodeFieldExpression(this, context, parent, filter.field, filter.expr);
+      return this.dialect.decodeFieldExpression(this, context, parent, filter.field, filter.expr);
     }
   }
 
@@ -338,7 +338,7 @@ export class QueryCompiler {
 
   _decodeSort(className: string, sort: Record<string, 1 | -1>): SQL {
     return sql`${_.map(sort, (order, key) => sql`
-      ${this.dialect._decodeSortKey(className, key)} ${{ literal: order === 1 ? 'ASC' : 'DESC' }}
+      ${this.dialect.decodeSortKey(className, key)} ${{ literal: order === 1 ? 'ASC' : 'DESC' }}
     `)}`;
   }
 
@@ -347,7 +347,7 @@ export class QueryCompiler {
     name: string,
     context: CompileContext,
   ) {
-    return _.map(context.populates, (populate, field) => this.dialect._selectPopulate(
+    return _.map(context.populates, (populate, field) => this.dialect.selectPopulate(
       this, {
       className,
       name,
