@@ -62,6 +62,13 @@ const proto = new Proto({
         date: 'date',
         object: 'object',
         array: 'array',
+        null_boolean: 'boolean',
+        null_number: 'number',
+        null_decimal: 'decimal',
+        null_string: 'string',
+        null_date: 'date',
+        null_object: 'object',
+        null_array: 'array',
         pointer: { type: 'pointer', target: 'Test' },
         relation: { type: 'relation', target: 'Test' },
       }
