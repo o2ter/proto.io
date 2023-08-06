@@ -205,11 +205,13 @@ export class PostgresStorage extends SqlStorage {
     return {
       column: sql`
         ARRAY(
-          SELECT to_jsonb(${{ identifier: populate.name }})
-          FROM ${{ identifier: populate.name }} WHERE ${cond}
-          ${!_.isEmpty(populate.sort) ? sql`ORDER BY ${this._decodeSort(populate.name, populate.sort)}` : sql``}
-          ${populate.limit ? sql`LIMIT ${{ literal: `${populate.limit}` }}` : sql``}
-          ${populate.skip ? sql`OFFSET ${{ literal: `${populate.skip}` }}` : sql``}
+          SELECT to_jsonb(${{ identifier: populate.name }}) FROM (
+            SELECT ${_.map(_.keys(_.pickBy(populate.includes, v => isPrimitive(v))), (colname) => sql`${{ identifier: populate.name }}.${{ identifier: colname }}`)}
+            FROM ${{ identifier: populate.name }} WHERE ${cond}
+            ${!_.isEmpty(populate.sort) ? sql`ORDER BY ${this._decodeSort(populate.name, populate.sort)}` : sql``}
+            ${populate.limit ? sql`LIMIT ${{ literal: `${populate.limit}` }}` : sql``}
+            ${populate.skip ? sql`OFFSET ${{ literal: `${populate.skip}` }}` : sql``}
+          ) ${{ identifier: populate.name }}
         ) AS ${{ identifier: field }}
       `,
     };
