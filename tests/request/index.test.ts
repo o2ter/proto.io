@@ -216,6 +216,7 @@ test('test types 2', async () => {
 
   const q = proto.Query('Test').equalTo('_id', inserted.objectId);
 
+  expect((await q.clone().every('array', q => q.every('$', q => q.equalTo('$', 0))).first())?.objectId).toBe(undefined);
   expect((await q.clone().every('array', q => q.every('$', q => q.notEqualTo('$', 0))).first())?.objectId).toStrictEqual(inserted.objectId);
 
 })
@@ -228,6 +229,7 @@ test('test types 3', async () => {
 
   const q = proto.Query('Test').equalTo('_id', inserted.objectId);
 
+  expect((await q.clone().every('array', q => q.every('array', q => q.equalTo('$', 0))).first())?.objectId).toBe(undefined);
   expect((await q.clone().every('array', q => q.every('array', q => q.notEqualTo('$', 0))).first())?.objectId).toStrictEqual(inserted.objectId);
 
 })
