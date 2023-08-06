@@ -173,10 +173,9 @@ export class QueryCompiler {
 
   _selectQuery(
     query: DecodedQuery<FindOptions>,
-    context?: CompileContext,
     select?: SQL
   ) {
-    const { queries, query: _query } = this._baseSelectQuery(query, context, select);
+    const { queries, query: _query } = this._baseSelectQuery(query, undefined, select);
     return sql`
       ${!_.isEmpty(queries) ? sql`WITH ${_.map(queries, (q, n) => sql`${{ identifier: n }} AS (${q})`)}` : sql``}
       ${_query}
