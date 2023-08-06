@@ -39,7 +39,7 @@ import {
 import { TFileStorage } from './filesys';
 import { TStorage } from './storage';
 import { TSchema } from './schema';
-import { Request } from 'express';
+import { CookieOptions, Request } from 'express';
 
 type Callback<T, R, E> = (request: Proto<E> & T) => R | PromiseLike<R>;
 export type ProtoFunction<E> = Callback<{ data: TSerializable; }, TSerializable, E>;
@@ -65,6 +65,7 @@ export type ProtoOptions<Ext> = {
   classExtends?: TExtensions<Ext>;
   objectIdSize?: number;
   maxUploadSize?: number | ((proto: Proto<Ext>) => number | PromiseLike<number>);
+  cookieOptions?: CookieOptions;
 };
 
 export type ProtoKeyOptions = {
@@ -82,6 +83,7 @@ export class Proto<Ext> extends ProtoType<Ext> {
       objectIdSize: 10,
       maxUploadSize: 20 * 1024 * 1024,
       classExtends: {} as TExtensions<Ext>,
+      cookieOptions: { maxAge: 365 * 24 * 60 * 60 * 1000, httpOnly: true },
       ...options,
     });
   }

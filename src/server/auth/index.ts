@@ -90,6 +90,6 @@ export default <E>(proto: Proto<E>, jwtToken?: string): RequestHandler => async 
     master: req.isMaster,
   }, jwtToken);
 
-  res.cookie(AUTH_COOKIE_KEY, token, { maxAge: 365 * 24 * 60 * 60 * 1000, httpOnly: true });
+  res.cookie(AUTH_COOKIE_KEY, token, proto[PVK].options.cookieOptions);
   return next();
 };
