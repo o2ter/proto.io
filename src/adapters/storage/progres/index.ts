@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { PoolConfig } from 'pg';
 import { TObject, TValue } from '../../../internals';
-import { TSchema, _typeof, defaultObjectKeyTypes, isPrimitive } from '../../../server/schema';
+import { TSchema, _typeof, defaultObjectKeyTypes, isPrimitive, isRelation } from '../../../server/schema';
 import { PostgresDriver } from './driver';
 import { SQL, SqlStorage, sql } from '../../../server/sql';
 import { PostgresDialect } from './dialect';
@@ -75,7 +75,7 @@ export class PostgresStorage extends SqlStorage {
   }
 
   private async _createTable(className: string, schema: TSchema) {
-    const fields = _.pickBy(schema.fields, x => _.isString(x) || x.type !== 'relation' || _.isNil(x.foreignField));
+    const fields = _.pickBy(schema.fields, x => !isRelation(x) || _.isNil(x.foreignField));
     await this.query(sql`
       CREATE TABLE
       IF NOT EXISTS ${{ identifier: className }}
@@ -101,7 +101,7 @@ export class PostgresStorage extends SqlStorage {
   }
 
   private _indicesOf(schema: TSchema) {
-    const relations = _.pickBy(schema.fields, v => !_.isString(v) && v.type === 'relation' && _.isNil(v.foreignField));
+    const relations = _.pickBy(schema.fields, v => isRelation(v) && _.isNil(v.foreignField));
     return {
       relations,
       indexes: [
