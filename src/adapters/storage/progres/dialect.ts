@@ -130,6 +130,7 @@ export const PostgresDialect = {
       case 'decimal':
         if (_.isString(value) || _.isNumber(value)) return new Decimal(value);
         if (value instanceof Decimal) return value;
+        if (_.isPlainObject(value) && _.isString(value.$decimal)) return new Decimal(value.$decimal);
         break;
       case 'string':
         if (_.isString(value)) return value;
@@ -140,6 +141,7 @@ export const PostgresDialect = {
           const date = new Date(value);
           if (isFinite(date.valueOf())) return date;
         }
+        if (_.isPlainObject(value) && _.isString(value.$date)) return new Date(value.$date);
         break;
       case 'object':
         if (_.isPlainObject(value)) return _decodeValue(value);
