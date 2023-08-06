@@ -64,7 +64,7 @@ export const PostgresDialect = {
     return `$${idx}`;
   },
   boolean(value: boolean) {
-    return value ? 'true' : 'false;';
+    return value ? 'true' : 'false';
   },
   nullSafeEqual() {
     return sql`IS NOT DISTINCT FROM`;
