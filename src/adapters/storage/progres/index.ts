@@ -238,12 +238,12 @@ export class PostgresStorage extends SqlStorage {
     });
   }
 
-  protected _decodePopulate(parent: Populate & { colname: string }): Record<string, SQL> {
+  protected _decodePopulate(parent: Populate & { colname: string }, remix?: { className: string; name: string; }): Record<string, SQL> {
     const _filter = this._decodeFilter(parent, parent.filter);
     const _populates = _.map(parent.populates, (populate, field) => this._selectPopulate(parent, populate, field));
     const _joins = _.compact(_.map(_populates, ({ join }) => join));
     return _.reduce(parent.populates, (acc, populate, field) => ({
-      ...this._decodePopulate({ ...populate, colname: field }),
+      ...this._decodePopulate({ ...populate, colname: field }, remix),
       ...acc,
     }), {
       [parent.name]: sql`
@@ -255,7 +255,9 @@ export class PostgresStorage extends SqlStorage {
             ..._.map(_populates, ({ column }) => column),
           ], separator: ',\n'
         }}
-        FROM ${{ identifier: parent.className }} AS ${{ identifier: parent.name }}
+        FROM ${remix?.className === parent.className ? sql`
+        (SELECT * FROM ${{ identifier: remix.name }} UNION SELECT * FROM ${{ identifier: parent.className }})
+        ` : { identifier: parent.className }} AS ${{ identifier: parent.name }}
         ${!_.isEmpty(_joins) ? _joins : sql``}
         ${_filter ? sql`WHERE ${_filter}` : sql``}
       `,

@@ -126,7 +126,7 @@ export abstract class SqlStorage implements TStorage {
     populate: Populate,
     field: string,
   ): { column: SQL, join?: SQL }
-  protected abstract _decodePopulate(parent: Populate & { colname: string }): Record<string, SQL>
+  protected abstract _decodePopulate(parent: Populate & { colname: string }, remix?: { className: string; name: string; }): Record<string, SQL>
 
   protected abstract _decodeSortKey(className: string, key: string): SQL
   protected _decodeSort(className: string, sort: Record<string, 1 | -1>): SQL {
@@ -138,7 +138,10 @@ export abstract class SqlStorage implements TStorage {
   protected _selectPopulateMap(
     className: string,
     name: string,
-    compiler: QueryCompiler,
+    compiler: {
+      includes: Record<string, TSchema.DataType>;
+      populates: Record<string, Populate>;
+    },
   ) {
     return _.map(compiler.populates, (populate, field) => this._selectPopulate({
       className,
@@ -192,6 +195,32 @@ export abstract class SqlStorage implements TStorage {
     return sql`
       ${!_.isEmpty(queries) ? sql`WITH ${_.map(queries, (q, n) => sql`${{ identifier: n }} AS (${q})`)}` : sql``}
       ${_query}
+    `;
+  }
+
+  protected _refetch(name: string, query: DecodedQuery<FindOneOptions>, compiler: QueryCompiler) {
+
+    const recompiled = compiler._decodeIncludes(query.className, query.includes, query.matches);
+    const populates = _.mapValues(
+      recompiled.populates, (populate, field) => this._decodePopulate({ ...populate, colname: field }, { className: query.className, name })
+    );
+    const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
+
+    const _populates = this._selectPopulateMap(query.className, name, recompiled);
+    const _joins = _.compact(_.map(_populates, ({ join }) => join));
+
+    const _includes = {
+      literal: [
+        ...this._decodeIncludes(name, recompiled.includes),
+        ..._.map(_populates, ({ column }) => column),
+      ], separator: ',\n'
+    };
+
+    return sql`
+      ${!_.isEmpty(queries) ? sql`, ${_.map(queries, (q, n) => sql`${{ identifier: n }} AS (${q})`)}` : sql``}
+      SELECT ${_includes}
+      FROM ${{ identifier: name }}
+      ${!_.isEmpty(_joins) ? _joins : sql``}
     `;
   }
 
@@ -296,8 +325,6 @@ export abstract class SqlStorage implements TStorage {
       compiler,
       (fetchName) => {
         const name = `_update_$${query.className.toLowerCase()}`;
-        const populates = this._selectPopulateMap(query.className, name, compiler);
-        const joins = _.compact(_.map(populates, ({ join }) => join));
         return sql`
           , ${{ identifier: name }} AS (
             UPDATE ${{ identifier: query.className }}
@@ -306,14 +333,7 @@ export abstract class SqlStorage implements TStorage {
             WHERE ${{ identifier: query.className }}._id IN (SELECT ${{ identifier: fetchName }}._id FROM ${{ identifier: fetchName }})
             RETURNING *
           )
-          SELECT ${{
-            literal: [
-              ...this._decodeIncludes(name, compiler.includes),
-              ..._.map(populates, ({ column }) => column),
-            ], separator: ',\n'
-          }}
-          FROM ${{ identifier: name }}
-          ${!_.isEmpty(joins) ? joins : sql``}
+          ${this._refetch(name, query, compiler)}
         `;
       }
     )));
@@ -333,8 +353,6 @@ export abstract class SqlStorage implements TStorage {
         const updateName = `_update_$${query.className.toLowerCase()}`;
         const insertName = `_insert_$${query.className.toLowerCase()}`;
         const upsertName = `_upsert_$${query.className.toLowerCase()}`;
-        const populates = this._selectPopulateMap(query.className, updateName, compiler);
-        const joins = _.compact(_.map(populates, ({ join }) => join));
         return sql`
           , ${{ identifier: updateName }} AS (
             UPDATE ${{ identifier: query.className }}
@@ -355,14 +373,7 @@ export abstract class SqlStorage implements TStorage {
             UNION
             SELECT * FROM ${{ identifier: insertName }}
           )
-          SELECT ${{
-            literal: [
-              ...this._decodeIncludes(upsertName, compiler.includes),
-              ..._.map(populates, ({ column }) => column),
-            ], separator: ',\n'
-          }}
-          FROM ${{ identifier: upsertName }}
-          ${!_.isEmpty(joins) ? joins : sql``}
+          ${this._refetch(upsertName, query, compiler)}
         `;
       }
     )));

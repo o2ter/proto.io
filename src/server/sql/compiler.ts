@@ -68,7 +68,7 @@ export class QueryCompiler {
     return this.idx++;
   }
 
-  private _decodeIncludes(className: string, includes: string[], matches: Record<string, DecodedBaseQuery>) {
+  _decodeIncludes(className: string, includes: string[], matches: Record<string, DecodedBaseQuery>) {
 
     const schema = this.schema[className] ?? {};
     const names: Record<string, TSchema.DataType> = {};
@@ -140,7 +140,7 @@ export class QueryCompiler {
     return resolved;
   }
 
-  private _decodeSorting(
+  _decodeSorting(
     includes: Record<string, TSchema.DataType>,
     populates: Record<string, Populate>,
     sort?: Record<string, 1 | -1>,
