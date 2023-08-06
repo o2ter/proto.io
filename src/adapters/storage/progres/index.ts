@@ -385,7 +385,7 @@ export class PostgresStorage extends SqlStorage {
         {
           if (!(expr.value instanceof QuerySelector)) break;
           if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
-            const filter = this._decodeFilter({ name: '$' }, expr.value);
+            const filter = this._decodeFilter({ className: '$', name: '$' }, expr.value);
             if (!filter) break;
             return sql`array_length(${element}, 1) = array_length(ARRAY(
               SELECT * FROM (SELECT unset(${element}) AS "$") "$"
@@ -397,7 +397,7 @@ export class PostgresStorage extends SqlStorage {
         {
           if (!(expr.value instanceof QuerySelector)) break;
           if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
-            const filter = this._decodeFilter({ name: '$' }, expr.value);
+            const filter = this._decodeFilter({ className: '$', name: '$' }, expr.value);
             if (!filter) break;
             return sql`array_length(ARRAY(
               SELECT * FROM (SELECT unset(${element}) AS "$") "$"
