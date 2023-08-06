@@ -77,8 +77,6 @@ export class Proto<Ext> extends ProtoType<Ext> {
 
   [PVK]: ProtoInternal<Ext>;
 
-  private req?: Request;
-
   constructor(options: ProtoOptions<Ext> & ProtoKeyOptions) {
     super();
     this[PVK] = new ProtoInternal(this, {
@@ -95,6 +93,10 @@ export class Proto<Ext> extends ProtoType<Ext> {
 
   Query<T extends string>(className: T, options?: ExtraOptions): TQuery<T, Ext> {
     return new ProtoQuery<T, Ext>(className, this, options);
+  }
+
+  get req(): Request | undefined {
+    return undefined
   }
 
   get user(): TUser | undefined {
