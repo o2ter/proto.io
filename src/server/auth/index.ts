@@ -63,7 +63,7 @@ export default <E>(proto: Proto<E>, jwtToken?: string): RequestHandler => async 
   }
 
   if (!_.isEmpty(authorization)) {
-    const payload = jwt.verify(authorization, jwtToken);
+    const payload = jwt.verify(authorization, jwtToken, { ...proto[PVK].options.jwtVerifyOptions, complete: false });
     if (_.isObject(payload) && !_.isEmpty(payload.user)) {
       req.user = await proto.Query('_User', { master: true }).get(payload.user);
       req.isMaster = payload.master;
