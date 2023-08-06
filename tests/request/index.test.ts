@@ -346,7 +346,7 @@ test('test relation 3', async () => {
       relation: [UpdateOp.set, [inserted]],
     });
 
-  expect((updated?.get('relation3') as any).length).toStrictEqual(1);
+  expect(updated?.get('relation3').length).toStrictEqual(1);
   expect(updated?.get('relation3.0.boolean')).toStrictEqual(true);
   expect(updated?.get('relation3.0.number')).toStrictEqual(42);
   expect(updated?.get('relation3.0.decimal')).toStrictEqual(new Decimal('0.001'));

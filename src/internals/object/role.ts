@@ -37,11 +37,11 @@ export class TRole extends TObject {
   }
 
   get name(): string {
-    return this.get('name') as string;
+    return this.get('name');
   }
 
   get users(): TUser[] {
-    return this.get('users') as TUser[];
+    return this.get('users');
   }
 
   set users(value: TUser[]) {
@@ -49,7 +49,7 @@ export class TRole extends TObject {
   }
 
   get roles(): TRole[] {
-    return this.get('roles') as TRole[];
+    return this.get('roles');
   }
 
   set roles(value: TRole[]) {

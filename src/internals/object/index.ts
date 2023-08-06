@@ -102,7 +102,7 @@ export class TObject {
   }
 
   get expiredAt(): Date | undefined {
-    return this.get('_expired_at') as Date;
+    return this.get('_expired_at');
   }
 
   set expiredAt(value: Date | undefined) {
@@ -111,8 +111,8 @@ export class TObject {
 
   get acl(): TSchema.ACLs {
     return {
-      read: this.get('_rperm') as TSchema.ACL ?? ['*'],
-      update: this.get('_wperm') as TSchema.ACL ?? ['*'],
+      read: this.get('_rperm') ?? ['*'],
+      update: this.get('_wperm') ?? ['*'],
     };
   }
 
@@ -138,7 +138,7 @@ export class TObject {
     return cloneValue(value);
   }
 
-  get<T extends string>(key: PathName<T>) {
+  get<T extends string>(key: PathName<T>): any {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (_.isNil(this[PVK].mutated[key])) return this.attrValue(key);
     const [op, value] = this[PVK].mutated[key];

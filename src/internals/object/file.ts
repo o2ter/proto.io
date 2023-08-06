@@ -43,19 +43,19 @@ export class TFile extends TObject {
   }
 
   get filename(): string {
-    return this.get('filename') as string;
+    return this.get('filename');
   }
 
   get size(): number {
-    return this.get('size') as number;
+    return this.get('size');
   }
 
   get type(): string {
-    return this.get('type') as string;
+    return this.get('type');
   }
 
   get token(): string {
-    return this.get('token') as string;
+    return this.get('token');
   }
 
 }
