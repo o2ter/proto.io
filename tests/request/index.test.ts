@@ -29,7 +29,6 @@ import { test, expect } from '@jest/globals';
 import { UUID } from 'bson';
 import Decimal from 'decimal.js';
 import ProtoClient, { UpdateOp } from '../../src/client';
-import { TObject } from '../../src/internals';
 
 const proto = new ProtoClient({
   endpoint: 'http://localhost:8080',
