@@ -71,18 +71,7 @@ export default <E>(proto: Proto<E>, jwtToken?: string): RequestHandler => async 
   }
 
   if (req.user instanceof TUser) {
-    let roles: TRole[] = [];
-    let queue = await proto.Query('_Role', { master: true })
-      .containsIn('users', req.user)
-      .find();
-    while (!_.isEmpty(queue)) {
-      queue = await proto.Query('_Role', { master: true })
-        .isIntersect('_roles', queue)
-        .notContainsIn('_id', _.compact(_.map(roles, x => x.objectId)))
-        .find();
-      roles = _.uniqBy([...roles, ...queue], x => x.objectId);
-    }
-    req.roles = roles;
+    req.roles = await proto.userRoles(req.user);
   }
 
   const token = jwt.sign(

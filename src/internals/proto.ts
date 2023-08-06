@@ -23,6 +23,7 @@
 //  THE SOFTWARE.
 //
 
+import _ from 'lodash';
 import { PVK } from './private';
 import { ExtraOptions } from './options';
 import { TQuery } from './query';
@@ -34,6 +35,8 @@ import { applyObjectMethods } from './object/methods';
 import { TValue } from './query/value';
 import { TObject } from './object';
 import { TSerializable } from './codec';
+import { TUser } from './object/user';
+import { TRole } from './object/role';
 
 export interface ProtoInternalType<Ext> {
 
@@ -67,5 +70,20 @@ export abstract class ProtoType<Ext> {
     file.set('type', type);
     file[PVK].extra.data = data;
     return file;
+  }
+
+  async userRoles(user: TUser) {
+    let roles: TRole[] = [];
+    let queue = await this.Query('_Role', { master: true })
+      .isIntersect('users', [user])
+      .find();
+    while (!_.isEmpty(queue)) {
+      queue = await this.Query('_Role', { master: true })
+        .isIntersect('_roles', queue)
+        .notContainsIn('_id', _.compact(_.map(roles, x => x.objectId)))
+        .find();
+      roles = _.uniqBy([...roles, ...queue], x => x.objectId);
+    }
+    return roles;
   }
 };
