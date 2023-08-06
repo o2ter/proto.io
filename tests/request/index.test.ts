@@ -298,12 +298,13 @@ test('test relation 2', async () => {
     },
     array: [1, 2, 3, date, new Decimal('0.001')],
   });
-  const updated = await proto.Query('Test')
+  let updated = await proto.Query('Test')
     .equalTo('_id', inserted.objectId)
-    .includes('relation2')
     .updateOne({
       pointer: [UpdateOp.set, inserted],
     });
+
+  updated = await proto.Query('Test').includes('relation2').get(inserted.objectId!);
 
   expect(updated?.get('relation2.0.boolean')).toStrictEqual(true);
   expect(updated?.get('relation2.0.number')).toStrictEqual(42);
