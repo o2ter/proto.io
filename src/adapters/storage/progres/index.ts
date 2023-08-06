@@ -87,8 +87,8 @@ export class PostgresStorage extends SqlStorage {
         _expired_at TIMESTAMP,
         _rperm TEXT[] NOT NULL DEFAULT ARRAY['*']::TEXT[],
         _wperm TEXT[] NOT NULL DEFAULT ARRAY['*']::TEXT[],
-        ${_.map(fields, (type, col) => sql`
-          ${{ identifier: col }} ${{ literal: this._pgType(_.isString(type) ? type : type.type) }}
+        ${_.map(fields, (dataType, col) => sql`
+          ${{ identifier: col }} ${{ literal: this._pgType(_.isString(dataType) ? dataType : dataType.type) }}
         `)}
       )
     `);
@@ -132,9 +132,9 @@ export class PostgresStorage extends SqlStorage {
     const rebuild: { name: string; type: string; }[] = [];
     for (const column of columns) {
       if (TObject.defaultKeys.includes(column.name)) continue;
-      const type = schema.fields[column.name];
-      if (!_.isString(type) && type.type === 'relation' && !_.isNil(type.foreignField)) continue;
-      const pgType = this._pgType(_.isString(type) ? type : type.type);
+      const dataType = schema.fields[column.name];
+      if (!_.isString(dataType) && dataType.type === 'relation' && !_.isNil(dataType.foreignField)) continue;
+      const pgType = this._pgType(_.isString(dataType) ? dataType : dataType.type);
       if (pgType === typeMap[column.type] ?? column.type) continue;
       rebuild.push({ name: column.name, type: pgType });
     }
@@ -245,7 +245,7 @@ export class PostgresStorage extends SqlStorage {
 
   protected _decodeFieldExpression(className: string | null, field: string, expr: FieldExpression): SQL {
     const [colname, ...subpath] = _.toPath(field);
-    const type = className && _.isEmpty(subpath) ? this.schema[className].fields[colname] ?? defaultObjectKeyTypes[colname] : null;
+    const dataType = className && _.isEmpty(subpath) ? this.schema[className].fields[colname] ?? defaultObjectKeyTypes[colname] : null;
     let element = sql`${{ identifier: className ? colname : '$' }}`;
     if (!className || !_.isEmpty(subpath)) {
       const _type = className ? this.schema[className].fields[colname] ?? defaultObjectKeyTypes[colname] : null;
@@ -259,7 +259,14 @@ export class PostgresStorage extends SqlStorage {
         )})`;
       }
     }
-    const _encodeValue = (value: TValue) => type ? this.dialect.encodeType(type, value) : this._encodeJsonValue(value);
+    if (
+      dataType && !_.isString(dataType) &&
+      dataType.type !== 'pointer' && dataType.type !== 'relation' &&
+      !_.isNil(dataType.default)
+    ) {
+      element = sql`COALESCE(${element}, ${{ value: dataType.default }})`;
+    }
+    const _encodeValue = (value: TValue) => dataType ? this.dialect.encodeType(dataType, value) : this._encodeJsonValue(value);
     switch (expr.type) {
       case '$eq':
         {
@@ -306,28 +313,28 @@ export class PostgresStorage extends SqlStorage {
       case '$subset':
         {
           if (!_.isArray(expr.value)) break;
-          if (type === 'array' || (!_.isString(type) && type?.type === 'array')) {
+          if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
             return sql`${element} <@ ${{ value: this.dialect.encodeValue(expr.value) }}`;
           }
         }
       case '$superset':
         {
           if (!_.isArray(expr.value)) break;
-          if (type === 'array' || (!_.isString(type) && type?.type === 'array')) {
+          if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
             return sql`${element} @> ${{ value: this.dialect.encodeValue(expr.value) }}`;
           }
         }
       case '$disjoint':
         {
           if (!_.isArray(expr.value)) break;
-          if (type === 'array' || (!_.isString(type) && type?.type === 'array')) {
+          if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
             return sql`NOT ${element} && ${{ value: this.dialect.encodeValue(expr.value) }}`;
           }
         }
       case '$intersect':
         {
           if (!_.isArray(expr.value)) break;
-          if (type === 'array' || (!_.isString(type) && type?.type === 'array')) {
+          if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
             return sql`${element} && ${{ value: this.dialect.encodeValue(expr.value) }}`;
           }
         }
@@ -348,14 +355,14 @@ export class PostgresStorage extends SqlStorage {
       case '$size':
         {
           if (!_.isNumber(expr.value) || !_.isInteger(expr.value)) break;
-          if (type === 'array' || (!_.isString(type) && (type?.type === 'array' || type?.type === 'relation'))) {
+          if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
             return sql`array_length(${element}, 1) = ${{ value: expr.value }}`;
           }
         }
       case '$every':
         {
           if (!(expr.value instanceof QuerySelector)) break;
-          if (type === 'array' || (!_.isString(type) && (type?.type === 'array' || type?.type === 'relation'))) {
+          if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
             const filter = this._decodeFilter(null, expr.value);
             if (!filter) break;
             return sql`array_length(${element}, 1) = array_length(ARRAY(
@@ -367,7 +374,7 @@ export class PostgresStorage extends SqlStorage {
       case '$some':
         {
           if (!(expr.value instanceof QuerySelector)) break;
-          if (type === 'array' || (!_.isString(type) && (type?.type === 'array' || type?.type === 'relation'))) {
+          if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
             const filter = this._decodeFilter(null, expr.value);
             if (!filter) break;
             return sql`array_length(ARRAY(

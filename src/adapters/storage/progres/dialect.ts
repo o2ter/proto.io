@@ -75,8 +75,8 @@ export const PostgresDialect = {
   encodeValue(value: TValue) {
     return _encodeValue(value);
   },
-  encodeType(type: TSchema.DataType, value: TValue) {
-    switch (_.isString(type) ? type : type.type) {
+  encodeType(dataType: TSchema.DataType, value: TValue) {
+    switch (_.isString(dataType) ? dataType : dataType.type) {
       case 'boolean':
         if (_.isBoolean(value)) return sql`${{ value }}`;
         break;
