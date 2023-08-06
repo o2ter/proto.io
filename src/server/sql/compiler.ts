@@ -90,8 +90,16 @@ export class QueryCompiler {
           matches: _matches.filter,
           skip: _matches.skip,
           limit: _matches.limit,
-          ...dataType,
+          type: dataType.type,
         };
+        if (isRelation(dataType) && dataType.foreignField) {
+          const targetType = this.schema[dataType.target].fields[dataType.foreignField];
+          if (!isPointer(targetType) && !isRelation(targetType)) throw Error(`Invalid path: ${include}`);
+          populates[colname].foreignField = {
+            colname: dataType.foreignField,
+            type: targetType.type,
+          };
+        }
         populates[colname].subpaths.push(subpath.join('.'));
       } else if (!_.isEmpty(subpath)) {
         throw Error(`Invalid path: ${include}`);
