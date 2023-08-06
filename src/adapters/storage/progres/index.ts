@@ -387,10 +387,7 @@ export class PostgresStorage extends SqlStorage {
           if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
             const filter = this._decodeFilter({ className: '$', name: '$' }, expr.value);
             if (!filter) break;
-            return sql`array_length(${element}, 1) = array_length(ARRAY(
-              SELECT * FROM (SELECT unset(${element}) AS "$") "$"
-              WHERE ${filter}
-            ), 1)`;
+            return sql`NOT EXISTS(SELECT * FROM UNNEST(${element}) AS "$" WHERE NOT (${filter}))`;
           }
         }
       case '$some':
@@ -399,10 +396,7 @@ export class PostgresStorage extends SqlStorage {
           if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
             const filter = this._decodeFilter({ className: '$', name: '$' }, expr.value);
             if (!filter) break;
-            return sql`array_length(ARRAY(
-              SELECT * FROM (SELECT unset(${element}) AS "$") "$"
-              WHERE ${filter}
-            ), 1) > 0`;
+            return sql`EXISTS(SELECT * FROM UNNEST(${element}) AS "$" WHERE ${filter})`;
           }
         }
       default: break;
