@@ -223,7 +223,7 @@ export class PostgresStorage extends SqlStorage {
     return _.map(_includes, (dataType, colname) => {
       if (isPrimitive(dataType)) {
         switch (_typeof(dataType)) {
-          case 'decimal': return sql`jsonb_build_object('$decimal', CAST(${{ identifier: className }}.${{ identifier: colname }} AS text))`;
+          case 'decimal': return sql`jsonb_build_object('$decimal', CAST(${{ identifier: className }}.${{ identifier: colname }} AS TEXT))`;
           case 'date': return sql`jsonb_build_object('$date', to_char(${{ identifier: className }}.${{ identifier: colname }} AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'))`;
           default: break;
         }
