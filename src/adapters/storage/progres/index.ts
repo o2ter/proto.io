@@ -273,16 +273,19 @@ export class PostgresStorage extends SqlStorage {
     const [colname, ...subpath] = _.toPath(field);
     const dataType = parent.className && _.isEmpty(subpath) ? this.schema[parent.className].fields[colname] ?? defaultObjectKeyTypes[colname] : null;
     let element = sql`${{ identifier: parent.name }}.${{ identifier: parent.name.startsWith('_expr_$') ? '$' : colname }}`;
-    if (!parent.className || !_.isEmpty(subpath)) {
+    if (!parent.className) {
       const _type = parent.className ? this.schema[parent.className].fields[colname] ?? defaultObjectKeyTypes[colname] : null;
       if (_type === 'array' || (!_.isString(_type) && (_type?.type === 'array' || _type?.type === 'relation'))) {
-        element = sql`jsonb_extract_path(to_jsonb(${element}), ${_.map(
-          parent.className ? subpath : [colname, ...subpath], x => sql`${{ quote: x }}`
-        )})`;
+        element = sql`jsonb_extract_path(to_jsonb(${element}), ${_.map([colname, ...subpath], x => sql`${{ quote: x }}`)})`;
       } else {
-        element = sql`jsonb_extract_path(${element}, ${_.map(
-          parent.className ? subpath : [colname, ...subpath], x => sql`${{ quote: x }}`
-        )})`;
+        element = sql`jsonb_extract_path(${element}, ${_.map([colname, ...subpath], x => sql`${{ quote: x }}`)})`;
+      }
+    } else if (!_.isEmpty(subpath)) {
+      const _type = parent.className ? this.schema[parent.className].fields[colname] ?? defaultObjectKeyTypes[colname] : null;
+      if (_type === 'array' || (!_.isString(_type) && (_type?.type === 'array' || _type?.type === 'relation'))) {
+        element = sql`jsonb_extract_path(to_jsonb(${element}), ${_.map(subpath, x => sql`${{ quote: x }}`)})`;
+      } else {
+        element = sql`jsonb_extract_path(${element}, ${_.map(subpath, x => sql`${{ quote: x }}`)})`;
       }
     }
     if (dataType && !_.isString(dataType) && isPrimitive(dataType) && !_.isNil(dataType.default)) {
