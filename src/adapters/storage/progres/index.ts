@@ -101,7 +101,7 @@ export class PostgresStorage extends SqlStorage {
   }
 
   private _indicesOf(schema: TSchema) {
-    const relations = _.pickBy(schema.fields, v => !_.isString(v) && v.type === 'relation');
+    const relations = _.pickBy(schema.fields, v => !_.isString(v) && v.type === 'relation' && _.isNil(v.foreignField));
     return {
       relations,
       indexes: [
