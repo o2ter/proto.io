@@ -86,7 +86,7 @@ export class Proto<Ext> extends ProtoType<Ext> {
       maxUploadSize: 20 * 1024 * 1024,
       classExtends: {} as TExtensions<Ext>,
       cookieOptions: { maxAge: 365 * 24 * 60 * 60 * 1000, httpOnly: true },
-      jwtSignOptions: { expiresIn: '24h' },
+      jwtSignOptions: { expiresIn: '30d' },
       ...options,
     });
   }
