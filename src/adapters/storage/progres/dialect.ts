@@ -25,9 +25,11 @@
 
 import _ from 'lodash';
 import { escapeIdentifier, escapeLiteral } from 'pg/lib/utils';
-import { sql } from '../../../server/sql';
+import { SQL, sql } from '../../../server/sql';
 import { Decimal, TObject, TValue, UpdateOp, _TValue, isPrimitiveValue } from '../../../internals';
-import { TSchema } from '../../../server/schema';
+import { TSchema, _typeof, defaultObjectKeyTypes, isPrimitive } from '../../../server/schema';
+import { CompileContext, Populate, QueryCompiler } from '../../../server/sql/compiler';
+import { FieldExpression, QuerySelector } from '../../../server/query/validator/parser';
 
 const _decodeValue = (value: _TValue): _TValue => {
   if (isPrimitiveValue(value)) return value;
@@ -50,10 +52,12 @@ const _encodeValue = (value: TValue): any => {
   }, {} as any);
 }
 
+const _encodeJsonValue = (value: TValue): SQL => {
+  if (_.isBoolean(value) || _.isNumber(value) || _.isString(value)) return sql`to_jsonb(${{ value }})`;
+  return sql`${{ value: _encodeValue(value) }}`;
+};
+
 export const PostgresDialect = {
-  get rowId() {
-    return 'CTID';
-  },
   quote(str: string) {
     return escapeLiteral(str);
   },
@@ -175,5 +179,264 @@ export const PostgresDialect = {
     } else {
     }
     throw Error('Invalid update operation');
+  },
+  _selectPopulate(
+    compiler: QueryCompiler,
+    parent: Pick<Populate, 'className' | 'name' | 'includes'> & { colname: string },
+    populate: Populate,
+    field: string,
+  ): { column: SQL, join?: SQL } {
+    const { name, className, type, foreignField } = populate;
+    const _local = (field: string) => sql`${{ identifier: parent.name }}.${{ identifier: field }}`;
+    const _foreign = (field: string) => sql`${{ identifier: name }}.${{ identifier: field }}`;
+
+    if (type === 'pointer') {
+      return {
+        column: sql`to_jsonb(${{ identifier: populate.name }}) AS ${{ identifier: field }}`,
+        join: sql`
+          LEFT JOIN ${{ identifier: populate.name }}
+          ON ${sql`(${{ quote: className + '$' }} || ${_foreign('_id')})`} = ${_local(parent.colname)}
+        `,
+      };
+    }
+
+    let cond: SQL;
+    if (_.isNil(foreignField)) {
+      cond = sql`${sql`(${{ quote: className + '$' }} || ${_foreign('_id')})`} = ANY(${_local(parent.colname)})`;
+    } else if (foreignField.type === 'pointer') {
+      cond = sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ${_foreign(foreignField.colname)}`;
+    } else {
+      cond = sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ANY(${_foreign(foreignField.colname)})`;
+    }
+    return {
+      column: sql`
+        ARRAY(
+          SELECT to_jsonb(${{ identifier: populate.name }}) FROM (
+            SELECT ${_.map(_.keys(_.pickBy(populate.includes, v => isPrimitive(v))), (colname) => sql`${{ identifier: populate.name }}.${{ identifier: colname }}`)}
+            FROM ${{ identifier: populate.name }} WHERE ${cond}
+            ${!_.isEmpty(populate.sort) ? sql`ORDER BY ${compiler._decodeSort(populate.name, populate.sort)}` : sql``}
+            ${populate.limit ? sql`LIMIT ${{ literal: `${populate.limit}` }}` : sql``}
+            ${populate.skip ? sql`OFFSET ${{ literal: `${populate.skip}` }}` : sql``}
+          ) ${{ identifier: populate.name }}
+        ) AS ${{ identifier: field }}
+      `,
+    };
+  },
+  _decodePopulateIncludes(
+    className: string,
+    includes: Record<string, TSchema.DataType>,
+  ): SQL[] {
+    const _includes = _.pickBy(includes, v => isPrimitive(v));
+    return _.map(_includes, (dataType, colname) => {
+      if (isPrimitive(dataType)) {
+        switch (_typeof(dataType)) {
+          case 'decimal': return sql`jsonb_build_object(
+              '$decimal', CAST(${{ identifier: className }}.${{ identifier: colname }} AS TEXT)
+            ) AS ${{ identifier: colname }}`;
+          case 'date': return sql`jsonb_build_object(
+              '$date', to_char(${{ identifier: className }}.${{ identifier: colname }} AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')
+            ) AS ${{ identifier: colname }}`;
+          default: break;
+        }
+      }
+      return sql`${{ identifier: className }}.${{ identifier: colname }}`;
+    });
+  },
+  _decodePopulate(
+    compiler: QueryCompiler,
+    context: CompileContext,
+    parent: Populate & { colname: string },
+    remix?: { className: string; name: string; }
+  ): Record<string, SQL> {
+    const _filter = compiler._decodeFilter(parent, parent.filter, context);
+    const _populates = _.map(parent.populates, (populate, field) => this._selectPopulate(compiler, parent, populate, field));
+    const _joins = _.compact(_.map(_populates, ({ join }) => join));
+    return _.reduce(parent.populates, (acc, populate, field) => ({
+      ...this._decodePopulate(compiler, context, { ...populate, colname: field }, remix),
+      ...acc,
+    }), {
+      [parent.name]: sql`
+        SELECT
+        ${{
+          literal: [
+            ...this._decodePopulateIncludes(parent.name, parent.includes),
+            ...parent.foreignField ? [sql`${{ identifier: parent.name }}.${{ identifier: parent.foreignField.colname }}`] : [],
+            ..._.map(_populates, ({ column }) => column),
+          ], separator: ',\n'
+        }}
+        FROM ${remix?.className === parent.className ? sql`
+        (SELECT * FROM ${{ identifier: remix.name }} UNION SELECT * FROM ${{ identifier: parent.className }})
+        ` : { identifier: parent.className }} AS ${{ identifier: parent.name }}
+        ${!_.isEmpty(_joins) ? _joins : sql``}
+        ${_filter ? sql`WHERE ${_filter}` : sql``}
+      `,
+    });
+  },
+  _decodeFieldExpression(
+    compiler: QueryCompiler,
+    context: CompileContext,
+    parent: { className?: string; name: string; },
+    field: string,
+    expr: FieldExpression,
+  ): SQL {
+    const [colname, ...subpath] = _.toPath(field);
+    const dataType = parent.className && _.isEmpty(subpath) ? compiler.schema[parent.className].fields[colname] ?? defaultObjectKeyTypes[colname] : null;
+    let element = sql`${{ identifier: parent.name }}.${{ identifier: parent.name.startsWith('_expr_$') ? '$' : colname }}`;
+    if (!parent.className) {
+      const _type = parent.className ? compiler.schema[parent.className].fields[colname] ?? defaultObjectKeyTypes[colname] : null;
+      if (_type === 'array' || (!_.isString(_type) && (_type?.type === 'array' || _type?.type === 'relation'))) {
+        element = sql`jsonb_extract_path(to_jsonb(${element}), ${_.map([colname, ...subpath], x => sql`${{ quote: x }}`)})`;
+      } else if (colname !== '$') {
+        element = sql`jsonb_extract_path(${element}, ${_.map([colname, ...subpath], x => sql`${{ quote: x }}`)})`;
+      } else if (!_.isEmpty(subpath)) {
+        element = sql`jsonb_extract_path(${element}, ${_.map(subpath, x => sql`${{ quote: x }}`)})`;
+      }
+    } else if (!_.isEmpty(subpath)) {
+      const _type = parent.className ? compiler.schema[parent.className].fields[colname] ?? defaultObjectKeyTypes[colname] : null;
+      if (_type === 'array' || (!_.isString(_type) && (_type?.type === 'array' || _type?.type === 'relation'))) {
+        element = sql`jsonb_extract_path(to_jsonb(${element}), ${_.map(subpath, x => sql`${{ quote: x }}`)})`;
+      } else {
+        element = sql`jsonb_extract_path(${element}, ${_.map(subpath, x => sql`${{ quote: x }}`)})`;
+      }
+    }
+    if (dataType && !_.isString(dataType) && isPrimitive(dataType) && !_.isNil(dataType.default)) {
+      element = sql`COALESCE(${element}, ${{ value: dataType.default }})`;
+    }
+    const _encodeValue = (value: TValue) => dataType ? this.encodeType(dataType, value) : _encodeJsonValue(value);
+    switch (expr.type) {
+      case '$eq':
+        {
+          if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
+          if (_.isNil(expr.value)) return sql`${element} IS NULL`;
+          return sql`${element} ${this.nullSafeEqual()} ${_encodeValue(expr.value)}`;
+        }
+      case '$gt':
+        {
+          if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
+          return sql`${element} > ${_encodeValue(expr.value)}`;
+        }
+      case '$gte':
+        {
+          if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
+          return sql`${element} >= ${_encodeValue(expr.value)}`;
+        }
+      case '$lt':
+        {
+          if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
+          return sql`${element} < ${_encodeValue(expr.value)}`;
+        }
+      case '$lte':
+        {
+          if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
+          return sql`${element} <= ${_encodeValue(expr.value)}`;
+        }
+      case '$ne':
+        {
+          if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
+          if (_.isNil(expr.value)) return sql`${element} IS NOT NULL`;
+          return sql`${element} ${this.nullSafeNotEqual()} ${_encodeValue(expr.value)}`;
+        }
+      case '$in':
+        {
+          if (!_.isArray(expr.value)) break;
+          return sql`${element} IN (${_.map(expr.value, x => _encodeValue(x))})`;
+        }
+      case '$nin':
+        {
+          if (!_.isArray(expr.value)) break;
+          return sql`${element} NOT IN (${_.map(expr.value, x => _encodeValue(x))})`;
+        }
+      case '$subset':
+        {
+          if (!_.isArray(expr.value)) break;
+          if (!dataType || dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
+            return sql`${element} <@ ${{ value: this.encodeValue(expr.value) }}`;
+          }
+        }
+      case '$superset':
+        {
+          if (!_.isArray(expr.value)) break;
+          if (!dataType || dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
+            return sql`${element} @> ${{ value: this.encodeValue(expr.value) }}`;
+          }
+        }
+      case '$disjoint':
+        {
+          if (!_.isArray(expr.value)) break;
+          if (!dataType || dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
+            return sql`NOT ${element} && ${{ value: this.encodeValue(expr.value) }}`;
+          }
+        }
+      case '$intersect':
+        {
+          if (!_.isArray(expr.value)) break;
+          if (!dataType || dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
+            return sql`${element} && ${{ value: this.encodeValue(expr.value) }}`;
+          }
+        }
+      case '$not':
+        {
+          if (!(expr.value instanceof FieldExpression)) break;
+          return sql`NOT (${this._decodeFieldExpression(compiler, context, parent, field, expr.value)})`;
+        }
+      case '$pattern':
+        {
+          if (_.isString(expr.value)) {
+            return sql`${element} LIKE ${{ value: `%${expr.value.replace(/([\\_%])/g, '\\$1')}%` }}`;
+          } else if (_.isRegExp(expr.value)) {
+            if (expr.value.ignoreCase) return sql`${element} ~* ${{ value: expr.value.source }}`;
+            return sql`${element} ~ ${{ value: expr.value.source }}`;
+          }
+        }
+      case '$size':
+        {
+          if (!_.isNumber(expr.value) || !_.isInteger(expr.value)) break;
+          if (!dataType || dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
+            return sql`array_length(${element}, 1) = ${{ value: expr.value }}`;
+          }
+        }
+      case '$every':
+        {
+          if (!(expr.value instanceof QuerySelector)) break;
+          if (!dataType || dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
+            const tempName = `_expr_$${compiler.nextIdx()}`;
+            const filter = compiler._decodeFilter({ name: tempName }, expr.value, context);
+            if (!filter) break;
+            return sql`NOT EXISTS(
+              SELECT * FROM (
+                SELECT value AS "$"
+                FROM jsonb_array_elements(to_jsonb(${element}))
+              ) AS ${{ identifier: tempName }}
+              WHERE NOT (${filter})
+            )`;
+          }
+        }
+      case '$some':
+        {
+          if (!(expr.value instanceof QuerySelector)) break;
+          if (!dataType || dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
+            const tempName = `_expr_$${compiler.nextIdx()}`;
+            const filter = compiler._decodeFilter({ name: tempName }, expr.value, context);
+            if (!filter) break;
+            return sql`EXISTS(
+              SELECT * FROM (
+                SELECT value AS "$"
+                FROM jsonb_array_elements(to_jsonb(${element}))
+              ) AS ${{ identifier: tempName }}
+              WHERE ${filter}
+            )`;
+          }
+        }
+      default: break;
+    }
+    throw Error('Invalid expression');
+  },
+  _decodeSortKey(className: string, key: string): SQL {
+    const [colname, ...subpath] = _.toPath(key);
+    if (_.isEmpty(subpath)) return sql`${{ identifier: className }}.${{ identifier: colname }}`;
+    return sql`jsonb_extract_path(
+      ${{ identifier: className }}.${{ identifier: colname }},
+      ${_.map(subpath, x => sql`${{ quote: x }}`)}
+    )`;
   },
 };

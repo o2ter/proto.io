@@ -24,11 +24,12 @@
 //
 
 import { TValue, UpdateOp } from '../../internals';
+import { FieldExpression } from '../query/validator/parser';
 import { TSchema } from '../schema';
+import { CompileContext, Populate, QueryCompiler } from './compiler';
 import { SQL } from './sql';
 
 export interface SqlDialect {
-  rowId: String;
   quote(str: string): string;
   identifier(name: string): string;
   placeholder(idx: number): string;
@@ -39,4 +40,31 @@ export interface SqlDialect {
   encodeType(type: TSchema.DataType, value: TValue): SQL;
   decodeType(type: TSchema.Primitive, value: any): TValue;
   updateOperation(column: string, type: TSchema.DataType, operation: [UpdateOp, TValue]): SQL;
+
+  _selectPopulate(
+    compiler: QueryCompiler,
+    parent: Pick<Populate, 'className' | 'name' | 'includes'> & { colname: string },
+    populate: Populate,
+    field: string,
+  ): { column: SQL, join?: SQL }
+
+  _decodeFieldExpression(
+    compiler: QueryCompiler,
+    context: CompileContext,
+    parent: { className?: string; name: string; },
+    field: string,
+    expr: FieldExpression,
+  ): SQL
+
+  _decodePopulate(
+    compiler: QueryCompiler,
+    context: CompileContext,
+    parent: Populate & { colname: string },
+    remix?: { className: string; name: string; }
+  ): Record<string, SQL>
+
+  _decodeSortKey(
+    className: string,
+    key: string
+  ): SQL
 }
