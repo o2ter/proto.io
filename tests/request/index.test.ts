@@ -101,10 +101,10 @@ test('test types', async () => {
   const q = proto.Query('Test').equalTo('_id', inserted.objectId);
 
   expect((await q.clone().containsIn('number', [1, 2, 3, 42]).first())?.get('number')).toStrictEqual(42);
-  expect((await q.clone().containsIn('array.0', [1, 2, 3, 42]).first())?.get('array.0')).toStrictEqual(1);
+  expect((await q.clone().containsIn('array.0', [1, 2, 3, 42, 'hello']).first())?.get('array.0')).toStrictEqual(1);
 
   expect((await q.clone().notContainsIn('number', [1, 2, 3, 42]).first())?.get('number')).toBe(undefined);
-  expect((await q.clone().notContainsIn('array.0', [1, 2, 3, 42]).first())?.get('array.0')).toBe(undefined);
+  expect((await q.clone().notContainsIn('array.0', [1, 2, 3, 42, 'hello']).first())?.get('array.0')).toBe(undefined);
 
   expect((await q.clone().notEqualTo('boolean', true).first())?.get('boolean')).toBe(undefined);
   expect((await q.clone().notEqualTo('number', 42).first())?.get('number')).toBe(undefined);
