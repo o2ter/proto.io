@@ -40,7 +40,6 @@ import { TFileStorage } from './filesys';
 import { TStorage } from './storage';
 import { TSchema } from './schema';
 import { Request } from 'express';
-import { MASTER_KEY_HEADER_NAME } from '../common/const';
 
 type Callback<T, R, E> = (request: Proto<E> & T) => R | PromiseLike<R>;
 export type ProtoFunction<E> = Callback<{ data: TSerializable; }, TSerializable, E>;
