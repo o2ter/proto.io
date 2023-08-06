@@ -84,7 +84,7 @@ export abstract class SqlStorage implements TStorage {
       if (_.isString(dataType)) {
         obj[PVK].attributes[key] = this.dialect.decodeType(dataType, value);
       } else if (dataType.type !== 'pointer' && dataType.type !== 'relation') {
-        obj[PVK].attributes[key] = this.dialect.decodeType(dataType.type, value);
+        obj[PVK].attributes[key] = this.dialect.decodeType(dataType.type, value) ?? dataType.default as any;
       } else if (dataType.type === 'pointer') {
         if (_.isPlainObject(value)) obj[PVK].attributes[key] = this._decodeObject(dataType.target, value);
       } else if (dataType.type === 'relation') {

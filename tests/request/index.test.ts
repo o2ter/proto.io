@@ -100,6 +100,8 @@ test('test types', async () => {
 
   const q = proto.Query('Test').equalTo('_id', inserted.objectId);
 
+  expect((await q.clone().first())?.get('default')).toStrictEqual(42);
+
   expect((await q.clone().notEqualTo('object.null', null).first())?.objectId).toBe(undefined);
   expect((await q.clone().notEqualTo('object.null', null).first())?.objectId).toBe(undefined);
   expect((await q.clone().notEqualTo('object.null', null).first())?.objectId).toBe(undefined);

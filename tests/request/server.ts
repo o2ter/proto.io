@@ -55,6 +55,7 @@ const proto = new Proto({
   schema: {
     'Test': {
       fields: {
+        default: { type: 'number', default: 42 },
         boolean: 'boolean',
         number: 'number',
         decimal: 'decimal',
