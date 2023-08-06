@@ -175,9 +175,9 @@ export class QueryCompiler {
     query: DecodedQuery<FindOptions>,
     select?: SQL
   ) {
-    const { queries, query: _query } = this._baseSelectQuery(query, select);
+    const { stages, query: _query } = this._baseSelectQuery(query, select);
     return sql`
-      ${!_.isEmpty(queries) ? sql`WITH ${_.map(queries, (q, n) => sql`${{ identifier: n }} AS (${q})`)}` : sql``}
+      ${!_.isEmpty(stages) ? sql`WITH ${_.map(stages, (q, n) => sql`${{ identifier: n }} AS (${q})`)}` : sql``}
       ${_query}
     `;
   }
@@ -189,7 +189,7 @@ export class QueryCompiler {
 
     const context = this._makeContext(query);
     const populates = _.mapValues(context.populates, (populate, field) => this.dialect.decodePopulate(this, context, { ...populate, colname: field }));
-    const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
+    const stages = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
 
     const fetchName = `_fetch_$${query.className.toLowerCase()}`;
 
@@ -205,7 +205,7 @@ export class QueryCompiler {
     };
 
     return {
-      queries,
+      stages,
       fetchName,
       context: context,
       query: sql`
@@ -232,7 +232,7 @@ export class QueryCompiler {
     const populates = _.mapValues(
       _context.populates, (populate, field) => this.dialect.decodePopulate(this, context, { ...populate, colname: field }, { className: query.className, name })
     );
-    const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
+    const stages = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
 
     const _populates = this._selectPopulateMap(_context, query.className, name);
     const _joins = _.compact(_.map(_populates, ({ join }) => join));
@@ -245,7 +245,7 @@ export class QueryCompiler {
     };
 
     return sql`
-      ${!_.isEmpty(queries) ? sql`, ${_.map(queries, (q, n) => sql`${{ identifier: n }} AS (${q})`)}` : sql``}
+      ${!_.isEmpty(stages) ? sql`, ${_.map(stages, (q, n) => sql`${{ identifier: n }} AS (${q})`)}` : sql``}
       SELECT ${_includes}
       FROM ${{ identifier: name }}
       ${!_.isEmpty(_joins) ? _joins : sql``}
@@ -256,10 +256,10 @@ export class QueryCompiler {
     query: DecodedQuery<FindOneOptions> & { limit?: number },
     action: (fetchName: string, context: CompileContext) => SQL
   ) {
-    const { queries, fetchName, query: _query, context } = this._baseSelectQuery(query);
-    queries[fetchName] = _query;
+    const { stages, fetchName, query: _query, context } = this._baseSelectQuery(query);
+    stages[fetchName] = _query;
     return sql`
-      ${!_.isEmpty(queries) ? sql`WITH ${_.map(queries, (q, n) => sql`${{ identifier: n }} AS (${q})`)}` : sql``}
+      ${!_.isEmpty(stages) ? sql`WITH ${_.map(stages, (q, n) => sql`${{ identifier: n }} AS (${q})`)}` : sql``}
       ${action(fetchName, context)}
     `;
   }
@@ -364,7 +364,7 @@ export class QueryCompiler {
 
     const context = this._makeContext(options);
     const populates = this._selectPopulateMap(context, options.className, name);
-    const queries = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
+    const stages = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
     const joins = _.compact(_.map(populates, ({ join }) => join));
 
     return sql`
@@ -373,7 +373,7 @@ export class QueryCompiler {
       (${_.map(_attrs, x => sql`${{ identifier: x[0] }}`)})
       VALUES (${_.map(_attrs, x => sql`${x[1]}`)})
       RETURNING *
-    )${!_.isEmpty(queries) ? sql`, ${_.map(queries, (q, n) => sql`${{ identifier: n }} AS (${q})`)}` : sql``}
+    )${!_.isEmpty(stages) ? sql`, ${_.map(stages, (q, n) => sql`${{ identifier: n }} AS (${q})`)}` : sql``}
     SELECT ${{
         literal: [
           ...this._selectIncludes(name, context.includes),
