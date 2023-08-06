@@ -335,28 +335,28 @@ export class PostgresStorage extends SqlStorage {
       case '$subset':
         {
           if (!_.isArray(expr.value)) break;
-          if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
+          if (!dataType || dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
             return sql`${element} <@ ${{ value: this.dialect.encodeValue(expr.value) }}`;
           }
         }
       case '$superset':
         {
           if (!_.isArray(expr.value)) break;
-          if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
+          if (!dataType || dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
             return sql`${element} @> ${{ value: this.dialect.encodeValue(expr.value) }}`;
           }
         }
       case '$disjoint':
         {
           if (!_.isArray(expr.value)) break;
-          if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
+          if (!dataType || dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
             return sql`NOT ${element} && ${{ value: this.dialect.encodeValue(expr.value) }}`;
           }
         }
       case '$intersect':
         {
           if (!_.isArray(expr.value)) break;
-          if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
+          if (!dataType || dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
             return sql`${element} && ${{ value: this.dialect.encodeValue(expr.value) }}`;
           }
         }
@@ -377,14 +377,14 @@ export class PostgresStorage extends SqlStorage {
       case '$size':
         {
           if (!_.isNumber(expr.value) || !_.isInteger(expr.value)) break;
-          if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
+          if (!dataType || dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
             return sql`array_length(${element}, 1) = ${{ value: expr.value }}`;
           }
         }
       case '$every':
         {
           if (!(expr.value instanceof QuerySelector)) break;
-          if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
+          if (!dataType || dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
             const filter = this._decodeFilter({ className: '$', name: '$' }, expr.value);
             if (!filter) break;
             return sql`NOT EXISTS(SELECT * FROM UNNEST(${element}) AS "$" WHERE NOT (${filter}))`;
@@ -393,7 +393,7 @@ export class PostgresStorage extends SqlStorage {
       case '$some':
         {
           if (!(expr.value instanceof QuerySelector)) break;
-          if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
+          if (!dataType || dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
             const filter = this._decodeFilter({ className: '$', name: '$' }, expr.value);
             if (!filter) break;
             return sql`EXISTS(SELECT * FROM UNNEST(${element}) AS "$" WHERE ${filter})`;
