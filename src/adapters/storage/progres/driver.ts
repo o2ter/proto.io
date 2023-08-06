@@ -50,14 +50,20 @@ class PostgresClientDriver {
   query(text: string, values: any[] = [], batchSize?: number) {
     const db = this.db;
     return asyncStream(async function* () {
-      const client = db instanceof Pool ? await db.connect() : db;
-      const stream = new QueryStream(text, values, { batchSize });
-      client.query(stream);
       try {
-        yield* stream;
-      } finally {
-        stream.destroy();
-        if (db instanceof Pool) client.release();
+        const client = db instanceof Pool ? await db.connect() : db;
+        const stream = new QueryStream(text, values, { batchSize });
+        client.query(stream);
+        try {
+          yield* stream;
+        } finally {
+          stream.destroy();
+          if (db instanceof Pool) client.release();
+        }
+      } catch (e: any) {
+        e.query = text;
+        e._q = text.slice(e.position, 20);
+        throw e;
       }
     });
   }

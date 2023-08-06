@@ -223,8 +223,12 @@ export class PostgresStorage extends SqlStorage {
     return _.map(_includes, (dataType, colname) => {
       if (isPrimitive(dataType)) {
         switch (_typeof(dataType)) {
-          case 'decimal': return sql`jsonb_build_object('$decimal', CAST(${{ identifier: className }}.${{ identifier: colname }} AS TEXT))`;
-          case 'date': return sql`jsonb_build_object('$date', to_char(${{ identifier: className }}.${{ identifier: colname }} AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'))`;
+          case 'decimal': return sql`jsonb_build_object(
+              '$decimal', CAST(${{ identifier: className }}.${{ identifier: colname }} AS TEXT)
+            ) AS ${{ identifier: colname }}`;
+          case 'date': return sql`jsonb_build_object(
+              '$date', to_char(${{ identifier: className }}.${{ identifier: colname }} AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')
+            ) AS ${{ identifier: colname }}`;
           default: break;
         }
       }
@@ -233,7 +237,7 @@ export class PostgresStorage extends SqlStorage {
   }
 
   protected _decodePopulate(parent: Populate & { colname: string }): Record<string, SQL> {
-    const _filter = this._decodeFilter(parent.className, parent.filter);
+    const _filter = this._decodeFilter(parent, parent.filter);
     const _populates = _.map(parent.populates, (populate, field) => this._selectPopulate(parent, populate, field));
     const _joins = _.compact(_.map(_populates, ({ join }) => join));
     return _.reduce(parent.populates, (acc, populate, field) => ({
@@ -260,19 +264,19 @@ export class PostgresStorage extends SqlStorage {
     return sql`${{ value: this.dialect.encodeValue(value) }}`;
   }
 
-  protected _decodeFieldExpression(className: string | null, field: string, expr: FieldExpression): SQL {
+  protected _decodeFieldExpression(parent: { className?: string; name: string; }, field: string, expr: FieldExpression): SQL {
     const [colname, ...subpath] = _.toPath(field);
-    const dataType = className && _.isEmpty(subpath) ? this.schema[className].fields[colname] ?? defaultObjectKeyTypes[colname] : null;
-    let element = sql`${{ identifier: className ? colname : '$' }}`;
-    if (!className || !_.isEmpty(subpath)) {
-      const _type = className ? this.schema[className].fields[colname] ?? defaultObjectKeyTypes[colname] : null;
+    const dataType = parent.className && _.isEmpty(subpath) ? this.schema[parent.className].fields[colname] ?? defaultObjectKeyTypes[colname] : null;
+    let element = sql`${{ identifier: parent.name }}.${{ identifier: parent.className ? colname : '$' }}`;
+    if (!parent.className || !_.isEmpty(subpath)) {
+      const _type = parent.className ? this.schema[parent.className].fields[colname] ?? defaultObjectKeyTypes[colname] : null;
       if (_type === 'array' || (!_.isString(_type) && (_type?.type === 'array' || _type?.type === 'relation'))) {
         element = sql`jsonb_extract_path(to_jsonb(${element}), ${_.map(
-          className ? subpath : [colname, ...subpath], x => sql`${{ quote: x }}`
+          parent.className ? subpath : [colname, ...subpath], x => sql`${{ quote: x }}`
         )})`;
       } else {
         element = sql`jsonb_extract_path(${element}, ${_.map(
-          className ? subpath : [colname, ...subpath], x => sql`${{ quote: x }}`
+          parent.className ? subpath : [colname, ...subpath], x => sql`${{ quote: x }}`
         )})`;
       }
     }
@@ -354,7 +358,7 @@ export class PostgresStorage extends SqlStorage {
       case '$not':
         {
           if (!(expr.value instanceof FieldExpression)) break;
-          return sql`NOT (${this._decodeFieldExpression(className, field, expr.value)})`;
+          return sql`NOT (${this._decodeFieldExpression(parent, field, expr.value)})`;
         }
       case '$pattern':
         {
@@ -376,7 +380,7 @@ export class PostgresStorage extends SqlStorage {
         {
           if (!(expr.value instanceof QuerySelector)) break;
           if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
-            const filter = this._decodeFilter(null, expr.value);
+            const filter = this._decodeFilter({ name: '$' }, expr.value);
             if (!filter) break;
             return sql`array_length(${element}, 1) = array_length(ARRAY(
               SELECT * FROM (SELECT unset(${element}) AS "$") "$"
@@ -388,7 +392,7 @@ export class PostgresStorage extends SqlStorage {
         {
           if (!(expr.value instanceof QuerySelector)) break;
           if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
-            const filter = this._decodeFilter(null, expr.value);
+            const filter = this._decodeFilter({ name: '$' }, expr.value);
             if (!filter) break;
             return sql`array_length(ARRAY(
               SELECT * FROM (SELECT unset(${element}) AS "$") "$"

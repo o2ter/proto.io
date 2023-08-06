@@ -198,7 +198,7 @@ test('test types', async () => {
 test('test update', async () => {
   const date = new Date;
   const inserted = await proto.Query('Test').insert({});
-  const upserted = await proto.Query('Test')
+  const updated = await proto.Query('Test')
     .equalTo('_id', inserted.objectId)
     .updateOne({
       boolean: [UpdateOp.set, true],
@@ -215,20 +215,20 @@ test('test update', async () => {
       }],
       array: [UpdateOp.set, [1, 2, 3, date, new Decimal('0.001')]],
     });
-  expect(upserted?.objectId).toStrictEqual(inserted.objectId);
-  expect(upserted?.get('boolean')).toStrictEqual(true);
-  expect(upserted?.get('number')).toStrictEqual(42);
-  expect(upserted?.get('decimal')).toStrictEqual(new Decimal('0.001'));
-  expect(upserted?.get('string')).toStrictEqual('hello');
-  expect(upserted?.get('date')).toStrictEqual(date);
-  expect(upserted?.get('object')).toStrictEqual({
+  expect(updated?.objectId).toStrictEqual(inserted.objectId);
+  expect(updated?.get('boolean')).toStrictEqual(true);
+  expect(updated?.get('number')).toStrictEqual(42);
+  expect(updated?.get('decimal')).toStrictEqual(new Decimal('0.001'));
+  expect(updated?.get('string')).toStrictEqual('hello');
+  expect(updated?.get('date')).toStrictEqual(date);
+  expect(updated?.get('object')).toStrictEqual({
     boolean: true,
     number: 42,
     decimal: new Decimal('0.001'),
     string: 'hello',
     date: date,
   });
-  expect(upserted?.get('array')).toStrictEqual([1, 2, 3, date, new Decimal('0.001')]);
+  expect(updated?.get('array')).toStrictEqual([1, 2, 3, date, new Decimal('0.001')]);
 })
 
 test('test upsert', async () => {

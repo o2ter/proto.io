@@ -53,7 +53,7 @@ export abstract class SqlStorage implements TStorage {
 
   abstract get dialect(): SqlDialect
   protected abstract _query(text: string, values: any[]): ReturnType<typeof asyncStream<any>>
-  protected abstract _decodeFieldExpression(className: string | null, field: string, expr: FieldExpression): SQL
+  protected abstract _decodeFieldExpression(parent: { className?: string; name: string; }, field: string, expr: FieldExpression): SQL
 
   query(sql: SQL) {
     const { query, values } = sql.compile(this.dialect);
@@ -94,8 +94,8 @@ export abstract class SqlStorage implements TStorage {
     return obj;
   }
 
-  protected _decodeCoditionalSelector(className: string | null, filter: CoditionalSelector) {
-    const queries = _.compact(_.map(filter.exprs, x => this._decodeFilter(className, x)));
+  protected _decodeCoditionalSelector(parent: { className?: string; name: string; }, filter: CoditionalSelector) {
+    const queries = _.compact(_.map(filter.exprs, x => this._decodeFilter(parent, x)));
     if (_.isEmpty(queries)) return;
     switch (filter.type) {
       case '$and': return sql`(${{ literal: _.map(queries, x => sql`(${x})`), separator: ' AND ' }})`;
@@ -104,12 +104,12 @@ export abstract class SqlStorage implements TStorage {
     }
   }
 
-  protected _decodeFilter(className: string | null, filter: QuerySelector): SQL | undefined {
+  protected _decodeFilter(parent: { className?: string; name: string; }, filter: QuerySelector): SQL | undefined {
     if (filter instanceof CoditionalSelector) {
-      return this._decodeCoditionalSelector(className, filter);
+      return this._decodeCoditionalSelector(parent, filter);
     }
     if (filter instanceof FieldSelector) {
-      return this._decodeFieldExpression(className, filter.field, filter.expr);
+      return this._decodeFieldExpression(parent, filter.field, filter.expr);
     }
   }
 
@@ -159,7 +159,7 @@ export abstract class SqlStorage implements TStorage {
 
     const tempName = `_temp_$${query.className.toLowerCase()}`;
 
-    const _filter = this._decodeFilter(query.className, query.filter);
+    const _filter = this._decodeFilter({ className: query.className, name: tempName }, query.filter);
     const _populates = this._selectPopulateMap(query.className, tempName, compiler);
     const _joins = _.compact(_.map(_populates, ({ join }) => join));
 
@@ -300,7 +300,7 @@ export abstract class SqlStorage implements TStorage {
             UPDATE ${{ identifier: query.className }}
             SET __v = __v + 1, _updated_at = NOW()
             ${!_.isEmpty(update) ? sql`, ${this._encodeUpdateAttrs(query.className, update)}` : sql``}
-            WHERE _id IN (SELECT _id FROM ${{ identifier: tempName }})
+            WHERE ${{ identifier: query.className }}._id IN (SELECT ${{ identifier: tempName }}._id FROM ${{ identifier: tempName }})
             RETURNING *
           )
           ${query.returning === 'old' ? sql`
@@ -341,7 +341,7 @@ export abstract class SqlStorage implements TStorage {
             UPDATE ${{ identifier: query.className }}
             SET __v = __v + 1, _updated_at = NOW()
             ${!_.isEmpty(update) ? sql`, ${this._encodeUpdateAttrs(query.className, update)}` : sql``}
-            WHERE _id IN (SELECT _id FROM ${{ identifier: tempName }})
+            WHERE ${{ identifier: query.className }}._id IN (SELECT ${{ identifier: tempName }}._id FROM ${{ identifier: tempName }})
             RETURNING *
           )
           , ${{ identifier: insertName }} AS (
@@ -386,7 +386,7 @@ export abstract class SqlStorage implements TStorage {
         return sql`
           , ${{ identifier: name }} AS (
             DELETE FROM ${{ identifier: query.className }}
-            WHERE _id IN (SELECT _id FROM ${{ identifier: tempName }})
+            WHERE ${{ identifier: query.className }}._id IN (SELECT ${{ identifier: tempName }}._id FROM ${{ identifier: tempName }})
             RETURNING *
           )
           SELECT ${{
@@ -410,7 +410,7 @@ export abstract class SqlStorage implements TStorage {
       compiler,
       (tempName) => sql`
         DELETE FROM ${{ identifier: query.className }}
-        WHERE _id IN (SELECT _id FROM ${{ identifier: tempName }})
+        WHERE ${{ identifier: query.className }}._id IN (SELECT ${{ identifier: tempName }}._id FROM ${{ identifier: tempName }})
         RETURNING 0
       `
     ));
