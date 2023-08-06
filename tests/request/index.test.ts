@@ -100,6 +100,18 @@ test('test types', async () => {
 
   const q = proto.Query('Test').equalTo('_id', inserted.objectId);
 
+  expect((await q.clone().equalTo('object.null', true).first())?.objectId).toBe(undefined);
+  expect((await q.clone().equalTo('object.null', 42).first())?.objectId).toBe(undefined);
+  expect((await q.clone().equalTo('object.null', new Decimal('0.001')).first())?.objectId).toBe(undefined);
+  expect((await q.clone().equalTo('object.null', 'hello').first())?.objectId).toBe(undefined);
+  expect((await q.clone().equalTo('object.null', date).first())?.objectId).toBe(undefined);
+
+  expect((await q.clone().notEqualTo('object.null', true).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().notEqualTo('object.null', 42).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().notEqualTo('object.null', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().notEqualTo('object.null', 'hello').first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().notEqualTo('object.null', date).first())?.objectId).toStrictEqual(inserted.objectId);
+
   expect((await q.clone().containsIn('number', [1, 2, 3, 42]).first())?.get('number')).toStrictEqual(42);
   expect((await q.clone().containsIn('array.0', [1, 2, 3, 42, 'hello']).first())?.get('array.0')).toStrictEqual(1);
 
