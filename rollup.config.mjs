@@ -10,7 +10,6 @@ const configs = {
     index: 'src/index',
     client: 'src/client/index',
     common: 'src/common/index',
-    'adapters/storage/mongo': 'src/adapters/storage/mongo/index',
     'adapters/storage/progres': 'src/adapters/storage/progres/index',
     'adapters/file/database': 'src/adapters/file/database/index',
   },

@@ -24,7 +24,6 @@
     "decimal.js": ">=10.4.3",
     "jsonwebtoken": ">=9.0.1",
     "lodash": ">=4.17.21",
-    "mongodb": "^5.7.0",
     "pg": "^8.11.1",
     "pg-query-stream": "^4.5.1",
     "query-types": "^0.1.4"
