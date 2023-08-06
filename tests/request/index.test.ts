@@ -147,6 +147,9 @@ test('test types', async () => {
   expect((await q.clone().notEqualTo('array.3', date).first())?.objectId).toBe(undefined);
   expect((await q.clone().notEqualTo('array.4', new Decimal('0.001')).first())?.objectId).toBe(undefined);
 
+  expect((await q.clone().every('array', q => q.notEqualTo('$', 3)).first())?.objectId).toBe(undefined);
+  expect((await q.clone().some('array', q => q.equalTo('$', null)).first())?.objectId).toBe(undefined);
+
   expect((await q.clone().equalTo('default', 42).first())?.objectId).toStrictEqual(inserted.objectId);
 
   expect((await q.clone().equalTo('object.null', null).first())?.objectId).toStrictEqual(inserted.objectId);
@@ -199,6 +202,10 @@ test('test types', async () => {
   expect((await q.clone().notEqualTo('array.2', 6).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().notEqualTo('array.3', new Date).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().notEqualTo('array.4', new Decimal('1.001')).first())?.objectId).toStrictEqual(inserted.objectId);
+
+  expect((await q.clone().some('array', q => q.equalTo('$', 3)).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().every('array', q => q.notEqualTo('$', null)).first())?.objectId).toStrictEqual(inserted.objectId);
+
 })
 
 test('test pointer', async () => {
