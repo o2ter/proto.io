@@ -306,18 +306,14 @@ export abstract class SqlStorage implements TStorage {
             WHERE ${{ identifier: query.className }}._id IN (SELECT ${{ identifier: fetchName }}._id FROM ${{ identifier: fetchName }})
             RETURNING *
           )
-          ${query.returning === 'old' ? sql`
-            SELECT * FROM ${{ identifier: fetchName }}
-          ` : sql`
-            SELECT ${{
-              literal: [
-                ...this._decodeIncludes(name, compiler.includes),
-                ..._.map(populates, ({ column }) => column),
-              ], separator: ',\n'
-            }}
-            FROM ${{ identifier: name }}
-            ${!_.isEmpty(joins) ? joins : sql``}
-          `}
+          SELECT ${{
+            literal: [
+              ...this._decodeIncludes(name, compiler.includes),
+              ..._.map(populates, ({ column }) => column),
+            ], separator: ',\n'
+          }}
+          FROM ${{ identifier: name }}
+          ${!_.isEmpty(joins) ? joins : sql``}
         `;
       }
     )));
@@ -354,23 +350,19 @@ export abstract class SqlStorage implements TStorage {
             WHERE NOT EXISTS(SELECT * FROM ${{ identifier: updateName }})
             RETURNING *
           )
-          ${query.returning === 'old' ? sql`
-            SELECT * FROM ${{ identifier: fetchName }}
-          ` : sql`
-            , ${{ identifier: upsertName }} AS (
-              SELECT * FROM ${{ identifier: updateName }}
-              UNION
-              SELECT * FROM ${{ identifier: insertName }}
-            )
-            SELECT ${{
-              literal: [
-                ...this._decodeIncludes(upsertName, compiler.includes),
-                ..._.map(populates, ({ column }) => column),
-              ], separator: ',\n'
-            }}
-            FROM ${{ identifier: upsertName }}
-            ${!_.isEmpty(joins) ? joins : sql``}
-          `}
+          , ${{ identifier: upsertName }} AS (
+            SELECT * FROM ${{ identifier: updateName }}
+            UNION
+            SELECT * FROM ${{ identifier: insertName }}
+          )
+          SELECT ${{
+            literal: [
+              ...this._decodeIncludes(upsertName, compiler.includes),
+              ..._.map(populates, ({ column }) => column),
+            ], separator: ',\n'
+          }}
+          FROM ${{ identifier: upsertName }}
+          ${!_.isEmpty(joins) ? joins : sql``}
         `;
       }
     )));

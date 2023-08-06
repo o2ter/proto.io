@@ -100,7 +100,6 @@ export default <E>(router: Router, proto: Proto<E>) => {
           includes,
           skip,
           limit,
-          returning,
         } = req.query;
 
         query[PVK].options.filter = _.isEmpty(filter) && _.isString(filter) ? _.castArray(deserialize(filter)) as any : [];
@@ -108,7 +107,6 @@ export default <E>(router: Router, proto: Proto<E>) => {
         query[PVK].options.includes = _.isArray(includes) && _.every(includes, _.isString) ? includes as any : undefined;
         query[PVK].options.skip = _.isNumber(skip) ? skip : undefined;
         query[PVK].options.limit = _.isNumber(limit) ? limit : undefined;
-        query[PVK].options.returning = _.includes(['old', 'new'], returning) ? returning as any : undefined;
 
         return await query.find();
       });

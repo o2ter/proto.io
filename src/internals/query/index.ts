@@ -34,7 +34,6 @@ import { TQueryBase, TQueryBaseOptions } from './base';
 
 export interface TQueryOptions extends TQueryBaseOptions {
   includes?: string[];
-  returning?: 'old' | 'new';
 };
 
 export abstract class TQuery<T extends string, Ext> extends TQueryBase {
@@ -62,17 +61,12 @@ export abstract class TQuery<T extends string, Ext> extends TQueryBase {
   abstract find(): ReturnType<typeof asyncStream<TObjectType<T, Ext>>>;
   abstract insert(attrs: Record<string, TValue>): PromiseLike<TObjectType<T, Ext>>;
   abstract updateOne(update: Record<string, [UpdateOp, TValue]>): PromiseLike<TObjectType<T, Ext> | undefined>;
-  abstract upsertOne(update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>): PromiseLike<TObjectType<T, Ext> | undefined>;
+  abstract upsertOne(update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>): PromiseLike<TObjectType<T, Ext>>;
   abstract deleteOne(): PromiseLike<TObjectType<T, Ext> | undefined>;
   abstract deleteMany(): PromiseLike<number>;
 
   includes<T extends string[]>(...includes: IncludePaths<T>) {
     this[PVK].options.includes = this[PVK].options.includes ? [...this[PVK].options.includes, ...includes] : includes;
-    return this;
-  }
-
-  returning(returning: 'old' | 'new') {
-    this[PVK].options.returning = returning;
     return this;
   }
 

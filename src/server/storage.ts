@@ -30,7 +30,7 @@ import { TSchema } from './schema';
 import { TQueryBaseOptions } from '../internals/query/base';
 
 type CommonFindOptions = { className: string; };
-export type FindOptions = CommonFindOptions & Omit<TQueryOptions, 'returning'>;
+export type FindOptions = CommonFindOptions & TQueryOptions;
 export type FindOneOptions = CommonFindOptions & Omit<TQueryOptions, 'skip' | 'limit'>;
 
 type Decoded<T, R> = Omit<T, keyof R> & R;

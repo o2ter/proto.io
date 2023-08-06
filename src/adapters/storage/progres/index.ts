@@ -154,7 +154,7 @@ export class PostgresStorage extends SqlStorage {
       if (_.isEmpty(index.keys)) continue;
       const name = `${className}$${_.map(index.keys, (v, k) => `${k}:${v}`).join('$')}`;
       const isAcl = _.isEqual(index.keys, { _rperm: 1 }) || _.isEqual(index.keys, { _wperm: 1 });
-      const isRelation = _.has(relations, _.last(_.keys(index.keys)) as string);
+      const isRelation = _.has(relations, _.last(_.keys(index.keys))!);
       await this.query(sql`
         CREATE ${{ literal: index.unique ? 'UNIQUE' : '' }} INDEX CONCURRENTLY
         IF NOT EXISTS ${{ identifier: name }}

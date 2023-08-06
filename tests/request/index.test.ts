@@ -418,21 +418,21 @@ test('test upsert', async () => {
       },
       array: [1, 2, 3, date, new Decimal('0.001')],
     });
-  expect(upserted?.objectId).toBeTruthy();
-  expect(upserted?.version).toStrictEqual(0);
-  expect(upserted?.get('boolean')).toStrictEqual(true);
-  expect(upserted?.get('number')).toStrictEqual(42);
-  expect(upserted?.get('decimal')).toStrictEqual(new Decimal('0.001'));
-  expect(upserted?.get('string')).toStrictEqual('hello');
-  expect(upserted?.get('date')).toStrictEqual(date);
-  expect(upserted?.get('object')).toStrictEqual({
+  expect(upserted.objectId).toBeTruthy();
+  expect(upserted.version).toStrictEqual(0);
+  expect(upserted.get('boolean')).toStrictEqual(true);
+  expect(upserted.get('number')).toStrictEqual(42);
+  expect(upserted.get('decimal')).toStrictEqual(new Decimal('0.001'));
+  expect(upserted.get('string')).toStrictEqual('hello');
+  expect(upserted.get('date')).toStrictEqual(date);
+  expect(upserted.get('object')).toStrictEqual({
     boolean: true,
     number: 42,
     decimal: new Decimal('0.001'),
     string: 'hello',
     date: date,
   });
-  expect(upserted?.get('array')).toStrictEqual([1, 2, 3, date, new Decimal('0.001')]);
+  expect(upserted.get('array')).toStrictEqual([1, 2, 3, date, new Decimal('0.001')]);
 })
 
 test('test upsert 2', async () => {
@@ -455,19 +455,19 @@ test('test upsert 2', async () => {
       }],
       array: [UpdateOp.set, [1, 2, 3, date, new Decimal('0.001')]],
     }, { string: 'insert' });
-  expect(upserted?.objectId).toStrictEqual(inserted.objectId);
-  expect(upserted?.version).toStrictEqual(1);
-  expect(upserted?.get('boolean')).toStrictEqual(true);
-  expect(upserted?.get('number')).toStrictEqual(42);
-  expect(upserted?.get('decimal')).toStrictEqual(new Decimal('0.001'));
-  expect(upserted?.get('string')).toStrictEqual('hello');
-  expect(upserted?.get('date')).toStrictEqual(date);
-  expect(upserted?.get('object')).toStrictEqual({
+  expect(upserted.objectId).toStrictEqual(inserted.objectId);
+  expect(upserted.version).toStrictEqual(1);
+  expect(upserted.get('boolean')).toStrictEqual(true);
+  expect(upserted.get('number')).toStrictEqual(42);
+  expect(upserted.get('decimal')).toStrictEqual(new Decimal('0.001'));
+  expect(upserted.get('string')).toStrictEqual('hello');
+  expect(upserted.get('date')).toStrictEqual(date);
+  expect(upserted.get('object')).toStrictEqual({
     boolean: true,
     number: 42,
     decimal: new Decimal('0.001'),
     string: 'hello',
     date: date,
   });
-  expect(upserted?.get('array')).toStrictEqual([1, 2, 3, date, new Decimal('0.001')]);
+  expect(upserted.get('array')).toStrictEqual([1, 2, 3, date, new Decimal('0.001')]);
 })

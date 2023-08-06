@@ -147,7 +147,7 @@ export class TObject {
 
   set<T extends string>(key: PathName<T>, value: TValue | undefined) {
     if (_.isEmpty(key)) throw Error('Invalid key');
-    if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key)) as string)) return;
+    if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
     this[PVK].mutated[key] = [UpdateOp.set, value ?? null];
   }
 
@@ -157,67 +157,67 @@ export class TObject {
 
   increment<T extends string>(key: PathName<T>, value: number) {
     if (_.isEmpty(key)) throw Error('Invalid key');
-    if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key)) as string)) return;
+    if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
     this[PVK].mutated[key] = [UpdateOp.increment, value];
   }
 
   decrement<T extends string>(key: PathName<T>, value: number) {
     if (_.isEmpty(key)) throw Error('Invalid key');
-    if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key)) as string)) return;
+    if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
     this[PVK].mutated[key] = [UpdateOp.decrement, value];
   }
 
   multiply<T extends string>(key: PathName<T>, value: number) {
     if (_.isEmpty(key)) throw Error('Invalid key');
-    if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key)) as string)) return;
+    if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
     this[PVK].mutated[key] = [UpdateOp.multiply, value];
   }
 
   divide<T extends string>(key: PathName<T>, value: number) {
     if (_.isEmpty(key)) throw Error('Invalid key');
-    if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key)) as string)) return;
+    if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
     this[PVK].mutated[key] = [UpdateOp.divide, value];
   }
 
   max<T extends string>(key: PathName<T>, value: TValue) {
     if (_.isEmpty(key)) throw Error('Invalid key');
-    if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key)) as string)) return;
+    if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
     this[PVK].mutated[key] = [UpdateOp.max, value];
   }
 
   min<T extends string>(key: PathName<T>, value: TValue) {
     if (_.isEmpty(key)) throw Error('Invalid key');
-    if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key)) as string)) return;
+    if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
     this[PVK].mutated[key] = [UpdateOp.min, value];
   }
 
   addToSet<T extends string>(key: PathName<T>, values: TValue[]) {
     if (_.isEmpty(key)) throw Error('Invalid key');
-    if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key)) as string)) return;
+    if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
     this[PVK].mutated[key] = [UpdateOp.addToSet, values];
   }
 
   push<T extends string>(key: PathName<T>, values: TValue[]) {
     if (_.isEmpty(key)) throw Error('Invalid key');
-    if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key)) as string)) return;
+    if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
     this[PVK].mutated[key] = [UpdateOp.push, values];
   }
 
   removeAll<T extends string>(key: PathName<T>, values: TValue[]) {
     if (_.isEmpty(key)) throw Error('Invalid key');
-    if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key)) as string)) return;
+    if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
     this[PVK].mutated[key] = [UpdateOp.removeAll, values];
   }
 
   popFirst<T extends string>(key: PathName<T>) {
     if (_.isEmpty(key)) throw Error('Invalid key');
-    if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key)) as string)) return;
+    if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
     this[PVK].mutated[key] = [UpdateOp.popFirst, null];
   }
 
   popLast<T extends string>(key: PathName<T>) {
     if (_.isEmpty(key)) throw Error('Invalid key');
-    if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key)) as string)) return;
+    if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
     this[PVK].mutated[key] = [UpdateOp.popLast, null];
   }
 
