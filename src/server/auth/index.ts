@@ -53,8 +53,8 @@ export default <E>(proto: Proto<E>, jwtToken?: string): RequestHandler => async 
   if (req.headers.authorization) {
     const parts = req.headers.authorization.split(' ');
     if (parts.length === 2 && parts[0] === 'Bearer') authorization = parts[1];
-  } else if (req.cookies['x-auth']) {
-    authorization = req.cookies['x-auth'];
+  } else if (req.cookies['x-proto-auth']) {
+    authorization = req.cookies['x-proto-auth'];
   }
 
   if (!_.isEmpty(authorization)) {
@@ -85,6 +85,6 @@ export default <E>(proto: Proto<E>, jwtToken?: string): RequestHandler => async 
     master: req.isMaster,
   }, jwtToken);
 
-  res.cookie('x-auth', token);
+  res.cookie('x-proto-auth', token);
   return next();
 };
