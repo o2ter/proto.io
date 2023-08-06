@@ -37,7 +37,7 @@ export const defaultSchema: Record<string, TSchema> = {
       delete: [],
     },
     fieldLevelPermissions: {
-      password: { read: [], update: [] },
+      password: { read: [], create: [], update: [] },
       _expired_at: { create: [], update: [] },
     },
   },
