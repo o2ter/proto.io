@@ -45,6 +45,9 @@ export const iterableToStream = <T>(
   iterable: AsyncIterable<T> | PromiseLike<AsyncIterable<T>>
 ) => {
   let iterator: AsyncIterator<T>;
+  if (typeof ReadableStream === 'undefined') {
+    return require('node:stream').Readable.from(async function* () { yield * await iterable; }());
+  }
   return new ReadableStream<T>({
     async start(controller) {
       try {
