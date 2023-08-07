@@ -41,6 +41,8 @@ export interface TQueryBaseOptions extends TQueryFilterBaseOptions {
 
 const mergeOpts = (lhs: TQueryBaseOptions, rhs: TQueryBaseOptions): TQueryBaseOptions => {
   return {
+    ...lhs,
+    ...rhs,
     filter: [
       ..._.castArray<TQuerySelector>(lhs.filter), 
       ..._.castArray<TQuerySelector>(rhs.filter)
