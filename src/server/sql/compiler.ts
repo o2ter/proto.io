@@ -85,7 +85,7 @@ const _resolveSortingName = (
   return resolved;
 }
 
-const _decodeSorting = (
+const _encodeSorting = (
   includes: Record<string, TSchema.DataType>,
   populates: Record<string, Populate>,
   sort?: Record<string, 1 | -1>,
@@ -127,14 +127,14 @@ export class QueryCompiler {
   }
 
   private _makeContext(query: InsertOptions & { sort?: Record<string, 1 | -1> }) {
-    const context = this._decodeIncludes(query.className, query.includes, query.matches);
+    const context = this._encodeIncludes(query.className, query.includes, query.matches);
     return {
       ...context,
-      sorting: _decodeSorting(context.includes, context.populates, query.sort),
+      sorting: _encodeSorting(context.includes, context.populates, query.sort),
     };
   }
 
-  private _decodeIncludes(className: string, includes: string[], matches: Record<string, DecodedBaseQuery>) {
+  private _encodeIncludes(className: string, includes: string[], matches: Record<string, DecodedBaseQuery>) {
 
     const schema = this.schema[className] ?? {};
     const names: Record<string, TSchema.DataType> = {};
@@ -175,8 +175,8 @@ export class QueryCompiler {
 
     for (const [colname, populate] of _.toPairs(populates)) {
       const _matches = matches[colname];
-      const { includes, populates } = this._decodeIncludes(populate.className, populate.subpaths, _matches.matches);
-      populate.sort = _decodeSorting(includes, populates, _matches.sort);
+      const { includes, populates } = this._encodeIncludes(populate.className, populate.subpaths, _matches.matches);
+      populate.sort = _encodeSorting(includes, populates, _matches.sort);
       populate.includes = includes;
       populate.populates = populates;
     }
@@ -190,12 +190,12 @@ export class QueryCompiler {
   ) {
 
     const context = this._makeContext(query);
-    const populates = _.mapValues(context.populates, (populate) => this.dialect.decodePopulate(this, context, populate));
+    const populates = _.mapValues(context.populates, (populate) => this.dialect.encodePopulate(this, context, populate));
     const stages = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
 
     const fetchName = `_fetch_$${query.className.toLowerCase()}`;
 
-    const _filter = this._decodeFilter(context, { className: query.className, name: fetchName }, query.filter);
+    const _filter = this._encodeFilter(context, { className: query.className, name: fetchName }, query.filter);
     const _populates = this._selectPopulateMap(context, query.className, fetchName);
     const _joins = _.compact(_.map(_populates, ({ join }) => join));
 
@@ -217,7 +217,7 @@ export class QueryCompiler {
           ${!_.isEmpty(_joins) ? _joins : sql``}
         ) AS ${{ identifier: fetchName }}
         ${_filter ? sql`WHERE ${_filter}` : sql``}
-        ${!_.isEmpty(query.sort) ? sql`ORDER BY ${this._decodeSort(fetchName, query.sort)}` : sql``}
+        ${!_.isEmpty(query.sort) ? sql`ORDER BY ${this._encodeSort(fetchName, query.sort)}` : sql``}
         ${query.limit ? sql`LIMIT ${{ literal: `${query.limit}` }}` : sql``}
         ${query.skip ? sql`OFFSET ${{ literal: `${query.skip}` }}` : sql``}
       `,
@@ -230,9 +230,9 @@ export class QueryCompiler {
     context: CompileContext,
   ) {
 
-    const _context = this._decodeIncludes(query.className, query.includes, query.matches);
+    const _context = this._encodeIncludes(query.className, query.includes, query.matches);
     const populates = _.mapValues(
-      _context.populates, (populate) => this.dialect.decodePopulate(this, context, populate, { className: query.className, name })
+      _context.populates, (populate) => this.dialect.encodePopulate(this, context, populate, { className: query.className, name })
     );
     const stages = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
 
@@ -300,12 +300,12 @@ export class QueryCompiler {
     return result;
   }
 
-  private _decodeCoditionalSelector(
+  private _encodeCoditionalSelector(
     parent: { className?: string; name: string; },
     filter: CoditionalSelector,
     context: CompileContext,
   ) {
-    const queries = _.compact(_.map(filter.exprs, x => this._decodeFilter(context, parent, x)));
+    const queries = _.compact(_.map(filter.exprs, x => this._encodeFilter(context, parent, x)));
     if (_.isEmpty(queries)) return;
     switch (filter.type) {
       case '$and': return sql`(${{ literal: _.map(queries, x => sql`(${x})`), separator: ' AND ' }})`;
@@ -314,16 +314,16 @@ export class QueryCompiler {
     }
   }
 
-  _decodeFilter(
+  _encodeFilter(
     context: CompileContext,
     parent: { className?: string; name: string; },
     filter: QuerySelector,
   ): SQL | undefined {
     if (filter instanceof CoditionalSelector) {
-      return this._decodeCoditionalSelector(parent, filter, context);
+      return this._encodeCoditionalSelector(parent, filter, context);
     }
     if (filter instanceof FieldSelector) {
-      return this.dialect.decodeFieldExpression(this, context, parent, filter.field, filter.expr);
+      return this.dialect.encodeFieldExpression(this, context, parent, filter.field, filter.expr);
     }
   }
 
@@ -340,9 +340,9 @@ export class QueryCompiler {
     });
   }
 
-  _decodeSort(className: string, sort: Record<string, 1 | -1>): SQL {
+  _encodeSort(className: string, sort: Record<string, 1 | -1>): SQL {
     return sql`${_.map(sort, (order, key) => sql`
-      ${this.dialect.decodeSortKey(className, key)} ${{ literal: order === 1 ? 'ASC' : 'DESC' }}
+      ${this.dialect.encodeSortKey(className, key)} ${{ literal: order === 1 ? 'ASC' : 'DESC' }}
     `)}`;
   }
 

@@ -58,7 +58,7 @@ const _encodeJsonValue = (value: any): SQL => {
   return sql`to_jsonb(${{ value }})`;
 }
 
-const _decodePopulateIncludes = (
+const _encodePopulateIncludes = (
   className: string,
   includes: Record<string, TSchema.DataType>,
 ): SQL[] => {
@@ -233,7 +233,7 @@ export const PostgresDialect: SqlDialect = {
           SELECT to_jsonb(${{ identifier: populate.name }}) FROM (
             SELECT ${_.map(_.keys(_.pickBy(populate.includes, v => isPrimitive(v))), (colname) => sql`${{ identifier: populate.name }}.${{ identifier: colname }}`)}
             FROM ${{ identifier: populate.name }} WHERE ${cond}
-            ${!_.isEmpty(populate.sort) ? sql`ORDER BY ${compiler._decodeSort(populate.name, populate.sort)}` : sql``}
+            ${!_.isEmpty(populate.sort) ? sql`ORDER BY ${compiler._encodeSort(populate.name, populate.sort)}` : sql``}
             ${populate.limit ? sql`LIMIT ${{ literal: `${populate.limit}` }}` : sql``}
             ${populate.skip ? sql`OFFSET ${{ literal: `${populate.skip}` }}` : sql``}
           ) ${{ identifier: populate.name }}
@@ -241,24 +241,24 @@ export const PostgresDialect: SqlDialect = {
       `,
     };
   },
-  decodePopulate(
+  encodePopulate(
     compiler: QueryCompiler,
     context: CompileContext,
     parent: Populate,
     remix?: { className: string; name: string; }
   ): Record<string, SQL> {
-    const _filter = compiler._decodeFilter(context, parent, parent.filter);
+    const _filter = compiler._encodeFilter(context, parent, parent.filter);
     const _populates = _.map(parent.populates, (populate, field) => this.selectPopulate(compiler, parent, populate, field));
     const _joins = _.compact(_.map(_populates, ({ join }) => join));
     return _.reduce(parent.populates, (acc, populate) => ({
-      ...this.decodePopulate(compiler, context, populate, remix),
+      ...this.encodePopulate(compiler, context, populate, remix),
       ...acc,
     }), {
       [parent.name]: sql`
         SELECT
         ${{
           literal: [
-            ..._decodePopulateIncludes(parent.name, parent.includes),
+            ..._encodePopulateIncludes(parent.name, parent.includes),
             ...parent.foreignField ? [sql`${{ identifier: parent.name }}.${{ identifier: parent.foreignField.colname }}`] : [],
             ..._.map(_populates, ({ column }) => column),
           ], separator: ',\n'
@@ -271,7 +271,7 @@ export const PostgresDialect: SqlDialect = {
       `,
     });
   },
-  decodeFieldExpression(
+  encodeFieldExpression(
     compiler: QueryCompiler,
     context: CompileContext,
     parent: { className?: string; name: string; },
@@ -381,7 +381,7 @@ export const PostgresDialect: SqlDialect = {
       case '$not':
         {
           if (!(expr.value instanceof FieldExpression)) break;
-          return sql`NOT (${this.decodeFieldExpression(compiler, context, parent, field, expr.value)})`;
+          return sql`NOT (${this.encodeFieldExpression(compiler, context, parent, field, expr.value)})`;
         }
       case '$pattern':
         {
@@ -406,7 +406,7 @@ export const PostgresDialect: SqlDialect = {
           if (!(expr.value instanceof QuerySelector)) break;
 
           const tempName = `_expr_$${compiler.nextIdx()}`;
-          const filter = compiler._decodeFilter(context, { name: tempName }, expr.value);
+          const filter = compiler._encodeFilter(context, { name: tempName }, expr.value);
           if (!filter) break;
 
           if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
@@ -426,7 +426,7 @@ export const PostgresDialect: SqlDialect = {
           if (!(expr.value instanceof QuerySelector)) break;
 
           const tempName = `_expr_$${compiler.nextIdx()}`;
-          const filter = compiler._decodeFilter(context, { name: tempName }, expr.value);
+          const filter = compiler._encodeFilter(context, { name: tempName }, expr.value);
           if (!filter) break;
 
           if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
@@ -445,7 +445,7 @@ export const PostgresDialect: SqlDialect = {
     }
     throw Error('Invalid expression');
   },
-  decodeSortKey(className: string, key: string): SQL {
+  encodeSortKey(className: string, key: string): SQL {
     const [colname, ...subpath] = _.toPath(key);
     if (_.isEmpty(subpath)) return sql`${{ identifier: className }}.${{ identifier: colname }}`;
     return sql`jsonb_extract_path(

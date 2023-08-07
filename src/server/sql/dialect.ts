@@ -47,7 +47,7 @@ export interface SqlDialect {
     field: string,
   ): { column: SQL, join?: SQL }
 
-  decodeFieldExpression(
+  encodeFieldExpression(
     compiler: QueryCompiler,
     context: CompileContext,
     parent: { className?: string; name: string; },
@@ -55,14 +55,14 @@ export interface SqlDialect {
     expr: FieldExpression,
   ): SQL
 
-  decodePopulate(
+  encodePopulate(
     compiler: QueryCompiler,
     context: CompileContext,
     parent: Populate,
     remix?: { className: string; name: string; }
   ): Record<string, SQL>
 
-  decodeSortKey(
+  encodeSortKey(
     className: string,
     key: string
   ): SQL
