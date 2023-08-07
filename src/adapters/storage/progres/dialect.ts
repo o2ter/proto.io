@@ -348,7 +348,7 @@ export const PostgresDialect: SqlDialect = {
           if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
             return sql`${element} <@ ${{ value: _encodeValue(expr.value) }}`;
           } else if (!dataType) {
-            return sql`jsonb_typeof(to_jsonb(${element})) ${this.nullSafeEqual()} 'array' AND to_jsonb(${element}) <@ ${_encodeJsonValue(_encodeValue(expr.value))}`;
+            return sql`jsonb_typeof(${element}) ${this.nullSafeEqual()} 'array' AND ${element} <@ ${_encodeJsonValue(_encodeValue(expr.value))}`;
           }
         }
       case '$superset':
@@ -357,7 +357,7 @@ export const PostgresDialect: SqlDialect = {
           if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
             return sql`${element} @> ${{ value: _encodeValue(expr.value) }}`;
           } else if (!dataType) {
-            return sql`jsonb_typeof(to_jsonb(${element})) ${this.nullSafeEqual()} 'array' AND to_jsonb(${element}) @> ${_encodeJsonValue(_encodeValue(expr.value))}`;
+            return sql`jsonb_typeof(${element}) ${this.nullSafeEqual()} 'array' AND ${element} @> ${_encodeJsonValue(_encodeValue(expr.value))}`;
           }
         }
       case '$disjoint':
@@ -366,7 +366,7 @@ export const PostgresDialect: SqlDialect = {
           if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
             return sql`NOT ${element} && ${{ value: _encodeValue(expr.value) }}`;
           } else if (!dataType) {
-            return sql`jsonb_typeof(to_jsonb(${element})) ${this.nullSafeEqual()} 'array' AND NOT to_jsonb(${element}) && ${_encodeJsonValue(_encodeValue(expr.value))}`;
+            return sql`jsonb_typeof(${element}) ${this.nullSafeEqual()} 'array' AND NOT ${element} && ${_encodeJsonValue(_encodeValue(expr.value))}`;
           }
         }
       case '$intersect':
@@ -375,7 +375,7 @@ export const PostgresDialect: SqlDialect = {
           if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
             return sql`${element} && ${{ value: _encodeValue(expr.value) }}`;
           } else if (!dataType) {
-            return sql`jsonb_typeof(to_jsonb(${element})) ${this.nullSafeEqual()} 'array' AND to_jsonb(${element}) && ${_encodeJsonValue(_encodeValue(expr.value))}`;
+            return sql`jsonb_typeof(${element}) ${this.nullSafeEqual()} 'array' AND ${element} && ${_encodeJsonValue(_encodeValue(expr.value))}`;
           }
         }
       case '$not':
@@ -398,7 +398,7 @@ export const PostgresDialect: SqlDialect = {
           if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
             return sql`array_length(${element}, 1) ${this.nullSafeEqual()} ${{ value: expr.value }}`;
           } else if (!dataType) {
-            return sql`jsonb_typeof(to_jsonb(${element})) ${this.nullSafeEqual()} 'array' AND jsonb_array_length(to_jsonb(${element})) ${this.nullSafeEqual()} ${{ value: expr.value }}`;
+            return sql`jsonb_typeof(${element}) ${this.nullSafeEqual()} 'array' AND jsonb_array_length(${element}) ${this.nullSafeEqual()} ${{ value: expr.value }}`;
           }
         }
       case '$every':
