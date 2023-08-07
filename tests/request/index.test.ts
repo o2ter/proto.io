@@ -344,7 +344,7 @@ test('test relation 2', async () => {
       pointer: [UpdateOp.set, inserted],
     });
 
-  expect((updated?.get('relation2') as any).length).toStrictEqual(1);
+  expect(updated?.get('relation2').length).toStrictEqual(1);
   expect(updated?.get('relation2.0.boolean')).toStrictEqual(true);
   expect(updated?.get('relation2.0.number')).toStrictEqual(42);
   expect(updated?.get('relation2.0.decimal')).toStrictEqual(new Decimal('0.001'));
