@@ -52,10 +52,11 @@ const _encodeValue = (value: TValue): any => {
   }, {} as any);
 }
 
-const _encodeJsonValue = (value: TValue): SQL => {
-  if (_.isBoolean(value) || _.isNumber(value) || _.isString(value)) return sql`to_jsonb(${{ value }})`;
-  return sql`${{ value: _encodeValue(value) }}`;
-};
+const _encodeJsonValue = (value: any): SQL => {
+  if (_.isArray(value)) return sql`jsonb_build_array(${_.map(value, x => _encodeJsonValue(x))})`;
+  if (_.isPlainObject(value)) return sql`${{ value }}`;
+  return sql`to_jsonb(${{ value }})`;
+}
 
 const _decodePopulateIncludes = (
   className: string,
@@ -120,14 +121,7 @@ export const PostgresDialect: SqlDialect = {
         if (_.isPlainObject(value)) return sql`${{ value: _encodeValue(value) }}`;
         break;
       case 'array':
-        if (_.isArray(value)) {
-          const _encodeJson = (value: any): SQL => {
-            if (_.isArray(value)) return sql`jsonb_build_array(${_.map(value, x => _encodeJson(x))})`;
-            if (_.isPlainObject(value)) return sql`${{ value }}`;
-            return sql`to_jsonb(${{ value }})`;
-          }
-          return sql`ARRAY[${_.map(value, x => _encodeJson(_encodeValue(x)))}]::JSONB[]`;
-        }
+        if (_.isArray(value)) return sql`ARRAY[${_.map(value, x => _encodeJsonValue(_encodeValue(x)))}]::JSONB[]`;
         break;
       case 'pointer':
         if (value instanceof TObject && value.objectId) return sql`${{ value: `${value.className}$${value.objectId}` }}`;
@@ -304,7 +298,7 @@ export const PostgresDialect: SqlDialect = {
         element = sql`jsonb_extract_path(${element}, ${_.map(subpath, x => sql`${{ quote: x }}`)})`;
       }
     }
-    const encodeValue = (value: TValue) => dataType ? this.encodeType(dataType, value) : _encodeJsonValue(value);
+    const encodeValue = (value: TValue) => dataType ? this.encodeType(dataType, value) : _encodeJsonValue(_encodeValue(value));
     switch (expr.type) {
       case '$eq':
         {
