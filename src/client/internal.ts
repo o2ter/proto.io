@@ -168,27 +168,27 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
 
     const { serializeOpts, context, ...opts } = options ?? {};
 
-    const res = this.service.request({
-      method: 'get',
-      baseURL: this.options.endpoint,
-      url: `files/${object.objectId}/${object.filename}`,
-      responseType: 'stream',
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-      ...opts,
-    });
+    return iterableToStream(async () => {
+      const res = await this.service.request({
+        method: 'get',
+        baseURL: this.options.endpoint,
+        url: `files/${object.objectId}/${object.filename}`,
+        responseType: 'stream',
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        ...opts,
+      });
 
-    return iterableToStream(res.then(x => {
-      if (x.status !== 200) {
-        const error = JSON.parse(x.data);
+      if (res.status !== 200) {
+        const error = JSON.parse(res.data);
         throw Error(error.message, { cause: error });
       }
-      if (Symbol.asyncIterator in x.data || x.data instanceof ReadableStream) {
-        return streamToIterable(x.data);
+      if (Symbol.asyncIterator in res.data || res.data instanceof ReadableStream) {
+        return streamToIterable(res.data);
       } else {
         throw Error('Unknown stream type');
       }
-    }));
+    });
   }
 }

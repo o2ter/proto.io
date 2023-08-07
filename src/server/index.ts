@@ -41,8 +41,9 @@ import { TStorage } from './storage';
 import { TSchema } from './schema';
 import { CookieOptions, Request } from 'express';
 import { SignOptions, VerifyOptions } from 'jsonwebtoken';
+import { Awaitable } from '../internals/types';
 
-type Callback<T, R, E> = (request: Proto<E> & T) => R | PromiseLike<R>;
+type Callback<T, R, E> = (request: Proto<E> & T) => Awaitable<R>;
 export type ProtoFunction<E> = Callback<{ data: TSerializable; }, TSerializable, E>;
 export type ProtoTrigger<T, E> = Callback<{ object: TObjectType<T, E>; context: TSerializable; }, void, E>;
 
@@ -65,7 +66,7 @@ export type ProtoOptions<Ext> = {
   fileStorage: TFileStorage;
   classExtends?: TExtensions<Ext>;
   objectIdSize?: number;
-  maxUploadSize?: number | ((proto: Proto<Ext>) => number | PromiseLike<number>);
+  maxUploadSize?: number | ((proto: Proto<Ext>) => Awaitable<number>);
   cookieOptions?: CookieOptions;
   jwtSignOptions?: SignOptions;
   jwtVerifyOptions?: VerifyOptions;

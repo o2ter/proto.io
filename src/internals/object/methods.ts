@@ -27,10 +27,11 @@ import _ from 'lodash';
 import { TObject } from './index';
 import { PVK } from '../private';
 import { ExtraOptions } from '../options';
-import { TExtensions, TObjectType } from './types';
+import { TExtensions, TObjectType, TObjectTypes } from './types';
 import { ProtoType } from '../proto';
 import { TSerializable } from '../codec';
 import { TFile } from './file';
+import { isObjKey } from '../utils';
 
 export type TExtended<U, T extends string, E> = U extends TObject ?
   TObjectType<T, E> : U extends (infer U)[] ?
@@ -47,9 +48,15 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
     return object;
   }
 
+  const className = object.className;
+  const _class = isObjKey(className, TObjectTypes) ? TObjectTypes[className] : undefined;
+  if (_class && Object.getPrototypeOf(object) !== _class.prototype) {
+    Object.setPrototypeOf(object, _class.prototype);
+  }
+
   const classExtends = proto[PVK].options.classExtends ?? {} as TExtensions<E>;
-  const extensions = classExtends[object.className as keyof E] ?? {};
-  const query = (options?: ExtraOptions) => proto.Query(object.className, options);
+  const extensions = classExtends[className as keyof E] ?? {};
+  const query = (options?: ExtraOptions) => proto.Query(className, options);
 
   const typedMethods: Record<string, PropertyDescriptorMap & ThisType<TObject>> = {
     '_File': {
@@ -126,7 +133,7 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
         return object;
       },
     },
-    ...typedMethods[object.className] ?? {},
+    ...typedMethods[className] ?? {},
     ..._.mapValues(extensions, value => _.isFunction(value) ? { value } : value),
   };
 

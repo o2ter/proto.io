@@ -24,6 +24,7 @@
 //
 
 import _ from 'lodash';
+import { Awaitable } from './types';
 
 export const isObjKey = <T extends object>(key: PropertyKey, obj: T): key is keyof T => key in obj;
 
@@ -33,7 +34,7 @@ export const asyncIterableToArray = async <T>(asyncIterable: AsyncIterable<T>) =
   return array;
 };
 
-export const arrayToAsyncGenerator = <T>(array: T[] | PromiseLike<T[]>) => async function* () {
+export const arrayToAsyncGenerator = <T>(array: Awaitable<T[]>) => async function* () {
   yield* await array;
 }();
 
