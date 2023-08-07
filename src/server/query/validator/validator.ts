@@ -231,6 +231,7 @@ export class QueryValidator<E> {
           if (!this.validateKeyPerm(dataType.foreignField, 'read', this.schema[dataType.target])) throw Error('No permission');
         }
         _matches[colname] = {
+          ...match,
           filter: QuerySelector.decode([..._rperm, _expiredAt, ..._.castArray<TQuerySelector>(match.filter)]).simplify(),
           matches: this.decodeMatches(
             dataType.target, match.matches ?? {},

@@ -153,7 +153,7 @@ export class QueryCompiler {
           name: `t${this.nextIdx()}`,
           className: dataType.target,
           subpaths: [],
-          matches: _matches.filter,
+          filter: _matches.filter,
           skip: _matches.skip,
           limit: _matches.limit,
           type: dataType.type,
