@@ -345,29 +345,37 @@ export const PostgresDialect: SqlDialect = {
       case '$subset':
         {
           if (!_.isArray(expr.value)) break;
-          if (!dataType || dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
+          if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
             return sql`${element} <@ ${{ value: _encodeValue(expr.value) }}`;
+          } else if (!dataType) {
+            return sql`jsonb_typeof(to_jsonb(${element})) ${this.nullSafeEqual()} 'array' AND to_jsonb(${element}) <@ ${_encodeJsonValue(_encodeValue(expr.value))}`;
           }
         }
       case '$superset':
         {
           if (!_.isArray(expr.value)) break;
-          if (!dataType || dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
+          if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
             return sql`${element} @> ${{ value: _encodeValue(expr.value) }}`;
+          } else if (!dataType) {
+            return sql`jsonb_typeof(to_jsonb(${element})) ${this.nullSafeEqual()} 'array' AND to_jsonb(${element}) @> ${_encodeJsonValue(_encodeValue(expr.value))}`;
           }
         }
       case '$disjoint':
         {
           if (!_.isArray(expr.value)) break;
-          if (!dataType || dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
+          if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
             return sql`NOT ${element} && ${{ value: _encodeValue(expr.value) }}`;
+          } else if (!dataType) {
+            return sql`jsonb_typeof(to_jsonb(${element})) ${this.nullSafeEqual()} 'array' AND NOT to_jsonb(${element}) && ${_encodeJsonValue(_encodeValue(expr.value))}`;
           }
         }
       case '$intersect':
         {
           if (!_.isArray(expr.value)) break;
-          if (!dataType || dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
+          if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
             return sql`${element} && ${{ value: _encodeValue(expr.value) }}`;
+          } else if (!dataType) {
+            return sql`jsonb_typeof(to_jsonb(${element})) ${this.nullSafeEqual()} 'array' AND to_jsonb(${element}) && ${_encodeJsonValue(_encodeValue(expr.value))}`;
           }
         }
       case '$not':
