@@ -28,9 +28,12 @@ import { FieldName, PathName, PathNameMap, TQuerySelector } from './types';
 import { TValue } from './value';
 import { PVK } from '../private';
 
-export interface TQueryBaseOptions {
+interface TQueryFilterBaseOptions {
   filter?: TQuerySelector | TQuerySelector[];
   matches?: Record<string, TQueryBaseOptions>;
+};
+
+export interface TQueryBaseOptions extends TQueryFilterBaseOptions {
   sort?: Record<string, 1 | -1>;
   skip?: number;
   limit?: number;
@@ -49,15 +52,9 @@ const mergeOpts = (lhs: TQueryBaseOptions, rhs: TQueryBaseOptions): TQueryBaseOp
   };
 }
 
-export class TQueryBase {
+class TQueryFilterBase {
 
-  [PVK]: {
-    options: TQueryBaseOptions;
-  }
-
-  constructor() {
-    this[PVK] = { options: {} };
-  }
+  [PVK]: { options: TQueryFilterBaseOptions; } = { options: {} };
 
   filter(filter: TQuerySelector) {
     if (_.isNil(this[PVK].options.filter)) {
@@ -67,23 +64,6 @@ export class TQueryBase {
     } else {
       this[PVK].options.filter = [this[PVK].options.filter, filter];
     }
-    return this;
-  }
-
-  sort<T extends Record<string, 1 | -1>>(sort: PathNameMap<T>) {
-    this[PVK].options.sort = sort;
-    return this;
-  }
-
-  skip(skip: number) {
-    if (!_.isInteger(skip) || skip < 0) throw Error('Invalid skip number');
-    this[PVK].options.skip = skip;
-    return this;
-  }
-
-  limit(limit: number) {
-    if (!_.isInteger(limit) || limit < 0) throw Error('Invalid limit number');
-    this[PVK].options.limit = limit;
     return this;
   }
 
@@ -139,14 +119,14 @@ export class TQueryBase {
     return this.filter({ [key]: { $intersect: value } });
   }
 
-  every<T extends string>(key: PathName<T>, callback: (query: TQueryBase) => void) {
-    const query = new TQueryBase();
+  every<T extends string>(key: PathName<T>, callback: (query: TQueryFilterBase) => void) {
+    const query = new TQueryFilterBase();
     callback(query);
     return this.filter({ [key]: { $every: { $and: _.castArray<TQuerySelector>(query[PVK].options.filter) } } });
   }
 
-  some<T extends string>(key: PathName<T>, callback: (query: TQueryBase) => void) {
-    const query = new TQueryBase();
+  some<T extends string>(key: PathName<T>, callback: (query: TQueryFilterBase) => void) {
+    const query = new TQueryFilterBase();
     callback(query);
     return this.filter({ [key]: { $some: { $and: _.castArray<TQuerySelector>(query[PVK].options.filter) } } });
   }
@@ -161,6 +141,29 @@ export class TQueryBase {
     } else {
       this[PVK].options.matches[key] = mergeOpts(this[PVK].options.matches[key], query[PVK].options);
     }
+    return this;
+  }
+
+}
+
+export class TQueryBase extends TQueryFilterBase {
+
+  [PVK]: { options: TQueryBaseOptions; } = { options: {} };
+
+  sort<T extends Record<string, 1 | -1>>(sort: PathNameMap<T>) {
+    this[PVK].options.sort = sort;
+    return this;
+  }
+
+  skip(skip: number) {
+    if (!_.isInteger(skip) || skip < 0) throw Error('Invalid skip number');
+    this[PVK].options.skip = skip;
+    return this;
+  }
+
+  limit(limit: number) {
+    if (!_.isInteger(limit) || limit < 0) throw Error('Invalid limit number');
+    this[PVK].options.limit = limit;
     return this;
   }
 
