@@ -112,7 +112,7 @@ export type PathName<T extends string> = string extends T ? string : T extends '
   ? `${PathComponent<L>}.${PathComponents<R>}`
   : never;
 
-export type IncludePath<T extends string> = T extends FieldName<T> ? T
+export type IncludePath<T extends string> = T extends FieldName<T> | '*' ? T
   : T extends `${infer L}.${infer R}`
   ? `${FieldName<L>}.${IncludePath<R>}`
   : never;

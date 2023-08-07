@@ -368,7 +368,7 @@ test('test relation', async () => {
   });
   const updated = await proto.Query('Test')
     .equalTo('_id', inserted.objectId)
-    .includes('relation')
+    .includes('*', 'relation')
     .updateOne({
       relation: [UpdateOp.set, [inserted]],
     });
@@ -379,7 +379,7 @@ test('test relation', async () => {
   expect(updated?.get('relation.0.string')).toStrictEqual('hello');
   expect(updated?.get('relation.0.date')).toStrictEqual(date);
 
-  const q = proto.Query('Test').equalTo('_id', inserted.objectId).includes('relation');
+  const q = proto.Query('Test').equalTo('_id', inserted.objectId).includes('*', 'relation');
 
   expect((await q.clone().equalTo('relation.0.boolean', true).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().equalTo('relation.0.number', 42).first())?.objectId).toStrictEqual(inserted.objectId);
@@ -635,4 +635,27 @@ test('test match', async () => {
   expect(matched4?.get('relation2').length).toStrictEqual(1);
   expect(matched4?.get('relation2.0.number')).toStrictEqual(5);
 
+})
+
+test('test comparable', async () => {
+  const date = new Date;
+  const inserted = await proto.Query('Test').insert({
+    boolean: true,
+    number: 42,
+    decimal: new Decimal('0.001'),
+    string: 'hello',
+    date: date,
+    object: {
+      boolean: true,
+      number: 42,
+      decimal: new Decimal('0.001'),
+      string: 'hello',
+      date: date,
+    },
+  });
+
+  const q = proto.Query('Test').equalTo('_id', inserted.objectId).includes('*', 'relation');
+
+  expect((await q.clone().greaterThan('number', 0).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().greaterThan('decimal', 0).first())?.objectId).toStrictEqual(inserted.objectId);
 })
