@@ -107,7 +107,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
         stream = payload.fileStorage.fileData(payload, file.token);
       }
 
-      Readable.from(stream).pipe(res).end();
+      Readable.from(stream).pipe(res);
     }
   );
 
