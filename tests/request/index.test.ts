@@ -23,8 +23,9 @@
 //  THE SOFTWARE.
 //
 
-import { masterKey } from './server';
 import fs from 'fs';
+import { Readable } from 'node:stream';
+import { masterKey } from './server';
 import { test, expect } from '@jest/globals';
 import { UUID } from 'bson';
 import Decimal from 'decimal.js';
@@ -34,6 +35,14 @@ const proto = new ProtoClient({
   endpoint: 'http://localhost:8080',
   masterKey,
 });
+
+const streamToBuffer = async (stream: any) => {
+  let buffer = Buffer.from([]);
+  for await (const chunk of Readable.fromWeb(stream)) {
+    buffer = Buffer.concat([buffer, chunk]);
+  }
+  return buffer;
+}
 
 test('echo', async () => {
   const result = await proto.run('echo', 'hello, world');
@@ -55,10 +64,16 @@ test('test codec', async () => {
 test('test files', async () => {
   const file = proto.File('test.txt', 'hello, world', 'text/plain');
   await file.save();
+
+  const data = await streamToBuffer(file.fileData());
+  expect(data.toString('utf8')).toStrictEqual('hello, world');
 });
 test('test files 2', async () => {
   const file = proto.File('test.txt', fs.createReadStream(__filename), 'text/plain');
   await file.save();
+
+  const data = await streamToBuffer(file.fileData());
+  expect(data.toString('utf8')).toStrictEqual(fs.readFileSync(__filename, { encoding: 'utf8' }));
 });
 
 test('test insert', async () => {
