@@ -209,7 +209,6 @@ test('test types', async () => {
 })
 
 test('test types 2', async () => {
-  const date = new Date;
   const inserted = await proto.Query('Test').insert({
     array: [[1, 2, 3], [4, 5, 6]],
   });
@@ -219,13 +218,12 @@ test('test types 2', async () => {
   expect((await q.clone().every('array', q => q.every('$', q => q.equalTo('$', 0))).first())?.objectId).toStrictEqual(undefined);
 
   expect((await q.clone().some('array', q => q.some('$', q => q.equalTo('$', 1))).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().every('array', q => q.every('$', q => q.notEqualTo('$', 0))).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().some('array', q => q.some('$', q => q.notEqualTo('$', 0))).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().every('array', q => q.every('$', q => q.notEqualTo('$', 0))).first())?.objectId).toStrictEqual(inserted.objectId);
 
 })
 
 test('test types 3', async () => {
-  const date = new Date;
   const inserted = await proto.Query('Test').insert({
     array: [{ array: [1, 2, 3] }, { array: [4, 5, 6] }],
   });
@@ -235,7 +233,37 @@ test('test types 3', async () => {
   expect((await q.clone().every('array', q => q.every('array', q => q.equalTo('$', 0))).first())?.objectId).toStrictEqual(undefined);
 
   expect((await q.clone().some('array', q => q.some('array', q => q.equalTo('$', 1))).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().some('array', q => q.some('array', q => q.notEqualTo('$', 0))).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().every('array', q => q.every('array', q => q.notEqualTo('$', 0))).first())?.objectId).toStrictEqual(inserted.objectId);
+
+})
+
+test('test types 4', async () => {
+  const inserted = await proto.Query('Test').insert({
+    array: [[1, 2, 3], [4, 5, 6], new Date],
+  });
+
+  const q = proto.Query('Test').equalTo('_id', inserted.objectId);
+
+  expect((await q.clone().every('array', q => q.every('$', q => q.equalTo('$', 0))).first())?.objectId).toStrictEqual(undefined);
+  expect((await q.clone().every('array', q => q.every('$', q => q.notEqualTo('$', 0))).first())?.objectId).toStrictEqual(undefined);
+
+  expect((await q.clone().some('array', q => q.some('$', q => q.equalTo('$', 1))).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().some('array', q => q.some('$', q => q.notEqualTo('$', 0))).first())?.objectId).toStrictEqual(inserted.objectId);
+
+})
+
+test('test types 5', async () => {
+  const inserted = await proto.Query('Test').insert({
+    array: [{ array: [1, 2, 3] }, { array: [4, 5, 6] }, new Date],
+  });
+
+  const q = proto.Query('Test').equalTo('_id', inserted.objectId);
+
+  expect((await q.clone().every('array', q => q.every('array', q => q.equalTo('$', 0))).first())?.objectId).toStrictEqual(undefined);
+
+  expect((await q.clone().some('array', q => q.some('array', q => q.equalTo('$', 1))).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().some('array', q => q.some('array', q => q.notEqualTo('$', 0))).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().every('array', q => q.every('array', q => q.notEqualTo('$', 0))).first())?.objectId).toStrictEqual(inserted.objectId);
 
 })

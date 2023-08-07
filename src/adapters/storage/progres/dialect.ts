@@ -97,9 +97,6 @@ export const PostgresDialect: SqlDialect = {
   nullSafeNotEqual() {
     return sql`IS DISTINCT FROM`;
   },
-  encodeValue(value: TValue) {
-    return _encodeValue(value);
-  },
   encodeType(dataType: TSchema.DataType, value: TValue) {
     switch (_.isString(dataType) ? dataType : dataType.type) {
       case 'boolean':
@@ -123,7 +120,14 @@ export const PostgresDialect: SqlDialect = {
         if (_.isPlainObject(value)) return sql`${{ value: _encodeValue(value) }}`;
         break;
       case 'array':
-        if (_.isArray(value)) return sql`${{ value: _encodeValue(value) }}`;
+        if (_.isArray(value)) {
+          const _encodeJson = (value: any): SQL => {
+            if (_.isArray(value)) return sql`jsonb_build_array(${_.map(value, x => _encodeJson(x))})`;
+            if (_.isPlainObject(value)) return sql`${{ value }}`;
+            return sql`to_jsonb(${{ value }})`;
+          }
+          return sql`ARRAY[${_.map(value, x => _encodeJson(_encodeValue(x)))}]::JSONB[]`;
+        }
         break;
       case 'pointer':
         if (value instanceof TObject && value.objectId) return sql`${{ value: `${value.className}$${value.objectId}` }}`;
@@ -300,76 +304,76 @@ export const PostgresDialect: SqlDialect = {
         element = sql`jsonb_extract_path(${element}, ${_.map(subpath, x => sql`${{ quote: x }}`)})`;
       }
     }
-    const _encodeValue = (value: TValue) => dataType ? this.encodeType(dataType, value) : _encodeJsonValue(value);
+    const encodeValue = (value: TValue) => dataType ? this.encodeType(dataType, value) : _encodeJsonValue(value);
     switch (expr.type) {
       case '$eq':
         {
           if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
           if (_.isNil(expr.value)) return sql`${element} IS NULL`;
-          return sql`${element} ${this.nullSafeEqual()} ${_encodeValue(expr.value)}`;
+          return sql`${element} ${this.nullSafeEqual()} ${encodeValue(expr.value)}`;
         }
       case '$gt':
         {
           if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
-          return sql`${element} > ${_encodeValue(expr.value)}`;
+          return sql`${element} > ${encodeValue(expr.value)}`;
         }
       case '$gte':
         {
           if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
-          return sql`${element} >= ${_encodeValue(expr.value)}`;
+          return sql`${element} >= ${encodeValue(expr.value)}`;
         }
       case '$lt':
         {
           if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
-          return sql`${element} < ${_encodeValue(expr.value)}`;
+          return sql`${element} < ${encodeValue(expr.value)}`;
         }
       case '$lte':
         {
           if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
-          return sql`${element} <= ${_encodeValue(expr.value)}`;
+          return sql`${element} <= ${encodeValue(expr.value)}`;
         }
       case '$ne':
         {
           if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
           if (_.isNil(expr.value)) return sql`${element} IS NOT NULL`;
-          return sql`${element} ${this.nullSafeNotEqual()} ${_encodeValue(expr.value)}`;
+          return sql`${element} ${this.nullSafeNotEqual()} ${encodeValue(expr.value)}`;
         }
       case '$in':
         {
           if (!_.isArray(expr.value)) break;
-          return sql`${element} IN (${_.map(expr.value, x => _encodeValue(x))})`;
+          return sql`${element} IN (${_.map(expr.value, x => encodeValue(x))})`;
         }
       case '$nin':
         {
           if (!_.isArray(expr.value)) break;
-          return sql`${element} NOT IN (${_.map(expr.value, x => _encodeValue(x))})`;
+          return sql`${element} NOT IN (${_.map(expr.value, x => encodeValue(x))})`;
         }
       case '$subset':
         {
           if (!_.isArray(expr.value)) break;
           if (!dataType || dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
-            return sql`${element} <@ ${{ value: this.encodeValue(expr.value) }}`;
+            return sql`${element} <@ ${{ value: _encodeValue(expr.value) }}`;
           }
         }
       case '$superset':
         {
           if (!_.isArray(expr.value)) break;
           if (!dataType || dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
-            return sql`${element} @> ${{ value: this.encodeValue(expr.value) }}`;
+            return sql`${element} @> ${{ value: _encodeValue(expr.value) }}`;
           }
         }
       case '$disjoint':
         {
           if (!_.isArray(expr.value)) break;
           if (!dataType || dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
-            return sql`NOT ${element} && ${{ value: this.encodeValue(expr.value) }}`;
+            return sql`NOT ${element} && ${{ value: _encodeValue(expr.value) }}`;
           }
         }
       case '$intersect':
         {
           if (!_.isArray(expr.value)) break;
           if (!dataType || dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
-            return sql`${element} && ${{ value: this.encodeValue(expr.value) }}`;
+            return sql`${element} && ${{ value: _encodeValue(expr.value) }}`;
           }
         }
       case '$not':
