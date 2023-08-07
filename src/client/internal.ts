@@ -120,7 +120,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
       url: 'files',
       responseType: 'text',
       data: {
-        attributes: serialize(_.fromPairs(object.keys().map(k => [k, object.get(k as any)])), serializeOpts),
+        attributes: serialize(_.fromPairs(object.keys().map(k => [k, object.get(k)])), serializeOpts),
         file: buffer,
       },
       headers: {

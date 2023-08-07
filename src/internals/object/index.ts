@@ -130,7 +130,7 @@ export class TObject {
     for (const k of _.toPath(key)) {
       if (isPrimitiveValue(value)) return null;
       if (value instanceof TObject) {
-        value = value.get(k as any);
+        value = value.get(k);
       } else {
         value = _.get(value, k);
       }
