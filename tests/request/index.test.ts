@@ -674,5 +674,24 @@ test('test comparable', async () => {
   expect((await q.clone().lessThanOrEqualTo('decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().greaterThanOrEqualTo('number', 42).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().greaterThanOrEqualTo('decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
-  
+
+  expect((await q.clone().lessThan('object.number', 0).first())?.objectId).toStrictEqual(undefined);
+  expect((await q.clone().lessThan('object.decimal', 0).first())?.objectId).toStrictEqual(undefined);
+  expect((await q.clone().greaterThan('object.date', new Date).first())?.objectId).toStrictEqual(undefined);
+  expect((await q.clone().lessThanOrEqualTo('object.number', 0).first())?.objectId).toStrictEqual(undefined);
+  expect((await q.clone().lessThanOrEqualTo('object.decimal', 0).first())?.objectId).toStrictEqual(undefined);
+  expect((await q.clone().greaterThanOrEqualTo('object.date', new Date).first())?.objectId).toStrictEqual(undefined);
+
+  expect((await q.clone().greaterThan('object.number', 0).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().greaterThan('object.decimal', 0).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().lessThan('object.date', new Date).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().greaterThanOrEqualTo('object.number', 0).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().greaterThanOrEqualTo('object.decimal', 0).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().lessThanOrEqualTo('object.date', new Date).first())?.objectId).toStrictEqual(inserted.objectId);
+
+  expect((await q.clone().lessThanOrEqualTo('object.number', 42).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().lessThanOrEqualTo('object.decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().greaterThanOrEqualTo('object.number', 42).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().greaterThanOrEqualTo('object.decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
+
 })
