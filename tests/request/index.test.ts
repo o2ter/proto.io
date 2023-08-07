@@ -580,3 +580,28 @@ test('test upsert 2', async () => {
   });
   expect(upserted.get('array')).toStrictEqual([1, 2, 3, date, new Decimal('0.001')]);
 })
+
+test('test match', async () => {
+
+  const parent = await proto.Query('Test').insert({});
+  for (const i of [1, 2, 3, 4, 5]) {
+    await proto.Query('Test').insert({
+      number: i,
+      decimal: new Decimal(`0.00${i}`),
+      pointer: parent,
+    });
+  }
+
+  const matched = await proto.Query('Test')
+    .equalTo('_id', parent.objectId)
+    .includes('relation2')
+    .match('relation2', q => q
+      .greaterThan('number', 1)
+      .sort({ _created_at: 1 })
+      .limit(1))
+    .first();
+
+  expect(matched?.get('relation2').length).toStrictEqual(1);
+  expect(matched?.get('relation2.0.number')).toStrictEqual(2);
+
+})
