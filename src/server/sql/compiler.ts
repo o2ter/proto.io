@@ -98,6 +98,17 @@ const _decodeSorting = (
   return sorting;
 }
 
+const _defaultInsertOpts = (options: InsertOptions) => {
+  const objectId = generateId(options.objectIdSize);
+  return {
+    _id: sql`${{ value: objectId }}`,
+    ...options.className === '_User' ? {
+      _rperm: sql`${{ value: [objectId] }}`,
+      _wperm: sql`${{ value: [objectId] }}`,
+    } : {},
+  };
+}
+
 export class QueryCompiler {
 
   schema: Record<string, TSchema>;
@@ -276,17 +287,6 @@ export class QueryCompiler {
     return updates;
   }
 
-  private _defaultInsertOpts(options: InsertOptions) {
-    const objectId = generateId(options.objectIdSize);
-    return {
-      _id: sql`${{ value: objectId }}`,
-      ...options.className === '_User' ? {
-        _rperm: sql`${{ value: [objectId] }}`,
-        _wperm: sql`${{ value: [objectId] }}`,
-      } : {},
-    };
-  }
-
   private _encodeObjectAttrs(className: string, attrs: Record<string, TValue>
   ): Record<string, SQL> {
     const fields = this.schema[className].fields;
@@ -356,7 +356,7 @@ export class QueryCompiler {
   insert(options: InsertOptions, attrs: Record<string, TValue>) {
 
     const _attrs: [string, SQL][] = _.toPairs({
-      ...this._defaultInsertOpts(options),
+      ..._defaultInsertOpts(options),
       ...this._encodeObjectAttrs(options.className, attrs),
     });
 
@@ -407,7 +407,7 @@ export class QueryCompiler {
   upsertOne(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>) {
 
     const _insert: [string, SQL][] = _.toPairs({
-      ...this._defaultInsertOpts(query),
+      ..._defaultInsertOpts(query),
       ...this._encodeObjectAttrs(query.className, setOnInsert),
     });
 
