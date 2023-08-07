@@ -624,4 +624,15 @@ test('test match', async () => {
   expect(matched3?.get('relation2').length).toStrictEqual(1);
   expect(matched3?.get('relation2.0.number')).toStrictEqual(2);
 
+  const matched4 = await proto.Query('Test')
+    .equalTo('_id', parent.objectId)
+    .includes('relation2')
+    .match('relation2', q => q
+      .sort({ decimal: -1 })
+      .limit(1))
+    .first();
+
+  expect(matched4?.get('relation2').length).toStrictEqual(1);
+  expect(matched4?.get('relation2.0.number')).toStrictEqual(5);
+
 })
