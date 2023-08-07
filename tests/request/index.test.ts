@@ -658,13 +658,17 @@ test('test comparable', async () => {
 
   expect((await q.clone().lessThan('number', 0).first())?.objectId).toStrictEqual(undefined);
   expect((await q.clone().lessThan('decimal', 0).first())?.objectId).toStrictEqual(undefined);
+  expect((await q.clone().greaterThan('date', new Date).first())?.objectId).toStrictEqual(undefined);
   expect((await q.clone().lessThanOrEqualTo('number', 0).first())?.objectId).toStrictEqual(undefined);
   expect((await q.clone().lessThanOrEqualTo('decimal', 0).first())?.objectId).toStrictEqual(undefined);
+  expect((await q.clone().greaterThanOrEqualTo('date', new Date).first())?.objectId).toStrictEqual(undefined);
 
   expect((await q.clone().greaterThan('number', 0).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().greaterThan('decimal', 0).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().lessThan('date', new Date).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().greaterThanOrEqualTo('number', 0).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().greaterThanOrEqualTo('decimal', 0).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().lessThanOrEqualTo('date', new Date).first())?.objectId).toStrictEqual(inserted.objectId);
 
   expect((await q.clone().lessThanOrEqualTo('number', 42).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().lessThanOrEqualTo('decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
