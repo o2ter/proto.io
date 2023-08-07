@@ -43,7 +43,7 @@ export interface SqlDialect {
 
   selectPopulate(
     compiler: QueryCompiler,
-    parent: Pick<Populate, 'className' | 'name' | 'includes'> & { colname: string },
+    parent: Pick<Populate, 'className' | 'name' | 'colname' | 'includes'>,
     populate: Populate,
     field: string,
   ): { column: SQL, join?: SQL }
@@ -59,7 +59,7 @@ export interface SqlDialect {
   decodePopulate(
     compiler: QueryCompiler,
     context: CompileContext,
-    parent: Populate & { colname: string },
+    parent: Populate,
     remix?: { className: string; name: string; }
   ): Record<string, SQL>
 

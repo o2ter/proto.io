@@ -203,7 +203,7 @@ export const PostgresDialect: SqlDialect = {
   },
   selectPopulate(
     compiler: QueryCompiler,
-    parent: Pick<Populate, 'className' | 'name' | 'includes'> & { colname: string },
+    parent: Pick<Populate, 'className' | 'name' | 'colname' | 'includes'>,
     populate: Populate,
     field: string,
   ): { column: SQL, join?: SQL } {
@@ -246,14 +246,14 @@ export const PostgresDialect: SqlDialect = {
   decodePopulate(
     compiler: QueryCompiler,
     context: CompileContext,
-    parent: Populate & { colname: string },
+    parent: Populate,
     remix?: { className: string; name: string; }
   ): Record<string, SQL> {
     const _filter = compiler._decodeFilter(context, parent, parent.filter);
     const _populates = _.map(parent.populates, (populate, field) => this.selectPopulate(compiler, parent, populate, field));
     const _joins = _.compact(_.map(_populates, ({ join }) => join));
-    return _.reduce(parent.populates, (acc, populate, field) => ({
-      ...this.decodePopulate(compiler, context, { ...populate, colname: field }, remix),
+    return _.reduce(parent.populates, (acc, populate) => ({
+      ...this.decodePopulate(compiler, context, populate, remix),
       ...acc,
     }), {
       [parent.name]: sql`

@@ -44,6 +44,7 @@ export type QueryCompilerOptions = {
 export type Populate = {
   name: string;
   className: string;
+  colname: string;
   type: TSchema.Relation;
   foreignField?: { colname: string; type: TSchema.Relation; };
   subpaths: string[];
@@ -156,6 +157,7 @@ export class QueryCompiler {
           skip: _matches.skip,
           limit: _matches.limit,
           type: dataType.type,
+          colname,
         };
         if (isRelation(dataType) && dataType.foreignField) {
           const targetType = this.schema[dataType.target].fields[dataType.foreignField];
@@ -188,7 +190,7 @@ export class QueryCompiler {
   ) {
 
     const context = this._makeContext(query);
-    const populates = _.mapValues(context.populates, (populate, field) => this.dialect.decodePopulate(this, context, { ...populate, colname: field }));
+    const populates = _.mapValues(context.populates, (populate) => this.dialect.decodePopulate(this, context, populate));
     const stages = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
 
     const fetchName = `_fetch_$${query.className.toLowerCase()}`;
@@ -230,7 +232,7 @@ export class QueryCompiler {
 
     const _context = this._decodeIncludes(query.className, query.includes, query.matches);
     const populates = _.mapValues(
-      _context.populates, (populate, field) => this.dialect.decodePopulate(this, context, { ...populate, colname: field }, { className: query.className, name })
+      _context.populates, (populate) => this.dialect.decodePopulate(this, context, populate, { className: query.className, name })
     );
     const stages = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
 
