@@ -217,6 +217,9 @@ test('test types 2', async () => {
 
   expect((await q.clone().every('array', q => q.every('$', q => q.equalTo('$', 0))).first())?.objectId).toStrictEqual(undefined);
 
+  expect((await q.clone().filter({ array: { $size: 2 } }).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().every('array', q => q.filter({ $: { $size: 3 } })).first())?.objectId).toStrictEqual(inserted.objectId);
+
   expect((await q.clone().some('array', q => q.some('$', q => q.equalTo('$', 1))).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().some('array', q => q.some('$', q => q.notEqualTo('$', 0))).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().every('array', q => q.every('$', q => q.notEqualTo('$', 0))).first())?.objectId).toStrictEqual(inserted.objectId);

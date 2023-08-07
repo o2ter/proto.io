@@ -394,7 +394,7 @@ export const PostgresDialect: SqlDialect = {
         {
           if (!_.isNumber(expr.value) || !_.isInteger(expr.value)) break;
           if (!dataType || dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
-            return sql`array_length(${element}, 1) ${this.nullSafeEqual()} ${{ value: expr.value }}`;
+            return sql`jsonb_typeof(to_jsonb(${element})) ${this.nullSafeEqual()} 'array' AND jsonb_array_length(to_jsonb(${element})) ${this.nullSafeEqual()} ${{ value: expr.value }}`;
           }
         }
       case '$every':
