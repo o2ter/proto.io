@@ -607,10 +607,21 @@ test('test match', async () => {
   const matched2 = await proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .includes('relation2')
-    .match('relation2', q => q.equalTo('decimal', new Decimal(`0.002`)))
+    .match('relation2', q => q
+      .sort({ _created_at: -1 })
+      .limit(1))
     .first();
 
   expect(matched2?.get('relation2').length).toStrictEqual(1);
-  expect(matched2?.get('relation2.0.number')).toStrictEqual(2);
+  expect(matched2?.get('relation2.0.number')).toStrictEqual(5);
+
+  const matched3 = await proto.Query('Test')
+    .equalTo('_id', parent.objectId)
+    .includes('relation2')
+    .match('relation2', q => q.equalTo('decimal', new Decimal(`0.002`)))
+    .first();
+
+  expect(matched3?.get('relation2').length).toStrictEqual(1);
+  expect(matched3?.get('relation2.0.number')).toStrictEqual(2);
 
 })
