@@ -403,7 +403,7 @@ export const PostgresDialect: SqlDialect = {
             const tempName = `_expr_$${compiler.nextIdx()}`;
             const filter = compiler._decodeFilter(context, { name: tempName }, expr.value);
             if (!filter) break;
-            return sql`NOT EXISTS(
+            return sql`jsonb_typeof(to_jsonb(${element})) = 'array' AND NOT EXISTS(
               SELECT * FROM (
                 SELECT value AS "$"
                 FROM jsonb_array_elements(to_jsonb(${element}))
@@ -419,7 +419,7 @@ export const PostgresDialect: SqlDialect = {
             const tempName = `_expr_$${compiler.nextIdx()}`;
             const filter = compiler._decodeFilter(context, { name: tempName }, expr.value);
             if (!filter) break;
-            return sql`EXISTS(
+            return sql`jsonb_typeof(to_jsonb(${element})) = 'array' AND EXISTS(
               SELECT * FROM (
                 SELECT value AS "$"
                 FROM jsonb_array_elements(to_jsonb(${element}))
