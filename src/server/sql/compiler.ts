@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { TSchema, isPointer, isRelation } from '../schema';
+import { TSchema, isPointer, isPrimitive, isRelation } from '../schema';
 import { defaultObjectKeyTypes } from '../schema';
 import { CoditionalSelector, FieldSelector, QuerySelector } from '../query/validator/parser';
 import { DecodedBaseQuery, DecodedQuery, FindOneOptions, FindOptions, InsertOptions } from '../storage';
@@ -332,7 +332,12 @@ export class QueryCompiler {
     includes: Record<string, TSchema.DataType>,
   ): SQL[] {
     const _includes = _.pickBy(includes, v => _.isString(v) || (v.type !== 'pointer' && v.type !== 'relation'));
-    return _.map(_.keys(_includes), (colname) => sql`${{ identifier: className }}.${{ identifier: colname }}`);
+    return _.map(_includes, (dataType, colname) => {
+      if (!_.isString(dataType) && isPrimitive(dataType) && !_.isNil(dataType.default)) {
+        return sql`COALESCE(${{ identifier: className }}.${{ identifier: colname }}, ${{ value: dataType.default }}) AS ${{ identifier: colname }}`;
+      }
+      return sql`${{ identifier: className }}.${{ identifier: colname }}`;
+    });
   }
 
   _decodeSort(className: string, sort: Record<string, 1 | -1>): SQL {

@@ -300,9 +300,6 @@ export const PostgresDialect: SqlDialect = {
         element = sql`jsonb_extract_path(${element}, ${_.map(subpath, x => sql`${{ quote: x }}`)})`;
       }
     }
-    if (dataType && !_.isString(dataType) && isPrimitive(dataType) && !_.isNil(dataType.default)) {
-      element = sql`COALESCE(${element}, ${{ value: dataType.default }})`;
-    }
     const _encodeValue = (value: TValue) => dataType ? this.encodeType(dataType, value) : _encodeJsonValue(value);
     switch (expr.type) {
       case '$eq':
