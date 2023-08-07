@@ -404,15 +404,19 @@ export const PostgresDialect: SqlDialect = {
       case '$every':
         {
           if (!(expr.value instanceof QuerySelector)) break;
-          if (!dataType || dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
-            const tempName = `_expr_$${compiler.nextIdx()}`;
-            const filter = compiler._decodeFilter(context, { name: tempName }, expr.value);
-            if (!filter) break;
-            return sql`jsonb_typeof(${dataType ? sql`to_jsonb(${element})` : sql`${element}`}) ${this.nullSafeEqual()} 'array' AND NOT EXISTS(
-              SELECT * FROM (
-                SELECT value AS "$"
-                FROM jsonb_array_elements(${dataType ? sql`to_jsonb(${element})` : sql`${element}`})
-              ) AS ${{ identifier: tempName }}
+
+          const tempName = `_expr_$${compiler.nextIdx()}`;
+          const filter = compiler._decodeFilter(context, { name: tempName }, expr.value);
+          if (!filter) break;
+
+          if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
+            return sql`NOT EXISTS(
+              SELECT * FROM (SELECT UNNEST AS "$" FROM UNNEST(${element})) AS ${{ identifier: tempName }}
+              WHERE NOT (${filter})
+            )`;
+          } else if (!dataType) {
+            return sql`jsonb_typeof(${element}) ${this.nullSafeEqual()} 'array' AND NOT EXISTS(
+              SELECT * FROM (SELECT value AS "$" FROM jsonb_array_elements(${element})) AS ${{ identifier: tempName }}
               WHERE NOT (${filter})
             )`;
           }
@@ -420,15 +424,19 @@ export const PostgresDialect: SqlDialect = {
       case '$some':
         {
           if (!(expr.value instanceof QuerySelector)) break;
-          if (!dataType || dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
-            const tempName = `_expr_$${compiler.nextIdx()}`;
-            const filter = compiler._decodeFilter(context, { name: tempName }, expr.value);
-            if (!filter) break;
-            return sql`jsonb_typeof(${dataType ? sql`to_jsonb(${element})` : sql`${element}`}) ${this.nullSafeEqual()} 'array' AND EXISTS(
-              SELECT * FROM (
-                SELECT value AS "$"
-                FROM jsonb_array_elements(${dataType ? sql`to_jsonb(${element})` : sql`${element}`})
-              ) AS ${{ identifier: tempName }}
+
+          const tempName = `_expr_$${compiler.nextIdx()}`;
+          const filter = compiler._decodeFilter(context, { name: tempName }, expr.value);
+          if (!filter) break;
+
+          if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
+            return sql`EXISTS(
+              SELECT * FROM (SELECT UNNEST AS "$" FROM UNNEST(${element})) AS ${{ identifier: tempName }}
+              WHERE ${filter}
+            )`;
+          } else if (!dataType) {
+            return sql`jsonb_typeof(${element}) ${this.nullSafeEqual()} 'array' AND EXISTS(
+              SELECT * FROM (SELECT value AS "$" FROM jsonb_array_elements(${element})) AS ${{ identifier: tempName }}
               WHERE ${filter}
             )`;
           }
