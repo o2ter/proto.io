@@ -438,26 +438,20 @@ export const PostgresDialect: SqlDialect = {
         }
       case '$starts':
         {
+          if (!_.isString(expr.value)) break;
           if (dataType === 'string' || (!_.isString(dataType) && dataType?.type === 'string')) {
-            if (_.isString(expr.value)) {
-              return sql`${element} LIKE ${{ value: `${expr.value.replace(/([\\_%])/g, '\\$1')}%` }}`;
-            }
+            return sql`${element} LIKE ${{ value: `${expr.value.replace(/([\\_%])/g, '\\$1')}%` }}`;
           } else if (!dataType) {
-            if (_.isString(expr.value)) {
-              return sql`jsonb_typeof(${element}) ${this.nullSafeEqual()} 'string' AND ${element}::TEXT LIKE ${{ value: `${expr.value.replace(/([\\_%])/g, '\\$1')}%` }}`;
-            }
+            return sql`jsonb_typeof(${element}) ${this.nullSafeEqual()} 'string' AND ${element}::TEXT LIKE ${{ value: `${expr.value.replace(/([\\_%])/g, '\\$1')}%` }}`;
           }
         }
       case '$ends':
         {
+          if (!_.isString(expr.value)) break;
           if (dataType === 'string' || (!_.isString(dataType) && dataType?.type === 'string')) {
-            if (_.isString(expr.value)) {
-              return sql`${element} LIKE ${{ value: `%${expr.value.replace(/([\\_%])/g, '\\$1')}` }}`;
-            }
+            return sql`${element} LIKE ${{ value: `%${expr.value.replace(/([\\_%])/g, '\\$1')}` }}`;
           } else if (!dataType) {
-            if (_.isString(expr.value)) {
-              return sql`jsonb_typeof(${element}) ${this.nullSafeEqual()} 'string' AND ${element}::TEXT LIKE ${{ value: `%${expr.value.replace(/([\\_%])/g, '\\$1')}` }}`;
-            }
+            return sql`jsonb_typeof(${element}) ${this.nullSafeEqual()} 'string' AND ${element}::TEXT LIKE ${{ value: `%${expr.value.replace(/([\\_%])/g, '\\$1')}` }}`;
           }
         }
       case '$size':
