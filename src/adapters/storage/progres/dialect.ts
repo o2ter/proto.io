@@ -456,9 +456,9 @@ export const PostgresDialect: SqlDialect = {
         {
           if (!_.isNumber(expr.value) || !_.isInteger(expr.value)) break;
           if (dataType === 'string' || (!_.isString(dataType) && dataType?.type === 'string')) {
-            return sql`length(COALESCE(${element}, '')) ${this.nullSafeEqual()} ${{ value: expr.value }}`;
+            return sql`COALESCE(length(${element}), 0) ${this.nullSafeEqual()} ${{ value: expr.value }}`;
           } else if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
-            return sql`array_length(COALESCE(${element}, '{}'), 1) ${this.nullSafeEqual()} ${{ value: expr.value }}`;
+            return sql`COALESCE(array_length(${element}, 1), 0) = ${{ value: expr.value }}`;
           } else if (!dataType) {
             return sql`(
               CASE jsonb_typeof(${element}) 
@@ -473,14 +473,14 @@ export const PostgresDialect: SqlDialect = {
         {
           if (!_.isBoolean(expr.value)) break;
           if (dataType === 'string' || (!_.isString(dataType) && dataType?.type === 'string')) {
-            return sql`length(COALESCE(${element}, '')) ${expr.value ? this.nullSafeEqual() : this.nullSafeNotEqual()} 0`;
+            return sql`COALESCE(length(${element}), 0) ${{ literal: expr.value ? '=' : '<>' }} 0`;
           } else if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
-            return sql`${element} ${expr.value ? sql`IS NULL OR` : sql`IS NOT NULL AND`} array_length(${element}, 1) ${expr.value ? this.nullSafeEqual() : this.nullSafeNotEqual()} 0`;
+            return sql`COALESCE(array_length(${element}, 1), 0) ${{ literal: expr.value ? '=' : '<>' }} 0`;
           } else if (!dataType) {
             return sql`(
               CASE jsonb_typeof(${element}) 
-                WHEN 'array' THEN jsonb_array_length(${element}) ${expr.value ? this.nullSafeEqual() : this.nullSafeNotEqual()} 0
-                WHEN 'string' THEN length(${element} #>> '{}') ${expr.value ? this.nullSafeEqual() : this.nullSafeNotEqual()} 0
+                WHEN 'array' THEN jsonb_array_length(${element}) ${{ literal: expr.value ? '=' : '<>' }} 0
+                WHEN 'string' THEN length(${element} #>> '{}') ${{ literal: expr.value ? '=' : '<>' }} 0
                 ELSE jsonb_typeof(${element}) IS NULL AND ${{ value: expr.value }}
               END
             )`;
