@@ -266,7 +266,7 @@ export const PostgresDialect: SqlDialect = {
         FROM ${remix?.className === parent.className ? sql`
         (SELECT * FROM ${{ identifier: remix.name }} UNION SELECT * FROM ${{ identifier: parent.className }})
         ` : { identifier: parent.className }} AS ${{ identifier: parent.name }}
-        ${!_.isEmpty(_joins) ? _joins : sql``}
+        ${!_.isEmpty(_joins) ? { literal: _joins, separator: '\n' } : sql``}
         ${_filter ? sql`WHERE ${_filter}` : sql``}
       `,
     });

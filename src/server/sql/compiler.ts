@@ -214,7 +214,7 @@ export class QueryCompiler {
         SELECT * FROM (
           SELECT ${_includes}
           FROM ${{ identifier: query.className }} AS ${{ identifier: fetchName }}
-          ${!_.isEmpty(_joins) ? _joins : sql``}
+          ${!_.isEmpty(_joins) ? { literal: _joins, separator: '\n' } : sql``}
         ) AS ${{ identifier: fetchName }}
         ${_filter ? sql`WHERE ${_filter}` : sql``}
         ${!_.isEmpty(query.sort) ? sql`ORDER BY ${this._encodeSort(fetchName, query.sort)}` : sql``}
@@ -250,7 +250,7 @@ export class QueryCompiler {
       ${!_.isEmpty(stages) ? sql`, ${_.map(stages, (q, n) => sql`${{ identifier: n }} AS (${q})`)}` : sql``}
       SELECT ${_includes}
       FROM ${{ identifier: name }}
-      ${!_.isEmpty(_joins) ? _joins : sql``}
+      ${!_.isEmpty(_joins) ? { literal: _joins, separator: '\n' } : sql``}
     `;
   }
 
