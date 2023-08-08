@@ -182,6 +182,10 @@ test('test types', async () => {
   expect((await q.clone().startsWith('string', 'llo').first())?.objectId).toStrictEqual(undefined);
   expect((await q.clone().startsWith('string', 'ii').first())?.objectId).toStrictEqual(undefined);
 
+  expect((await q.clone().endsWith('object.string', 'hel').first())?.objectId).toStrictEqual(undefined);
+  expect((await q.clone().startsWith('object.string', 'llo').first())?.objectId).toStrictEqual(undefined);
+  expect((await q.clone().startsWith('object.string', 'ii').first())?.objectId).toStrictEqual(undefined);
+
   expect((await q.clone().equalTo('default', 42).first())?.objectId).toStrictEqual(inserted.objectId);
 
   expect((await q.clone().equalTo('object.null', null).first())?.objectId).toStrictEqual(inserted.objectId);
@@ -252,6 +256,10 @@ test('test types', async () => {
   expect((await q.clone().startsWith('string', 'hel').first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().endsWith('string', 'llo').first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().pattern('string', 'll').first())?.objectId).toStrictEqual(inserted.objectId);
+
+  expect((await q.clone().startsWith('object.string', 'hel').first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().endsWith('object.string', 'llo').first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().pattern('object.string', 'll').first())?.objectId).toStrictEqual(inserted.objectId);
 
 })
 
