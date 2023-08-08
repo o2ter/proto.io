@@ -97,6 +97,7 @@ test('test types', async () => {
       decimal: new Decimal('0.001'),
       string: 'hello',
       date: date,
+      array: [1, 2, 3, date, new Decimal('0.001')],
     },
     array: [1, 2, 3, date, new Decimal('0.001')],
   });
@@ -111,6 +112,7 @@ test('test types', async () => {
     decimal: new Decimal('0.001'),
     string: 'hello',
     date: date,
+    array: [1, 2, 3, date, new Decimal('0.001')],
   });
   expect(inserted.get('array')).toStrictEqual([1, 2, 3, date, new Decimal('0.001')]);
 
