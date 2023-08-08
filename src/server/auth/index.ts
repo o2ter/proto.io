@@ -74,12 +74,12 @@ export default <E>(proto: Proto<E>, jwtToken?: string): RequestHandler => async 
     { user: req.user?._id, master: req.isMaster }, jwtToken, proto[PVK].options.jwtSignOptions
   );
 
+  res.cookie(AUTH_COOKIE_KEY, token, proto[PVK].options.cookieOptions);
+
   const key = req.header(MASTER_KEY_HEADER_NAME);
   if (!_.isEmpty(key)) {
     const masterKey = proto[PVK].options.masterKey;
     req.isMaster = !_.isEmpty(masterKey) && key === masterKey;
   }
-
-  res.cookie(AUTH_COOKIE_KEY, token, proto[PVK].options.cookieOptions);
   return next();
 };
