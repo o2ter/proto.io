@@ -31,8 +31,8 @@ import { PVK, TRole, TUser } from '../../internals';
 import {
   AUTH_COOKIE_KEY,
   MASTER_KEY_HEADER_NAME,
-  MASTER_PASS_HEADER_NAME,
   MASTER_USER_HEADER_NAME,
+  MASTER_PASS_HEADER_NAME,
 } from '../../common/const';
 
 export default <E>(proto: Proto<E>, jwtToken?: string): RequestHandler => async (req: any, res, next) => {
