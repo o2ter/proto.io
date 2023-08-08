@@ -481,8 +481,7 @@ export const PostgresDialect: SqlDialect = {
               CASE jsonb_typeof(${element}) 
                 WHEN 'array' THEN jsonb_array_length(${element}) ${expr.value ? this.nullSafeEqual() : this.nullSafeNotEqual()} 0
                 WHEN 'string' THEN length(${element} #>> '{}') ${expr.value ? this.nullSafeEqual() : this.nullSafeNotEqual()} 0
-                WHEN 'null' THEN ${{ value: expr.value }}
-                ELSE false
+                ELSE jsonb_typeof(${element}) IS NULL AND ${{ value: expr.value }}
               END
             )`;
           }
