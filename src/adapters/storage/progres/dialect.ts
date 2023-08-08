@@ -420,23 +420,44 @@ export const PostgresDialect: SqlDialect = {
         }
       case '$pattern':
         {
-          if (_.isString(expr.value)) {
-            return sql`${element} LIKE ${{ value: `%${expr.value.replace(/([\\_%])/g, '\\$1')}%` }}`;
-          } else if (_.isRegExp(expr.value)) {
-            if (expr.value.ignoreCase) return sql`${element} ~* ${{ value: expr.value.source }}`;
-            return sql`${element} ~ ${{ value: expr.value.source }}`;
+          if (dataType === 'string' || (!_.isString(dataType) && dataType?.type === 'string')) {
+            if (_.isString(expr.value)) {
+              return sql`${element} LIKE ${{ value: `%${expr.value.replace(/([\\_%])/g, '\\$1')}%` }}`;
+            } else if (_.isRegExp(expr.value)) {
+              if (expr.value.ignoreCase) return sql`${element} ~* ${{ value: expr.value.source }}`;
+              return sql`${element} ~ ${{ value: expr.value.source }}`;
+            }
+          } else if (!dataType) {
+            if (_.isString(expr.value)) {
+              return sql`jsonb_typeof(${element}) ${this.nullSafeEqual()} 'string' AND ${element}::TEXT LIKE ${{ value: `%${expr.value.replace(/([\\_%])/g, '\\$1')}%` }}`;
+            } else if (_.isRegExp(expr.value)) {
+              if (expr.value.ignoreCase) return sql`${element} ~* ${{ value: expr.value.source }}`;
+              return sql`jsonb_typeof(${element}) ${this.nullSafeEqual()} 'string' AND ${element}::TEXT ~ ${{ value: expr.value.source }}`;
+            }
           }
         }
       case '$starts':
         {
-          if (_.isString(expr.value)) {
-            return sql`${element} LIKE ${{ value: `${expr.value.replace(/([\\_%])/g, '\\$1')}%` }}`;
+          if (dataType === 'string' || (!_.isString(dataType) && dataType?.type === 'string')) {
+            if (_.isString(expr.value)) {
+              return sql`${element} LIKE ${{ value: `${expr.value.replace(/([\\_%])/g, '\\$1')}%` }}`;
+            }
+          } else if (!dataType) {
+            if (_.isString(expr.value)) {
+              return sql`jsonb_typeof(${element}) ${this.nullSafeEqual()} 'string' AND ${element}::TEXT LIKE ${{ value: `${expr.value.replace(/([\\_%])/g, '\\$1')}%` }}`;
+            }
           }
         }
       case '$ends':
         {
-          if (_.isString(expr.value)) {
-            return sql`${element} LIKE ${{ value: `%${expr.value.replace(/([\\_%])/g, '\\$1')}` }}`;
+          if (dataType === 'string' || (!_.isString(dataType) && dataType?.type === 'string')) {
+            if (_.isString(expr.value)) {
+              return sql`${element} LIKE ${{ value: `%${expr.value.replace(/([\\_%])/g, '\\$1')}` }}`;
+            }
+          } else if (!dataType) {
+            if (_.isString(expr.value)) {
+              return sql`jsonb_typeof(${element}) ${this.nullSafeEqual()} 'string' AND ${element}::TEXT LIKE ${{ value: `%${expr.value.replace(/([\\_%])/g, '\\$1')}` }}`;
+            }
           }
         }
       case '$size':
