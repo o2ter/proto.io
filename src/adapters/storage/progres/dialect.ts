@@ -327,19 +327,19 @@ export const PostgresDialect: SqlDialect = {
           if (dataType && isPrimitive(dataType)) {
             switch (_typeof(dataType)) {
               case 'boolean':
-                if (!_.isBoolean(expr.value)) return sql`false`;
+                if (!_.isBoolean(expr.value)) break;
                 return sql`${element} ${{ literal: operatorMap[expr.type] }} ${encodeValue(expr.value)}`;
               case 'number':
               case 'decimal':
-                if (!(expr.value instanceof Decimal) && !_.isNumber(expr.value)) return sql`false`;
+                if (!(expr.value instanceof Decimal) && !_.isNumber(expr.value)) break;
                 return sql`${element} ${{ literal: operatorMap[expr.type] }} ${encodeValue(expr.value)}`;
               case 'string':
-                if (!_.isString(expr.value)) return sql`false`;
+                if (!_.isString(expr.value)) break;
                 return sql`${element} ${{ literal: operatorMap[expr.type] }} ${encodeValue(expr.value)}`;
               case 'date':
-                if (!_.isDate(expr.value)) return sql`false`;
+                if (!_.isDate(expr.value)) break;
                 return sql`${element} ${{ literal: operatorMap[expr.type] }} ${encodeValue(expr.value)}`;
-              default: return sql`false`;
+              default: break;
             }
           } else if (!dataType) {
             if (expr.value instanceof Decimal || _.isNumber(expr.value)) {
@@ -363,8 +363,6 @@ export const PostgresDialect: SqlDialect = {
             } else {
               return sql`${element} ${{ literal: operatorMap[expr.type] }} ${encodeValue(expr.value)}`
             }
-          } else {
-            return sql`false`;
           }
         }
       case '$in':
