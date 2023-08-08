@@ -461,9 +461,9 @@ export const PostgresDialect: SqlDialect = {
             return sql`COALESCE(array_length(${element}, 1), 0) = ${{ value: expr.value }}`;
           } else if (!dataType) {
             return sql`(
-              CASE
-                WHEN jsonb_typeof(${element}) ${this.nullSafeEqual()} 'array' THEN jsonb_array_length(${element}) = ${{ value: expr.value }}
-                WHEN jsonb_typeof(${element}) ${this.nullSafeEqual()} 'string' THEN length(${element} #>> '{}') = ${{ value: expr.value }}
+              CASE jsonb_typeof(${element})
+                WHEN 'array' THEN jsonb_array_length(${element}) = ${{ value: expr.value }}
+                WHEN 'string' THEN length(${element} #>> '{}') = ${{ value: expr.value }}
                 ELSE jsonb_typeof(${element}) IS NULL AND ${{ value: expr.value === 0 }}
               END
             )`;
@@ -478,9 +478,9 @@ export const PostgresDialect: SqlDialect = {
             return sql`COALESCE(array_length(${element}, 1), 0) ${{ literal: expr.value ? '=' : '<>' }} 0`;
           } else if (!dataType) {
             return sql`(
-              CASE
-                WHEN jsonb_typeof(${element}) ${this.nullSafeEqual()} 'array' THEN jsonb_array_length(${element}) ${{ literal: expr.value ? '=' : '<>' }} 0
-                WHEN jsonb_typeof(${element}) ${this.nullSafeEqual()} 'string' THEN length(${element} #>> '{}') ${{ literal: expr.value ? '=' : '<>' }} 0
+              CASE jsonb_typeof(${element})
+                WHEN 'array' THEN jsonb_array_length(${element}) ${{ literal: expr.value ? '=' : '<>' }} 0
+                WHEN 'string' THEN length(${element} #>> '{}') ${{ literal: expr.value ? '=' : '<>' }} 0
                 ELSE jsonb_typeof(${element}) IS NULL AND ${{ value: expr.value }}
               END
             )`;
