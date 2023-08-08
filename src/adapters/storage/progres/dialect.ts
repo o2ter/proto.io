@@ -455,10 +455,36 @@ export const PostgresDialect: SqlDialect = {
       case '$size':
         {
           if (!_.isNumber(expr.value) || !_.isInteger(expr.value)) break;
-          if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
-            return sql`array_length(${element}, 1) ${this.nullSafeEqual()} ${{ value: expr.value }}`;
+          if (dataType === 'string' || (!_.isString(dataType) && dataType?.type === 'string')) {
+            return sql`length(COALESCE(${element}, '')) ${this.nullSafeEqual()} ${{ value: expr.value }}`;
+          } else if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
+            return sql`array_length(COALESCE(${element}, ARRAY[]::JSONB[]), 1) ${this.nullSafeEqual()} ${{ value: expr.value }}`;
           } else if (!dataType) {
-            return sql`jsonb_typeof(${element}) ${this.nullSafeEqual()} 'array' AND jsonb_array_length(${element}) ${this.nullSafeEqual()} ${{ value: expr.value }}`;
+            return sql`(
+              CASE jsonb_typeof(${element}) 
+                WHEN 'array' THEN jsonb_array_length(${element}) ${this.nullSafeEqual()} ${{ value: expr.value }}
+                WHEN 'string' THEN length(${element} #>> '{}') ${this.nullSafeEqual()} ${{ value: expr.value }}
+                ELSE false
+              END
+            )`;
+          }
+        }
+      case '$empty':
+        {
+          if (!_.isBoolean(expr.value)) break;
+          if (dataType === 'string' || (!_.isString(dataType) && dataType?.type === 'string')) {
+            return sql`length(COALESCE(${element}, '')) ${expr.value ? this.nullSafeEqual() : this.nullSafeNotEqual()} 0`;
+          } else if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
+            return sql`array_length(COALESCE(${element}, ARRAY[]::JSONB[]), 1) ${expr.value ? this.nullSafeEqual() : this.nullSafeNotEqual()} 0`;
+          } else if (!dataType) {
+            return sql`(
+              CASE jsonb_typeof(${element}) 
+                WHEN 'array' THEN jsonb_array_length(${element}) ${expr.value ? this.nullSafeEqual() : this.nullSafeNotEqual()} 0
+                WHEN 'string' THEN length(${element} #>> '{}') ${expr.value ? this.nullSafeEqual() : this.nullSafeNotEqual()} 0
+                WHEN 'null' THEN ${{ value: expr.value }}
+                ELSE false
+              END
+            )`;
           }
         }
       case '$every':

@@ -135,6 +135,9 @@ export class FieldExpression {
           case '$size':
             if (!_.isNumber(expr)) throw Error('Invalid expression');
             return new FieldExpression(type, expr);
+          case '$empty':
+            if (!_.isBoolean(expr)) throw Error('Invalid expression');
+            return new FieldExpression(type, expr);
           case '$every':
           case '$some':
             return new FieldExpression(type, QuerySelector.decode(expr ? { ...expr as any } : {}, true));

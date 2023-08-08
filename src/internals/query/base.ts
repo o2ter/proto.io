@@ -105,6 +105,18 @@ class TQueryFilterBase {
     return this.filter({ [key]: { $ends: value ?? null } });
   }
 
+  size<T extends string>(key: PathName<T>, value: number) {
+    return this.filter({ [key]: { $size: value } });
+  }
+
+  empty<T extends string>(key: PathName<T>) {
+    return this.filter({ [key]: { $empty: true } });
+  }
+
+  notEmpty<T extends string>(key: PathName<T>) {
+    return this.filter({ [key]: { $empty: false } });
+  }
+
   containsIn<T extends string>(key: PathName<T>, value: TValue[]) {
     return this.filter({ [key]: { $in: value } });
   }

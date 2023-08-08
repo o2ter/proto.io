@@ -55,7 +55,7 @@ export enum TCoditionalKeys {
 };
 
 export const allFieldQueryKeys = [
-  '$not', '$pattern', '$starts', '$ends', '$size', '$every', '$some',
+  '$not', '$pattern', '$starts', '$ends', '$size', '$empty', '$every', '$some',
   ..._.keys(TCoditionalKeys),
   ..._.keys(TValueListKeys),
   ..._.keys(TValueSetKeys),
@@ -69,6 +69,7 @@ export type TFieldQuerySelector = {
   $ends?: string;
   $pattern?: RegExp | string;
   $size?: number;
+  $empty?: boolean;
   $every?: TQuerySelector | TThisQuerySelector;
   $some?: TQuerySelector | TThisQuerySelector;
 } & { [x in keyof typeof TComparisonKeys]?: TValue; } &
