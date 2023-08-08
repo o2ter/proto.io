@@ -43,7 +43,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
 
       await response(res, async () => {
 
-        const payload: Proto<E> & { data: any } = Object.setPrototypeOf({ req }, proto);
+        const payload = _.create(proto, { req } as any);
         payload.data = applyObjectMethods(deserialize(req.body), payload);
 
         return payload[PVK].run(name, payload, { master: payload.isMaster });
