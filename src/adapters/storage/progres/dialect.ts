@@ -475,7 +475,7 @@ export const PostgresDialect: SqlDialect = {
           if (dataType === 'string' || (!_.isString(dataType) && dataType?.type === 'string')) {
             return sql`length(COALESCE(${element}, '')) ${expr.value ? this.nullSafeEqual() : this.nullSafeNotEqual()} 0`;
           } else if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
-            return sql`array_length(COALESCE(${element}, '{}'), 1) ${expr.value ? this.nullSafeEqual() : this.nullSafeNotEqual()} 0`;
+            return sql`${element} ${expr.value ? sql`IS NULL OR` : sql`IS NOT NULL AND`} array_length(${element}, 1) ${expr.value ? this.nullSafeEqual() : this.nullSafeNotEqual()} 0`;
           } else if (!dataType) {
             return sql`(
               CASE jsonb_typeof(${element}) 
