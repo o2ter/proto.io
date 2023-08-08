@@ -126,17 +126,15 @@ export class FieldExpression {
               return new FieldExpression(type, FieldExpression.decode(_expr));
             }
           case '$pattern':
-            if (_.isString(expr) || _.isRegExp(expr)) {
-              return new FieldExpression(type, expr);
-            } else {
-              throw Error('Invalid expression');
-            }
+            if (!_.isString(expr) && !_.isRegExp(expr)) throw Error('Invalid expression');
+            return new FieldExpression(type, expr);
+          case '$starts':
+          case '$ends':
+            if (!_.isString(expr)) throw Error('Invalid expression');
+            return new FieldExpression(type, expr);
           case '$size':
-            if (_.isNumber(expr)) {
-              return new FieldExpression(type, expr);
-            } else {
-              throw Error('Invalid expression');
-            }
+            if (!_.isNumber(expr)) throw Error('Invalid expression');
+            return new FieldExpression(type, expr);
           case '$every':
           case '$some':
             return new FieldExpression(type, QuerySelector.decode(expr ? { ...expr as any } : {}, true));

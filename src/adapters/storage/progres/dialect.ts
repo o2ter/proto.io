@@ -427,6 +427,18 @@ export const PostgresDialect: SqlDialect = {
             return sql`${element} ~ ${{ value: expr.value.source }}`;
           }
         }
+      case '$starts':
+        {
+          if (_.isString(expr.value)) {
+            return sql`${element} LIKE ${{ value: `%${expr.value.replace(/([\\_%])/g, '\\$1')}` }}`;
+          }
+        }
+      case '$ends':
+        {
+          if (_.isString(expr.value)) {
+            return sql`${element} LIKE ${{ value: `${expr.value.replace(/([\\_%])/g, '\\$1')}%` }}`;
+          }
+        }
       case '$size':
         {
           if (!_.isNumber(expr.value) || !_.isInteger(expr.value)) break;
