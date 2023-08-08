@@ -25,19 +25,11 @@
 
 import { PVK } from '../internals';
 import { ProtoBase } from './proto/base';
-import { ProtoFunction, ProtoFunctionOptions, ProtoTrigger } from './proto/types';
+import { ProtoTrigger } from './proto/types';
 
 export * from './proto/types';
 
 export class Proto<Ext> extends ProtoBase<Ext> {
-
-  define(
-    name: string,
-    callback: ProtoFunction<Ext>,
-    options?: Omit<ProtoFunctionOptions<Ext>, 'callback'>
-  ) {
-    this[PVK].functions[name] = options ? { callback, ...options } : callback;
-  }
 
   beforeSave<T extends string>(name: T, callback: ProtoTrigger<T, Ext>) {
     if (!this[PVK].triggers.beforeSave) this[PVK].triggers.beforeSave = {};

@@ -35,7 +35,7 @@ import {
   ExtraOptions
 } from '../../internals';
 import { Request } from 'express';
-import { ProtoOptions, ProtoKeyOptions } from './types';
+import { ProtoOptions, ProtoKeyOptions, ProtoFunction, ProtoFunctionOptions } from './types';
 
 export class ProtoBase<Ext> extends ProtoType<Ext> {
 
@@ -96,6 +96,14 @@ export class ProtoBase<Ext> extends ProtoType<Ext> {
   run(name: string, data?: TSerializable, options?: ExtraOptions) {
     const payload = Object.setPrototypeOf({ data: data ?? null }, this);
     return this[PVK].run(name, payload, options);
+  }
+
+  define(
+    name: string,
+    callback: ProtoFunction<Ext>,
+    options?: Omit<ProtoFunctionOptions<Ext>, 'callback'>
+  ) {
+    this[PVK].functions[name] = options ? { callback, ...options } : callback;
   }
 
 };
