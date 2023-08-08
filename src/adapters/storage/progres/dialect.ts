@@ -427,10 +427,10 @@ export const PostgresDialect: SqlDialect = {
             }
           } else if (!dataType) {
             if (_.isString(expr.value)) {
-              return sql`jsonb_typeof(${element}) ${this.nullSafeEqual()} 'string' AND ${element}::TEXT LIKE ${{ value: `%${expr.value.replace(/([\\_%])/g, '\\$1')}%` }}`;
+              return sql`jsonb_typeof(${element}) ${this.nullSafeEqual()} 'string' AND (${element} #>> '{}') LIKE ${{ value: `%${expr.value.replace(/([\\_%])/g, '\\$1')}%` }}`;
             } else if (_.isRegExp(expr.value)) {
               if (expr.value.ignoreCase) return sql`${element} ~* ${{ value: expr.value.source }}`;
-              return sql`jsonb_typeof(${element}) ${this.nullSafeEqual()} 'string' AND ${element}::TEXT ~ ${{ value: expr.value.source }}`;
+              return sql`jsonb_typeof(${element}) ${this.nullSafeEqual()} 'string' AND (${element} #>> '{}') ~ ${{ value: expr.value.source }}`;
             }
           }
         }
@@ -440,7 +440,7 @@ export const PostgresDialect: SqlDialect = {
           if (dataType === 'string' || (!_.isString(dataType) && dataType?.type === 'string')) {
             return sql`${element} LIKE ${{ value: `${expr.value.replace(/([\\_%])/g, '\\$1')}%` }}`;
           } else if (!dataType) {
-            return sql`jsonb_typeof(${element}) ${this.nullSafeEqual()} 'string' AND ${element}::TEXT LIKE ${{ value: `${expr.value.replace(/([\\_%])/g, '\\$1')}%` }}`;
+            return sql`jsonb_typeof(${element}) ${this.nullSafeEqual()} 'string' AND (${element} #>> '{}') LIKE ${{ value: `${expr.value.replace(/([\\_%])/g, '\\$1')}%` }}`;
           }
         }
       case '$ends':
@@ -449,7 +449,7 @@ export const PostgresDialect: SqlDialect = {
           if (dataType === 'string' || (!_.isString(dataType) && dataType?.type === 'string')) {
             return sql`${element} LIKE ${{ value: `%${expr.value.replace(/([\\_%])/g, '\\$1')}` }}`;
           } else if (!dataType) {
-            return sql`jsonb_typeof(${element}) ${this.nullSafeEqual()} 'string' AND ${element}::TEXT LIKE ${{ value: `%${expr.value.replace(/([\\_%])/g, '\\$1')}` }}`;
+            return sql`jsonb_typeof(${element}) ${this.nullSafeEqual()} 'string' AND (${element} #>> '{}') LIKE ${{ value: `%${expr.value.replace(/([\\_%])/g, '\\$1')}` }}`;
           }
         }
       case '$size':
