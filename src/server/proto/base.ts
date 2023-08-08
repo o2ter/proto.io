@@ -107,5 +107,4 @@ export class ProtoBase<Ext> extends ProtoType<Ext> {
     this[PVK].functions[name] = options ? { callback, ...options } : callback;
   }
 
-}
-;
+};
