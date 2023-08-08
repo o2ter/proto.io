@@ -97,11 +97,11 @@ class TQueryFilterBase {
     return this.filter({ [key]: { $pattern: value ?? null } });
   }
 
-  startsWith<T extends string>(key: PathName<T>, value: RegExp | string) {
+  startsWith<T extends string>(key: PathName<T>, value: string) {
     return this.filter({ [key]: { $starts: value ?? null } });
   }
 
-  endsWith<T extends string>(key: PathName<T>, value: RegExp | string) {
+  endsWith<T extends string>(key: PathName<T>, value: string) {
     return this.filter({ [key]: { $ends: value ?? null } });
   }
 

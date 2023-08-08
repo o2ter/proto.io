@@ -178,6 +178,10 @@ test('test types', async () => {
   expect((await q.clone().isSuperset('array', [4, 5, 6]).first())?.objectId).toStrictEqual(undefined);
   expect((await q.clone().isIntersect('array', [4, 5, 6]).first())?.objectId).toStrictEqual(undefined);
 
+  expect((await q.clone().endsWith('string', 'hel').first())?.objectId).toStrictEqual(undefined);
+  expect((await q.clone().startsWith('string', 'llo').first())?.objectId).toStrictEqual(undefined);
+  expect((await q.clone().startsWith('string', 'ii').first())?.objectId).toStrictEqual(undefined);
+
   expect((await q.clone().equalTo('default', 42).first())?.objectId).toStrictEqual(inserted.objectId);
 
   expect((await q.clone().equalTo('object.null', null).first())?.objectId).toStrictEqual(inserted.objectId);
@@ -244,6 +248,10 @@ test('test types', async () => {
   expect((await q.clone().isDisjoint('array', [4, 5, 6]).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().isSuperset('array', [1, 2, 3]).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().isIntersect('array', [1, 2, 3]).first())?.objectId).toStrictEqual(inserted.objectId);
+
+  expect((await q.clone().startsWith('string', 'hel').first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().endsWith('string', 'llo').first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().pattern('string', 'll').first())?.objectId).toStrictEqual(inserted.objectId);
 
 })
 
