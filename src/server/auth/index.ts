@@ -27,7 +27,7 @@ import _ from 'lodash';
 import { RequestHandler } from 'express';
 import jwt from 'jsonwebtoken';
 import { Proto } from '../index';
-import { PVK, TRole, TUser } from '../../internals';
+import { PVK, TUser } from '../../internals';
 import {
   AUTH_COOKIE_KEY,
   MASTER_USER_HEADER_NAME,
