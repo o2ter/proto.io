@@ -344,13 +344,11 @@ export const PostgresDialect: SqlDialect = {
           } else if (!dataType) {
             if (expr.value instanceof Decimal || _.isNumber(expr.value)) {
               return sql`(
-                CASE
-                  WHEN (jsonb_typeof(${element}) ${this.nullSafeEqual()} 'number')
-                    THEN ${element}::NUMERIC ${{ literal: operatorMap[expr.type] }} ${{ value: expr.value instanceof Decimal ? expr.value.toNumber() : expr.value }}
-                  WHEN (jsonb_typeof(${element} -> '$decimal') ${this.nullSafeEqual()} 'string')
-                    THEN (${element} ->> '$decimal')::DECIMAL ${{ literal: operatorMap[expr.type] }} ${{ value: expr.value instanceof Decimal ? expr.value.toString() : expr.value }}::DECIMAL
-                  ELSE false
-                END
+                jsonb_typeof(${element}) ${this.nullSafeEqual()} 'number'
+                AND ${element}::NUMERIC ${{ literal: operatorMap[expr.type] }} ${{ value: expr.value instanceof Decimal ? expr.value.toNumber() : expr.value }}
+              ) OR (
+                jsonb_typeof(${element} -> '$decimal') ${this.nullSafeEqual()} 'string'
+                AND (${element} ->> '$decimal')::DECIMAL ${{ literal: operatorMap[expr.type] }} ${{ value: expr.value instanceof Decimal ? expr.value.toString() : expr.value }}::DECIMAL
               )`;
             } else if (_.isDate(expr.value)) {
               return sql`(
