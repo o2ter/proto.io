@@ -342,7 +342,19 @@ export const PostgresDialect: SqlDialect = {
               default: return sql`false`;
             }
           } else if (!dataType) {
-            return sql`${element} ${{ literal: operatorMap[expr.type] }} ${encodeValue(expr.value)}`;
+            return sql`
+            (
+              CASE
+                WHEN (jsonb_typeof(${element}) ${this.nullSafeNotEqual()} 'object')
+                  THEN ${element} ${{ literal: operatorMap[expr.type] }} ${encodeValue(expr.value)}
+                WHEN (jsonb_typeof(${element} -> '$decimal') ${this.nullSafeEqual()} 'string')
+                  THEN (${element} ->> '$decimal')::DECIMAL ${{ literal: operatorMap[expr.type] }} ${encodeValue(expr.value)}
+                WHEN (jsonb_typeof(${element} -> '$date') ${this.nullSafeEqual()} 'string')
+                  THEN TO_TIMESTAMP(${element} ->> '$date', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') ${{ literal: operatorMap[expr.type] }} ${encodeValue(expr.value)}
+                ELSE false
+              END
+            )
+            `;
           } else {
             return sql`false`;
           }
