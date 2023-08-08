@@ -306,31 +306,46 @@ export const PostgresDialect: SqlDialect = {
           if (_.isNil(expr.value)) return sql`${element} IS NULL`;
           return sql`${element} ${this.nullSafeEqual()} ${encodeValue(expr.value)}`;
         }
-      case '$gt':
-        {
-          if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
-          return sql`${element} > ${encodeValue(expr.value)}`;
-        }
-      case '$gte':
-        {
-          if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
-          return sql`${element} >= ${encodeValue(expr.value)}`;
-        }
-      case '$lt':
-        {
-          if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
-          return sql`${element} < ${encodeValue(expr.value)}`;
-        }
-      case '$lte':
-        {
-          if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
-          return sql`${element} <= ${encodeValue(expr.value)}`;
-        }
       case '$ne':
         {
           if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
           if (_.isNil(expr.value)) return sql`${element} IS NOT NULL`;
           return sql`${element} ${this.nullSafeNotEqual()} ${encodeValue(expr.value)}`;
+        }
+      case '$gt':
+      case '$gte':
+      case '$lt':
+      case '$lte':
+        {
+          const operatorMap = {
+            '$gt': '>',
+            '$gte': '>=',
+            '$lt': '<',
+            '$lte': '<=',
+          };
+          if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
+          if (dataType && isPrimitive(dataType)) {
+            switch (_typeof(dataType)) {
+              case 'boolean':
+                if (!_.isBoolean(expr.value)) return sql`false`;
+                return sql`${element} ${{ literal: operatorMap[expr.type] }} ${encodeValue(expr.value)}`;
+              case 'number':
+              case 'decimal':
+                if (!(expr.value instanceof Decimal) && !_.isNumber(expr.value)) return sql`false`;
+                return sql`${element} ${{ literal: operatorMap[expr.type] }} ${encodeValue(expr.value)}`;
+              case 'string':
+                if (!_.isString(expr.value)) return sql`false`;
+                return sql`${element} ${{ literal: operatorMap[expr.type] }} ${encodeValue(expr.value)}`;
+              case 'date':
+                if (!_.isDate(expr.value)) return sql`false`;
+                return sql`${element} ${{ literal: operatorMap[expr.type] }} ${encodeValue(expr.value)}`;
+              default: return sql`false`;
+            }
+          } else if (!dataType) {
+            return sql`${element} ${{ literal: operatorMap[expr.type] }} ${encodeValue(expr.value)}`;
+          } else {
+            return sql`false`;
+          }
         }
       case '$in':
         {
