@@ -36,9 +36,10 @@ const proto = new ProtoClient({
   masterKey,
 });
 
-const streamToBuffer = async (stream: any) => {
+export const streamToBuffer = async (stream: any) => {
+  const _stream = stream instanceof Readable ? stream : Readable.fromWeb(stream);
   let buffer = Buffer.from([]);
-  for await (const chunk of Readable.fromWeb(stream)) {
+  for await (const chunk of _stream) {
     buffer = Buffer.concat([buffer, chunk]);
   }
   return buffer;
