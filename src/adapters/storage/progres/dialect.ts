@@ -354,11 +354,8 @@ export const PostgresDialect: SqlDialect = {
               )`;
             } else if (_.isDate(expr.value)) {
               return sql`(
-                CASE
-                WHEN (jsonb_typeof(${element} -> '$date') ${this.nullSafeEqual()} 'string')
-                  THEN ${element} ${{ literal: operatorMap[expr.type] }} ${encodeValue(expr.value)}
-                ELSE false
-                END
+                jsonb_typeof(${element} -> '$date') ${this.nullSafeEqual()} 'string'
+                AND ${element} ${{ literal: operatorMap[expr.type] }} ${encodeValue(expr.value)}
               )`;
             } else {
               return sql`${element} ${{ literal: operatorMap[expr.type] }} ${encodeValue(expr.value)}`
