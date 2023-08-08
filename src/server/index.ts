@@ -123,9 +123,8 @@ export class Proto<Ext> extends ProtoType<Ext> {
     return false;
   }
 
-  async becomeUser(user: TUser) {
-    if (!this.req) return;
-    signUser(this, this.req, user);
+  becomeUser(req: Request, user: TUser) {
+    signUser(this, req, user);
   }
 
   async setPassword(user: TUser, password: string) {
