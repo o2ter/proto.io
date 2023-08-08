@@ -37,7 +37,6 @@ import {
 import { Request } from 'express';
 import { ProtoOptions, ProtoKeyOptions, ProtoFunction, ProtoFunctionOptions } from './types';
 
-
 export class ProtoBase<Ext> extends ProtoType<Ext> {
 
   [PVK]: ProtoInternal<Ext>;
