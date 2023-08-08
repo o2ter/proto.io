@@ -456,14 +456,14 @@ export const PostgresDialect: SqlDialect = {
         {
           if (!_.isNumber(expr.value) || !_.isInteger(expr.value)) break;
           if (dataType === 'string' || (!_.isString(dataType) && dataType?.type === 'string')) {
-            return sql`COALESCE(length(${element}), 0) ${this.nullSafeEqual()} ${{ value: expr.value }}`;
+            return sql`COALESCE(length(${element}), 0) = ${{ value: expr.value }}`;
           } else if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
             return sql`COALESCE(array_length(${element}, 1), 0) = ${{ value: expr.value }}`;
           } else if (!dataType) {
             return sql`(
               CASE jsonb_typeof(${element}) 
-                WHEN 'array' THEN jsonb_array_length(${element}) ${this.nullSafeEqual()} ${{ value: expr.value }}
-                WHEN 'string' THEN length(${element} #>> '{}') ${this.nullSafeEqual()} ${{ value: expr.value }}
+                WHEN 'array' THEN jsonb_array_length(${element}) = ${{ value: expr.value }}
+                WHEN 'string' THEN length(${element} #>> '{}') = ${{ value: expr.value }}
                 ELSE false
               END
             )`;
