@@ -24,18 +24,20 @@
 //
 
 import _ from 'lodash';
-import { RequestHandler } from 'express';
 import jwt from 'jsonwebtoken';
 import { Proto } from '../index';
 import { PVK, TUser } from '../../internals';
+import { RequestHandler } from 'express';
 import {
   AUTH_COOKIE_KEY,
   MASTER_USER_HEADER_NAME,
   MASTER_PASS_HEADER_NAME,
 } from '../../common/const';
+import { signUser } from './sign';
 
-export default <E>(proto: Proto<E>, jwtToken?: string): RequestHandler => async (req: any, res, next) => {
+export default <E>(proto: Proto<E>): RequestHandler => async (req: any, res, next) => {
 
+  const jwtToken = proto[PVK].options.jwtToken;
   if (_.isNil(jwtToken)) return next();
 
   let authorization = '';
@@ -57,9 +59,7 @@ export default <E>(proto: Proto<E>, jwtToken?: string): RequestHandler => async 
     req.roles = await proto.userRoles(req.user);
   }
 
-  res.cookie(AUTH_COOKIE_KEY, jwt.sign(
-    { user: req.user?._id }, jwtToken, proto[PVK].options.jwtSignOptions
-  ), proto[PVK].options.cookieOptions);
+  signUser(proto, req, req.user);
 
   const user = req.header(MASTER_USER_HEADER_NAME);
   const pass = req.header(MASTER_PASS_HEADER_NAME);

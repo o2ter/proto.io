@@ -42,6 +42,7 @@ import { TSchema } from './schema';
 import { CookieOptions, Request } from 'express';
 import { SignOptions, VerifyOptions } from 'jsonwebtoken';
 import { Awaitable } from '../internals/types';
+import { signUser } from './auth/sign';
 
 type Callback<T, R, E> = (request: Proto<E> & T) => Awaitable<R>;
 export type ProtoFunction<E> = Callback<{ data: TSerializable; }, TSerializable, E>;
@@ -73,6 +74,8 @@ export type ProtoOptions<Ext> = {
 };
 
 export type ProtoKeyOptions = {
+  jwtToken?: string;
+  csrfToken?: string;
   masterUsers?: { user: string; pass: string; }[];
 };
 
@@ -118,6 +121,15 @@ export class Proto<Ext> extends ProtoType<Ext> {
   get isMaster(): boolean {
     if (this.req && 'isMaster' in this.req) return !!this.req.isMaster;
     return false;
+  }
+
+  async becomeUser(user: TUser) {
+    if (!this.req) return;
+    signUser(this, this.req, user);
+  }
+
+  async setPassword(user: TUser, password: string) {
+
   }
 
   get schema(): ProtoOptions<Ext>['schema'] {

@@ -1,5 +1,5 @@
 //
-//  index.ts
+//  sign.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -24,45 +24,15 @@
 //
 
 import _ from 'lodash';
-import express, { RequestHandler } from 'express';
-import cookieParser from 'cookie-parser';
-import { Proto, ProtoOptions } from './server';
-import csrfHandler from './server/csrf';
-import authHandler from './server/auth';
-import classesRoute from './server/routes/classes';
-import functionRoute from './server/routes/function';
-import filesRoute from './server/routes/files';
-import { PVK } from './internals';
+import jwt from 'jsonwebtoken';
+import { Request } from 'express';
+import { Proto } from '../index';
+import { PVK, TUser } from '../../internals';
+import { AUTH_COOKIE_KEY } from '../../common/const';
 
-export * from './common';
-export { Proto } from './server';
-export { ProtoClient } from './client';
-
-export const ProtoRoute = async <E>(options: {
-  adapters?: ((proto: Proto<E>) => RequestHandler)[],
-  proto: Proto<E> | ProtoOptions<E>;
-}) => {
-
-  const {
-    adapters,
-    proto: _proto,
-  } = options;
-
-  const proto = _proto instanceof Proto ? _proto : new Proto(_proto);
-  await proto[PVK].prepare();
-
-  const router = express.Router().use(
-    cookieParser() as any,
-    csrfHandler(proto[PVK].options.csrfToken),
-    authHandler(proto),
-    ..._.map(adapters, x => x(proto)),
-  );
-
-  classesRoute(router, proto);
-  functionRoute(router, proto);
-  filesRoute(router, proto);
-
-  return router;
+export function signUser<E>(proto: Proto<E>, req: Request, user: TUser) {
+  const jwtToken = proto[PVK].options.jwtToken;
+  if (_.isNil(jwtToken)) return;
+  const token = jwt.sign({ user: user.objectId }, jwtToken, proto[PVK].options.jwtSignOptions);
+  req.res?.cookie(AUTH_COOKIE_KEY, token, proto[PVK].options.cookieOptions);
 }
-
-export default ProtoRoute;
