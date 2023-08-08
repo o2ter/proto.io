@@ -127,8 +127,8 @@ export class Proto<Ext> extends ProtoType<Ext> {
     signUser(this, req, user);
   }
 
-  async setPassword(user: TUser, password: string) {
-
+  setPassword(user: TUser, password: string) {
+    return this[PVK].setPassword(user, password);
   }
 
   get schema(): ProtoOptions<Ext>['schema'] {

@@ -37,6 +37,7 @@ import {
   isFileStream,
   base64ToBuffer,
   TObject,
+  TUser,
 } from '../internals';
 import { generateId } from './crypto';
 import { TSchema } from './schema';
@@ -139,6 +140,10 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     if (_.some(validator?.requireAllUserRoles, x => !_.includes(this.proto.roles, x))) throw Error('No permission');
 
     return callback(payload ?? this.proto);
+  }
+
+  async setPassword(user: TUser, password: string) {
+
   }
 
   async updateFile(object: TFile, options?: ExtraOptions) {
