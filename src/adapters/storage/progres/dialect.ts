@@ -342,15 +342,7 @@ export const PostgresDialect: SqlDialect = {
               default: return sql`false`;
             }
           } else if (!dataType) {
-            if (_.isBoolean(expr.value)) {
-              return sql`(
-                CASE
-                  WHEN (jsonb_typeof(${element}) ${this.nullSafeEqual()} 'boolean')
-                    THEN ${element} ${{ literal: operatorMap[expr.type] }} ${{ value: expr.value }}
-                  ELSE false
-                END
-              )`
-            } else if (expr.value instanceof Decimal || _.isNumber(expr.value)) {
+            if (expr.value instanceof Decimal || _.isNumber(expr.value)) {
               return sql`(
                 CASE
                   WHEN (jsonb_typeof(${element}) ${this.nullSafeEqual()} 'number')
