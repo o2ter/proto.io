@@ -291,6 +291,7 @@ test('test types 2', async () => {
 
   const q = proto.Query('Test').equalTo('_id', inserted.objectId);
 
+  expect((await q.clone().size('array', 0).first())?.objectId).toStrictEqual(undefined);
   expect((await q.clone().every('array', q => q.every('$', q => q.equalTo('$', 0))).first())?.objectId).toStrictEqual(undefined);
 
   expect((await q.clone().size('array', 2).first())?.objectId).toStrictEqual(inserted.objectId);
