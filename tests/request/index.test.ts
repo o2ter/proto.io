@@ -369,9 +369,10 @@ test('test pointer', async () => {
   });
   const updated = await proto.Query('Test')
     .equalTo('_id', inserted.objectId)
-    .includes('pointer')
+    .includes('pointer', 'pointer2')
     .updateOne({
       pointer: [UpdateOp.set, inserted],
+      pointer2: [UpdateOp.set, inserted],
     });
 
   expect(updated?.get('pointer.boolean')).toStrictEqual(true);
@@ -379,6 +380,12 @@ test('test pointer', async () => {
   expect(updated?.get('pointer.decimal')).toStrictEqual(new Decimal('0.001'));
   expect(updated?.get('pointer.string')).toStrictEqual('hello');
   expect(updated?.get('pointer.date')).toStrictEqual(date);
+
+  expect(updated?.get('pointer2.boolean')).toStrictEqual(true);
+  expect(updated?.get('pointer2.number')).toStrictEqual(42);
+  expect(updated?.get('pointer2.decimal')).toStrictEqual(new Decimal('0.001'));
+  expect(updated?.get('pointer2.string')).toStrictEqual('hello');
+  expect(updated?.get('pointer2.date')).toStrictEqual(date);
 
   const q = proto.Query('Test').equalTo('_id', inserted.objectId).includes('pointer');
 
