@@ -25,7 +25,7 @@
 
 import fs from 'fs';
 import { Readable } from 'node:stream';
-import { masterKey } from './server';
+import { masterUser } from './server';
 import { test, expect } from '@jest/globals';
 import { UUID } from 'bson';
 import Decimal from 'decimal.js';
@@ -33,7 +33,7 @@ import ProtoClient, { UpdateOp } from '../../src/client';
 
 const proto = new ProtoClient({
   endpoint: 'http://localhost:8080',
-  masterKey,
+  masterUser,
 });
 
 export const streamToBuffer = async (stream: any) => {

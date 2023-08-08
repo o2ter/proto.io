@@ -73,7 +73,6 @@ export type ProtoOptions<Ext> = {
 };
 
 export type ProtoKeyOptions = {
-  masterKey?: string;
   masterUsers?: { user: string; pass: string; }[];
 };
 

@@ -47,11 +47,14 @@ const uri = _.compact([
 
 const database = new PostgresStorage(uri);
 
-export const masterKey = (new UUID).toHexString();
+export const masterUser = {
+  user: 'admin',
+  pass: (new UUID).toHexString(),
+};
 
 const proto = new Proto({
   endpoint: 'http://localhost:8080',
-  masterKey: masterKey,
+  masterUsers: [masterUser],
   schema: {
     'Test': {
       fields: {

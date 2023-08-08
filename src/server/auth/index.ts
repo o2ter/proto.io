@@ -30,7 +30,6 @@ import { Proto } from '../index';
 import { PVK, TRole, TUser } from '../../internals';
 import {
   AUTH_COOKIE_KEY,
-  MASTER_KEY_HEADER_NAME,
   MASTER_USER_HEADER_NAME,
   MASTER_PASS_HEADER_NAME,
 } from '../../common/const';
@@ -38,17 +37,6 @@ import {
 export default <E>(proto: Proto<E>, jwtToken?: string): RequestHandler => async (req: any, res, next) => {
 
   if (_.isNil(jwtToken)) return next();
-
-  const user = req.header(MASTER_USER_HEADER_NAME);
-  const pass = req.header(MASTER_PASS_HEADER_NAME);
-
-  if (!_.isEmpty(user) && !_.isEmpty(pass)) {
-    for (const profile of proto[PVK].options.masterUsers ?? []) {
-      if (profile.user === user && profile.pass === pass) {
-        req.isMaster = true;
-      }
-    }
-  }
 
   let authorization = '';
   if (req.headers.authorization) {
@@ -62,7 +50,6 @@ export default <E>(proto: Proto<E>, jwtToken?: string): RequestHandler => async 
     const payload = jwt.verify(authorization, jwtToken, { ...proto[PVK].options.jwtVerifyOptions, complete: false });
     if (_.isObject(payload) && !_.isEmpty(payload.user)) {
       req.user = await proto.Query('User', { master: true }).get(payload.user);
-      req.isMaster = payload.master;
     }
   }
 
@@ -70,16 +57,20 @@ export default <E>(proto: Proto<E>, jwtToken?: string): RequestHandler => async 
     req.roles = await proto.userRoles(req.user);
   }
 
-  const token = jwt.sign(
-    { user: req.user?._id, master: req.isMaster }, jwtToken, proto[PVK].options.jwtSignOptions
-  );
+  res.cookie(AUTH_COOKIE_KEY, jwt.sign(
+    { user: req.user?._id }, jwtToken, proto[PVK].options.jwtSignOptions
+  ), proto[PVK].options.cookieOptions);
 
-  res.cookie(AUTH_COOKIE_KEY, token, proto[PVK].options.cookieOptions);
+  const user = req.header(MASTER_USER_HEADER_NAME);
+  const pass = req.header(MASTER_PASS_HEADER_NAME);
 
-  const key = req.header(MASTER_KEY_HEADER_NAME);
-  if (!_.isEmpty(key)) {
-    const masterKey = proto[PVK].options.masterKey;
-    req.isMaster = !_.isEmpty(masterKey) && key === masterKey;
+  if (!_.isEmpty(user) && !_.isEmpty(pass)) {
+    for (const profile of proto[PVK].options.masterUsers ?? []) {
+      if (profile.user === user && profile.pass === pass) {
+        req.isMaster = true;
+      }
+    }
   }
+
   return next();
 };

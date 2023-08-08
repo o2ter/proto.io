@@ -42,7 +42,7 @@ import {
   base64ToBuffer,
 } from '../internals';
 import { iterableToStream, streamToIterable } from './stream';
-import { MASTER_KEY_HEADER_NAME } from '../common/const';
+import { MASTER_PASS_HEADER_NAME, MASTER_USER_HEADER_NAME } from '../common/const';
 
 export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
 
@@ -69,7 +69,8 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
       responseType: 'text',
       headers: {
         ...master ? {
-          [MASTER_KEY_HEADER_NAME]: this.proto[PVK].options.masterKey,
+          [MASTER_USER_HEADER_NAME]: this.proto[PVK].options.masterUser?.user,
+          [MASTER_PASS_HEADER_NAME]: this.proto[PVK].options.masterUser?.pass,
         } : {},
       },
       ...opts,
