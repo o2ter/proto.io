@@ -43,13 +43,13 @@ export default class {
       signal: abortSignal,
       ...opts,
     };
-  
+
     const res = await this.service.request(config);
-  
+
     if (res.status === 412) {
       return await this.service.request(config);
     }
-  
+
     return res;
   }
 };
