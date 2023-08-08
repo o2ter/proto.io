@@ -301,29 +301,29 @@ export const PostgresDialect: SqlDialect = {
     const encodeValue = (value: TValue) => dataType ? this.encodeType(dataType, value) : _encodeJsonValue(_encodeValue(value));
     switch (expr.type) {
       case '$eq':
+        {
+          if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
+          if (_.isNil(expr.value)) return sql`${element} IS NULL`;
+          return sql`${element} ${this.nullSafeEqual()} ${encodeValue(expr.value)}`;
+        }
       case '$ne':
+        {
+          if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
+          if (_.isNil(expr.value)) return sql`${element} IS NOT NULL`;
+          return sql`${element} ${this.nullSafeNotEqual()} ${encodeValue(expr.value)}`;
+        }
       case '$gt':
       case '$gte':
       case '$lt':
       case '$lte':
         {
-          if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
-          switch (expr.type) {
-            case '$eq':
-              if (_.isNil(expr.value)) return sql`${element} IS NULL`;
-              break;
-            case '$ne':
-              if (_.isNil(expr.value)) return sql`${element} IS NOT NULL`;
-              break;
-          }
           const operatorMap = {
-            '$eq': [this.nullSafeEqual()],
-            '$ne': [this.nullSafeNotEqual()],
             '$gt': '>',
             '$gte': '>=',
             '$lt': '<',
             '$lte': '<=',
           };
+          if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
           if (dataType && isPrimitive(dataType)) {
             switch (_typeof(dataType)) {
               case 'boolean':
