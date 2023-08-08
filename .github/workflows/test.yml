@@ -11,6 +11,7 @@ env:
   MONGO_REPLICA_SET: rs0
 jobs:
   test:
+    name: node ${{ matrix.node_version }}
     runs-on: ubuntu-latest
     services:
       postgres:
