@@ -342,19 +342,35 @@ export const PostgresDialect: SqlDialect = {
               default: return sql`false`;
             }
           } else if (!dataType) {
-            return sql`
-            (
-              CASE
-                WHEN (jsonb_typeof(${element}) ${this.nullSafeNotEqual()} 'object')
-                  THEN ${element} ${{ literal: operatorMap[expr.type] }} ${encodeValue(expr.value)}
-                WHEN (jsonb_typeof(${element} -> '$decimal') ${this.nullSafeEqual()} 'string')
-                  THEN to_jsonb((${element} ->> '$decimal')::DECIMAL) ${{ literal: operatorMap[expr.type] }} ${encodeValue(expr.value)}
+            if (_.isBoolean(expr.value)) {
+              return sql`(
+                CASE
+                  WHEN (jsonb_typeof(${element}) ${this.nullSafeEqual()} 'boolean')
+                    THEN ${element} ${{ literal: operatorMap[expr.type] }} ${{ value: expr.value }}
+                  ELSE false
+                END
+              )`
+            } else if (expr.value instanceof Decimal || _.isNumber(expr.value)) {
+              return sql`(
+                CASE
+                  WHEN (jsonb_typeof(${element}) ${this.nullSafeEqual()} 'number')
+                    THEN ${element}::NUMERIC ${{ literal: operatorMap[expr.type] }} ${{ value: expr.value instanceof Decimal ? expr.value.toNumber() : expr.value }}
+                  WHEN (jsonb_typeof(${element} -> '$decimal') ${this.nullSafeEqual()} 'string')
+                    THEN (${element} ->> '$decimal')::DECIMAL ${{ literal: operatorMap[expr.type] }} ${{ value: expr.value instanceof Decimal ? expr.value.toString() : expr.value }}::DECIMAL
+                  ELSE false
+                END
+              )`;
+            } else if (_.isDate(expr.value)) {
+              return sql`(
+                CASE
                 WHEN (jsonb_typeof(${element} -> '$date') ${this.nullSafeEqual()} 'string')
                   THEN ${element} ${{ literal: operatorMap[expr.type] }} ${encodeValue(expr.value)}
                 ELSE false
-              END
-            )
-            `;
+                END
+              )`;
+            } else {
+              return sql`${element} ${{ literal: operatorMap[expr.type] }} ${encodeValue(expr.value)}`
+            }
           } else {
             return sql`false`;
           }
