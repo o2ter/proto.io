@@ -42,6 +42,7 @@ import {
 import { generateId } from './crypto';
 import { TSchema } from './schema';
 import { QueryValidator } from './query/validator/validator';
+import { QuerySelector } from './query/validator/parser';
 
 const validateSchema = (schema: Record<string, TSchema>) => {
 
@@ -143,7 +144,16 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
   }
 
   async setPassword(user: TUser, password: string) {
-
+    if (!user.objectId) throw Error('Invalid user object');
+    this.options.storage.updateOne({
+      className: 'User',
+      filter: QuerySelector.decode({ _id: { $eq: user.objectId } }),
+      matches: {},
+      includes: [],
+      objectIdSize: 0,
+    }, {
+      
+    });
   }
 
   async updateFile(object: TFile, options?: ExtraOptions) {

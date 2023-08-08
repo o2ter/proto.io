@@ -124,6 +124,7 @@ export class Proto<Ext> extends ProtoType<Ext> {
   }
 
   becomeUser(req: Request, user: TUser) {
+    if (!user.objectId) throw Error('Invalid user object');
     signUser(this, req, user);
   }
 
