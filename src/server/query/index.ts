@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { Proto } from '../index';
+import { ProtoBase } from '../proto/base';
 import {
   PVK,
   TQuery,
@@ -43,10 +43,10 @@ import { queryValidator } from './validator';
 
 export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
 
-  private _proto: Proto<E>;
+  private _proto: ProtoBase<E>;
   private _options?: ExtraOptions;
 
-  constructor(className: T, proto: Proto<E>, options?: ExtraOptions) {
+  constructor(className: T, proto: ProtoBase<E>, options?: ExtraOptions) {
     super(className);
     this._proto = proto;
     this._options = options;

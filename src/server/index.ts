@@ -23,127 +23,13 @@
 //  THE SOFTWARE.
 //
 
-import _ from 'lodash';
-import { ProtoQuery } from './query';
-import { ProtoInternal } from './internal';
-import {
-  PVK,
-  ProtoType,
-  TExtensions,
-  TObjectType,
-  TQuery,
-  TSerializable,
-  TUser,
-  ExtraOptions,
-} from '../internals';
-import { TFileStorage } from './filesys';
-import { TStorage } from './storage';
-import { TSchema } from './schema';
-import { CookieOptions, Request } from 'express';
-import { SignOptions, VerifyOptions } from 'jsonwebtoken';
-import { Awaitable } from '../internals/types';
+import { PVK } from '../internals';
+import { ProtoBase } from './proto/base';
+import { ProtoTrigger } from './proto/types';
 
-type Callback<T, R, E> = (request: Proto<E> & T) => Awaitable<R>;
-export type ProtoFunction<E> = Callback<{ data: TSerializable; }, TSerializable, E>;
-export type ProtoTrigger<T, E> = Callback<{ object: TObjectType<T, E>; context: TSerializable; }, void, E>;
+export * from './proto/types';
 
-type Validator = {
-  requireUser?: boolean;
-  requireMaster?: boolean;
-  requireAnyUserRoles?: string[];
-  requireAllUserRoles?: string[];
-};
-
-export type ProtoFunctionOptions<E> = {
-  callback: ProtoFunction<E>;
-  validator?: Validator;
-};
-
-export type ProtoOptions<Ext> = {
-  endpoint: string;
-  schema: Record<string, TSchema>;
-  storage: TStorage;
-  fileStorage: TFileStorage;
-  classExtends?: TExtensions<Ext>;
-  objectIdSize?: number;
-  maxUploadSize?: number | ((proto: Proto<Ext>) => Awaitable<number>);
-  cookieOptions?: CookieOptions;
-  jwtSignOptions?: SignOptions;
-  jwtVerifyOptions?: VerifyOptions;
-};
-
-export type ProtoKeyOptions = {
-  masterUsers?: { user: string; pass: string; }[];
-};
-
-export class Proto<Ext> extends ProtoType<Ext> {
-
-  [PVK]: ProtoInternal<Ext>;
-
-  constructor(options: ProtoOptions<Ext> & ProtoKeyOptions) {
-    super();
-    this[PVK] = new ProtoInternal(this, {
-      objectIdSize: 10,
-      maxUploadSize: 20 * 1024 * 1024,
-      classExtends: {} as TExtensions<Ext>,
-      cookieOptions: { maxAge: 365 * 24 * 60 * 60 * 1000, httpOnly: true },
-      jwtSignOptions: { expiresIn: '30d' },
-      jwtVerifyOptions: {},
-      ...options,
-    });
-  }
-
-  classes(): string[] {
-    return _.keys(this[PVK].options.schema);
-  }
-
-  Query<T extends string>(className: T, options?: ExtraOptions): TQuery<T, Ext> {
-    return new ProtoQuery<T, Ext>(className, this, options);
-  }
-
-  get req(): Request | undefined {
-    return undefined
-  }
-
-  get user(): TUser | undefined {
-    if (this.req && 'user' in this.req) return this.req.user as TUser;
-    return undefined;
-  }
-
-  get roles(): string[] {
-    if (this.req && 'roles' in this.req) return this.req.roles as string[] ?? [];
-    return [];
-  }
-
-  get isMaster(): boolean {
-    if (this.req && 'isMaster' in this.req) return !!this.req.isMaster;
-    return false;
-  }
-
-  get schema(): ProtoOptions<Ext>['schema'] {
-    return this[PVK].options.schema;
-  }
-
-  get storage(): ProtoOptions<Ext>['storage'] {
-    return this[PVK].options.storage;
-  }
-
-  get fileStorage(): ProtoOptions<Ext>['fileStorage'] {
-    return this[PVK].options.fileStorage;
-  }
-
-  run(name: string, data?: TSerializable, options?: ExtraOptions) {
-    const payload = Object.setPrototypeOf({ data: data ?? null }, this);
-    return this[PVK].run(name, payload, options);
-  }
-
-  define(
-    name: string,
-    callback: ProtoFunction<Ext>,
-    options?: Omit<ProtoFunctionOptions<Ext>, 'callback'>,
-  ) {
-    this[PVK].functions[name] = options ? { callback, ...options } : callback;
-  }
+export class Proto<Ext> extends ProtoBase<Ext> {
 
   beforeSave<T extends string>(name: T, callback: ProtoTrigger<T, Ext>) {
     if (!this[PVK].triggers.beforeSave) this[PVK].triggers.beforeSave = {};

@@ -23,7 +23,7 @@
 //  THE SOFTWARE.
 //
 import _ from 'lodash';
-import { Proto } from '../../index';
+import { ProtoBase } from '../../proto/base';
 import { ExtraOptions, PVK, TValue, UpdateOp } from '../../../internals';
 import { QueryValidator } from './validator';
 import { FindOptions, FindOneOptions } from '../../storage';
@@ -36,7 +36,7 @@ export const normalize = <T>(x: T): T => {
   return x;
 };
 
-export const queryValidator = <E>(proto: Proto<E>, options?: ExtraOptions) => {
+export const queryValidator = <E>(proto: ProtoBase<E>, options?: ExtraOptions) => {
 
   const acls = () => _.uniq(_.compact([..._.map(proto.roles, x => `role:${x}`), proto.user?.objectId]));
   const validator = () => new QueryValidator(proto, acls(), options?.master ?? false);

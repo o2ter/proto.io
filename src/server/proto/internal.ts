@@ -25,8 +25,9 @@
 
 import _ from 'lodash';
 import { Readable } from 'node:stream';
-import { defaultSchema } from './defaults';
-import { Proto, ProtoOptions, ProtoFunction, ProtoFunctionOptions, ProtoTrigger, ProtoKeyOptions } from './index';
+import { defaultSchema } from '../defaults';
+import { ProtoOptions, ProtoFunction, ProtoFunctionOptions, ProtoTrigger, ProtoKeyOptions } from './types';
+import { ProtoBase } from './base';
 import {
   PVK,
   TFile,
@@ -37,10 +38,10 @@ import {
   isFileStream,
   base64ToBuffer,
   TObject,
-} from '../internals';
-import { generateId } from './crypto';
-import { TSchema } from './schema';
-import { QueryValidator } from './query/validator/validator';
+} from '../../internals';
+import { generateId } from '../crypto';
+import { TSchema } from '../schema';
+import { QueryValidator } from '../query/validator/validator';
 
 const validateSchema = (schema: Record<string, TSchema>) => {
 
@@ -90,7 +91,7 @@ const mergeSchema = (...schemas: Record<string, TSchema>[]) => _.reduce(schemas,
 
 export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
 
-  proto: Proto<Ext>;
+  proto: ProtoBase<Ext>;
   options: Required<ProtoOptions<Ext>> & ProtoKeyOptions;
 
   functions: Record<string, ProtoFunction<Ext> | ProtoFunctionOptions<Ext>>;
@@ -105,7 +106,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     afterDeleteFile?: ProtoTrigger<'File', Ext>;
   };
 
-  constructor(proto: Proto<Ext>, options: Required<ProtoOptions<Ext>> & ProtoKeyOptions) {
+  constructor(proto: ProtoBase<Ext>, options: Required<ProtoOptions<Ext>> & ProtoKeyOptions) {
     validateSchema(options.schema);
     this.proto = proto;
     this.options = {
@@ -267,7 +268,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     });
   }
 
-  destoryFileData(proto: Proto<Ext>, id: string) {
+  destoryFileData(proto: ProtoBase<Ext>, id: string) {
     (async () => {
       try {
         await this.proto.fileStorage.destory(this.proto, id);
