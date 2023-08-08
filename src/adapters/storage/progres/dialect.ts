@@ -458,7 +458,7 @@ export const PostgresDialect: SqlDialect = {
           if (dataType === 'string' || (!_.isString(dataType) && dataType?.type === 'string')) {
             return sql`length(COALESCE(${element}, '')) ${this.nullSafeEqual()} ${{ value: expr.value }}`;
           } else if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
-            return sql`array_length(COALESCE(${element}, ARRAY[]::JSONB[]), 1) ${this.nullSafeEqual()} ${{ value: expr.value }}`;
+            return sql`array_length(COALESCE(${element}, '{}'), 1) ${this.nullSafeEqual()} ${{ value: expr.value }}`;
           } else if (!dataType) {
             return sql`(
               CASE jsonb_typeof(${element}) 
@@ -475,7 +475,7 @@ export const PostgresDialect: SqlDialect = {
           if (dataType === 'string' || (!_.isString(dataType) && dataType?.type === 'string')) {
             return sql`length(COALESCE(${element}, '')) ${expr.value ? this.nullSafeEqual() : this.nullSafeNotEqual()} 0`;
           } else if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
-            return sql`array_length(COALESCE(${element}, ARRAY[]::JSONB[]), 1) ${expr.value ? this.nullSafeEqual() : this.nullSafeNotEqual()} 0`;
+            return sql`array_length(COALESCE(${element}, '{}'), 1) ${expr.value ? this.nullSafeEqual() : this.nullSafeNotEqual()} 0`;
           } else if (!dataType) {
             return sql`(
               CASE jsonb_typeof(${element}) 
