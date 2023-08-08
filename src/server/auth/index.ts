@@ -39,14 +39,10 @@ export default <E>(proto: Proto<E>, jwtToken?: string): RequestHandler => async 
 
   if (_.isNil(jwtToken)) return next();
 
-  const key = req.header(MASTER_KEY_HEADER_NAME);
   const user = req.header(MASTER_USER_HEADER_NAME);
   const pass = req.header(MASTER_PASS_HEADER_NAME);
 
-  if (!_.isEmpty(key)) {
-    const masterKey = proto[PVK].options.masterKey;
-    req.isMaster = !_.isEmpty(masterKey) && key === masterKey;
-  } else if (!_.isEmpty(user) && !_.isEmpty(pass)) {
+  if (!_.isEmpty(user) && !_.isEmpty(pass)) {
     for (const profile of proto[PVK].options.masterUsers ?? []) {
       if (profile.user === user && profile.pass === pass) {
         req.isMaster = true;
@@ -77,6 +73,12 @@ export default <E>(proto: Proto<E>, jwtToken?: string): RequestHandler => async 
   const token = jwt.sign(
     { user: req.user?._id, master: req.isMaster }, jwtToken, proto[PVK].options.jwtSignOptions
   );
+
+  const key = req.header(MASTER_KEY_HEADER_NAME);
+  if (!_.isEmpty(key)) {
+    const masterKey = proto[PVK].options.masterKey;
+    req.isMaster = !_.isEmpty(masterKey) && key === masterKey;
+  }
 
   res.cookie(AUTH_COOKIE_KEY, token, proto[PVK].options.cookieOptions);
   return next();
