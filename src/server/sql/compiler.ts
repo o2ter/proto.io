@@ -103,7 +103,7 @@ const _defaultInsertOpts = (options: InsertOptions) => {
   const objectId = generateId(options.objectIdSize);
   return {
     _id: sql`${{ value: objectId }}`,
-    ...options.className === '_User' ? {
+    ...options.className === 'User' ? {
       _rperm: sql`${{ value: [objectId] }}`,
       _wperm: sql`${{ value: [objectId] }}`,
     } : {},

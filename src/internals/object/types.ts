@@ -29,9 +29,9 @@ import { TRole } from './role';
 import { TFile } from './file';
 
 export const TObjectTypes = {
-  '_User': TUser,
-  '_Role': TRole,
-  '_File': TFile,
+  'User': TUser,
+  'Role': TRole,
+  'File': TFile,
 };
 
 type _TObjectType<T> = T extends keyof typeof TObjectTypes ? InstanceType<(typeof TObjectTypes)[T]> : TObject;

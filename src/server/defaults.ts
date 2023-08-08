@@ -27,7 +27,7 @@ import _ from 'lodash';
 import { TSchema } from './schema';
 
 export const defaultSchema: Record<string, TSchema> = {
-  '_User': {
+  'User': {
     fields: {
       password: 'string',
     },
@@ -41,11 +41,11 @@ export const defaultSchema: Record<string, TSchema> = {
       _expired_at: { create: [], update: [] },
     },
   },
-  '_Role': {
+  'Role': {
     fields: {
       name: 'string',
-      users: { type: 'relation', target: '_User' },
-      roles: { type: 'relation', target: '_Role' },
+      users: { type: 'relation', target: 'User' },
+      roles: { type: 'relation', target: 'Role' },
     },
     classLevelPermissions: {
       create: [],
@@ -62,7 +62,7 @@ export const defaultSchema: Record<string, TSchema> = {
       },
     ],
   },
-  '_File': {
+  'File': {
     fields: {
       filename: 'string',
       size: 'number',

@@ -99,10 +99,10 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     afterSave?: Record<string, ProtoTrigger<string, Ext>>;
     beforeDelete?: Record<string, ProtoTrigger<string, Ext>>;
     afterDelete?: Record<string, ProtoTrigger<string, Ext>>;
-    beforeSaveFile?: ProtoTrigger<'_File', Ext>;
-    afterSaveFile?: ProtoTrigger<'_File', Ext>;
-    beforeDeleteFile?: ProtoTrigger<'_File', Ext>;
-    afterDeleteFile?: ProtoTrigger<'_File', Ext>;
+    beforeSaveFile?: ProtoTrigger<'File', Ext>;
+    afterSaveFile?: ProtoTrigger<'File', Ext>;
+    beforeDeleteFile?: ProtoTrigger<'File', Ext>;
+    afterDeleteFile?: ProtoTrigger<'File', Ext>;
   };
 
   constructor(proto: Proto<Ext>, options: Required<ProtoOptions<Ext>> & ProtoKeyOptions) {

@@ -59,7 +59,7 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
   const query = (options?: ExtraOptions) => proto.Query(className, options);
 
   const typedMethods: Record<string, PropertyDescriptorMap & ThisType<TObject>> = {
-    '_File': {
+    'File': {
       save: {
         value(options?: ExtraOptions) {
           return proto[PVK].saveFile(this as TFile, options);

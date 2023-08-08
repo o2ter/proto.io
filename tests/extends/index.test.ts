@@ -35,7 +35,7 @@ const proto = new ProtoClient({
 
 test('test types', async () => {
 
-  const user = proto.Object('_User');
+  const user = proto.Object('User');
 
   expect(user).toBeInstanceOf(TUser);
 
@@ -43,7 +43,7 @@ test('test types', async () => {
 
 test('test methods', async () => {
 
-  const user = proto.Object('_User');
+  const user = proto.Object('User');
 
   expect(await user.softDelete()).toStrictEqual('deleted');
 
@@ -51,7 +51,7 @@ test('test methods', async () => {
 
 test('test property', async () => {
 
-  const user = proto.Object('_User');
+  const user = proto.Object('User');
 
   user.name = 'test';
   expect(user.name).toStrictEqual('test');

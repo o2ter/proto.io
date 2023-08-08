@@ -65,7 +65,7 @@ export abstract class ProtoType<Ext> {
   }
 
   File(filename: string, data: FileData, type?: string) {
-    const file = this.Object('_File');
+    const file = this.Object('File');
     file.set('filename', filename);
     file.set('type', type);
     file[PVK].extra.data = data;
@@ -74,11 +74,11 @@ export abstract class ProtoType<Ext> {
 
   async userRoles(user: TUser) {
     let roles: TRole[] = [];
-    let queue = await this.Query('_Role', { master: true })
+    let queue = await this.Query('Role', { master: true })
       .isIntersect('users', [user])
       .find();
     while (!_.isEmpty(queue)) {
-      queue = await this.Query('_Role', { master: true })
+      queue = await this.Query('Role', { master: true })
         .isIntersect('_roles', queue)
         .notContainsIn('_id', _.compact(_.map(roles, x => x.objectId)))
         .find();

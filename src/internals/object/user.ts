@@ -32,6 +32,6 @@ export class TUser extends TObject {
   constructor(
     attributes?: Record<string, TValue> | ((self: TObject) => Record<string, TValue>),
   ) {
-    super('_User', attributes);
+    super('User', attributes);
   }
 }

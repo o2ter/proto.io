@@ -26,7 +26,7 @@
 import { classExtends } from '../../src/client';
 
 export default classExtends({
-  '_User': {
+  'User': {
     async softDelete() {
       return 'deleted';
     },

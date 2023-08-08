@@ -33,7 +33,7 @@ export class TRole extends TObject {
   constructor(
     attributes?: Record<string, TValue> | ((self: TObject) => Record<string, TValue>),
   ) {
-    super('_Role', attributes);
+    super('Role', attributes);
   }
 
   get name(): string {

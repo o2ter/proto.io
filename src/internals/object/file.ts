@@ -39,7 +39,7 @@ export class TFile extends TObject {
   constructor(
     attributes?: Record<string, TValue> | ((self: TObject) => Record<string, TValue>),
   ) {
-    super('_File', attributes);
+    super('File', attributes);
   }
 
   get filename(): string {
