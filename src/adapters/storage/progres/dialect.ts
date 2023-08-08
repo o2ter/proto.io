@@ -349,7 +349,9 @@ export const PostgresDialect: SqlDialect = {
                   THEN ${element} ${{ literal: operatorMap[expr.type] }} ${encodeValue(expr.value)}
                 WHEN (jsonb_typeof(${element} -> '$decimal') ${this.nullSafeEqual()} 'string')
                   THEN to_jsonb((${element} ->> '$decimal')::DECIMAL) ${{ literal: operatorMap[expr.type] }} ${encodeValue(expr.value)}
-                ELSE ${element} ${{ literal: operatorMap[expr.type] }} ${encodeValue(expr.value)}
+                WHEN (jsonb_typeof(${element} -> '$date') ${this.nullSafeEqual()} 'string')
+                  THEN ${element} ${{ literal: operatorMap[expr.type] }} ${encodeValue(expr.value)}
+                ELSE false
               END
             )
             `;
