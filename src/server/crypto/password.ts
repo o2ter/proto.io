@@ -27,7 +27,7 @@ import _ from 'lodash';
 import { scrypt } from 'node:crypto';
 import { randomBytes } from './random';
 
-type PasswordHashOptions = {
+export type PasswordHashOptions = {
   'scrypt': {
      log2n: number;
      blockSize: number;
