@@ -23,7 +23,9 @@
 //  THE SOFTWARE.
 //
 
+import _ from 'lodash';
 import { scrypt } from 'node:crypto';
+import { randomBytes } from './random';
 
 type PasswordHashOptions = {
   'scrypt': {
@@ -43,7 +45,21 @@ export const passwordHash = <T extends keyof PasswordHashOptions>(
   switch (alg) {
     case 'scrypt':
 
-    scrypt
+    if (!_.isInteger(options.log2n)) throw Error('Invalid options');
+    if (!_.isInteger(options.blockSize)) throw Error('Invalid options');
+    if (!_.isInteger(options.parallel)) throw Error('Invalid options');
+    if (!_.isInteger(options.keySize)) throw Error('Invalid options');
+    if (!_.isInteger(options.saltSize)) throw Error('Invalid options');
+
+    const salt = randomBytes(options.saltSize);
+
+    return new Promise<Buffer>((resolve, rejected) => scrypt(password, salt, options.keySize, (err, derivedKey) => {
+      if (err) {
+        rejected(err);
+      } else {
+        resolve(derivedKey);
+      }
+    }));
 
     default: throw Error('Invalid algorithm');
   }
