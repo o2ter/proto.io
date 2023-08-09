@@ -24,6 +24,7 @@
 //
 
 import _ from 'lodash';
+import { promisify } from 'node:util';
 import { Readable } from 'node:stream';
 import { deflate, unzip } from 'node:zlib';
 import { FileBuffer, FileData, PVK, base64ToBuffer, bufferToBase64, isFileBuffer } from '../../../internals';
@@ -95,13 +96,7 @@ export class DatabaseFileStorage implements TFileStorage {
     for await (const data of streamChunk(file, this.chunkSize)) {
 
       const chunkSize = data.byteLength;
-      const compressed = await new Promise<Buffer>((resolve, rejected) => deflate(data, (err, buffer) => {
-        if (err) {
-          rejected(err);
-        } else {
-          resolve(buffer);
-        }
-      }));
+      const compressed = await promisify(deflate)(data);
 
       const created = await proto.Query('_FileChunk', { master: true }).insert({
         token,
@@ -144,13 +139,7 @@ export class DatabaseFileStorage implements TFileStorage {
     const maxUploadSize = _.isFunction(proto[PVK].options.maxUploadSize) ? await proto[PVK].options.maxUploadSize(proto) : proto[PVK].options.maxUploadSize;
     if (size > maxUploadSize) throw Error('Payload too large');
 
-    const compressed = await new Promise<Buffer>((resolve, rejected) => deflate(buffer as any, (err, buffer) => {
-      if (err) {
-        rejected(err);
-      } else {
-        resolve(buffer);
-      }
-    }));
+    const compressed = await promisify(deflate)(buffer as any);
 
     const created = await proto.Query('_FileChunk', { master: true }).insert({
       token,
@@ -187,13 +176,7 @@ export class DatabaseFileStorage implements TFileStorage {
       if (!_.isNumber(startBytes) || !_.isNumber(endBytes) || !_.isString(base64)) throw Error('Corrupted data');
 
       const data = base64ToBuffer(base64);
-      const uncompressed = await new Promise<Buffer>((resolve, rejected) => unzip(data, (err, buffer) => {
-        if (err) {
-          rejected(err);
-        } else {
-          resolve(buffer);
-        }
-      }));
+      const uncompressed = await promisify(unzip)(data);
 
       if (_.isNumber(start) || _.isNumber(end)) {
 

@@ -25,6 +25,7 @@
 
 import _ from 'lodash';
 import { scrypt } from 'node:crypto';
+import { promisify } from 'node:util';
 import { randomBytes } from './random';
 
 export type PasswordHashOptions = {
@@ -37,7 +38,7 @@ export type PasswordHashOptions = {
   };
 };
 
-export const passwordHash = <T extends keyof PasswordHashOptions>(
+export const passwordHash = async <T extends keyof PasswordHashOptions>(
   alg: T,
   password: string,
   options: PasswordHashOptions[T],
@@ -52,14 +53,9 @@ export const passwordHash = <T extends keyof PasswordHashOptions>(
     if (!_.isInteger(options.saltSize)) throw Error('Invalid options');
 
     const salt = randomBytes(options.saltSize);
+    const derivedKey = await promisify(scrypt)(password, salt, options.keySize);
 
-    return new Promise<Buffer>((resolve, rejected) => scrypt(password, salt, options.keySize, (err, derivedKey) => {
-      if (err) {
-        rejected(err);
-      } else {
-        resolve(derivedKey);
-      }
-    }));
+    return { alg, salt, derivedKey, ...options };
 
     default: throw Error('Invalid algorithm');
   }
