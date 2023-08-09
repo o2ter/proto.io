@@ -86,7 +86,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     return applyObjectMethods(deserialize(res.data), this.proto);
   }
 
-  async currentUser(options?: RequestOptions): Promise<TUser | undefined> {
+  async currentUser(options?: RequestOptions) {
 
     const { serializeOpts, context, ...opts } = options ?? {};
 
@@ -103,7 +103,10 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
       throw Error(error.message, { cause: error });
     }
 
-    return applyObjectMethods(deserialize(res.data), this.proto) as TUser;
+    const user = applyObjectMethods(deserialize(res.data), this.proto);
+    if (!_.isNil(user) && !(user instanceof TUser)) throw Error('Unknown error');
+
+    return user ?? undefined;
   }
 
   async updateFile(object: TFile, options?: RequestOptions) {
@@ -157,7 +160,8 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
       throw Error(error.message, { cause: error });
     }
 
-    const created = deserialize(res.data) as TFile;
+    const created = deserialize(res.data);
+    if (!_.isNil(created) && !(created instanceof TFile)) throw Error('Unknown error');
 
     if (created) {
       object[PVK].attributes = created.attributes;
