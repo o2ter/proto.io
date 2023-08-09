@@ -60,6 +60,9 @@ const validateSchema = (schema: Record<string, TSchema>) => {
     for (const key of _.keys(_schema.fieldLevelPermissions)) {
       if (!fields.includes(key)) throw Error(`Invalid field permission: ${key}`);
     }
+    for (const key of _schema.secureFields ?? []) {
+      if (!fields.includes(key)) throw Error(`Invalid field permission: ${key}`);
+    }
   }
 }
 
