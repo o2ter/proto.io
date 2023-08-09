@@ -29,7 +29,7 @@ import { TSchema } from './schema';
 export const defaultSchema: Record<string, TSchema> = {
   'User': {
     fields: {
-      password: 'string',
+      password: 'object',
     },
     classLevelPermissions: {
       find: [],
