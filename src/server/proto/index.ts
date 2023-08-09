@@ -85,6 +85,11 @@ export class Proto<Ext> extends ProtoType<Ext> {
     return undefined;
   }
 
+  get sessionId(): string | undefined {
+    if (this.req && 'sessionId' in this.req) return this.req.sessionId as string;
+    return undefined;
+  }
+
   get roles(): string[] {
     if (this.req && 'roles' in this.req) return this.req.roles as string[] ?? [];
     return [];

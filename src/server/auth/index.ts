@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import jwt from 'jsonwebtoken';
 import { Proto } from '../proto/index';
-import { PVK, TUser } from '../../internals';
+import { PVK, TUser, UUID } from '../../internals';
 import { RequestHandler } from 'express';
 import {
   AUTH_COOKIE_KEY,
@@ -52,6 +52,7 @@ export default <E>(proto: Proto<E>): RequestHandler => async (req: any, res, nex
     const payload = jwt.verify(authorization, jwtToken, { ...proto[PVK].options.jwtVerifyOptions, complete: false });
     if (_.isObject(payload) && !_.isEmpty(payload.user)) {
       req.user = await proto.Query('User', { master: true }).get(payload.user);
+      req.sessionId = payload.sessionId ?? (new UUID).toHexString();
     }
   }
 
