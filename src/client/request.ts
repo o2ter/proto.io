@@ -30,21 +30,21 @@ import { RequestOptions } from './options';
 
 export default class {
 
-  service = axios.create({ withCredentials: true });
+  service = axios.create({
+    xsrfCookieName: XSRF_COOKIE_NAME,
+    xsrfHeaderName: XSRF_HEADER_NAME,
+    validateStatus: status => status < 500,
+    withCredentials: true,
+  });
 
   async request<T = any, D = any>(config: RequestOptions & AxiosRequestConfig<D>): Promise<AxiosResponse<T, D>> {
 
     const { master, abortSignal, serializeOpts, context, ...opts } = config ?? {};
 
-    config = {
-      xsrfCookieName: XSRF_COOKIE_NAME,
-      xsrfHeaderName: XSRF_HEADER_NAME,
-      validateStatus: status => status < 500,
+    const res = await this.service.request({
       signal: abortSignal,
       ...opts,
-    };
-
-    const res = await this.service.request(config);
+    });
 
     if (res.status === 412) {
       return await this.service.request(config);

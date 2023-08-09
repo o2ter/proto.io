@@ -37,7 +37,7 @@ import { Proto } from '.';
 import { PasswordHashOptions } from '../crypto/password';
 
 type Callback<T, R, E> = (request: Proto<E> & T) => Awaitable<R>;
-export type ProtoFunction<E> = Callback<{ data: TSerializable; }, TSerializable, E>;
+export type ProtoFunction<E> = Callback<{ data: TSerializable; }, void | TSerializable, E>;
 export type ProtoTrigger<T, E> = Callback<{ object: TObjectType<T, E>; context: TSerializable; }, void, E>;
 type Validator = {
   requireUser?: boolean;

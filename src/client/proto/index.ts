@@ -50,7 +50,7 @@ export class ProtoClient<Ext> extends ProtoType<Ext> {
     name: string,
     data?: TSerializable,
     options?: RequestOptions
-  ): Promise<TSerializable> {
+  ): Promise<void | TSerializable> {
     return this[PVK].request(data, {
       method: 'post',
       url: `functions/${name}`,

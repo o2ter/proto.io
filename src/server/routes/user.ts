@@ -33,10 +33,9 @@ export default <E>(router: Router, proto: Proto<E>) => {
   router.get(
     '/user/me',
     express.text({ type: '*/*' }),
-    async (req, res) => {
+    async (req: any, res) => {
       res.setHeader('Cache-Control', ['no-cache', 'no-store']);
-      const payload: Proto<E> = Object.setPrototypeOf({ req }, proto);
-      await response(res, () => payload.user);
+      await response(res, () => req.user);
     }
   );
 
