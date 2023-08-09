@@ -24,7 +24,7 @@
 //
 
 import { test, expect } from '@jest/globals';
-import ProtoClient from '../../src/client';
+import { ProtoClient } from '../../src/client/proto';
 import _extends from './extends';
 import { TUser } from '../../src/internals';
 

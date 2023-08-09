@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { Proto } from '../index';
+import { Proto } from '../proto/index';
 import {
   PVK,
   TQuery,

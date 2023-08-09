@@ -24,60 +24,20 @@
 //
 
 import _ from 'lodash';
-import { ProtoQuery } from './query';
+import { ProtoQuery } from '../query';
 import { ProtoInternal } from './internal';
 import {
   PVK,
   ProtoType,
   TExtensions,
-  TObjectType,
   TQuery,
   TSerializable,
   TUser,
   ExtraOptions,
-} from '../internals';
-import { TFileStorage } from './filesys';
-import { TStorage } from './storage';
-import { TSchema } from './schema';
-import { CookieOptions, Request } from 'express';
-import { SignOptions, VerifyOptions } from 'jsonwebtoken';
-import { Awaitable } from '../internals/types';
-import { signUser } from './auth/sign';
-
-type Callback<T, R, E> = (request: Proto<E> & T) => Awaitable<R>;
-export type ProtoFunction<E> = Callback<{ data: TSerializable; }, TSerializable, E>;
-export type ProtoTrigger<T, E> = Callback<{ object: TObjectType<T, E>; context: TSerializable; }, void, E>;
-
-type Validator = {
-  requireUser?: boolean;
-  requireMaster?: boolean;
-  requireAnyUserRoles?: string[];
-  requireAllUserRoles?: string[];
-};
-
-export type ProtoFunctionOptions<E> = {
-  callback: ProtoFunction<E>;
-  validator?: Validator;
-};
-
-export type ProtoOptions<Ext> = {
-  endpoint: string;
-  schema: Record<string, TSchema>;
-  storage: TStorage;
-  fileStorage: TFileStorage;
-  classExtends?: TExtensions<Ext>;
-  objectIdSize?: number;
-  maxUploadSize?: number | ((proto: Proto<Ext>) => Awaitable<number>);
-  cookieOptions?: CookieOptions;
-  jwtSignOptions?: SignOptions;
-  jwtVerifyOptions?: VerifyOptions;
-};
-
-export type ProtoKeyOptions = {
-  jwtToken?: string;
-  csrfToken?: string;
-  masterUsers?: { user: string; pass: string; }[];
-};
+} from '../../internals';
+import { Request } from 'express';
+import { signUser } from '../auth/sign';
+import { ProtoOptions, ProtoKeyOptions, ProtoFunction, ProtoFunctionOptions, ProtoTrigger } from './types';
 
 export class Proto<Ext> extends ProtoType<Ext> {
 

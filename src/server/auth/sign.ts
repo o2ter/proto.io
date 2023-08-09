@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import jwt from 'jsonwebtoken';
 import { Request } from 'express';
-import { Proto } from '../index';
+import { Proto } from '../proto/index';
 import { PVK, TUser } from '../../internals';
 import { AUTH_COOKIE_KEY } from '../../common/const';
 

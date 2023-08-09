@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import jwt from 'jsonwebtoken';
-import { Proto } from '../index';
+import { Proto } from '../proto/index';
 import { PVK, TUser } from '../../internals';
 import { RequestHandler } from 'express';
 import {

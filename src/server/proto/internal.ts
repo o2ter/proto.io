@@ -26,7 +26,8 @@
 import _ from 'lodash';
 import { Readable } from 'node:stream';
 import { defaultSchema } from './defaults';
-import { Proto, ProtoOptions, ProtoFunction, ProtoFunctionOptions, ProtoTrigger, ProtoKeyOptions } from './index';
+import { Proto } from './index';
+import { ProtoOptions, ProtoFunction, ProtoFunctionOptions, ProtoTrigger, ProtoKeyOptions } from './types';
 import {
   PVK,
   TFile,
@@ -38,11 +39,11 @@ import {
   base64ToBuffer,
   TObject,
   TUser,
-} from '../internals';
-import { generateId } from './crypto';
-import { TSchema } from './schema';
-import { QueryValidator } from './query/validator/validator';
-import { QuerySelector } from './query/validator/parser';
+} from '../../internals';
+import { generateId } from '../crypto';
+import { TSchema } from '../schema';
+import { QueryValidator } from '../query/validator/validator';
+import { QuerySelector } from '../query/validator/parser';
 
 const validateSchema = (schema: Record<string, TSchema>) => {
 

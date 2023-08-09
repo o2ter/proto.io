@@ -23,7 +23,7 @@
 //  THE SOFTWARE.
 //
 import _ from 'lodash';
-import { Proto } from '../../index';
+import { Proto } from '../../proto/index';
 import { ExtraOptions, PVK, TValue, UpdateOp } from '../../../internals';
 import { QueryValidator } from './validator';
 import { FindOptions, FindOneOptions } from '../../storage';

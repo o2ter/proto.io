@@ -28,7 +28,7 @@ import { Readable } from 'node:stream';
 import { deflate, unzip } from 'node:zlib';
 import { FileBuffer, FileData, PVK, base64ToBuffer, bufferToBase64, isFileBuffer } from '../../../internals';
 import { TFileStorage } from '../../../server/filesys';
-import { Proto } from '../../../server';
+import { Proto } from '../../../server/proto';
 import { TSchema } from '../../../server/schema';
 
 const streamChunk = (stream: Readable, chunkSize: number) => Readable.from({

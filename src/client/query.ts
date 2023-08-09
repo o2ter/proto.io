@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import ProtoClient from './index';
+import { ProtoClient } from './proto';
 import { RequestOptions } from './options';
 import {
   PVK,

@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import express, { Router } from 'express';
-import { Proto } from '../../server';
+import { Proto } from '../proto';
 import { response } from './common';
 import { PVK, deserialize, applyObjectMethods } from '../../internals';
 

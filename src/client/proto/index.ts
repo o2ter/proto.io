@@ -23,10 +23,40 @@
 //  THE SOFTWARE.
 //
 
-import { ProtoClient } from './proto';
+import { ProtoClientQuery } from '../query';
+import { RequestOptions } from '../options';
+import { ProtoClientInternal } from './internal';
+import {
+  PVK,
+  ProtoType, TQuery,
+  TSerializable
+} from '../../internals';
+import { ProtoOptions } from './types';
 
-export * from '../common';
 
-export { ProtoClient };
+export class ProtoClient<Ext> extends ProtoType<Ext> {
 
-export default ProtoClient;
+  [PVK]: ProtoClientInternal<Ext>;
+
+  constructor(options: ProtoOptions<Ext>) {
+    super();
+    this[PVK] = new ProtoClientInternal(this, { ...options });
+  }
+
+  Query<T extends string>(className: T, options?: RequestOptions): TQuery<T, Ext> {
+    return new ProtoClientQuery<T, Ext>(className, this, options);
+  }
+
+  run(
+    name: string,
+    data?: TSerializable,
+    options?: RequestOptions
+  ): Promise<TSerializable> {
+    return this[PVK].request(data, {
+      method: 'post',
+      url: `functions/${name}`,
+      ...(options ?? {})
+    });
+  }
+
+}

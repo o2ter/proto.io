@@ -26,7 +26,8 @@
 import _ from 'lodash';
 import express, { RequestHandler } from 'express';
 import cookieParser from 'cookie-parser';
-import { Proto, ProtoOptions } from './server';
+import { Proto } from './server/proto';
+import { ProtoOptions } from './server/proto/types';
 import csrfHandler from './server/csrf';
 import authHandler from './server/auth';
 import classesRoute from './server/routes/classes';
@@ -35,7 +36,7 @@ import filesRoute from './server/routes/files';
 import { PVK } from './internals';
 
 export * from './common';
-export { Proto } from './server';
+export { Proto } from './server/proto';
 export { ProtoClient } from './client';
 
 export const ProtoRoute = async <E>(options: {

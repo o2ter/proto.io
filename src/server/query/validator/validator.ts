@@ -33,7 +33,7 @@ import {
 import { DecodedBaseQuery, DecodedQuery, FindOptions, FindOneOptions } from '../../storage';
 import { CoditionalSelector, FieldSelector, QuerySelector } from './parser';
 import { TSchema, defaultObjectKeyTypes, isPointer, isPrimitive, isRelation } from '../../schema';
-import { Proto } from '../..';
+import { Proto } from '../../proto';
 import { TQueryBaseOptions } from '../../../internals/query/base';
 
 export const recursiveCheck = (x: any, stack: any[]) => {

@@ -1,5 +1,5 @@
 //
-//  index.ts
+//  types.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -23,10 +23,10 @@
 //  THE SOFTWARE.
 //
 
-import { ProtoClient } from './proto';
+import { TExtensions } from '../../internals';
 
-export * from '../common';
-
-export { ProtoClient };
-
-export default ProtoClient;
+export type ProtoOptions<Ext> = {
+  endpoint: string;
+  masterUser?: { user: string; pass: string; };
+  classExtends?: TExtensions<Ext>;
+};

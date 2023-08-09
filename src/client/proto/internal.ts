@@ -24,9 +24,10 @@
 //
 
 import _ from 'lodash';
-import Service from './request';
-import { RequestOptions } from './options';
-import { ProtoClient, ProtoOptions } from './index';
+import Service from '../request';
+import { RequestOptions } from '../options';
+import { ProtoOptions } from './types';
+import { ProtoClient } from '.';
 import {
   PVK,
   applyObjectMethods,
@@ -40,9 +41,9 @@ import {
   isFileBuffer,
   isFileStream,
   base64ToBuffer,
-} from '../internals';
-import { iterableToStream, streamToIterable } from './stream';
-import { MASTER_PASS_HEADER_NAME, MASTER_USER_HEADER_NAME } from '../common/const';
+} from '../../internals';
+import { iterableToStream, streamToIterable } from '../stream';
+import { MASTER_PASS_HEADER_NAME, MASTER_USER_HEADER_NAME } from '../../common/const';
 
 export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
 
