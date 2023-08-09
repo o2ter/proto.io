@@ -27,27 +27,16 @@ import _ from 'lodash';
 import express, { Router } from 'express';
 import { Proto } from '../proto';
 import { response } from './common';
-import { PVK, deserialize, applyObjectMethods } from '../../internals';
 
 export default <E>(router: Router, proto: Proto<E>) => {
 
-  router.post(
-    '/functions/:name',
+  router.get(
+    '/user/me',
     express.text({ type: '*/*' }),
     async (req, res) => {
-
       res.setHeader('Cache-Control', ['no-cache', 'no-store']);
-
-      const { name } = req.params;
-      if (_.isNil(proto[PVK].functions[name])) return res.sendStatus(404);
-
-      await response(res, () => {
-
-        const payload: Proto<E> & { data: any } = Object.setPrototypeOf({ req }, proto);
-        payload.data = applyObjectMethods(deserialize(req.body), payload);
-
-        return payload[PVK].run(name, payload, { master: payload.isMaster });
-      });
+      const payload: Proto<E> = Object.setPrototypeOf({ req }, proto);
+      await response(res, () => payload.user);
     }
   );
 

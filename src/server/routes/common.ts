@@ -28,10 +28,11 @@ import { Readable } from 'node:stream';
 import { Request, Response } from 'express';
 import { TSerializable, serialize } from '../../internals';
 import busboy, { FileInfo } from 'busboy';
+import { Awaitable } from '../../internals/types';
 
 export const response = async <T extends TSerializable>(
   res: Response,
-  callback: () => Promise<T | undefined>,
+  callback: () => Awaitable<T | undefined>,
 ) => {
 
   try {

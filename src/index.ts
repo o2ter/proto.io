@@ -33,6 +33,7 @@ import authHandler from './server/auth';
 import classesRoute from './server/routes/classes';
 import functionRoute from './server/routes/function';
 import filesRoute from './server/routes/files';
+import userRoute from './server/routes/user';
 import { PVK } from './internals';
 
 export * from './common';
@@ -62,6 +63,7 @@ export const ProtoRoute = async <E>(options: {
   classesRoute(router, proto);
   functionRoute(router, proto);
   filesRoute(router, proto);
+  userRoute(router, proto);
 
   return router;
 }

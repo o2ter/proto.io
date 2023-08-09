@@ -126,7 +126,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
 
       const payload: Proto<E> = Object.setPrototypeOf({ req }, proto);
 
-      await response(res, async () => payload.Query(name, { master: payload.isMaster }).get(id));
+      await response(res, () => payload.Query(name, { master: payload.isMaster }).get(id));
     }
   );
 
@@ -146,7 +146,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
       const query = payload.Query(name, { master: payload.isMaster }).equalTo('_id', id);
 
       const update = _.mapValues(deserialize(req.body) as any, v => [UpdateOp.set, v]);
-      await response(res, async () => query.updateOne(update as any));
+      await response(res, () => query.updateOne(update as any));
     }
   );
 
@@ -167,7 +167,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
       const payload: Proto<E> = Object.setPrototypeOf({ req }, proto);
       const query = payload.Query(name, { master: payload.isMaster }).equalTo('_id', id);
 
-      await response(res, async () => query.deleteOne());
+      await response(res, () => query.deleteOne());
     }
   );
 
