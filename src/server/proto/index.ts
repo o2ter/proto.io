@@ -42,6 +42,7 @@ import { ProtoOptions, ProtoKeyOptions, ProtoFunction, ProtoFunctionOptions, Pro
 export class Proto<Ext> extends ProtoType<Ext> {
 
   [PVK]: ProtoInternal<Ext>;
+  req?: Request;
 
   constructor(options: ProtoOptions<Ext> & ProtoKeyOptions) {
     super();
@@ -74,10 +75,6 @@ export class Proto<Ext> extends ProtoType<Ext> {
 
   InsecureQuery<T extends string>(className: T, options: ExtraOptions & { master: true }): TQuery<T, Ext> {
     return new InsecureProtoQuery<T, Ext>(className, this, options);
-  }
-
-  get req(): Request | undefined {
-    return undefined
   }
 
   get user(): TUser | undefined {
