@@ -39,6 +39,7 @@ import {
   base64ToBuffer,
   TObject,
   TUser,
+  UpdateOp,
 } from '../../internals';
 import { generateId } from '../crypto';
 import { TSchema } from '../schema';
@@ -158,13 +159,12 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
 
   async setPassword(user: TUser, password: string) {
     if (!user.objectId) throw Error('Invalid user object');
-
-    passwordHash
-
+    const { alg, ...options } = this.options.passwordHashOptions;
+    const hashed = await passwordHash(alg, password, options);
     await this.proto.InsecureQuery('User', { master: true })
       .equalTo('_id', user.objectId)
       .updateOne({
-
+        password: [UpdateOp.set, hashed],
       });
   }
 

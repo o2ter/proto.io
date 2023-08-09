@@ -61,9 +61,9 @@ export const passwordHash = async <T extends keyof _PasswordHashOptions>(
     };
 
     const salt = randomBytes(options.saltSize);
-    const derivedKey = await promisify<BinaryLike, BinaryLike, number, ScryptOptions>(scrypt)(password, salt, options.keySize, _opts);
+    const derivedKey = await promisify<BinaryLike, BinaryLike, number, ScryptOptions>(scrypt)(password, salt, options.keySize, _opts) as unknown as Buffer;
 
-    return { alg, salt, derivedKey, ...options };
+    return { alg, salt: salt.toString('base64'), derivedKey: derivedKey.toString('base64'), ...options };
 
     default: throw Error('Invalid algorithm');
   }
