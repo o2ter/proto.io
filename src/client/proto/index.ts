@@ -59,4 +59,7 @@ export class ProtoClient<Ext> extends ProtoType<Ext> {
     });
   }
 
+  currentUser(options?: RequestOptions) {
+    return this[PVK].currentUser(options);
+  }
 }

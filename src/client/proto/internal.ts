@@ -41,6 +41,7 @@ import {
   isFileBuffer,
   isFileStream,
   base64ToBuffer,
+  TUser,
 } from '../../internals';
 import { iterableToStream, streamToIterable } from '../stream';
 import { MASTER_PASS_HEADER_NAME, MASTER_USER_HEADER_NAME } from '../../common/const';
@@ -83,6 +84,26 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     }
 
     return applyObjectMethods(deserialize(res.data), this.proto);
+  }
+
+  async currentUser(options?: RequestOptions): Promise<TUser | undefined> {
+
+    const { serializeOpts, context, ...opts } = options ?? {};
+
+    const res = await this.service.request({
+      method: 'get',
+      baseURL: this.options.endpoint,
+      url: 'user/me',
+      responseType: 'text',
+      ...opts,
+    });
+
+    if (res.status !== 200) {
+      const error = JSON.parse(res.data);
+      throw Error(error.message, { cause: error });
+    }
+
+    return applyObjectMethods(deserialize(res.data), this.proto) as TUser;
   }
 
   async updateFile(object: TFile, options?: RequestOptions) {
