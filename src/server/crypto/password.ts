@@ -28,7 +28,7 @@ import { scrypt, BinaryLike, ScryptOptions } from 'node:crypto';
 import { promisify } from 'node:util';
 import { randomBytes } from './random';
 
-export type PasswordHashOptions = {
+type _PasswordHashOptions = {
   'scrypt': {
      log2n: number;
      blockSize: number;
@@ -38,10 +38,12 @@ export type PasswordHashOptions = {
   };
 };
 
-export const passwordHash = async <T extends keyof PasswordHashOptions>(
+export type PasswordHashOptions = { alg: keyof _PasswordHashOptions } & _PasswordHashOptions[keyof _PasswordHashOptions];
+
+export const passwordHash = async <T extends keyof _PasswordHashOptions>(
   alg: T,
   password: string,
-  options: PasswordHashOptions[T],
+  options: _PasswordHashOptions[T],
 ) => {
   switch (alg) {
     case 'scrypt':

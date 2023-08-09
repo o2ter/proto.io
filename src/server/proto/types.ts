@@ -34,6 +34,7 @@ import { CookieOptions } from 'express';
 import { SignOptions, VerifyOptions } from 'jsonwebtoken';
 import { Awaitable } from '../../internals/types';
 import { Proto } from '.';
+import { PasswordHashOptions } from '../crypto/password';
 
 type Callback<T, R, E> = (request: Proto<E> & T) => Awaitable<R>;
 export type ProtoFunction<E> = Callback<{ data: TSerializable; }, TSerializable, E>;
@@ -61,6 +62,7 @@ export type ProtoOptions<Ext> = {
   cookieOptions?: CookieOptions;
   jwtSignOptions?: SignOptions;
   jwtVerifyOptions?: VerifyOptions;
+  passwordHashOptions?: PasswordHashOptions;
 };
 
 export type ProtoKeyOptions = {

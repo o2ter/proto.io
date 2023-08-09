@@ -52,6 +52,14 @@ export class Proto<Ext> extends ProtoType<Ext> {
       cookieOptions: { maxAge: 365 * 24 * 60 * 60 * 1000, httpOnly: true },
       jwtSignOptions: { expiresIn: '30d' },
       jwtVerifyOptions: {},
+      passwordHashOptions: {
+        alg: 'scrypt',
+        log2n: 14,
+        blockSize: 8,
+        parallel: 1,
+        keySize: 64,
+        saltSize: 64,
+      },
       ...options,
     });
   }

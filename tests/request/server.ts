@@ -94,7 +94,6 @@ beforeAll(async () => {
   const app = express();
 
   app.use(await ProtoRoute({
-    jwtToken: (new UUID()).toString(),
     proto: proto,
   }));
 
