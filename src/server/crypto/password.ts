@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { scrypt } from 'node:crypto';
+import { scrypt, BinaryLike, ScryptOptions } from 'node:crypto';
 import { promisify } from 'node:util';
 import { randomBytes } from './random';
 
@@ -52,8 +52,14 @@ export const passwordHash = async <T extends keyof PasswordHashOptions>(
     if (!_.isInteger(options.keySize)) throw Error('Invalid options');
     if (!_.isInteger(options.saltSize)) throw Error('Invalid options');
 
+    const _opts: ScryptOptions = {
+      N: 1 << options.log2n,
+      blockSize: options.blockSize,
+      parallelization: options.parallel,
+    };
+
     const salt = randomBytes(options.saltSize);
-    const derivedKey = await promisify(scrypt)(password, salt, options.keySize);
+    const derivedKey = await promisify<BinaryLike, BinaryLike, number, ScryptOptions>(scrypt)(password, salt, options.keySize, _opts);
 
     return { alg, salt, derivedKey, ...options };
 
