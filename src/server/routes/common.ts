@@ -32,7 +32,7 @@ import { Awaitable } from '../../internals/types';
 
 export const response = async <T extends TSerializable>(
   res: Response,
-  callback: () => Awaitable<T | undefined>,
+  callback: () => Awaitable<void | undefined | T>,
 ) => {
 
   try {
