@@ -105,6 +105,10 @@ export class Proto<Ext> extends ProtoType<Ext> {
     signUser(this, req, user);
   }
 
+  logoutUser(req: Request) {
+    signUser(this, req, undefined);
+  }
+
   async varifyPassword(user: TUser, password: string) {
     return this[PVK].varifyPassword(user, password);
   }
