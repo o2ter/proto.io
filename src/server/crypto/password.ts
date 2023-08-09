@@ -27,11 +27,11 @@ import { scrypt } from 'node:crypto';
 
 type PasswordHashOptions = {
   'scrypt': {
-     log2n?: number;
-     blockSize?: number;
-     parallel?: number;
-     keySize?: number;
-     saltSize?: number;
+     log2n: number;
+     blockSize: number;
+     parallel: number;
+     keySize: number;
+     saltSize: number;
   };
 };
 
@@ -42,6 +42,8 @@ export const passwordHash = <T extends keyof PasswordHashOptions>(
 ) => {
   switch (alg) {
     case 'scrypt':
+
+    scrypt
 
     default: throw Error('Invalid algorithm');
   }
