@@ -48,6 +48,7 @@ export class QueryValidator<E> {
   proto: Proto<E>
   acls: string[];
   master: boolean;
+  disableSecurity: boolean;
 
   static patterns = {
     path: /^[a-z_]\w*(\[\d+\]|\.\d*|\.[a-z_]\w*)*$/gi,
@@ -59,10 +60,12 @@ export class QueryValidator<E> {
     proto: Proto<E>,
     acls: string[],
     master: boolean,
+    disableSecurity: boolean,
   ) {
     this.proto = proto;
     this.acls = _.uniq(['*', ...acls]);
     this.master = master;
+    this.disableSecurity = disableSecurity;
   }
 
   get schema() {

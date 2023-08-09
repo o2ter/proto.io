@@ -63,6 +63,7 @@ export interface TSchema {
   fields: Record<string, TSchema.DataType>;
   classLevelPermissions?: TSchema.CLPs;
   fieldLevelPermissions?: Record<string, TSchema.FLPs>;
+  secureFields?: string[];
   indexes?: TSchema.Indexes[];
 }
 

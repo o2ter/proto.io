@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { ProtoQuery } from '../query';
+import { InsecureProtoQuery, ProtoQuery } from '../query';
 import { ProtoInternal } from './internal';
 import {
   PVK,
@@ -62,6 +62,10 @@ export class Proto<Ext> extends ProtoType<Ext> {
 
   Query<T extends string>(className: T, options?: ExtraOptions): TQuery<T, Ext> {
     return new ProtoQuery<T, Ext>(className, this, options);
+  }
+
+  InsecureQuery<T extends string>(className: T, options: ExtraOptions & { master: true }): TQuery<T, Ext> {
+    return new InsecureProtoQuery<T, Ext>(className, this, options);
   }
 
   get req(): Request | undefined {

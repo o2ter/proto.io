@@ -60,8 +60,8 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
     };
   }
 
-  private get _storage() {
-    return queryValidator(this._proto, this._options);
+  private get _storage(): ReturnType<typeof queryValidator<E>> {
+    return queryValidator(this._proto, this._options ?? {}, this instanceof InsecureProtoQuery);
   }
 
   explain() {
@@ -248,3 +248,5 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
   }
 
 }
+
+export class InsecureProtoQuery<T extends string, E> extends ProtoQuery<T, E> { }

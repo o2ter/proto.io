@@ -80,6 +80,10 @@ const mergeSchema = (...schemas: Record<string, TSchema>[]) => _.reduce(schemas,
       s.fieldLevelPermissions,
       (l, r) => _.isArray(l) ? [...l, ...r] : undefined,
     ),
+    secureFields: [
+      ...(acc[className]?.secureFields ?? []),
+      ...(s.secureFields ?? []),
+    ],
     indexes: [
       ...(acc[className]?.indexes ?? [
         { keys: { _rperm: 1 } },
