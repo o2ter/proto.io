@@ -24,3 +24,23 @@
 //
 
 import { scrypt } from 'node:crypto';
+
+type PasswordHashOptions = {
+  'scrypt': {
+
+  };
+};
+
+export const passwordHash = <T extends keyof PasswordHashOptions>(
+  alg: T,
+  password: string,
+  options: PasswordHashOptions[T],
+) => {
+  switch (alg) {
+    case 'scrypt':
+
+
+
+    default: throw Error('Invalid algorithm');
+  }
+}
