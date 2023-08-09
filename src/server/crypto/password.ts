@@ -30,49 +30,69 @@ import { randomBytes } from './random';
 
 type _PasswordHashOptions = {
   'scrypt': {
-     log2n: number;
-     blockSize: number;
-     parallel: number;
-     keySize: number;
-     saltSize: number;
+    log2n: number;
+    blockSize: number;
+    parallel: number;
+    keySize: number;
+    saltSize: number;
   };
 };
 
 export type PasswordHashOptions = { alg: keyof _PasswordHashOptions } & _PasswordHashOptions[keyof _PasswordHashOptions];
+
+const _passwordHash = async <T extends keyof _PasswordHashOptions>(
+  alg: T,
+  password: string,
+  salt: Buffer | Uint8Array,
+  options: _PasswordHashOptions[T],
+) => {
+  switch (alg) {
+    case 'scrypt':
+
+      if (!_.isInteger(options.log2n)) throw Error('Invalid options');
+      if (!_.isInteger(options.blockSize)) throw Error('Invalid options');
+      if (!_.isInteger(options.parallel)) throw Error('Invalid options');
+      if (!_.isInteger(options.keySize)) throw Error('Invalid options');
+      if (!_.isInteger(options.saltSize)) throw Error('Invalid options');
+
+      const _opts: ScryptOptions = {
+        N: 1 << options.log2n,
+        blockSize: options.blockSize,
+        parallelization: options.parallel,
+      };
+
+      const derivedKey = await promisify<BinaryLike, BinaryLike, number, ScryptOptions>(scrypt)(password, salt, options.keySize, _opts) as unknown as Buffer;
+
+      return derivedKey.toString('base64');
+
+    default: throw Error('Invalid algorithm');
+  }
+}
 
 export const passwordHash = async <T extends keyof _PasswordHashOptions>(
   alg: T,
   password: string,
   options: _PasswordHashOptions[T],
 ) => {
-  switch (alg) {
-    case 'scrypt':
-
-    if (!_.isInteger(options.log2n)) throw Error('Invalid options');
-    if (!_.isInteger(options.blockSize)) throw Error('Invalid options');
-    if (!_.isInteger(options.parallel)) throw Error('Invalid options');
-    if (!_.isInteger(options.keySize)) throw Error('Invalid options');
-    if (!_.isInteger(options.saltSize)) throw Error('Invalid options');
-
-    const _opts: ScryptOptions = {
-      N: 1 << options.log2n,
-      blockSize: options.blockSize,
-      parallelization: options.parallel,
-    };
-
-    const salt = randomBytes(options.saltSize);
-    const derivedKey = await promisify<BinaryLike, BinaryLike, number, ScryptOptions>(scrypt)(password, salt, options.keySize, _opts) as unknown as Buffer;
-
-    return { alg, salt: salt.toString('base64'), derivedKey: derivedKey.toString('base64'), ...options };
-
-    default: throw Error('Invalid algorithm');
-  }
+  const salt = randomBytes(options.saltSize);
+  return {
+    alg,
+    salt: salt.toString('base64'),
+    derivedKey: await _passwordHash(alg, password, salt, options),
+    ...options
+  };
 }
 
 export const varifyPassword = async <T extends keyof _PasswordHashOptions>(
   alg: T,
   password: string,
-  options: _PasswordHashOptions[T],
+  options: _PasswordHashOptions[T] & { salt: string; derivedKey: string; },
 ) => {
-  return false;
+  if (!_.isString(options.salt)) return false;
+  if (!_.isString(options.derivedKey)) return false;
+  try {
+    return options.derivedKey === await _passwordHash(alg, password, Buffer.from(options.salt, 'base64'), options);
+  } catch {
+    return false;
+  }
 }
