@@ -55,7 +55,13 @@ export const masterUser = {
 const proto = new Proto({
   endpoint: 'http://localhost:8080',
   masterUsers: [masterUser],
+  jwtToken: (new UUID).toHexString(),
   schema: {
+    'User': {
+      fields: {
+        name: 'string',
+      }
+    },
     'Test': {
       fields: {
         default: { type: 'number', default: 42 },
