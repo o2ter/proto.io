@@ -95,6 +95,11 @@ proto.define('echo', (req) => {
   return req.data;
 });
 
+proto.define('createUser', async (req) => {
+  const user = await req.Query('User', { master: true }).first() ?? await req.Query('User').insert({ name: 'test' });
+  req.becomeUser(req.req!, user);
+});
+
 beforeAll(async () => {
 
   const app = express();
