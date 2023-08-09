@@ -33,7 +33,6 @@ import {
 } from '../../internals';
 import { ProtoOptions } from './types';
 
-
 export class ProtoClient<Ext> extends ProtoType<Ext> {
 
   [PVK]: ProtoClientInternal<Ext>;
