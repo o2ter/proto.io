@@ -30,9 +30,9 @@ import { Proto } from '../proto/index';
 import { PVK, TUser, UUID } from '../../internals';
 import { AUTH_COOKIE_KEY } from '../../common/const';
 
-export function signUser<E>(proto: Proto<E>, req: Request & { sessionId?: string; }, user: TUser) {
+export function signUser<E>(proto: Proto<E>, req: Request & { sessionId?: string; }, user?: TUser) {
   const jwtToken = proto[PVK].options.jwtToken;
   if (_.isNil(jwtToken)) return;
-  const token = jwt.sign({ user: user.objectId, sessionId: req.sessionId ?? (new UUID).toHexString() }, jwtToken, proto[PVK].options.jwtSignOptions);
+  const token = jwt.sign({ user: user?.objectId, sessionId: req.sessionId ?? (new UUID).toHexString() }, jwtToken, proto[PVK].options.jwtSignOptions);
   req.res?.cookie(AUTH_COOKIE_KEY, token, proto[PVK].options.cookieOptions);
 }
