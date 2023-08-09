@@ -44,7 +44,7 @@ import {
 import { generateId } from '../crypto';
 import { TSchema } from '../schema';
 import { QueryValidator } from '../query/validator/validator';
-import { passwordHash } from '../crypto/password';
+import { passwordHash, varifyPassword } from '../crypto/password';
 
 const validateSchema = (schema: Record<string, TSchema>) => {
 
@@ -153,8 +153,13 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
   }
 
   async varifyPassword(user: TUser, password: string) {
-
-    return false;
+    if (!user.objectId) throw Error('Invalid user object');
+    const _user = await this.proto.InsecureQuery('User', { master: true })
+      .equalTo('_id', user.objectId)
+      .includes('_id', 'password')
+      .first();
+    const { alg, ...options } = _user?.get('password') ?? {};
+    return varifyPassword(alg, password, options);
   }
 
   async setPassword(user: TUser, password: string) {
@@ -163,6 +168,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     const hashed = await passwordHash(alg, password, options);
     await this.proto.InsecureQuery('User', { master: true })
       .equalTo('_id', user.objectId)
+      .includes('_id')
       .updateOne({
         password: [UpdateOp.set, hashed],
       });

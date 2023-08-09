@@ -68,3 +68,11 @@ export const passwordHash = async <T extends keyof _PasswordHashOptions>(
     default: throw Error('Invalid algorithm');
   }
 }
+
+export const varifyPassword = async <T extends keyof _PasswordHashOptions>(
+  alg: T,
+  password: string,
+  options: _PasswordHashOptions[T],
+) => {
+  return false;
+}
