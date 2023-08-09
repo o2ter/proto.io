@@ -143,14 +143,19 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     return callback(payload ?? this.proto);
   }
 
+  async varifyPassword(user: TUser, password: string) {
+
+    return false;
+  }
+
   async setPassword(user: TUser, password: string) {
     if (!user.objectId) throw Error('Invalid user object');
     this.options.storage.updateOne({
       className: 'User',
       filter: QuerySelector.decode({ _id: { $eq: user.objectId } }),
+      includes: ['_id'],
       matches: {},
-      includes: [],
-      objectIdSize: 0,
+      objectIdSize: 0
     }, {
       
     });

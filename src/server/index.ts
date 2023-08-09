@@ -128,6 +128,10 @@ export class Proto<Ext> extends ProtoType<Ext> {
     signUser(this, req, user);
   }
 
+  async varifyPassword(user: TUser, password: string) {
+    return this[PVK].varifyPassword(user, password);
+  }
+
   setPassword(user: TUser, password: string) {
     return this[PVK].setPassword(user, password);
   }
