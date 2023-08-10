@@ -61,7 +61,7 @@ export const session = async <E>(proto: Proto<E>) => {
   if (!proto.req) return;
 
   const session = _session(proto);
-  const user = session?.user ? await proto.Query('User', { master: true }).get(session.user) : undefined;
+  const user = session?.user && _.isString(session.user) ? await proto.Query('User', { master: true }).get(session.user) : undefined;
   const roles = user instanceof TUser ? _.map(await proto.userRoles(user), x => x.name) : [];
   const sessionId: string | undefined = _session(proto)?.sessionId;
 
