@@ -79,17 +79,17 @@ export class Proto<Ext> extends ProtoType<Ext> {
   }
 
   get sessionId(): string | undefined {
-    if (this.req && 'sessionId' in this.req) return this.req.sessionId as string;
+    if (this.req && 'sessionId' in this.req && _.isString(this.req.sessionId)) return this.req.sessionId;
     return sessionId(this);
   }
 
   async user() {
-    if (this.req && 'user' in this.req) return this.req.user as TUser;
+    if (this.req && 'user' in this.req && this.req.user instanceof TUser) return this.req.user;
     return (await session(this))?.user;
   }
 
   async roles() {
-    if (this.req && 'roles' in this.req) return this.req.roles as string[] ?? [];
+    if (this.req && 'roles' in this.req && _.isArray(this.req.roles) && _.every(this.req.roles, x => _.isString(x))) return this.req.roles as string[] ?? [];
     return (await session(this))?.roles ?? [];
   }
 
