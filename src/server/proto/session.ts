@@ -25,10 +25,7 @@
 
 import _ from 'lodash';
 import jwt from 'jsonwebtoken';
-import {
-  PVK, TUser, UUID,
-  TRole
-} from '../../internals';
+import { PVK, TUser } from '../../internals';
 import { AUTH_COOKIE_KEY, MASTER_PASS_HEADER_NAME, MASTER_USER_HEADER_NAME } from '../../common/const';
 import { Proto } from '.';
 
