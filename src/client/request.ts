@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { XSRF_COOKIE_NAME, XSRF_HEADER_NAME } from '../common/const';
+import { AUTH_COOKIE_KEY, XSRF_COOKIE_NAME, XSRF_HEADER_NAME } from '../common/const';
 import { RequestOptions } from './options';
 
 export default class {
@@ -45,6 +45,12 @@ export default class {
       signal: abortSignal,
       ...opts,
     });
+
+    if (typeof window === 'undefined' && res.headers['set-cookie']) {
+      const cookies = res.headers['set-cookie'];
+      const token = _.findLast(cookies, x => _.startsWith(x, `${AUTH_COOKIE_KEY}=`))
+      if (token) this.service.defaults.headers.Cookie = token;
+    }
 
     if (res.status === 412) {
       return await this.service.request(config);
