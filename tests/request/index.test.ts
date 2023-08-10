@@ -65,7 +65,7 @@ test('test codec', async () => {
 });
 test('test user', async () => {
   await proto.run('createUser');
-  //console.log(await proto.currentUser())
+  console.log(await proto.currentUser())
 });
 test('test files', async () => {
   const file = proto.File('test.txt', 'hello, world', 'text/plain');

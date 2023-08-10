@@ -304,12 +304,18 @@ export const PostgresDialect: SqlDialect = {
         {
           if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
           if (_.isNil(expr.value)) return sql`${element} IS NULL`;
+          if (!_.isString(dataType) && dataType?.type === 'pointer' && expr.value instanceof TObject && expr.value.objectId) {
+            return sql`(${element} #>> '{_id}') ${this.nullSafeEqual()} ${{ value: expr.value.objectId }}`;
+          }
           return sql`${element} ${this.nullSafeEqual()} ${encodeValue(expr.value)}`;
         }
       case '$ne':
         {
           if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
           if (_.isNil(expr.value)) return sql`${element} IS NOT NULL`;
+          if (!_.isString(dataType) && dataType?.type === 'pointer' && expr.value instanceof TObject && expr.value.objectId) {
+            return sql`(${element} #>> '{_id}') ${this.nullSafeNotEqual()} ${{ value: expr.value.objectId }}`;
+          }
           return sql`${element} ${this.nullSafeNotEqual()} ${encodeValue(expr.value)}`;
         }
       case '$gt':
@@ -341,6 +347,8 @@ export const PostgresDialect: SqlDialect = {
                 return sql`${element} ${{ literal: operatorMap[expr.type] }} ${encodeValue(expr.value)}`;
               default: break;
             }
+          } else if (!_.isString(dataType) && dataType?.type === 'pointer' && expr.value instanceof TObject && expr.value.objectId) {
+            return sql`(${element} #>> '{_id}') ${{ literal: operatorMap[expr.type] }} ${{ value: expr.value.objectId }}`;
           } else if (!dataType) {
             if (expr.value instanceof Decimal || _.isNumber(expr.value)) {
               return sql`(
@@ -363,11 +371,17 @@ export const PostgresDialect: SqlDialect = {
       case '$in':
         {
           if (!_.isArray(expr.value)) break;
+          if (!_.isString(dataType) && dataType?.type === 'pointer' && _.every(expr.value, x => x instanceof TObject && x.objectId)) {
+            return sql`(${element} #>> '{_id}') IN (${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)})`;
+          }
           return sql`${element} IN (${_.map(expr.value, x => encodeValue(x))})`;
         }
       case '$nin':
         {
           if (!_.isArray(expr.value)) break;
+          if (!_.isString(dataType) && dataType?.type === 'pointer' && _.every(expr.value, x => x instanceof TObject && x.objectId)) {
+            return sql`(${element} #>> '{_id}') NOT IN (${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)})`;
+          }
           return sql`${element} NOT IN (${_.map(expr.value, x => encodeValue(x))})`;
         }
       case '$subset':
@@ -375,6 +389,8 @@ export const PostgresDialect: SqlDialect = {
           if (!_.isArray(expr.value)) break;
           if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
             return sql`${element} <@ ${{ value: _encodeValue(expr.value) }}`;
+          } else if (!_.isString(dataType) && dataType?.type === 'relation' && _.every(expr.value, x => x instanceof TObject && x.objectId)) {
+            return sql`ARRAY(SELECT _id FROM jsonb_populate_record(null::jsonb, to_jsonb(${element}))) <@ ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
           } else if (!dataType) {
             return sql`jsonb_typeof(${element}) ${this.nullSafeEqual()} 'array' AND ${element} <@ ${_encodeJsonValue(_encodeValue(expr.value))}`;
           }
@@ -384,6 +400,8 @@ export const PostgresDialect: SqlDialect = {
           if (!_.isArray(expr.value)) break;
           if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
             return sql`${element} @> ${{ value: _encodeValue(expr.value) }}`;
+          } else if (!_.isString(dataType) && dataType?.type === 'relation' && _.every(expr.value, x => x instanceof TObject && x.objectId)) {
+            return sql`ARRAY(SELECT _id FROM jsonb_populate_record(null::jsonb, to_jsonb(${element}))) @> ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
           } else if (!dataType) {
             return sql`jsonb_typeof(${element}) ${this.nullSafeEqual()} 'array' AND ${element} @> ${_encodeJsonValue(_encodeValue(expr.value))}`;
           }
@@ -393,6 +411,8 @@ export const PostgresDialect: SqlDialect = {
           if (!_.isArray(expr.value)) break;
           if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
             return sql`NOT ${element} && ${{ value: _encodeValue(expr.value) }}`;
+          } else if (!_.isString(dataType) && dataType?.type === 'relation' && _.every(expr.value, x => x instanceof TObject && x.objectId)) {
+            return sql`NOT ARRAY(SELECT _id FROM jsonb_populate_record(null::jsonb, to_jsonb(${element}))) && ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
           } else if (!dataType) {
             return sql`jsonb_typeof(${element}) ${this.nullSafeEqual()} 'array' AND NOT ${element} && ${_encodeJsonValue(_encodeValue(expr.value))}`;
           }
@@ -402,6 +422,8 @@ export const PostgresDialect: SqlDialect = {
           if (!_.isArray(expr.value)) break;
           if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
             return sql`${element} && ${{ value: _encodeValue(expr.value) }}`;
+          } else if (!_.isString(dataType) && dataType?.type === 'relation' && _.every(expr.value, x => x instanceof TObject && x.objectId)) {
+            return sql`ARRAY(SELECT _id FROM jsonb_populate_record(null::jsonb, to_jsonb(${element}))) && ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
           } else if (!dataType) {
             return sql`jsonb_typeof(${element}) ${this.nullSafeEqual()} 'array' AND ${element} && ${_encodeJsonValue(_encodeValue(expr.value))}`;
           }
