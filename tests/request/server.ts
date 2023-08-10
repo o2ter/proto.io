@@ -97,6 +97,8 @@ proto.define('echo', (proto) => {
 
 proto.define('createUser', async (proto) => {
   const user = await proto.Query('User', { master: true }).first() ?? await proto.Query('User').insert({ name: 'test' });
+  await proto.setPassword(user, 'password123');
+  if (!await proto.varifyPassword(user, 'password123')) throw Error('incorrect password');
   proto.becomeUser(proto.req!, user);
 });
 

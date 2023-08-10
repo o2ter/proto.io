@@ -43,8 +43,8 @@ import { queryValidator } from './validator';
 
 export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
 
-  private _proto: Proto<E>;
-  private _options?: ExtraOptions;
+  protected _proto: Proto<E>;
+  protected _options?: ExtraOptions;
 
   constructor(className: T, proto: Proto<E>, options?: ExtraOptions) {
     super(className);
@@ -249,4 +249,11 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
 
 }
 
-export class InsecureProtoQuery<T extends string, E> extends ProtoQuery<T, E> { }
+export class InsecureProtoQuery<T extends string, E> extends ProtoQuery<T, E> { 
+
+  clone(options?: TQueryOptions) {
+    const clone = new InsecureProtoQuery(this.className, this._proto, this._options);
+    clone[PVK].options = options ?? { ...this[PVK].options };
+    return clone;
+  }
+}
