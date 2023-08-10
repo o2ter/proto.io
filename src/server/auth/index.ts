@@ -24,58 +24,16 @@
 //
 
 import _ from 'lodash';
-import jwt from 'jsonwebtoken';
 import { Proto } from '../proto/index';
-import { PVK, TUser, UUID } from '../../internals';
 import { RequestHandler } from 'express';
-import {
-  AUTH_COOKIE_KEY,
-  MASTER_USER_HEADER_NAME,
-  MASTER_PASS_HEADER_NAME,
-} from '../../common/const';
 import { signUser } from './sign';
 
 export default <E>(proto: Proto<E>): RequestHandler => async (req: any, res, next) => {
-
-  const jwtToken = proto[PVK].options.jwtToken;
-  if (_.isNil(jwtToken)) return next();
-
-  let authorization = '';
-  if (req.headers.authorization) {
-    const parts = req.headers.authorization.split(' ');
-    if (parts.length === 2 && parts[0] === 'Bearer') authorization = parts[1];
-  } else if (req.cookies[AUTH_COOKIE_KEY]) {
-    authorization = req.cookies[AUTH_COOKIE_KEY];
-  }
-
-  if (!_.isEmpty(authorization)) {
-    const payload = jwt.verify(authorization, jwtToken, { ...proto[PVK].options.jwtVerifyOptions, complete: false });
-    if (_.isObject(payload)) {
-      try {
-        if (!_.isEmpty(payload.user)) req.user = await proto.Query('User', { master: true }).get(payload.user);
-      } catch {}
-      req.sessionId = payload.sessionId ?? (new UUID).toHexString();
-    }
-  }
-
   try {
-    if (req.user instanceof TUser) req.roles = await proto.userRoles(req.user);
+    const connected = proto.connect(req);
+    signUser(connected, res, await connected.user());
+    return next();
   } catch {
     return next(new Error('Internal server error'));
   }
-
-  signUser(proto, req, req.user);
-
-  const user = req.header(MASTER_USER_HEADER_NAME);
-  const pass = req.header(MASTER_PASS_HEADER_NAME);
-
-  if (!_.isEmpty(user) && !_.isEmpty(pass)) {
-    for (const profile of proto[PVK].options.masterUsers ?? []) {
-      if (profile.user === user && profile.pass === pass) {
-        req.isMaster = true;
-      }
-    }
-  }
-
-  return next();
 };

@@ -38,39 +38,39 @@ export const normalize = <T>(x: T): T => {
 
 export const queryValidator = <E>(proto: Proto<E>, options: ExtraOptions, disableSecurity: boolean) => {
 
-  const acls = () => _.uniq(_.compact([..._.map(proto.roles, x => `role:${x}`), proto.user?.objectId]));
-  const validator = () => new QueryValidator(proto, acls(), options.master ?? false, disableSecurity);
+  const acls = async () => _.uniq(_.compact([..._.map(await proto.roles(), x => `role:${x}`), (await proto.user())?.objectId]));
+  const validator = async () => new QueryValidator(proto, await acls(), options.master ?? false, disableSecurity);
 
   return {
-    explain(
+    async explain(
       query: FindOptions
     ) {
       QueryValidator.recursiveCheck(query);
-      const _validator = validator();
+      const _validator = await validator();
       const decoded = _validator.decodeQuery(normalize(query), 'read');
       const isGet = _validator.isGetMethod(decoded.filter);
       if (!_validator.validateCLPs(query.className, isGet ? 'get' : 'find')) throw Error('No permission');
       return proto.storage.explain(decoded);
     },
-    count(
+    async count(
       query: FindOptions
     ) {
       QueryValidator.recursiveCheck(query);
-      const _validator = validator();
+      const _validator = await validator();
       if (!_validator.validateCLPs(query.className, 'count')) throw Error('No permission');
       return proto.storage.count(_validator.decodeQuery(normalize(query), 'read'));
     },
-    find(
+    async find(
       query: FindOptions
     ) {
       QueryValidator.recursiveCheck(query);
-      const _validator = validator();
+      const _validator = await validator();
       const decoded = _validator.decodeQuery(normalize(query), 'read');
       const isGet = _validator.isGetMethod(decoded.filter);
       if (!_validator.validateCLPs(query.className, isGet ? 'get' : 'find')) throw Error('No permission');
       return proto.storage.find(decoded);
     },
-    insert(
+    async insert(
       options: {
         className: string;
         includes?: string[];
@@ -79,7 +79,7 @@ export const queryValidator = <E>(proto: Proto<E>, options: ExtraOptions, disabl
       attrs: Record<string, TValue>,
     ) {
       QueryValidator.recursiveCheck(attrs);
-      const _validator = validator();
+      const _validator = await validator();
       const _includes = _validator.decodeIncludes(options.className, options.includes ?? ['*']);
       const _matches = _validator.decodeMatches(options.className, options.matches ?? {}, _includes);
       if (!_validator.validateCLPs(options.className, 'create')) throw Error('No permission');
@@ -90,25 +90,25 @@ export const queryValidator = <E>(proto: Proto<E>, options: ExtraOptions, disabl
         objectIdSize: proto[PVK].options.objectIdSize
       }, normalize(_validator.validateFields(options.className, attrs, 'create', QueryValidator.patterns.name)));
     },
-    updateOne(
+    async updateOne(
       query: FindOneOptions,
       update: Record<string, [UpdateOp, TValue]>
     ) {
       QueryValidator.recursiveCheck(query, update);
-      const _validator = validator();
+      const _validator = await validator();
       if (!_validator.validateCLPs(query.className, 'update')) throw Error('No permission');
       return proto.storage.updateOne(
         _validator.decodeQuery(normalize(query), 'update'),
         normalize(_validator.validateFields(query.className, update, 'update', QueryValidator.patterns.path)),
       );
     },
-    upsertOne(
+    async upsertOne(
       query: FindOneOptions,
       update: Record<string, [UpdateOp, TValue]>,
       setOnInsert: Record<string, TValue>
     ) {
       QueryValidator.recursiveCheck(query, update, setOnInsert);
-      const _validator = validator();
+      const _validator = await validator();
       if (!_validator.validateCLPs(query.className, 'create', 'update')) throw Error('No permission');
       return proto.storage.upsertOne(
         _validator.decodeQuery(normalize(query), 'update'),
@@ -116,19 +116,19 @@ export const queryValidator = <E>(proto: Proto<E>, options: ExtraOptions, disabl
         normalize(_validator.validateFields(query.className, setOnInsert, 'create', QueryValidator.patterns.name)),
       );
     },
-    deleteOne(
+    async deleteOne(
       query: FindOneOptions
     ) {
       QueryValidator.recursiveCheck(query);
-      const _validator = validator();
+      const _validator = await validator();
       if (!_validator.validateCLPs(query.className, 'delete')) throw Error('No permission');
       return proto.storage.deleteOne(_validator.decodeQuery(normalize(query), 'update'));
     },
-    deleteMany(
+    async deleteMany(
       query: FindOptions
     ) {
       QueryValidator.recursiveCheck(query);
-      const _validator = validator();
+      const _validator = await validator();
       if (!_validator.validateCLPs(query.className, 'delete')) throw Error('No permission');
       return proto.storage.deleteMany(_validator.decodeQuery(normalize(query), 'update'));
     },

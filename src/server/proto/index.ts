@@ -38,6 +38,7 @@ import {
 import { Request } from 'express';
 import { signUser } from '../auth/sign';
 import { ProtoOptions, ProtoKeyOptions, ProtoFunction, ProtoFunctionOptions, ProtoTrigger } from './types';
+import { sessionId, sessionIsMaster, session } from './session';
 
 export class Proto<Ext> extends ProtoType<Ext> {
 
@@ -77,24 +78,23 @@ export class Proto<Ext> extends ProtoType<Ext> {
     return new InsecureProtoQuery<T, Ext>(className, this, options);
   }
 
-  get user(): TUser | undefined {
-    if (this.req && 'user' in this.req) return this.req.user as TUser;
-    return undefined;
-  }
-
   get sessionId(): string | undefined {
     if (this.req && 'sessionId' in this.req) return this.req.sessionId as string;
-    return undefined;
+    return sessionId(this);
   }
 
-  get roles(): string[] {
+  async user() {
+    if (this.req && 'user' in this.req) return this.req.user as TUser;
+    return (await session(this))?.user;
+  }
+
+  async roles() {
     if (this.req && 'roles' in this.req) return this.req.roles as string[] ?? [];
-    return [];
+    return (await session(this))?.roles ?? [];
   }
 
   get isMaster(): boolean {
-    if (this.req && 'isMaster' in this.req) return !!this.req.isMaster;
-    return false;
+    return sessionIsMaster(this);
   }
 
   connect<R extends Request, T extends object>(
@@ -107,11 +107,11 @@ export class Proto<Ext> extends ProtoType<Ext> {
 
   becomeUser(req: Request, user: TUser) {
     if (!user.objectId) throw Error('Invalid user object');
-    signUser(this, req, user);
+    if (req.res) signUser(this, req.res, user);
   }
 
   logoutUser(req: Request) {
-    signUser(this, req, undefined);
+    if (req.res) signUser(this, req.res, undefined);
   }
 
   async varifyPassword(user: TUser, password: string) {

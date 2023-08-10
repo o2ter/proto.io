@@ -85,7 +85,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
   find() {
     const self = this;
     return asyncStream(async function* () {
-      const objects = self._storage.find(self._queryOptions);
+      const objects = await self._storage.find(self._queryOptions);
       for await (const object of objects) yield self._objectMethods(object);
     });
   }
@@ -124,7 +124,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
     if (_.isFunction(beforeSave)) {
 
       const object = this._objectMethods(
-        _.first(await asyncIterableToArray(this._storage.find({ ...this._queryOptions, limit: 1 })))
+        _.first(await asyncIterableToArray(await this._storage.find({ ...this._queryOptions, limit: 1 })))
       );
       if (!object) return undefined;
 
@@ -150,7 +150,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
     if (_.isFunction(beforeSave)) {
 
       let object = this._objectMethods(
-        _.first(await asyncIterableToArray(this._storage.find({ ...this._queryOptions, limit: 1 })))
+        _.first(await asyncIterableToArray(await this._storage.find({ ...this._queryOptions, limit: 1 })))
       );
 
       if (object) {
@@ -194,7 +194,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
     if (_.isFunction(beforeDelete)) {
 
       const object = this._objectMethods(
-        _.first(await asyncIterableToArray(this._storage.find({ ...this._queryOptions, limit: 1 })))
+        _.first(await asyncIterableToArray(await this._storage.find({ ...this._queryOptions, limit: 1 })))
       );
       if (!object) return undefined;
 
@@ -225,7 +225,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
 
     if (_.isFunction(beforeDelete) || _.isFunction(afterDelete)) {
 
-      const objects = this._objectMethods(await asyncIterableToArray(this._storage.find(this._queryOptions)));
+      const objects = this._objectMethods(await asyncIterableToArray(await this._storage.find(this._queryOptions)));
       if (_.isEmpty(objects)) return 0;
 
       if (_.isFunction(beforeDelete)) {
