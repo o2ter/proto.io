@@ -82,12 +82,8 @@ export const session = async <E>(proto: Proto<E>) => {
 
 export const sessionIsMaster = <E>(proto: Proto<E>) => {
   if (!proto.req) return false;
-  const master_user = proto.req.header(MASTER_USER_HEADER_NAME);
-  const master_pass = proto.req.header(MASTER_PASS_HEADER_NAME);
-  if (!_.isEmpty(master_user) && !_.isEmpty(master_pass)) {
-    for (const profile of proto[PVK].options.masterUsers ?? []) {
-      return profile.user === master_user && profile.pass === master_pass;
-    }
-  }
-  return false;
+  const user = proto.req.header(MASTER_USER_HEADER_NAME);
+  const pass = proto.req.header(MASTER_PASS_HEADER_NAME);
+  if (_.isEmpty(user) || _.isEmpty(pass)) return false;
+  return _.some(proto[PVK].options.masterUsers, x => x.user === user && x.pass === pass);
 }
