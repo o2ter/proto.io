@@ -38,7 +38,7 @@ export const normalize = <T>(x: T): T => {
 
 export const queryValidator = <E>(proto: Proto<E>, options: ExtraOptions, disableSecurity: boolean) => {
 
-  const acls = async () => _.uniq(_.compact([..._.map(await proto.roles(), x => `role:${x}`), (await proto.user())?.objectId]));
+  const acls = async () => options.master ? [] : _.uniq(_.compact([..._.map(await proto.roles(), x => `role:${x}`), (await proto.user())?.objectId]));
   const validator = async () => new QueryValidator(proto, await acls(), options.master ?? false, disableSecurity);
 
   return {
