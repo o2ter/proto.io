@@ -159,8 +159,10 @@ class TQueryFilterBase {
     if (_.isNil(this[PVK].options.matches)) {
       this[PVK].options.matches = { [key]: query[PVK].options };
     } else if (_.isNil(this[PVK].options.matches[key])) {
+      this[PVK].options.matches = { ...this[PVK].options.matches };
       this[PVK].options.matches[key] = query[PVK].options;
     } else {
+      this[PVK].options.matches = { ...this[PVK].options.matches };
       this[PVK].options.matches[key] = mergeOpts(this[PVK].options.matches[key], query[PVK].options);
     }
     return this;
