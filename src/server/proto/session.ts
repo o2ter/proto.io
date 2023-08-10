@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import jwt from 'jsonwebtoken';
 import { Proto } from './index';
-import { PVK, TUser } from '../../internals';
+import { PVK, TUser, UUID } from '../../internals';
 import { AUTH_COOKIE_KEY, MASTER_PASS_HEADER_NAME, MASTER_USER_HEADER_NAME } from '../../common/const';
 
 const _session = <E>(proto: Proto<E>) => {
@@ -47,22 +47,27 @@ const _session = <E>(proto: Proto<E>) => {
   const payload = jwt.verify(authorization, jwtToken, { ...proto[PVK].options.jwtVerifyOptions, complete: false });
   if (!_.isObject(payload)) return;
 
+  const req = proto.req as any;
+  req.sessionId = payload.sessionId ?? (new UUID).toHexString();
+
   return payload;
 }
 
 export const sessionId = <E>(proto: Proto<E>): string | undefined => {
-  return _session(proto)?.sessionId;
+  if (!proto.req) return;
+  const req = proto.req as any;
+  return req.sessionId ?? _session(proto)?.sessionId;
 }
 
 export const session = async <E>(proto: Proto<E>) => {
   if (!proto.req) return;
 
+  const req = proto.req as any;
   const session = _session(proto);
   const user = session?.user && _.isString(session.user) ? await proto.Query('User', { master: true }).get(session.user) : undefined;
   const roles = user instanceof TUser ? _.map(await proto.userRoles(user), x => x.name) : [];
-  const sessionId: string | undefined = _session(proto)?.sessionId;
+  const sessionId: string | undefined = req.sessionId ?? _session(proto)?.sessionId;
 
-  const req = proto.req as any;
   req.sessionId = sessionId;
   req.roles = roles;
   req.user = user instanceof TUser ? user : undefined;
