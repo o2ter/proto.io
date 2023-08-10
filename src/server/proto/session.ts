@@ -25,9 +25,9 @@
 
 import _ from 'lodash';
 import jwt from 'jsonwebtoken';
+import { Proto } from './index';
 import { PVK, TUser } from '../../internals';
 import { AUTH_COOKIE_KEY, MASTER_PASS_HEADER_NAME, MASTER_USER_HEADER_NAME } from '../../common/const';
-import { Proto } from '.';
 
 const _session = <E>(proto: Proto<E>) => {
 
