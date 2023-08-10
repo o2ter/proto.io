@@ -91,13 +91,13 @@ const proto = new Proto({
   fileStorage: new DatabaseFileStorage(),
 });
 
-proto.define('echo', (req) => {
-  return req.data;
+proto.define('echo', (proto) => {
+  return proto.data;
 });
 
-proto.define('createUser', async (req) => {
-  const user = await req.Query('User', { master: true }).first() ?? await req.Query('User').insert({ name: 'test' });
-  req.becomeUser(req.req!, user);
+proto.define('createUser', async (proto) => {
+  const user = await proto.Query('User', { master: true }).first() ?? await proto.Query('User').insert({ name: 'test' });
+  proto.becomeUser(proto.req!, user);
 });
 
 beforeAll(async () => {
