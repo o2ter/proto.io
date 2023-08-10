@@ -51,13 +51,17 @@ export default <E>(proto: Proto<E>): RequestHandler => async (req: any, res, nex
   if (!_.isEmpty(authorization)) {
     const payload = jwt.verify(authorization, jwtToken, { ...proto[PVK].options.jwtVerifyOptions, complete: false });
     if (_.isObject(payload)) {
-      if (!_.isEmpty(payload.user)) req.user = await proto.Query('User', { master: true }).get(payload.user);
+      try {
+        if (!_.isEmpty(payload.user)) req.user = await proto.Query('User', { master: true }).get(payload.user);
+      } catch {}
       req.sessionId = payload.sessionId ?? (new UUID).toHexString();
     }
   }
 
-  if (req.user instanceof TUser) {
-    req.roles = await proto.userRoles(req.user);
+  try {
+    if (req.user instanceof TUser) req.roles = await proto.userRoles(req.user);
+  } catch {
+    return next(new Error('Internal server error'));
   }
 
   signUser(proto, req, req.user);
