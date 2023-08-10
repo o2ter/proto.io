@@ -48,7 +48,7 @@ export default class {
 
     if (typeof window === 'undefined' && res.headers['set-cookie']) {
       const cookies = res.headers['set-cookie'];
-      const token = _.findLast(cookies, x => _.startsWith(x, `${AUTH_COOKIE_KEY}=`))
+      const token = _.findLast(_.flatMap(cookies, x => x.split(';')), x => _.startsWith(x, `${AUTH_COOKIE_KEY}=`))
       if (token) this.service.defaults.headers.Cookie = token;
     }
 
