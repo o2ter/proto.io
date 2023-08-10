@@ -97,6 +97,14 @@ export class Proto<Ext> extends ProtoType<Ext> {
     return false;
   }
 
+  connect<R extends Request, T extends object>(
+    req: R,
+    attrs?: T | ((x: this & { req: R; }) => T)
+  ): this & { req: R; } & T {
+    const payload = _.create(this, { req });
+    return _.assign(payload, _.isFunction(attrs) ? attrs(payload) : attrs)
+  }
+
   becomeUser(req: Request, user: TUser) {
     if (!user.objectId) throw Error('Invalid user object');
     signUser(this, req, user);

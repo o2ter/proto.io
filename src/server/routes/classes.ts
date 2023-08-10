@@ -56,7 +56,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
           ...options
         }: any = deserialize(req.body);
 
-        const payload = _.create(proto, { req });
+        const payload = proto.connect(req);
         const query = payload.Query(name, { master: payload.isMaster, context });
         query[PVK].options = options;
 
@@ -89,7 +89,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
 
       if (!_.includes(classes, name)) return res.sendStatus(404);
 
-      const payload = _.create(proto, { req });
+      const payload = proto.connect(req);
       const query = payload.Query(name, { master: payload.isMaster });
 
       await response(res, async () => {
@@ -124,7 +124,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
 
       if (!_.includes(classes, name)) return res.sendStatus(404);
 
-      const payload = _.create(proto, { req });
+      const payload = proto.connect(req);
 
       await response(res, () => payload.Query(name, { master: payload.isMaster }).get(id));
     }
@@ -142,7 +142,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
 
       if (!_.includes(classes, name)) return res.sendStatus(404);
 
-      const payload = _.create(proto, { req });
+      const payload = proto.connect(req);
       const query = payload.Query(name, { master: payload.isMaster }).equalTo('_id', id);
 
       const update = _.mapValues(deserialize(req.body) as any, v => [UpdateOp.set, v]);
@@ -164,7 +164,7 @@ export default <E>(router: Router, proto: Proto<E>) => {
 
       if (!_.includes(classes, name)) return res.sendStatus(404);
 
-      const payload = _.create(proto, { req });
+      const payload = proto.connect(req);
       const query = payload.Query(name, { master: payload.isMaster }).equalTo('_id', id);
 
       await response(res, () => query.deleteOne());
