@@ -63,6 +63,13 @@ test('test codec', async () => {
   const result = await proto.run('echo', obj);
   expect(result).toStrictEqual(obj);
 });
+test('test session id', async () => {
+  const sessionId = await proto.run('sessionId');
+  expect(await proto.run('sessionId')).toStrictEqual(sessionId);
+  expect(await proto.run('sessionId')).toStrictEqual(sessionId);
+  expect(await proto.run('sessionId')).toStrictEqual(sessionId);
+  expect(await proto.run('sessionId')).toStrictEqual(sessionId);
+});
 test('test user', async () => {
   await proto.run('createUser');
   const user = await proto.currentUser();
