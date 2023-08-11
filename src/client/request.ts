@@ -33,7 +33,7 @@ export default class {
   service = axios.create({
     xsrfCookieName: XSRF_COOKIE_NAME,
     xsrfHeaderName: XSRF_HEADER_NAME,
-    validateStatus: status => status < 500,
+    validateStatus: status => status >= 200 && status < 500,
     withCredentials: true,
   });
 
