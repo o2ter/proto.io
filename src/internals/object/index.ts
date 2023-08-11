@@ -97,7 +97,7 @@ export class TObject {
     return this[PVK].attributes._updated_at as Date;
   }
 
-  get version(): string {
+  get __v(): string {
     return this[PVK].attributes.__v as string;
   }
 
