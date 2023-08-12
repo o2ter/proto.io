@@ -282,16 +282,13 @@ export const PostgresDialect: SqlDialect = {
     const dataType = parent.className && _.isEmpty(subpath) ? compiler.schema[parent.className].fields[colname] ?? defaultObjectKeyTypes[colname] : null;
     let element = sql`${{ identifier: parent.name }}.${{ identifier: parent.name.startsWith('_expr_$') ? '$' : colname }}`;
     if (!parent.className) {
-      const _type = parent.className ? compiler.schema[parent.className].fields[colname] ?? defaultObjectKeyTypes[colname] : null;
-      if (_type === 'array' || (!_.isString(_type) && (_type?.type === 'array' || _type?.type === 'relation'))) {
-        element = sql`jsonb_extract_path(to_jsonb(${element}), ${_.map([colname, ...subpath], x => sql`${{ quote: x.startsWith('$') ? `$${x}` : x }}`)})`;
-      } else if (colname !== '$') {
+      if (colname !== '$') {
         element = sql`jsonb_extract_path(${element}, ${_.map([colname, ...subpath], x => sql`${{ quote: x.startsWith('$') ? `$${x}` : x }}`)})`;
       } else if (!_.isEmpty(subpath)) {
         element = sql`jsonb_extract_path(${element}, ${_.map(subpath, x => sql`${{ quote: x.startsWith('$') ? `$${x}` : x }}`)})`;
       }
     } else if (!_.isEmpty(subpath)) {
-      const _type = parent.className ? compiler.schema[parent.className].fields[colname] ?? defaultObjectKeyTypes[colname] : null;
+      const _type = compiler.schema[parent.className].fields[colname] ?? defaultObjectKeyTypes[colname];
       if (_type === 'array' || (!_.isString(_type) && (_type?.type === 'array' || _type?.type === 'relation'))) {
         element = sql`jsonb_extract_path(to_jsonb(${element}), ${_.map(subpath, x => sql`${{ quote: x.startsWith('$') ? `$${x}` : x }}`)})`;
       } else {
