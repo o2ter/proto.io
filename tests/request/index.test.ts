@@ -74,6 +74,9 @@ test('test user', async () => {
   await proto.run('createUser');
   const user = await proto.currentUser();
   expect(user?.objectId).toBeTruthy();
+  await proto.logout();
+  const user2 = await proto.currentUser();
+  expect(user2?.objectId).toStrictEqual(undefined);
 });
 test('test files', async () => {
   const file = proto.File('test.txt', 'hello, world', 'text/plain');
@@ -554,7 +557,7 @@ test('test update', async () => {
       array: [UpdateOp.set, [1, 2, 3, date, new Decimal('0.001')]],
     });
   expect(updated?.objectId).toStrictEqual(inserted.objectId);
-  expect(updated?.version).toStrictEqual(1);
+  expect(updated?.__v).toStrictEqual(1);
   expect(updated?.get('boolean')).toStrictEqual(true);
   expect(updated?.get('number')).toStrictEqual(42);
   expect(updated?.get('decimal')).toStrictEqual(new Decimal('0.001'));
@@ -590,7 +593,7 @@ test('test upsert', async () => {
       array: [1, 2, 3, date, new Decimal('0.001')],
     });
   expect(upserted.objectId).toBeTruthy();
-  expect(upserted.version).toStrictEqual(0);
+  expect(upserted.__v).toStrictEqual(0);
   expect(upserted.get('boolean')).toStrictEqual(true);
   expect(upserted.get('number')).toStrictEqual(42);
   expect(upserted.get('decimal')).toStrictEqual(new Decimal('0.001'));
@@ -627,7 +630,7 @@ test('test upsert 2', async () => {
       array: [UpdateOp.set, [1, 2, 3, date, new Decimal('0.001')]],
     }, { string: 'insert' });
   expect(upserted.objectId).toStrictEqual(inserted.objectId);
-  expect(upserted.version).toStrictEqual(1);
+  expect(upserted.__v).toStrictEqual(1);
   expect(upserted.get('boolean')).toStrictEqual(true);
   expect(upserted.get('number')).toStrictEqual(42);
   expect(upserted.get('decimal')).toStrictEqual(new Decimal('0.001'));
