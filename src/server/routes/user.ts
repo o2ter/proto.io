@@ -40,5 +40,15 @@ export default <E>(router: Router, proto: Proto<E>) => {
     }
   );
 
+  router.post(
+    '/user/logout',
+    express.text({ type: '*/*' }),
+    async (req: any, res) => {
+      res.setHeader('Cache-Control', ['no-cache', 'no-store']);
+      const payload = proto.connect(req);
+      await response(res, () => payload.logoutUser(req));
+    }
+  );
+
   return router;
 }

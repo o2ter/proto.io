@@ -109,6 +109,24 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     return user ?? undefined;
   }
 
+  async logout(options?: RequestOptions) {
+
+    const { serializeOpts, context, ...opts } = options ?? {};
+
+    const res = await this.service.request({
+      method: 'post',
+      baseURL: this.options.endpoint,
+      url: 'user/logout',
+      responseType: 'text',
+      ...opts,
+    });
+
+    if (res.status !== 200) {
+      const error = JSON.parse(res.data);
+      throw Error(error.message, { cause: error });
+    }
+  }
+
   async updateFile(object: TFile, options?: RequestOptions) {
 
     const updated = await this.proto.Query(object.className, options)
