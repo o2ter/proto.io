@@ -217,6 +217,30 @@ export const PostgresDialect: SqlDialect = {
             return sql`${{ identifier: column }}[:array_length(${{ identifier: column }}, 1) - ${{ literal: `${value}` }}]`;
           default: break;
         }
+      } else if (!_.isString(dataType) && dataType?.type === 'relation' && _.isNil(dataType.foreignField)) {
+        switch (op) {
+          case UpdateOp.addToSet:
+          case UpdateOp.push:
+            {
+              if (!_.isArray(value) || !_.every(value, x => x instanceof TObject && x.objectId)) break;
+              const objectIds = _.uniq(_.map(value, (x: any) => `${x.className}$${x.objectId}`));
+              return sql`ARRAY(
+                SELECT DISTINCT
+                UNNEST(${{ identifier: column }} || ARRAY[${_.map(objectIds, (x) => sql`${{ value: x }}`)}])
+              )`;
+            }
+          case UpdateOp.removeAll:
+            {
+              if (!_.isArray(value) || !_.every(value, x => x instanceof TObject && x.objectId)) break;
+              const objectIds = _.uniq(_.map(value, (x: any) => `${x.className}$${x.objectId}`));
+              return sql`ARRAY(
+                SELECT *
+                FROM UNNEST(${{ identifier: column }}) "$"
+                WHERE "$" NOT IN (${_.map(objectIds, (x) => sql`${{ value: x }}`)})
+              )`;
+            }
+          default: break;
+        }
       }
     } else {
       let element = sql`${{ identifier: column }}`;

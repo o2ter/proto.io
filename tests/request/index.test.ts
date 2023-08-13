@@ -534,6 +534,23 @@ test('test update types 4', async () => {
   expect((await q.clone().updateOne({ array: [UpdateOp.popLast, 1] }))?.get('array')).toStrictEqual([2, 3]);
 })
 
+test('test update types 7', async () => {
+  const obj1 = await proto.Query('Test').insert({});
+  const obj2 = await proto.Query('Test').insert({});
+  const obj3 = await proto.Query('Test').insert({});
+  const obj4 = await proto.Query('Test').insert({});
+  const obj5 = await proto.Query('Test').insert({});
+  const inserted = await proto.Query('Test').insert({
+    relation: [obj1, obj2, obj3],
+  });
+
+  const q = proto.Query('Test').equalTo('_id', inserted.objectId).includes('relation');
+
+  expect((await q.clone().updateOne({ relation: [UpdateOp.addToSet, [obj2, obj3, obj4]] }))?.get('relation').map((x: any) => x.objectId).sort()).toStrictEqual([obj1, obj2, obj3, obj4].map(x => x.objectId).sort());
+  expect((await q.clone().updateOne({ relation: [UpdateOp.push, [obj4, obj5]] }))?.get('relation').map((x: any) => x.objectId).sort()).toStrictEqual([obj1, obj2, obj3, obj4, obj5].map(x => x.objectId).sort());
+  expect((await q.clone().updateOne({ relation: [UpdateOp.removeAll, [obj4]] }))?.get('relation').map((x: any) => x.objectId).sort()).toStrictEqual([obj1, obj2, obj3, obj5].map(x => x.objectId).sort());
+})
+
 test('test pointer', async () => {
   const date = new Date;
   const inserted = await proto.Query('Test').insert({
