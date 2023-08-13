@@ -242,20 +242,20 @@ export const PostgresDialect: SqlDialect = {
             };
             if (value instanceof Decimal || _.isNumber(value)) {
               return _updateKey(sql`
-              CASE
-              WHEN jsonb_typeof(${element}) ${this.nullSafeEqual()} 'number'
-                THEN to_jsonb(${{ literal: operatorMap[op] }}(${element}::NUMERIC,
-                  ${{ value: value instanceof Decimal ? value.toNumber() : value }}))
-              WHEN jsonb_typeof(${element} -> '$decimal') ${this.nullSafeEqual()} 'string'
-                THEN jsonb_build_object(
-                  '$decimal', CAST(
-                    (${{ literal: operatorMap[op] }}((${element} ->> '$decimal')::DECIMAL,
-                      ${{ value: value instanceof Decimal ? value.toString() : value }}::DECIMAL))
-                  AS TEXT)
-                )
-              ELSE NULL
-              END
-            `);
+                CASE
+                WHEN jsonb_typeof(${element}) ${this.nullSafeEqual()} 'number'
+                  THEN to_jsonb(${{ literal: operatorMap[op] }}(${element}::NUMERIC,
+                    ${{ value: value instanceof Decimal ? value.toNumber() : value }}))
+                WHEN jsonb_typeof(${element} -> '$decimal') ${this.nullSafeEqual()} 'string'
+                  THEN jsonb_build_object(
+                    '$decimal', CAST(
+                      (${{ literal: operatorMap[op] }}((${element} ->> '$decimal')::DECIMAL,
+                        ${{ value: value instanceof Decimal ? value.toString() : value }}::DECIMAL))
+                    AS TEXT)
+                  )
+                ELSE NULL
+                END
+              `);
             } else {
               return sql`${{ literal: operatorMap[op] }}(${element}, ${_encodeJsonValue(_encodeValue(value))})`
             }
