@@ -990,4 +990,8 @@ test('test permission', async () => {
     .insert({
       no_permission: true,
     })).rejects.toThrow('No permission');
+
+  await expect(() => Proto.Query('Test')
+    .includes('no_permission')
+    .find()).rejects.toThrow('No permission');
 })
