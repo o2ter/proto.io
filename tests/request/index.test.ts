@@ -394,6 +394,27 @@ test('test types 7', async () => {
 
 })
 
+test('test update types', async () => {
+  const date = new Date;
+  const date2 = new Date;
+  const inserted = await proto.Query('Test').insert({
+    boolean: true,
+    number: 42,
+    decimal: new Decimal('0.001'),
+    string: 'hello',
+    date: date,
+  });
+
+  const q = proto.Query('Test').equalTo('_id', inserted.objectId);
+
+  expect((await q.clone().updateOne({ boolean: [UpdateOp.set, false] }))?.get('boolean')).toStrictEqual(false);
+  expect((await q.clone().updateOne({ number: [UpdateOp.set, 64] }))?.get('number')).toStrictEqual(64);
+  expect((await q.clone().updateOne({ decimal: [UpdateOp.set, new Decimal('0.002')] }))?.get('decimal')).toStrictEqual(new Decimal('0.002'));
+  expect((await q.clone().updateOne({ string: [UpdateOp.set, 'world'] }))?.get('string')).toStrictEqual('world');
+  expect((await q.clone().updateOne({ date: [UpdateOp.set, date2] }))?.get('date')).toStrictEqual(date2);
+
+})
+
 test('test pointer', async () => {
   const date = new Date;
   const inserted = await proto.Query('Test').insert({
