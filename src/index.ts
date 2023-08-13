@@ -35,10 +35,13 @@ import functionRoute from './server/routes/function';
 import filesRoute from './server/routes/files';
 import userRoute from './server/routes/user';
 import { PVK } from './internals';
+import { TSchema } from './server/schema';
 
 export * from './common';
 export { ProtoService } from './server/proto';
 export { ProtoClient } from './client';
+
+export const schema = (x: Record<string, TSchema>) => x;
 
 export const ProtoRoute = async <E>(options: {
   adapters?: ((proto: ProtoService<E>) => RequestHandler)[],
