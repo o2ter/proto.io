@@ -55,6 +55,10 @@ class PostgresClientDriver {
       client.query(stream);
       try {
         yield* stream;
+      } catch (e: any) {
+        e.sql = text;
+        console.log(e);
+        throw e;
       } finally {
         stream.destroy();
         if (db instanceof Pool) client.release();

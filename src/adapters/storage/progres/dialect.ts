@@ -176,18 +176,18 @@ export const PostgresDialect: SqlDialect = {
     }
     return null;
   },
-  updateOperation(path: string, type: TSchema.DataType, operation: [UpdateOp, TValue]) {
+  updateOperation(path: string, dataType: TSchema.DataType, operation: [UpdateOp, TValue]) {
     const [column, ...subpath] = _.toPath(path);
     const [op, value] = operation;
     if (_.isEmpty(subpath)) {
       switch (op) {
-        case UpdateOp.set: return sql`${this.encodeType(type, value)}`;
-        case UpdateOp.increment: return sql`${{ identifier: column }} + ${this.encodeType(type, value)}`;
-        case UpdateOp.decrement: return sql`${{ identifier: column }} - ${this.encodeType(type, value)}`;
-        case UpdateOp.multiply: return sql`${{ identifier: column }} * ${this.encodeType(type, value)}`;
-        case UpdateOp.divide: return sql`${{ identifier: column }} / ${this.encodeType(type, value)}`;
-        case UpdateOp.max: return sql`GREATEST(${{ identifier: column }}, ${this.encodeType(type, value)})`;
-        case UpdateOp.min: return sql`LEAST(${{ identifier: column }}, ${this.encodeType(type, value)})`;
+        case UpdateOp.set: return sql`${this.encodeType(dataType, value)}`;
+        case UpdateOp.increment: return sql`${{ identifier: column }} + ${this.encodeType(dataType, value)}`;
+        case UpdateOp.decrement: return sql`${{ identifier: column }} - ${this.encodeType(dataType, value)}`;
+        case UpdateOp.multiply: return sql`${{ identifier: column }} * ${this.encodeType(dataType, value)}`;
+        case UpdateOp.divide: return sql`${{ identifier: column }} / ${this.encodeType(dataType, value)}`;
+        case UpdateOp.max: return sql`GREATEST(${{ identifier: column }}, ${this.encodeType(dataType, value)})`;
+        case UpdateOp.min: return sql`LEAST(${{ identifier: column }}, ${this.encodeType(dataType, value)})`;
         case UpdateOp.addToSet: break;
         case UpdateOp.push: break;
         case UpdateOp.removeAll: break;
@@ -196,6 +196,77 @@ export const PostgresDialect: SqlDialect = {
         default: break;
       }
     } else {
+      let element = sql`${{ identifier: column }}`;
+      const _subpath = sql`${_.map(subpath, x => sql`${{ quote: x.startsWith('$') ? `$${x}` : x }}`)}`;
+      if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
+        element = sql`jsonb_extract_path(to_jsonb(${element}), ${_subpath})`;
+      } else {
+        element = sql`jsonb_extract_path(${element}, ${_subpath})`;
+      }
+      const _updateKey = (value: SQL) => sql`jsonb_set(${{ identifier: column }}, ARRAY[${_subpath}], ${value})`;
+      switch (op) {
+        case UpdateOp.set: return _updateKey(_encodeJsonValue(_encodeValue(value)));
+        case UpdateOp.increment:
+        case UpdateOp.decrement:
+        case UpdateOp.multiply:
+        case UpdateOp.divide:
+          {
+            const operatorMap = {
+              [UpdateOp.increment]: '+',
+              [UpdateOp.decrement]: '-',
+              [UpdateOp.multiply]: '*',
+              [UpdateOp.divide]: '/',
+            };
+            return _updateKey(sql`
+              CASE
+              WHEN jsonb_typeof(${element}) ${this.nullSafeEqual()} 'number'
+                THEN to_jsonb(${element}::NUMERIC ${{ literal: operatorMap[op] }}
+                  ${{ value: value instanceof Decimal ? value.toNumber() : value }})
+              WHEN jsonb_typeof(${element} -> '$decimal') ${this.nullSafeEqual()} 'string'
+                THEN jsonb_build_object(
+                  '$decimal', CAST(
+                    ((${element} ->> '$decimal')::DECIMAL ${{ literal: operatorMap[op] }}
+                      ${{ value: value instanceof Decimal ? value.toString() : value }}::DECIMAL)
+                  AS TEXT)
+                )
+              ELSE NULL
+              END
+            `);
+          }
+        case UpdateOp.max:
+        case UpdateOp.min:
+          {
+            const operatorMap = {
+              [UpdateOp.max]: 'GREATEST',
+              [UpdateOp.min]: 'LEAST',
+            };
+            if (value instanceof Decimal || _.isNumber(value)) {
+              return _updateKey(sql`
+              CASE
+              WHEN jsonb_typeof(${element}) ${this.nullSafeEqual()} 'number'
+                THEN to_jsonb(${{ literal: operatorMap[op] }}(${element}::NUMERIC,
+                  ${{ value: value instanceof Decimal ? value.toNumber() : value }}))
+              WHEN jsonb_typeof(${element} -> '$decimal') ${this.nullSafeEqual()} 'string'
+                THEN jsonb_build_object(
+                  '$decimal', CAST(
+                    (${{ literal: operatorMap[op] }}((${element} ->> '$decimal')::DECIMAL,
+                      ${{ value: value instanceof Decimal ? value.toString() : value }}::DECIMAL))
+                  AS TEXT)
+                )
+              ELSE NULL
+              END
+            `);
+            } else {
+              return sql`${{ literal: operatorMap[op] }}(${element}, ${_encodeJsonValue(_encodeValue(value))})`
+            }
+          }
+        case UpdateOp.addToSet: break;
+        case UpdateOp.push: break;
+        case UpdateOp.removeAll: break;
+        case UpdateOp.popFirst: break;
+        case UpdateOp.popLast: break;
+        default: break;
+      }
     }
     throw Error('Invalid update operation');
   },
@@ -288,11 +359,12 @@ export const PostgresDialect: SqlDialect = {
         element = sql`jsonb_extract_path(${element}, ${_.map(subpath, x => sql`${{ quote: x.startsWith('$') ? `$${x}` : x }}`)})`;
       }
     } else if (!_.isEmpty(subpath)) {
+      const _subpath = sql`${_.map(subpath, x => sql`${{ quote: x.startsWith('$') ? `$${x}` : x }}`)}`;
       const _type = compiler.schema[parent.className].fields[colname] ?? defaultObjectKeyTypes[colname];
       if (_type === 'array' || (!_.isString(_type) && (_type?.type === 'array' || _type?.type === 'relation'))) {
-        element = sql`jsonb_extract_path(to_jsonb(${element}), ${_.map(subpath, x => sql`${{ quote: x.startsWith('$') ? `$${x}` : x }}`)})`;
+        element = sql`jsonb_extract_path(to_jsonb(${element}), ${_subpath})`;
       } else {
-        element = sql`jsonb_extract_path(${element}, ${_.map(subpath, x => sql`${{ quote: x.startsWith('$') ? `$${x}` : x }}`)})`;
+        element = sql`jsonb_extract_path(${element}, ${_subpath})`;
       }
     }
     const encodeValue = (value: TValue) => dataType ? this.encodeType(dataType, value) : _encodeJsonValue(_encodeValue(value));

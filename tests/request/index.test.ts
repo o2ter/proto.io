@@ -426,6 +426,40 @@ test('test update types', async () => {
   expect((await q.clone().updateOne({ decimal: [UpdateOp.divide, 2] }))?.get('decimal')).toStrictEqual(new Decimal('0.002'));
 })
 
+test('test update types 2', async () => {
+  const date = new Date;
+  const date2 = new Date;
+  const inserted = await proto.Query('Test').insert({
+    object: {
+      boolean: true,
+      number: 42,
+      decimal: new Decimal('0.001'),
+      string: 'hello',
+      date: date,
+    },
+  });
+
+  const q = proto.Query('Test').equalTo('_id', inserted.objectId);
+
+  expect((await q.clone().updateOne({ 'object.boolean': [UpdateOp.set, false] }))?.get('object.boolean')).toStrictEqual(false);
+  expect((await q.clone().updateOne({ 'object.number': [UpdateOp.set, 64] }))?.get('object.number')).toStrictEqual(64);
+  expect((await q.clone().updateOne({ 'object.decimal': [UpdateOp.set, new Decimal('0.002')] }))?.get('object.decimal')).toStrictEqual(new Decimal('0.002'));
+  expect((await q.clone().updateOne({ 'object.string': [UpdateOp.set, 'world'] }))?.get('object.string')).toStrictEqual('world');
+  expect((await q.clone().updateOne({ 'object.date': [UpdateOp.set, date2] }))?.get('object.date')).toStrictEqual(date2);
+
+  expect((await q.clone().updateOne({ 'object.number': [UpdateOp.increment, 2] }))?.get('object.number')).toStrictEqual(66);
+  expect((await q.clone().updateOne({ 'object.decimal': [UpdateOp.increment, 1] }))?.get('object.decimal')).toStrictEqual(new Decimal('1.002'));
+
+  expect((await q.clone().updateOne({ 'object.number': [UpdateOp.decrement, 2] }))?.get('object.number')).toStrictEqual(64);
+  expect((await q.clone().updateOne({ 'object.decimal': [UpdateOp.decrement, 1] }))?.get('object.decimal')).toStrictEqual(new Decimal('0.002'));
+
+  expect((await q.clone().updateOne({ 'object.number': [UpdateOp.multiply, 2] }))?.get('object.number')).toStrictEqual(128);
+  expect((await q.clone().updateOne({ 'object.decimal': [UpdateOp.multiply, 2] }))?.get('object.decimal')).toStrictEqual(new Decimal('0.004'));
+
+  expect((await q.clone().updateOne({ 'object.number': [UpdateOp.divide, 2] }))?.get('object.number')).toStrictEqual(64);
+  expect((await q.clone().updateOne({ 'object.decimal': [UpdateOp.divide, 2] }))?.get('object.decimal')).toStrictEqual(new Decimal('0.002'));
+})
+
 test('test pointer', async () => {
   const date = new Date;
   const inserted = await proto.Query('Test').insert({
