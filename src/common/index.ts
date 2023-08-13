@@ -24,8 +24,10 @@
 //
 
 import { TExtensions } from '../internals';
+import { TSchema } from '../server/schema';
 
 export * from '../internals/codec';
 export { UpdateOp } from '../internals';
 
 export const classExtends = <E>(x: TExtensions<E>) => x;
+export const schema = (x: TSchema) => x;
