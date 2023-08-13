@@ -53,7 +53,7 @@ export const masterUser = {
 };
 
 const Proto = new ProtoService({
-  endpoint: 'http://localhost:8080',
+  endpoint: 'http://localhost:8080/proto',
   masterUsers: [masterUser],
   jwtToken: (new UUID).toHexString(),
   schema: {
@@ -110,7 +110,7 @@ beforeAll(async () => {
 
   const app = express();
 
-  app.use(await ProtoRoute({
+  app.use('/proto', await ProtoRoute({
     proto: Proto,
   }));
 

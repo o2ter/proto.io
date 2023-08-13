@@ -33,7 +33,7 @@ import { UpdateOp } from '../../src/client';
 import { ProtoClient } from '../../src/client/proto';
 
 const Proto = new ProtoClient({
-  endpoint: 'http://localhost:8080',
+  endpoint: 'http://localhost:8080/proto',
   masterUser,
 });
 
