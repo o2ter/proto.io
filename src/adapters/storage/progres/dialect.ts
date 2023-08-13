@@ -198,14 +198,18 @@ export const PostgresDialect: SqlDialect = {
     } else {
       let element = sql`${{ identifier: column }}`;
       const _subpath = sql`${_.map(subpath, x => sql`${{ quote: x.startsWith('$') ? `$${x}` : x }}`)}`;
+      let updateKey: (value: SQL) => SQL;
       if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
         element = sql`jsonb_extract_path(to_jsonb(${element}), ${_subpath})`;
+        updateKey = (value: SQL) => sql`ARRAY(SELECT * FROM jsonb_array_elements(
+          jsonb_set(to_jsonb(${{ identifier: column }}), ARRAY[${_subpath}], ${value})
+        ))`;
       } else {
         element = sql`jsonb_extract_path(${element}, ${_subpath})`;
+        updateKey = (value: SQL) => sql`jsonb_set(${{ identifier: column }}, ARRAY[${_subpath}], ${value})`;
       }
-      const _updateKey = (value: SQL) => sql`jsonb_set(${{ identifier: column }}, ARRAY[${_subpath}], ${value})`;
       switch (op) {
-        case UpdateOp.set: return _updateKey(_encodeJsonValue(_encodeValue(value)));
+        case UpdateOp.set: return updateKey(_encodeJsonValue(_encodeValue(value)));
         case UpdateOp.increment:
         case UpdateOp.decrement:
         case UpdateOp.multiply:
@@ -217,7 +221,7 @@ export const PostgresDialect: SqlDialect = {
               [UpdateOp.multiply]: '*',
               [UpdateOp.divide]: '/',
             };
-            return _updateKey(sql`
+            return updateKey(sql`
               CASE
               WHEN jsonb_typeof(${element}) ${this.nullSafeEqual()} 'number'
                 THEN to_jsonb(${element}::NUMERIC ${{ literal: operatorMap[op] }}
@@ -241,7 +245,7 @@ export const PostgresDialect: SqlDialect = {
               [UpdateOp.min]: 'LEAST',
             };
             if (value instanceof Decimal || _.isNumber(value)) {
-              return _updateKey(sql`
+              return updateKey(sql`
                 CASE
                 WHEN jsonb_typeof(${element}) ${this.nullSafeEqual()} 'number'
                   THEN to_jsonb(${{ literal: operatorMap[op] }}(
@@ -258,7 +262,7 @@ export const PostgresDialect: SqlDialect = {
                 END
               `);
             } else if (_.isDate(value)) {
-              return _updateKey(sql`
+              return updateKey(sql`
                 CASE
                 WHEN jsonb_typeof(${element} -> '$date') ${this.nullSafeEqual()} 'string'
                   THEN jsonb_build_object(
