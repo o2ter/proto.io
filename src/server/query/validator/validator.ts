@@ -33,7 +33,7 @@ import {
 import { DecodedBaseQuery, DecodedQuery, FindOptions, FindOneOptions } from '../../storage';
 import { CoditionalSelector, FieldSelector, QuerySelector } from './parser';
 import { TSchema, defaultObjectKeyTypes, isPointer, isPrimitive, isRelation } from '../../schema';
-import { Proto } from '../../proto';
+import { ProtoService } from '../../proto';
 import { TQueryBaseOptions } from '../../../internals/query/base';
 
 export const recursiveCheck = (x: any, stack: any[]) => {
@@ -45,7 +45,7 @@ export const recursiveCheck = (x: any, stack: any[]) => {
 
 export class QueryValidator<E> {
 
-  proto: Proto<E>
+  proto: ProtoService<E>
   acls: string[];
   master: boolean;
   disableSecurity: boolean;
@@ -57,7 +57,7 @@ export class QueryValidator<E> {
   }
 
   constructor(
-    proto: Proto<E>,
+    proto: ProtoService<E>,
     acls: string[],
     master: boolean,
     disableSecurity: boolean,

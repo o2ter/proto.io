@@ -26,11 +26,11 @@
 import _ from 'lodash';
 import { Router } from 'express';
 import { Readable } from 'node:stream';
-import { Proto } from '../proto';
+import { ProtoService } from '../proto';
 import { decodeFormStream, response } from './common';
 import { FileBuffer, PVK, UpdateOp, deserialize } from '../../internals';
 
-export default <E>(router: Router, proto: Proto<E>) => {
+export default <E>(router: Router, proto: ProtoService<E>) => {
 
   router.post(
     '/files',

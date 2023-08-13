@@ -26,8 +26,8 @@
 import _ from 'lodash';
 import express, { RequestHandler } from 'express';
 import cookieParser from 'cookie-parser';
-import { Proto } from './server/proto';
-import { ProtoOptions } from './server/proto/types';
+import { ProtoService } from './server/proto';
+import { ProtoServiceOptions } from './server/proto/types';
 import csrfHandler from './server/csrf';
 import authHandler from './server/auth';
 import classesRoute from './server/routes/classes';
@@ -37,12 +37,12 @@ import userRoute from './server/routes/user';
 import { PVK } from './internals';
 
 export * from './common';
-export { Proto } from './server/proto';
+export { ProtoService } from './server/proto';
 export { ProtoClient } from './client';
 
 export const ProtoRoute = async <E>(options: {
-  adapters?: ((proto: Proto<E>) => RequestHandler)[],
-  proto: Proto<E> | ProtoOptions<E>;
+  adapters?: ((proto: ProtoService<E>) => RequestHandler)[],
+  proto: ProtoService<E> | ProtoServiceOptions<E>;
 }) => {
 
   const {
@@ -50,7 +50,7 @@ export const ProtoRoute = async <E>(options: {
     proto: _proto,
   } = options;
 
-  const proto = _proto instanceof Proto ? _proto : new Proto(_proto);
+  const proto = _proto instanceof ProtoService ? _proto : new ProtoService(_proto);
   await proto[PVK].prepare();
 
   const router = express.Router().use(

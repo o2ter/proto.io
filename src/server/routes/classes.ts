@@ -25,12 +25,12 @@
 
 import _ from 'lodash';
 import express, { Router } from 'express';
-import { Proto } from '../proto';
+import { ProtoService } from '../proto';
 import queryType from 'query-types';
 import { response } from './common';
 import { PVK, UpdateOp, deserialize } from '../../internals';
 
-export default <E>(router: Router, proto: Proto<E>) => {
+export default <E>(router: Router, proto: ProtoService<E>) => {
 
   router.post(
     '/classes/:name',

@@ -29,7 +29,7 @@ import { Readable } from 'node:stream';
 import { deflate, unzip } from 'node:zlib';
 import { FileBuffer, FileData, PVK, base64ToBuffer, bufferToBase64, isFileBuffer } from '../../../internals';
 import { TFileStorage } from '../../../server/filesys';
-import { Proto } from '../../../server/proto';
+import { ProtoService } from '../../../server/proto';
 import { TSchema } from '../../../server/schema';
 
 const streamChunk = (stream: Readable, chunkSize: number) => Readable.from({
@@ -84,7 +84,7 @@ export class DatabaseFileStorage implements TFileStorage {
   }
 
   async createWithStream<E>(
-    proto: Proto<E>,
+    proto: ProtoService<E>,
     file: Readable,
   ) {
 
@@ -115,7 +115,7 @@ export class DatabaseFileStorage implements TFileStorage {
   }
 
   async create<E>(
-    proto: Proto<E>,
+    proto: ProtoService<E>,
     file: FileData,
   ) {
 
@@ -153,11 +153,11 @@ export class DatabaseFileStorage implements TFileStorage {
     return { _id: token, size };
   }
 
-  async destory<E>(proto: Proto<E>, id: string) {
+  async destory<E>(proto: ProtoService<E>, id: string) {
     await proto.Query('_FileChunk', { master: true }).equalTo('token', id).deleteMany();
   }
 
-  async* fileData<E>(proto: Proto<E>, id: string, start?: number, end?: number) {
+  async* fileData<E>(proto: ProtoService<E>, id: string, start?: number, end?: number) {
 
     const query = proto.Query('_FileChunk', { master: true })
       .sort({ start: 1 })
@@ -194,7 +194,7 @@ export class DatabaseFileStorage implements TFileStorage {
 
   }
 
-  async fileLocation<E>(proto: Proto<E>, id: string) {
+  async fileLocation<E>(proto: ProtoService<E>, id: string) {
     return undefined;
   }
 

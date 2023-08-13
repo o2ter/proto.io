@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import express from 'express';
-import { Proto, ProtoRoute, UUID } from '../../src/index';
+import { ProtoService, ProtoRoute, UUID } from '../../src/index';
 import { beforeAll, afterAll } from '@jest/globals';
 import DatabaseFileStorage from '../../src/adapters/file/database';
 import PostgresStorage from '../../src/adapters/storage/progres';
@@ -52,7 +52,7 @@ export const masterUser = {
   pass: (new UUID).toHexString(),
 };
 
-const proto = new Proto({
+const Proto = new ProtoService({
   endpoint: 'http://localhost:8080',
   masterUsers: [masterUser],
   jwtToken: (new UUID).toHexString(),
@@ -91,15 +91,15 @@ const proto = new Proto({
   fileStorage: new DatabaseFileStorage(),
 });
 
-proto.define('echo', (proto) => {
+Proto.define('echo', (proto) => {
   return proto.data;
 });
 
-proto.define('sessionId', (proto) => {
+Proto.define('sessionId', (proto) => {
   return proto.sessionId;
 });
 
-proto.define('createUser', async (proto) => {
+Proto.define('createUser', async (proto) => {
   const user = await proto.Query('User', { master: true }).first() ?? await proto.Query('User').insert({ name: 'test' });
   await proto.setPassword(user, 'password123');
   if (!await proto.varifyPassword(user, 'password123')) throw Error('incorrect password');
@@ -111,7 +111,7 @@ beforeAll(async () => {
   const app = express();
 
   app.use(await ProtoRoute({
-    proto: proto,
+    proto: Proto,
   }));
 
   console.log('version: ', await database.version());

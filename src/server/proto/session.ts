@@ -25,11 +25,11 @@
 
 import _ from 'lodash';
 import jwt from 'jsonwebtoken';
-import { Proto } from './index';
+import { ProtoService } from './index';
 import { PVK, TUser, UUID } from '../../internals';
 import { AUTH_COOKIE_KEY, MASTER_PASS_HEADER_NAME, MASTER_USER_HEADER_NAME } from '../../common/const';
 
-const _session = <E>(proto: Proto<E>) => {
+const _session = <E>(proto: ProtoService<E>) => {
 
   const jwtToken = proto[PVK].options.jwtToken;
   if (!proto.req || _.isNil(jwtToken)) return;
@@ -53,14 +53,14 @@ const _session = <E>(proto: Proto<E>) => {
   return payload;
 }
 
-export const sessionId = <E>(proto: Proto<E>): string | undefined => {
+export const sessionId = <E>(proto: ProtoService<E>): string | undefined => {
   if (!proto.req) return;
   const req = proto.req as any;
   const session = _session(proto);
   return req.sessionId ?? session?.sessionId;
 }
 
-export const session = async <E>(proto: Proto<E>) => {
+export const session = async <E>(proto: ProtoService<E>) => {
   if (!proto.req) return;
 
   const req = proto.req as any;
@@ -80,7 +80,7 @@ export const session = async <E>(proto: Proto<E>) => {
   };
 }
 
-export const sessionIsMaster = <E>(proto: Proto<E>) => {
+export const sessionIsMaster = <E>(proto: ProtoService<E>) => {
   if (!proto.req) return false;
   const user = proto.req.header(MASTER_USER_HEADER_NAME);
   const pass = proto.req.header(MASTER_PASS_HEADER_NAME);

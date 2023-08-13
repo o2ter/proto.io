@@ -33,10 +33,10 @@ import { TSchema } from '../schema';
 import { CookieOptions } from 'express';
 import { SignOptions, VerifyOptions } from 'jsonwebtoken';
 import { Awaitable } from '../../internals/types';
-import { Proto } from '.';
+import { ProtoService } from '.';
 import { PasswordHashOptions } from '../crypto/password';
 
-type Callback<T, R, E> = (request: Proto<E> & T) => Awaitable<R>;
+type Callback<T, R, E> = (request: ProtoService<E> & T) => Awaitable<R>;
 export type ProtoFunction<E> = Callback<{ data: TSerializable; }, void | TSerializable, E>;
 export type ProtoTrigger<T, E> = Callback<{ object: TObjectType<T, E>; context: TSerializable; }, void, E>;
 type Validator = {
@@ -51,21 +51,21 @@ export type ProtoFunctionOptions<E> = {
   validator?: Validator;
 };
 
-export type ProtoOptions<Ext> = {
+export type ProtoServiceOptions<Ext> = {
   endpoint: string;
   schema: Record<string, TSchema>;
   storage: TStorage;
   fileStorage: TFileStorage;
   classExtends?: TExtensions<Ext>;
   objectIdSize?: number;
-  maxUploadSize?: number | ((proto: Proto<Ext>) => Awaitable<number>);
+  maxUploadSize?: number | ((proto: ProtoService<Ext>) => Awaitable<number>);
   cookieOptions?: CookieOptions;
   jwtSignOptions?: SignOptions;
   jwtVerifyOptions?: VerifyOptions;
   passwordHashOptions?: PasswordHashOptions;
 };
 
-export type ProtoKeyOptions = {
+export type ProtoServiceKeyOptions = {
   jwtToken?: string;
   csrfToken?: string;
   masterUsers?: { user: string; pass: string; }[];

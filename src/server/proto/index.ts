@@ -37,15 +37,15 @@ import {
 } from '../../internals';
 import { Request } from 'express';
 import { signUser } from '../auth/sign';
-import { ProtoOptions, ProtoKeyOptions, ProtoFunction, ProtoFunctionOptions, ProtoTrigger } from './types';
+import { ProtoServiceOptions, ProtoServiceKeyOptions, ProtoFunction, ProtoFunctionOptions, ProtoTrigger } from './types';
 import { sessionId, sessionIsMaster, session } from './session';
 
-export class Proto<Ext> extends ProtoType<Ext> {
+export class ProtoService<Ext> extends ProtoType<Ext> {
 
   [PVK]: ProtoInternal<Ext>;
   req?: Request;
 
-  constructor(options: ProtoOptions<Ext> & ProtoKeyOptions) {
+  constructor(options: ProtoServiceOptions<Ext> & ProtoServiceKeyOptions) {
     super();
     this[PVK] = new ProtoInternal(this, {
       objectIdSize: 10,
@@ -122,15 +122,15 @@ export class Proto<Ext> extends ProtoType<Ext> {
     return this[PVK].setPassword(user, password);
   }
 
-  get schema(): ProtoOptions<Ext>['schema'] {
+  get schema(): ProtoServiceOptions<Ext>['schema'] {
     return this[PVK].options.schema;
   }
 
-  get storage(): ProtoOptions<Ext>['storage'] {
+  get storage(): ProtoServiceOptions<Ext>['storage'] {
     return this[PVK].options.storage;
   }
 
-  get fileStorage(): ProtoOptions<Ext>['fileStorage'] {
+  get fileStorage(): ProtoServiceOptions<Ext>['fileStorage'] {
     return this[PVK].options.fileStorage;
   }
 

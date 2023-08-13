@@ -32,7 +32,7 @@ import Decimal from 'decimal.js';
 import { UpdateOp } from '../../src/client';
 import { ProtoClient } from '../../src/client/proto';
 
-const proto = new ProtoClient({
+const Proto = new ProtoClient({
   endpoint: 'http://localhost:8080',
   masterUser,
 });
@@ -47,7 +47,7 @@ export const streamToBuffer = async (stream: any) => {
 }
 
 test('echo', async () => {
-  const result = await proto.run('echo', 'hello, world');
+  const result = await Proto.run('echo', 'hello, world');
   expect(result).toStrictEqual('hello, world');
 });
 test('test codec', async () => {
@@ -60,33 +60,33 @@ test('test codec', async () => {
     uuid: new UUID(),
   };
 
-  const result = await proto.run('echo', obj);
+  const result = await Proto.run('echo', obj);
   expect(result).toStrictEqual(obj);
 });
 test('test session id', async () => {
-  const sessionId = await proto.run('sessionId');
-  expect(await proto.run('sessionId')).toStrictEqual(sessionId);
-  expect(await proto.run('sessionId')).toStrictEqual(sessionId);
-  expect(await proto.run('sessionId')).toStrictEqual(sessionId);
-  expect(await proto.run('sessionId')).toStrictEqual(sessionId);
+  const sessionId = await Proto.run('sessionId');
+  expect(await Proto.run('sessionId')).toStrictEqual(sessionId);
+  expect(await Proto.run('sessionId')).toStrictEqual(sessionId);
+  expect(await Proto.run('sessionId')).toStrictEqual(sessionId);
+  expect(await Proto.run('sessionId')).toStrictEqual(sessionId);
 });
 test('test user', async () => {
-  await proto.run('createUser');
-  const user = await proto.currentUser();
+  await Proto.run('createUser');
+  const user = await Proto.currentUser();
   expect(user?.objectId).toBeTruthy();
-  await proto.logout();
-  const user2 = await proto.currentUser();
+  await Proto.logout();
+  const user2 = await Proto.currentUser();
   expect(user2?.objectId).toStrictEqual(undefined);
 });
 test('test files', async () => {
-  const file = proto.File('test.txt', 'hello, world', 'text/plain');
+  const file = Proto.File('test.txt', 'hello, world', 'text/plain');
   await file.save();
 
   const data = await streamToBuffer(file.fileData());
   expect(data.toString('utf8')).toStrictEqual('hello, world');
 });
 test('test files 2', async () => {
-  const file = proto.File('test.txt', fs.createReadStream(__filename), 'text/plain');
+  const file = Proto.File('test.txt', fs.createReadStream(__filename), 'text/plain');
   await file.save();
 
   const data = await streamToBuffer(file.fileData());
@@ -94,14 +94,14 @@ test('test files 2', async () => {
 });
 
 test('test insert', async () => {
-  const inserted = await proto.Query('Test').insert({ string: 'hello' });
+  const inserted = await Proto.Query('Test').insert({ string: 'hello' });
   expect(inserted.objectId).toBeTruthy();
   expect(inserted.get('string')).toStrictEqual('hello');
 })
 
 test('test types', async () => {
   const date = new Date;
-  const inserted = await proto.Query('Test').insert({
+  const inserted = await Proto.Query('Test').insert({
     boolean: true,
     number: 42,
     decimal: new Decimal('0.001'),
@@ -123,7 +123,7 @@ test('test types', async () => {
   expect(inserted.get('string')).toStrictEqual('hello');
   expect(inserted.get('date')).toStrictEqual(date);
 
-  const q = proto.Query('Test').equalTo('_id', inserted.objectId);
+  const q = Proto.Query('Test').equalTo('_id', inserted.objectId);
 
   expect((await q.clone().notEqualTo('default', 42).first())?.objectId).toStrictEqual(undefined);
 
@@ -190,12 +190,12 @@ test('test types', async () => {
 
 test('test types 2', async () => {
   const date = new Date;
-  const inserted = await proto.Query('Test').insert({
+  const inserted = await Proto.Query('Test').insert({
     array: [1, 2, 3, date, new Decimal('0.001')],
   });
   expect(inserted.get('array')).toStrictEqual([1, 2, 3, date, new Decimal('0.001')]);
 
-  const q = proto.Query('Test').equalTo('_id', inserted.objectId);
+  const q = Proto.Query('Test').equalTo('_id', inserted.objectId);
 
   expect((await q.clone().notEqualTo('array.0', 1).first())?.objectId).toStrictEqual(undefined);
   expect((await q.clone().notEqualTo('array.1', 2).first())?.objectId).toStrictEqual(undefined);
@@ -245,7 +245,7 @@ test('test types 2', async () => {
 
 test('test types 3', async () => {
   const date = new Date;
-  const inserted = await proto.Query('Test').insert({
+  const inserted = await Proto.Query('Test').insert({
     object: {
       boolean: true,
       number: 42,
@@ -264,7 +264,7 @@ test('test types 3', async () => {
     array: [1, 2, 3, date, new Decimal('0.001')],
   });
 
-  const q = proto.Query('Test').equalTo('_id', inserted.objectId);
+  const q = Proto.Query('Test').equalTo('_id', inserted.objectId);
 
   expect((await q.clone().notEqualTo('object.null', null).first())?.objectId).toStrictEqual(undefined);
   expect((await q.clone().notEqualTo('object.null', null).first())?.objectId).toStrictEqual(undefined);
@@ -331,11 +331,11 @@ test('test types 3', async () => {
 })
 
 test('test types 4', async () => {
-  const inserted = await proto.Query('Test').insert({
+  const inserted = await Proto.Query('Test').insert({
     array: [[1, 2, 3], [4, 5, 6]],
   });
 
-  const q = proto.Query('Test').equalTo('_id', inserted.objectId);
+  const q = Proto.Query('Test').equalTo('_id', inserted.objectId);
 
   expect((await q.clone().size('array', 0).first())?.objectId).toStrictEqual(undefined);
   expect((await q.clone().every('array', q => q.every('$', q => q.equalTo('$', 0))).first())?.objectId).toStrictEqual(undefined);
@@ -350,11 +350,11 @@ test('test types 4', async () => {
 })
 
 test('test types 5', async () => {
-  const inserted = await proto.Query('Test').insert({
+  const inserted = await Proto.Query('Test').insert({
     array: [{ array: [1, 2, 3] }, { array: [4, 5, 6] }],
   });
 
-  const q = proto.Query('Test').equalTo('_id', inserted.objectId);
+  const q = Proto.Query('Test').equalTo('_id', inserted.objectId);
 
   expect((await q.clone().every('array', q => q.every('array', q => q.equalTo('$', 0))).first())?.objectId).toStrictEqual(undefined);
 
@@ -365,11 +365,11 @@ test('test types 5', async () => {
 })
 
 test('test types 6', async () => {
-  const inserted = await proto.Query('Test').insert({
+  const inserted = await Proto.Query('Test').insert({
     array: [[1, 2, 3], [4, 5, 6], new Date],
   });
 
-  const q = proto.Query('Test').equalTo('_id', inserted.objectId);
+  const q = Proto.Query('Test').equalTo('_id', inserted.objectId);
 
   expect((await q.clone().every('array', q => q.every('$', q => q.equalTo('$', 0))).first())?.objectId).toStrictEqual(undefined);
   expect((await q.clone().every('array', q => q.every('$', q => q.notEqualTo('$', 0))).first())?.objectId).toStrictEqual(undefined);
@@ -380,11 +380,11 @@ test('test types 6', async () => {
 })
 
 test('test types 7', async () => {
-  const inserted = await proto.Query('Test').insert({
+  const inserted = await Proto.Query('Test').insert({
     array: [{ array: [1, 2, 3] }, { array: [4, 5, 6] }, new Date],
   });
 
-  const q = proto.Query('Test').equalTo('_id', inserted.objectId);
+  const q = Proto.Query('Test').equalTo('_id', inserted.objectId);
 
   expect((await q.clone().every('array', q => q.every('array', q => q.equalTo('$', 0))).first())?.objectId).toStrictEqual(undefined);
   expect((await q.clone().every('array', q => q.every('array', q => q.notEqualTo('$', 0))).first())?.objectId).toStrictEqual(undefined);
@@ -397,7 +397,7 @@ test('test types 7', async () => {
 test('test update types', async () => {
   const date = new Date;
   const date2 = new Date;
-  const inserted = await proto.Query('Test').insert({
+  const inserted = await Proto.Query('Test').insert({
     boolean: true,
     number: 42,
     decimal: new Decimal('0.001'),
@@ -405,7 +405,7 @@ test('test update types', async () => {
     date: date,
   });
 
-  const q = proto.Query('Test').equalTo('_id', inserted.objectId);
+  const q = Proto.Query('Test').equalTo('_id', inserted.objectId);
 
   expect((await q.clone().updateOne({ boolean: [UpdateOp.set, false] }))?.get('boolean')).toStrictEqual(false);
   expect((await q.clone().updateOne({ number: [UpdateOp.set, 64] }))?.get('number')).toStrictEqual(64);
@@ -437,7 +437,7 @@ test('test update types', async () => {
 test('test update types 2', async () => {
   const date = new Date;
   const date2 = new Date;
-  const inserted = await proto.Query('Test').insert({
+  const inserted = await Proto.Query('Test').insert({
     object: {
       boolean: true,
       number: 42,
@@ -447,7 +447,7 @@ test('test update types 2', async () => {
     },
   });
 
-  const q = proto.Query('Test').equalTo('_id', inserted.objectId);
+  const q = Proto.Query('Test').equalTo('_id', inserted.objectId);
 
   expect((await q.clone().updateOne({ 'object.boolean': [UpdateOp.set, false] }))?.get('object.boolean')).toStrictEqual(false);
   expect((await q.clone().updateOne({ 'object.number': [UpdateOp.set, 64] }))?.get('object.number')).toStrictEqual(64);
@@ -479,7 +479,7 @@ test('test update types 2', async () => {
 test('test update types 3', async () => {
   const date = new Date;
   const date2 = new Date;
-  const inserted = await proto.Query('Test').insert({
+  const inserted = await Proto.Query('Test').insert({
     array: [{
       object: {
         boolean: true,
@@ -491,7 +491,7 @@ test('test update types 3', async () => {
     }],
   });
 
-  const q = proto.Query('Test').equalTo('_id', inserted.objectId);
+  const q = Proto.Query('Test').equalTo('_id', inserted.objectId);
 
   expect((await q.clone().updateOne({ 'array.0.object.boolean': [UpdateOp.set, false] }))?.get('array.0.object.boolean')).toStrictEqual(false);
   expect((await q.clone().updateOne({ 'array.0.object.number': [UpdateOp.set, 64] }))?.get('array.0.object.number')).toStrictEqual(64);
@@ -521,11 +521,11 @@ test('test update types 3', async () => {
 })
 
 test('test update types 4', async () => {
-  const inserted = await proto.Query('Test').insert({
+  const inserted = await Proto.Query('Test').insert({
     array: [1, 2, 3],
   });
 
-  const q = proto.Query('Test').equalTo('_id', inserted.objectId);
+  const q = Proto.Query('Test').equalTo('_id', inserted.objectId);
 
   expect((await q.clone().updateOne({ array: [UpdateOp.addToSet, [2, 3, 4]] }))?.get('array')).toStrictEqual([1, 2, 3, 4]);
   expect((await q.clone().updateOne({ array: [UpdateOp.push, [4, 5]] }))?.get('array')).toStrictEqual([1, 2, 3, 4, 4, 5]);
@@ -535,13 +535,13 @@ test('test update types 4', async () => {
 })
 
 test('test update types 5', async () => {
-  const inserted = await proto.Query('Test').insert({
+  const inserted = await Proto.Query('Test').insert({
     object: {
       array: [1, 2, 3],
     },
   });
 
-  const q = proto.Query('Test').equalTo('_id', inserted.objectId);
+  const q = Proto.Query('Test').equalTo('_id', inserted.objectId);
 
   expect((await q.clone().updateOne({ 'object.array': [UpdateOp.addToSet, [2, 3, 4]] }))?.get('object.array')).toStrictEqual([1, 2, 3, 4]);
   expect((await q.clone().updateOne({ 'object.array': [UpdateOp.push, [4, 5]] }))?.get('object.array')).toStrictEqual([1, 2, 3, 4, 4, 5]);
@@ -551,7 +551,7 @@ test('test update types 5', async () => {
 })
 
 test('test update types 6', async () => {
-  const inserted = await proto.Query('Test').insert({
+  const inserted = await Proto.Query('Test').insert({
     array: [{
       object: {
         array: [1, 2, 3],
@@ -559,7 +559,7 @@ test('test update types 6', async () => {
     }],
   });
 
-  const q = proto.Query('Test').equalTo('_id', inserted.objectId);
+  const q = Proto.Query('Test').equalTo('_id', inserted.objectId);
 
   expect((await q.clone().updateOne({ 'array.0.object.array': [UpdateOp.addToSet, [2, 3, 4]] }))?.get('array.0.object.array')).toStrictEqual([1, 2, 3, 4]);
   expect((await q.clone().updateOne({ 'array.0.object.array': [UpdateOp.push, [4, 5]] }))?.get('array.0.object.array')).toStrictEqual([1, 2, 3, 4, 4, 5]);
@@ -569,16 +569,16 @@ test('test update types 6', async () => {
 })
 
 test('test update types 7', async () => {
-  const obj1 = await proto.Query('Test').insert({});
-  const obj2 = await proto.Query('Test').insert({});
-  const obj3 = await proto.Query('Test').insert({});
-  const obj4 = await proto.Query('Test').insert({});
-  const obj5 = await proto.Query('Test').insert({});
-  const inserted = await proto.Query('Test').insert({
+  const obj1 = await Proto.Query('Test').insert({});
+  const obj2 = await Proto.Query('Test').insert({});
+  const obj3 = await Proto.Query('Test').insert({});
+  const obj4 = await Proto.Query('Test').insert({});
+  const obj5 = await Proto.Query('Test').insert({});
+  const inserted = await Proto.Query('Test').insert({
     relation: [obj1, obj2, obj3],
   });
 
-  const q = proto.Query('Test').equalTo('_id', inserted.objectId).includes('relation');
+  const q = Proto.Query('Test').equalTo('_id', inserted.objectId).includes('relation');
 
   expect((await q.clone().updateOne({ relation: [UpdateOp.addToSet, [obj2, obj3, obj4]] }))?.get('relation').map((x: any) => x.objectId).sort()).toStrictEqual([obj1, obj2, obj3, obj4].map(x => x.objectId).sort());
   expect((await q.clone().updateOne({ relation: [UpdateOp.push, [obj4, obj5]] }))?.get('relation').map((x: any) => x.objectId).sort()).toStrictEqual([obj1, obj2, obj3, obj4, obj5].map(x => x.objectId).sort());
@@ -587,7 +587,7 @@ test('test update types 7', async () => {
 
 test('test pointer', async () => {
   const date = new Date;
-  const inserted = await proto.Query('Test').insert({
+  const inserted = await Proto.Query('Test').insert({
     boolean: true,
     number: 42,
     decimal: new Decimal('0.001'),
@@ -602,7 +602,7 @@ test('test pointer', async () => {
     },
     array: [1, 2, 3, date, new Decimal('0.001')],
   });
-  const updated = await proto.Query('Test')
+  const updated = await Proto.Query('Test')
     .equalTo('_id', inserted.objectId)
     .includes('pointer', 'pointer2')
     .updateOne({
@@ -622,7 +622,7 @@ test('test pointer', async () => {
   expect(updated?.get('pointer2.string')).toStrictEqual('hello');
   expect(updated?.get('pointer2.date')).toStrictEqual(date);
 
-  const q = proto.Query('Test').equalTo('_id', inserted.objectId).includes('pointer');
+  const q = Proto.Query('Test').equalTo('_id', inserted.objectId).includes('pointer');
 
   expect((await q.clone().equalTo('pointer', inserted).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().equalTo('pointer.boolean', true).first())?.objectId).toStrictEqual(inserted.objectId);
@@ -635,7 +635,7 @@ test('test pointer', async () => {
 
 test('test relation', async () => {
   const date = new Date;
-  const inserted = await proto.Query('Test').insert({
+  const inserted = await Proto.Query('Test').insert({
     boolean: true,
     number: 42,
     decimal: new Decimal('0.001'),
@@ -650,7 +650,7 @@ test('test relation', async () => {
     },
     array: [1, 2, 3, date, new Decimal('0.001')],
   });
-  const updated = await proto.Query('Test')
+  const updated = await Proto.Query('Test')
     .equalTo('_id', inserted.objectId)
     .includes('*', 'relation')
     .updateOne({
@@ -663,7 +663,7 @@ test('test relation', async () => {
   expect(updated?.get('relation.0.string')).toStrictEqual('hello');
   expect(updated?.get('relation.0.date')).toStrictEqual(date);
 
-  const q = proto.Query('Test').equalTo('_id', inserted.objectId).includes('*', 'relation');
+  const q = Proto.Query('Test').equalTo('_id', inserted.objectId).includes('*', 'relation');
 
   expect((await q.clone().equalTo('relation.0.boolean', true).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().equalTo('relation.0.number', 42).first())?.objectId).toStrictEqual(inserted.objectId);
@@ -675,7 +675,7 @@ test('test relation', async () => {
 
 test('test relation 2', async () => {
   const date = new Date;
-  const inserted = await proto.Query('Test').insert({
+  const inserted = await Proto.Query('Test').insert({
     boolean: true,
     number: 42,
     decimal: new Decimal('0.001'),
@@ -690,7 +690,7 @@ test('test relation 2', async () => {
     },
     array: [1, 2, 3, date, new Decimal('0.001')],
   });
-  const updated = await proto.Query('Test')
+  const updated = await Proto.Query('Test')
     .equalTo('_id', inserted.objectId)
     .includes('relation2')
     .updateOne({
@@ -704,7 +704,7 @@ test('test relation 2', async () => {
   expect(updated?.get('relation2.0.string')).toStrictEqual('hello');
   expect(updated?.get('relation2.0.date')).toStrictEqual(date);
 
-  const q = proto.Query('Test').equalTo('_id', inserted.objectId).includes('relation2');
+  const q = Proto.Query('Test').equalTo('_id', inserted.objectId).includes('relation2');
 
   expect((await q.clone().equalTo('relation2.0.boolean', true).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().equalTo('relation2.0.number', 42).first())?.objectId).toStrictEqual(inserted.objectId);
@@ -716,7 +716,7 @@ test('test relation 2', async () => {
 
 test('test relation 3', async () => {
   const date = new Date;
-  const inserted = await proto.Query('Test').insert({
+  const inserted = await Proto.Query('Test').insert({
     boolean: true,
     number: 42,
     decimal: new Decimal('0.001'),
@@ -731,7 +731,7 @@ test('test relation 3', async () => {
     },
     array: [1, 2, 3, date, new Decimal('0.001')],
   });
-  const updated = await proto.Query('Test')
+  const updated = await Proto.Query('Test')
     .equalTo('_id', inserted.objectId)
     .includes('relation3')
     .updateOne({
@@ -745,7 +745,7 @@ test('test relation 3', async () => {
   expect(updated?.get('relation3.0.string')).toStrictEqual('hello');
   expect(updated?.get('relation3.0.date')).toStrictEqual(date);
 
-  const q = proto.Query('Test').equalTo('_id', inserted.objectId).includes('relation3');
+  const q = Proto.Query('Test').equalTo('_id', inserted.objectId).includes('relation3');
 
   expect((await q.clone().equalTo('relation3.0.boolean', true).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().equalTo('relation3.0.number', 42).first())?.objectId).toStrictEqual(inserted.objectId);
@@ -757,8 +757,8 @@ test('test relation 3', async () => {
 
 test('test update', async () => {
   const date = new Date;
-  const inserted = await proto.Query('Test').insert({});
-  const updated = await proto.Query('Test')
+  const inserted = await Proto.Query('Test').insert({});
+  const updated = await Proto.Query('Test')
     .equalTo('_id', inserted.objectId)
     .updateOne({
       boolean: [UpdateOp.set, true],
@@ -794,7 +794,7 @@ test('test update', async () => {
 
 test('test upsert', async () => {
   const date = new Date;
-  const upserted = await proto.Query('Test')
+  const upserted = await Proto.Query('Test')
     .equalTo('_id', '')
     .upsertOne({ string: [UpdateOp.set, 'update'] }, {
       boolean: true,
@@ -830,8 +830,8 @@ test('test upsert', async () => {
 
 test('test upsert 2', async () => {
   const date = new Date;
-  const inserted = await proto.Query('Test').insert({});
-  const upserted = await proto.Query('Test')
+  const inserted = await Proto.Query('Test').insert({});
+  const upserted = await Proto.Query('Test')
     .equalTo('_id', inserted.objectId)
     .upsertOne({
       boolean: [UpdateOp.set, true],
@@ -867,16 +867,16 @@ test('test upsert 2', async () => {
 
 test('test match', async () => {
 
-  const parent = await proto.Query('Test').insert({});
+  const parent = await Proto.Query('Test').insert({});
   for (const i of [1, 2, 3, 4, 5]) {
-    await proto.Query('Test').insert({
+    await Proto.Query('Test').insert({
       number: i,
       decimal: new Decimal(`0.00${i}`),
       pointer: parent,
     });
   }
 
-  const matched = await proto.Query('Test')
+  const matched = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .includes('relation2')
     .match('relation2', q => q
@@ -888,7 +888,7 @@ test('test match', async () => {
   expect(matched?.get('relation2').length).toStrictEqual(1);
   expect(matched?.get('relation2.0.number')).toStrictEqual(2);
 
-  const matched2 = await proto.Query('Test')
+  const matched2 = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .includes('relation2')
     .match('relation2', q => q
@@ -899,7 +899,7 @@ test('test match', async () => {
   expect(matched2?.get('relation2').length).toStrictEqual(1);
   expect(matched2?.get('relation2.0.number')).toStrictEqual(5);
 
-  const matched3 = await proto.Query('Test')
+  const matched3 = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .includes('relation2')
     .match('relation2', q => q.equalTo('decimal', new Decimal(`0.002`)))
@@ -908,7 +908,7 @@ test('test match', async () => {
   expect(matched3?.get('relation2').length).toStrictEqual(1);
   expect(matched3?.get('relation2.0.number')).toStrictEqual(2);
 
-  const matched4 = await proto.Query('Test')
+  const matched4 = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .includes('relation2')
     .match('relation2', q => q
@@ -923,7 +923,7 @@ test('test match', async () => {
 
 test('test comparable', async () => {
   const date = new Date;
-  const inserted = await proto.Query('Test').insert({
+  const inserted = await Proto.Query('Test').insert({
     boolean: true,
     number: 42,
     decimal: new Decimal('0.001'),
@@ -938,7 +938,7 @@ test('test comparable', async () => {
     },
   });
 
-  const q = proto.Query('Test').equalTo('_id', inserted.objectId).includes('*', 'relation');
+  const q = Proto.Query('Test').equalTo('_id', inserted.objectId).includes('*', 'relation');
 
   expect((await q.clone().lessThan('number', 0).first())?.objectId).toStrictEqual(undefined);
   expect((await q.clone().lessThan('decimal', 0).first())?.objectId).toStrictEqual(undefined);

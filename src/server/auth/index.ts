@@ -24,11 +24,11 @@
 //
 
 import _ from 'lodash';
-import { Proto } from '../proto/index';
+import { ProtoService } from '../proto/index';
 import { RequestHandler } from 'express';
 import { signUser } from './sign';
 
-export default <E>(proto: Proto<E>): RequestHandler => async (req: any, res, next) => {
+export default <E>(proto: ProtoService<E>): RequestHandler => async (req: any, res, next) => {
   try {
     const connected = proto.connect(req);
     signUser(connected, res, await connected.user());

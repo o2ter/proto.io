@@ -26,11 +26,11 @@
 import _ from 'lodash';
 import jwt from 'jsonwebtoken';
 import { Response } from 'express';
-import { Proto } from '../proto/index';
+import { ProtoService } from '../proto/index';
 import { PVK, TUser, UUID } from '../../internals';
 import { AUTH_COOKIE_KEY } from '../../common/const';
 
-export function signUser<E>(proto: Proto<E>, res: Response, user?: TUser) {
+export function signUser<E>(proto: ProtoService<E>, res: Response, user?: TUser) {
   const jwtToken = proto[PVK].options.jwtToken;
   if (_.isNil(jwtToken)) return;
   const token = jwt.sign({ user: user?.objectId, sessionId: proto.sessionId ?? (new UUID).toHexString() }, jwtToken, proto[PVK].options.jwtSignOptions);
