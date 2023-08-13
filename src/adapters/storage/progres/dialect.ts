@@ -322,11 +322,63 @@ export const PostgresDialect: SqlDialect = {
               return sql`${{ literal: operatorMap[op] }}(${element}, ${_encodeJsonValue(_encodeValue(value))})`
             }
           }
-        case UpdateOp.addToSet: break;
-        case UpdateOp.push: break;
-        case UpdateOp.removeAll: break;
-        case UpdateOp.popFirst: break;
-        case UpdateOp.popLast: break;
+        case UpdateOp.addToSet:
+          if (!_.isArray(value)) break;
+          return updateKey(sql`
+            CASE
+            WHEN jsonb_typeof(${element}) ${this.nullSafeEqual()} 'array'
+              THEN ${element} || to_jsonb(ARRAY(
+                SELECT *
+                FROM UNNEST(ARRAY[${_.map(_.uniq(value), x => _encodeJsonValue(_encodeValue(x)))}]) "$"
+                WHERE NOT to_jsonb(ARRAY["$"]) <@ ${element}
+              ))
+            ELSE NULL
+            END
+          `);
+        case UpdateOp.push:
+          if (!_.isArray(value)) break;
+          return updateKey(sql`
+            CASE
+            WHEN jsonb_typeof(${element}) ${this.nullSafeEqual()} 'array'
+              THEN ${element} || ${_encodeJsonValue(_encodeValue(value))}
+            ELSE NULL
+            END
+          `);
+        case UpdateOp.removeAll:
+          if (!_.isArray(value)) break;
+          return updateKey(sql`
+            CASE
+            WHEN jsonb_typeof(${element}) ${this.nullSafeEqual()} 'array'
+              THEN to_jsonb(ARRAY(
+                SELECT *
+                FROM jsonb_array_elements(${element}) "$"
+                WHERE value NOT IN (${_.map(_.uniq(value), x => _encodeJsonValue(_encodeValue(x)))})
+              ))
+            ELSE NULL
+            END
+          `);
+        case UpdateOp.popFirst:
+          if (!_.isNumber(value) || !_.isInteger(value) || value < 0) break;
+          return updateKey(sql`
+            CASE
+            WHEN jsonb_typeof(${element}) ${this.nullSafeEqual()} 'array'
+              THEN to_jsonb((ARRAY(
+                SELECT jsonb_array_elements(${element})
+              ))[${{ literal: `${value + 1}` }}:])
+            ELSE NULL
+            END
+          `);
+        case UpdateOp.popLast:
+          if (!_.isNumber(value) || !_.isInteger(value) || value < 0) break;
+          return updateKey(sql`
+            CASE
+            WHEN jsonb_typeof(${element}) ${this.nullSafeEqual()} 'array'
+              THEN to_jsonb((ARRAY(
+                SELECT jsonb_array_elements(${element})
+              ))[:jsonb_array_length(${element}) - ${{ literal: `${value}` }}])
+            ELSE NULL
+            END
+          `);
         default: break;
       }
     }

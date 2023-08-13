@@ -534,6 +534,40 @@ test('test update types 4', async () => {
   expect((await q.clone().updateOne({ array: [UpdateOp.popLast, 1] }))?.get('array')).toStrictEqual([2, 3]);
 })
 
+test('test update types 5', async () => {
+  const inserted = await proto.Query('Test').insert({
+    object: {
+      array: [1, 2, 3],
+    },
+  });
+
+  const q = proto.Query('Test').equalTo('_id', inserted.objectId);
+
+  expect((await q.clone().updateOne({ 'object.array': [UpdateOp.addToSet, [2, 3, 4]] }))?.get('object.array')).toStrictEqual([1, 2, 3, 4]);
+  expect((await q.clone().updateOne({ 'object.array': [UpdateOp.push, [4, 5]] }))?.get('object.array')).toStrictEqual([1, 2, 3, 4, 4, 5]);
+  expect((await q.clone().updateOne({ 'object.array': [UpdateOp.removeAll, [4]] }))?.get('object.array')).toStrictEqual([1, 2, 3, 5]);
+  expect((await q.clone().updateOne({ 'object.array': [UpdateOp.popFirst, 1] }))?.get('object.array')).toStrictEqual([2, 3, 5]);
+  expect((await q.clone().updateOne({ 'object.array': [UpdateOp.popLast, 1] }))?.get('object.array')).toStrictEqual([2, 3]);
+})
+
+test('test update types 6', async () => {
+  const inserted = await proto.Query('Test').insert({
+    array: [{
+      object: {
+        array: [1, 2, 3],
+      },
+    }],
+  });
+
+  const q = proto.Query('Test').equalTo('_id', inserted.objectId);
+
+  expect((await q.clone().updateOne({ 'array.0.object.array': [UpdateOp.addToSet, [2, 3, 4]] }))?.get('array.0.object.array')).toStrictEqual([1, 2, 3, 4]);
+  expect((await q.clone().updateOne({ 'array.0.object.array': [UpdateOp.push, [4, 5]] }))?.get('array.0.object.array')).toStrictEqual([1, 2, 3, 4, 4, 5]);
+  expect((await q.clone().updateOne({ 'array.0.object.array': [UpdateOp.removeAll, [4]] }))?.get('array.0.object.array')).toStrictEqual([1, 2, 3, 5]);
+  expect((await q.clone().updateOne({ 'array.0.object.array': [UpdateOp.popFirst, 1] }))?.get('array.0.object.array')).toStrictEqual([2, 3, 5]);
+  expect((await q.clone().updateOne({ 'array.0.object.array': [UpdateOp.popLast, 1] }))?.get('array.0.object.array')).toStrictEqual([2, 3]);
+})
+
 test('test update types 7', async () => {
   const obj1 = await proto.Query('Test').insert({});
   const obj2 = await proto.Query('Test').insert({});
