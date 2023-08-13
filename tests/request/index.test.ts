@@ -413,6 +413,17 @@ test('test update types', async () => {
   expect((await q.clone().updateOne({ string: [UpdateOp.set, 'world'] }))?.get('string')).toStrictEqual('world');
   expect((await q.clone().updateOne({ date: [UpdateOp.set, date2] }))?.get('date')).toStrictEqual(date2);
 
+  expect((await q.clone().updateOne({ number: [UpdateOp.increment, 2] }))?.get('number')).toStrictEqual(66);
+  expect((await q.clone().updateOne({ decimal: [UpdateOp.increment, 1] }))?.get('decimal')).toStrictEqual(new Decimal('1.002'));
+
+  expect((await q.clone().updateOne({ number: [UpdateOp.decrement, 2] }))?.get('number')).toStrictEqual(64);
+  expect((await q.clone().updateOne({ decimal: [UpdateOp.decrement, 1] }))?.get('decimal')).toStrictEqual(new Decimal('0.002'));
+
+  expect((await q.clone().updateOne({ number: [UpdateOp.multiply, 2] }))?.get('number')).toStrictEqual(128);
+  expect((await q.clone().updateOne({ decimal: [UpdateOp.multiply, 2] }))?.get('decimal')).toStrictEqual(new Decimal('0.004'));
+
+  expect((await q.clone().updateOne({ number: [UpdateOp.divide, 2] }))?.get('number')).toStrictEqual(64);
+  expect((await q.clone().updateOne({ decimal: [UpdateOp.divide, 2] }))?.get('decimal')).toStrictEqual(new Decimal('0.002'));
 })
 
 test('test pointer', async () => {
