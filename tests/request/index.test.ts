@@ -424,6 +424,14 @@ test('test update types', async () => {
 
   expect((await q.clone().updateOne({ number: [UpdateOp.divide, 2] }))?.get('number')).toStrictEqual(64);
   expect((await q.clone().updateOne({ decimal: [UpdateOp.divide, 2] }))?.get('decimal')).toStrictEqual(new Decimal('0.002'));
+
+  expect((await q.clone().updateOne({ number: [UpdateOp.min, 2] }))?.get('number')).toStrictEqual(2);
+  expect((await q.clone().updateOne({ decimal: [UpdateOp.min, 0] }))?.get('decimal')).toStrictEqual(new Decimal('0'));
+  expect((await q.clone().updateOne({ date: [UpdateOp.min, date] }))?.get('date')).toStrictEqual(date);
+
+  expect((await q.clone().updateOne({ number: [UpdateOp.max, 10] }))?.get('number')).toStrictEqual(10);
+  expect((await q.clone().updateOne({ decimal: [UpdateOp.max, 10] }))?.get('decimal')).toStrictEqual(new Decimal('10'));
+  expect((await q.clone().updateOne({ date: [UpdateOp.max, date2] }))?.get('date')).toStrictEqual(date2);
 })
 
 test('test update types 2', async () => {
@@ -458,6 +466,14 @@ test('test update types 2', async () => {
 
   expect((await q.clone().updateOne({ 'object.number': [UpdateOp.divide, 2] }))?.get('object.number')).toStrictEqual(64);
   expect((await q.clone().updateOne({ 'object.decimal': [UpdateOp.divide, 2] }))?.get('object.decimal')).toStrictEqual(new Decimal('0.002'));
+
+  expect((await q.clone().updateOne({ 'object.number': [UpdateOp.min, 2] }))?.get('object.number')).toStrictEqual(2);
+  expect((await q.clone().updateOne({ 'object.decimal': [UpdateOp.min, 0] }))?.get('object.decimal')).toStrictEqual(new Decimal('0'));
+  expect((await q.clone().updateOne({ 'object.date': [UpdateOp.min, date] }))?.get('object.date')).toStrictEqual(date);
+
+  expect((await q.clone().updateOne({ 'object.number': [UpdateOp.max, 10] }))?.get('object.number')).toStrictEqual(10);
+  expect((await q.clone().updateOne({ 'object.decimal': [UpdateOp.max, 10] }))?.get('object.decimal')).toStrictEqual(new Decimal('10'));
+  expect((await q.clone().updateOne({ 'object.date': [UpdateOp.max, date2] }))?.get('object.date')).toStrictEqual(date2);
 })
 
 test('test pointer', async () => {

@@ -244,14 +244,25 @@ export const PostgresDialect: SqlDialect = {
               return _updateKey(sql`
                 CASE
                 WHEN jsonb_typeof(${element}) ${this.nullSafeEqual()} 'number'
-                  THEN to_jsonb(${{ literal: operatorMap[op] }}(${element}::NUMERIC,
-                    ${{ value: value instanceof Decimal ? value.toNumber() : value }}))
+                  THEN to_jsonb(${{ literal: operatorMap[op] }}(
+                    ${element}::NUMERIC,
+                    ${{ value: value instanceof Decimal ? value.toNumber() : value }}
+                  ))
                 WHEN jsonb_typeof(${element} -> '$decimal') ${this.nullSafeEqual()} 'string'
                   THEN jsonb_build_object(
-                    '$decimal', CAST(
-                      (${{ literal: operatorMap[op] }}((${element} ->> '$decimal')::DECIMAL,
-                        ${{ value: value instanceof Decimal ? value.toString() : value }}::DECIMAL))
-                    AS TEXT)
+                    '$decimal', CAST(${{ literal: operatorMap[op] }}(
+                      (${element} ->> '$decimal')::DECIMAL,
+                      ${{ value: value instanceof Decimal ? value.toString() : value }}::DECIMAL
+                    ) AS TEXT))
+                ELSE NULL
+                END
+              `);
+            } else if (_.isDate(value)) {
+              return _updateKey(sql`
+                CASE
+                WHEN jsonb_typeof(${element} -> '$date') ${this.nullSafeEqual()} 'string'
+                  THEN jsonb_build_object(
+                    '$date', ${{ literal: operatorMap[op] }}(${element} ->> '$date', ${{ value: value.toISOString() }})
                   )
                 ELSE NULL
                 END
