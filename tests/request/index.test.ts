@@ -983,3 +983,11 @@ test('test comparable', async () => {
   expect((await q.clone().greaterThanOrEqualTo('object.decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
 
 })
+
+test('test permission', async () => {
+
+  await expect(() => Proto.Query('Test')
+    .insert({
+      no_permission: true,
+    })).rejects.toThrow('No permission');
+})

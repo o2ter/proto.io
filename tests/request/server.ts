@@ -79,11 +79,15 @@ const Proto = new ProtoService({
         null_date: 'date',
         null_object: 'object',
         null_array: 'array',
+        no_permission: 'boolean',
         pointer: { type: 'pointer', target: 'Test' },
         pointer2: { type: 'pointer', target: 'Test' },
         relation: { type: 'relation', target: 'Test' },
         relation2: { type: 'relation', target: 'Test', foreignField: 'pointer' },
         relation3: { type: 'relation', target: 'Test', foreignField: 'relation' },
+      },
+      fieldLevelPermissions: {
+        no_permission: { read: [], create: [], update: [] }
       }
     }
   },
