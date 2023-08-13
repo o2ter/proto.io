@@ -209,16 +209,16 @@ export class TObject {
     this[PVK].mutated[key] = [UpdateOp.removeAll, values];
   }
 
-  popFirst<T extends string>(key: PathName<T>) {
+  popFirst<T extends string>(key: PathName<T>, count = 1) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
-    this[PVK].mutated[key] = [UpdateOp.popFirst, null];
+    this[PVK].mutated[key] = [UpdateOp.popFirst, count];
   }
 
-  popLast<T extends string>(key: PathName<T>) {
+  popLast<T extends string>(key: PathName<T>, count = 1) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
-    this[PVK].mutated[key] = [UpdateOp.popLast, null];
+    this[PVK].mutated[key] = [UpdateOp.popLast, count];
   }
 
   async fetch(options?: ExtraOptions) {

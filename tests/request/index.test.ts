@@ -219,7 +219,7 @@ test('test types 2', async () => {
   expect((await q.clone().isIntersect('array', [4, 5, 6]).first())?.objectId).toStrictEqual(undefined);
 
   expect((await q.clone().containsIn('array.0', [1, 2, 3, 42, 'hello']).first())?.objectId).toStrictEqual(inserted.objectId);
-  
+
   expect((await q.clone().notEqualTo('array.0', 4).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().notEqualTo('array.1', 5).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().notEqualTo('array.2', 6).first())?.objectId).toStrictEqual(inserted.objectId);
@@ -518,6 +518,20 @@ test('test update types 3', async () => {
   expect((await q.clone().updateOne({ 'array.0.object.number': [UpdateOp.max, 10] }))?.get('array.0.object.number')).toStrictEqual(10);
   expect((await q.clone().updateOne({ 'array.0.object.decimal': [UpdateOp.max, 10] }))?.get('array.0.object.decimal')).toStrictEqual(new Decimal('10'));
   expect((await q.clone().updateOne({ 'array.0.object.date': [UpdateOp.max, date2] }))?.get('array.0.object.date')).toStrictEqual(date2);
+})
+
+test('test update types 4', async () => {
+  const inserted = await proto.Query('Test').insert({
+    array: [1, 2, 3],
+  });
+
+  const q = proto.Query('Test').equalTo('_id', inserted.objectId);
+
+  expect((await q.clone().updateOne({ array: [UpdateOp.addToSet, [2, 3, 4]] }))?.get('array')).toStrictEqual([1, 2, 3, 4]);
+  expect((await q.clone().updateOne({ array: [UpdateOp.push, [4, 5]] }))?.get('array')).toStrictEqual([1, 2, 3, 4, 4, 5]);
+  expect((await q.clone().updateOne({ array: [UpdateOp.removeAll, [4]] }))?.get('array')).toStrictEqual([1, 2, 3, 5]);
+  expect((await q.clone().updateOne({ array: [UpdateOp.popFirst, 1] }))?.get('array')).toStrictEqual([2, 3, 5]);
+  expect((await q.clone().updateOne({ array: [UpdateOp.popLast, 1] }))?.get('array')).toStrictEqual([2, 3]);
 })
 
 test('test pointer', async () => {

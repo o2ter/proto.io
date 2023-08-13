@@ -188,12 +188,35 @@ export const PostgresDialect: SqlDialect = {
         case UpdateOp.divide: return sql`${{ identifier: column }} / ${this.encodeType(dataType, value)}`;
         case UpdateOp.max: return sql`GREATEST(${{ identifier: column }}, ${this.encodeType(dataType, value)})`;
         case UpdateOp.min: return sql`LEAST(${{ identifier: column }}, ${this.encodeType(dataType, value)})`;
-        case UpdateOp.addToSet: break;
-        case UpdateOp.push: break;
-        case UpdateOp.removeAll: break;
-        case UpdateOp.popFirst: break;
-        case UpdateOp.popLast: break;
         default: break;
+      }
+      if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
+        switch (op) {
+          case UpdateOp.addToSet:
+            if (!_.isArray(value)) break;
+            return sql`${{ identifier: column }} || ARRAY(
+              SELECT *
+              FROM UNNEST(ARRAY[${_.map(_.uniq(value), x => _encodeJsonValue(_encodeValue(x)))}]) "$"
+              WHERE "$" != ALL(${{ identifier: column }})
+            )`;
+          case UpdateOp.push:
+            if (!_.isArray(value)) break;
+            return sql`${{ identifier: column }} || ARRAY[${_.map(value, (x: any) => sql`${_encodeJsonValue(_encodeValue(x))}`)}]`;
+          case UpdateOp.removeAll:
+            if (!_.isArray(value)) break;
+            return sql`ARRAY(
+              SELECT *
+              FROM UNNEST(${{ identifier: column }}) "$"
+              WHERE "$" NOT IN (${_.map(_.uniq(value), x => _encodeJsonValue(_encodeValue(x)))})
+            )`;
+          case UpdateOp.popFirst:
+            if (!_.isNumber(value) || !_.isInteger(value) || value < 0) break;
+            return sql`${{ identifier: column }}[${{ literal: `${value + 1}` }}:]`;
+          case UpdateOp.popLast:
+            if (!_.isNumber(value) || !_.isInteger(value) || value < 0) break;
+            return sql`${{ identifier: column }}[:array_length(${{ identifier: column }}, 1) - ${{ literal: `${value}` }}]`;
+          default: break;
+        }
       }
     } else {
       let element = sql`${{ identifier: column }}`;
