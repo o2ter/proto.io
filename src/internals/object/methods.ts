@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { TObject } from './index';
+import { TObject, decodeUpdateOp } from './index';
 import { PVK } from '../private';
 import { ExtraOptions } from '../options';
 import { TExtensions, TObjectType, TObjectTypes } from './types';
@@ -107,7 +107,8 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
       async value(options?: ExtraOptions & { cascadeSave?: boolean }) {
         const mutated = _.values(object[PVK].mutated);
         if (options?.cascadeSave !== false) {
-          for (const [, value] of _.values(mutated)) {
+          for (const update of _.values(mutated)) {
+            const [, value] = decodeUpdateOp(update);
             if (value instanceof TObject && value.isDirty) await value.save(options);
           }
         }

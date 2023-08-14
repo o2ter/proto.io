@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { escapeIdentifier, escapeLiteral } from 'pg/lib/utils';
 import { SQL, SqlDialect, sql } from '../../../server/sql';
-import { Decimal, TObject, TValue, UpdateOp, _TValue, isPrimitiveValue } from '../../../internals';
+import { Decimal, TObject, TValue, TUpdateOp, _TValue, isPrimitiveValue, decodeUpdateOp } from '../../../internals';
 import { TSchema, _typeof, defaultObjectKeyTypes, isPrimitive } from '../../../server/schema';
 import { CompileContext, Populate, QueryCompiler } from '../../../server/sql/compiler';
 import { FieldExpression, QuerySelector } from '../../../server/query/validator/parser';
@@ -176,51 +176,51 @@ export const PostgresDialect: SqlDialect = {
     }
     return null;
   },
-  updateOperation(path: string, dataType: TSchema.DataType, operation: [UpdateOp, TValue]) {
+  updateOperation(path: string, dataType: TSchema.DataType, operation: TUpdateOp) {
     const [column, ...subpath] = _.toPath(path);
-    const [op, value] = operation;
+    const [op, value] = decodeUpdateOp(operation);
     if (_.isEmpty(subpath)) {
       switch (op) {
-        case UpdateOp.set: return sql`${this.encodeType(dataType, value)}`;
-        case UpdateOp.increment: return sql`${{ identifier: column }} + ${this.encodeType(dataType, value)}`;
-        case UpdateOp.decrement: return sql`${{ identifier: column }} - ${this.encodeType(dataType, value)}`;
-        case UpdateOp.multiply: return sql`${{ identifier: column }} * ${this.encodeType(dataType, value)}`;
-        case UpdateOp.divide: return sql`${{ identifier: column }} / ${this.encodeType(dataType, value)}`;
-        case UpdateOp.max: return sql`GREATEST(${{ identifier: column }}, ${this.encodeType(dataType, value)})`;
-        case UpdateOp.min: return sql`LEAST(${{ identifier: column }}, ${this.encodeType(dataType, value)})`;
+        case '$set': return sql`${this.encodeType(dataType, value)}`;
+        case '$inc': return sql`${{ identifier: column }} + ${this.encodeType(dataType, value)}`;
+        case '$dec': return sql`${{ identifier: column }} - ${this.encodeType(dataType, value)}`;
+        case '$mul': return sql`${{ identifier: column }} * ${this.encodeType(dataType, value)}`;
+        case '$div': return sql`${{ identifier: column }} / ${this.encodeType(dataType, value)}`;
+        case '$max': return sql`GREATEST(${{ identifier: column }}, ${this.encodeType(dataType, value)})`;
+        case '$min': return sql`LEAST(${{ identifier: column }}, ${this.encodeType(dataType, value)})`;
         default: break;
       }
       if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
         switch (op) {
-          case UpdateOp.addToSet:
+          case '$addToSet':
             if (!_.isArray(value)) break;
             return sql`${{ identifier: column }} || ARRAY(
               SELECT *
               FROM UNNEST(ARRAY[${_.map(_.uniq(value), x => _encodeJsonValue(_encodeValue(x)))}]) "$"
               WHERE "$" != ALL(${{ identifier: column }})
             )`;
-          case UpdateOp.push:
+          case '$push':
             if (!_.isArray(value)) break;
             return sql`${{ identifier: column }} || ARRAY[${_.map(value, (x: any) => sql`${_encodeJsonValue(_encodeValue(x))}`)}]`;
-          case UpdateOp.removeAll:
+          case '$removeAll':
             if (!_.isArray(value)) break;
             return sql`ARRAY(
               SELECT *
               FROM UNNEST(${{ identifier: column }}) "$"
               WHERE "$" NOT IN (${_.map(_.uniq(value), x => _encodeJsonValue(_encodeValue(x)))})
             )`;
-          case UpdateOp.popFirst:
+          case '$popFirst':
             if (!_.isNumber(value) || !_.isInteger(value) || value < 0) break;
             return sql`${{ identifier: column }}[${{ literal: `${value + 1}` }}:]`;
-          case UpdateOp.popLast:
+          case '$popLast':
             if (!_.isNumber(value) || !_.isInteger(value) || value < 0) break;
             return sql`${{ identifier: column }}[:array_length(${{ identifier: column }}, 1) - ${{ literal: `${value}` }}]`;
           default: break;
         }
       } else if (!_.isString(dataType) && dataType?.type === 'relation' && _.isNil(dataType.foreignField)) {
         switch (op) {
-          case UpdateOp.addToSet:
-          case UpdateOp.push:
+          case '$addToSet':
+          case '$push':
             {
               if (!_.isArray(value) || !_.every(value, x => x instanceof TObject && x.objectId)) break;
               const objectIds = _.uniq(_.map(value, (x: any) => `${x.className}$${x.objectId}`));
@@ -230,7 +230,7 @@ export const PostgresDialect: SqlDialect = {
                 RIGHT JOIN ${{ identifier: dataType.target }} ON "$" = (${{ quote: dataType.target + '$' }} || ${{ identifier: dataType.target }}._id)
               )`;
             }
-          case UpdateOp.removeAll:
+          case '$removeAll':
             {
               if (!_.isArray(value) || !_.every(value, x => x instanceof TObject && x.objectId)) break;
               const objectIds = _.uniq(_.map(value, (x: any) => `${x.className}$${x.objectId}`));
@@ -258,17 +258,17 @@ export const PostgresDialect: SqlDialect = {
         updateKey = (value: SQL) => sql`jsonb_set(${{ identifier: column }}, ARRAY[${_subpath}], ${value})`;
       }
       switch (op) {
-        case UpdateOp.set: return updateKey(_encodeJsonValue(_encodeValue(value)));
-        case UpdateOp.increment:
-        case UpdateOp.decrement:
-        case UpdateOp.multiply:
-        case UpdateOp.divide:
+        case '$set': return updateKey(_encodeJsonValue(_encodeValue(value)));
+        case '$inc':
+        case '$dec':
+        case '$mul':
+        case '$div':
           {
             const operatorMap = {
-              [UpdateOp.increment]: '+',
-              [UpdateOp.decrement]: '-',
-              [UpdateOp.multiply]: '*',
-              [UpdateOp.divide]: '/',
+              $inc: '+',
+              $dec: '-',
+              $mul: '*',
+              $div: '/',
             };
             return updateKey(sql`
               CASE
@@ -286,12 +286,12 @@ export const PostgresDialect: SqlDialect = {
               END
             `);
           }
-        case UpdateOp.max:
-        case UpdateOp.min:
+        case '$max':
+        case '$min':
           {
             const operatorMap = {
-              [UpdateOp.max]: 'GREATEST',
-              [UpdateOp.min]: 'LEAST',
+              $max: 'GREATEST',
+              $min: 'LEAST',
             };
             if (value instanceof Decimal || _.isNumber(value)) {
               return updateKey(sql`
@@ -324,7 +324,7 @@ export const PostgresDialect: SqlDialect = {
               return sql`${{ literal: operatorMap[op] }}(${element}, ${_encodeJsonValue(_encodeValue(value))})`
             }
           }
-        case UpdateOp.addToSet:
+        case '$addToSet':
           if (!_.isArray(value)) break;
           return updateKey(sql`
             CASE
@@ -337,7 +337,7 @@ export const PostgresDialect: SqlDialect = {
             ELSE NULL
             END
           `);
-        case UpdateOp.push:
+        case '$push':
           if (!_.isArray(value)) break;
           return updateKey(sql`
             CASE
@@ -346,7 +346,7 @@ export const PostgresDialect: SqlDialect = {
             ELSE NULL
             END
           `);
-        case UpdateOp.removeAll:
+        case '$removeAll':
           if (!_.isArray(value)) break;
           return updateKey(sql`
             CASE
@@ -359,7 +359,7 @@ export const PostgresDialect: SqlDialect = {
             ELSE NULL
             END
           `);
-        case UpdateOp.popFirst:
+        case '$popFirst':
           if (!_.isNumber(value) || !_.isInteger(value) || value < 0) break;
           return updateKey(sql`
             CASE
@@ -370,7 +370,7 @@ export const PostgresDialect: SqlDialect = {
             ELSE NULL
             END
           `);
-        case UpdateOp.popLast:
+        case '$popLast':
           if (!_.isNumber(value) || !_.isInteger(value) || value < 0) break;
           return updateKey(sql`
             CASE

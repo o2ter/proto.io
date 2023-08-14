@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { TObject, UpdateOp, TValue, TQueryOptions } from '../internals';
+import { TObject, TUpdateOp, TValue, TQueryOptions } from '../internals';
 import { QuerySelector } from './query/validator/parser';
 import { TSchema } from './schema';
 import { TQueryBaseOptions } from '../internals/query/base';
@@ -68,8 +68,8 @@ export interface TStorage {
 
   insert(options: InsertOptions, attrs: Record<string, TValue>): PromiseLike<TObject | undefined>;
 
-  updateOne(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>): PromiseLike<TObject | undefined>;
-  upsertOne(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>): PromiseLike<TObject | undefined>;
+  updateOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>): PromiseLike<TObject | undefined>;
+  upsertOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValue>): PromiseLike<TObject | undefined>;
   deleteOne(query: DecodedQuery<FindOneOptions>): PromiseLike<TObject | undefined>;
 
   deleteMany(query: DecodedQuery<FindOptions>): PromiseLike<number>;

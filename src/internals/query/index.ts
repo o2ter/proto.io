@@ -26,11 +26,11 @@
 import _ from 'lodash';
 import { IncludePaths } from './types';
 import { TValue } from './value';
-import { UpdateOp } from '../object';
 import { PVK } from '../private';
 import { TObjectType } from '../object/types';
 import { asyncStream } from '../utils';
 import { TQueryBase, TQueryBaseOptions } from './base';
+import { TUpdateOp } from '../object';
 
 export interface TQueryOptions extends TQueryBaseOptions {
   includes?: string[];
@@ -60,8 +60,8 @@ export abstract class TQuery<T extends string, Ext> extends TQueryBase {
   abstract count(): PromiseLike<number>;
   abstract find(): ReturnType<typeof asyncStream<TObjectType<T, Ext>>>;
   abstract insert(attrs: Record<string, TValue>): PromiseLike<TObjectType<T, Ext>>;
-  abstract updateOne(update: Record<string, [UpdateOp, TValue]>): PromiseLike<TObjectType<T, Ext> | undefined>;
-  abstract upsertOne(update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>): PromiseLike<TObjectType<T, Ext>>;
+  abstract updateOne(update: Record<string, TUpdateOp>): PromiseLike<TObjectType<T, Ext> | undefined>;
+  abstract upsertOne(update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValue>): PromiseLike<TObjectType<T, Ext>>;
   abstract deleteOne(): PromiseLike<TObjectType<T, Ext> | undefined>;
   abstract deleteMany(): PromiseLike<number>;
 

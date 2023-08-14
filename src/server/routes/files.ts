@@ -28,7 +28,7 @@ import { Router } from 'express';
 import { Readable } from 'node:stream';
 import { ProtoService } from '../proto';
 import { decodeFormStream, response } from './common';
-import { FileBuffer, PVK, UpdateOp, deserialize } from '../../internals';
+import { FileBuffer, PVK, deserialize } from '../../internals';
 
 export default <E>(router: Router, proto: ProtoService<E>) => {
 
@@ -46,7 +46,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
 
           const payload = proto.connect(req);
           const obj = payload.Object('File');
-          obj[PVK].mutated = _.mapValues(deserialize(attributes) as any, v => [UpdateOp.set, v]) as any;
+          obj[PVK].mutated = _.mapValues(deserialize(attributes) as any, v => ({ $set: v })) as any;
           obj[PVK].extra.data = file;
 
           return obj.save({ master: payload.isMaster });

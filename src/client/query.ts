@@ -30,11 +30,11 @@ import {
   PVK,
   TQuery,
   TObject,
-  UpdateOp,
   TValue,
   asyncStream,
   TObjectType,
   TQueryOptions,
+  TUpdateOp,
 } from '../internals';
 
 export class ProtoClientQuery<T extends string, E> extends TQuery<T, E> {
@@ -106,7 +106,7 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E> {
     }, this._requestOpt) as any;
   }
 
-  updateOne(update: Record<string, [UpdateOp, TValue]>) {
+  updateOne(update: Record<string, TUpdateOp>) {
     return this._proto[PVK].request({
       operation: 'updateOne',
       context: this._options?.context ?? {},
@@ -115,7 +115,7 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E> {
     }, this._requestOpt) as any;
   }
 
-  upsertOne(update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>) {
+  upsertOne(update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValue>) {
     return this._proto[PVK].request({
       operation: 'upsertOne',
       context: this._options?.context ?? {},

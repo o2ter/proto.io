@@ -24,7 +24,7 @@
 //
 import _ from 'lodash';
 import { ProtoService } from '../../proto/index';
-import { ExtraOptions, PVK, TValue, UpdateOp } from '../../../internals';
+import { ExtraOptions, PVK, TValue, TUpdateOp } from '../../../internals';
 import { QueryValidator } from './validator';
 import { FindOptions, FindOneOptions } from '../../storage';
 import { TQueryBaseOptions } from '../../../internals/query/base';
@@ -92,7 +92,7 @@ export const queryValidator = <E>(proto: ProtoService<E>, options: ExtraOptions,
     },
     async updateOne(
       query: FindOneOptions,
-      update: Record<string, [UpdateOp, TValue]>
+      update: Record<string, TUpdateOp>
     ) {
       QueryValidator.recursiveCheck(query, update);
       const _validator = await validator();
@@ -104,7 +104,7 @@ export const queryValidator = <E>(proto: ProtoService<E>, options: ExtraOptions,
     },
     async upsertOne(
       query: FindOneOptions,
-      update: Record<string, [UpdateOp, TValue]>,
+      update: Record<string, TUpdateOp>,
       setOnInsert: Record<string, TValue>
     ) {
       QueryValidator.recursiveCheck(query, update, setOnInsert);

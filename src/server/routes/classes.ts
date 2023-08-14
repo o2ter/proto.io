@@ -28,7 +28,7 @@ import express, { Router } from 'express';
 import { ProtoService } from '../proto';
 import queryType from 'query-types';
 import { response } from './common';
-import { PVK, UpdateOp, deserialize } from '../../internals';
+import { PVK, deserialize } from '../../internals';
 
 export default <E>(router: Router, proto: ProtoService<E>) => {
 
@@ -145,7 +145,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       const payload = proto.connect(req);
       const query = payload.Query(name, { master: payload.isMaster }).equalTo('_id', id);
 
-      const update = _.mapValues(deserialize(req.body) as any, v => [UpdateOp.set, v]);
+      const update = _.mapValues(deserialize(req.body) as any, v => ({ $set: v }));
       await response(res, () => query.updateOne(update as any));
     }
   );

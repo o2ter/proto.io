@@ -29,7 +29,7 @@ import { defaultObjectKeyTypes } from '../schema';
 import { CoditionalSelector, FieldSelector, QuerySelector } from '../query/validator/parser';
 import { DecodedBaseQuery, DecodedQuery, FindOneOptions, FindOptions, InsertOptions } from '../storage';
 import { SQL, sql } from './sql';
-import { TValue, UpdateOp } from '../../internals';
+import { TValue, TUpdateOp } from '../../internals';
 import { generateId } from '../crypto';
 import { SqlDialect } from './dialect';
 
@@ -277,7 +277,7 @@ export class QueryCompiler {
     `;
   }
 
-  private _encodeUpdateAttrs(className: string, attrs: Record<string, [UpdateOp, TValue]>): SQL[] {
+  private _encodeUpdateAttrs(className: string, attrs: Record<string, TUpdateOp>): SQL[] {
     const updates: SQL[] = [];
     const fields = this.schema[className].fields;
     for (const [path, op] of _.toPairs(attrs)) {
@@ -392,7 +392,7 @@ export class QueryCompiler {
   `;
   }
 
-  updateOne(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>) {
+  updateOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>) {
     return this._modifyQuery(
       { ...query, limit: 1 },
       (fetchName, context) => {
@@ -411,7 +411,7 @@ export class QueryCompiler {
     );
   }
 
-  upsertOne(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>) {
+  upsertOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValue>) {
 
     const _insert: [string, SQL][] = _.toPairs({
       ..._defaultInsertOpts(query),

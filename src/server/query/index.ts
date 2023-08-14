@@ -29,7 +29,7 @@ import {
   PVK,
   TQuery,
   TObject,
-  UpdateOp,
+  TUpdateOp,
   ExtraOptions,
   applyObjectMethods,
   asyncIterableToArray,
@@ -38,6 +38,7 @@ import {
   TExtended,
   TObjectType,
   TQueryOptions,
+  decodeUpdateOp,
 } from '../../internals';
 import { queryValidator } from './validator';
 
@@ -98,7 +99,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
 
     const object = this._proto.Object(this.className);
     for (const [key, value] of _.toPairs(attrs)) {
-      object[PVK].mutated[key] = [UpdateOp.set, value as any];
+      object[PVK].mutated[key] = { $set: value };
     }
 
     if (_.isFunction(beforeSave)) await beforeSave(Object.setPrototypeOf({ object, context }, this._proto));
@@ -115,7 +116,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
     return result;
   }
 
-  async updateOne(update: Record<string, [UpdateOp, TValue]>) {
+  async updateOne(update: Record<string, TUpdateOp>) {
     const beforeSave = this._proto[PVK].triggers?.beforeSave?.[this.className];
     const afterSave = this._proto[PVK].triggers?.afterSave?.[this.className];
 
@@ -141,7 +142,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
     return result;
   }
 
-  async upsertOne(update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>) {
+  async upsertOne(update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValue>) {
     const beforeSave = this._proto[PVK].triggers?.beforeSave?.[this.className];
     const afterSave = this._proto[PVK].triggers?.afterSave?.[this.className];
 
@@ -158,7 +159,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
       } else {
         object = this._proto.Object(this.className);
         for (const [key, value] of _.toPairs(setOnInsert)) {
-          object[PVK].mutated[key] = [UpdateOp.set, value as any];
+          object[PVK].mutated[key] = { $set: value };
         }
       }
 
@@ -168,8 +169,9 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
         update = object[PVK].mutated;
       } else {
         setOnInsert = {};
-        for (const [key, [op, value]] of _.toPairs(object[PVK].mutated)) {
-          if (op === UpdateOp.set) {
+        for (const [key, update] of _.toPairs(object[PVK].mutated)) {
+          const [op, value] = decodeUpdateOp(update);
+          if (op === '$set') {
             setOnInsert[key] = value;
           }
         }

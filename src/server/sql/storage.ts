@@ -27,7 +27,7 @@ import _ from 'lodash';
 import { DecodedQuery, FindOptions, FindOneOptions, InsertOptions, TStorage } from '../storage';
 import { TSchema, defaultObjectKeyTypes } from '../schema';
 import { storageSchedule } from '../schedule';
-import { PVK, TObject, TValue, UpdateOp, asyncStream } from '../../internals';
+import { PVK, TObject, TValue, TUpdateOp, asyncStream } from '../../internals';
 import { SQL, sql } from './sql';
 import { SqlDialect } from './dialect';
 import { QueryCompiler } from './compiler';
@@ -105,13 +105,13 @@ export abstract class SqlStorage implements TStorage {
     return _.isNil(result) ? undefined : this._decodeObject(options.className, result);
   }
 
-  async updateOne(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>) {
+  async updateOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>) {
     const compiler = new QueryCompiler(this.schema, this.dialect);
     const updated = _.first(await this.query(compiler.updateOne(query, update)));
     return _.isNil(updated) ? undefined : this._decodeObject(query.className, updated);
   }
 
-  async upsertOne(query: DecodedQuery<FindOneOptions>, update: Record<string, [UpdateOp, TValue]>, setOnInsert: Record<string, TValue>) {
+  async upsertOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValue>) {
     const compiler = new QueryCompiler(this.schema, this.dialect);
     const upserted = _.first(await this.query(compiler.upsertOne(query, update, setOnInsert)));
     return _.isNil(upserted) ? undefined : this._decodeObject(query.className, upserted);

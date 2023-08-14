@@ -23,7 +23,7 @@
 //  THE SOFTWARE.
 //
 
-import { TValue, UpdateOp } from '../../internals';
+import { TValue, TUpdateOp } from '../../internals';
 import { FieldExpression } from '../query/validator/parser';
 import { TSchema } from '../schema';
 import { CompileContext, Populate, QueryCompiler } from './compiler';
@@ -38,7 +38,7 @@ export interface SqlDialect {
   nullSafeNotEqual(): SQL;
   encodeType(type: TSchema.DataType, value: TValue): SQL;
   decodeType(type: TSchema.Primitive, value: any): TValue;
-  updateOperation(column: string, type: TSchema.DataType, operation: [UpdateOp, TValue]): SQL;
+  updateOperation(column: string, type: TSchema.DataType, operation: TUpdateOp): SQL;
 
   selectPopulate(
     compiler: QueryCompiler,

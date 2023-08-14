@@ -29,20 +29,29 @@ import { ExtraOptions } from '../options';
 import { TValue, cloneValue, isPrimitiveValue } from '../query/value';
 import { TSchema } from '../../server/schema';
 import { PathName } from '../query/types';
+import { ExactlyOneProp } from '../types';
 
-export const enum UpdateOp {
-  set = 'set',
-  increment = 'inc',
-  decrement = 'dec',
-  multiply = 'mul',
-  divide = 'div',
-  max = 'max',
-  min = 'min',
-  addToSet = 'addToSet',
-  push = 'push',
-  removeAll = 'removeAll',
-  popFirst = 'popFirst',
-  popLast = 'popLast',
+export const TUpdateOpKeys = [
+  '$set',
+  '$inc',
+  '$dec',
+  '$mul',
+  '$div',
+  '$max',
+  '$min',
+  '$addToSet',
+  '$push',
+  '$removeAll',
+  '$popFirst',
+  '$popLast',
+] as const;
+
+export type TUpdateOp = ExactlyOneProp<Record<typeof TUpdateOpKeys[number], TValue>>;
+
+export const decodeUpdateOp = (update: TUpdateOp) => {
+  const pairs = _.toPairs(update);
+  if (pairs.length !== 1) throw Error('Invalid update operation');
+  return pairs[0] as [typeof TUpdateOpKeys[number], TValue];
 }
 
 export interface TObject {
@@ -60,7 +69,7 @@ export class TObject {
   [PVK]: {
     className: string;
     attributes: Record<string, TValue>;
-    mutated: Record<string, [UpdateOp, TValue]>;
+    mutated: Record<string, TUpdateOp>;
     extra: Record<string, any>;
   };
 
@@ -141,14 +150,14 @@ export class TObject {
   get<T extends string>(key: PathName<T>): any {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (_.isNil(this[PVK].mutated[key])) return this.attrValue(key);
-    const [op, value] = this[PVK].mutated[key];
-    return op === UpdateOp.set ? value : this.attrValue(key);
+    const [op, value] = decodeUpdateOp(this[PVK].mutated[key]);
+    return op === '$set' ? value : this.attrValue(key);
   }
 
   set<T extends string>(key: PathName<T>, value: TValue | undefined) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
-    this[PVK].mutated[key] = [UpdateOp.set, value ?? null];
+    this[PVK].mutated[key] = { $set: value ?? null };
   }
 
   get isDirty(): boolean {
@@ -158,67 +167,67 @@ export class TObject {
   increment<T extends string>(key: PathName<T>, value: number) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
-    this[PVK].mutated[key] = [UpdateOp.increment, value];
+    this[PVK].mutated[key] = { $inc: value };
   }
 
   decrement<T extends string>(key: PathName<T>, value: number) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
-    this[PVK].mutated[key] = [UpdateOp.decrement, value];
+    this[PVK].mutated[key] = { $dec: value };
   }
 
   multiply<T extends string>(key: PathName<T>, value: number) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
-    this[PVK].mutated[key] = [UpdateOp.multiply, value];
+    this[PVK].mutated[key] = { $mul: value };
   }
 
   divide<T extends string>(key: PathName<T>, value: number) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
-    this[PVK].mutated[key] = [UpdateOp.divide, value];
+    this[PVK].mutated[key] = { $div: value };
   }
 
   max<T extends string>(key: PathName<T>, value: TValue) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
-    this[PVK].mutated[key] = [UpdateOp.max, value];
+    this[PVK].mutated[key] = { $max: value };
   }
 
   min<T extends string>(key: PathName<T>, value: TValue) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
-    this[PVK].mutated[key] = [UpdateOp.min, value];
+    this[PVK].mutated[key] = { $min: value };
   }
 
   addToSet<T extends string>(key: PathName<T>, values: TValue[]) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
-    this[PVK].mutated[key] = [UpdateOp.addToSet, values];
+    this[PVK].mutated[key] = { $addToSet: values };
   }
 
   push<T extends string>(key: PathName<T>, values: TValue[]) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
-    this[PVK].mutated[key] = [UpdateOp.push, values];
+    this[PVK].mutated[key] = { $push: values };
   }
 
   removeAll<T extends string>(key: PathName<T>, values: TValue[]) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
-    this[PVK].mutated[key] = [UpdateOp.removeAll, values];
+    this[PVK].mutated[key] = { $removeAll: values };
   }
 
   popFirst<T extends string>(key: PathName<T>, count = 1) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
-    this[PVK].mutated[key] = [UpdateOp.popFirst, count];
+    this[PVK].mutated[key] = { $popFirst: count };
   }
 
   popLast<T extends string>(key: PathName<T>, count = 1) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
-    this[PVK].mutated[key] = [UpdateOp.popLast, count];
+    this[PVK].mutated[key] = { $popLast: count };
   }
 
   async fetch(options?: ExtraOptions) {

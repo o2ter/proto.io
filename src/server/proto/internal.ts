@@ -39,7 +39,7 @@ import {
   base64ToBuffer,
   TObject,
   TUser,
-  UpdateOp,
+  TUpdateOp,
 } from '../../internals';
 import { generateId } from '../crypto';
 import { TSchema } from '../schema';
@@ -172,7 +172,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
       .equalTo('_id', user.objectId)
       .includes('_id')
       .updateOne({
-        password: [UpdateOp.set, hashed],
+        password: { $set: hashed },
       });
   }
 
