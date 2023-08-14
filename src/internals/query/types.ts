@@ -27,38 +27,38 @@ import _ from 'lodash';
 import { TValue } from './value';
 import { Exact } from '../types';
 
-export enum TComparisonKeys {
-  $eq = '$eq',
-  $gt = '$gt',
-  $gte = '$gte',
-  $lt = '$lt',
-  $lte = '$lte',
-  $ne = '$ne',
-};
+export const TComparisonKeys = [
+  '$eq',
+  '$gt',
+  '$gte',
+  '$lt',
+  '$lte',
+  '$ne',
+] as const;
 
-export enum TValueListKeys {
-  $in = '$in',
-  $nin = '$nin',
-};
+export const TValueListKeys = [
+  '$in',
+  '$nin',
+] as const;
 
-export enum TValueSetKeys {
-  $subset = '$subset',
-  $superset = '$superset',
-  $disjoint = '$disjoint',
-  $intersect = '$intersect',
-};
+export const TValueSetKeys = [
+  '$subset',
+  '$superset',
+  '$disjoint',
+  '$intersect',
+] as const;
 
-export enum TCoditionalKeys {
-  $and = '$and',
-  $nor = '$nor',
-  $or = '$or',
-};
+export const TCoditionalKeys = [
+  '$and',
+  '$nor',
+  '$or',
+] as const;
 
 export const allFieldQueryKeys = [
   '$not', '$pattern', '$starts', '$ends', '$size', '$empty', '$every', '$some',
-  ..._.keys(TCoditionalKeys),
-  ..._.keys(TValueListKeys),
-  ..._.keys(TValueSetKeys),
+  ...TCoditionalKeys,
+  ...TValueListKeys,
+  ...TValueSetKeys
 ];
 
 type TThisQuerySelector = { $?: TFieldQuerySelector; };
@@ -72,11 +72,11 @@ export type TFieldQuerySelector = {
   $empty?: boolean;
   $every?: TQuerySelector | TThisQuerySelector;
   $some?: TQuerySelector | TThisQuerySelector;
-} & { [x in keyof typeof TComparisonKeys]?: TValue; } &
-  { [x in keyof typeof TValueListKeys]?: TValue[]; } &
-  { [x in keyof typeof TValueSetKeys]?: TValue[]; };
+} & { [x in typeof TComparisonKeys[number]]?: TValue; } &
+  { [x in typeof TValueListKeys[number]]?: TValue[]; } &
+  { [x in typeof TValueSetKeys[number]]?: TValue[]; };
 
-export type TCoditionalQuerySelector = { [x in keyof typeof TCoditionalKeys]?: TQuerySelector[]; };
+export type TCoditionalQuerySelector = { [x in typeof TCoditionalKeys[number]]?: TQuerySelector[]; };
 export type TQuerySelector = TCoditionalQuerySelector | { [x: string]: TFieldQuerySelector; };
 
 type _Digit = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;

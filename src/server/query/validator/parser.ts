@@ -42,7 +42,7 @@ export class QuerySelector {
     const exprs: QuerySelector[] = [];
     for (const selector of _.castArray(selectors)) {
       for (const [key, query] of _.toPairs(selector)) {
-        if (key in TCoditionalKeys && _.isArray(query)) {
+        if (_.includes(TCoditionalKeys, key) && _.isArray(query)) {
           exprs.push(new CoditionalSelector(key as any, _.map(query, x => QuerySelector.decode(x, dollerSign))));
         } else if (dollerSign && key === '$' && !_.isArray(query)) {
           exprs.push(new FieldSelector(key, FieldExpression.decode(query)));
@@ -68,10 +68,10 @@ export class QuerySelector {
 
 export class CoditionalSelector extends QuerySelector {
 
-  type: keyof typeof TCoditionalKeys;
+  type: typeof TCoditionalKeys[number];
   exprs: QuerySelector[];
 
-  constructor(type: keyof typeof TCoditionalKeys, exprs: QuerySelector[]) {
+  constructor(type: typeof TCoditionalKeys[number], exprs: QuerySelector[]) {
     super();
     this.type = type;
     this.exprs = exprs;
@@ -110,10 +110,10 @@ export class FieldExpression {
 
   static decode(selector: TFieldQuerySelector): FieldExpression {
     for (const [type, expr] of _.toPairs(selector)) {
-      if (type in TComparisonKeys) {
+      if (_.includes(TComparisonKeys, type)) {
         if (!isValue(expr)) throw Error('Invalid expression');
         return new FieldExpression(type as any, expr);
-      } else if (type in TValueListKeys || type in TValueSetKeys) {
+      } else if (_.includes(TValueListKeys, type) || _.includes(TValueSetKeys, type)) {
         if (!isValue(expr) || !_.isArray(expr)) throw Error('Invalid expression');
         return new FieldExpression(type as any, expr);
       } else {
