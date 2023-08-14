@@ -225,8 +225,9 @@ export const PostgresDialect: SqlDialect = {
               if (!_.isArray(value) || !_.every(value, x => x instanceof TObject && x.objectId)) break;
               const objectIds = _.uniq(_.map(value, (x: any) => `${x.className}$${x.objectId}`));
               return sql`ARRAY(
-                SELECT DISTINCT
-                UNNEST(${{ identifier: column }} || ARRAY[${_.map(objectIds, (x) => sql`${{ value: x }}`)}])
+                SELECT DISTINCT "$"
+                FROM UNNEST(${{ identifier: column }} || ARRAY[${_.map(objectIds, (x) => sql`${{ value: x }}`)}]) "$"
+                RIGHT JOIN ${{ identifier: dataType.target }} ON "$" = (${{ quote: dataType.target + '$' }} || ${{ identifier: dataType.target }}._id)
               )`;
             }
           case UpdateOp.removeAll:
@@ -234,8 +235,9 @@ export const PostgresDialect: SqlDialect = {
               if (!_.isArray(value) || !_.every(value, x => x instanceof TObject && x.objectId)) break;
               const objectIds = _.uniq(_.map(value, (x: any) => `${x.className}$${x.objectId}`));
               return sql`ARRAY(
-                SELECT *
+                SELECT "$"
                 FROM UNNEST(${{ identifier: column }}) "$"
+                RIGHT JOIN ${{ identifier: dataType.target }} ON "$" = (${{ quote: dataType.target + '$' }} || ${{ identifier: dataType.target }}._id)
                 WHERE "$" NOT IN (${_.map(objectIds, (x) => sql`${{ value: x }}`)})
               )`;
             }
