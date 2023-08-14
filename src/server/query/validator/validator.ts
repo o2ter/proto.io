@@ -32,7 +32,7 @@ import {
 } from '../../../internals';
 import { DecodedBaseQuery, DecodedQuery, FindOptions, FindOneOptions } from '../../storage';
 import { CoditionalSelector, FieldSelector, QuerySelector } from './parser';
-import { TSchema, defaultObjectKeyTypes, isPointer, isPrimitive, isRelation } from '../../schema';
+import { TSchema, defaultObjectKeyTypes, isPointer, isPrimitive, isRelation } from '../../../internals/schema';
 import { ProtoService } from '../../proto';
 import { TQueryBaseOptions } from '../../../internals/query/base';
 

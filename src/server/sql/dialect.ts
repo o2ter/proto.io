@@ -25,7 +25,7 @@
 
 import { TValue, TUpdateOp } from '../../internals';
 import { FieldExpression } from '../query/validator/parser';
-import { TSchema } from '../schema';
+import { TSchema } from '../../internals/schema';
 import { CompileContext, Populate, QueryCompiler } from './compiler';
 import { SQL } from './sql';
 

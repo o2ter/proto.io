@@ -42,7 +42,7 @@ import {
   TUpdateOp,
 } from '../../internals';
 import { generateId } from '../crypto';
-import { TSchema } from '../schema';
+import { TSchema } from '../../internals/schema';
 import { QueryValidator } from '../query/validator/validator';
 import { passwordHash, varifyPassword } from '../crypto/password';
 

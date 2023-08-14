@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { TSchema } from '../schema';
+import { TSchema } from '../../internals/schema';
 
 export const defaultSchema: Record<string, TSchema> = {
   'User': {

@@ -35,7 +35,7 @@ import functionRoute from './server/routes/function';
 import filesRoute from './server/routes/files';
 import userRoute from './server/routes/user';
 import { PVK } from './internals';
-import { TSchema } from './server/schema';
+import { TSchema } from './internals/schema';
 
 export * from './common';
 export { ProtoService } from './server/proto';

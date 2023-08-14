@@ -24,8 +24,8 @@
 //
 
 import _ from 'lodash';
-import { TSchema, isPointer, isPrimitive, isRelation } from '../schema';
-import { defaultObjectKeyTypes } from '../schema';
+import { TSchema, isPointer, isPrimitive, isRelation } from '../../internals/schema';
+import { defaultObjectKeyTypes } from '../../internals/schema';
 import { CoditionalSelector, FieldSelector, QuerySelector } from '../query/validator/parser';
 import { DecodedBaseQuery, DecodedQuery, FindOneOptions, FindOptions, InsertOptions } from '../storage';
 import { SQL, sql } from './sql';

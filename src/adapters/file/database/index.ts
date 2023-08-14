@@ -30,7 +30,7 @@ import { deflate, unzip } from 'node:zlib';
 import { FileBuffer, FileData, PVK, base64ToBuffer, bufferToBase64, isFileBuffer } from '../../../internals';
 import { TFileStorage } from '../../../server/filesys';
 import { ProtoService } from '../../../server/proto';
-import { TSchema } from '../../../server/schema';
+import { TSchema } from '../../../internals/schema';
 
 const streamChunk = (stream: Readable, chunkSize: number) => Readable.from({
   [Symbol.asyncIterator]: async function* () {

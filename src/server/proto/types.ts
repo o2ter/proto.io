@@ -29,7 +29,7 @@ import {
 } from '../../internals';
 import { TFileStorage } from '../filesys';
 import { TStorage } from '../storage';
-import { TSchema } from '../schema';
+import { TSchema } from '../../internals/schema';
 import { CookieOptions } from 'express';
 import { SignOptions, VerifyOptions } from 'jsonwebtoken';
 import { Awaitable } from '../../internals/types';

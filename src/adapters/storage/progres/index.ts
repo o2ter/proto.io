@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { PoolConfig } from 'pg';
 import { TObject } from '../../../internals';
-import { TSchema, _typeof, isRelation } from '../../../server/schema';
+import { TSchema, _typeof, isRelation } from '../../../internals/schema';
 import { PostgresDriver } from './driver';
 import { SqlStorage, sql } from '../../../server/sql';
 import { PostgresDialect } from './dialect';

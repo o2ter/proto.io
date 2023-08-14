@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { _TValue } from '../internals';
+import { _TValue } from '.';
 
 export namespace TSchema {
   export type ACL = string[];
@@ -76,3 +76,6 @@ export const defaultObjectKeyTypes: Record<string, TSchema.DataType> = {
   _rperm: 'array',
   _wperm: 'array',
 };
+
+export const defaultObjectReadonlyKeys = ['_id', '__v', '_created_at', '_updated_at'];
+export const defaultObjectKeys = [...defaultObjectReadonlyKeys, '_expired_at', '_rperm', '_wperm'];

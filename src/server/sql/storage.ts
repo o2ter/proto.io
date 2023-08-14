@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { DecodedQuery, FindOptions, FindOneOptions, InsertOptions, TStorage } from '../storage';
-import { TSchema, defaultObjectKeyTypes } from '../schema';
+import { TSchema, defaultObjectKeyTypes } from '../../internals/schema';
 import { storageSchedule } from '../schedule';
 import { PVK, TObject, TValue, TUpdateOp, asyncStream } from '../../internals';
 import { SQL, sql } from './sql';

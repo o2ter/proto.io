@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { FileBuffer, FileData } from '../internals/buffer';
 import { ProtoService } from './proto/index';
-import { TSchema } from './schema';
+import { TSchema } from '../internals/schema';
 
 type TFileInfo = {
   mimeType?: string;

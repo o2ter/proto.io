@@ -27,7 +27,7 @@ import _ from 'lodash';
 import { PVK } from '../private';
 import { ExtraOptions } from '../options';
 import { TValue, cloneValue, isPrimitiveValue } from '../query/value';
-import { TSchema } from '../../server/schema';
+import { TSchema, defaultObjectKeys, defaultObjectReadonlyKeys } from '../schema';
 import { PathName } from '../query/types';
 import { TUpdateOp, TUpdateOpKeys } from './types';
 
@@ -46,8 +46,8 @@ export interface TObject {
 
 export class TObject {
 
-  static defaultReadonlyKeys = ['_id', '__v', '_created_at', '_updated_at'];
-  static defaultKeys = [...TObject.defaultReadonlyKeys, '_expired_at', '_rperm', '_wperm'];
+  static defaultReadonlyKeys = defaultObjectReadonlyKeys;
+  static defaultKeys = defaultObjectKeys;
 
   [PVK]: {
     className: string;

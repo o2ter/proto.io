@@ -27,7 +27,7 @@ import _ from 'lodash';
 import { escapeIdentifier, escapeLiteral } from 'pg/lib/utils';
 import { SQL, SqlDialect, sql } from '../../../server/sql';
 import { Decimal, TObject, TValue, TUpdateOp, _TValue, isPrimitiveValue, decodeUpdateOp } from '../../../internals';
-import { TSchema, _typeof, defaultObjectKeyTypes, isPrimitive } from '../../../server/schema';
+import { TSchema, _typeof, defaultObjectKeyTypes, isPrimitive } from '../../../internals/schema';
 import { CompileContext, Populate, QueryCompiler } from '../../../server/sql/compiler';
 import { FieldExpression, QuerySelector } from '../../../server/query/validator/parser';
 
