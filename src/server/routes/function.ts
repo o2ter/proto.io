@@ -27,7 +27,7 @@ import _ from 'lodash';
 import express, { Router } from 'express';
 import { ProtoService } from '../proto';
 import { response } from './common';
-import { PVK, deserialize, applyObjectMethods } from '../../internals';
+import { PVK, deserialize, applyObjectMethods, TObject } from '../../internals';
 
 export default <E>(router: Router, proto: ProtoService<E>) => {
 
@@ -44,7 +44,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       await response(res, () => {
 
         const payload = proto.connect(req, x => ({
-          data: applyObjectMethods(deserialize(req.body), x),
+          data: applyObjectMethods(deserialize(req.body, { objAttrs: TObject.defaultReadonlyKeys }), x),
         }));
 
         return payload[PVK].run(name, payload, { master: payload.isMaster });

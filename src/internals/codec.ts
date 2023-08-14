@@ -51,6 +51,10 @@ export type SerializeOptions = {
   objAttrs?: string[];
 };
 
+export type DeserializeOptions = {
+  objAttrs?: string[];
+};
+
 const encodeEJSON = (
   x: TSerializable,
   stack: any[],
@@ -83,6 +87,7 @@ const encodeEJSON = (
 const decodeEJSON = (
   x: EJSON.SerializableTypes,
   stack: any[],
+  options: DeserializeOptions,
 ): TSerializable => {
   if (_.isNil(x) || _.isNumber(x) || _.isBoolean(x) || _.isString(x) || _.isDate(x)) return x;
   if (x instanceof UUID) return x;
@@ -91,7 +96,7 @@ const decodeEJSON = (
 
   if (_.isArray(x)) {
     return _.transform(x, (r, v) => {
-      r.push(decodeEJSON(v, [...stack, r]));
+      r.push(decodeEJSON(v, [...stack, r], options));
     }, [] as TSerializable[]);
   }
 
@@ -99,12 +104,15 @@ const decodeEJSON = (
 
   if (x.$object) {
     const { className, attributes } = x.$object;
-    const _attributes = (self: TObject) => _.mapValues(attributes, v => decodeEJSON(v, [...stack, self])) as Record<string, TValue>;
+    const _attributes = (self: TObject) => _.mapValues(
+      options.objAttrs ? _.pick(attributes, ...options.objAttrs) : attributes,
+      v => decodeEJSON(v, [...stack, self], options),
+    ) as Record<string, TValue>;
     return isObjKey(className, TObjectTypes) ? new TObjectTypes[className](_attributes) : new TObject(className, _attributes);
   }
 
   return _.transform(x, (r, v, k) => {
-    r[k.startsWith('$') ? k.substring(1) : k] = decodeEJSON(v, [...stack, r]);
+    r[k.startsWith('$') ? k.substring(1) : k] = decodeEJSON(v, [...stack, r], options);
   }, {} as TDictionary);
 }
 
@@ -113,4 +121,7 @@ export const serialize = (
   options?: SerializeOptions,
 ) => EJSON.stringify(encodeEJSON(x, [], options ?? {}), undefined, options?.space, { relaxed: false });
 
-export const deserialize = (buffer: string) => decodeEJSON(EJSON.parse(buffer, { relaxed: false }), []);
+export const deserialize = (
+  buffer: string,
+  options?: DeserializeOptions,
+) => decodeEJSON(EJSON.parse(buffer, { relaxed: false }), [], options ?? {});
