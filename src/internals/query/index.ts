@@ -30,7 +30,7 @@ import { PVK } from '../private';
 import { TObjectType } from '../object/types';
 import { asyncStream } from '../utils';
 import { TQueryBase, TQueryBaseOptions } from './base';
-import { TUpdateOp } from '../object';
+import { TUpdateOp } from '../object/types';
 
 export interface TQueryOptions extends TQueryBaseOptions {
   includes?: string[];

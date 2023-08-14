@@ -29,24 +29,7 @@ import { ExtraOptions } from '../options';
 import { TValue, cloneValue, isPrimitiveValue } from '../query/value';
 import { TSchema } from '../../server/schema';
 import { PathName } from '../query/types';
-import { ExactlyOneProp } from '../types';
-
-export const TUpdateOpKeys = [
-  '$set',
-  '$inc',
-  '$dec',
-  '$mul',
-  '$div',
-  '$max',
-  '$min',
-  '$addToSet',
-  '$push',
-  '$removeAll',
-  '$popFirst',
-  '$popLast',
-] as const;
-
-export type TUpdateOp = ExactlyOneProp<Record<typeof TUpdateOpKeys[number], TValue>>;
+import { TUpdateOp, TUpdateOpKeys } from './types';
 
 export const decodeUpdateOp = (update: TUpdateOp) => {
   const pairs = _.toPairs(update);

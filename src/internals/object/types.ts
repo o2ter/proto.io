@@ -27,6 +27,8 @@ import { TObject } from './index';
 import { TUser } from './user';
 import { TRole } from './role';
 import { TFile } from './file';
+import { TValue } from '../query/value';
+import { ExactlyOneProp } from '../types';
 
 export const TObjectTypes = {
   'User': TUser,
@@ -62,3 +64,20 @@ export type TExtensions<T> = {
 
 type TMethods<T, E> = T extends keyof E ? PropertyMapToMethods<E[T]> : {};
 export type TObjectType<T, E> = _TObjectType<T> & TMethods<T, E>;
+
+export const TUpdateOpKeys = [
+  '$set',
+  '$inc',
+  '$dec',
+  '$mul',
+  '$div',
+  '$max',
+  '$min',
+  '$addToSet',
+  '$push',
+  '$removeAll',
+  '$popFirst',
+  '$popLast',
+] as const;
+
+export type TUpdateOp = ExactlyOneProp<Record<(typeof TUpdateOpKeys)[number], TValue>>;
