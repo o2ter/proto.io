@@ -295,7 +295,7 @@ export class QueryCompiler {
     const result: Record<string, SQL> = {};
     for (const [key, value] of _.toPairs(attrs)) {
       const dataType = fields[key] ?? defaultObjectKeyTypes[key];
-      result[key] = this.dialect.encodeType(dataType, value);
+      result[key] = this.dialect.encodeType(key, dataType, value);
     }
     return result;
   }

@@ -31,6 +31,8 @@ import { TSchema, _typeof, defaultObjectKeyTypes, isPrimitive } from '../../../i
 import { CompileContext, Populate, QueryCompiler } from '../../../server/sql/compiler';
 import { FieldExpression, QuerySelector } from '../../../server/query/validator/parser';
 
+const stringArrayAttrs = ['_rperm', '_wperm'];
+
 const _decodeValue = (value: _TValue): _TValue => {
   if (isPrimitiveValue(value)) return value;
   if (_.isArray(value)) return _.map(value, x => _decodeValue(x));
@@ -98,7 +100,7 @@ export const PostgresDialect: SqlDialect = {
   nullSafeNotEqual() {
     return sql`IS DISTINCT FROM`;
   },
-  encodeType(dataType: TSchema.DataType, value: TValue) {
+  encodeType(colname: string, dataType: TSchema.DataType, value: TValue) {
     switch (_.isString(dataType) ? dataType : dataType.type) {
       case 'boolean':
         if (_.isBoolean(value)) return sql`${{ value }}`;
@@ -121,8 +123,12 @@ export const PostgresDialect: SqlDialect = {
         if (_.isPlainObject(value)) return sql`${{ value: _encodeValue(value) }}`;
         break;
       case 'array':
-        if (_.isArray(value)) return sql`ARRAY[${_.map(value, x => _encodeJsonValue(_encodeValue(x)))}]::JSONB[]`;
-        break;
+        if (!_.isArray(value)) break;
+        if (_.includes(stringArrayAttrs, colname)) {
+          if (!_.every(value, x => _.isString(x))) break;
+          return sql`ARRAY[${_.map(value, x => sql`${{ value: x }}`)}]`;
+        }
+        return sql`ARRAY[${_.map(value, x => _encodeJsonValue(_encodeValue(x)))}]::JSONB[]`;
       case 'pointer':
         if (value instanceof TObject && value.objectId) return sql`${{ value: `${value.className}$${value.objectId}` }}`;
         break;
@@ -181,13 +187,13 @@ export const PostgresDialect: SqlDialect = {
     const [op, value] = decodeUpdateOp(operation);
     if (_.isEmpty(subpath)) {
       switch (op) {
-        case '$set': return sql`${this.encodeType(dataType, value)}`;
-        case '$inc': return sql`${{ identifier: column }} + ${this.encodeType(dataType, value)}`;
-        case '$dec': return sql`${{ identifier: column }} - ${this.encodeType(dataType, value)}`;
-        case '$mul': return sql`${{ identifier: column }} * ${this.encodeType(dataType, value)}`;
-        case '$div': return sql`${{ identifier: column }} / ${this.encodeType(dataType, value)}`;
-        case '$max': return sql`GREATEST(${{ identifier: column }}, ${this.encodeType(dataType, value)})`;
-        case '$min': return sql`LEAST(${{ identifier: column }}, ${this.encodeType(dataType, value)})`;
+        case '$set': return sql`${this.encodeType(column, dataType, value)}`;
+        case '$inc': return sql`${{ identifier: column }} + ${this.encodeType(column, dataType, value)}`;
+        case '$dec': return sql`${{ identifier: column }} - ${this.encodeType(column, dataType, value)}`;
+        case '$mul': return sql`${{ identifier: column }} * ${this.encodeType(column, dataType, value)}`;
+        case '$div': return sql`${{ identifier: column }} / ${this.encodeType(column, dataType, value)}`;
+        case '$max': return sql`GREATEST(${{ identifier: column }}, ${this.encodeType(column, dataType, value)})`;
+        case '$min': return sql`LEAST(${{ identifier: column }}, ${this.encodeType(column, dataType, value)})`;
         default: break;
       }
       if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
@@ -483,7 +489,7 @@ export const PostgresDialect: SqlDialect = {
         element = sql`jsonb_extract_path(${element}, ${_subpath})`;
       }
     }
-    const encodeValue = (value: TValue) => dataType ? this.encodeType(dataType, value) : _encodeJsonValue(_encodeValue(value));
+    const encodeValue = (value: TValue) => dataType ? this.encodeType(colname, dataType, value) : _encodeJsonValue(_encodeValue(value));
     switch (expr.type) {
       case '$eq':
         {
