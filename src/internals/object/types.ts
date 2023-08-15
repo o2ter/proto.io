@@ -28,7 +28,7 @@ import { TUser } from './user';
 import { TRole } from './role';
 import { TFile } from './file';
 import { TValue } from '../query/value';
-import { ExactlyOneProp } from '../types';
+import { ExactOneProp } from '../types';
 
 export const TObjectTypes = {
   'User': TUser,
@@ -80,4 +80,4 @@ export const TUpdateOpKeys = [
   '$popLast',
 ] as const;
 
-export type TUpdateOp = ExactlyOneProp<Record<(typeof TUpdateOpKeys)[number], TValue>>;
+export type TUpdateOp = ExactOneProp<Record<(typeof TUpdateOpKeys)[number], TValue>>;

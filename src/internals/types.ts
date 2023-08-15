@@ -28,7 +28,7 @@ export type Exact<T, Shape> =
   Exclude<keyof T, keyof Shape> extends never ?
   T : never : never;
 
-export type ExactlyOneProp<T> = {
+export type ExactOneProp<T> = {
   [K in keyof T]-?: Pick<T, K> & { [P in Exclude<keyof T, K>]?: never }
 }[keyof T];
 
