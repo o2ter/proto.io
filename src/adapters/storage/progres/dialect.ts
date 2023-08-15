@@ -198,30 +198,38 @@ export const PostgresDialect: SqlDialect = {
       }
       if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
         switch (op) {
-          case '$addToSet':
-            if (!_.isArray(value)) break;
-            return sql`${{ identifier: column }} || ARRAY(
-              SELECT *
-              FROM UNNEST(ARRAY[${_.map(_.uniq(value), x => _encodeJsonValue(_encodeValue(x)))}]) "$"
-              WHERE "$" != ALL(${{ identifier: column }})
-            )`;
-          case '$push':
-            if (!_.isArray(value)) break;
-            return sql`${{ identifier: column }} || ARRAY[${_.map(value, (x: any) => sql`${_encodeJsonValue(_encodeValue(x))}`)}]`;
-          case '$removeAll':
-            if (!_.isArray(value)) break;
-            return sql`ARRAY(
-              SELECT *
-              FROM UNNEST(${{ identifier: column }}) "$"
-              WHERE "$" NOT IN (${_.map(_.uniq(value), x => _encodeJsonValue(_encodeValue(x)))})
-            )`;
           case '$popFirst':
             if (!_.isNumber(value) || !_.isInteger(value) || value < 0) break;
             return sql`${{ identifier: column }}[${{ literal: `${value + 1}` }}:]`;
           case '$popLast':
             if (!_.isNumber(value) || !_.isInteger(value) || value < 0) break;
             return sql`${{ identifier: column }}[:array_length(${{ identifier: column }}, 1) - ${{ literal: `${value}` }}]`;
-          default: break;
+          default:
+            {
+              const isStringArray = _.includes(stringArrayAttrs, column);
+              if (!_.isArray(value)) break;
+              if (isStringArray && !_.every(value, x => _.isString(x))) break;
+              switch (op) {
+                case '$addToSet':
+                  if (!_.isArray(value)) break;
+                  return sql`${{ identifier: column }} || ARRAY(
+                    SELECT *
+                    FROM UNNEST(ARRAY[${_.map(_.uniq(value), x => isStringArray ? sql`${{ value: x }}` : _encodeJsonValue(_encodeValue(x)))}]) "$"
+                    WHERE "$" != ALL(${{ identifier: column }})
+                  )`;
+                case '$push':
+                  if (!_.isArray(value)) break;
+                  return sql`${{ identifier: column }} || ARRAY[${_.map(value, (x: any) => isStringArray ? sql`${{ value: x }}` : sql`${_encodeJsonValue(_encodeValue(x))}`)}]`;
+                case '$removeAll':
+                  if (!_.isArray(value)) break;
+                  return sql`ARRAY(
+                    SELECT *
+                    FROM UNNEST(${{ identifier: column }}) "$"
+                    WHERE "$" NOT IN (${_.map(_.uniq(value), x => isStringArray ? sql`${{ value: x }}` : _encodeJsonValue(_encodeValue(x)))})
+                  )`;
+                default: break;
+              }
+            }
         }
       } else if (!_.isString(dataType) && dataType?.type === 'relation' && _.isNil(dataType.foreignField)) {
         switch (op) {
