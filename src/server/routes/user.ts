@@ -57,7 +57,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
         const user = await payload.Query('User', { master: true }).get(id);
         if (!user) throw Error('User not found');
 
-        const { password } = deserialize(req.body) as any;
+        const { password } = deserialize(req.body) as any ?? {};
         if (_.isEmpty(password)) {
           await payload.unsetPassword(user);
         } else {
