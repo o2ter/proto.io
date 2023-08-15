@@ -73,11 +73,11 @@ export abstract class ProtoType<Ext> {
   }
 
   async userRoles(user: TUser) {
-    let roles: TRole[] = [];
     let queue = await this.Query('Role', { master: true })
       .isIntersect('users', [user])
       .includes('users')
       .find();
+    let roles = queue;
     while (!_.isEmpty(queue)) {
       queue = await this.Query('Role', { master: true })
         .isIntersect('roles', queue)
