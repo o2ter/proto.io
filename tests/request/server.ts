@@ -87,7 +87,7 @@ const Proto = new ProtoService({
         relation3: { type: 'relation', target: 'Test', foreignField: 'relation' },
       },
       fieldLevelPermissions: {
-        no_permission: { read: [], create: [], update: [] }
+        no_permission: { read: ['role:admin'], create: ['role:admin'], update: ['role:admin'] }
       }
     }
   },
@@ -107,6 +107,15 @@ Proto.define('createUser', async (proto) => {
   const user = await proto.Query('User').insert({ name: 'test' });
   await proto.setPassword(user, 'password123');
   if (!await proto.varifyPassword(user, 'password123')) throw Error('incorrect password');
+  proto.becomeUser(proto.req!, user);
+});
+
+Proto.define('createUserWithRole', async (proto) => {
+  const { role } = proto.data as any;
+  const _role = await proto.Query('Role', { master: true }).equalTo('name', role).first() ?? await proto.Query('Role', { master: true }).insert({ name: role });
+  const user = await proto.Query('User').insert({ name: 'test' });
+  _role.addToSet('users', [user]);
+  await _role.save({ master: true });
   proto.becomeUser(proto.req!, user);
 });
 
