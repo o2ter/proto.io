@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import express, { Router } from 'express';
+import { Router } from 'express';
 import { ProtoService } from '../proto';
 import { response } from './common';
 
@@ -32,7 +32,6 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
 
   router.get(
     '/schema',
-    express.text({ type: '*/*' }),
     async (req: any, res) => {
       res.setHeader('Cache-Control', ['no-cache', 'no-store']);
       const payload = proto.connect(req);
@@ -45,7 +44,6 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
 
   router.get(
     '/schema/:name',
-    express.text({ type: '*/*' }),
     async (req: any, res) => {
       res.setHeader('Cache-Control', ['no-cache', 'no-store']);
 

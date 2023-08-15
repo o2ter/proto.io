@@ -176,6 +176,16 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
       });
   }
 
+  async unsetPassword(user: TUser) {
+    if (!user.objectId) throw Error('Invalid user object');
+    await this.proto.InsecureQuery('User', { master: true })
+      .equalTo('_id', user.objectId)
+      .includes('_id')
+      .updateOne({
+        password: { $set: {} },
+      });
+  }
+
   async updateFile(object: TFile, options?: ExtraOptions) {
 
     const updated = await this.proto.Query(object.className, options)

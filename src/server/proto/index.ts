@@ -122,6 +122,10 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     return this[PVK].setPassword(user, password);
   }
 
+  unsetPassword(user: TUser) {
+    return this[PVK].unsetPassword(user);
+  }
+
   get schema(): ProtoServiceOptions<Ext>['schema'] {
     return this[PVK].options.schema;
   }

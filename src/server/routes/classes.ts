@@ -54,7 +54,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
           replacement,
           setOnInsert,
           ...options
-        }: any = deserialize(req.body);
+        } = deserialize(req.body) as any;
 
         const payload = proto.connect(req);
         const query = payload.Query(name, { master: payload.isMaster, context });

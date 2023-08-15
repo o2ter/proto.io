@@ -27,12 +27,12 @@ import _ from 'lodash';
 import express, { Router } from 'express';
 import { ProtoService } from '../proto';
 import { response } from './common';
+import { deserialize } from 'bson';
 
 export default <E>(router: Router, proto: ProtoService<E>) => {
 
   router.get(
     '/user/me',
-    express.text({ type: '*/*' }),
     async (req: any, res) => {
       res.setHeader('Cache-Control', ['no-cache', 'no-store']);
       const payload = proto.connect(req);
@@ -41,8 +41,34 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
   );
 
   router.post(
-    '/user/logout',
+    '/user/:id/password',
     express.text({ type: '*/*' }),
+    async (req: any, res) => {
+
+      res.setHeader('Cache-Control', ['no-cache', 'no-store']);
+
+      const { id } = req.params;
+      const payload = proto.connect(req);
+
+      await response(res, async () => {
+
+        if (!payload.isMaster) throw Error('No permission');
+
+        const user = await payload.Query('User', { master: payload.isMaster }).get(id);
+        if (!user) throw Error('User not found');
+
+        const { password } = deserialize(req.body) as any;
+        if (_.isEmpty(password)) {
+          await payload.unsetPassword(user);
+        } else {
+          await payload.setPassword(user, password);
+        }
+      });
+    }
+  );
+
+  router.post(
+    '/user/logout',
     async (req: any, res) => {
       res.setHeader('Cache-Control', ['no-cache', 'no-store']);
       const payload = proto.connect(req);
