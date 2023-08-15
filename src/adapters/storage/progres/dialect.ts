@@ -570,30 +570,46 @@ export const PostgresDialect: SqlDialect = {
       case '$in':
         {
           if (!_.isArray(expr.value)) break;
-          if (_.isEmpty(expr.value)) return sql`false`;
-          if (_.isEmpty(subpath) && _.includes(stringArrayAttrs, colname)) {
-            if (!_.every(expr.value, x => _.isString(x))) break;
-            return sql`${element} IN (${_.map(expr.value, x => sql`${{ value: x }}`)})`;
+          switch (expr.value.length) {
+            case 0: return sql`false`;
+            case 1:
+              {
+                const value = expr.value[0];
+                if (!_.isString(dataType) && dataType?.type === 'pointer') {
+                  if (!(value instanceof TObject) || !value.objectId) break;
+                  return sql`(${element} #>> '{_id}') ${this.nullSafeEqual()} ${{ value: value.objectId }}`;
+                }
+                return sql`${element} ${this.nullSafeEqual()} ${encodeValue(value)}`;
+              }
+            default:
+              if (!_.isString(dataType) && dataType?.type === 'pointer') {
+                if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
+                return sql`(${element} #>> '{_id}') IN (${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)})`;
+              }
+              return sql`${element} IN (${_.map(expr.value, x => encodeValue(x))})`;
           }
-          if (!_.isString(dataType) && dataType?.type === 'pointer') {
-            if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
-            return sql`(${element} #>> '{_id}') IN (${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)})`;
-          }
-          return sql`${element} IN (${_.map(expr.value, x => encodeValue(x))})`;
         }
       case '$nin':
         {
           if (!_.isArray(expr.value)) break;
-          if (_.isEmpty(expr.value)) return sql`true`;
-          if (_.isEmpty(subpath) && _.includes(stringArrayAttrs, colname)) {
-            if (!_.every(expr.value, x => _.isString(x))) break;
-            return sql`${element} NOT IN (${_.map(expr.value, x => sql`${{ value: x }}`)})`;
+          switch (expr.value.length) {
+            case 0: return sql`true`;
+            case 1:
+              {
+                const value = expr.value[0];
+                if (!_.isString(dataType) && dataType?.type === 'pointer') {
+                  if (!(value instanceof TObject) || !value.objectId) break;
+                  return sql`(${element} #>> '{_id}') ${this.nullSafeNotEqual()} ${{ value: value.objectId }}`;
+                }
+                return sql`${element} ${this.nullSafeNotEqual()} ${encodeValue(value)}`;
+              }
+            default:
+              if (!_.isString(dataType) && dataType?.type === 'pointer') {
+                if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
+                return sql`(${element} #>> '{_id}') NOT IN (${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)})`;
+              }
+              return sql`${element} NOT IN (${_.map(expr.value, x => encodeValue(x))})`;
           }
-          if (!_.isString(dataType) && dataType?.type === 'pointer') {
-            if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
-            return sql`(${element} #>> '{_id}') NOT IN (${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)})`;
-          }
-          return sql`${element} NOT IN (${_.map(expr.value, x => encodeValue(x))})`;
         }
       case '$subset':
         {
