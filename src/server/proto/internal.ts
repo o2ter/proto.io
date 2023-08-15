@@ -166,6 +166,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
 
   async setPassword(user: TUser, password: string) {
     if (!user.objectId) throw Error('Invalid user object');
+    if (_.isEmpty(password)) throw Error('Invalid password');
     const { alg, ...options } = this.options.passwordHashOptions;
     const hashed = await passwordHash(alg, password, options);
     await this.proto.InsecureQuery('User', { master: true })
