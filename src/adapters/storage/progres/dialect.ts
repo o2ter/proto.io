@@ -585,6 +585,7 @@ export const PostgresDialect: SqlDialect = {
       case '$superset':
         {
           if (!_.isArray(expr.value)) break;
+          if (_.isEmpty(expr.value)) return sql`true`;
           if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
             return sql`${element} @> ${{ value: _encodeValue(expr.value) }}`;
           } else if (!_.isString(dataType) && dataType?.type === 'relation' && _.every(expr.value, x => x instanceof TObject && x.objectId)) {
@@ -596,6 +597,7 @@ export const PostgresDialect: SqlDialect = {
       case '$disjoint':
         {
           if (!_.isArray(expr.value)) break;
+          if (_.isEmpty(expr.value)) return sql`true`;
           if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
             return sql`NOT ${element} && ${{ value: _encodeValue(expr.value) }}`;
           } else if (!_.isString(dataType) && dataType?.type === 'relation' && _.every(expr.value, x => x instanceof TObject && x.objectId)) {
@@ -607,6 +609,7 @@ export const PostgresDialect: SqlDialect = {
       case '$intersect':
         {
           if (!_.isArray(expr.value)) break;
+          if (_.isEmpty(expr.value)) return sql`false`;
           if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
             return sql`${element} && ${{ value: _encodeValue(expr.value) }}`;
           } else if (!_.isString(dataType) && dataType?.type === 'relation' && _.every(expr.value, x => x instanceof TObject && x.objectId)) {
