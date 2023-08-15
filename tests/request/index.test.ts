@@ -989,28 +989,18 @@ test('test comparable', async () => {
 
 test('test permission', async () => {
 
-  await expect(() => Proto.Query('Test')
-    .insert({
-      no_permission: true,
-    })).rejects.toThrow('No permission');
+  await expect(() => Proto.Query('Test').insert({ no_permission: true })).rejects.toThrow('No permission');
 
-  await expect(() => Proto.Query('Test')
-    .includes('no_permission')
-    .find()).rejects.toThrow('No permission');
+  await expect(() => Proto.Query('Test').includes('no_permission').find()).rejects.toThrow('No permission');
 })
 
 test('test permission 2', async () => {
-  await expect(() => Proto.Query('Test')
-    .insert({
-      no_permission: true,
-    })).rejects.toThrow('No permission');
+
+  await expect(() => Proto.Query('Test').insert({ no_permission: true })).rejects.toThrow('No permission');
 
   await Proto.run('createUserWithRole', { role: 'admin' });
 
-  console.log(await Proto.Query('Test')
-  .insert({
-    no_permission: true,
-  }));
+  expect(await Proto.Query('Test').insert({ no_permission: true })).toBeTruthy();
 
   await Proto.logout();
 })
