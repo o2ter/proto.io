@@ -126,7 +126,7 @@ export const PostgresDialect: SqlDialect = {
         if (!_.isArray(value)) break;
         if (_.includes(stringArrayAttrs, colname)) {
           if (!_.every(value, x => _.isString(x))) break;
-          return sql`ARRAY[${_.map(value, x => sql`${{ value: x }}`)}]`;
+          return sql`ARRAY[${_.map(value, x => sql`${{ value: x }}`)}]::TEXT[]`;
         }
         return sql`ARRAY[${_.map(value, x => _encodeJsonValue(_encodeValue(x)))}]::JSONB[]`;
       case 'pointer':

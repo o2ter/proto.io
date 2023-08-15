@@ -1006,3 +1006,13 @@ test('test permission 3', async () => {
   expect(await Proto.Query('Test').get(object.objectId!)).toBeTruthy();
   await Proto.logout();
 })
+
+test('test permission 4', async () => {
+  const object = await Proto.Query('Test').insert({ _rperm: [] });
+  object.push('_rperm', ['role:admin']);
+  await object.save({ master: true });
+  expect(await Proto.Query('Test').get(object.objectId!)).toBeUndefined();
+  await Proto.run('createUserWithRole', { role: 'admin' });
+  expect(await Proto.Query('Test').get(object.objectId!)).toBeTruthy();
+  await Proto.logout();
+})
