@@ -50,7 +50,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       res.setHeader('Cache-Control', ['no-cache', 'no-store']);
 
       const { name } = req.params;
-      if (!proto.schema[name]) return res.sendStatus(404);
+      if (_.isNil(proto.schema[name])) return res.sendStatus(404);
 
       const payload = proto.connect(req);
       await response(res, () => {
