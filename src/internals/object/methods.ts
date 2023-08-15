@@ -72,7 +72,7 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
       },
       url: {
         get() {
-          if (_.isNil(this.objectId) || _.isNil((this as TFile).filename)) throw Error('Invalid file');
+          if (_.isNil(this.objectId) || _.isNil((this as TFile).filename)) return;
           const endpoint = proto[PVK].options.endpoint;
           const path = `files/${this.objectId}/${encodeURIComponent((this as TFile).filename)}`;
           return endpoint.endsWith('/') ? `${endpoint}${path}` : `${endpoint}/${path}`;
