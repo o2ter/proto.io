@@ -30,7 +30,7 @@ import { FileStream } from '../buffer';
 import { TValue } from '../query/value';
 
 export interface TFile {
-  url: string;
+  url: string | undefined;
   fileData(options?: ExtraOptions): FileStream;
 }
 
@@ -42,19 +42,19 @@ export class TFile extends TObject {
     super('File', attributes);
   }
 
-  get filename(): string {
+  get filename(): string | undefined {
     return this.get('filename');
   }
 
-  get size(): number {
+  get size(): number | undefined {
     return this.get('size');
   }
 
-  get type(): string {
+  get type(): string | undefined {
     return this.get('type');
   }
 
-  get token(): string {
+  get token(): string | undefined {
     return this.get('token');
   }
 

@@ -282,7 +282,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
       object[PVK].extra = {};
     }
 
-    this.destoryFileData(this.proto, object.token);
+    this.destoryFileData(this.proto, object.token!);
 
     if (_.isFunction(afterDelete)) {
       await afterDelete(Object.setPrototypeOf({ object, context }, this.proto));
