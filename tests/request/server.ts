@@ -105,8 +105,8 @@ Proto.define('sessionId', (proto) => {
 
 Proto.define('createUser', async (proto) => {
   const user = await proto.Query('User').insert({ name: 'test' });
-  await proto.setPassword(user, 'password123');
-  if (!await proto.varifyPassword(user, 'password123')) throw Error('incorrect password');
+  await proto.setPassword(user, 'password123', { master: true });
+  if (!await proto.varifyPassword(user, 'password123', { master: true })) throw Error('incorrect password');
   proto.becomeUser(proto.req!, user);
 });
 

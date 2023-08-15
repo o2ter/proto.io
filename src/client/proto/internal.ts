@@ -127,18 +127,20 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     }
   }
 
-  async setPassword(user: TUser, password: string) {
+  async setPassword(user: TUser, password: string, options: RequestOptions & { master: true }) {
 
     if (!user.objectId) throw Error('Invalid user');
     if (_.isEmpty(password)) throw Error('Invalid password');
+
+    const { serializeOpts, context, ...opts } = options ?? {};
 
     const res = await this.service.request({
       method: 'post',
       baseURL: this.options.endpoint,
       url: `user/${user.objectId}/password`,
-      data: serialize({ password }),
+      data: serialize({ password }, serializeOpts),
       responseType: 'text',
-      master: true,
+      ...opts,
     });
 
     if (res.status !== 200) {
@@ -147,16 +149,18 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     }
   }
 
-  async unsetPassword(user: TUser) {
+  async unsetPassword(user: TUser, options: RequestOptions & { master: true }) {
 
     if (!user.objectId) throw Error('Invalid user');
+
+    const { serializeOpts, context, ...opts } = options ?? {};
 
     const res = await this.service.request({
       method: 'post',
       baseURL: this.options.endpoint,
       url: `user/${user.objectId}/password`,
       responseType: 'text',
-      master: true,
+      ...opts,
     });
 
     if (res.status !== 200) {

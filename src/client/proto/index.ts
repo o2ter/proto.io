@@ -67,12 +67,12 @@ export class ProtoClient<Ext> extends ProtoType<Ext> {
     return this[PVK].logout(options);
   }
 
-  setPassword(user: TUser, password: string) {
-    return this[PVK].setPassword(user, password);
+  setPassword(user: TUser, password: string, options: RequestOptions & { master: true }) {
+    return this[PVK].setPassword(user, password, options);
   }
 
-  unsetPassword(user: TUser) {
-    return this[PVK].unsetPassword(user);
+  unsetPassword(user: TUser, options: RequestOptions & { master: true }) {
+    return this[PVK].unsetPassword(user, options);
   }
 
 }

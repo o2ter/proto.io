@@ -114,16 +114,16 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     if (req.res) signUser(this, req.res, undefined);
   }
 
-  varifyPassword(user: TUser, password: string) {
-    return this[PVK].varifyPassword(user, password);
+  varifyPassword(user: TUser, password: string, options: ExtraOptions & { master: true }) {
+    return this[PVK].varifyPassword(user, password, options);
   }
 
-  setPassword(user: TUser, password: string) {
-    return this[PVK].setPassword(user, password);
+  setPassword(user: TUser, password: string, options: ExtraOptions & { master: true }) {
+    return this[PVK].setPassword(user, password, options);
   }
 
-  unsetPassword(user: TUser) {
-    return this[PVK].unsetPassword(user);
+  unsetPassword(user: TUser, options: ExtraOptions & { master: true }) {
+    return this[PVK].unsetPassword(user, options);
   }
 
   get schema(): ProtoServiceOptions<Ext>['schema'] {

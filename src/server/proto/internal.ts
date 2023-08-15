@@ -154,22 +154,22 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     return callback(payload ?? this.proto);
   }
 
-  async varifyPassword(user: TUser, password: string) {
+  async varifyPassword(user: TUser, password: string, options: ExtraOptions & { master: true }) {
     if (!user.objectId) throw Error('Invalid user object');
-    const _user = await this.proto.InsecureQuery('User', { master: true })
+    const _user = await this.proto.InsecureQuery('User', options)
       .equalTo('_id', user.objectId)
       .includes('_id', 'password')
       .first();
-    const { alg, ...options } = _user?.get('password') ?? {};
-    return varifyPassword(alg, password, options);
+    const { alg, ...opts } = _user?.get('password') ?? {};
+    return varifyPassword(alg, password, opts);
   }
 
-  async setPassword(user: TUser, password: string) {
+  async setPassword(user: TUser, password: string, options: ExtraOptions & { master: true }) {
     if (!user.objectId) throw Error('Invalid user object');
     if (_.isEmpty(password)) throw Error('Invalid password');
-    const { alg, ...options } = this.options.passwordHashOptions;
-    const hashed = await passwordHash(alg, password, options);
-    await this.proto.InsecureQuery('User', { master: true })
+    const { alg, ...opts } = this.options.passwordHashOptions;
+    const hashed = await passwordHash(alg, password, opts);
+    await this.proto.InsecureQuery('User', options)
       .equalTo('_id', user.objectId)
       .includes('_id')
       .updateOne({
@@ -177,9 +177,9 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
       });
   }
 
-  async unsetPassword(user: TUser) {
+  async unsetPassword(user: TUser, options: ExtraOptions & { master: true }) {
     if (!user.objectId) throw Error('Invalid user object');
-    await this.proto.InsecureQuery('User', { master: true })
+    await this.proto.InsecureQuery('User', options)
       .equalTo('_id', user.objectId)
       .includes('_id')
       .updateOne({
