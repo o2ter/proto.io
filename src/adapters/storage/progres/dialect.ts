@@ -571,12 +571,13 @@ export const PostgresDialect: SqlDialect = {
         {
           if (!_.isArray(expr.value)) break;
           if (_.isEmpty(expr.value)) return sql`false`;
-          if (!_.isString(dataType) && dataType?.type === 'pointer' && _.every(expr.value, x => x instanceof TObject && x.objectId)) {
-            return sql`(${element} #>> '{_id}') IN (${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)})`;
-          }
           if (_.isEmpty(subpath) && _.includes(stringArrayAttrs, colname)) {
             if (!_.every(expr.value, x => _.isString(x))) break;
             return sql`${element} IN (${_.map(expr.value, x => sql`${{ value: x }}`)})`;
+          }
+          if (!_.isString(dataType) && dataType?.type === 'pointer') {
+            if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
+            return sql`(${element} #>> '{_id}') IN (${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)})`;
           }
           return sql`${element} IN (${_.map(expr.value, x => encodeValue(x))})`;
         }
@@ -584,12 +585,13 @@ export const PostgresDialect: SqlDialect = {
         {
           if (!_.isArray(expr.value)) break;
           if (_.isEmpty(expr.value)) return sql`true`;
-          if (!_.isString(dataType) && dataType?.type === 'pointer' && _.every(expr.value, x => x instanceof TObject && x.objectId)) {
-            return sql`(${element} #>> '{_id}') NOT IN (${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)})`;
-          }
           if (_.isEmpty(subpath) && _.includes(stringArrayAttrs, colname)) {
             if (!_.every(expr.value, x => _.isString(x))) break;
             return sql`${element} NOT IN (${_.map(expr.value, x => sql`${{ value: x }}`)})`;
+          }
+          if (!_.isString(dataType) && dataType?.type === 'pointer') {
+            if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
+            return sql`(${element} #>> '{_id}') NOT IN (${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)})`;
           }
           return sql`${element} NOT IN (${_.map(expr.value, x => encodeValue(x))})`;
         }
@@ -598,7 +600,8 @@ export const PostgresDialect: SqlDialect = {
           if (!_.isArray(expr.value)) break;
           if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
             return sql`${element} <@ ${{ value: _encodeValue(expr.value) }}`;
-          } else if (!_.isString(dataType) && dataType?.type === 'relation' && _.every(expr.value, x => x instanceof TObject && x.objectId)) {
+          } else if (!_.isString(dataType) && dataType?.type === 'relation') {
+            if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
             return sql`ARRAY(SELECT (UNNEST ->> '_id') FROM UNNEST(${element})) <@ ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
           } else if (!dataType) {
             return sql`jsonb_typeof(${element}) ${this.nullSafeEqual()} 'array' AND ${element} <@ ${_encodeJsonValue(_encodeValue(expr.value))}`;
@@ -610,7 +613,8 @@ export const PostgresDialect: SqlDialect = {
           if (_.isEmpty(expr.value)) return sql`true`;
           if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
             return sql`${element} @> ${{ value: _encodeValue(expr.value) }}`;
-          } else if (!_.isString(dataType) && dataType?.type === 'relation' && _.every(expr.value, x => x instanceof TObject && x.objectId)) {
+          } else if (!_.isString(dataType) && dataType?.type === 'relation') {
+            if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
             return sql`ARRAY(SELECT (UNNEST ->> '_id') FROM UNNEST(${element})) @> ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
           } else if (!dataType) {
             return sql`jsonb_typeof(${element}) ${this.nullSafeEqual()} 'array' AND ${element} @> ${_encodeJsonValue(_encodeValue(expr.value))}`;
@@ -622,7 +626,8 @@ export const PostgresDialect: SqlDialect = {
           if (_.isEmpty(expr.value)) return sql`true`;
           if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
             return sql`NOT ${element} && ${{ value: _encodeValue(expr.value) }}`;
-          } else if (!_.isString(dataType) && dataType?.type === 'relation' && _.every(expr.value, x => x instanceof TObject && x.objectId)) {
+          } else if (!_.isString(dataType) && dataType?.type === 'relation') {
+            if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
             return sql`NOT ARRAY(SELECT (UNNEST ->> '_id') FROM UNNEST(${element})) && ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
           } else if (!dataType) {
             return sql`jsonb_typeof(${element}) ${this.nullSafeEqual()} 'array' AND NOT ${element} && ${_encodeJsonValue(_encodeValue(expr.value))}`;
@@ -634,7 +639,8 @@ export const PostgresDialect: SqlDialect = {
           if (_.isEmpty(expr.value)) return sql`false`;
           if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
             return sql`${element} && ${{ value: _encodeValue(expr.value) }}`;
-          } else if (!_.isString(dataType) && dataType?.type === 'relation' && _.every(expr.value, x => x instanceof TObject && x.objectId)) {
+          } else if (!_.isString(dataType) && dataType?.type === 'relation') {
+            if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
             return sql`ARRAY(SELECT (UNNEST ->> '_id') FROM UNNEST(${element})) && ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
           } else if (!dataType) {
             return sql`jsonb_typeof(${element}) ${this.nullSafeEqual()} 'array' AND ${element} && ${_encodeJsonValue(_encodeValue(expr.value))}`;
