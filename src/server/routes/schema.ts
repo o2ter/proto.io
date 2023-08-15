@@ -1,5 +1,5 @@
 //
-//  user.ts
+//  schema.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -31,22 +31,15 @@ import { response } from './common';
 export default <E>(router: Router, proto: ProtoService<E>) => {
 
   router.get(
-    '/user/me',
+    '/schema',
     express.text({ type: '*/*' }),
     async (req: any, res) => {
       res.setHeader('Cache-Control', ['no-cache', 'no-store']);
       const payload = proto.connect(req);
-      await response(res, () => payload.user());
-    }
-  );
-
-  router.post(
-    '/user/logout',
-    express.text({ type: '*/*' }),
-    async (req: any, res) => {
-      res.setHeader('Cache-Control', ['no-cache', 'no-store']);
-      const payload = proto.connect(req);
-      await response(res, () => payload.logoutUser(req));
+      await response(res, () => {
+        if (!payload.isMaster) throw Error('No permission');
+        return payload.schema as any;
+      });
     }
   );
 
