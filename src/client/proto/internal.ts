@@ -127,6 +127,44 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     }
   }
 
+  async setPassword(user: TUser, password: string) {
+
+    if (!user.objectId) throw Error('Invalid user');
+    if (_.isEmpty(password)) throw Error('Invalid password');
+
+    const res = await this.service.request({
+      method: 'post',
+      baseURL: this.options.endpoint,
+      url: `user/${user.objectId}/password`,
+      data: serialize({ password }),
+      responseType: 'text',
+      master: true,
+    });
+
+    if (res.status !== 200) {
+      const error = JSON.parse(res.data);
+      throw Error(error.message, { cause: error });
+    }
+  }
+
+  async unsetPassword(user: TUser) {
+
+    if (!user.objectId) throw Error('Invalid user');
+
+    const res = await this.service.request({
+      method: 'post',
+      baseURL: this.options.endpoint,
+      url: `user/${user.objectId}/password`,
+      responseType: 'text',
+      master: true,
+    });
+
+    if (res.status !== 200) {
+      const error = JSON.parse(res.data);
+      throw Error(error.message, { cause: error });
+    }
+  }
+
   async updateFile(object: TFile, options?: RequestOptions) {
 
     const updated = await this.proto.Query(object.className, options)

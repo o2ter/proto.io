@@ -29,7 +29,8 @@ import { ProtoClientInternal } from './internal';
 import {
   PVK,
   ProtoType, TQuery,
-  TSerializable
+  TSerializable,
+  TUser
 } from '../../internals';
 import { ProtoOptions } from './types';
 
@@ -65,4 +66,13 @@ export class ProtoClient<Ext> extends ProtoType<Ext> {
   logout(options?: RequestOptions) {
     return this[PVK].logout(options);
   }
+
+  setPassword(user: TUser, password: string) {
+    return this[PVK].setPassword(user, password);
+  }
+
+  unsetPassword(user: TUser) {
+    return this[PVK].unsetPassword(user);
+  }
+
 }
