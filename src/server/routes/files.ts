@@ -72,12 +72,12 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
 
       const file = await query.first();
       if (!file || file.filename !== name) return res.sendStatus(404);
+      if (_.isNil(file.token) || _.isNil(file.size) || _.isNil(file.type)) return res.sendStatus(404);
 
       const location = await payload.fileStorage.fileLocation(payload, file.token);
       if (location) return res.redirect(location);
 
-      const totalSize = file.size;
-      const ranges = req.range(totalSize);
+      const ranges = req.range(file.size);
 
       const match = req.headers['if-none-match'];
       if (match === `"${id}"`) {
@@ -93,9 +93,9 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       if (_.isArray(ranges) && ranges.type === 'bytes') {
 
         const startBytes = _.minBy(ranges, r => r.start)?.start ?? 0;
-        const endBytes = _.maxBy(ranges, r => r.end)?.end ?? totalSize;
+        const endBytes = _.maxBy(ranges, r => r.end)?.end ?? file.size;
 
-        res.setHeader('Content-Range', `bytes ${startBytes}-${endBytes}/${totalSize}`);
+        res.setHeader('Content-Range', `bytes ${startBytes}-${endBytes}/${file.size}`);
         res.status(206);
 
         stream = payload.fileStorage.fileData(payload, file.token, startBytes, endBytes);
