@@ -114,7 +114,7 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     if (req.res) signUser(this, req.res, undefined);
   }
 
-  async varifyPassword(user: TUser, password: string) {
+  varifyPassword(user: TUser, password: string) {
     return this[PVK].varifyPassword(user, password);
   }
 
