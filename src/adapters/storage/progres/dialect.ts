@@ -574,6 +574,10 @@ export const PostgresDialect: SqlDialect = {
           if (!_.isString(dataType) && dataType?.type === 'pointer' && _.every(expr.value, x => x instanceof TObject && x.objectId)) {
             return sql`(${element} #>> '{_id}') IN (${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)})`;
           }
+          if (_.isEmpty(subpath) && _.includes(stringArrayAttrs, colname)) {
+            if (!_.every(expr.value, x => _.isString(x))) break;
+            return sql`${element} IN (${_.map(expr.value, x => sql`${{ value: x }}`)})`;
+          }
           return sql`${element} IN (${_.map(expr.value, x => encodeValue(x))})`;
         }
       case '$nin':
@@ -582,6 +586,10 @@ export const PostgresDialect: SqlDialect = {
           if (_.isEmpty(expr.value)) return sql`true`;
           if (!_.isString(dataType) && dataType?.type === 'pointer' && _.every(expr.value, x => x instanceof TObject && x.objectId)) {
             return sql`(${element} #>> '{_id}') NOT IN (${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)})`;
+          }
+          if (_.isEmpty(subpath) && _.includes(stringArrayAttrs, colname)) {
+            if (!_.every(expr.value, x => _.isString(x))) break;
+            return sql`${element} NOT IN (${_.map(expr.value, x => sql`${{ value: x }}`)})`;
           }
           return sql`${element} NOT IN (${_.map(expr.value, x => encodeValue(x))})`;
         }
