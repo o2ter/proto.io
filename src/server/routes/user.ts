@@ -59,9 +59,9 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
 
         const { password } = _.isEmpty(req.body) ? { password: null } : deserialize(req.body) as any;
         if (_.isEmpty(password)) {
-          await payload.unsetPassword(user);
+          await payload.unsetPassword(user, { master: true });
         } else {
-          await payload.setPassword(user, password);
+          await payload.setPassword(user, password, { master: true });
         }
       });
     }
