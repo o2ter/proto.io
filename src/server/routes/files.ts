@@ -107,9 +107,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
         stream = payload.fileStorage.fileData(payload, file.token);
       }
 
-      const _stream = Readable.from(stream);
-      _stream.on('error', err => next(err));
-      _stream.pipe(res);
+      Readable.from(stream).pipe(res).on('error', err => next(err));
     }
   );
 
