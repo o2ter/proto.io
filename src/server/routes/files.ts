@@ -63,7 +63,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
 
   router.get(
     '/files/:id/:name',
-    async (req, res) => {
+    async (req, res, next) => {
 
       const { id, name } = req.params;
 
@@ -107,7 +107,9 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
         stream = payload.fileStorage.fileData(payload, file.token);
       }
 
-      Readable.from(stream).pipe(res);
+      const _stream = Readable.from(stream);
+      _stream.on('error', err => next(err));
+      _stream.pipe(res);
     }
   );
 
