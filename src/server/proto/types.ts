@@ -58,6 +58,7 @@ export type ProtoServiceOptions<Ext> = {
   fileStorage: TFileStorage;
   classExtends?: TExtensions<Ext>;
   objectIdSize?: number;
+  maxFetchLimit?: number | ((proto: ProtoService<Ext>) => Awaitable<number>);
   maxUploadSize?: number | ((proto: ProtoService<Ext>) => Awaitable<number>);
   cookieOptions?: CookieOptions;
   jwtSignOptions?: SignOptions;

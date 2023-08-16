@@ -65,7 +65,13 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
             if (!payload.isMaster) throw Error('No permission');
             return query.explain();
           case 'count': return query.count();
-          case 'find': return await query.find();
+          case 'find':
+            {
+              const maxFetchLimit = _.isFunction(proto[PVK].options.maxFetchLimit) ? await proto[PVK].options.maxFetchLimit(proto) : proto[PVK].options.maxFetchLimit;
+              query[PVK].options.limit = query[PVK].options.limit ?? maxFetchLimit;
+              if (query[PVK].options.limit > maxFetchLimit) throw Error('Query over limit');
+              return await query.find();
+            }
           case 'insert': return query.insert(attributes);
           case 'updateOne': return query.updateOne(update);
           case 'upsertOne': return query.upsertOne(update, setOnInsert);
@@ -108,6 +114,9 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
         query[PVK].options.skip = _.isNumber(skip) ? skip : undefined;
         query[PVK].options.limit = _.isNumber(limit) ? limit : undefined;
 
+        const maxFetchLimit = _.isFunction(proto[PVK].options.maxFetchLimit) ? await proto[PVK].options.maxFetchLimit(proto) : proto[PVK].options.maxFetchLimit;
+        query[PVK].options.limit = query[PVK].options.limit ?? maxFetchLimit;
+        if (query[PVK].options.limit > maxFetchLimit) throw Error('Query over limit');
         return await query.find();
       });
     }
