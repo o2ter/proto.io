@@ -108,14 +108,14 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
           limit,
         } = req.query;
 
+        const maxFetchLimit = _.isFunction(proto[PVK].options.maxFetchLimit) ? await proto[PVK].options.maxFetchLimit(proto) : proto[PVK].options.maxFetchLimit;
+
         query[PVK].options.filter = _.isEmpty(filter) && _.isString(filter) ? _.castArray(deserialize(filter)) as any : [];
         query[PVK].options.sort = _.isPlainObject(sort) && _.every(_.values(sort), _.isNumber) ? sort as any : undefined;
         query[PVK].options.includes = _.isArray(includes) && _.every(includes, _.isString) ? includes as any : undefined;
         query[PVK].options.skip = _.isNumber(skip) ? skip : undefined;
-        query[PVK].options.limit = _.isNumber(limit) ? limit : undefined;
+        query[PVK].options.limit = _.isNumber(limit) ? limit : maxFetchLimit;
 
-        const maxFetchLimit = _.isFunction(proto[PVK].options.maxFetchLimit) ? await proto[PVK].options.maxFetchLimit(proto) : proto[PVK].options.maxFetchLimit;
-        query[PVK].options.limit = query[PVK].options.limit ?? maxFetchLimit;
         if (query[PVK].options.limit > maxFetchLimit) throw Error('Query over limit');
         return await query.find();
       });
