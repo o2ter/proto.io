@@ -36,7 +36,7 @@ const Proto = new ProtoClient({
   masterUser,
 });
 
-export const streamToBuffer = async (stream: any) => {
+const streamToBuffer = async (stream: any) => {
   const _stream = stream instanceof Readable ? stream : Readable.fromWeb(stream);
   let buffer = Buffer.from([]);
   for await (const chunk of _stream) {
