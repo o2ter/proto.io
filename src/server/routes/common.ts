@@ -30,25 +30,21 @@ import { TSerializable, serialize } from '../../internals';
 import busboy, { FileInfo } from 'busboy';
 import { Awaitable } from '../../internals/types';
 
+export const encodeError = (error: any) => {
+  if (error instanceof String) return { message: error };
+  if (error instanceof Error) return { ...error, message: error.message };
+  return error;
+}
+
 export const response = async <T extends TSerializable>(
   res: Response,
   callback: () => Awaitable<void | undefined | T>,
 ) => {
-
   try {
-
     const data = await callback();
     res.type('application/json').send(serialize(data ?? null));
-
   } catch (error) {
-
-    if (error instanceof String) {
-      res.status(400).json({ message: error });
-    } else if (error instanceof Error) {
-      res.status(400).json({ ...error, message: error.message });
-    } else {
-      res.status(400).json(error);
-    }
+    res.status(400).json(encodeError(error));
   }
 };
 
