@@ -41,7 +41,7 @@ import {
   TUser,
 } from '../../internals';
 import { generateId } from '../crypto';
-import { TSchema, defaultObjectKeyTypes } from '../../internals/schema';
+import { TSchema, defaultObjectKeyTypes, isPrimitive, isRelation } from '../../internals/schema';
 import { QueryValidator } from '../query/validator/validator';
 import { passwordHash, varifyPassword } from '../crypto/password';
 
@@ -53,11 +53,20 @@ const validateSchema = (schema: Record<string, TSchema>) => {
 
     if (!className.match(QueryValidator.patterns.name)) throw Error(`Invalid class name: ${className}`);
 
-    const fields = _.keys(_schema.fields);
-    for (const key of fields) {
+    for (const [key, dataType] of _.toPairs(_schema.fields)) {
       if (_.includes(TObject.defaultKeys, key)) throw Error(`Reserved field name: ${key}`);
       if (!key.match(QueryValidator.patterns.name)) throw Error(`Invalid field name: ${key}`);
+
+      if (isRelation(dataType) && dataType.foreignField) {
+        if (_.isNil(schema[dataType.target])) throw Error(`Invalid foreign field: ${key}`);
+        const foreignField = schema[dataType.target].fields[dataType.foreignField];
+        if (_.isNil(foreignField)) throw Error(`Invalid foreign field: ${key}`);
+        if (isPrimitive(foreignField)) throw Error(`Invalid foreign field: ${key}`);
+        if (foreignField.type === 'relation' && !_.isNil(foreignField.foreignField)) throw Error(`Invalid foreign field: ${key}`);
+      }
     }
+
+    const fields = _.keys(_schema.fields);
     for (const key of _.keys(_schema.fieldLevelPermissions)) {
       if (!fields.includes(key)) throw Error(`Invalid field permission: ${key}`);
     }
