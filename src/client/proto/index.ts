@@ -75,4 +75,8 @@ export class ProtoClient<Ext> extends ProtoType<Ext> {
     return this[PVK].unsetPassword(user, options);
   }
 
+  schema(options: RequestOptions & { master: true }) {
+    return this[PVK].schema(options);
+  }
+
 }

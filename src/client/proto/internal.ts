@@ -44,14 +44,14 @@ import {
   TUser,
 } from '../../internals';
 import { iterableToStream, streamToIterable } from '../stream';
-import { MASTER_PASS_HEADER_NAME, MASTER_USER_HEADER_NAME } from '../../internals/common/const';
+import { TSchema } from '../../internals/schema';
 
 export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
 
   proto: ProtoClient<Ext>;
   options: ProtoOptions<Ext>;
 
-  service = new Service;
+  service = new Service(this);
 
   constructor(proto: ProtoClient<Ext>, options: ProtoOptions<Ext>) {
     this.proto = proto;
@@ -60,21 +60,15 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
 
   async request(
     data?: TSerializable,
-    options?: Parameters<Service['request']>[0]
+    options?: Parameters<Service<Ext>['request']>[0]
   ) {
 
-    const { serializeOpts, context, master, ...opts } = options ?? {};
+    const { serializeOpts, context, ...opts } = options ?? {};
 
     const res = await this.service.request({
       baseURL: this.options.endpoint,
       data: serialize(data ?? null, serializeOpts),
       responseType: 'text',
-      headers: {
-        ...master ? {
-          [MASTER_USER_HEADER_NAME]: this.proto[PVK].options.masterUser?.user,
-          [MASTER_PASS_HEADER_NAME]: this.proto[PVK].options.masterUser?.pass,
-        } : {},
-      },
       ...opts,
     });
 
@@ -167,6 +161,26 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
       const error = JSON.parse(res.data);
       throw Error(error.message, { cause: error });
     }
+  }
+
+  async schema(options: RequestOptions & { master: true }) {
+    
+    const { serializeOpts, context, ...opts } = options ?? {};
+
+    const res = await this.service.request({
+      method: 'get',
+      baseURL: this.options.endpoint,
+      url: '/schema',
+      responseType: 'text',
+      ...opts,
+    });
+
+    if (res.status !== 200) {
+      const error = JSON.parse(res.data);
+      throw Error(error.message, { cause: error });
+    }
+
+    return deserialize(res.data) as unknown as Record<string, TSchema>;
   }
 
   async updateFile(object: TFile, options?: RequestOptions) {

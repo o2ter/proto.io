@@ -25,10 +25,17 @@
 
 import _ from 'lodash';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { AUTH_COOKIE_KEY, XSRF_COOKIE_NAME, XSRF_HEADER_NAME } from '../internals/common/const';
+import {
+  AUTH_COOKIE_KEY,
+  MASTER_PASS_HEADER_NAME,
+  MASTER_USER_HEADER_NAME,
+  XSRF_COOKIE_NAME,
+  XSRF_HEADER_NAME,
+} from '../internals/common/const';
 import { RequestOptions } from './options';
+import { ProtoClientInternal } from './proto/internal';
 
-export default class {
+export default class <Ext> {
 
   service = axios.create({
     xsrfCookieName: XSRF_COOKIE_NAME,
@@ -37,12 +44,25 @@ export default class {
     withCredentials: true,
   });
 
+  proto: ProtoClientInternal<Ext>;
+
+  constructor(proto: ProtoClientInternal<Ext>) {
+    this.proto = proto;
+  }
+
   async request<T = any, D = any>(config: RequestOptions & AxiosRequestConfig<D>): Promise<AxiosResponse<T, D>> {
 
-    const { master, abortSignal, serializeOpts, context, ...opts } = config ?? {};
+    const { master, abortSignal, serializeOpts, context, headers, ...opts } = config ?? {};
 
     const res = await this.service.request({
       signal: abortSignal,
+      headers: {
+        ...master ? {
+          [MASTER_USER_HEADER_NAME]: this.proto.options.masterUser?.user,
+          [MASTER_PASS_HEADER_NAME]: this.proto.options.masterUser?.pass,
+        } : {},
+        ...headers,
+      },
       ...opts,
     });
 
