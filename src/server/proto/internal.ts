@@ -39,10 +39,9 @@ import {
   base64ToBuffer,
   TObject,
   TUser,
-  TUpdateOp,
 } from '../../internals';
 import { generateId } from '../crypto';
-import { TSchema } from '../../internals/schema';
+import { TSchema, defaultObjectKeyTypes } from '../../internals/schema';
 import { QueryValidator } from '../query/validator/validator';
 import { passwordHash, varifyPassword } from '../crypto/password';
 
@@ -71,8 +70,9 @@ const mergeSchema = (...schemas: Record<string, TSchema>[]) => _.reduce(schemas,
   ...acc,
   ..._.mapValues(schema, (s, className) => ({
     fields: {
-      ..._.omit(s.fields, ...TObject.defaultKeys),
+      ...s.fields,
       ...(acc[className]?.fields ?? {}),
+      ...defaultObjectKeyTypes,
     },
     classLevelPermissions: _.mergeWith(
       acc[className]?.classLevelPermissions,

@@ -27,7 +27,7 @@ import _ from 'lodash';
 import { escapeIdentifier, escapeLiteral } from 'pg/lib/utils';
 import { SQL, SqlDialect, sql } from '../../../server/sql';
 import { Decimal, TObject, TValue, TUpdateOp, _TValue, isPrimitiveValue, decodeUpdateOp } from '../../../internals';
-import { TSchema, _typeof, defaultObjectKeyTypes, isPrimitive } from '../../../internals/schema';
+import { TSchema, _typeof, isPrimitive } from '../../../internals/schema';
 import { CompileContext, Populate, QueryCompiler } from '../../../server/sql/compiler';
 import { FieldExpression, QuerySelector } from '../../../server/query/validator/parser';
 
@@ -480,7 +480,7 @@ export const PostgresDialect: SqlDialect = {
     expr: FieldExpression,
   ): SQL {
     const [colname, ...subpath] = _.toPath(field);
-    const dataType = parent.className && _.isEmpty(subpath) ? compiler.schema[parent.className].fields[colname] ?? defaultObjectKeyTypes[colname] : null;
+    const dataType = parent.className && _.isEmpty(subpath) ? compiler.schema[parent.className].fields[colname] : null;
     let element = sql`${{ identifier: parent.name }}.${{ identifier: parent.name.startsWith('_expr_$') ? '$' : colname }}`;
     if (!parent.className) {
       if (colname !== '$') {
@@ -490,7 +490,7 @@ export const PostgresDialect: SqlDialect = {
       }
     } else if (!_.isEmpty(subpath)) {
       const _subpath = sql`${_.map(subpath, x => sql`${{ quote: x.startsWith('$') ? `$${x}` : x }}`)}`;
-      const _type = compiler.schema[parent.className].fields[colname] ?? defaultObjectKeyTypes[colname];
+      const _type = compiler.schema[parent.className].fields[colname];
       if (_type === 'array' || (!_.isString(_type) && (_type?.type === 'array' || _type?.type === 'relation'))) {
         element = sql`jsonb_extract_path(to_jsonb(${element}), ${_subpath})`;
       } else {

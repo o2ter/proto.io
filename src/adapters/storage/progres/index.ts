@@ -74,7 +74,9 @@ export class PostgresStorage extends SqlStorage {
   }
 
   private async _createTable(className: string, schema: TSchema) {
-    const fields = _.pickBy(schema.fields, x => !isRelation(x) || _.isNil(x.foreignField));
+    const fields = _.pickBy(
+      schema.fields, (x, k) => !_.includes(TObject.defaultKeys, k) && (!isRelation(x) || _.isNil(x.foreignField))
+    );
     await this.query(sql`
       CREATE TABLE
       IF NOT EXISTS ${{ identifier: className }}

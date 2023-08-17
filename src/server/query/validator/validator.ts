@@ -32,7 +32,7 @@ import {
 } from '../../../internals';
 import { DecodedBaseQuery, DecodedQuery, FindOptions, FindOneOptions } from '../../storage';
 import { CoditionalSelector, FieldSelector, QuerySelector } from './parser';
-import { TSchema, defaultObjectKeyTypes, isPointer, isPrimitive, isRelation } from '../../../internals/schema';
+import { TSchema, isPointer, isPrimitive, isRelation } from '../../../internals/schema';
 import { ProtoService } from '../../proto';
 import { TQueryBaseOptions } from '../../../internals/query/base';
 
@@ -170,7 +170,7 @@ export class QueryValidator<E> {
         const [colname, ...subpath] = include.split('.');
         if (!this.validateKeyPerm(colname, 'read', schema)) throw Error('No permission');
 
-        const dataType = schema.fields[colname] ?? defaultObjectKeyTypes[colname];
+        const dataType = schema.fields[colname];
         if (isPointer(dataType) || isRelation(dataType)) {
           if (!this.validateCLPs(dataType.target, 'get')) throw Error('No permission');
           if (dataType.type === 'relation' && !_.isNil(dataType.foreignField)) {
@@ -209,7 +209,7 @@ export class QueryValidator<E> {
     for (const colname of _.uniq(_.compact(includes.map(x => _.first(x.split('.')))))) {
       if (!this.validateKeyPerm(colname, 'read', schema)) continue;
 
-      const dataType = schema.fields[colname] ?? defaultObjectKeyTypes[colname];
+      const dataType = schema.fields[colname];
       if (isPrimitive(dataType)) continue;
 
       _matches[colname] = {
@@ -224,7 +224,7 @@ export class QueryValidator<E> {
     for (const [colname, match] of _.toPairs(matches)) {
       if (!this.validateKeyPerm(colname, 'read', schema)) throw Error('No permission');
 
-      const dataType = schema.fields[colname] ?? defaultObjectKeyTypes[colname];
+      const dataType = schema.fields[colname];
       if (!isRelation(dataType)) throw Error(`Invalid match: ${colname}`);
       if (!this.validateCLPs(dataType.target, 'get')) throw Error('No permission');
       if (!_.isNil(dataType.foreignField)) {

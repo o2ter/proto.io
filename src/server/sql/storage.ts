@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { DecodedQuery, FindOptions, FindOneOptions, InsertOptions, TStorage } from '../storage';
-import { TSchema, defaultObjectKeyTypes } from '../../internals/schema';
+import { TSchema } from '../../internals/schema';
 import { storageSchedule } from '../schedule';
 import { PVK, TObject, TValue, TUpdateOp, asyncStream } from '../../internals';
 import { SQL, sql } from './sql';
@@ -63,7 +63,7 @@ export abstract class SqlStorage implements TStorage {
     const fields = this.schema[className].fields;
     const obj = new TObject(className);
     for (const [key, value] of _.toPairs(attrs)) {
-      const dataType = fields[key] ?? defaultObjectKeyTypes[key];
+      const dataType = fields[key];
       if (_.isString(dataType)) {
         obj[PVK].attributes[key] = this.dialect.decodeType(dataType, value);
       } else if (dataType.type !== 'pointer' && dataType.type !== 'relation') {

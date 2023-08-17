@@ -25,7 +25,6 @@
 
 import _ from 'lodash';
 import { TSchema, isPointer, isPrimitive, isRelation } from '../../internals/schema';
-import { defaultObjectKeyTypes } from '../../internals/schema';
 import { CoditionalSelector, FieldSelector, QuerySelector } from '../query/validator/parser';
 import { DecodedBaseQuery, DecodedQuery, FindOneOptions, FindOptions, InsertOptions } from '../storage';
 import { SQL, sql } from './sql';
@@ -143,7 +142,7 @@ export class QueryCompiler {
     for (const include of includes) {
       const [colname, ...subpath] = include.split('.');
 
-      const dataType = schema.fields[colname] ?? defaultObjectKeyTypes[colname];
+      const dataType = schema.fields[colname];
       names[colname] = dataType;
 
       if (isPointer(dataType) || isRelation(dataType)) {
@@ -283,7 +282,7 @@ export class QueryCompiler {
     for (const [path, op] of _.toPairs(attrs)) {
       const [colname] = _.toPath(path);
       updates.push(sql`${{ identifier: colname }} = ${this.dialect.updateOperation(
-        path, fields[colname] ?? defaultObjectKeyTypes[colname], op
+        path, fields[colname], op
       )}`);
     }
     return updates;
@@ -294,8 +293,7 @@ export class QueryCompiler {
     const fields = this.schema[className].fields;
     const result: Record<string, SQL> = {};
     for (const [key, value] of _.toPairs(attrs)) {
-      const dataType = fields[key] ?? defaultObjectKeyTypes[key];
-      result[key] = this.dialect.encodeType(key, dataType, value);
+      result[key] = this.dialect.encodeType(key, fields[key], value);
     }
     return result;
   }
