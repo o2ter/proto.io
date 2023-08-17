@@ -9,7 +9,6 @@ const configs = {
   input: {
     index: 'src/index',
     client: 'src/client/index',
-    common: 'src/common/index',
     'adapters/storage/progres': 'src/adapters/storage/progres/index',
     'adapters/file/database': 'src/adapters/file/database/index',
   },
