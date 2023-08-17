@@ -59,7 +59,7 @@ const encodeEJSON = (
   x: TSerializable,
   stack: any[],
   options: SerializeOptions,
-): EJSON.SerializableTypes => {
+): any => {
   if (_.isNil(x) || _.isNumber(x) || _.isBoolean(x) || _.isString(x) || _.isDate(x)) return x;
   if (x instanceof UUID) return x;
   if (x instanceof BigInt) return Number(x);
@@ -85,11 +85,11 @@ const encodeEJSON = (
 }
 
 const decodeEJSON = (
-  x: EJSON.SerializableTypes,
+  x: any,
   stack: any[],
   options: DeserializeOptions,
 ): TSerializable => {
-  if (_.isNil(x) || _.isNumber(x) || _.isBoolean(x) || _.isString(x) || _.isDate(x)) return x;
+  if (_.isNil(x) || _.isNumber(x) || _.isBoolean(x) || _.isString(x) || _.isDate(x)) return x ?? null;
   if (x instanceof UUID) return x;
   if (x instanceof Double || x instanceof Int32) return x.valueOf();
   if (x instanceof Decimal128 || Long.isLong(x)) return new Decimal(x.toString());
@@ -112,7 +112,7 @@ const decodeEJSON = (
   }
 
   return _.transform(x, (r, v, k) => {
-    r[k.startsWith('$') ? k.substring(1) : k] = decodeEJSON(v, [...stack, r], options);
+    if (_.isString(k)) r[k.startsWith('$') ? k.substring(1) : k] = decodeEJSON(v, [...stack, r], options);
   }, {} as TDictionary);
 }
 
