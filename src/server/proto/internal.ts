@@ -55,6 +55,7 @@ const validateSchema = (schema: Record<string, TSchema>) => {
 
     const fields = _.keys(_schema.fields);
     for (const key of fields) {
+      if (_.includes(TObject.defaultKeys, key)) throw Error(`Reserved field name: ${key}`);
       if (!key.match(QueryValidator.patterns.name)) throw Error(`Invalid field name: ${key}`);
     }
     for (const key of _.keys(_schema.fieldLevelPermissions)) {
@@ -70,9 +71,9 @@ const mergeSchema = (...schemas: Record<string, TSchema>[]) => _.reduce(schemas,
   ...acc,
   ..._.mapValues(schema, (s, className) => ({
     fields: {
-      ...s.fields,
-      ...(acc[className]?.fields ?? {}),
       ...defaultObjectKeyTypes,
+      ...(acc[className]?.fields ?? {}),
+      ...s.fields,
     },
     classLevelPermissions: _.mergeWith(
       acc[className]?.classLevelPermissions,
