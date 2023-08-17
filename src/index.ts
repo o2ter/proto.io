@@ -38,7 +38,7 @@ import schemaRoute from './server/routes/schema';
 import { PVK } from './internals';
 import { TSchema } from './internals/schema';
 
-export * from './common';
+export * from './internals/common';
 export { ProtoService } from './server/proto';
 export { ProtoClient } from './client';
 

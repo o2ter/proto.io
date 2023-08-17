@@ -1,5 +1,5 @@
 //
-//  common.ts
+//  index.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -23,7 +23,7 @@
 //  THE SOFTWARE.
 //
 
-import { TExtensions } from '../internals';
+import { TExtensions } from '..';
 
-export * from '../internals/codec';
+export * from '../codec';
 export const classExtends = <E>(x: TExtensions<E>) => x;

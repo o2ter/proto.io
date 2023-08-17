@@ -27,7 +27,7 @@ import _ from 'lodash';
 import { RequestHandler } from 'express';
 import csrf from 'csrf';
 
-import { XSRF_COOKIE_NAME, XSRF_HEADER_NAME } from '../../common/const';
+import { XSRF_COOKIE_NAME, XSRF_HEADER_NAME } from '../../internals/common/const';
 
 const _csrf = new csrf();
 

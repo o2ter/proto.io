@@ -27,7 +27,7 @@ import _ from 'lodash';
 import jwt from 'jsonwebtoken';
 import { ProtoService } from './index';
 import { PVK, TUser, UUID } from '../../internals';
-import { AUTH_COOKIE_KEY, MASTER_PASS_HEADER_NAME, MASTER_USER_HEADER_NAME } from '../../common/const';
+import { AUTH_COOKIE_KEY, MASTER_PASS_HEADER_NAME, MASTER_USER_HEADER_NAME } from '../../internals/common/const';
 
 const _session = <E>(proto: ProtoService<E>) => {
 

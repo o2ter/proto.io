@@ -44,7 +44,7 @@ import {
   TUser,
 } from '../../internals';
 import { iterableToStream, streamToIterable } from '../stream';
-import { MASTER_PASS_HEADER_NAME, MASTER_USER_HEADER_NAME } from '../../common/const';
+import { MASTER_PASS_HEADER_NAME, MASTER_USER_HEADER_NAME } from '../../internals/common/const';
 
 export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
 

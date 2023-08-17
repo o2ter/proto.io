@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { AUTH_COOKIE_KEY, XSRF_COOKIE_NAME, XSRF_HEADER_NAME } from '../common/const';
+import { AUTH_COOKIE_KEY, XSRF_COOKIE_NAME, XSRF_HEADER_NAME } from '../internals/common/const';
 import { RequestOptions } from './options';
 
 export default class {
