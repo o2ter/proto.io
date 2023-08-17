@@ -80,7 +80,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     return applyObjectMethods(deserialize(res.data), this.proto);
   }
 
-  async currentUser(options?: RequestOptions) {
+  async currentUser(options?: RequestOptions): Promise<TUser | undefined> {
 
     const { serializeOpts, context, ...opts } = options ?? {};
 
@@ -163,7 +163,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     }
   }
 
-  async schema(options: RequestOptions & { master: true }) {
+  async schema(options: RequestOptions & { master: true }): Promise<Record<string, TSchema>> {
     
     const { serializeOpts, context, ...opts } = options ?? {};
 
@@ -180,7 +180,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
       throw Error(error.message, { cause: error });
     }
 
-    return deserialize(res.data) as unknown as Record<string, TSchema>;
+    return deserialize(res.data) as any;
   }
 
   async updateFile(object: TFile, options?: RequestOptions) {

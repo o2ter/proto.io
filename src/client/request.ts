@@ -35,7 +35,7 @@ import {
 import { RequestOptions } from './options';
 import { ProtoClientInternal } from './proto/internal';
 
-export default class <Ext> {
+export default class Service<Ext> {
 
   service = axios.create({
     xsrfCookieName: XSRF_COOKIE_NAME,
