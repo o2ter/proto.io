@@ -11,11 +11,6 @@ RAND=$(echo $RANDOM | md5 | head -c 16)
 export POSTGRES_DATABASE=postgres
 export POSTGRES_USERNAME=o2ter
 export POSTGRES_PASSWORD=o2ter
-export MONGO_DATABASE=o2ter
-export MONGO_USERNAME=o2ter
-export MONGO_PASSWORD=o2ter
-export MONGO_AUTHSOURCE=admin
-export MONGO_REPLICA_SET=rs0
 
 docker run -d --rm --name postgres_test_db_${RAND} \
   -p 5432:5432 \
