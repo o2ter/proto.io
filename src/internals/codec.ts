@@ -50,7 +50,7 @@ const encodeEJSON = (
   stack: any[],
   options: SerializeOptions,
 ): any => {
-  if (_.isNil(x) || _.isNumber(x) || _.isBoolean(x) || _.isString(x)) return x;
+  if (_.isNil(x) || _.isNumber(x) || _.isBoolean(x) || _.isString(x)) return x ?? null;
   if (_.isDate(x)) return { $date: x.valueOf() };
   if (x instanceof BigInt) return { $integer: x.toString() };
   if (x instanceof Decimal) return { $decimal: x.toString() };
