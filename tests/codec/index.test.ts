@@ -33,13 +33,13 @@ test('test serialize', async () => {
     y: new Decimal('10.05'),
   });
 
-  expect(result).toStrictEqual('{"$$x":{"$numberInt":"0"},"y":{"$numberDecimal":"10.05"}}');
+  expect(result).toStrictEqual('{"$$x":0,"y":{"$decimal":"10.05"}}');
 
 });
 
 test('test deserialize', async () => {
 
-  const result = deserialize('{"$$x":{"$numberInt":"0"},"y":{"$numberDecimal":"10.05"}}');
+  const result = deserialize('{"$$x":0,"y":{"$decimal":"10.05"}}');
 
   expect(result).toStrictEqual({
     $x: 0,

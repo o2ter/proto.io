@@ -24,15 +24,16 @@
 //
 
 import _ from 'lodash';
+import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { Response } from 'express';
 import { ProtoService } from '../proto/index';
-import { PVK, TUser, UUID } from '../../internals';
+import { PVK, TUser } from '../../internals';
 import { AUTH_COOKIE_KEY } from '../../internals/common/const';
 
 export function signUser<E>(proto: ProtoService<E>, res: Response, user?: TUser) {
   const jwtToken = proto[PVK].options.jwtToken;
   if (_.isNil(jwtToken)) return;
-  const token = jwt.sign({ user: user?.objectId, sessionId: proto.sessionId ?? (new UUID).toHexString() }, jwtToken, proto[PVK].options.jwtSignOptions);
+  const token = jwt.sign({ user: user?.objectId, sessionId: proto.sessionId ?? crypto.randomUUID() }, jwtToken, proto[PVK].options.jwtSignOptions);
   res.cookie(AUTH_COOKIE_KEY, token, proto[PVK].options.cookieOptions);
 }

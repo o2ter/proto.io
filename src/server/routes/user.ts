@@ -27,7 +27,7 @@ import _ from 'lodash';
 import express, { Router } from 'express';
 import { ProtoService } from '../proto';
 import { response } from './common';
-import { deserialize } from 'bson';
+import { deserialize } from '../../internals';
 
 export default <E>(router: Router, proto: ProtoService<E>) => {
 

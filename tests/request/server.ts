@@ -24,8 +24,9 @@
 //
 
 import _ from 'lodash';
+import crypto from 'crypto';
 import express from 'express';
-import { ProtoService, ProtoRoute, UUID } from '../../src/index';
+import { ProtoService, ProtoRoute } from '../../src/index';
 import { beforeAll, afterAll } from '@jest/globals';
 import DatabaseFileStorage from '../../src/adapters/file/database';
 import PostgresStorage from '../../src/adapters/storage/progres';
@@ -49,13 +50,13 @@ const database = new PostgresStorage(uri);
 
 export const masterUser = {
   user: 'admin',
-  pass: (new UUID).toHexString(),
+  pass: crypto.randomUUID(),
 };
 
 const Proto = new ProtoService({
   endpoint: 'http://localhost:8080/proto',
   masterUsers: [masterUser],
-  jwtToken: (new UUID).toHexString(),
+  jwtToken: crypto.randomUUID(),
   schema: {
     'User': {
       fields: {

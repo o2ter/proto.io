@@ -24,9 +24,10 @@
 //
 
 import _ from 'lodash';
+import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { ProtoService } from './index';
-import { PVK, TUser, UUID } from '../../internals';
+import { PVK, TUser } from '../../internals';
 import { AUTH_COOKIE_KEY, MASTER_PASS_HEADER_NAME, MASTER_USER_HEADER_NAME } from '../../internals/common/const';
 
 const _session = <E>(proto: ProtoService<E>) => {
@@ -48,7 +49,7 @@ const _session = <E>(proto: ProtoService<E>) => {
   if (!_.isObject(payload)) return;
 
   const req = proto.req as any;
-  req.sessionId = payload.sessionId ?? (new UUID).toHexString();
+  req.sessionId = payload.sessionId ?? crypto.randomUUID();
 
   return payload;
 }

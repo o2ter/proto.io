@@ -25,24 +25,14 @@
 
 import _ from 'lodash';
 import { Decimal } from 'decimal.js';
-import {
-  serialize as _serialize,
-  deserialize as _deserialize,
-  EJSON,
-  Double,
-  Long,
-  Int32,
-  Decimal128,
-  UUID
-} from 'bson';
 import { TObject } from './object';
 import { TObjectTypes } from './object/types';
 import { isObjKey } from './utils';
 import { TValue } from './query/value';
 
-export { UUID, Decimal };
+export { Decimal };
 type TNumber = number | Decimal | BigInt;
-type TPrimitive = UUID | Date | string | TNumber | boolean | null;
+type TPrimitive = Date | string | TNumber | boolean | null;
 type TDictionary = { [x: string]: TSerializable };
 export type TSerializable = TDictionary | TSerializable[] | TPrimitive | TObject;
 
@@ -60,10 +50,10 @@ const encodeEJSON = (
   stack: any[],
   options: SerializeOptions,
 ): any => {
-  if (_.isNil(x) || _.isNumber(x) || _.isBoolean(x) || _.isString(x) || _.isDate(x)) return x;
-  if (x instanceof UUID) return x;
-  if (x instanceof BigInt) return Number(x);
-  if (x instanceof Decimal) return Decimal128.fromString(x.toString());
+  if (_.isNil(x) || _.isNumber(x) || _.isBoolean(x) || _.isString(x)) return x;
+  if (_.isDate(x)) return { $date: x.valueOf() };
+  if (x instanceof BigInt) return { $integer: x.toString() };
+  if (x instanceof Decimal) return { $decimal: x.toString() };
 
   const found = _.indexOf(stack, x);
   if (found !== -1) return { $ref: found };
@@ -89,20 +79,17 @@ const decodeEJSON = (
   stack: any[],
   options: DeserializeOptions,
 ): TSerializable => {
-  if (_.isNil(x) || _.isNumber(x) || _.isBoolean(x) || _.isString(x) || _.isDate(x)) return x ?? null;
-  if (x instanceof UUID) return x;
-  if (x instanceof Double || x instanceof Int32) return x.valueOf();
-  if (x instanceof Decimal128 || Long.isLong(x)) return new Decimal(x.toString());
-
+  if (_.isNil(x) || _.isNumber(x) || _.isBoolean(x) || _.isString(x)) return x ?? null;
   if (_.isArray(x)) {
     return _.transform(x, (r, v) => {
       r.push(decodeEJSON(v, [...stack, r], options));
     }, [] as TSerializable[]);
   }
-
-  if (x.$ref) return stack[x.$ref];
-
-  if (x.$object) {
+  if (!_.isNil(x.$date)) return new Date(x.$date);
+  if (!_.isNil(x.$integer)) return BigInt(x.$integer);
+  if (!_.isNil(x.$decimal)) return new Decimal(x.$decimal);
+  if (!_.isNil(x.$ref)) return stack[x.$ref];
+  if (!_.isNil(x.$object)) {
     const { className, attributes } = x.$object;
     const _attributes = (self: TObject) => _.mapValues(
       options.objAttrs ? _.pick(attributes, ...options.objAttrs) : attributes,
@@ -110,7 +97,6 @@ const decodeEJSON = (
     ) as Record<string, TValue>;
     return isObjKey(className, TObjectTypes) ? new TObjectTypes[className](_attributes) : new TObject(className, _attributes);
   }
-
   return _.transform(x, (r, v, k) => {
     if (_.isString(k)) r[k.startsWith('$') ? k.substring(1) : k] = decodeEJSON(v, [...stack, r], options);
   }, {} as TDictionary);
@@ -119,9 +105,9 @@ const decodeEJSON = (
 export const serialize = (
   x: TSerializable,
   options?: SerializeOptions,
-) => EJSON.stringify(encodeEJSON(x, [], options ?? {}), undefined, options?.space, { relaxed: false });
+) => JSON.stringify(encodeEJSON(x, [], options ?? {}), undefined, options?.space);
 
 export const deserialize = (
   buffer: string,
   options?: DeserializeOptions,
-) => decodeEJSON(EJSON.parse(buffer, { relaxed: false }), [], options ?? {});
+) => decodeEJSON(JSON.parse(buffer), [], options ?? {});

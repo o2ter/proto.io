@@ -27,7 +27,6 @@ import fs from 'fs';
 import { Readable } from 'node:stream';
 import { masterUser } from './server';
 import { test, expect } from '@jest/globals';
-import { UUID } from 'bson';
 import Decimal from 'decimal.js';
 import { ProtoClient } from '../../src/client/proto';
 
@@ -56,7 +55,6 @@ test('test codec', async () => {
     $array: [1, 2, null, { string: '' }],
     decimal: new Decimal('10.05'),
     date: new Date(),
-    uuid: new UUID(),
   };
 
   const result = await Proto.run('echo', obj);
