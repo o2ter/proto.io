@@ -60,6 +60,10 @@ test('test codec', async () => {
   const result = await Proto.run('echo', obj);
   expect(result).toStrictEqual(obj);
 });
+test('test schema', async () => {
+  const result = await Proto.schema({ master: true });
+  expect(result.User).toBeTruthy();
+});
 test('test session id', async () => {
   const sessionId = await Proto.run('sessionId');
   expect(await Proto.run('sessionId')).toStrictEqual(sessionId);

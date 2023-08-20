@@ -45,13 +45,19 @@ const _session = <E>(proto: ProtoService<E>) => {
 
   if (_.isEmpty(authorization)) return;
 
-  const payload = jwt.verify(authorization, jwtToken, { ...proto[PVK].options.jwtVerifyOptions, complete: false });
-  if (!_.isObject(payload)) return;
+  try {
 
-  const req = proto.req as any;
-  req.sessionId = payload.sessionId ?? crypto.randomUUID();
+    const payload = jwt.verify(authorization, jwtToken, { ...proto[PVK].options.jwtVerifyOptions, complete: false });
+    if (!_.isObject(payload)) return;
 
-  return payload;
+    const req = proto.req as any;
+    req.sessionId = payload.sessionId ?? crypto.randomUUID();
+
+    return payload;
+
+  } catch {
+    return;
+  }
 }
 
 export const sessionId = <E>(proto: ProtoService<E>): string | undefined => {
