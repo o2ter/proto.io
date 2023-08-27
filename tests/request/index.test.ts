@@ -94,6 +94,12 @@ test('test files 2', async () => {
   expect(data.toString('utf8')).toStrictEqual(fs.readFileSync(__filename, { encoding: 'utf8' }));
 });
 
+test('test count', async () => {
+  await Proto.Query('Test').insert({});
+  const count = await Proto.Query('Test').count();
+  expect(count).toBeGreaterThan(0);
+})
+
 test('test insert', async () => {
   const inserted = await Proto.Query('Test').insert({ string: 'hello' });
   expect(inserted.objectId).toBeTruthy();

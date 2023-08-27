@@ -198,7 +198,7 @@ export class QueryCompiler {
     const _populates = this._selectPopulateMap(context, query.className, fetchName);
     const _joins = _.compact(_.map(_populates, ({ join }) => join));
 
-    const _includes = select ? select : {
+    const _includes = {
       literal: [
         ...this._selectIncludes(fetchName, context.includes),
         ..._.map(_populates, ({ column }) => column),
@@ -210,7 +210,7 @@ export class QueryCompiler {
       fetchName,
       context: context,
       query: sql`
-        SELECT * FROM (
+        SELECT ${select ? select : sql`*`} FROM (
           SELECT ${_includes}
           FROM ${{ identifier: query.className }} AS ${{ identifier: fetchName }}
           ${!_.isEmpty(_joins) ? { literal: _joins, separator: '\n' } : sql``}
