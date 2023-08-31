@@ -110,7 +110,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
 
         const maxFetchLimit = _.isFunction(payload[PVK].options.maxFetchLimit) ? await payload[PVK].options.maxFetchLimit(payload) : payload[PVK].options.maxFetchLimit;
 
-        query[PVK].options.filter = _.isEmpty(filter) && _.isString(filter) ? _.castArray(deserialize(filter)) as any : [];
+        query[PVK].options.filter = !_.isEmpty(filter) && _.isString(filter) ? _.castArray(deserialize(filter)) as any : [];
         query[PVK].options.sort = _.isPlainObject(sort) && _.every(_.values(sort), _.isNumber) ? sort as any : undefined;
         query[PVK].options.includes = _.isArray(includes) && _.every(includes, _.isString) ? includes as any : undefined;
         query[PVK].options.skip = _.isNumber(skip) ? skip : undefined;
