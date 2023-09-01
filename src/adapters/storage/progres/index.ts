@@ -129,6 +129,7 @@ export class PostgresStorage extends SqlStorage {
     const columns = await this.columns(className);
     const typeMap: Record<string, string> = {
       'timestamp without time zone': 'timestamp',
+      'numeric': 'decimal',
     };
     const rebuild: { name: string; type: string; }[] = [];
     for (const column of columns) {
@@ -136,7 +137,7 @@ export class PostgresStorage extends SqlStorage {
       const dataType = schema.fields[column.name];
       if (!_.isString(dataType) && dataType.type === 'relation' && !_.isNil(dataType.foreignField)) continue;
       const pgType = this._pgType(_.isString(dataType) ? dataType : dataType.type);
-      if (pgType.toLowerCase() === typeMap[column.type] ?? column.type) continue;
+      if (pgType.toLowerCase() === (typeMap[column.type] ?? column.type)) continue;
       rebuild.push({ name: column.name, type: pgType });
     }
     if (_.isEmpty(rebuild)) return;
