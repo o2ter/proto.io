@@ -101,6 +101,7 @@ export const PostgresDialect: SqlDialect = {
     return sql`IS DISTINCT FROM`;
   },
   encodeType(colname: string, dataType: TSchema.DataType, value: TValue) {
+    if (_.isNil(value)) return sql`NULL`;
     switch (_.isString(dataType) ? dataType : dataType.type) {
       case 'boolean':
         if (_.isBoolean(value)) return sql`${{ value }}`;

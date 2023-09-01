@@ -592,6 +592,29 @@ test('test update types 7', async () => {
   expect((await q.clone().updateOne({ relation: { $removeAll: [obj4] } }))?.get('relation').map((x: any) => x.objectId).sort()).toStrictEqual([obj1, obj2, obj3, obj5].map(x => x.objectId).sort());
 })
 
+test('test update types 8', async () => {
+  const date = new Date;
+  const inserted = await Proto.Query('Test').insert({
+    object: {
+      boolean: true,
+      number: 42,
+      decimal: new Decimal('0.001'),
+      string: 'hello',
+      date: date,
+      array: [1, 2, 3, date, new Decimal('0.001')],
+    },
+  });
+
+  const q = Proto.Query('Test').equalTo('_id', inserted.objectId);
+
+  expect((await q.clone().updateOne({ boolean: { $set: null } }))?.get('boolean')).toStrictEqual(null);
+  expect((await q.clone().updateOne({ number: { $set: null } }))?.get('number')).toStrictEqual(null);
+  expect((await q.clone().updateOne({ decimal: { $set: null } }))?.get('decimal')).toStrictEqual(null);
+  expect((await q.clone().updateOne({ string: { $set: null } }))?.get('string')).toStrictEqual(null);
+  expect((await q.clone().updateOne({ date: { $set: null } }))?.get('date')).toStrictEqual(null);
+  expect((await q.clone().updateOne({ array: { $set: null } }))?.get('array')).toStrictEqual(null);
+})
+
 test('test pointer', async () => {
   const date = new Date;
   const inserted = await Proto.Query('Test').insert({
