@@ -276,7 +276,8 @@ export class QueryValidator<E> {
     const includes = this.decodeIncludes(query.className, query.includes ?? ['*']);
     const matches = this.decodeMatches(query.className, query.matches ?? {}, includes);
 
-    if (!_.every(_.keys(query.sort), k => includes.includes(k))) throw Error('Invalid sort keys');
+    const _includes = _.uniq(_.map(includes, k => k.split('.')[0]));
+    if (!_.every(_.keys(query.sort), k => _includes.includes(k))) throw Error('Invalid sort keys');
     this.validateSort(matches, includes);
 
     return {
