@@ -625,6 +625,16 @@ test('test save keys', async () => {
   expect(obj.get('pointer')?.objectId).toStrictEqual(inserted.objectId);
 })
 
+test('test save keys 2', async () => {
+  const inserted = await Proto.Query('Test').insert({});
+
+  const obj = Proto.Object('Test');
+  obj.set('relation', [inserted]);
+  await obj.save();
+
+  expect(obj.get('relation')?.[0]?.objectId).toStrictEqual(inserted.objectId);
+})
+
 test('test pointer', async () => {
   const date = new Date;
   const inserted = await Proto.Query('Test').insert({
