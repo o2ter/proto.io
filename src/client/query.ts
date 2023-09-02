@@ -103,6 +103,7 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E> {
       operation: 'insert',
       context: this._options?.context ?? {},
       attributes: attrs,
+      ...this._queryOptions,
     }, this._requestOpt) as any;
   }
 

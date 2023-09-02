@@ -368,9 +368,12 @@ export class QueryCompiler {
     const name = `_insert_$${options.className.toLowerCase()}`;
 
     const context = this._makeContext(options);
-    const populates = this._selectPopulateMap(context, options.className, name);
+
+    const populates = _.mapValues(context.populates, (populate) => this.dialect.encodePopulate(this, context, populate));
     const stages = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
-    const joins = _.compact(_.map(populates, ({ join }) => join));
+
+    const _populates = this._selectPopulateMap(context, options.className, name);
+    const joins = _.compact(_.map(_populates, ({ join }) => join));
 
     return sql`
     WITH ${{ identifier: name }} AS (
@@ -382,7 +385,7 @@ export class QueryCompiler {
     SELECT ${{
         literal: [
           ...this._selectIncludes(name, context.includes),
-          ..._.map(populates, ({ column }) => column),
+          ..._.map(_populates, ({ column }) => column),
         ], separator: ',\n'
       }}
     FROM ${{ identifier: name }}

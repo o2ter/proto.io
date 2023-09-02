@@ -615,6 +615,16 @@ test('test update types 8', async () => {
   expect((await q.clone().updateOne({ array: { $set: null } }))?.get('array')).toStrictEqual(null);
 })
 
+test('test save keys', async () => {
+  const inserted = await Proto.Query('Test').insert({});
+
+  const obj = Proto.Object('Test');
+  obj.set('pointer', inserted);
+  await obj.save();
+
+  expect(obj.get('pointer')?.objectId).toStrictEqual(inserted.objectId);
+})
+
 test('test pointer', async () => {
   const date = new Date;
   const inserted = await Proto.Query('Test').insert({
