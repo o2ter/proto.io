@@ -48,6 +48,8 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
     return object;
   }
 
+  object[PVK].attributes = _.mapValues(object[PVK].attributes, x => applyObjectMethods(x, proto));
+
   const className = object.className;
   const _class = isObjKey(className, TObjectTypes) ? TObjectTypes[className] : undefined;
   if (_class && Object.getPrototypeOf(object) !== _class.prototype) {
