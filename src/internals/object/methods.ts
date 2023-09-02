@@ -117,12 +117,17 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
           }
         }
         if (this.objectId) {
-          const updated = await query(options).equalTo('_id', this.objectId).updateOne(object[PVK].mutated);
+          const updated = await query(options)
+            .equalTo('_id', this.objectId)
+            .includes(...this.keys())
+            .updateOne(object[PVK].mutated);
           if (!updated) throw Error('Unable to save document');
           object[PVK].attributes = updated.attributes;
           object[PVK].mutated = {};
         } else {
-          const created = await query(options).insert(_.fromPairs(this.keys().map(k => [k, this.get(k)])));
+          const created = await query(options)
+            .includes(...this.keys())
+            .insert(_.fromPairs(this.keys().map(k => [k, this.get(k)])));
           object[PVK].attributes = created.attributes;
           object[PVK].mutated = {};
         }
@@ -131,7 +136,10 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
     },
     destory: {
       async value(options?: ExtraOptions) {
-        const deleted = await query(options).equalTo('_id', this.objectId).deleteOne();
+        const deleted = await query(options)
+          .equalTo('_id', this.objectId)
+          .includes(...this.keys())
+          .deleteOne();
         if (!deleted) throw Error('Unable to destory document');
         object[PVK].attributes = deleted.attributes;
         object[PVK].mutated = {};

@@ -187,6 +187,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
 
     const updated = await this.proto.Query(object.className, options)
       .equalTo('_id', object.objectId)
+      .includes(...object.keys())
       .updateOne(object[PVK].mutated);
 
     if (updated) {

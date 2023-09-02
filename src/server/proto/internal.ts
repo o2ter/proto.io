@@ -201,6 +201,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
 
     const updated = await this.proto.Query(object.className, options)
       .equalTo('_id', object.objectId)
+      .includes(...object.keys())
       .updateOne(object[PVK].mutated);
 
     if (updated) {
@@ -241,6 +242,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
       object.set('size', file.size);
 
       const created = await this.proto.Query(object.className, options)
+        .includes(...object.keys())
         .insert(_.fromPairs(object.keys().map(k => [k, object.get(k)])));
 
       if (created) {
