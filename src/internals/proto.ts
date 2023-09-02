@@ -72,6 +72,26 @@ export abstract class ProtoType<Ext> {
     return file;
   }
 
+  isQuery(x: any): x is TQuery<any, any> {
+    return x instanceof TQuery;
+  }
+
+  isObject(x: any): x is TObject {
+    return x instanceof TObject;
+  }
+
+  isUser(x: any): x is TUser {
+    return x instanceof TUser;
+  }
+
+  isRole(x: any): x is TRole {
+    return x instanceof TRole;
+  }
+
+  isFile(x: any): x is TFile {
+    return x instanceof TFile;
+  }
+
   async userRoles(user: TUser) {
     let queue = await this.Query('Role', { master: true })
       .isIntersect('users', [user])
