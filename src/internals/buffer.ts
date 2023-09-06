@@ -25,10 +25,22 @@
 
 import _ from 'lodash';
 import type { Readable } from 'node:stream';
+import type { Blob as NodeBlob } from 'node:buffer';
+
+export const _Blob = typeof Blob !== 'undefined' ? Blob : require('node:buffer').Blob as NodeBlob;
 
 export type FileBuffer = ArrayBuffer | ArrayBufferView;
 export type FileStream = ReadableStream | Readable;
-export type FileData = string | Blob | FileBuffer | FileStream | { base64: string; };
+export type FileData = string | typeof _Blob | FileBuffer | FileStream | { base64: string; };
+
+export const isBlob = (x: any): x is typeof _Blob => {
+  return typeof Blob !== 'undefined' ? x instanceof Blob : x instanceof require('node:buffer').Blob;
+};
+
+export const blobToArrayBuffer = (x: typeof _Blob): Promise<ArrayBuffer> => {
+  if (typeof Blob !== 'undefined' && x instanceof Blob) return x.arrayBuffer();
+  return (x as NodeBlob).arrayBuffer();
+};
 
 export const isFileBuffer = (x: any): x is FileBuffer => {
   if (_.isArrayBuffer(x) || ArrayBuffer.isView(x)) return true;

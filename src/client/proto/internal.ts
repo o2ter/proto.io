@@ -27,7 +27,7 @@ import _ from 'lodash';
 import Service from '../request';
 import { RequestOptions } from '../options';
 import { ProtoOptions } from './types';
-import { ProtoClient } from '.';
+import { ProtoClient } from './index';
 import {
   PVK,
   applyObjectMethods,
@@ -42,6 +42,7 @@ import {
   isFileStream,
   base64ToBuffer,
   TUser,
+  isBlob,
 } from '../../internals';
 import { iterableToStream, streamToIterable } from '../stream';
 import { TSchema } from '../../internals/schema';
@@ -207,7 +208,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
 
     let buffer: FileData;
 
-    if (_.isString(data) || isFileBuffer(data) || isFileStream(data) || data instanceof Blob) {
+    if (_.isString(data) || isFileBuffer(data) || isFileStream(data) || isBlob(data)) {
       buffer = data;
     } else if ('base64' in data) {
       buffer = base64ToBuffer(data.base64);

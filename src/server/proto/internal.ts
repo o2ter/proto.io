@@ -39,6 +39,7 @@ import {
   base64ToBuffer,
   TObject,
   TUser,
+  isBlob,
 } from '../../internals';
 import { generateId } from '../crypto';
 import { TSchema, defaultObjectKeyTypes, isPrimitive, isRelation } from '../../internals/schema';
@@ -225,7 +226,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
       filename: object.get('filename'),
     };
 
-    if (_.isString(data) || isFileBuffer(data) || isFileStream(data)) {
+    if (_.isString(data) || isFileBuffer(data) || isFileStream(data) || isBlob(data)) {
       file = await this.proto.fileStorage.create(this.proto, data, info);
     } else if ('base64' in data) {
       const buffer = base64ToBuffer(data.base64);

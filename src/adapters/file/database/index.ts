@@ -27,7 +27,7 @@ import _ from 'lodash';
 import { promisify } from 'node:util';
 import { Readable } from 'node:stream';
 import { deflate, unzip } from 'node:zlib';
-import { FileBuffer, FileData, PVK, base64ToBuffer, bufferToBase64, isFileBuffer } from '../../../internals';
+import { FileBuffer, FileData, PVK, base64ToBuffer, blobToArrayBuffer, bufferToBase64, isBlob, isFileBuffer } from '../../../internals';
 import { TFileStorage } from '../../../server/filesys';
 import { ProtoService } from '../../../server/proto';
 import { TSchema } from '../../../internals/schema';
@@ -127,6 +127,8 @@ export class DatabaseFileStorage implements TFileStorage {
 
     if (_.isString(file) || isFileBuffer(file)) {
       buffer = file;
+    } else if (isBlob(file)) {
+      buffer = await blobToArrayBuffer(file);
     } else if ('base64' in file) {
       buffer = base64ToBuffer(file.base64);
     } else {
