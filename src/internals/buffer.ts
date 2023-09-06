@@ -28,7 +28,7 @@ import type { Readable } from 'node:stream';
 
 export type FileBuffer = ArrayBuffer | ArrayBufferView;
 export type FileStream = ReadableStream | Readable;
-export type FileData = string | FileBuffer | FileStream | { base64: string; };
+export type FileData = string | Blob | FileBuffer | FileStream | { base64: string; };
 
 export const isFileBuffer = (x: any): x is FileBuffer => {
   if (_.isArrayBuffer(x) || ArrayBuffer.isView(x)) return true;
