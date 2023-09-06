@@ -36,7 +36,6 @@ import { TValue } from './query/value';
 import { TObject } from './object';
 import { TSerializable } from './codec';
 import { TUser } from './object/user';
-import { TRole } from './object/role';
 
 export interface ProtoInternalType<Ext> {
 
@@ -70,26 +69,6 @@ export abstract class ProtoType<Ext> {
     file.set('type', type);
     file[PVK].extra.data = data;
     return file;
-  }
-
-  isQuery(x: any): x is TQuery<any, any> {
-    return x instanceof TQuery;
-  }
-
-  isObject(x: any): x is TObject {
-    return x instanceof TObject;
-  }
-
-  isUser(x: any): x is TUser {
-    return x instanceof TUser;
-  }
-
-  isRole(x: any): x is TRole {
-    return x instanceof TRole;
-  }
-
-  isFile(x: any): x is TFile {
-    return x instanceof TFile;
   }
 
   async userRoles(user: TUser) {

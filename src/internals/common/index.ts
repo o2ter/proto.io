@@ -23,7 +23,27 @@
 //  THE SOFTWARE.
 //
 
-import { TExtensions } from '..';
+import { TExtensions, TFile, TObject, TQuery, TRole, TUser } from '../index';
 
 export * from '../codec';
 export const classExtends = <E>(x: TExtensions<E>) => x;
+
+export const isQuery = (x: any): x is TQuery<any, any> => {
+  return x instanceof TQuery;
+}
+
+export const isObject = (x: any): x is TObject => {
+  return x instanceof TObject;
+}
+
+export const isUser = (x: any): x is TUser => {
+  return x instanceof TUser;
+}
+
+export const isRole = (x: any): x is TRole => {
+  return x instanceof TRole;
+}
+
+export const isFile = (x: any): x is TFile => {
+  return x instanceof TFile;
+}
