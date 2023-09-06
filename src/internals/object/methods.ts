@@ -113,7 +113,7 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
         if (options?.cascadeSave !== false) {
           for (const update of _.values(mutated)) {
             const [, value] = decodeUpdateOp(update);
-            if (value instanceof TObject && value.isDirty) await value.save(options);
+            if (value instanceof TObject && (_.isNil(value.objectId) || value.isDirty)) await value.save(options);
           }
         }
         if (this.objectId) {
