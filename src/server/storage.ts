@@ -23,7 +23,6 @@
 //  THE SOFTWARE.
 //
 
-import _ from 'lodash';
 import { TObject, TUpdateOp, TValue, TQueryOptions } from '../internals';
 import { QuerySelector } from './query/validator/parser';
 import { TSchema } from '../internals/schema';

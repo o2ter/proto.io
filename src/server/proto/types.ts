@@ -27,7 +27,7 @@ import {
   TExtensions,
   TObjectType, TSerializable
 } from '../../internals';
-import { TFileStorage } from '../filesys';
+import { TFileStorage } from '../file';
 import { TStorage } from '../storage';
 import { TSchema } from '../../internals/schema';
 import { CookieOptions } from 'express';

@@ -1,5 +1,5 @@
 //
-//  filesys.ts
+//  stream.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -24,29 +24,33 @@
 //
 
 import _ from 'lodash';
-import { FileBuffer } from '../internals/buffer';
-import { ProtoService } from './proto/index';
-import { TSchema } from '../internals/schema';
+import { FileBuffer } from '../../internals';
 
-type TFileInfo = {
-  mimeType?: string;
-  filename?: string;
-};
+const _toBuffer = (buffer: FileBuffer) => _.isArrayBuffer(buffer) ?
+  Buffer.from(buffer) :
+  Buffer.from(buffer.buffer, buffer.byteOffset, buffer.byteLength);
 
-export interface TFileStorage {
-
-  schema: Record<string, TSchema>;
-
-  create<E>(
-    proto: ProtoService<E>,
-    stream: FileBuffer | AsyncIterable<FileBuffer>,
-    info: TFileInfo,
-  ): PromiseLike<{ _id: string; size: number; }>;
-
-  destory<E>(proto: ProtoService<E>, id: string): PromiseLike<void>;
-
-  fileData<E>(proto: ProtoService<E>, id: string, start?: number, end?: number): AsyncIterable<FileBuffer>;
-
-  fileLocation<E>(proto: ProtoService<E>, id: string): PromiseLike<string | undefined>;
-
+export async function* streamChunk(
+  stream: FileBuffer | AsyncIterable<FileBuffer>,
+  chunkSize: number
+) {
+  if (Symbol.asyncIterator in stream) {
+    let buffer = Buffer.from([]);
+    for await (const chunk of stream) {
+      buffer = Buffer.concat([buffer, _toBuffer(chunk)]);
+      while (buffer.byteLength >= chunkSize) {
+        yield buffer.subarray(0, chunkSize);
+        buffer = buffer.subarray(chunkSize);
+      }
+    }
+    if (buffer.length) yield buffer;
+  } else {
+    let buffer = _toBuffer(stream);
+    while (buffer.byteLength >= chunkSize) {
+      yield buffer.subarray(0, chunkSize);
+      buffer = buffer.subarray(chunkSize);
+    }
+    if (buffer.length) yield buffer;
+  }
 }
+;

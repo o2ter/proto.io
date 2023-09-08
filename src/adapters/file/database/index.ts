@@ -25,39 +25,12 @@
 
 import _ from 'lodash';
 import { promisify } from 'node:util';
-import { Readable } from 'node:stream';
 import { deflate, unzip } from 'node:zlib';
 import { FileBuffer, PVK, base64ToBuffer, bufferToBase64 } from '../../../internals';
-import { TFileStorage } from '../../../server/filesys';
+import { TFileStorage } from '../../../server/file';
 import { ProtoService } from '../../../server/proto';
 import { TSchema } from '../../../internals/schema';
-
-const _toBuffer = (buffer: FileBuffer) => _.isArrayBuffer(buffer) ?
-  Buffer.from(buffer) :
-  Buffer.from(buffer.buffer, buffer.byteOffset, buffer.byteLength);
-
-const streamChunk = (stream: FileBuffer | AsyncIterable<FileBuffer>, chunkSize: number) => Readable.from({
-  [Symbol.asyncIterator]: async function* () {
-    if (Symbol.asyncIterator in stream) {
-      let buffer = Buffer.from([]);
-      for await (const chunk of stream) {
-        buffer = Buffer.concat([buffer, _toBuffer(chunk)]);
-        while (buffer.byteLength >= chunkSize) {
-          yield buffer.subarray(0, chunkSize);
-          buffer = buffer.subarray(chunkSize);
-        }
-      }
-      if (buffer.length) yield buffer;
-    } else {
-      let buffer = _toBuffer(stream);
-      while (buffer.byteLength >= chunkSize) {
-        yield buffer.subarray(0, chunkSize);
-        buffer = buffer.subarray(chunkSize);
-      }
-      if (buffer.length) yield buffer;
-    }
-  },
-});
+import { streamChunk } from '../../../server/file/stream';
 
 export class DatabaseFileStorage implements TFileStorage {
 
