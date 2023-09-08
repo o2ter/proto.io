@@ -24,6 +24,7 @@
 //
 
 import _ from 'lodash';
+import { Blob } from 'node:buffer';
 import { Readable } from 'node:stream';
 import { defaultSchema } from './defaults';
 import { ProtoService } from './index';
@@ -35,11 +36,9 @@ import {
   ProtoInternalType,
   FileData,
   isFileBuffer,
-  isFileStream,
   base64ToBuffer,
   TObject,
   TUser,
-  isBlob,
 } from '../../internals';
 import { generateId } from '../crypto';
 import { TSchema, defaultObjectKeyTypes, isPrimitive, isRelation } from '../../internals/schema';
@@ -226,8 +225,12 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
       filename: object.get('filename'),
     };
 
-    if (_.isString(data) || isFileBuffer(data) || isFileStream(data) || isBlob(data)) {
+    if (_.isString(data)) {
+      file = await this.proto.fileStorage.create(this.proto, Buffer.from(data), info);
+    } else if (isFileBuffer(data) || data instanceof Readable) {
       file = await this.proto.fileStorage.create(this.proto, data, info);
+    } else if (data instanceof Blob) {
+      file = await this.proto.fileStorage.create(this.proto, await data.arrayBuffer(), info);
     } else if ('base64' in data) {
       const buffer = base64ToBuffer(data.base64);
       file = await this.proto.fileStorage.create(this.proto, buffer, info);

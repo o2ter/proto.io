@@ -37,11 +37,6 @@ export const isBlob = (x: any): x is typeof _Blob => {
   return typeof Blob !== 'undefined' ? x instanceof Blob : x instanceof require('node:buffer').Blob;
 };
 
-export const blobToArrayBuffer = (x: typeof _Blob): Promise<ArrayBuffer> => {
-  if (typeof Blob !== 'undefined' && x instanceof Blob) return x.arrayBuffer();
-  return (x as NodeBlob).arrayBuffer();
-};
-
 export const isFileBuffer = (x: any): x is FileBuffer => {
   if (_.isArrayBuffer(x) || ArrayBuffer.isView(x)) return true;
   return false;
