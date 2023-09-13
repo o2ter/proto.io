@@ -25,11 +25,11 @@
 
 import _ from 'lodash';
 import { PoolConfig } from 'pg';
-import { TObject } from '../../../internals';
+import { TObject, _TValue } from '../../../internals';
 import { TSchema, _typeof, isRelation } from '../../../internals/schema';
 import { PostgresDriver } from './driver';
 import { SqlStorage, sql } from '../../../server/sql';
-import { PostgresDialect } from './dialect';
+import { PostgresDialect, _decodeValue, _encodeValue, _encodeJsonValue } from './dialect';
 import { QueryCompiler } from '../../../server/sql/compiler';
 import { DecodedQuery, FindOptions } from '../../../server/storage';
 
@@ -49,6 +49,7 @@ export class PostgresStorage extends SqlStorage {
 
   async prepare(schema: Record<string, TSchema>) {
     await super.prepare(schema);
+    await this._createSystemTable();
     for (const [className, _schema] of _.toPairs(schema)) {
       await this._createTable(className, _schema);
       await this._dropIndices(className, _schema);
@@ -73,6 +74,17 @@ export class PostgresStorage extends SqlStorage {
     }
   }
 
+  private async _createSystemTable() {
+    await this.query(sql`
+      CREATE TABLE
+      IF NOT EXISTS ${{ identifier: '_Config' }}
+      (
+        _id TEXT PRIMARY KEY,
+        value JSONB
+      )
+    `);
+  }
+
   private async _createTable(className: string, schema: TSchema) {
     const fields = _.pickBy(
       schema.fields, (x, k) => !_.includes(TObject.defaultKeys, k) && (!isRelation(x) || _.isNil(x.foreignField))
@@ -87,10 +99,10 @@ export class PostgresStorage extends SqlStorage {
         _updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
         _expired_at TIMESTAMP WITH TIME ZONE,
         _rperm TEXT[] NOT NULL DEFAULT ARRAY['*']::TEXT[],
-        _wperm TEXT[] NOT NULL DEFAULT ARRAY['*']::TEXT[],
-        ${_.map(fields, (dataType, col) => sql`
+        _wperm TEXT[] NOT NULL DEFAULT ARRAY['*']::TEXT[]
+        ${_.isEmpty(fields) ? sql`` : sql`, ${_.map(fields, (dataType, col) => sql`
           ${{ identifier: col }} ${{ literal: this._pgType(_.isString(dataType) ? dataType : dataType.type) }}
-        `)}
+        `)}`}
       )
     `);
     await this.query(sql`
@@ -171,6 +183,23 @@ export class PostgresStorage extends SqlStorage {
 
   get dialect() {
     return PostgresDialect;
+  }
+
+  async config() {
+    const config: Record<string, _TValue> = {};
+    const query = sql`SELECT * FROM ${{ identifier: '_Config' }}`;
+    for await (const record of this.query(query)) {
+      config[record._id] = _decodeValue(record.value);
+    }
+    return config;
+  }
+  async setConfig(values: Record<string, _TValue>) {
+    await this.query(sql`
+      INSERT INTO ${{ identifier: '_Config' }} (_id, value)
+      VALUES
+      ${_.map(values, (v, k) => sql`(${{ value: k }}, ${_encodeJsonValue(_encodeValue(v))})`)}
+      ON CONFLICT (_id) DO UPDATE SET value = EXCLUDED.value;
+    `);
   }
 
   _query(text: string, values: any[] = [], batchSize?: number) {

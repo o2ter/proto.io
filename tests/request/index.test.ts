@@ -94,6 +94,30 @@ test('test files 2', async () => {
   expect(data.toString('utf8')).toStrictEqual(fs.readFileSync(__filename, { encoding: 'utf8' }));
 });
 
+test('test config', async () => {
+  const date = new Date;
+  const values = {
+    boolean: true,
+    number: 42,
+    decimal: new Decimal('0.001'),
+    string: 'hello',
+    date: date,
+    object: {
+      boolean: true,
+      number: 42,
+      decimal: new Decimal('0.001'),
+      string: 'hello',
+      date: date,
+      array: [1, 2, 3, date, new Decimal('0.001')],
+    },
+    array: [1, 2, 3, date, new Decimal('0.001')],
+  };
+
+  await Proto.setConfig(values, { master: true });
+  const config = await Proto.config();
+
+  expect(config).toStrictEqual(values);
+});
 test('test count', async () => {
   await Proto.Query('Test').insert({});
   const count = await Proto.Query('Test').count();

@@ -33,7 +33,7 @@ import { FieldExpression, QuerySelector } from '../../../server/query/validator/
 
 const stringArrayAttrs = ['_rperm', '_wperm'];
 
-const _decodeValue = (value: _TValue): _TValue => {
+export const _decodeValue = (value: _TValue): _TValue => {
   if (isPrimitiveValue(value)) return value;
   if (_.isArray(value)) return _.map(value, x => _decodeValue(x));
   if (_.isString(value.$date)) return new Date(value.$date);
@@ -43,7 +43,7 @@ const _decodeValue = (value: _TValue): _TValue => {
   }, {} as any);
 }
 
-const _encodeValue = (value: TValue): any => {
+export const _encodeValue = (value: TValue): any => {
   if (value instanceof TObject) throw Error('Invalid data type');
   if (_.isDate(value)) return { $date: value.toISOString() };
   if (value instanceof Decimal) return { $decimal: value.toString() };
@@ -54,9 +54,9 @@ const _encodeValue = (value: TValue): any => {
   }, {} as any);
 }
 
-const _encodeJsonValue = (value: any): SQL => {
+export const _encodeJsonValue = (value: any): SQL => {
   if (_.isArray(value)) return sql`jsonb_build_array(${_.map(value, x => _encodeJsonValue(x))})`;
-  if (_.isPlainObject(value)) return sql`${{ value }}`;
+  if (_.isPlainObject(value)) return sql`jsonb_build_object(${_.map(value, (v, k) => sql`${{ value: k }}, ${_encodeJsonValue(v)}`)})`;
   return sql`to_jsonb(${{ value }})`;
 }
 

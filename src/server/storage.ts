@@ -23,7 +23,7 @@
 //  THE SOFTWARE.
 //
 
-import { TObject, TUpdateOp, TValue, TQueryOptions } from '../internals';
+import { TObject, TUpdateOp, TValue, TQueryOptions, _TValue } from '../internals';
 import { QuerySelector } from './query/validator/parser';
 import { TSchema } from '../internals/schema';
 import { TQueryBaseOptions } from '../internals/query/base';
@@ -59,6 +59,9 @@ export interface TStorage {
   shutdown(): PromiseLike<void>;
 
   classes(): string[];
+
+  config(): PromiseLike<Record<string, _TValue>>;
+  setConfig(values: Record<string, _TValue>): PromiseLike<void>;
 
   explain(query: DecodedQuery<FindOptions>): PromiseLike<any>;
 

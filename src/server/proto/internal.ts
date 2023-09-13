@@ -39,6 +39,7 @@ import {
   base64ToBuffer,
   TObject,
   TUser,
+  _TValue,
 } from '../../internals';
 import { generateId } from '../crypto';
 import { TSchema, defaultObjectKeyTypes, isPrimitive, isRelation } from '../../internals/schema';
@@ -47,7 +48,7 @@ import { passwordHash, varifyPassword } from '../crypto/password';
 
 const validateSchema = (schema: Record<string, TSchema>) => {
 
-  if (!_.isNil(schema['_Schema'])) throw Error('Reserved name of class');
+  if (!_.isNil(schema['_Schema']) || !_.isNil(schema['_Config'])) throw Error('Reserved name of class');
 
   for (const [className, _schema] of _.toPairs(schema)) {
 
@@ -143,6 +144,13 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
 
   generateId() {
     return generateId(this.options.objectIdSize);
+  }
+
+  async config() {
+    return this.options.storage.config();
+  }
+  async setConfig(values: Record<string, _TValue>) {
+    return this.options.storage.setConfig(values);
   }
 
   async run(name: string, payload: any, options?: ExtraOptions) {

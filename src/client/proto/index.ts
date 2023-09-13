@@ -30,7 +30,8 @@ import {
   PVK,
   ProtoType, TQuery,
   TSerializable,
-  TUser
+  TUser,
+  _TValue
 } from '../../internals';
 import { ProtoOptions } from './types';
 
@@ -45,6 +46,14 @@ export class ProtoClient<Ext> extends ProtoType<Ext> {
 
   Query<T extends string>(className: T, options?: RequestOptions): TQuery<T, Ext> {
     return new ProtoClientQuery<T, Ext>(className, this, options);
+  }
+
+  async config(options?: RequestOptions) {
+    return this[PVK].config(options);
+  }
+  async setConfig(values: Record<string, _TValue>, options: RequestOptions & { master: true; }) {
+    if (options.master !== true) throw Error('No permission');
+    await this[PVK].setConfig(values, options);
   }
 
   run(

@@ -27,7 +27,7 @@ import _ from 'lodash';
 import { DecodedQuery, FindOptions, FindOneOptions, InsertOptions, TStorage } from '../storage';
 import { TSchema } from '../../internals/schema';
 import { storageSchedule } from '../schedule';
-import { PVK, TObject, TValue, TUpdateOp, asyncStream } from '../../internals';
+import { PVK, TObject, TValue, TUpdateOp, asyncStream, _TValue } from '../../internals';
 import { SQL, sql } from './sql';
 import { SqlDialect } from './dialect';
 import { QueryCompiler } from './compiler';
@@ -48,6 +48,9 @@ export abstract class SqlStorage implements TStorage {
   classes() {
     return Object.keys(this.schema);
   }
+
+  abstract config(): PromiseLike<Record<string, _TValue>>;
+  abstract setConfig(values: Record<string, _TValue>): PromiseLike<void>;
 
   abstract get dialect(): SqlDialect
   protected abstract _query(text: string, values: any[]): ReturnType<typeof asyncStream<any>>

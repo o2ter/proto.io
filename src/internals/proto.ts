@@ -32,7 +32,7 @@ import { TFile } from './object/file';
 import { FileData, FileStream } from './buffer';
 import { isObjKey } from './utils';
 import { applyObjectMethods } from './object/methods';
-import { TValue } from './query/value';
+import { TValue, _TValue } from './query/value';
 import { TObject } from './object';
 import { TSerializable } from './codec';
 import { TUser } from './object/user';
@@ -53,6 +53,9 @@ export interface ProtoInternalType<Ext> {
 export abstract class ProtoType<Ext> {
 
   abstract [PVK]: ProtoInternalType<Ext>;
+
+  abstract config(): Promise<Record<string, _TValue>>;
+  abstract setConfig(values: Record<string, _TValue>, options: { master: true; }): Promise<void>;
 
   abstract run(name: string, data?: TSerializable, options?: ExtraOptions): Promise<void | TSerializable>
   abstract Query<T extends string>(className: T, options?: ExtraOptions): TQuery<T, Ext>;

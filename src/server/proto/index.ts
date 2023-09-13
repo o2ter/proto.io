@@ -34,6 +34,7 @@ import {
   TSerializable,
   TUser,
   ExtraOptions,
+  _TValue,
 } from '../../internals';
 import { Request } from 'express';
 import { signUser } from '../auth/sign';
@@ -76,6 +77,7 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
   }
 
   InsecureQuery<T extends string>(className: T, options: ExtraOptions & { master: true }): TQuery<T, Ext> {
+    if (options.master !== true) throw Error('No permission');
     return new InsecureProtoQuery<T, Ext>(className, this, options);
   }
 
@@ -137,6 +139,14 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
 
   get fileStorage(): ProtoServiceOptions<Ext>['fileStorage'] {
     return this[PVK].options.fileStorage;
+  }
+
+  async config() {
+    return this[PVK].config();
+  }
+  async setConfig(values: Record<string, _TValue>, options: { master: true; }) {
+    if (options.master !== true) throw Error('No permission');
+    await this[PVK].setConfig(values);
   }
 
   run(name: string, data?: TSerializable, options?: ExtraOptions) {

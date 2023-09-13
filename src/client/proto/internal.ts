@@ -43,6 +43,7 @@ import {
   base64ToBuffer,
   TUser,
   isBlob,
+  _TValue,
 } from '../../internals';
 import { iterableToStream, streamToIterable } from '../stream';
 import { TSchema } from '../../internals/schema';
@@ -102,6 +103,44 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     if (!_.isNil(user) && !(user instanceof TUser)) throw Error('Unknown error');
 
     return user ?? undefined;
+  }
+
+  async config(options?: RequestOptions) {
+
+    const { serializeOpts, context, ...opts } = options ?? {};
+
+    const res = await this.service.request({
+      method: 'get',
+      baseURL: this.options.endpoint,
+      url: 'config',
+      responseType: 'text',
+      ...opts,
+    });
+
+    if (res.status !== 200) {
+      const error = JSON.parse(res.data);
+      throw Error(error.message, { cause: error });
+    }
+
+    return deserialize(res.data) as Record<string, _TValue>;
+  }
+  async setConfig(values: Record<string, _TValue>, options: RequestOptions) {
+
+    const { serializeOpts, context, ...opts } = options ?? {};
+
+    const res = await this.service.request({
+      method: 'post',
+      baseURL: this.options.endpoint,
+      url: 'config',
+      data: serialize(values, serializeOpts),
+      responseType: 'text',
+      ...opts,
+    });
+
+    if (res.status !== 200) {
+      const error = JSON.parse(res.data);
+      throw Error(error.message, { cause: error });
+    }
   }
 
   async logout(options?: RequestOptions) {
@@ -165,13 +204,13 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
   }
 
   async schema(options: RequestOptions & { master: true }): Promise<Record<string, TSchema>> {
-    
+
     const { serializeOpts, context, ...opts } = options ?? {};
 
     const res = await this.service.request({
       method: 'get',
       baseURL: this.options.endpoint,
-      url: '/schema',
+      url: 'schema',
       responseType: 'text',
       ...opts,
     });
