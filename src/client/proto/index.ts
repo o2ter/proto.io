@@ -48,7 +48,7 @@ export class ProtoClient<Ext> extends ProtoType<Ext> {
     return new ProtoClientQuery<T, Ext>(className, this, options);
   }
 
-  async config(options?: RequestOptions) {
+  config(options?: RequestOptions): Promise<Record<string, _TValue>> {
     return this[PVK].config(options);
   }
   async setConfig(values: Record<string, _TValue>, options: RequestOptions & { master: true; }) {
