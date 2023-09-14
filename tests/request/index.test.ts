@@ -123,10 +123,11 @@ test('test config', async () => {
 
   expect(config2.number).toStrictEqual(12);
 
-  await Proto.setConfig({ number: null }, { master: true });
+  await Proto.setConfig({ number: null, decimal: null }, { master: true });
   const config3 = await Proto.config();
 
   expect(config3.number).toBeUndefined();
+  expect(config3.decimal).toBeUndefined();
 });
 test('test count', async () => {
   await Proto.Query('Test').insert({});
