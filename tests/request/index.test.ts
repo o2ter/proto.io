@@ -117,6 +117,11 @@ test('test config', async () => {
   const config = await Proto.config();
 
   expect(config).toStrictEqual(values);
+
+  await Proto.setConfig({ number: 12 }, { master: true });
+  const config2 = await Proto.config();
+
+  expect(config2.number).toStrictEqual(12);
 });
 test('test count', async () => {
   await Proto.Query('Test').insert({});
