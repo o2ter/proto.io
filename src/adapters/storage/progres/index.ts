@@ -194,12 +194,22 @@ export class PostgresStorage extends SqlStorage {
     return config;
   }
   async setConfig(values: Record<string, _TValue>) {
-    await this.query(sql`
-      INSERT INTO ${{ identifier: '_Config' }} (_id, value)
-      VALUES
-      ${_.map(values, (v, k) => sql`(${{ value: k }}, ${_encodeJsonValue(_encodeValue(v))})`)}
-      ON CONFLICT (_id) DO UPDATE SET value = EXCLUDED.value;
-    `);
+    const _values = _.pickBy(values, v => !_.isNil(v));
+    const nilKeys = _.keys(_.pickBy(values, v => _.isNil(v)));
+    if (!_.isEmpty(_values)) {
+      await this.query(sql`
+        INSERT INTO ${{ identifier: '_Config' }} (_id, value)
+        VALUES
+        ${_.map(_values, (v, k) => sql`(${{ value: k }}, ${_encodeJsonValue(_encodeValue(v))})`)}
+        ON CONFLICT (_id) DO UPDATE SET value = EXCLUDED.value;
+      `);
+    }
+    if (!_.isEmpty(nilKeys)) {
+      await this.query(sql`
+        DELETE FROM ${{ identifier: '_Config' }}
+        WHERE _id IN (${_.map(nilKeys, k => sql`${{ value: k }}`)})
+      `);
+    }
   }
 
   _query(text: string, values: any[] = [], batchSize?: number) {
