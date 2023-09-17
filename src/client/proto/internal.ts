@@ -38,7 +38,7 @@ import {
   deserialize,
   serialize,
   FileData,
-  isBufferSource,
+  isBinaryData,
   isFileStream,
   base64ToBuffer,
   TUser,
@@ -247,7 +247,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
 
     let buffer: FileData;
 
-    if (_.isString(data) || isBufferSource(data) || isFileStream(data) || isBlob(data)) {
+    if (_.isString(data) || isBinaryData(data) || isFileStream(data) || isBlob(data)) {
       buffer = data;
     } else if ('base64' in data) {
       buffer = base64ToBuffer(data.base64);

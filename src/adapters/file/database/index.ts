@@ -71,7 +71,7 @@ export class DatabaseFileStorage implements TFileStorage {
 
   async create<E>(
     proto: ProtoService<E>,
-    stream: BufferSource | AsyncIterable<BufferSource>,
+    stream: BinaryData | AsyncIterable<BinaryData>,
   ) {
 
     const token = proto[PVK].generateId();

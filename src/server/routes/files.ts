@@ -88,7 +88,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       res.setHeader('Cache-Control', 'public, max-age=0');
       res.setHeader('ETag', `"${id}"`);
 
-      let stream: AsyncIterable<BufferSource>;
+      let stream: AsyncIterable<BinaryData>;
 
       if (_.isArray(ranges) && ranges.type === 'bytes') {
 

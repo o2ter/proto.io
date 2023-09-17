@@ -25,12 +25,12 @@
 
 import _ from 'lodash';
 
-const _toBuffer = (buffer: BufferSource) => _.isArrayBuffer(buffer) ?
+const _toBuffer = (buffer: BinaryData) => _.isArrayBuffer(buffer) ?
   Buffer.from(buffer) :
   Buffer.from(buffer.buffer, buffer.byteOffset, buffer.byteLength);
 
 export async function* streamChunk(
-  stream: BufferSource | AsyncIterable<BufferSource>,
+  stream: BinaryData | AsyncIterable<BinaryData>,
   chunkSize: number
 ) {
   if (Symbol.asyncIterator in stream) {

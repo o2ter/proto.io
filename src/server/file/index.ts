@@ -38,13 +38,13 @@ export interface TFileStorage {
 
   create<E>(
     proto: ProtoService<E>,
-    stream: BufferSource | AsyncIterable<BufferSource>,
+    stream: BinaryData | AsyncIterable<BinaryData>,
     info: TFileInfo,
   ): PromiseLike<{ _id: string; size: number; }>;
 
   destory<E>(proto: ProtoService<E>, id: string): PromiseLike<void>;
 
-  fileData<E>(proto: ProtoService<E>, id: string, start?: number, end?: number): AsyncIterable<BufferSource>;
+  fileData<E>(proto: ProtoService<E>, id: string, start?: number, end?: number): AsyncIterable<BinaryData>;
 
   fileLocation<E>(proto: ProtoService<E>, id: string): PromiseLike<string | undefined>;
 
