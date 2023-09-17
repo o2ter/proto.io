@@ -32,6 +32,9 @@ import { AUTH_COOKIE_KEY, MASTER_PASS_HEADER_NAME, MASTER_USER_HEADER_NAME } fro
 
 const _session = <E>(proto: ProtoService<E>) => {
 
+  const req = proto.req as any;
+  req.sessionId = crypto.randomUUID();
+
   const jwtToken = proto[PVK].options.jwtToken;
   if (!proto.req || _.isNil(jwtToken)) return;
 
@@ -50,8 +53,7 @@ const _session = <E>(proto: ProtoService<E>) => {
     const payload = jwt.verify(authorization, jwtToken, { ...proto[PVK].options.jwtVerifyOptions, complete: false });
     if (!_.isObject(payload)) return;
 
-    const req = proto.req as any;
-    req.sessionId = payload.sessionId ?? crypto.randomUUID();
+    if (payload.sessionId) req.sessionId = payload.sessionId;
 
     return payload;
 
