@@ -41,7 +41,7 @@ import {
   TUser,
   _TValue,
 } from '../../internals';
-import { generateId } from '../crypto';
+import { generateId } from '../../internals/crypto/random';
 import { TSchema, defaultObjectKeyTypes, isPrimitive, isRelation } from '../../internals/schema';
 import { QueryValidator } from '../query/validator/validator';
 import { passwordHash, varifyPassword } from '../crypto/password';
