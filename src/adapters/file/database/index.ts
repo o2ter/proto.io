@@ -24,8 +24,8 @@
 //
 
 import _ from 'lodash';
-import { promisify } from 'node:util';
-import { deflate, unzip } from 'node:zlib';
+import { promisify } from 'util';
+import { deflate, unzip } from 'zlib';
 import { FileBuffer, PVK, base64ToBuffer, bufferToBase64 } from '../../../internals';
 import { TFileStorage } from '../../../server/file';
 import { ProtoService } from '../../../server/proto';

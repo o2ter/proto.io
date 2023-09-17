@@ -24,7 +24,7 @@
 //
 
 import fs from 'fs';
-import { Readable } from 'node:stream';
+import { Readable } from 'stream';
 import { masterUser } from './server';
 import { test, expect } from '@jest/globals';
 import Decimal from 'decimal.js';

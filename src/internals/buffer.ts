@@ -24,17 +24,17 @@
 //
 
 import _ from 'lodash';
-import type { Readable } from 'node:stream';
-import type { Blob as NodeBlob } from 'node:buffer';
+import type { Readable } from 'stream';
+import type { Blob as NodeBlob } from 'buffer';
 
-export const _Blob = typeof Blob !== 'undefined' ? Blob : require('node:buffer').Blob as NodeBlob;
+export const _Blob = typeof Blob !== 'undefined' ? Blob : require('buffer').Blob as NodeBlob;
 
 export type FileBuffer = ArrayBuffer | ArrayBufferView;
 export type FileStream = ReadableStream | Readable;
 export type FileData = string | typeof _Blob | FileBuffer | FileStream | { base64: string; };
 
 export const isBlob = (x: any): x is typeof _Blob => {
-  return typeof Blob !== 'undefined' ? x instanceof Blob : x instanceof require('node:buffer').Blob;
+  return typeof Blob !== 'undefined' ? x instanceof Blob : x instanceof require('buffer').Blob;
 };
 
 export const isFileBuffer = (x: any): x is FileBuffer => {
@@ -44,7 +44,7 @@ export const isFileBuffer = (x: any): x is FileBuffer => {
 
 export const isFileStream = (x: any): x is FileStream => {
   if (typeof ReadableStream !== 'undefined' && x instanceof ReadableStream) return true;
-  if (typeof window === 'undefined' && x instanceof require('node:stream').Readable) return true;
+  if (typeof window === 'undefined' && x instanceof require('stream').Readable) return true;
   return false;
 };
 

@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { Readable } from 'node:stream';
+import { Readable } from 'stream';
 import { Request, Response } from 'express';
 import { TSerializable, serialize } from '../../internals';
 import busboy, { FileInfo } from 'busboy';

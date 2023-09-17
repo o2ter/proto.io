@@ -23,12 +23,12 @@
 //  THE SOFTWARE.
 //
 
-import type { randomBytes as _randomBytes } from 'node:crypto';
+import type { randomBytes as _randomBytes } from 'crypto';
 
 const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 
 export const randomBytes = typeof window === 'undefined' ?
-  require('node:crypto').randomBytes as typeof _randomBytes :
+  require('crypto').randomBytes as typeof _randomBytes :
   (size: number) => window.crypto.getRandomValues(new Uint8Array(size));
 
 export const generateId = (size: number): string => {

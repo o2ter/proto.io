@@ -24,8 +24,8 @@
 //
 
 import _ from 'lodash';
-import { scrypt, BinaryLike, ScryptOptions } from 'node:crypto';
-import { promisify } from 'node:util';
+import { scrypt, BinaryLike, ScryptOptions } from 'crypto';
+import { promisify } from 'util';
 import { randomBytes } from '../../internals/crypto/random';
 
 type _PasswordHashOptions = {
