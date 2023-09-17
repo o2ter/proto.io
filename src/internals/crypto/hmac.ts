@@ -35,7 +35,7 @@ const WebHamc = async (
   const algorithm = { name: 'HMAC', hash: 'SHA-256' };
   const _secret = _.isString(secret) ? enc.encode(secret) : secret;
   const _data = _.isString(data) ? enc.encode(data) : data;
-  const key = await window.crypto.subtle.importKey('raw', _secret, algorithm, false, ['sign', 'verify']);
+  const key = await window.crypto.subtle.importKey('raw', _secret, algorithm, false, ['sign']);
   return crypto.subtle.sign(algorithm.name, key, _data);
 }
 
