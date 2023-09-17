@@ -24,7 +24,6 @@
 //
 
 import _ from 'lodash';
-import type { createHmac as _createHmac } from 'crypto';
 import { binaryToBuffer } from '../buffer';
 
 const enc = new TextEncoder();
@@ -44,7 +43,7 @@ const NodeHamc = async (
   secret: BinaryData | string,
   data: BinaryData | string,
 ) => {
-  const createHmac = require('crypto').createHmac as typeof _createHmac;
+  const { createHmac } = await import('crypto');
   const _secret = _.isString(secret) ? enc.encode(secret) : secret;
   const _data = _.isString(data) ? enc.encode(data) : data;
   const hmac = createHmac('sha256', binaryToBuffer(_secret));
