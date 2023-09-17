@@ -24,14 +24,13 @@
 //
 
 import _ from 'lodash';
-import { FileBuffer } from '../../internals';
 
-const _toBuffer = (buffer: FileBuffer) => _.isArrayBuffer(buffer) ?
+const _toBuffer = (buffer: BufferSource) => _.isArrayBuffer(buffer) ?
   Buffer.from(buffer) :
   Buffer.from(buffer.buffer, buffer.byteOffset, buffer.byteLength);
 
 export async function* streamChunk(
-  stream: FileBuffer | AsyncIterable<FileBuffer>,
+  stream: BufferSource | AsyncIterable<BufferSource>,
   chunkSize: number
 ) {
   if (Symbol.asyncIterator in stream) {

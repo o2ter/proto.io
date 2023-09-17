@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { promisify } from 'util';
 import { deflate, unzip } from 'zlib';
-import { FileBuffer, PVK, base64ToBuffer, bufferToBase64 } from '../../../internals';
+import { PVK, base64ToBuffer, bufferToBase64 } from '../../../internals';
 import { TFileStorage } from '../../../server/file';
 import { ProtoService } from '../../../server/proto';
 import { TSchema } from '../../../internals/schema';
@@ -71,7 +71,7 @@ export class DatabaseFileStorage implements TFileStorage {
 
   async create<E>(
     proto: ProtoService<E>,
-    stream: FileBuffer | AsyncIterable<FileBuffer>,
+    stream: BufferSource | AsyncIterable<BufferSource>,
   ) {
 
     const token = proto[PVK].generateId();

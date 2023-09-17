@@ -35,7 +35,7 @@ import {
   ExtraOptions,
   ProtoInternalType,
   FileData,
-  isFileBuffer,
+  isBufferSource,
   base64ToBuffer,
   TObject,
   TUser,
@@ -235,7 +235,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
 
     if (_.isString(data)) {
       file = await this.proto.fileStorage.create(this.proto, Buffer.from(data), info);
-    } else if (isFileBuffer(data) || data instanceof Readable) {
+    } else if (isBufferSource(data) || data instanceof Readable) {
       file = await this.proto.fileStorage.create(this.proto, data, info);
     } else if (data instanceof Blob) {
       file = await this.proto.fileStorage.create(this.proto, await data.arrayBuffer(), info);

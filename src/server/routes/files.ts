@@ -28,7 +28,7 @@ import { Router } from 'express';
 import { Readable } from 'stream';
 import { ProtoService } from '../proto';
 import { decodeFormStream, response } from './common';
-import { FileBuffer, PVK, deserialize } from '../../internals';
+import { PVK, deserialize } from '../../internals';
 
 export default <E>(router: Router, proto: ProtoService<E>) => {
 
@@ -88,7 +88,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       res.setHeader('Cache-Control', 'public, max-age=0');
       res.setHeader('ETag', `"${id}"`);
 
-      let stream: AsyncIterable<FileBuffer>;
+      let stream: AsyncIterable<BufferSource>;
 
       if (_.isArray(ranges) && ranges.type === 'bytes') {
 

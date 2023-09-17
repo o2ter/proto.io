@@ -29,15 +29,14 @@ import type { Blob as NodeBlob } from 'buffer';
 
 export const _Blob = typeof Blob !== 'undefined' ? Blob : require('buffer').Blob as NodeBlob;
 
-export type FileBuffer = ArrayBuffer | ArrayBufferView;
 export type FileStream = ReadableStream | Readable;
-export type FileData = string | typeof _Blob | FileBuffer | FileStream | { base64: string; };
+export type FileData = string | typeof _Blob | BufferSource | FileStream | { base64: string; };
 
 export const isBlob = (x: any): x is typeof _Blob => {
   return typeof Blob !== 'undefined' ? x instanceof Blob : x instanceof require('buffer').Blob;
 };
 
-export const isFileBuffer = (x: any): x is FileBuffer => {
+export const isBufferSource = (x: any): x is BufferSource => {
   if (_.isArrayBuffer(x) || ArrayBuffer.isView(x)) return true;
   return false;
 };
@@ -60,7 +59,7 @@ const _bufferToBase64 = typeof window === 'undefined' ?
   (buffer: ArrayBufferLike) => Buffer.from(buffer).toString('base64') :
   (buffer: ArrayBufferLike) => window.btoa(String.fromCharCode(...new Uint8Array(buffer)));
 
-export const bufferToBase64 = (buffer: string | FileBuffer) => {
+export const bufferToBase64 = (buffer: string | BufferSource) => {
   if (_.isString(buffer)) return _stringToBase64(buffer);
   if (typeof Buffer !== 'undefined' && buffer instanceof Buffer) return Buffer.from(buffer).toString('base64');
   if (ArrayBuffer.isView(buffer)) buffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
