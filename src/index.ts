@@ -45,8 +45,13 @@ export { ProtoClient } from './client';
 
 export const schema = (x: Record<string, TSchema>) => x;
 
+type AdapterHandler<E, Handler extends RequestHandler = RequestHandler>
+  = Handler extends (req: infer Req, ...args: infer Rest) => void
+  ? (req: ProtoService<E> & { req: Req; }, ...args: Rest) => void
+  : never;
+
 export const ProtoRoute = async <E>(options: {
-  adapters?: ((proto: ProtoService<E>) => RequestHandler)[],
+  adapters?: AdapterHandler<E>[],
   proto: ProtoService<E> | ProtoServiceOptions<E>;
 }) => {
 
@@ -62,7 +67,7 @@ export const ProtoRoute = async <E>(options: {
     cookieParser() as any,
     csrfHandler(proto[PVK].options.csrfToken),
     authHandler(proto),
-    ..._.map(adapters, x => x(proto)),
+    ..._.map(adapters, x => ((req, res, next) => x(proto.connect(req), res, next)) as RequestHandler),
   );
 
   classesRoute(router, proto);
