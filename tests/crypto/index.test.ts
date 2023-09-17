@@ -27,6 +27,6 @@ import { expect, test } from '@jest/globals';
 import { Hamc } from '../../src/internals/crypto/hmac';
 
 test('test hmac', async () => {
-  const buffer = await Hamc('abc', 'def');
+  const buffer = await Hamc('sha256', 'abc', 'def');
   expect(Buffer.from(buffer).toString('base64')).toBe('IOvA8JNERwE081BA9j6pix2OQUISlJ7lxQBCnRXqsIE=');
 });
