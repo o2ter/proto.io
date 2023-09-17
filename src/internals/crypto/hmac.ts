@@ -28,11 +28,19 @@ import { binaryToBuffer } from '../buffer';
 
 const enc = new TextEncoder();
 
+const algMap = {
+  'sha1': 'SHA-1',
+  'sha256': 'SHA-256',
+  'sha384': 'SHA-384',
+  'sha512': 'SHA-512',
+};
+
 const WebHamc = async (
+  alg: keyof typeof algMap,
   secret: BinaryData | string,
   data: BinaryData | string,
 ) => {
-  const algorithm = { name: 'HMAC', hash: 'SHA-256' };
+  const algorithm = { name: 'HMAC', hash: algMap[alg] };
   const _secret = _.isString(secret) ? enc.encode(secret) : secret;
   const _data = _.isString(data) ? enc.encode(data) : data;
   const key = await window.crypto.subtle.importKey('raw', _secret, algorithm, false, ['sign']);
@@ -40,13 +48,14 @@ const WebHamc = async (
 }
 
 const NodeHamc = async (
+  alg: keyof typeof algMap,
   secret: BinaryData | string,
   data: BinaryData | string,
 ) => {
   const { createHmac } = await import('crypto');
   const _secret = _.isString(secret) ? enc.encode(secret) : secret;
   const _data = _.isString(data) ? enc.encode(data) : data;
-  const hmac = createHmac('sha256', binaryToBuffer(_secret));
+  const hmac = createHmac(alg, binaryToBuffer(_secret));
   hmac.update(binaryToBuffer(_data));
   return hmac.digest();
 }
