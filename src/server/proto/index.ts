@@ -97,7 +97,11 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
   }
 
   get isMaster(): boolean {
-    return sessionIsMaster(this);
+    return sessionIsMaster(this) === 'valid';
+  }
+
+  get isInvalidMasterToken(): boolean {
+    return sessionIsMaster(this) === 'invalid';
   }
 
   connect<R extends Request, T extends object>(

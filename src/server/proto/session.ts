@@ -92,5 +92,5 @@ export const sessionIsMaster = <E>(proto: ProtoService<E>) => {
   const user = proto.req.header(MASTER_USER_HEADER_NAME);
   const pass = proto.req.header(MASTER_PASS_HEADER_NAME);
   if (_.isEmpty(user) || _.isEmpty(pass)) return false;
-  return _.some(proto[PVK].options.masterUsers, x => x.user === user && x.pass === pass);
+  return _.some(proto[PVK].options.masterUsers, x => x.user === user && x.pass === pass) ? 'valid' : 'invalid';
 }
