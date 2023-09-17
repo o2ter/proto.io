@@ -1,5 +1,5 @@
 //
-//  stream.ts
+//  index.test.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -23,30 +23,10 @@
 //  THE SOFTWARE.
 //
 
-import _ from 'lodash';
-import { binaryToBuffer } from '../../internals';
+import { expect, test } from '@jest/globals';
+import { Hamc } from '../../src/internals/crypto/hmac';
 
-export async function* streamChunk(
-  stream: BinaryData | AsyncIterable<BinaryData>,
-  chunkSize: number
-) {
-  if (Symbol.asyncIterator in stream) {
-    let buffer = Buffer.from([]);
-    for await (const chunk of stream) {
-      buffer = Buffer.concat([buffer, binaryToBuffer(chunk)]);
-      while (buffer.byteLength >= chunkSize) {
-        yield buffer.subarray(0, chunkSize);
-        buffer = buffer.subarray(chunkSize);
-      }
-    }
-    if (buffer.length) yield buffer;
-  } else {
-    let buffer = binaryToBuffer(stream);
-    while (buffer.byteLength >= chunkSize) {
-      yield buffer.subarray(0, chunkSize);
-      buffer = buffer.subarray(chunkSize);
-    }
-    if (buffer.length) yield buffer;
-  }
-}
-;
+test('test hmac', async () => {
+  const buffer = await Hamc('abc', 'def');
+  expect(Buffer.from(buffer).toString('base64')).toBe('IOvA8JNERwE081BA9j6pix2OQUISlJ7lxQBCnRXqsIE=');
+});

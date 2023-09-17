@@ -1,5 +1,5 @@
 //
-//  stream.ts
+//  hmac.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -24,29 +24,32 @@
 //
 
 import _ from 'lodash';
-import { binaryToBuffer } from '../../internals';
+import type { createHmac as _createHmac } from 'crypto';
+import { binaryToBuffer } from '../buffer';
 
-export async function* streamChunk(
-  stream: BinaryData | AsyncIterable<BinaryData>,
-  chunkSize: number
-) {
-  if (Symbol.asyncIterator in stream) {
-    let buffer = Buffer.from([]);
-    for await (const chunk of stream) {
-      buffer = Buffer.concat([buffer, binaryToBuffer(chunk)]);
-      while (buffer.byteLength >= chunkSize) {
-        yield buffer.subarray(0, chunkSize);
-        buffer = buffer.subarray(chunkSize);
-      }
-    }
-    if (buffer.length) yield buffer;
-  } else {
-    let buffer = binaryToBuffer(stream);
-    while (buffer.byteLength >= chunkSize) {
-      yield buffer.subarray(0, chunkSize);
-      buffer = buffer.subarray(chunkSize);
-    }
-    if (buffer.length) yield buffer;
-  }
+const enc = new TextEncoder();
+
+const WebHamc = async (
+  secret: BinaryData | string,
+  data: BinaryData | string,
+) => {
+  const algorithm = { name: 'HMAC', hash: 'SHA-256' };
+  const _secret = _.isString(secret) ? enc.encode(secret) : secret;
+  const _data = _.isString(data) ? enc.encode(data) : data;
+  const key = await window.crypto.subtle.importKey('raw', _, algorithm, false, ['sign', 'verify']);
+  return crypto.subtle.sign(algorithm.name, key, _data);
 }
-;
+
+const NodeHamc = async (
+  secret: BinaryData | string,
+  data: BinaryData | string,
+) => {
+  const createHmac = require('crypto').createHmac as typeof _createHmac;
+  const _secret = _.isString(secret) ? enc.encode(secret) : secret;
+  const _data = _.isString(data) ? enc.encode(data) : data;
+  const hmac = createHmac('sha256', binaryToBuffer(_secret));
+  hmac.update(binaryToBuffer(_data));
+  return hmac.digest();
+}
+
+export const Hamc = typeof window === 'undefined' ? NodeHamc : WebHamc;

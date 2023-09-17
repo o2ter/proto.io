@@ -65,3 +65,7 @@ export const bufferToBase64 = (buffer: string | BinaryData) => {
   if (ArrayBuffer.isView(buffer)) buffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
   return _bufferToBase64(buffer);
 }
+
+export const binaryToBuffer = (buffer: BinaryData) => _.isArrayBuffer(buffer) ?
+  Buffer.from(buffer) :
+  Buffer.from(buffer.buffer, buffer.byteOffset, buffer.byteLength);
