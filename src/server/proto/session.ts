@@ -64,7 +64,7 @@ const _session = <E>(proto: ProtoService<E>) => {
   try {
 
     const payload = jwt.verify(authorization, jwtToken, { ...proto[PVK].options.jwtVerifyOptions, complete: false });
-    if (!_.isObject(payload)) return;
+    if (!_.isObject(payload)) return { invalid: true };
 
     sessionMap.set(req, {
       sessionId: payload.sessionId ?? crypto.randomUUID(),
@@ -74,7 +74,7 @@ const _session = <E>(proto: ProtoService<E>) => {
     return payload;
 
   } catch {
-    return;
+    return { invalid: true };
   }
 }
 
@@ -83,6 +83,13 @@ export const sessionId = <E>(proto: ProtoService<E>): string | undefined => {
   if (!req) return;
   const session = _session(proto);
   return sessionMap.get(req)?.sessionId ?? session?.sessionId;
+}
+
+export const isInvalidSession = <E>(proto: ProtoService<E>): boolean => {
+  const req = proto.req;
+  if (!req) return false;
+  const session = _session(proto);
+  return session?.invalid ?? false;
 }
 
 export const session = async <E>(proto: ProtoService<E>) => {
