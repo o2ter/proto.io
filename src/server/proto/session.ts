@@ -24,12 +24,12 @@
 //
 
 import _ from 'lodash';
-import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { Request } from 'express';
 import { ProtoService } from './index';
 import { PVK, TUser } from '../../internals';
 import { AUTH_COOKIE_KEY, MASTER_PASS_HEADER_NAME, MASTER_USER_HEADER_NAME } from '../../internals/common/const';
+import { randomUUID } from '@o2ter/crypto-js';
 
 const sessionMap = new WeakMap<Request, {
   sessionId: string;
@@ -46,7 +46,7 @@ const _session = <E>(proto: ProtoService<E>) => {
   const req = proto.req;
   if (!req) return;
 
-  sessionMap.set(req, { sessionId: crypto.randomUUID() });
+  sessionMap.set(req, { sessionId: randomUUID() });
 
   const jwtToken = proto[PVK].options.jwtToken;
   if (!proto.req || _.isNil(jwtToken)) return;
@@ -67,7 +67,7 @@ const _session = <E>(proto: ProtoService<E>) => {
     if (!_.isObject(payload)) return { invalid: true };
 
     sessionMap.set(req, {
-      sessionId: payload.sessionId ?? crypto.randomUUID(),
+      sessionId: payload.sessionId ?? randomUUID(),
       payload,
     });
 

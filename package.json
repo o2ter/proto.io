@@ -16,7 +16,7 @@
     "test": "jest --detectOpenHandles"
   },
   "dependencies": {
-    "@o2ter/crypto-js": "^0.0.2",
+    "@o2ter/crypto-js": "^0.0.3",
     "axios": "^1.5.0",
     "busboy": "^1.6.0",
     "cookie-parser": "^1.4.6",

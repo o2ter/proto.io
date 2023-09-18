@@ -24,12 +24,12 @@
 //
 
 import _ from 'lodash';
-import crypto from 'crypto';
 import express from 'express';
 import { ProtoService, ProtoRoute } from '../../src/index';
 import { beforeAll, afterAll } from '@jest/globals';
 import DatabaseFileStorage from '../../src/adapters/file/database';
 import PostgresStorage from '../../src/adapters/storage/progres';
+import { randomUUID } from '@o2ter/crypto-js';
 
 let httpServer: any;
 
@@ -50,13 +50,13 @@ const database = new PostgresStorage(uri);
 
 export const masterUser = {
   user: 'admin',
-  pass: crypto.randomUUID(),
+  pass: randomUUID(),
 };
 
 const Proto = new ProtoService({
   endpoint: 'http://localhost:8080/proto',
   masterUsers: [masterUser],
-  jwtToken: crypto.randomUUID(),
+  jwtToken: randomUUID(),
   schema: {
     'User': {
       fields: {
