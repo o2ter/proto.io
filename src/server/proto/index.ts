@@ -110,13 +110,13 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     return _.assign(payload, _.isFunction(attrs) ? attrs(payload) : attrs)
   }
 
-  becomeUser(req: Request, user: TUser) {
+  async becomeUser(req: Request, user: TUser) {
     if (!user.objectId) throw Error('Invalid user object');
-    if (req.res) signUser(this, req.res, user);
+    if (req.res) await signUser(this, req.res, user);
   }
 
-  logoutUser(req: Request) {
-    if (req.res) signUser(this, req.res, undefined);
+  async logoutUser(req: Request) {
+    if (req.res) await signUser(this, req.res, undefined);
   }
 
   varifyPassword(user: TUser, password: string, options: ExtraOptions & { master: true }) {

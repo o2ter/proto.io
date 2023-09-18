@@ -115,10 +115,11 @@ export const sessionIsMaster = <E>(proto: ProtoService<E>) => {
   return _.some(proto[PVK].options.masterUsers, x => x.user === user && x.pass === pass) ? 'valid' : 'invalid';
 }
 
-export const signUser = <E>(proto: ProtoService<E>, res: Response, user?: TUser) => {
+export const signUser = async <E>(proto: ProtoService<E>, res: Response, user?: TUser) => {
   const jwtToken = proto[PVK].options.jwtToken;
   if (_.isNil(jwtToken)) return;
   const sessionId = proto.sessionId ?? randomUUID();
   const token = jwt.sign({ sessionId, user: user?.objectId }, jwtToken, proto[PVK].options.jwtSignOptions);
   res.cookie(AUTH_COOKIE_KEY, token, proto[PVK].options.cookieOptions);
+  sessionInfoMap.set(res.req, user ? await fetchSessionInfo(proto, user.objectId) : {});
 }

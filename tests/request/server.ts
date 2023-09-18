@@ -108,7 +108,7 @@ Proto.define('createUser', async (proto) => {
   const user = await proto.Query('User').insert({ name: 'test' });
   await proto.setPassword(user, 'password123', { master: true });
   if (!await proto.varifyPassword(user, 'password123', { master: true })) throw Error('incorrect password');
-  proto.becomeUser(proto.req!, user);
+  await proto.becomeUser(proto.req!, user);
 });
 
 Proto.define('createUserWithRole', async (proto) => {
@@ -117,7 +117,7 @@ Proto.define('createUserWithRole', async (proto) => {
   const user = await proto.Query('User').insert({ name: 'test' });
   _role.addToSet('users', [user]);
   await _role.save({ master: true });
-  proto.becomeUser(proto.req!, user);
+  await proto.becomeUser(proto.req!, user);
 });
 
 beforeAll(async () => {
