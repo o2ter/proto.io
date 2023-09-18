@@ -24,6 +24,7 @@
 //
 
 import _ from 'lodash';
+import type { Readable as _Readable } from 'stream';
 import { Awaitable } from '../internals/types';
 
 export const streamToIterable = <T>(
@@ -45,13 +46,14 @@ export const streamToIterable = <T>(
 export const iterableToStream = <T>(
   iterable: Awaitable<AsyncIterable<T>> | (() => Awaitable<AsyncIterable<T>>)
 ) => {
-  let iterator: AsyncIterator<T>;
   if (typeof ReadableStream === 'undefined') {
-    return require('stream').Readable.from((async function* () {
+    const Readable = require('stream').Readable as typeof _Readable;
+    return Readable.from((async function* () {
       const _iterable = _.isFunction(iterable) ? iterable() : iterable;
       yield* await _iterable;
     })());
   }
+  let iterator: AsyncIterator<T>;
   return new ReadableStream<T>({
     async start(controller) {
       try {
