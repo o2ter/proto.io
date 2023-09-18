@@ -26,14 +26,27 @@
 import _ from 'lodash';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
+import { Request } from 'express';
 import { ProtoService } from './index';
 import { PVK, TUser } from '../../internals';
 import { AUTH_COOKIE_KEY, MASTER_PASS_HEADER_NAME, MASTER_USER_HEADER_NAME } from '../../internals/common/const';
 
+const sessionMap = new WeakMap<Request, {
+  sessionId: string;
+  payload?: jwt.JwtPayload;
+}>();
+
+const sessionUserMap = new WeakMap<Request, {
+  user?: TUser;
+  roles: string[];
+}>();
+
 const _session = <E>(proto: ProtoService<E>) => {
 
-  const req = proto.req as any;
-  req.sessionId = crypto.randomUUID();
+  const req = proto.req;
+  if (!req) return;
+
+  sessionMap.set(req, { sessionId: crypto.randomUUID() });
 
   const jwtToken = proto[PVK].options.jwtToken;
   if (!proto.req || _.isNil(jwtToken)) return;
@@ -53,7 +66,10 @@ const _session = <E>(proto: ProtoService<E>) => {
     const payload = jwt.verify(authorization, jwtToken, { ...proto[PVK].options.jwtVerifyOptions, complete: false });
     if (!_.isObject(payload)) return;
 
-    if (payload.sessionId) req.sessionId = payload.sessionId;
+    sessionMap.set(req, {
+      sessionId: payload.sessionId ?? crypto.randomUUID(),
+      payload,
+    });
 
     return payload;
 
@@ -63,30 +79,34 @@ const _session = <E>(proto: ProtoService<E>) => {
 }
 
 export const sessionId = <E>(proto: ProtoService<E>): string | undefined => {
-  if (!proto.req) return;
-  const req = proto.req as any;
+  const req = proto.req;
+  if (!req) return;
   const session = _session(proto);
-  return req.sessionId ?? session?.sessionId;
+  return sessionMap.get(req)?.sessionId ?? session?.sessionId;
 }
 
 export const session = async <E>(proto: ProtoService<E>) => {
-  if (!proto.req) return;
 
-  const req = proto.req as any;
+  const req = proto.req;
+  if (!req) return;
+
   const session = _session(proto);
+  const sessionId: string | undefined = sessionMap.get(req)?.sessionId ?? session?.sessionId;
+
+  const cached = sessionUserMap.get(req);
+  if (cached) return { sessionId, ...cached };
+
   const user = session?.user && _.isString(session.user) ? await proto.Query('User', { master: true }).get(session.user) : undefined;
-  const roles = user instanceof TUser ? _.map(await proto.userRoles(user), x => x.name) : [];
-  const sessionId: string | undefined = req.sessionId ?? session?.sessionId;
+  const roles = user instanceof TUser ? _.compact(_.map(await proto.userRoles(user), x => x.name)) : [];
 
-  req.sessionId = sessionId;
-  req.roles = roles;
-  req.user = user instanceof TUser ? user : undefined;
-
-  return {
+  const result = {
     sessionId,
     roles: roles,
     user: user instanceof TUser ? user : undefined,
   };
+
+  sessionUserMap.set(req, result);
+  return result;
 }
 
 export const sessionIsMaster = <E>(proto: ProtoService<E>) => {
