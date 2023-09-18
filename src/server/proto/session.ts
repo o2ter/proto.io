@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import jwt from 'jsonwebtoken';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { ProtoService } from './index';
 import { PVK, TUser } from '../../internals';
 import { AUTH_COOKIE_KEY, MASTER_PASS_HEADER_NAME, MASTER_USER_HEADER_NAME } from '../../internals/common/const';
@@ -85,6 +85,15 @@ export const sessionId = <E>(proto: ProtoService<E>): string | undefined => {
   return sessionMap.get(req)?.sessionId ?? session?.sessionId;
 }
 
+const fetchUserInfo = async <E>(proto: ProtoService<E>, userId?: string) => {
+  const user = _.isString(userId) ? await proto.Query('User', { master: true }).get(userId) : undefined;
+  const roles = user instanceof TUser ? _.compact(_.map(await proto.userRoles(user), x => x.name)) : [];
+  return {
+    roles: roles,
+    user: user instanceof TUser ? user : undefined,
+  };
+}
+
 export const session = async <E>(proto: ProtoService<E>) => {
 
   const req = proto.req;
@@ -96,13 +105,9 @@ export const session = async <E>(proto: ProtoService<E>) => {
   const cached = sessionInfoMap.get(req);
   if (cached) return { sessionId, ...cached };
 
-  const user = session?.user && _.isString(session.user) ? await proto.Query('User', { master: true }).get(session.user) : undefined;
-  const roles = user instanceof TUser ? _.compact(_.map(await proto.userRoles(user), x => x.name)) : [];
-
   const info = {
     sessionId,
-    roles: roles,
-    user: user instanceof TUser ? user : undefined,
+    ...await fetchUserInfo(proto, session?.user),
   };
 
   sessionInfoMap.set(req, info);
@@ -115,4 +120,11 @@ export const sessionIsMaster = <E>(proto: ProtoService<E>) => {
   const pass = proto.req.header(MASTER_PASS_HEADER_NAME);
   if (_.isEmpty(user) || _.isEmpty(pass)) return false;
   return _.some(proto[PVK].options.masterUsers, x => x.user === user && x.pass === pass) ? 'valid' : 'invalid';
+}
+
+export function signUser<E>(proto: ProtoService<E>, res: Response, user?: TUser) {
+  const jwtToken = proto[PVK].options.jwtToken;
+  if (_.isNil(jwtToken)) return;
+  const token = jwt.sign({ user: user?.objectId, sessionId: proto.sessionId ?? randomUUID() }, jwtToken, proto[PVK].options.jwtSignOptions);
+  res.cookie(AUTH_COOKIE_KEY, token, proto[PVK].options.cookieOptions);
 }
