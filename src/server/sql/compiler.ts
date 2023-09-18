@@ -29,7 +29,7 @@ import { CoditionalSelector, FieldSelector, QuerySelector } from '../query/valid
 import { DecodedBaseQuery, DecodedQuery, FindOneOptions, FindOptions, InsertOptions } from '../storage';
 import { SQL, sql } from './sql';
 import { TValue, TUpdateOp } from '../../internals';
-import { generateId } from '../../internals/crypto/random';
+import { generateId } from '../crypto/random';
 import { SqlDialect } from './dialect';
 
 export type QueryCompilerOptions = {

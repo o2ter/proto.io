@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { scrypt, BinaryLike, ScryptOptions } from 'crypto';
 import { promisify } from 'util';
-import { randomBytes } from '../../internals/crypto/random';
+import { randomBytes } from '@o2ter/crypto-js';
 
 type _PasswordHashOptions = {
   'scrypt': {

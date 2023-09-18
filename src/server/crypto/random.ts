@@ -1,5 +1,5 @@
 //
-//  hmac.ts
+//  random.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -23,41 +23,14 @@
 //  THE SOFTWARE.
 //
 
-import _ from 'lodash';
-import { binaryToBuffer } from '../buffer';
+import { randomBytes } from "@o2ter/crypto-js";
 
-const enc = new TextEncoder();
+const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 
-const algMap = {
-  'sha1': 'SHA-1',
-  'sha256': 'SHA-256',
-  'sha384': 'SHA-384',
-  'sha512': 'SHA-512',
-};
-
-const WebHamc = async (
-  alg: keyof typeof algMap,
-  secret: BinaryData | string,
-  data: BinaryData | string,
-) => {
-  const algorithm = { name: 'HMAC', hash: algMap[alg] };
-  const _secret = _.isString(secret) ? enc.encode(secret) : secret;
-  const _data = _.isString(data) ? enc.encode(data) : data;
-  const key = await window.crypto.subtle.importKey('raw', _secret, algorithm, false, ['sign']);
-  return crypto.subtle.sign(algorithm.name, key, _data);
+export const generateId = (size: number): string => {
+  let id = '';
+  for (const x of randomBytes(size)) {
+    id += chars[x % chars.length];
+  }
+  return id;
 }
-
-const NodeHamc = async (
-  alg: keyof typeof algMap,
-  secret: BinaryData | string,
-  data: BinaryData | string,
-) => {
-  const { createHmac } = await import('crypto');
-  const _secret = _.isString(secret) ? Buffer.from(secret, 'utf8') : secret;
-  const _data = _.isString(data) ? Buffer.from(data, 'utf8') : data;
-  const hmac = createHmac(alg, binaryToBuffer(_secret));
-  hmac.update(binaryToBuffer(_data));
-  return hmac.digest();
-}
-
-export const Hamc = typeof window === 'undefined' ? NodeHamc : WebHamc;
