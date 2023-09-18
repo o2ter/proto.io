@@ -39,7 +39,7 @@ import {
 import { Request } from 'express';
 import { signUser } from '../auth/sign';
 import { ProtoServiceOptions, ProtoServiceKeyOptions, ProtoFunction, ProtoFunctionOptions, ProtoTrigger } from './types';
-import { sessionId, sessionIsMaster, session, isInvalidSession } from './session';
+import { sessionId, sessionIsMaster, session } from './session';
 
 export class ProtoService<Ext> extends ProtoType<Ext> {
 
@@ -97,10 +97,6 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
 
   get isMaster(): boolean {
     return sessionIsMaster(this) === 'valid';
-  }
-
-  get isInvalidSessionToken(): boolean {
-    return isInvalidSession(this);
   }
 
   get isInvalidMasterToken(): boolean {
