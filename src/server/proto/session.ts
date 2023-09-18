@@ -36,11 +36,6 @@ const sessionMap = new WeakMap<Request, {
   payload?: jwt.JwtPayload;
 }>();
 
-const sessionInfoMap = new WeakMap<Request, {
-  user?: TUser;
-  roles: string[];
-}>();
-
 const _session = <E>(proto: ProtoService<E>) => {
 
   const req = proto.req;
@@ -85,7 +80,8 @@ export const sessionId = <E>(proto: ProtoService<E>): string | undefined => {
   return sessionMap.get(req)?.sessionId ?? session?.sessionId;
 }
 
-const fetchUserInfo = async <E>(proto: ProtoService<E>, userId?: string) => {
+const sessionInfoMap = new WeakMap<Request, Partial<Awaited<ReturnType<typeof fetchSessionInfo<any>>>>>();
+const fetchSessionInfo = async <E>(proto: ProtoService<E>, userId?: string) => {
   const user = _.isString(userId) ? await proto.Query('User', { master: true }).get(userId) : undefined;
   const roles = user instanceof TUser ? _.compact(_.map(await proto.userRoles(user), x => x.name)) : [];
   return {
@@ -105,13 +101,10 @@ export const session = async <E>(proto: ProtoService<E>) => {
   const cached = sessionInfoMap.get(req);
   if (cached) return { sessionId, ...cached };
 
-  const info = {
-    sessionId,
-    ...await fetchUserInfo(proto, session?.user),
-  };
-
+  const info = await fetchSessionInfo(proto, session?.user);
   sessionInfoMap.set(req, info);
-  return info;
+
+  return { sessionId, ...info };
 }
 
 export const sessionIsMaster = <E>(proto: ProtoService<E>) => {
@@ -122,9 +115,10 @@ export const sessionIsMaster = <E>(proto: ProtoService<E>) => {
   return _.some(proto[PVK].options.masterUsers, x => x.user === user && x.pass === pass) ? 'valid' : 'invalid';
 }
 
-export function signUser<E>(proto: ProtoService<E>, res: Response, user?: TUser) {
+export const signUser = <E>(proto: ProtoService<E>, res: Response, user?: TUser) => {
   const jwtToken = proto[PVK].options.jwtToken;
   if (_.isNil(jwtToken)) return;
-  const token = jwt.sign({ user: user?.objectId, sessionId: proto.sessionId ?? randomUUID() }, jwtToken, proto[PVK].options.jwtSignOptions);
+  const sessionId = proto.sessionId ?? randomUUID();
+  const token = jwt.sign({ sessionId, user: user?.objectId }, jwtToken, proto[PVK].options.jwtSignOptions);
   res.cookie(AUTH_COOKIE_KEY, token, proto[PVK].options.cookieOptions);
 }
