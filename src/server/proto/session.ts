@@ -36,7 +36,7 @@ const sessionMap = new WeakMap<Request, {
   payload?: jwt.JwtPayload;
 }>();
 
-const sessionUserMap = new WeakMap<Request, {
+const sessionInfoMap = new WeakMap<Request, {
   user?: TUser;
   roles: string[];
 }>();
@@ -100,20 +100,20 @@ export const session = async <E>(proto: ProtoService<E>) => {
   const session = _session(proto);
   const sessionId: string | undefined = sessionMap.get(req)?.sessionId ?? session?.sessionId;
 
-  const cached = sessionUserMap.get(req);
+  const cached = sessionInfoMap.get(req);
   if (cached) return { sessionId, ...cached };
 
   const user = session?.user && _.isString(session.user) ? await proto.Query('User', { master: true }).get(session.user) : undefined;
   const roles = user instanceof TUser ? _.compact(_.map(await proto.userRoles(user), x => x.name)) : [];
 
-  const result = {
+  const info = {
     sessionId,
     roles: roles,
     user: user instanceof TUser ? user : undefined,
   };
 
-  sessionUserMap.set(req, result);
-  return result;
+  sessionInfoMap.set(req, info);
+  return info;
 }
 
 export const sessionIsMaster = <E>(proto: ProtoService<E>) => {
