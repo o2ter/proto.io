@@ -70,11 +70,8 @@ export const ProtoRoute = async <E>(options: {
     ..._.map(adapters, x => ((req, res, next) => x(proto.connect(req), res, next)) as RequestHandler),
     (req, res, next) => {
       const payload = proto.connect(req);
-      if (payload.isInvalidMasterToken) {
-        res.status(400).json({ message: 'Invalid token' });
-      } else {
-        next();
-      }
+      if (!payload.isInvalidMasterToken) return next();
+      res.status(400).json({ message: 'Invalid token' });
     },
   );
 
