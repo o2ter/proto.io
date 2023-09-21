@@ -120,6 +120,24 @@ Proto.define('createUserWithRole', async (proto) => {
   await proto.becomeUser(proto.req!, user);
 });
 
+Proto.define('updateWithTransaction', async (proto) => {
+  const { className, values, error } = proto.data as any;
+  try {
+
+    await proto.withTransaction(async (proto) => {
+      await proto.Query(className)
+        .equalTo('_id', values._id)
+        .updateOne(_.mapValues(_.omit(values, '_id'), v => ({ $set: v })));
+      if (_.isString(error)) throw Error(error);
+    });
+
+    return { success: true, error: null };
+
+  } catch (e: any) {
+    return { success: false, error: e.message };
+  }
+});
+
 beforeAll(async () => {
 
   const app = express();

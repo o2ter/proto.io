@@ -1126,3 +1126,32 @@ test('test permission 4', async () => {
   expect(await Proto.Query('Test').get(object.objectId!)).toBeTruthy();
   await Proto.logout();
 })
+
+test('transaction', async () => {
+
+  const object = await Proto.Query('Test').insert({});
+
+  const result1 = await Proto.run('updateWithTransaction', {
+    className: 'Test',
+    values: {
+      _id: object.objectId!,
+      number: 42
+    },
+    error: 'test error',
+  });
+
+  expect(result1).toStrictEqual({ success: false, error: 'test error' });
+  expect((await Proto.Query('Test').get(object.objectId!))?.get('number')).toBeUndefined();
+
+  const result2 = await Proto.run('updateWithTransaction', {
+    className: 'Test',
+    values: {
+      _id: object.objectId!,
+      number: 42
+    },
+  });
+
+  expect(result2).toStrictEqual({ success: true, error: null });
+  expect((await Proto.Query('Test').get(object.objectId!))?.get('number')).toStrictEqual(42);
+
+})
