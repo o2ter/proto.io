@@ -126,7 +126,7 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
   ) {
     return this.withConnection(async (connection) => {
 
-      const transaction = new PostgresStorageTransaction(connection._driver);
+      const transaction = new PostgresStorageTransaction(connection._driver, 0);
 
       try {
 
