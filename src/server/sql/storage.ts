@@ -56,6 +56,10 @@ export abstract class SqlStorage implements TStorage {
   abstract config(): PromiseLike<Record<string, _TValue>>;
   abstract setConfig(values: Record<string, _TValue>): PromiseLike<void>;
   abstract withConnection<T>(callback: (connection: TStorage) => PromiseLike<T>): PromiseLike<T>
+  abstract withTransaction<T>(
+    callback: (connection: TStorage) => PromiseLike<T>,
+    options?: any,
+  ): PromiseLike<T>
 
   abstract get dialect(): SqlDialect
   protected abstract _query(text: string, values: any[]): ReturnType<typeof asyncStream<any>>

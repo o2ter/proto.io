@@ -31,6 +31,7 @@ import { PostgresDialect, _decodeValue, _encodeValue, _encodeJsonValue } from '.
 import { QueryCompiler } from '../../../server/sql/compiler';
 import { DecodedQuery, FindOptions } from '../../../server/storage';
 import { ScheduleOp } from '../../../server/schedule';
+import { PostgresStorageTransaction, transactionBeginMap } from './transaction';
 
 export class PostgresStorageClient<Driver extends PostgresClientDriver> extends SqlStorage {
 
@@ -117,5 +118,31 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
     callback: (connection: PostgresStorageClient<PostgresClientDriver>) => PromiseLike<T>
   ) {
     return callback(this);
+  }
+
+  withTransaction<T>(
+    callback: (connection: PostgresStorageTransaction) => PromiseLike<T>,
+    options?: any,
+  ) {
+    return this.withConnection(async (connection) => {
+
+      const transaction = new PostgresStorageTransaction(connection._driver);
+
+      try {
+
+        const _begin = _.isString(options?.mode)
+          ? transactionBeginMap[options.mode as keyof typeof transactionBeginMap] ?? transactionBeginMap.default
+          : transactionBeginMap.default;
+        await transaction.query(_begin);
+        const result = await callback(transaction);
+        await transaction.query(sql`COMMIT`);
+
+        return result
+
+      } catch (e) {
+        await transaction.query(sql`ROLLBACK`);
+        throw e;
+      }
+    });
   }
 }
