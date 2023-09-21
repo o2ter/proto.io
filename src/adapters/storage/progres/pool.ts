@@ -181,6 +181,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
   ) {
     return this._driver.withClient((client) => {
       const connection = new PostgresStorageClient(client, []);
+      connection.schema = this.schema;
       return callback(connection);
     });
   }
