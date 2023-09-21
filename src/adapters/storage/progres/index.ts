@@ -115,6 +115,11 @@ class PostgresStorageClient<Driver extends PostgresClientDriver> extends SqlStor
     return this._driver.indices(table, namespace);
   }
 
+  withConnection<T>(
+    callback: (connection: PostgresStorageClient<PostgresClientDriver>) => PromiseLike<T>
+  ) {
+    return callback(this);
+  }
 }
 
 export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
@@ -262,6 +267,14 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
     }
   }
 
+  override withConnection<T>(
+    callback: (connection: PostgresStorageClient<PostgresClientDriver>) => PromiseLike<T>
+  ) {
+    return this._driver.withClient((client) => {
+      const connection = new PostgresStorageClient(client, []);
+      return callback(connection);
+    });
+  }
 }
 
 export default PostgresStorage;

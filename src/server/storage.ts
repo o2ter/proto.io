@@ -75,4 +75,6 @@ export interface TStorage {
   deleteOne(query: DecodedQuery<FindOneOptions>): PromiseLike<TObject | undefined>;
 
   deleteMany(query: DecodedQuery<FindOptions>): PromiseLike<number>;
+
+  withConnection<T>(callback: (connection: TStorage) => PromiseLike<T>): PromiseLike<T>
 }
