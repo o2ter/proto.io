@@ -40,7 +40,7 @@ export class PostgresStorageTransaction extends PostgresStorageClient<PostgresCl
   counter: number;
 
   constructor(driver: PostgresClientDriver, counter: number) {
-    super(driver);
+    super(driver, []);
     this.counter = counter;
   }
 
