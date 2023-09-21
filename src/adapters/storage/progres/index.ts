@@ -27,19 +27,100 @@ import _ from 'lodash';
 import { PoolConfig } from 'pg';
 import { TObject, _TValue } from '../../../internals';
 import { TSchema, _typeof, isRelation } from '../../../internals/schema';
-import { PostgresDriver } from './driver';
+import { PostgresDriver, PostgresClientDriver } from './driver';
 import { SqlStorage, sql } from '../../../server/sql';
 import { PostgresDialect, _decodeValue, _encodeValue, _encodeJsonValue } from './dialect';
 import { QueryCompiler } from '../../../server/sql/compiler';
 import { DecodedQuery, FindOptions } from '../../../server/storage';
+import { ScheduleOp } from '../../../server/schedule';
 
-export class PostgresStorage extends SqlStorage {
+class PostgresStorageClient<Driver extends PostgresClientDriver> extends SqlStorage {
 
-  private _driver: PostgresDriver;
+  protected _driver: Driver;
+
+  constructor(driver: Driver, schedule?: ScheduleOp[]) {
+    super(schedule);
+    this._driver = driver;
+  }
+
+  get dialect() {
+    return PostgresDialect;
+  }
+
+  async config() {
+    const config: Record<string, _TValue> = {};
+    const query = sql`SELECT * FROM ${{ identifier: '_Config' }}`;
+    for await (const record of this.query(query)) {
+      config[record._id] = _decodeValue(record.value);
+    }
+    return config;
+  }
+  async setConfig(values: Record<string, _TValue>) {
+    const _values = _.pickBy(values, v => !_.isNil(v));
+    const nilKeys = _.keys(_.pickBy(values, v => _.isNil(v)));
+    if (!_.isEmpty(_values)) {
+      await this.query(sql`
+        INSERT INTO ${{ identifier: '_Config' }} (_id, value)
+        VALUES
+        ${_.map(_values, (v, k) => sql`(${{ value: k }}, ${_encodeJsonValue(_encodeValue(v))})`)}
+        ON CONFLICT (_id) DO UPDATE SET value = EXCLUDED.value;
+      `);
+    }
+    if (!_.isEmpty(nilKeys)) {
+      await this.query(sql`
+        DELETE FROM ${{ identifier: '_Config' }}
+        WHERE _id IN (${_.map(nilKeys, k => sql`${{ value: k }}`)})
+      `);
+    }
+  }
+
+  _query(text: string, values: any[] = [], batchSize?: number) {
+    return this._driver.query(text, values, batchSize);
+  }
+
+  async _explain(compiler: QueryCompiler, query: DecodedQuery<FindOptions>) {
+    const explains = await this.query(sql`EXPLAIN (ANALYZE, FORMAT JSON) ${compiler._selectQuery(query)}`);
+    return _.first(explains)['QUERY PLAN'];
+  }
+
+  classes() {
+    return Object.keys(this.schema);
+  }
+
+  async version() {
+    return this._driver.version();
+  }
+
+  async databases() {
+    return this._driver.databases();
+  }
+
+  async tables() {
+    return this._driver.tables();
+  }
+
+  async views() {
+    return this._driver.views();
+  }
+
+  async materializedViews() {
+    return this._driver.materializedViews();
+  }
+
+  async columns(table: string, namespace?: string) {
+    return this._driver.columns(table, namespace);
+  }
+
+  async indices(table: string, namespace?: string) {
+    return this._driver.indices(table, namespace);
+  }
+
+}
+
+export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
 
   constructor(config: string | PoolConfig) {
-    super();
-    this._driver = new PostgresDriver(config);
+    super(new PostgresDriver(config));
   }
 
   async shutdown() {
@@ -179,78 +260,6 @@ export class PostgresStorage extends SqlStorage {
         `)})
       `);
     }
-  }
-
-  get dialect() {
-    return PostgresDialect;
-  }
-
-  async config() {
-    const config: Record<string, _TValue> = {};
-    const query = sql`SELECT * FROM ${{ identifier: '_Config' }}`;
-    for await (const record of this.query(query)) {
-      config[record._id] = _decodeValue(record.value);
-    }
-    return config;
-  }
-  async setConfig(values: Record<string, _TValue>) {
-    const _values = _.pickBy(values, v => !_.isNil(v));
-    const nilKeys = _.keys(_.pickBy(values, v => _.isNil(v)));
-    if (!_.isEmpty(_values)) {
-      await this.query(sql`
-        INSERT INTO ${{ identifier: '_Config' }} (_id, value)
-        VALUES
-        ${_.map(_values, (v, k) => sql`(${{ value: k }}, ${_encodeJsonValue(_encodeValue(v))})`)}
-        ON CONFLICT (_id) DO UPDATE SET value = EXCLUDED.value;
-      `);
-    }
-    if (!_.isEmpty(nilKeys)) {
-      await this.query(sql`
-        DELETE FROM ${{ identifier: '_Config' }}
-        WHERE _id IN (${_.map(nilKeys, k => sql`${{ value: k }}`)})
-      `);
-    }
-  }
-
-  _query(text: string, values: any[] = [], batchSize?: number) {
-    return this._driver.query(text, values, batchSize);
-  }
-
-  async _explain(compiler: QueryCompiler, query: DecodedQuery<FindOptions>) {
-    const explains = await this.query(sql`EXPLAIN (ANALYZE, FORMAT JSON) ${compiler._selectQuery(query)}`);
-    return _.first(explains)['QUERY PLAN'];
-  }
-
-  classes() {
-    return Object.keys(this.schema);
-  }
-
-  async version() {
-    return this._driver.version();
-  }
-
-  async databases() {
-    return this._driver.databases();
-  }
-
-  async tables() {
-    return this._driver.tables();
-  }
-
-  async views() {
-    return this._driver.views();
-  }
-
-  async materializedViews() {
-    return this._driver.materializedViews();
-  }
-
-  async columns(table: string, namespace?: string) {
-    return this._driver.columns(table, namespace);
-  }
-
-  async indices(table: string, namespace?: string) {
-    return this._driver.indices(table, namespace);
   }
 
 }

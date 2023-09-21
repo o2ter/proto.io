@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { DecodedQuery, FindOptions, FindOneOptions, InsertOptions, TStorage } from '../storage';
 import { TSchema } from '../../internals/schema';
-import { storageSchedule } from '../schedule';
+import { ScheduleOp, storageSchedule } from '../schedule';
 import { PVK, TObject, TValue, TUpdateOp, asyncStream, _TValue } from '../../internals';
 import { SQL, sql } from './sql';
 import { SqlDialect } from './dialect';
@@ -34,15 +34,19 @@ import { QueryCompiler } from './compiler';
 
 export abstract class SqlStorage implements TStorage {
 
-  schedule = storageSchedule(this, ['expireDocument']);
+  schedule: ReturnType<typeof storageSchedule>;
   schema: Record<string, TSchema> = {};
+
+  constructor(schedule?: ScheduleOp[]) {
+    this.schedule = storageSchedule(this, schedule ?? ['expireDocument']);
+  }
 
   async prepare(schema: Record<string, TSchema>) {
     this.schema = schema;
   }
 
   async shutdown() {
-    this.schedule?.destory();
+    this.schedule.destory();
   }
 
   classes() {

@@ -39,7 +39,7 @@ const typeParser = (oid: number, format?: any) => {
   return types.getTypeParser(oid, format);
 };
 
-class PostgresClientDriver {
+export class PostgresClientDriver {
 
   db: Pool | PoolClient;
 

@@ -41,8 +41,15 @@ const scheduleOp = {
   }
 }
 
-export const storageSchedule = (storage: TStorage, operations: (keyof typeof scheduleOp)[]) => {
-  if (_.isEmpty(operations)) return null;
+export type ScheduleOp = keyof typeof scheduleOp;
+
+export const storageSchedule = (storage: TStorage, operations: ScheduleOp[]) => {
+  if (_.isEmpty(operations)) {
+    return {
+      execute() { return Promise.resolve(); },
+      destory() { }
+    };
+  }
   let running = false;
   const execute = async () => {
     if (running) return;
@@ -60,7 +67,6 @@ export const storageSchedule = (storage: TStorage, operations: (keyof typeof sch
   }
   const schedule = setInterval(execute, 60 * 1000);
   return {
-    schedule,
     execute,
     destory() { clearInterval(schedule); }
   }
