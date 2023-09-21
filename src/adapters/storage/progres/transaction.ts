@@ -28,13 +28,6 @@ import { PostgresClientDriver } from './driver';
 import { PostgresStorageClient } from './client';
 import { sql } from '../../../server/sql';
 
-export const transactionBeginMap = {
-  'committed': sql`BEGIN ISOLATION LEVEL READ COMMITTED`,
-  'repeatable': sql`BEGIN ISOLATION LEVEL REPEATABLE READ`,
-  'serializable': sql`BEGIN ISOLATION LEVEL SERIALIZABLE`,
-  default: sql`BEGIN`,
-};
-
 export class PostgresStorageTransaction extends PostgresStorageClient<PostgresClientDriver> {
 
   counter: number;

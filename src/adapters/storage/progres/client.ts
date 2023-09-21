@@ -31,7 +31,7 @@ import { PostgresDialect, _decodeValue, _encodeValue, _encodeJsonValue } from '.
 import { QueryCompiler } from '../../../server/sql/compiler';
 import { DecodedQuery, FindOptions } from '../../../server/storage';
 import { ScheduleOp } from '../../../server/schedule';
-import { PostgresStorageTransaction, transactionBeginMap } from './transaction';
+import { PostgresStorageTransaction } from './transaction';
 
 export class PostgresStorageClient<Driver extends PostgresClientDriver> extends SqlStorage {
 
@@ -130,9 +130,16 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
 
       try {
 
+        const beginMap = {
+          'committed': sql`BEGIN ISOLATION LEVEL READ COMMITTED`,
+          'repeatable': sql`BEGIN ISOLATION LEVEL REPEATABLE READ`,
+          'serializable': sql`BEGIN ISOLATION LEVEL SERIALIZABLE`,
+          default: sql`BEGIN`,
+        };
+
         const _begin = _.isString(options?.mode)
-          ? transactionBeginMap[options.mode as keyof typeof transactionBeginMap] ?? transactionBeginMap.default
-          : transactionBeginMap.default;
+          ? beginMap[options.mode as keyof typeof beginMap] ?? beginMap.default
+          : beginMap.default;
 
         await transaction.query(_begin);
         const result = await callback(transaction);
