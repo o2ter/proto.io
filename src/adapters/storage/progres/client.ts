@@ -31,7 +31,6 @@ import { PostgresDialect, _decodeValue, _encodeValue, _encodeJsonValue } from '.
 import { QueryCompiler } from '../../../server/sql/compiler';
 import { DecodedQuery, FindOptions } from '../../../server/storage';
 import { ScheduleOp } from '../../../server/schedule';
-import { PostgresStorageTransaction } from './transaction';
 
 export class PostgresStorageClient<Driver extends PostgresClientDriver> extends SqlStorage {
 
@@ -152,5 +151,36 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
         throw e;
       }
     });
+  }
+}
+
+class PostgresStorageTransaction extends PostgresStorageClient<PostgresClientDriver> {
+
+  counter: number;
+
+  constructor(driver: PostgresClientDriver, counter: number) {
+    super(driver, []);
+    this.counter = counter;
+  }
+
+  override async withTransaction<T>(
+    callback: (connection: PostgresStorageTransaction) => PromiseLike<T>,
+    options?: any,
+  ) {
+
+    const transaction = new PostgresStorageTransaction(this._driver, this.counter + 1);
+
+    try {
+
+      await transaction.query(sql`SAVEPOINT ${{ identifier: `savepoint_${this.counter}` }}`);
+      const result = await callback(transaction);
+      await transaction.query(sql`RELEASE SAVEPOINT ${{ identifier: `savepoint_${this.counter}` }}`);
+
+      return result
+
+    } catch (e) {
+      await transaction.query(sql`ROLLBACK TO SAVEPOINT ${{ identifier: `savepoint_${this.counter}` }}`);
+      throw e;
+    }
   }
 }
