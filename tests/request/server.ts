@@ -138,6 +138,27 @@ Proto.define('updateWithTransaction', async (proto) => {
   }
 });
 
+Proto.define('updateWithNestedTransaction', async (proto) => {
+  const { className, values, values2, error } = proto.data as any;
+
+  await proto.withTransaction(async (proto) => {
+
+    await proto.Query(className)
+      .equalTo('_id', values._id)
+      .updateOne(_.mapValues(_.omit(values, '_id'), v => ({ $set: v })));
+
+    try {
+
+      await proto.withTransaction(async (proto) => {
+        await proto.Query(className)
+          .equalTo('_id', values2._id)
+          .updateOne(_.mapValues(_.omit(values2, '_id'), v => ({ $set: v })));
+        if (_.isString(error)) throw Error(error);
+      });
+    } catch { }
+  });
+});
+
 beforeAll(async () => {
 
   const app = express();

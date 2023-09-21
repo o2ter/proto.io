@@ -1127,7 +1127,7 @@ test('test permission 4', async () => {
   await Proto.logout();
 })
 
-test('transaction', async () => {
+test('test transaction', async () => {
 
   const object = await Proto.Query('Test').insert({});
 
@@ -1152,6 +1152,41 @@ test('transaction', async () => {
   });
 
   expect(result2).toStrictEqual({ success: true, error: null });
+  expect((await Proto.Query('Test').get(object.objectId!))?.get('number')).toStrictEqual(42);
+
+})
+
+test('test nested transaction', async () => {
+
+  const object = await Proto.Query('Test').insert({});
+
+  await Proto.run('updateWithNestedTransaction', {
+    className: 'Test',
+    values: {
+      _id: object.objectId!,
+      number: 0
+    },
+    values2: {
+      _id: object.objectId!,
+      number: 42
+    },
+    error: 'test error',
+  });
+
+  expect((await Proto.Query('Test').get(object.objectId!))?.get('number')).toStrictEqual(0);
+
+  await Proto.run('updateWithNestedTransaction', {
+    className: 'Test',
+    values: {
+      _id: object.objectId!,
+      number: 1
+    },
+    values2: {
+      _id: object.objectId!,
+      number: 42
+    },
+  });
+
   expect((await Proto.Query('Test').get(object.objectId!))?.get('number')).toStrictEqual(42);
 
 })
