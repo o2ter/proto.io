@@ -44,6 +44,7 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
 
   [PVK]: ProtoInternal<Ext>;
   req?: Request;
+  private _storage?: ProtoServiceOptions<Ext>['storage'];
 
   constructor(options: ProtoServiceOptions<Ext> & ProtoServiceKeyOptions) {
     super();
@@ -136,7 +137,7 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
   }
 
   get storage(): ProtoServiceOptions<Ext>['storage'] {
-    return this[PVK].options.storage;
+    return this._storage ?? this[PVK].options.storage;
   }
 
   get fileStorage(): ProtoServiceOptions<Ext>['fileStorage'] {
@@ -197,6 +198,6 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     callback: (connection: ProtoService<Ext>) => PromiseLike<T>,
     options?: any,
   ) {
-    return this.storage.withTransaction((storage) => callback(_.create(this, { storage })), options);
+    return this.storage.withTransaction((storage) => callback(_.create(this, { _storage: storage })), options);
   }
 }
