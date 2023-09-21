@@ -133,6 +133,7 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
         const _begin = _.isString(options?.mode)
           ? transactionBeginMap[options.mode as keyof typeof transactionBeginMap] ?? transactionBeginMap.default
           : transactionBeginMap.default;
+
         await transaction.query(_begin);
         const result = await callback(transaction);
         await transaction.query(sql`COMMIT`);
