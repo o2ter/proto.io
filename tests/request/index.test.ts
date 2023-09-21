@@ -1141,7 +1141,7 @@ test('transaction', async () => {
   });
 
   expect(result1).toStrictEqual({ success: false, error: 'test error' });
-  expect((await Proto.Query('Test').get(object.objectId!))?.get('number')).toBeUndefined();
+  expect((await Proto.Query('Test').get(object.objectId!))?.get('number')).toBeNull();
 
   const result2 = await Proto.run('updateWithTransaction', {
     className: 'Test',
