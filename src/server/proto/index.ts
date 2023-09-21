@@ -192,4 +192,11 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
   afterDeleteFile(callback: ProtoTrigger<'File', Ext>) {
     this[PVK].triggers.afterDeleteFile = callback;
   }
+
+  withTransaction<T>(
+    callback: (connection: ProtoService<Ext>) => PromiseLike<T>,
+    options?: any,
+  ) {
+    return this.storage.withTransaction((storage) => callback(_.create(this, { storage })), options);
+  }
 }
