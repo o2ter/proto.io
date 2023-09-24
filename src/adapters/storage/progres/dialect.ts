@@ -438,6 +438,7 @@ export const PostgresDialect: SqlDialect = {
             ${!_.isEmpty(populate.sort) ? sql`ORDER BY ${compiler._encodeSort(populate.name, populate.sort)}` : sql``}
             ${populate.limit ? sql`LIMIT ${{ literal: `${populate.limit}` }}` : sql``}
             ${populate.skip ? sql`OFFSET ${{ literal: `${populate.skip}` }}` : sql``}
+            ${compiler.selectLock ? sql`FOR SHARE` : sql``}
           ) ${{ identifier: populate.name }}
         ) AS ${{ identifier: field }}
       `,

@@ -113,12 +113,14 @@ export class QueryCompiler {
 
   schema: Record<string, TSchema>;
   dialect: SqlDialect;
+  selectLock: boolean;
 
   idx = 0;
 
-  constructor(schema: Record<string, TSchema>, dialect: SqlDialect) {
+  constructor(schema: Record<string, TSchema>, dialect: SqlDialect, selectLock: boolean) {
     this.schema = schema;
     this.dialect = dialect;
+    this.selectLock = selectLock;
   }
 
   nextIdx() {
@@ -214,6 +216,7 @@ export class QueryCompiler {
           SELECT ${_includes}
           FROM ${{ identifier: query.className }} AS ${{ identifier: fetchName }}
           ${!_.isEmpty(_joins) ? { literal: _joins, separator: '\n' } : sql``}
+          ${this.selectLock ? sql`FOR SHARE` : sql``}
         ) AS ${{ identifier: fetchName }}
         ${_filter ? sql`WHERE ${_filter}` : sql``}
         ${!_.isEmpty(query.sort) ? sql`ORDER BY ${this._encodeSort(fetchName, query.sort)}` : sql``}

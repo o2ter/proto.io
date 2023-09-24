@@ -45,6 +45,10 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
     return PostgresDialect;
   }
 
+  selectLock() {
+    return false;
+  }
+
   async config() {
     const config: Record<string, _TValue> = {};
     const query = sql`SELECT * FROM ${{ identifier: '_Config' }}`;
@@ -123,23 +127,35 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
     callback: (connection: PostgresStorageTransaction) => PromiseLike<T>,
     options?: any,
   ) {
+
+    const beginMap = {
+      'committed': sql`BEGIN ISOLATION LEVEL READ COMMITTED`,
+      'repeatable': sql`BEGIN ISOLATION LEVEL REPEATABLE READ`,
+      'serializable': sql`BEGIN ISOLATION LEVEL SERIALIZABLE`,
+      default: sql`BEGIN`,
+    };
+
+    const selectLockMap = {
+      'committed': false,
+      'repeatable': true,
+      'serializable': false,
+      default: false,
+    };
+
+    const _begin = _.isString(options?.mode)
+      ? beginMap[options.mode as keyof typeof beginMap] ?? beginMap.default
+      : beginMap.default;
+
+    const _selectLock = _.isString(options?.mode)
+      ? selectLockMap[options.mode as keyof typeof selectLockMap] ?? selectLockMap.default
+      : selectLockMap.default;
+
     return this.withConnection(async (connection) => {
 
-      const transaction = new PostgresStorageTransaction(connection._driver, 0);
+      const transaction = new PostgresStorageTransaction(connection._driver, 0, _selectLock);
       transaction.schema = this.schema;
 
       try {
-
-        const beginMap = {
-          'committed': sql`BEGIN ISOLATION LEVEL READ COMMITTED`,
-          'repeatable': sql`BEGIN ISOLATION LEVEL REPEATABLE READ`,
-          'serializable': sql`BEGIN ISOLATION LEVEL SERIALIZABLE`,
-          default: sql`BEGIN`,
-        };
-
-        const _begin = _.isString(options?.mode)
-          ? beginMap[options.mode as keyof typeof beginMap] ?? beginMap.default
-          : beginMap.default;
 
         await transaction.query(_begin);
         const result = await callback(transaction);
@@ -158,10 +174,16 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
 class PostgresStorageTransaction extends PostgresStorageClient<PostgresClientDriver> {
 
   counter: number;
+  private _selectLock: boolean;
 
-  constructor(driver: PostgresClientDriver, counter: number) {
+  constructor(driver: PostgresClientDriver, counter: number, selectLock: boolean) {
     super(driver, []);
     this.counter = counter;
+    this._selectLock = selectLock;
+  }
+
+  selectLock() {
+    return this._selectLock;
   }
 
   override async withTransaction<T>(
@@ -169,7 +191,7 @@ class PostgresStorageTransaction extends PostgresStorageClient<PostgresClientDri
     options?: any,
   ) {
 
-    const transaction = new PostgresStorageTransaction(this._driver, this.counter + 1);
+    const transaction = new PostgresStorageTransaction(this._driver, this.counter + 1, this._selectLock);
     transaction.schema = this.schema;
 
     try {

@@ -55,6 +55,8 @@ export type InsertOptions = {
 
 export interface TStorage {
 
+  selectLock(): boolean;
+
   prepare(schema: Record<string, TSchema>): PromiseLike<void>;
   shutdown(): PromiseLike<void>;
 

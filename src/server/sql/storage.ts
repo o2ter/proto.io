@@ -53,6 +53,8 @@ export abstract class SqlStorage implements TStorage {
     return Object.keys(this.schema);
   }
 
+  abstract selectLock(): boolean;
+
   abstract config(): PromiseLike<Record<string, _TValue>>;
   abstract setConfig(values: Record<string, _TValue>): PromiseLike<void>;
   abstract withConnection<T>(callback: (connection: TStorage) => PromiseLike<T>): PromiseLike<T>
@@ -90,12 +92,12 @@ export abstract class SqlStorage implements TStorage {
   }
 
   async explain(query: DecodedQuery<FindOptions>) {
-    const compiler = new QueryCompiler(this.schema, this.dialect);
+    const compiler = new QueryCompiler(this.schema, this.dialect, this.selectLock());
     return this._explain(compiler, query);
   }
 
   async count(query: DecodedQuery<FindOptions>) {
-    const compiler = new QueryCompiler(this.schema, this.dialect);
+    const compiler = new QueryCompiler(this.schema, this.dialect, this.selectLock());
     const result = await this.query(compiler._selectQuery(query, sql`COUNT(*) AS count`));
     const count = parseInt(_.first(result).count);
     return _.isFinite(count) ? count : 0;
@@ -104,7 +106,7 @@ export abstract class SqlStorage implements TStorage {
   find(query: DecodedQuery<FindOptions>) {
     const self = this;
     return asyncStream(async function* () {
-      const compiler = new QueryCompiler(self.schema, self.dialect);
+      const compiler = new QueryCompiler(self.schema, self.dialect, self.selectLock());
       const objects = self.query(compiler._selectQuery(query));
       for await (const object of objects) {
         yield self._decodeObject(query.className, object);
@@ -113,31 +115,31 @@ export abstract class SqlStorage implements TStorage {
   }
 
   async insert(options: InsertOptions, attrs: Record<string, TValue>) {
-    const compiler = new QueryCompiler(this.schema, this.dialect);
+    const compiler = new QueryCompiler(this.schema, this.dialect, this.selectLock());
     const result = _.first(await this.query(compiler.insert(options, attrs)));
     return _.isNil(result) ? undefined : this._decodeObject(options.className, result);
   }
 
   async updateOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>) {
-    const compiler = new QueryCompiler(this.schema, this.dialect);
+    const compiler = new QueryCompiler(this.schema, this.dialect, this.selectLock());
     const updated = _.first(await this.query(compiler.updateOne(query, update)));
     return _.isNil(updated) ? undefined : this._decodeObject(query.className, updated);
   }
 
   async upsertOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValue>) {
-    const compiler = new QueryCompiler(this.schema, this.dialect);
+    const compiler = new QueryCompiler(this.schema, this.dialect, this.selectLock());
     const upserted = _.first(await this.query(compiler.upsertOne(query, update, setOnInsert)));
     return _.isNil(upserted) ? undefined : this._decodeObject(query.className, upserted);
   }
 
   async deleteOne(query: DecodedQuery<FindOneOptions>) {
-    const compiler = new QueryCompiler(this.schema, this.dialect);
+    const compiler = new QueryCompiler(this.schema, this.dialect, this.selectLock());
     const deleted = _.first(await this.query(compiler.deleteOne(query)));
     return _.isNil(deleted) ? undefined : this._decodeObject(query.className, deleted);
   }
 
   async deleteMany(query: DecodedQuery<FindOptions>) {
-    const compiler = new QueryCompiler(this.schema, this.dialect);
+    const compiler = new QueryCompiler(this.schema, this.dialect, this.selectLock());
     const deleted = await this.query(compiler.deleteMany(query));
     return deleted.length;
   }
