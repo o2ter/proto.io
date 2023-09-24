@@ -162,7 +162,7 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
 
     } catch (e: any) {
 
-      if (options?.retry && (e.code === '40001' || e.code === '40P01')) {
+      if (options?.retry && ['40001', '40P01', '55P03'].includes(e.code)) {
         return this.withTransaction(callback, {
           ...options,
           retry: _.isNumber(options.retry) ? Math.max(0, options.retry - 1) : options.retry,
