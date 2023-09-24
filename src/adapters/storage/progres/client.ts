@@ -29,7 +29,7 @@ import { PostgresClientDriver } from './driver';
 import { SqlStorage, sql } from '../../../server/sql';
 import { PostgresDialect, _decodeValue, _encodeValue, _encodeJsonValue } from './dialect';
 import { QueryCompiler } from '../../../server/sql/compiler';
-import { DecodedQuery, FindOptions } from '../../../server/storage';
+import { DecodedQuery, FindOptions, TransactionOptions } from '../../../server/storage';
 import { ScheduleOp } from '../../../server/schedule';
 
 export class PostgresStorageClient<Driver extends PostgresClientDriver> extends SqlStorage {
@@ -123,10 +123,10 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
     return callback(this);
   }
 
-  withTransaction<T>(
+  async withTransaction<T>(
     callback: (connection: PostgresStorageTransaction) => PromiseLike<T>,
-    options?: any,
-  ) {
+    options?: TransactionOptions,
+  ): Promise<T> {
 
     const beginMap = {
       'committed': sql`BEGIN ISOLATION LEVEL READ COMMITTED`,
@@ -135,39 +135,42 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
       default: sql`BEGIN`,
     };
 
-    const selectLockMap = {
-      'committed': false,
-      'repeatable': true,
-      'serializable': false,
-      default: false,
-    };
-
     const _begin = _.isString(options?.mode)
       ? beginMap[options.mode as keyof typeof beginMap] ?? beginMap.default
       : beginMap.default;
 
-    const _selectLock = _.isString(options?.mode)
-      ? selectLockMap[options.mode as keyof typeof selectLockMap] ?? selectLockMap.default
-      : selectLockMap.default;
+    try {
 
-    return this.withConnection(async (connection) => {
+      return await this.withConnection(async (connection) => {
 
-      const transaction = new PostgresStorageTransaction(connection._driver, 0, _selectLock);
-      transaction.schema = this.schema;
+        const transaction = new PostgresStorageTransaction(connection._driver, 0, options?.mode === 'repeatable');
+        transaction.schema = this.schema;
 
-      try {
+        try {
 
-        await transaction.query(_begin);
-        const result = await callback(transaction);
-        await transaction.query(sql`COMMIT`);
+          await transaction.query(_begin);
+          const result = await callback(transaction);
+          await transaction.query(sql`COMMIT`);
 
-        return result
+          return result
 
-      } catch (e) {
-        await transaction.query(sql`ROLLBACK`);
-        throw e;
+        } catch (e: any) {
+          await transaction.query(sql`ROLLBACK`);
+          throw e;
+        }
+      });
+
+    } catch (e: any) {
+
+      if (options?.retry && (e.code === '40001' || e.code === '40P01')) {
+        return this.withTransaction(callback, {
+          ...options,
+          retry: _.isNumber(options.retry) ? Math.max(0, options.retry - 1) : options.retry,
+        });
       }
-    });
+
+      throw e;
+    }
   }
 }
 
@@ -188,7 +191,6 @@ class PostgresStorageTransaction extends PostgresStorageClient<PostgresClientDri
 
   override async withTransaction<T>(
     callback: (connection: PostgresStorageTransaction) => PromiseLike<T>,
-    options?: any,
   ) {
 
     const transaction = new PostgresStorageTransaction(this._driver, this.counter + 1, this._selectLock);

@@ -53,6 +53,14 @@ export type InsertOptions = {
   objectIdSize: number;
 };
 
+export type TransactionMode = 'default' | 'committed' | 'repeatable' | 'serializable';
+
+export type TransactionOptions = {
+  mode?: TransactionMode;
+  retry?: number | boolean;
+};
+
+
 export interface TStorage {
 
   selectLock(): boolean;
@@ -81,6 +89,6 @@ export interface TStorage {
   withConnection<T>(callback: (connection: TStorage) => PromiseLike<T>): PromiseLike<T>
   withTransaction<T>(
     callback: (connection: TStorage) => PromiseLike<T>,
-    options?: any,
+    options?: TransactionOptions,
   ): PromiseLike<T>
 }

@@ -159,6 +159,22 @@ Proto.define('updateWithNestedTransaction', async (proto) => {
   });
 });
 
+Proto.define('updateWithLongTransaction', async (proto) => {
+  const { id } = proto.data as any;
+
+  return await proto.withTransaction(async (proto) => {
+
+    const object = await proto.Query('Test').equalTo('_id', id).first();
+
+    await new Promise<void>(res => setTimeout(res, 100));
+
+    const result = await proto.Query('Test').equalTo('_id', id).updateOne({ number: { $set: object?.get('number') + 1 } });
+
+    return result?.get('number');
+
+  }, { mode: 'repeatable', retry: true });
+});
+
 beforeAll(async () => {
 
   const app = express();

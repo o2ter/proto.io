@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { DecodedQuery, FindOptions, FindOneOptions, InsertOptions, TStorage } from '../storage';
+import { DecodedQuery, FindOptions, FindOneOptions, InsertOptions, TStorage, TransactionOptions } from '../storage';
 import { TSchema } from '../../internals/schema';
 import { ScheduleOp, storageSchedule } from '../schedule';
 import { PVK, TObject, TValue, TUpdateOp, asyncStream, _TValue } from '../../internals';
@@ -60,7 +60,7 @@ export abstract class SqlStorage implements TStorage {
   abstract withConnection<T>(callback: (connection: TStorage) => PromiseLike<T>): PromiseLike<T>
   abstract withTransaction<T>(
     callback: (connection: TStorage) => PromiseLike<T>,
-    options?: any,
+    options?: TransactionOptions,
   ): PromiseLike<T>
 
   abstract get dialect(): SqlDialect

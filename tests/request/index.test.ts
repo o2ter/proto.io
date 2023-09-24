@@ -1190,3 +1190,19 @@ test('test nested transaction', async () => {
   expect((await Proto.Query('Test').get(object.objectId!))?.get('number')).toStrictEqual(42.5);
 
 })
+
+test('test long transaction', async () => {
+
+  const object = await Proto.Query('Test').insert({ number: 0 });
+
+  const results = await Promise.all([
+    Proto.run('updateWithLongTransaction', { id: object.objectId! }),
+    Proto.run('updateWithLongTransaction', { id: object.objectId! }),
+    Proto.run('updateWithLongTransaction', { id: object.objectId! }),
+    Proto.run('updateWithLongTransaction', { id: object.objectId! }),
+    Proto.run('updateWithLongTransaction', { id: object.objectId! }),
+  ]);
+
+  expect(results.sort()).toStrictEqual([1, 2, 3, 4, 5]);
+
+})

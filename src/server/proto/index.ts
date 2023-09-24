@@ -39,6 +39,7 @@ import {
 import { Request } from 'express';
 import { ProtoServiceOptions, ProtoServiceKeyOptions, ProtoFunction, ProtoFunctionOptions, ProtoTrigger } from './types';
 import { sessionId, sessionIsMaster, session, signUser } from './session';
+import { TransactionOptions } from '../storage';
 
 export class ProtoService<Ext> extends ProtoType<Ext> {
 
@@ -196,7 +197,7 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
 
   withTransaction<T>(
     callback: (connection: ProtoService<Ext>) => PromiseLike<T>,
-    options?: any,
+    options?: TransactionOptions,
   ) {
     return this.storage.withTransaction((storage) => callback(_.create(this, { _storage: storage })), options);
   }
