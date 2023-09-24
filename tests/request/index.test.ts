@@ -98,13 +98,13 @@ test('test config', async () => {
   const date = new Date;
   const values = {
     boolean: true,
-    number: 42,
+    number: 42.5,
     decimal: new Decimal('0.001'),
     string: 'hello',
     date: date,
     object: {
       boolean: true,
-      number: 42,
+      number: 42.5,
       decimal: new Decimal('0.001'),
       string: 'hello',
       date: date,
@@ -145,13 +145,13 @@ test('test types', async () => {
   const date = new Date;
   const inserted = await Proto.Query('Test').insert({
     boolean: true,
-    number: 42,
+    number: 42.5,
     decimal: new Decimal('0.001'),
     string: 'hello',
     date: date,
     object: {
       boolean: true,
-      number: 42,
+      number: 42.5,
       decimal: new Decimal('0.001'),
       string: 'hello',
       date: date,
@@ -160,7 +160,7 @@ test('test types', async () => {
     array: [1, 2, 3, date, new Decimal('0.001')],
   });
   expect(inserted.get('boolean')).toStrictEqual(true);
-  expect(inserted.get('number')).toStrictEqual(42);
+  expect(inserted.get('number')).toStrictEqual(42.5);
   expect(inserted.get('decimal')).toStrictEqual(new Decimal('0.001'));
   expect(inserted.get('string')).toStrictEqual('hello');
   expect(inserted.get('date')).toStrictEqual(date);
@@ -176,16 +176,16 @@ test('test types', async () => {
   expect((await q.clone().notEqualTo('null_date', null).first())?.objectId).toBeUndefined();
 
   expect((await q.clone().equalTo('null_boolean', true).first())?.objectId).toBeUndefined();
-  expect((await q.clone().equalTo('null_number', 42).first())?.objectId).toBeUndefined();
+  expect((await q.clone().equalTo('null_number', 42.5).first())?.objectId).toBeUndefined();
   expect((await q.clone().equalTo('null_decimal', new Decimal('0.001')).first())?.objectId).toBeUndefined();
   expect((await q.clone().equalTo('null_string', 'hello').first())?.objectId).toBeUndefined();
   expect((await q.clone().equalTo('null_date', date).first())?.objectId).toBeUndefined();
 
-  expect((await q.clone().notContainsIn('number', [1, 2, 3, 42]).first())?.objectId).toBeUndefined();
-  expect((await q.clone().notContainsIn('array.0', [1, 2, 3, 42, 'hello']).first())?.objectId).toBeUndefined();
+  expect((await q.clone().notContainsIn('number', [1, 2, 3, 42.5]).first())?.objectId).toBeUndefined();
+  expect((await q.clone().notContainsIn('array.0', [1, 2, 3, 42.5, 'hello']).first())?.objectId).toBeUndefined();
 
   expect((await q.clone().notEqualTo('boolean', true).first())?.objectId).toBeUndefined();
-  expect((await q.clone().notEqualTo('number', 42).first())?.objectId).toBeUndefined();
+  expect((await q.clone().notEqualTo('number', 42.5).first())?.objectId).toBeUndefined();
   expect((await q.clone().notEqualTo('decimal', new Decimal('0.001')).first())?.objectId).toBeUndefined();
   expect((await q.clone().notEqualTo('string', 'hello').first())?.objectId).toBeUndefined();
   expect((await q.clone().notEqualTo('date', date).first())?.objectId).toBeUndefined();
@@ -207,12 +207,12 @@ test('test types', async () => {
   expect((await q.clone().equalTo('null_date', null).first())?.objectId).toStrictEqual(inserted.objectId);
 
   expect((await q.clone().notEqualTo('null_boolean', true).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().notEqualTo('null_number', 42).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().notEqualTo('null_number', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().notEqualTo('null_decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().notEqualTo('null_string', 'hello').first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().notEqualTo('null_date', date).first())?.objectId).toStrictEqual(inserted.objectId);
 
-  expect((await q.clone().containsIn('number', [1, 2, 3, 42]).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().containsIn('number', [1, 2, 3, 42.5]).first())?.objectId).toStrictEqual(inserted.objectId);
 
   expect((await q.clone().notEqualTo('boolean', false).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().notEqualTo('number', 10).first())?.objectId).toStrictEqual(inserted.objectId);
@@ -260,7 +260,7 @@ test('test types 2', async () => {
   expect((await q.clone().isSuperset('array', [4, 5, 6]).first())?.objectId).toBeUndefined();
   expect((await q.clone().isIntersect('array', [4, 5, 6]).first())?.objectId).toBeUndefined();
 
-  expect((await q.clone().containsIn('array.0', [1, 2, 3, 42, 'hello']).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().containsIn('array.0', [1, 2, 3, 42.5, 'hello']).first())?.objectId).toStrictEqual(inserted.objectId);
 
   expect((await q.clone().notEqualTo('array.0', 4).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().notEqualTo('array.1', 5).first())?.objectId).toStrictEqual(inserted.objectId);
@@ -290,7 +290,7 @@ test('test types 3', async () => {
   const inserted = await Proto.Query('Test').insert({
     object: {
       boolean: true,
-      number: 42,
+      number: 42.5,
       decimal: new Decimal('0.001'),
       string: 'hello',
       date: date,
@@ -299,7 +299,7 @@ test('test types 3', async () => {
   });
   expect(inserted.get('object')).toStrictEqual({
     boolean: true,
-    number: 42,
+    number: 42.5,
     decimal: new Decimal('0.001'),
     string: 'hello',
     date: date,
@@ -315,13 +315,13 @@ test('test types 3', async () => {
   expect((await q.clone().notEqualTo('object.null', null).first())?.objectId).toBeUndefined();
 
   expect((await q.clone().equalTo('object.null', true).first())?.objectId).toBeUndefined();
-  expect((await q.clone().equalTo('object.null', 42).first())?.objectId).toBeUndefined();
+  expect((await q.clone().equalTo('object.null', 42.5).first())?.objectId).toBeUndefined();
   expect((await q.clone().equalTo('object.null', new Decimal('0.001')).first())?.objectId).toBeUndefined();
   expect((await q.clone().equalTo('object.null', 'hello').first())?.objectId).toBeUndefined();
   expect((await q.clone().equalTo('object.null', date).first())?.objectId).toBeUndefined();
 
   expect((await q.clone().notEqualTo('object.boolean', true).first())?.objectId).toBeUndefined();
-  expect((await q.clone().notEqualTo('object.number', 42).first())?.objectId).toBeUndefined();
+  expect((await q.clone().notEqualTo('object.number', 42.5).first())?.objectId).toBeUndefined();
   expect((await q.clone().notEqualTo('object.decimal', new Decimal('0.001')).first())?.objectId).toBeUndefined();
   expect((await q.clone().notEqualTo('object.string', 'hello').first())?.objectId).toBeUndefined();
   expect((await q.clone().notEqualTo('object.date', date).first())?.objectId).toBeUndefined();
@@ -343,13 +343,13 @@ test('test types 3', async () => {
   expect((await q.clone().equalTo('object.null', null).first())?.objectId).toStrictEqual(inserted.objectId);
 
   expect((await q.clone().notEqualTo('object.null', true).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().notEqualTo('object.null', 42).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().notEqualTo('object.null', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().notEqualTo('object.null', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().notEqualTo('object.null', 'hello').first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().notEqualTo('object.null', date).first())?.objectId).toStrictEqual(inserted.objectId);
 
   expect((await q.clone().equalTo('object.boolean', true).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().equalTo('object.number', 42).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('object.number', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().equalTo('object.decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().equalTo('object.string', 'hello').first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().equalTo('object.date', date).first())?.objectId).toStrictEqual(inserted.objectId);
@@ -441,7 +441,7 @@ test('test update types', async () => {
   const date2 = new Date;
   const inserted = await Proto.Query('Test').insert({
     boolean: true,
-    number: 42,
+    number: 42.5,
     decimal: new Decimal('0.001'),
     string: 'hello',
     date: date,
@@ -482,7 +482,7 @@ test('test update types 2', async () => {
   const inserted = await Proto.Query('Test').insert({
     object: {
       boolean: true,
-      number: 42,
+      number: 42.5,
       decimal: new Decimal('0.001'),
       string: 'hello',
       date: date,
@@ -525,7 +525,7 @@ test('test update types 3', async () => {
     array: [{
       object: {
         boolean: true,
-        number: 42,
+        number: 42.5,
         decimal: new Decimal('0.001'),
         string: 'hello',
         date: date,
@@ -632,7 +632,7 @@ test('test update types 8', async () => {
   const inserted = await Proto.Query('Test').insert({
     object: {
       boolean: true,
-      number: 42,
+      number: 42.5,
       decimal: new Decimal('0.001'),
       string: 'hello',
       date: date,
@@ -674,13 +674,13 @@ test('test pointer', async () => {
   const date = new Date;
   const inserted = await Proto.Query('Test').insert({
     boolean: true,
-    number: 42,
+    number: 42.5,
     decimal: new Decimal('0.001'),
     string: 'hello',
     date: date,
     object: {
       boolean: true,
-      number: 42,
+      number: 42.5,
       decimal: new Decimal('0.001'),
       string: 'hello',
       date: date,
@@ -696,13 +696,13 @@ test('test pointer', async () => {
     });
 
   expect(updated?.get('pointer.boolean')).toStrictEqual(true);
-  expect(updated?.get('pointer.number')).toStrictEqual(42);
+  expect(updated?.get('pointer.number')).toStrictEqual(42.5);
   expect(updated?.get('pointer.decimal')).toStrictEqual(new Decimal('0.001'));
   expect(updated?.get('pointer.string')).toStrictEqual('hello');
   expect(updated?.get('pointer.date')).toStrictEqual(date);
 
   expect(updated?.get('pointer2.boolean')).toStrictEqual(true);
-  expect(updated?.get('pointer2.number')).toStrictEqual(42);
+  expect(updated?.get('pointer2.number')).toStrictEqual(42.5);
   expect(updated?.get('pointer2.decimal')).toStrictEqual(new Decimal('0.001'));
   expect(updated?.get('pointer2.string')).toStrictEqual('hello');
   expect(updated?.get('pointer2.date')).toStrictEqual(date);
@@ -711,7 +711,7 @@ test('test pointer', async () => {
 
   expect((await q.clone().equalTo('pointer', inserted).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().equalTo('pointer.boolean', true).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().equalTo('pointer.number', 42).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('pointer.number', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().equalTo('pointer.decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().equalTo('pointer.string', 'hello').first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().equalTo('pointer.date', date).first())?.objectId).toStrictEqual(inserted.objectId);
@@ -733,13 +733,13 @@ test('test relation', async () => {
   const date = new Date;
   const inserted = await Proto.Query('Test').insert({
     boolean: true,
-    number: 42,
+    number: 42.5,
     decimal: new Decimal('0.001'),
     string: 'hello',
     date: date,
     object: {
       boolean: true,
-      number: 42,
+      number: 42.5,
       decimal: new Decimal('0.001'),
       string: 'hello',
       date: date,
@@ -754,7 +754,7 @@ test('test relation', async () => {
     });
 
   expect(updated?.get('relation.0.boolean')).toStrictEqual(true);
-  expect(updated?.get('relation.0.number')).toStrictEqual(42);
+  expect(updated?.get('relation.0.number')).toStrictEqual(42.5);
   expect(updated?.get('relation.0.decimal')).toStrictEqual(new Decimal('0.001'));
   expect(updated?.get('relation.0.string')).toStrictEqual('hello');
   expect(updated?.get('relation.0.date')).toStrictEqual(date);
@@ -762,7 +762,7 @@ test('test relation', async () => {
   const q = Proto.Query('Test').equalTo('_id', inserted.objectId).includes('*', 'relation');
 
   expect((await q.clone().equalTo('relation.0.boolean', true).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().equalTo('relation.0.number', 42).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('relation.0.number', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().equalTo('relation.0.decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().equalTo('relation.0.string', 'hello').first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().equalTo('relation.0.date', date).first())?.objectId).toStrictEqual(inserted.objectId);
@@ -773,13 +773,13 @@ test('test relation 2', async () => {
   const date = new Date;
   const inserted = await Proto.Query('Test').insert({
     boolean: true,
-    number: 42,
+    number: 42.5,
     decimal: new Decimal('0.001'),
     string: 'hello',
     date: date,
     object: {
       boolean: true,
-      number: 42,
+      number: 42.5,
       decimal: new Decimal('0.001'),
       string: 'hello',
       date: date,
@@ -795,7 +795,7 @@ test('test relation 2', async () => {
 
   expect(updated?.get('relation2').length).toStrictEqual(1);
   expect(updated?.get('relation2.0.boolean')).toStrictEqual(true);
-  expect(updated?.get('relation2.0.number')).toStrictEqual(42);
+  expect(updated?.get('relation2.0.number')).toStrictEqual(42.5);
   expect(updated?.get('relation2.0.decimal')).toStrictEqual(new Decimal('0.001'));
   expect(updated?.get('relation2.0.string')).toStrictEqual('hello');
   expect(updated?.get('relation2.0.date')).toStrictEqual(date);
@@ -803,7 +803,7 @@ test('test relation 2', async () => {
   const q = Proto.Query('Test').equalTo('_id', inserted.objectId).includes('relation2');
 
   expect((await q.clone().equalTo('relation2.0.boolean', true).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().equalTo('relation2.0.number', 42).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('relation2.0.number', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().equalTo('relation2.0.decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().equalTo('relation2.0.string', 'hello').first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().equalTo('relation2.0.date', date).first())?.objectId).toStrictEqual(inserted.objectId);
@@ -814,13 +814,13 @@ test('test relation 3', async () => {
   const date = new Date;
   const inserted = await Proto.Query('Test').insert({
     boolean: true,
-    number: 42,
+    number: 42.5,
     decimal: new Decimal('0.001'),
     string: 'hello',
     date: date,
     object: {
       boolean: true,
-      number: 42,
+      number: 42.5,
       decimal: new Decimal('0.001'),
       string: 'hello',
       date: date,
@@ -836,7 +836,7 @@ test('test relation 3', async () => {
 
   expect(updated?.get('relation3').length).toStrictEqual(1);
   expect(updated?.get('relation3.0.boolean')).toStrictEqual(true);
-  expect(updated?.get('relation3.0.number')).toStrictEqual(42);
+  expect(updated?.get('relation3.0.number')).toStrictEqual(42.5);
   expect(updated?.get('relation3.0.decimal')).toStrictEqual(new Decimal('0.001'));
   expect(updated?.get('relation3.0.string')).toStrictEqual('hello');
   expect(updated?.get('relation3.0.date')).toStrictEqual(date);
@@ -844,7 +844,7 @@ test('test relation 3', async () => {
   const q = Proto.Query('Test').equalTo('_id', inserted.objectId).includes('relation3');
 
   expect((await q.clone().equalTo('relation3.0.boolean', true).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().equalTo('relation3.0.number', 42).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('relation3.0.number', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().equalTo('relation3.0.decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().equalTo('relation3.0.string', 'hello').first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().equalTo('relation3.0.date', date).first())?.objectId).toStrictEqual(inserted.objectId);
@@ -871,14 +871,14 @@ test('test update', async () => {
     .equalTo('_id', inserted.objectId)
     .updateOne({
       boolean: { $set: true },
-      number: { $set: 42 },
+      number: { $set: 42.5 },
       decimal: { $set: new Decimal('0.001') },
       string: { $set: 'hello' },
       date: { $set: date },
       object: {
         $set: {
           boolean: true,
-          number: 42,
+          number: 42.5,
           decimal: new Decimal('0.001'),
           string: 'hello',
           date: date,
@@ -889,13 +889,13 @@ test('test update', async () => {
   expect(updated?.objectId).toStrictEqual(inserted.objectId);
   expect(updated?.__v).toStrictEqual(1);
   expect(updated?.get('boolean')).toStrictEqual(true);
-  expect(updated?.get('number')).toStrictEqual(42);
+  expect(updated?.get('number')).toStrictEqual(42.5);
   expect(updated?.get('decimal')).toStrictEqual(new Decimal('0.001'));
   expect(updated?.get('string')).toStrictEqual('hello');
   expect(updated?.get('date')).toStrictEqual(date);
   expect(updated?.get('object')).toStrictEqual({
     boolean: true,
-    number: 42,
+    number: 42.5,
     decimal: new Decimal('0.001'),
     string: 'hello',
     date: date,
@@ -909,13 +909,13 @@ test('test upsert', async () => {
     .equalTo('_id', '')
     .upsertOne({ string: { $set: 'update' } }, {
       boolean: true,
-      number: 42,
+      number: 42.5,
       decimal: new Decimal('0.001'),
       string: 'hello',
       date: date,
       object: {
         boolean: true,
-        number: 42,
+        number: 42.5,
         decimal: new Decimal('0.001'),
         string: 'hello',
         date: date,
@@ -925,13 +925,13 @@ test('test upsert', async () => {
   expect(upserted.objectId).toBeTruthy();
   expect(upserted.__v).toStrictEqual(0);
   expect(upserted.get('boolean')).toStrictEqual(true);
-  expect(upserted.get('number')).toStrictEqual(42);
+  expect(upserted.get('number')).toStrictEqual(42.5);
   expect(upserted.get('decimal')).toStrictEqual(new Decimal('0.001'));
   expect(upserted.get('string')).toStrictEqual('hello');
   expect(upserted.get('date')).toStrictEqual(date);
   expect(upserted.get('object')).toStrictEqual({
     boolean: true,
-    number: 42,
+    number: 42.5,
     decimal: new Decimal('0.001'),
     string: 'hello',
     date: date,
@@ -946,14 +946,14 @@ test('test upsert 2', async () => {
     .equalTo('_id', inserted.objectId)
     .upsertOne({
       boolean: { $set: true },
-      number: { $set: 42 },
+      number: { $set: 42.5 },
       decimal: { $set: new Decimal('0.001') },
       string: { $set: 'hello' },
       date: { $set: date },
       object: {
         $set: {
           boolean: true,
-          number: 42,
+          number: 42.5,
           decimal: new Decimal('0.001'),
           string: 'hello',
           date: date,
@@ -964,13 +964,13 @@ test('test upsert 2', async () => {
   expect(upserted.objectId).toStrictEqual(inserted.objectId);
   expect(upserted.__v).toStrictEqual(1);
   expect(upserted.get('boolean')).toStrictEqual(true);
-  expect(upserted.get('number')).toStrictEqual(42);
+  expect(upserted.get('number')).toStrictEqual(42.5);
   expect(upserted.get('decimal')).toStrictEqual(new Decimal('0.001'));
   expect(upserted.get('string')).toStrictEqual('hello');
   expect(upserted.get('date')).toStrictEqual(date);
   expect(upserted.get('object')).toStrictEqual({
     boolean: true,
-    number: 42,
+    number: 42.5,
     decimal: new Decimal('0.001'),
     string: 'hello',
     date: date,
@@ -1038,13 +1038,13 @@ test('test comparable', async () => {
   const date = new Date;
   const inserted = await Proto.Query('Test').insert({
     boolean: true,
-    number: 42,
+    number: 42.5,
     decimal: new Decimal('0.001'),
     string: 'hello',
     date: date,
     object: {
       boolean: true,
-      number: 42,
+      number: 42.5,
       decimal: new Decimal('0.001'),
       string: 'hello',
       date: date,
@@ -1069,9 +1069,9 @@ test('test comparable', async () => {
   expect((await q.clone().greaterThanOrEqualTo('decimal', 0).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().lessThanOrEqualTo('date', new Date).first())?.objectId).toStrictEqual(inserted.objectId);
 
-  expect((await q.clone().lessThanOrEqualTo('number', 42).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().lessThanOrEqualTo('number', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().lessThanOrEqualTo('decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().greaterThanOrEqualTo('number', 42).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().greaterThanOrEqualTo('number', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().greaterThanOrEqualTo('decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
 
   expect((await q.clone().lessThan('object.number', 0).first())?.objectId).toBeUndefined();
@@ -1090,9 +1090,9 @@ test('test comparable', async () => {
   expect((await q.clone().greaterThanOrEqualTo('object.decimal', 0).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().lessThanOrEqualTo('object.date', new Date).first())?.objectId).toStrictEqual(inserted.objectId);
 
-  expect((await q.clone().lessThanOrEqualTo('object.number', 42).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().lessThanOrEqualTo('object.number', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().lessThanOrEqualTo('object.decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().greaterThanOrEqualTo('object.number', 42).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().greaterThanOrEqualTo('object.number', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().greaterThanOrEqualTo('object.decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
 
 })
@@ -1135,7 +1135,7 @@ test('test transaction', async () => {
     className: 'Test',
     values: {
       _id: object.objectId!,
-      number: 42
+      number: 42.5
     },
     error: 'test error',
   });
@@ -1147,12 +1147,12 @@ test('test transaction', async () => {
     className: 'Test',
     values: {
       _id: object.objectId!,
-      number: 42
+      number: 42.5
     },
   });
 
   expect(result2).toStrictEqual({ success: true, error: null });
-  expect((await Proto.Query('Test').get(object.objectId!))?.get('number')).toStrictEqual(42);
+  expect((await Proto.Query('Test').get(object.objectId!))?.get('number')).toStrictEqual(42.5);
 
 })
 
@@ -1168,7 +1168,7 @@ test('test nested transaction', async () => {
     },
     values2: {
       _id: object.objectId!,
-      number: 42
+      number: 42.5
     },
     error: 'test error',
   });
@@ -1183,10 +1183,10 @@ test('test nested transaction', async () => {
     },
     values2: {
       _id: object.objectId!,
-      number: 42
+      number: 42.5
     },
   });
 
-  expect((await Proto.Query('Test').get(object.objectId!))?.get('number')).toStrictEqual(42);
+  expect((await Proto.Query('Test').get(object.objectId!))?.get('number')).toStrictEqual(42.5);
 
 })

@@ -84,6 +84,9 @@ export class SQL {
         query += `${dialect.quote(value.value)}::text`;
       } else if (_.isInteger(value.value)) {
         query += `${value.value}`;
+      } else if (_.isNumber(value.value)) {
+        query += `${dialect.placeholder(nextIdx())}::numeric`;
+        values.push(value.value);
       } else {
         query += dialect.placeholder(nextIdx());
         values.push(value.value);
