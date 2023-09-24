@@ -389,7 +389,7 @@ export class QueryCompiler {
         ], separator: ',\n'
       }}
     FROM ${{ identifier: name }}
-    ${!_.isEmpty(joins) ? joins : sql``}
+    ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
   `;
   }
 
@@ -472,7 +472,7 @@ export class QueryCompiler {
             ], separator: ',\n'
           }}
           FROM ${{ identifier: name }}
-          ${!_.isEmpty(joins) ? joins : sql``}
+          ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
         `;
       }
     );
