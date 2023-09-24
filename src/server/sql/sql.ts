@@ -81,11 +81,11 @@ export class SQL {
       } else if (_.isBoolean(value.value)) {
         query += dialect.boolean(value.value);
       } else if (_.isString(value.value)) {
-        query += `${dialect.quote(value.value)}::text`;
+        query += `${dialect.quote(value.value)}::TEXT`;
       } else if (_.isInteger(value.value)) {
         query += `${value.value}`;
       } else if (_.isNumber(value.value)) {
-        query += `${dialect.placeholder(nextIdx())}::numeric`;
+        query += `${dialect.placeholder(nextIdx())}::DOUBLE PRECISION`;
         values.push(value.value);
       } else {
         query += dialect.placeholder(nextIdx());
