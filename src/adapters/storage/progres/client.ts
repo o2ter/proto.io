@@ -135,7 +135,7 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
       default: sql`BEGIN`,
     };
 
-    const _begin = _.isString(options?.mode)
+    const _begin = options && _.isString(options.mode)
       ? beginMap[options.mode as keyof typeof beginMap] ?? beginMap.default
       : beginMap.default;
 
