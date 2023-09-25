@@ -1201,8 +1201,7 @@ test('test long transaction', async () => {
     Proto.run('updateWithLongTransaction', { id: object.objectId! }),
     Proto.run('updateWithLongTransaction', { id: object.objectId! }),
     Proto.run('updateWithLongTransaction', { id: object.objectId! }),
-  ]);
+  ]) as number[];
 
-  expect(results.sort()).toStrictEqual([1, 2, 3, 4, 5]);
-
+  expect(results.sort((a, b) => a - b)).toStrictEqual([2, 4, 6, 8, 10]);
 })

@@ -164,13 +164,17 @@ Proto.define('updateWithLongTransaction', async (proto) => {
 
   return await proto.withTransaction(async (proto) => {
 
-    const object = await proto.Query('Test').equalTo('_id', id).first();
+    let object = await proto.Query('Test').equalTo('_id', id).first();
 
     await new Promise<void>(res => setTimeout(res, 100));
 
-    const result = await proto.Query('Test').equalTo('_id', id).updateOne({ number: { $set: object?.get('number') + 1 } });
+    object = await proto.Query('Test').equalTo('_id', id).updateOne({ number: { $set: object?.get('number') + 1 } });
 
-    return result?.get('number');
+    await new Promise<void>(res => setTimeout(res, 100));
+
+    object = await proto.Query('Test').equalTo('_id', id).updateOne({ number: { $set: object?.get('number') + 1 } });
+
+    return object?.get('number');
 
   }, { mode: 'repeatable', retry: true });
 });
