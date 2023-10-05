@@ -44,6 +44,7 @@ import {
   TUser,
   isBlob,
   _TValue,
+  TObjectType,
 } from '../../internals';
 import { iterableToStream, streamToIterable } from '../stream';
 import { TSchema } from '../../internals/schema';
@@ -82,7 +83,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     return applyObjectMethods(deserialize(res.data), this.proto);
   }
 
-  async currentUser(options?: RequestOptions): Promise<TUser | undefined> {
+  async currentUser(options?: RequestOptions): Promise<TObjectType<'User', Ext> | undefined> {
 
     const { serializeOpts, context, ...opts } = options ?? {};
 
@@ -99,7 +100,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
       throw Error(error.message, { cause: error });
     }
 
-    const user = applyObjectMethods(deserialize(res.data), this.proto);
+    const user = applyObjectMethods(deserialize(res.data), this.proto) as TObjectType<'User', Ext>;
     if (!_.isNil(user) && !(user instanceof TUser)) throw Error('Unknown error');
 
     return user ?? undefined;
