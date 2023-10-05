@@ -80,7 +80,9 @@ export const sessionId = <E>(proto: ProtoService<E>): string | undefined => {
   return sessionMap.get(req)?.sessionId ?? session?.sessionId;
 }
 
-const sessionInfoMap = new WeakMap<Request, Partial<Awaited<ReturnType<typeof fetchSessionInfo<any>>>>>();
+type SessionInfo<E> = Partial<Awaited<ReturnType<typeof fetchSessionInfo<E>>>>;
+const sessionInfoMap = new WeakMap<Request, SessionInfo<any>>();
+
 const fetchSessionInfo = async <E>(proto: ProtoService<E>, userId?: string) => {
   const user = _.isString(userId) ? await proto.Query('User', { master: true }).get(userId) : undefined;
   const roles = user instanceof TUser ? _.compact(_.map(await proto.userRoles(user), x => x.name)) : [];
@@ -98,7 +100,7 @@ export const session = async <E>(proto: ProtoService<E>) => {
   const session = _session(proto);
   const sessionId: string | undefined = sessionMap.get(req)?.sessionId ?? session?.sessionId;
 
-  const cached = sessionInfoMap.get(req);
+  const cached = sessionInfoMap.get(req) as SessionInfo<E>;
   if (cached) return { sessionId, ...cached };
 
   const info = await fetchSessionInfo(proto, session?.user);
