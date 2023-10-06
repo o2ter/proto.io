@@ -48,7 +48,7 @@ export const TValueSetKeys = [
   '$intersect',
 ] as const;
 
-export const TCoditionalKeys = [
+export const TConditionalKeys = [
   '$and',
   '$nor',
   '$or',
@@ -56,7 +56,7 @@ export const TCoditionalKeys = [
 
 export const allFieldQueryKeys = [
   '$not', '$pattern', '$starts', '$ends', '$size', '$empty', '$every', '$some',
-  ...TCoditionalKeys,
+  ...TConditionalKeys,
   ...TValueListKeys,
   ...TValueSetKeys
 ];
@@ -76,7 +76,7 @@ export type TFieldQuerySelector = {
   { [x in typeof TValueListKeys[number]]?: TValue[]; } &
   { [x in typeof TValueSetKeys[number]]?: TValue[]; };
 
-export type TCoditionalQuerySelector = { [x in typeof TCoditionalKeys[number]]?: TQuerySelector[]; };
+export type TCoditionalQuerySelector = { [x in typeof TConditionalKeys[number]]?: TQuerySelector[]; };
 export type TQuerySelector = TCoditionalQuerySelector | { [x: string]: TFieldQuerySelector; };
 
 type _Digit = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;

@@ -28,7 +28,7 @@ import {
   TValue,
   isValue,
   TQuerySelector,
-  TCoditionalKeys,
+  TConditionalKeys,
   TFieldQuerySelector,
   TComparisonKeys,
   TValueListKeys,
@@ -42,7 +42,7 @@ export class QuerySelector {
     const exprs: QuerySelector[] = [];
     for (const selector of _.castArray(selectors)) {
       for (const [key, query] of _.toPairs(selector)) {
-        if (_.includes(TCoditionalKeys, key) && _.isArray(query)) {
+        if (_.includes(TConditionalKeys, key) && _.isArray(query)) {
           exprs.push(new CoditionalSelector(key as any, _.map(query, x => QuerySelector.decode(x, dollerSign))));
         } else if (dollerSign && key === '$' && !_.isArray(query)) {
           exprs.push(new FieldSelector(key, FieldExpression.decode(query)));
@@ -68,10 +68,10 @@ export class QuerySelector {
 
 export class CoditionalSelector extends QuerySelector {
 
-  type: typeof TCoditionalKeys[number];
+  type: typeof TConditionalKeys[number];
   exprs: QuerySelector[];
 
-  constructor(type: typeof TCoditionalKeys[number], exprs: QuerySelector[]) {
+  constructor(type: typeof TConditionalKeys[number], exprs: QuerySelector[]) {
     super();
     this.type = type;
     this.exprs = exprs;
