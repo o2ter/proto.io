@@ -342,7 +342,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
   destoryFileData(proto: ProtoService<Ext>, id: string) {
     (async () => {
       try {
-        await this.proto.fileStorage.destory(this.proto, id);
+        await proto.fileStorage.destory(proto, id);
       } catch (e) {
         console.error(e);
       }
