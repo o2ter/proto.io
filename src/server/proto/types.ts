@@ -57,7 +57,7 @@ export type ProtoServiceOptions<Ext> = {
   schema: Record<string, TSchema>;
   storage: TStorage;
   channel?: TChannel;
-  channelPermissions?: Record<string, string[]>;
+  channelPublishPermissions?: Record<string, string[]>;
   fileStorage: TFileStorage;
   classExtends?: TExtensions<Ext>;
   objectIdSize?: number;
