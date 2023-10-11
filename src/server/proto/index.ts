@@ -219,7 +219,7 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     return this[PVK].subscribe((_channel, payload) => {
       const createdAt = payload._created_at as Date;
       const perm = payload._perm as string[];
-      if (createdAt < startedAt) return;
+      if (channel !== _channel || createdAt < startedAt) return;
       if (!options?.master && _.every(perm, x => x !== '*' && !_.includes(roles, x))) return;
       onMsg(payload);
     });
