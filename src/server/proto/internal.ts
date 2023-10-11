@@ -348,4 +348,8 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     })();
   }
 
+  subscribe(onMsg: TChannel.MessageCallback): VoidFunction {
+    this.subscribes.add(onMsg);
+    return () => void this.subscribes.delete(onMsg);
+  }
 }
