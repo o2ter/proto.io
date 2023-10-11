@@ -96,6 +96,7 @@ export class ProtoClient<Ext> extends ProtoType<Ext> {
     options?: RequestOptions,
   ) {
 
+    return () => void 0;
   }
 
   async publish(channel: string, payload: Record<string, _TValue>, options?: RequestOptions) {
