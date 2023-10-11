@@ -45,6 +45,7 @@ import { generateId } from '../crypto/random';
 import { TSchema, defaultObjectKeyTypes, isPrimitive, isRelation } from '../../internals/schema';
 import { QueryValidator } from '../query/validator/validator';
 import { passwordHash, varifyPassword } from '../crypto/password';
+import { TChannel } from '../channel';
 
 const validateSchema = (schema: Record<string, TSchema>) => {
 
@@ -115,7 +116,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
   proto: ProtoService<Ext>;
   options: Required<ProtoServiceOptions<Ext>> & ProtoServiceKeyOptions;
 
-  functions: Record<string, ProtoFunction<Ext> | ProtoFunctionOptions<Ext>>;
+  functions: Record<string, ProtoFunction<Ext> | ProtoFunctionOptions<Ext>> = {};
   triggers: {
     beforeSave?: Record<string, ProtoTrigger<string, Ext>>;
     afterSave?: Record<string, ProtoTrigger<string, Ext>>;
@@ -125,7 +126,9 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     afterSaveFile?: ProtoTrigger<'File', Ext>;
     beforeDeleteFile?: ProtoTrigger<'File', Ext>;
     afterDeleteFile?: ProtoTrigger<'File', Ext>;
-  };
+  } = {};
+
+  subscribes = new Set<TChannel.MessageCallback>;
 
   constructor(proto: ProtoService<Ext>, options: Required<ProtoServiceOptions<Ext>> & ProtoServiceKeyOptions) {
     validateSchema(options.schema);
@@ -134,8 +137,6 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
       ...options,
       schema: mergeSchema(defaultSchema, options.fileStorage.schema, options.schema),
     };
-    this.functions = {};
-    this.triggers = {};
   }
 
   async prepare() {

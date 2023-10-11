@@ -25,7 +25,11 @@
 
 import { _TValue } from '../internals';
 
+export namespace TChannel {
+  export type MessageCallback = (channel: string, payload: Record<string, _TValue>) => void
+}
+
 export interface TChannel {
-  subscribe(onMsg: (channel: string, payload: Record<string, _TValue>) => void): void;
+  subscribe(onMsg: TChannel.MessageCallback): void;
   send(channel: string, payload: Record<string, _TValue>): void;
 }
