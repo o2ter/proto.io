@@ -214,7 +214,7 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     onMsg: (payload: Record<string, _TValue>) => void,
     options?: ExtraOptions,
   ) {
-    const roles = _.uniq(_.compact([..._.map(await this.roles(), x => `role:${x}`), (await this.user())?.objectId]));
+    const roles = options?.master ? [] : _.uniq(_.compact([..._.map(await this.roles(), x => `role:${x}`), (await this.user())?.objectId]));
     const startedAt = new Date;
     return this[PVK].subscribe((_channel, payload) => {
       const createdAt = payload._created_at as Date;
