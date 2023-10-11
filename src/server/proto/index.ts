@@ -226,7 +226,7 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
   }
 
   async publish(channel: string, payload: Record<string, _TValue>, options?: ExtraOptions) {
-    const roles = await this.roles();
+    const roles = _.uniq(_.compact([..._.map(await this.roles(), x => `role:${x}`), (await this.user())?.objectId]));
     const perm = this[PVK].options.channelPublishPermissions[channel] ?? ['*'];
     if (!options?.master && _.every(perm, x => x !== '*' && !_.includes(roles, x))) throw Error('No permission');
     this[PVK].publish(channel, {
