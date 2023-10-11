@@ -36,6 +36,7 @@ import { TValue, _TValue } from './query/value';
 import { TObject } from './object';
 import { TSerializable } from './codec';
 import { TUser } from './object/user';
+import { TQuerySelector } from './query/types';
 
 export interface ProtoInternalType<Ext> {
 
@@ -59,6 +60,14 @@ export abstract class ProtoType<Ext> {
 
   abstract run(name: string, data?: TSerializable, options?: ExtraOptions): Promise<void | TSerializable>
   abstract Query<T extends string>(className: T, options?: ExtraOptions): TQuery<T, Ext>;
+
+  abstract subscribe(
+    channel: string,
+    filter: TQuerySelector,
+    onMsg: (payload: Record<string, _TValue>) => void,
+    options?: ExtraOptions,
+  ): void;
+  abstract publish(channel: string, payload: Record<string, _TValue>, options?: ExtraOptions): Promise<void>;
 
   Object<T extends string>(className: T, objectId?: string): TObjectType<T, Ext> {
     const attrs: Record<string, TValue> = objectId ? { _id: objectId } : {};

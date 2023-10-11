@@ -29,6 +29,7 @@ import { ProtoClientInternal } from './internal';
 import {
   PVK,
   ProtoType, TQuery,
+  TQuerySelector,
   TSerializable,
   TUser,
   _TValue
@@ -88,4 +89,16 @@ export class ProtoClient<Ext> extends ProtoType<Ext> {
     return this[PVK].schema(options);
   }
 
+  subscribe(
+    channel: string,
+    filter: TQuerySelector,
+    onMsg: (payload: Record<string, _TValue>) => void,
+    options?: RequestOptions,
+  ) {
+
+  }
+
+  async publish(channel: string, payload: Record<string, _TValue>, options?: RequestOptions) {
+    
+  }
 }
