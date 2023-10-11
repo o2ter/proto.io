@@ -66,7 +66,7 @@ export abstract class ProtoType<Ext> {
     filter: TQuerySelector,
     onMsg: (payload: Record<string, _TValue>) => void,
     options?: ExtraOptions,
-  ): VoidFunction;
+  ): Promise<VoidFunction>;
   abstract publish(channel: string, payload: Record<string, _TValue>, options?: ExtraOptions): Promise<void>;
 
   Object<T extends string>(className: T, objectId?: string): TObjectType<T, Ext> {

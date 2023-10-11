@@ -89,7 +89,7 @@ export class ProtoClient<Ext> extends ProtoType<Ext> {
     return this[PVK].schema(options);
   }
 
-  subscribe(
+  async subscribe(
     channel: string,
     filter: TQuerySelector,
     onMsg: (payload: Record<string, _TValue>) => void,

@@ -208,20 +208,25 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     return this.storage.withTransaction((storage) => callback(_.create(this, { _storage: storage })), options);
   }
 
-  subscribe(
+  async subscribe(
     channel: string,
     filter: TQuerySelector,
     onMsg: (payload: Record<string, _TValue>) => void,
     options?: ExtraOptions,
   ) {
-
-    return () => void 0;
+    const roles = await this.roles();
+    return this[PVK].subscribe((_channel, payload) => {
+      const createdAt = payload._created_at;
+      const perm = payload._perm as string[] ?? ['*'];
+      if (!options?.master && _.every(perm, x => x !== '*' && !_.includes(roles, x))) return;
+      onMsg(payload);
+    });
   }
 
   async publish(channel: string, payload: Record<string, _TValue>, options?: ExtraOptions) {
     const roles = await this.roles();
-    const perms = this[PVK].options.channelPermissions[channel] ?? ['*'];
-    if (!options?.master && _.every(perms, x => x !== '*' && !_.includes(roles, x))) throw Error('No permission');
+    const perm = this[PVK].options.channelPermissions[channel] ?? ['*'];
+    if (!options?.master && _.every(perm, x => x !== '*' && !_.includes(roles, x))) throw Error('No permission');
     this[PVK].publish(channel, payload);
   }
 }
