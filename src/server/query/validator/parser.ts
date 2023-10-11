@@ -181,6 +181,10 @@ export class FieldExpression {
     }
     return true;
   }
+
+  eval(v: any) {
+    return true;
+  }
 }
 
 export class FieldSelector extends QuerySelector {
@@ -200,5 +204,12 @@ export class FieldSelector extends QuerySelector {
 
   validate(callback: (key: string) => boolean) {
     return (this.field === '$' || callback(this.field)) && this.expr.validate(callback);
+  }
+
+  eval(v: any) {
+    if (this.field === '$') {
+      return this.expr.eval(v);
+    }
+    return this.expr.eval(_.get(v, this.field));
   }
 }
