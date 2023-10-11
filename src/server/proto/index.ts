@@ -41,6 +41,7 @@ import { Request } from 'express';
 import { ProtoServiceOptions, ProtoServiceKeyOptions, ProtoFunction, ProtoFunctionOptions, ProtoTrigger } from './types';
 import { sessionId, sessionIsMaster, session, signUser } from './session';
 import { TransactionOptions } from '../storage';
+import { fetchUserPerms } from '../query/validator';
 
 export class ProtoService<Ext> extends ProtoType<Ext> {
 
@@ -214,8 +215,8 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     onMsg: (payload: Record<string, _TValue>) => void,
     options?: ExtraOptions,
   ) {
-    const roles = options?.master ? [] : _.uniq(_.compact([..._.map(await this.roles(), x => `role:${x}`), (await this.user())?.objectId]));
     const startedAt = new Date;
+    const roles = options?.master ? [] : await fetchUserPerms(this);
     return this[PVK].subscribe((_channel, payload) => {
       const createdAt = payload._created_at as Date;
       const perm = payload._perm as string[];
@@ -228,7 +229,7 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
   async publish(channel: string, payload: Record<string, _TValue>, options?: ExtraOptions) {
     if (!options?.master) {
       const perm = this[PVK].options.channelPublishPermissions[channel] ?? ['*'];
-      const roles = _.uniq(_.compact([..._.map(await this.roles(), x => `role:${x}`), (await this.user())?.objectId]));
+      const roles = await fetchUserPerms(this);
       if (_.every(perm, x => x !== '*' && !_.includes(roles, x))) throw Error('No permission');
     }
     this[PVK].publish(channel, {
