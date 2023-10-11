@@ -42,6 +42,7 @@ import { ProtoServiceOptions, ProtoServiceKeyOptions, ProtoFunction, ProtoFuncti
 import { sessionId, sessionIsMaster, session, signUser } from './session';
 import { TransactionOptions } from '../storage';
 import { fetchUserPerms } from '../query/validator';
+import { QuerySelector } from '../query/validator/parser';
 
 export class ProtoService<Ext> extends ProtoType<Ext> {
 
@@ -217,6 +218,7 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
   ) {
     const startedAt = new Date;
     const roles = options?.master ? [] : await fetchUserPerms(this);
+    const selector = QuerySelector.decode(filter);
     return this[PVK].subscribe((_channel, payload) => {
       const createdAt = payload._created_at as Date;
       const perm = payload._perm as string[];
