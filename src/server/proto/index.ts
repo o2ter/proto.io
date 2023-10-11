@@ -217,7 +217,10 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
 
   }
 
-  publish(channel: string, payload: Record<string, _TValue>, options?: ExtraOptions) {
+  async publish(channel: string, payload: Record<string, _TValue>, options?: ExtraOptions) {
+    const roles = await this.roles();
+    const perms = this[PVK].options.channelPermissions[channel] ?? ['*'];
+    if (!options?.master && _.every(perms, x => x !== '*' && !_.includes(roles, x))) throw Error('No permission');
     this[PVK].publish(channel, payload);
   }
 }
