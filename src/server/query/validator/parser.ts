@@ -159,7 +159,7 @@ export class FieldExpression {
         }
       }
     }
-    throw Error('Implemented');
+    throw Error('Invalid expression');
   }
 
   simplify(): FieldExpression {
