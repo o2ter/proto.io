@@ -215,9 +215,11 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     options?: ExtraOptions,
   ) {
     const roles = await this.roles();
+    const startedAt = new Date;
     return this[PVK].subscribe((_channel, payload) => {
-      const createdAt = payload._created_at;
-      const perm = payload._perm as string[] ?? ['*'];
+      const createdAt = payload._created_at as Date;
+      const perm = payload._perm as string[];
+      if (createdAt < startedAt) return;
       if (!options?.master && _.every(perm, x => x !== '*' && !_.includes(roles, x))) return;
       onMsg(payload);
     });
@@ -227,6 +229,10 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     const roles = await this.roles();
     const perm = this[PVK].options.channelPermissions[channel] ?? ['*'];
     if (!options?.master && _.every(perm, x => x !== '*' && !_.includes(roles, x))) throw Error('No permission');
-    this[PVK].publish(channel, payload);
+    this[PVK].publish(channel, {
+      ...payload,
+      _created_at: new Date,
+      _perm: _.isArray(payload._perm) && _.every(payload._perm, x => _.isString(x)) ? payload._perm : ['*'],
+    });
   }
 }
