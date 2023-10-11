@@ -60,7 +60,6 @@ export type TransactionOptions = {
   retry?: number | boolean;
 };
 
-
 export interface TStorage {
 
   selectLock(): boolean;
