@@ -70,6 +70,7 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
         subscribe: () => { },
         publish: () => { },
       },
+      channelPermissions: {},
       ...options,
     });
   }
