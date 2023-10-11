@@ -67,7 +67,7 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
       },
       channel: {
         subscribe: () => {},
-        send: () => {},
+        publish: () => {},
       },
       ...options,
     });
@@ -204,5 +204,9 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     options?: TransactionOptions,
   ) {
     return this.storage.withTransaction((storage) => callback(_.create(this, { _storage: storage })), options);
+  }
+
+  publish(channel: string, payload: Record<string, _TValue>) {
+    this[PVK].publish(channel, payload);
   }
 }

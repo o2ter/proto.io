@@ -352,4 +352,8 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     this.subscribes.add(onMsg);
     return () => void this.subscribes.delete(onMsg);
   }
+
+  publish(channel: string, payload: Record<string, _TValue>) {
+    this.options.channel.publish(channel, payload);
+  }
 }

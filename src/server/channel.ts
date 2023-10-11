@@ -31,5 +31,5 @@ export namespace TChannel {
 
 export interface TChannel {
   subscribe(onMsg: TChannel.MessageCallback): void;
-  send(channel: string, payload: Record<string, _TValue>): void;
+  publish(channel: string, payload: Record<string, _TValue>): void;
 }
