@@ -129,6 +129,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
   } = {};
 
   subscribes = new Set<TChannel.MessageCallback>;
+  isSubscribed = false;
 
   constructor(proto: ProtoService<Ext>, options: Required<ProtoServiceOptions<Ext>> & ProtoServiceKeyOptions) {
     validateSchema(options.schema);
@@ -349,6 +350,12 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
   }
 
   subscribe(onMsg: TChannel.MessageCallback): VoidFunction {
+    if (!this.isSubscribed) {
+      this.options.channel.subscribe((channel, payload) => {
+        this.subscribes.forEach(callback => callback(channel, payload));
+      });
+      this.isSubscribed = true;
+    }
     this.subscribes.add(onMsg);
     return () => void this.subscribes.delete(onMsg);
   }
