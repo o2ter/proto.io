@@ -64,6 +64,10 @@ export class QuerySelector {
   validate(callback: (key: string) => boolean) {
     return true;
   }
+
+  eval(v: any): boolean {
+    return true;
+  }
 }
 
 export class CoditionalSelector extends QuerySelector {

@@ -224,6 +224,7 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
       const perm = payload._perm as string[];
       if (channel !== _channel || createdAt < startedAt) return;
       if (!options?.master && _.every(perm, x => x !== '*' && !_.includes(roles, x))) return;
+      if (!selector.eval(payload)) return;
       onMsg(payload);
     });
   }
