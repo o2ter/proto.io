@@ -35,6 +35,7 @@ import {
   TUser,
   ExtraOptions,
   _TValue,
+  TQuerySelector,
 } from '../../internals';
 import { Request } from 'express';
 import { ProtoServiceOptions, ProtoServiceKeyOptions, ProtoFunction, ProtoFunctionOptions, ProtoTrigger } from './types';
@@ -66,8 +67,8 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
         saltSize: 64,
       },
       channel: {
-        subscribe: () => {},
-        publish: () => {},
+        subscribe: () => { },
+        publish: () => { },
       },
       ...options,
     });
@@ -206,7 +207,16 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     return this.storage.withTransaction((storage) => callback(_.create(this, { _storage: storage })), options);
   }
 
-  publish(channel: string, payload: Record<string, _TValue>) {
+  subscribe(
+    channel: string,
+    filter: TQuerySelector,
+    onMsg: (payload: Record<string, _TValue>) => void,
+    options?: ExtraOptions,
+  ) {
+
+  }
+
+  publish(channel: string, payload: Record<string, _TValue>, options?: ExtraOptions) {
     this[PVK].publish(channel, payload);
   }
 }
