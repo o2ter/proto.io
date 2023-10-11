@@ -25,11 +25,7 @@
 
 import { _TValue } from '../internals';
 
-export namespace TChannel {
-  export type Termination = () => void;
-}
-
 export interface TChannel {
-  subscribe(onMsg: (channel: string, payload: Record<string, _TValue>) => void): TChannel.Termination;
+  subscribe(onMsg: (channel: string, payload: Record<string, _TValue>) => void): void;
   send(channel: string, payload: Record<string, _TValue>): void;
 }
