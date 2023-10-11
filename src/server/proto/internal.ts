@@ -45,7 +45,6 @@ import { generateId } from '../crypto/random';
 import { TSchema, defaultObjectKeyTypes, isPrimitive, isRelation } from '../../internals/schema';
 import { QueryValidator } from '../query/validator/validator';
 import { passwordHash, varifyPassword } from '../crypto/password';
-import { TChannel } from '../channel';
 
 const validateSchema = (schema: Record<string, TSchema>) => {
 
@@ -127,9 +126,6 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     beforeDeleteFile?: ProtoTrigger<'File', Ext>;
     afterDeleteFile?: ProtoTrigger<'File', Ext>;
   } = {};
-
-  subscribes = new Set<TChannel.MessageCallback>;
-  isSubscribed = false;
 
   constructor(proto: ProtoService<Ext>, options: Required<ProtoServiceOptions<Ext>> & ProtoServiceKeyOptions) {
     validateSchema(options.schema);
@@ -347,20 +343,5 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
         console.error(e);
       }
     })();
-  }
-
-  subscribe(onMsg: TChannel.MessageCallback): VoidFunction {
-    if (!this.isSubscribed) {
-      this.options.channel.subscribe((channel, payload) => {
-        this.subscribes.forEach(callback => callback(channel, payload));
-      });
-      this.isSubscribed = true;
-    }
-    this.subscribes.add(onMsg);
-    return () => void this.subscribes.delete(onMsg);
-  }
-
-  publish(channel: string, payload: Record<string, _TValue>) {
-    this.options.channel.publish(channel, payload);
   }
 }

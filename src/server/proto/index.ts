@@ -68,11 +68,6 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
         keySize: 64,
         saltSize: 64,
       },
-      channel: {
-        subscribe: () => { },
-        publish: () => { },
-      },
-      channelPublishPermissions: {},
       ...options,
     });
   }
@@ -208,37 +203,5 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     options?: TransactionOptions,
   ) {
     return this.storage.withTransaction((storage) => callback(_.create(this, { _storage: storage })), options);
-  }
-
-  async subscribe(
-    channel: string,
-    filter: TQuerySelector,
-    onMsg: (payload: Record<string, _TValue>) => void,
-    options?: ExtraOptions,
-  ) {
-    const startedAt = new Date;
-    const roles = options?.master ? [] : await fetchUserPerms(this);
-    const selector = QuerySelector.decode(filter);
-    return this[PVK].subscribe((_channel, payload) => {
-      const createdAt = payload._created_at as Date;
-      const perm = payload._perm as string[];
-      if (channel !== _channel || createdAt < startedAt) return;
-      if (!options?.master && _.every(perm, x => x !== '*' && !_.includes(roles, x))) return;
-      if (!selector.eval(payload)) return;
-      onMsg(payload);
-    });
-  }
-
-  async publish(channel: string, payload: Record<string, _TValue>, options?: ExtraOptions) {
-    if (!options?.master) {
-      const perm = this[PVK].options.channelPublishPermissions[channel] ?? ['*'];
-      const roles = await fetchUserPerms(this);
-      if (_.every(perm, x => x !== '*' && !_.includes(roles, x))) throw Error('No permission');
-    }
-    this[PVK].publish(channel, {
-      ...payload,
-      _created_at: new Date,
-      _perm: _.isArray(payload._perm) && _.every(payload._perm, x => _.isString(x)) ? payload._perm : ['*'],
-    });
   }
 }

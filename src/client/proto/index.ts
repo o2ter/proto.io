@@ -88,18 +88,4 @@ export class ProtoClient<Ext> extends ProtoType<Ext> {
   schema(options: RequestOptions & { master: true }) {
     return this[PVK].schema(options);
   }
-
-  async subscribe(
-    channel: string,
-    filter: TQuerySelector,
-    onMsg: (payload: Record<string, _TValue>) => void,
-    options?: RequestOptions,
-  ) {
-
-    return () => void 0;
-  }
-
-  async publish(channel: string, payload: Record<string, _TValue>, options?: RequestOptions) {
-    
-  }
 }

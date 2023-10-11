@@ -64,10 +64,6 @@ export class QuerySelector {
   validate(callback: (key: string) => boolean) {
     return true;
   }
-
-  eval(v: any): boolean {
-    return true;
-  }
 }
 
 export class CoditionalSelector extends QuerySelector {
@@ -99,16 +95,6 @@ export class CoditionalSelector extends QuerySelector {
 
   validate(callback: (key: string) => boolean) {
     return _.every(this.exprs, x => x.validate(callback));
-  }
-
-  eval(v: any) {
-    if (_.isEmpty(this.exprs)) return true;
-    if (this.exprs.length === 1 && this.type !== '$nor') return this.exprs[0].eval(v);
-    switch (this.type) {
-      case '$and': return _.every(this.exprs, x => x.eval(v));
-      case '$nor': return !_.some(this.exprs, x => x.eval(v));
-      case '$or': return _.some(this.exprs, x => x.eval(v));
-    }
   }
 }
 
@@ -181,10 +167,6 @@ export class FieldExpression {
     }
     return true;
   }
-
-  eval(v: any) {
-    return true;
-  }
 }
 
 export class FieldSelector extends QuerySelector {
@@ -204,9 +186,5 @@ export class FieldSelector extends QuerySelector {
 
   validate(callback: (key: string) => boolean) {
     return (this.field === '$' || callback(this.field)) && this.expr.validate(callback);
-  }
-
-  eval(v: any) {
-    return this.expr.eval(this.field === '$' ? v : _.get(v, this.field));
   }
 }
