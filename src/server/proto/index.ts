@@ -65,6 +65,10 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
         keySize: 64,
         saltSize: 64,
       },
+      channel: {
+        subscribe: () => {},
+        send: () => {},
+      },
       ...options,
     });
   }

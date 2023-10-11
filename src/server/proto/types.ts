@@ -35,6 +35,7 @@ import { SignOptions, VerifyOptions } from 'jsonwebtoken';
 import { Awaitable } from '../../internals/types';
 import { ProtoService } from '.';
 import { PasswordHashOptions } from '../crypto/password';
+import { TChannel } from '../channel';
 
 type Callback<T, R, E> = (request: ProtoService<E> & T) => Awaitable<R>;
 export type ProtoFunction<E> = Callback<{ data: TSerializable; }, void | TSerializable, E>;
@@ -55,6 +56,7 @@ export type ProtoServiceOptions<Ext> = {
   endpoint: string;
   schema: Record<string, TSchema>;
   storage: TStorage;
+  channel?: TChannel;
   fileStorage: TFileStorage;
   classExtends?: TExtensions<Ext>;
   objectIdSize?: number;
