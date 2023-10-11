@@ -100,6 +100,16 @@ export class CoditionalSelector extends QuerySelector {
   validate(callback: (key: string) => boolean) {
     return _.every(this.exprs, x => x.validate(callback));
   }
+
+  eval(v: any) {
+    if (_.isEmpty(this.exprs)) return true;
+    if (this.exprs.length === 1 && this.type !== '$nor') return this.exprs[0].eval(v);
+    switch (this.type) {
+      case '$and': return _.every(this.exprs, x => x.eval(v));
+      case '$nor': return !_.some(this.exprs, x => x.eval(v));
+      case '$or': return _.some(this.exprs, x => x.eval(v));
+    }
+  }
 }
 
 export class FieldExpression {
