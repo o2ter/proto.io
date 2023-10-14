@@ -24,8 +24,8 @@
 //
 
 import _ from 'lodash';
-import type { Readable } from 'stream';
-import type { Blob as NodeBlob } from 'buffer';
+import type { Readable } from 'node:stream';
+import type { Blob as NodeBlob } from 'node:buffer';
 
 export {
   isBinaryData,
@@ -34,17 +34,17 @@ export {
   binaryToBuffer,
 } from '@o2ter/crypto-js';
 
-export const _Blob = typeof Blob !== 'undefined' ? Blob : require('buffer').Blob as NodeBlob;
+export const _Blob = typeof Blob !== 'undefined' ? Blob : require('node:buffer').Blob as NodeBlob;
 
 export type FileStream = ReadableStream | Readable;
 export type FileData = string | typeof _Blob | BinaryData | FileStream | { base64: string; };
 
 export const isBlob = (x: any): x is typeof _Blob => {
-  return typeof Blob !== 'undefined' ? x instanceof Blob : x instanceof require('buffer').Blob;
+  return typeof Blob !== 'undefined' ? x instanceof Blob : x instanceof require('node:buffer').Blob;
 };
 
 export const isFileStream = (x: any): x is FileStream => {
   if (typeof ReadableStream !== 'undefined' && x instanceof ReadableStream) return true;
-  if (typeof window === 'undefined' && x instanceof require('stream').Readable) return true;
+  if (typeof window === 'undefined' && x instanceof require('node:stream').Readable) return true;
   return false;
 };

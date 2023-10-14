@@ -24,8 +24,8 @@
 //
 
 import _ from 'lodash';
-import { Blob } from 'buffer';
-import { Readable } from 'stream';
+import { Blob } from 'node:buffer';
+import { Readable } from 'node:stream';
 import { defaultSchema } from './defaults';
 import { ProtoService } from './index';
 import { ProtoServiceOptions, ProtoFunction, ProtoFunctionOptions, ProtoTrigger, ProtoServiceKeyOptions } from './types';

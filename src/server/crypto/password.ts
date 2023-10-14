@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { scrypt, BinaryLike, ScryptOptions } from 'crypto';
+import { scrypt, BinaryLike, ScryptOptions } from 'node:crypto';
 import { promisify } from 'util';
 import { randomBytes } from '@o2ter/crypto-js';
 

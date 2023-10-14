@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { Router } from 'express';
-import { Readable } from 'stream';
+import { Readable } from 'node:stream';
 import { ProtoService } from '../proto';
 import { decodeFormStream, response } from './common';
 import { PVK, deserialize } from '../../internals';
