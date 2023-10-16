@@ -1217,3 +1217,14 @@ test('test random', async () => {
 
   expect(_.map(result, x => x.get('number')).sort((a, b) => a - b)).toStrictEqual(_.range(1, 10));
 })
+
+test('test random 2', async () => {
+
+  for (const i of _.range(1, 10)) {
+    await Proto.Query('Test').insert({ number: i, string: 'random2' });
+  }
+
+  const result = await Proto.Query('Test').equalTo('string', 'random2').random('number');
+
+  expect(_.map(result, x => x.get('number')).sort((a, b) => a - b)).toStrictEqual(_.range(1, 10));
+})
