@@ -116,10 +116,10 @@ export abstract class SqlStorage implements TStorage {
 
   random(query: DecodedQuery<FindOptions>, weight?: string) {
     const self = this;
-    // -LOG(RAND()) / weight
     return asyncStream(async function* () {
       const compiler = new QueryCompiler(self.schema, self.dialect, self.selectLock(), false);
-      const objects = self.query(compiler._selectQuery(query));
+      const random = weight ? sql`-ln(random()) / ${{ identifier: weight }}` : sql`random()`;
+      const objects = self.query(compiler._selectQuery({ ...query, sort: { $random: 1 } }, sql`*, ${random} AS $random`));
       for await (const object of objects) {
         yield self._decodeObject(query.className, object);
       }
