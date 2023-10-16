@@ -78,6 +78,7 @@ export abstract class SqlStorage implements TStorage {
     const obj = new TObject(className);
     for (const [key, value] of _.toPairs(attrs)) {
       const dataType = fields[key];
+      if (!dataType) continue;
       if (_.isString(dataType)) {
         obj[PVK].attributes[key] = this.dialect.decodeType(dataType, value);
       } else if (dataType.type !== 'pointer' && dataType.type !== 'relation') {
