@@ -91,10 +91,10 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
     });
   }
 
-  random(weight?: string) {
+  random(opts?: { weight?: string }) {
     const self = this;
     return asyncStream(async function* () {
-      const objects = await self._storage.random(self._queryOptions, weight);
+      const objects = await self._storage.random(self._queryOptions, opts);
       for await (const object of objects) yield self._objectMethods(object);
     });
   }

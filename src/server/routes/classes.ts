@@ -49,7 +49,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
         const {
           operation,
           context,
-          weight,
+          random,
           attributes,
           update,
           replacement,
@@ -78,7 +78,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
               const maxFetchLimit = _.isFunction(payload[PVK].options.maxFetchLimit) ? await payload[PVK].options.maxFetchLimit(payload) : payload[PVK].options.maxFetchLimit;
               query[PVK].options.limit = query[PVK].options.limit ?? maxFetchLimit;
               if (query[PVK].options.limit > maxFetchLimit) throw Error('Query over limit');
-              return await query.random(weight);
+              return await query.random(random);
             }
           case 'insert': return query.insert(attributes);
           case 'updateOne': return query.updateOne(update);

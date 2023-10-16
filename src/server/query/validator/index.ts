@@ -74,15 +74,15 @@ export const queryValidator = <E>(proto: ProtoService<E>, options: ExtraOptions,
     },
     async random(
       query: FindOptions,
-      weight?: string
+      opts?: { weight?: string }
     ) {
       QueryValidator.recursiveCheck(query);
       const _validator = await validator();
       const decoded = _validator.decodeQuery(normalize(query), 'read');
       const isGet = _validator.isGetMethod(decoded.filter);
       if (!_validator.validateCLPs(query.className, isGet ? 'get' : 'find')) throw Error('No permission');
-      if (weight && !_validator.validateKey(query.className, weight, 'read', QueryValidator.patterns.name)) throw Error('No permission');
-      return proto.storage.random(decoded, weight);
+      if (opts?.weight && !_validator.validateKey(query.className, opts.weight, 'read', QueryValidator.patterns.name)) throw Error('No permission');
+      return proto.storage.random(decoded, opts);
     },
     async insert(
       options: {
