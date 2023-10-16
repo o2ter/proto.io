@@ -189,7 +189,10 @@ export class QueryCompiler {
 
   private _baseSelectQuery(
     query: DecodedQuery<FindOptions>,
-    select?: SQL
+    options?: {
+      select?: SQL,
+      sort?: SQL,
+    },
   ) {
 
     const context = this._makeContext(query);
@@ -214,13 +217,14 @@ export class QueryCompiler {
       fetchName,
       context: context,
       query: sql`
-        SELECT ${select ? select : sql`*`} FROM (
+        SELECT ${options?.select ? options?.select : sql`*`} FROM (
           SELECT ${_includes}
           FROM ${{ identifier: query.className }} AS ${{ identifier: fetchName }}
           ${!_.isEmpty(_joins) ? { literal: _joins, separator: '\n' } : sql``}
           ${this.selectLock ? this.isUpdate ? sql`FOR UPDATE NOWAIT` : sql`FOR SHARE NOWAIT` : sql``}
         ) AS ${{ identifier: fetchName }}
         ${_filter ? sql`WHERE ${_filter}` : sql``}
+        ${options?.sort ? options?.sort : sql``}
         ${!_.isEmpty(query.sort) ? sql`ORDER BY ${this._encodeSort(fetchName, query.sort)}` : sql``}
         ${query.limit ? sql`LIMIT ${{ literal: `${query.limit}` }}` : sql``}
         ${query.skip ? sql`OFFSET ${{ literal: `${query.skip}` }}` : sql``}
@@ -260,9 +264,12 @@ export class QueryCompiler {
 
   _selectQuery(
     query: DecodedQuery<FindOptions>,
-    select?: SQL
+    options?: {
+      select?: SQL,
+      sort?: SQL,
+    },
   ) {
-    const { stages, query: _query } = this._baseSelectQuery(query, select);
+    const { stages, query: _query } = this._baseSelectQuery(query, options);
     return sql`
       ${!_.isEmpty(stages) ? sql`WITH ${_.map(stages, (q, n) => sql`${{ identifier: n }} AS (${q})`)}` : sql``}
       ${_query}

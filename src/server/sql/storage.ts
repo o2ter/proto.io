@@ -98,7 +98,9 @@ export abstract class SqlStorage implements TStorage {
 
   async count(query: DecodedQuery<FindOptions>) {
     const compiler = new QueryCompiler(this.schema, this.dialect, this.selectLock(), false);
-    const result = await this.query(compiler._selectQuery(query, sql`COUNT(*) AS count`));
+    const result = await this.query(compiler._selectQuery(query, {
+      select: sql`COUNT(*) AS count`,
+    }));
     const count = parseInt(_.first(result).count);
     return _.isFinite(count) ? count : 0;
   }
@@ -119,7 +121,10 @@ export abstract class SqlStorage implements TStorage {
     return asyncStream(async function* () {
       const compiler = new QueryCompiler(self.schema, self.dialect, self.selectLock(), false);
       const random = weight ? sql`-ln(random()) / ${{ identifier: weight }}` : sql`random()`;
-      const objects = self.query(compiler._selectQuery({ ...query, sort: { $random: 1 } }, sql`*, ${random} AS $random`));
+      const objects = self.query(compiler._selectQuery({ ...query, sort: {} }, {
+        select: sql`*, ${random} AS random$`,
+        sort: sql`ORDER BY random$`,
+      }));
       for await (const object of objects) {
         yield self._decodeObject(query.className, object);
       }
