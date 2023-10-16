@@ -114,6 +114,18 @@ export abstract class SqlStorage implements TStorage {
     });
   }
 
+  random(query: DecodedQuery<FindOptions>, weight?: string) {
+    const self = this;
+    // -LOG(RAND()) / weight
+    return asyncStream(async function* () {
+      const compiler = new QueryCompiler(self.schema, self.dialect, self.selectLock(), false);
+      const objects = self.query(compiler._selectQuery(query));
+      for await (const object of objects) {
+        yield self._decodeObject(query.className, object);
+      }
+    });
+  }
+
   async insert(options: InsertOptions, attrs: Record<string, TValue>) {
     const compiler = new QueryCompiler(this.schema, this.dialect, this.selectLock(), true);
     const result = _.first(await this.query(compiler.insert(options, attrs)));
