@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { IncludePaths } from './types';
+import { IncludePaths, PathName } from './types';
 import { TValue } from './value';
 import { PVK } from '../private';
 import { TObjectType } from '../object/types';
@@ -59,6 +59,7 @@ export abstract class TQuery<T extends string, Ext> extends TQueryBase {
   abstract explain(): PromiseLike<any>;
   abstract count(): PromiseLike<number>;
   abstract find(): ReturnType<typeof asyncStream<TObjectType<T, Ext>>>;
+  abstract random<W extends string>(weight?: PathName<W>): ReturnType<typeof asyncStream<TObjectType<T, Ext>>>;
   abstract insert(attrs: Record<string, TValue>): PromiseLike<TObjectType<T, Ext>>;
   abstract updateOne(update: Record<string, TUpdateOp>): PromiseLike<TObjectType<T, Ext> | undefined>;
   abstract upsertOne(update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValue>): PromiseLike<TObjectType<T, Ext>>;

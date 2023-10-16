@@ -29,7 +29,6 @@ import { ProtoClientInternal } from './internal';
 import {
   PVK,
   ProtoType, TQuery,
-  TQuerySelector,
   TSerializable,
   TUser,
   _TValue

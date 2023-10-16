@@ -76,6 +76,7 @@ export interface TStorage {
 
   count(query: DecodedQuery<FindOptions>): PromiseLike<number>;
   find(query: DecodedQuery<FindOptions>): AsyncIterable<TObject>;
+  random(query: DecodedQuery<FindOptions>, weight?: string): AsyncIterable<TObject>;
 
   insert(options: InsertOptions, attrs: Record<string, TValue>): PromiseLike<TObject | undefined>;
 

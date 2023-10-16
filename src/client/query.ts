@@ -35,6 +35,7 @@ import {
   TObjectType,
   TQueryOptions,
   TUpdateOp,
+  PathName,
 } from '../internals';
 
 export class ProtoClientQuery<T extends string, E> extends TQuery<T, E> {
@@ -93,6 +94,16 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E> {
     const request = () => this._proto[PVK].request({
       operation: 'find',
       context: this._options?.context ?? {},
+      ...this._queryOptions,
+    }, this._requestOpt) as Promise<TObjectType<T, E>[]>;
+    return asyncStream(request);
+  }
+
+  random<W extends string>(weight?: PathName<W>) {
+    const request = () => this._proto[PVK].request({
+      operation: 'random',
+      context: this._options?.context ?? {},
+      weight,
       ...this._queryOptions,
     }, this._requestOpt) as Promise<TObjectType<T, E>[]>;
     return asyncStream(request);

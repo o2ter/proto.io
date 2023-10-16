@@ -72,6 +72,17 @@ export const queryValidator = <E>(proto: ProtoService<E>, options: ExtraOptions,
       if (!_validator.validateCLPs(query.className, isGet ? 'get' : 'find')) throw Error('No permission');
       return proto.storage.find(decoded);
     },
+    async random(
+      query: FindOptions,
+      weight?: string
+    ) {
+      QueryValidator.recursiveCheck(query);
+      const _validator = await validator();
+      const decoded = _validator.decodeQuery(normalize(query), 'read');
+      const isGet = _validator.isGetMethod(decoded.filter);
+      if (!_validator.validateCLPs(query.className, isGet ? 'get' : 'find')) throw Error('No permission');
+      return proto.storage.random(decoded, weight);
+    },
     async insert(
       options: {
         className: string;

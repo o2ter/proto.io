@@ -39,6 +39,7 @@ import {
   TObjectType,
   TQueryOptions,
   decodeUpdateOp,
+  PathName,
 } from '../../internals';
 import { queryValidator } from './validator';
 
@@ -87,6 +88,14 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
     const self = this;
     return asyncStream(async function* () {
       const objects = await self._storage.find(self._queryOptions);
+      for await (const object of objects) yield self._objectMethods(object);
+    });
+  }
+
+  random<W extends string>(weight?: PathName<W>) {
+    const self = this;
+    return asyncStream(async function* () {
+      const objects = await self._storage.random(self._queryOptions, weight);
       for await (const object of objects) yield self._objectMethods(object);
     });
   }
@@ -251,7 +260,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
 
 }
 
-export class InsecureProtoQuery<T extends string, E> extends ProtoQuery<T, E> { 
+export class InsecureProtoQuery<T extends string, E> extends ProtoQuery<T, E> {
 
   clone(options?: TQueryOptions) {
     const clone = new InsecureProtoQuery(this.className, this._proto, this._options);
