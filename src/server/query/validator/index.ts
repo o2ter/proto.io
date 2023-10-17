@@ -24,7 +24,7 @@
 //
 import _ from 'lodash';
 import { ProtoService } from '../../proto/index';
-import { ExtraOptions, PVK, TValue, TUpdateOp } from '../../../internals';
+import { ExtraOptions, PVK, TValue, TUpdateOp, TQueryRandomOptions } from '../../../internals';
 import { QueryValidator } from './validator';
 import { FindOptions, FindOneOptions } from '../../storage';
 import { TQueryBaseOptions } from '../../../internals/query/base';
@@ -74,7 +74,7 @@ export const queryValidator = <E>(proto: ProtoService<E>, options: ExtraOptions,
     },
     async random(
       query: FindOptions,
-      opts?: { weight?: string }
+      opts?: TQueryRandomOptions
     ) {
       QueryValidator.recursiveCheck(query);
       const _validator = await validator();

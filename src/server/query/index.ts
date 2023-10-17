@@ -39,6 +39,7 @@ import {
   TObjectType,
   TQueryOptions,
   decodeUpdateOp,
+  TQueryRandomOptions,
 } from '../../internals';
 import { queryValidator } from './validator';
 
@@ -91,7 +92,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
     });
   }
 
-  random(opts?: { weight?: string }) {
+  random(opts?: TQueryRandomOptions) {
     const self = this;
     return asyncStream(async function* () {
       const objects = await self._storage.random(self._queryOptions, opts);

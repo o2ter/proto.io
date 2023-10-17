@@ -36,6 +36,7 @@ import {
   TQueryOptions,
   TUpdateOp,
   PathName,
+  TQueryRandomOptions,
 } from '../internals';
 
 export class ProtoClientQuery<T extends string, E> extends TQuery<T, E> {
@@ -99,7 +100,7 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E> {
     return asyncStream(request);
   }
 
-  random(opts?: { weight?: string }) {
+  random(opts?: TQueryRandomOptions) {
     const request = () => this._proto[PVK].request({
       operation: 'random',
       context: this._options?.context ?? {},

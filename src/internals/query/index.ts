@@ -36,6 +36,10 @@ export interface TQueryOptions extends TQueryBaseOptions {
   includes?: string[];
 };
 
+export interface TQueryRandomOptions {
+  weight?: string;
+};
+
 export abstract class TQuery<T extends string, Ext> extends TQueryBase {
 
   [PVK]: {
@@ -59,7 +63,7 @@ export abstract class TQuery<T extends string, Ext> extends TQueryBase {
   abstract explain(): PromiseLike<any>;
   abstract count(): PromiseLike<number>;
   abstract find(): ReturnType<typeof asyncStream<TObjectType<T, Ext>>>;
-  abstract random(opts?: { weight?: string }): ReturnType<typeof asyncStream<TObjectType<T, Ext>>>;
+  abstract random(opts?: TQueryRandomOptions): ReturnType<typeof asyncStream<TObjectType<T, Ext>>>;
   abstract insert(attrs: Record<string, TValue>): PromiseLike<TObjectType<T, Ext>>;
   abstract updateOne(update: Record<string, TUpdateOp>): PromiseLike<TObjectType<T, Ext> | undefined>;
   abstract upsertOne(update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValue>): PromiseLike<TObjectType<T, Ext>>;
@@ -81,7 +85,7 @@ export abstract class TQuery<T extends string, Ext> extends TQueryBase {
     return _.first(await this.clone().limit(1).find());
   }
 
-  async randomOne(opts?: { weight?: string }) {
+  async randomOne(opts?: TQueryRandomOptions) {
     return _.first(await this.clone().limit(1).random(opts));
   }
 

@@ -27,7 +27,7 @@ import _ from 'lodash';
 import { DecodedQuery, FindOptions, FindOneOptions, InsertOptions, TStorage, TransactionOptions } from '../storage';
 import { TSchema } from '../../internals/schema';
 import { ScheduleOp, storageSchedule } from '../schedule';
-import { PVK, TObject, TValue, TUpdateOp, asyncStream, _TValue } from '../../internals';
+import { PVK, TObject, TValue, TUpdateOp, asyncStream, _TValue, TQueryRandomOptions } from '../../internals';
 import { SQL, sql } from './sql';
 import { SqlDialect } from './dialect';
 import { QueryCompiler } from './compiler';
@@ -117,13 +117,12 @@ export abstract class SqlStorage implements TStorage {
     });
   }
 
-  random(query: DecodedQuery<FindOptions>, opts?: { weight?: string }) {
+  random(query: DecodedQuery<FindOptions>, opts?: TQueryRandomOptions) {
     const self = this;
     return asyncStream(async function* () {
       const compiler = new QueryCompiler(self.schema, self.dialect, self.selectLock(), false);
-      const random = opts?.weight ? sql`-ln(random()) / ${{ identifier: opts.weight }}` : sql`random()`;
       const objects = self.query(compiler._selectQuery({ ...query, sort: {} }, {
-        sort: sql`ORDER BY ${random}`,
+        sort: sql`ORDER BY ${self.dialect.random(opts ?? {})}`,
       }));
       for await (const object of objects) {
         yield self._decodeObject(query.className, object);

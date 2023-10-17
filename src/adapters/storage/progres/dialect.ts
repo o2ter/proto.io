@@ -791,4 +791,7 @@ export const PostgresDialect: SqlDialect = {
       ${_.map(subpath, x => sql`${{ quote: x }}`)}
     )`;
   },
+  random(opts: { weight?: string }): SQL {
+    return opts.weight ? sql`-ln(random()) / ${{ identifier: opts.weight }}` : sql`random()`;
+  },
 };

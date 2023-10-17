@@ -23,7 +23,7 @@
 //  THE SOFTWARE.
 //
 
-import { TObject, TUpdateOp, TValue, TQueryOptions, _TValue } from '../internals';
+import { TObject, TUpdateOp, TValue, TQueryOptions, _TValue, TQueryRandomOptions } from '../internals';
 import { QuerySelector } from './query/validator/parser';
 import { TSchema } from '../internals/schema';
 import { TQueryBaseOptions } from '../internals/query/base';
@@ -76,7 +76,7 @@ export interface TStorage {
 
   count(query: DecodedQuery<FindOptions>): PromiseLike<number>;
   find(query: DecodedQuery<FindOptions>): AsyncIterable<TObject>;
-  random(query: DecodedQuery<FindOptions>, opts?: { weight?: string }): AsyncIterable<TObject>;
+  random(query: DecodedQuery<FindOptions>, opts?: TQueryRandomOptions): AsyncIterable<TObject>;
 
   insert(options: InsertOptions, attrs: Record<string, TValue>): PromiseLike<TObject | undefined>;
 

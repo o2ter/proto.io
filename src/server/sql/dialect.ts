@@ -66,4 +66,6 @@ export interface SqlDialect {
     className: string,
     key: string
   ): SQL
+
+  random(opts: { weight?: string }): SQL
 }
