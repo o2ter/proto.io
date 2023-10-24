@@ -53,7 +53,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
 
         } catch (e) {
 
-          if (file?._id) proto[PVK].destoryFileData(proto, file._id);
+          if (file?._id) proto[PVK].destoryFileData(file._id);
 
           throw e;
         }
