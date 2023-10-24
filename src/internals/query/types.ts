@@ -120,8 +120,8 @@ export type IncludePath<T extends string> = T extends '*' | FieldName<T> ? T
   ? `${FieldName<L>}.${IncludePath<R>}`
   : never;
 
-export type IncludePaths<T> = T extends [] ? [] :
-  T extends [infer H extends string, ...infer R] ?
+export type IncludePaths<T extends string[]> = T extends [] ? [] :
+  T extends [infer H extends string, ...infer R extends string[]] ?
   H extends undefined ? IncludePaths<R> : [IncludePath<H>, ...IncludePaths<R>] : T;
 
 export type PathNameMap<T extends object> = Exact<T, { [K in keyof T as K extends string ? PathName<K> : never]: T[K] }>;
