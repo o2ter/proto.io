@@ -34,6 +34,31 @@ import { _encodeValue, _encodeJsonValue } from './encode';
 import { encodeType } from './encode';
 import { nullSafeEqual, nullSafeNotEqual } from './basic';
 
+const fetchElement = (
+  compiler: QueryCompiler,
+  parent: { className?: string; name: string; },
+  colname: string,
+  subpath: string[],
+) => {
+  const element = sql`${{ identifier: parent.name }}.${{ identifier: parent.name.startsWith('_expr_$') ? '$' : colname }}`;
+  if (!parent.className) {
+    if (colname !== '$') {
+      return sql`jsonb_extract_path(${element}, ${_.map([colname, ...subpath], x => sql`${{ quote: x.startsWith('$') ? `$${x}` : x }}`)})`;
+    } else if (!_.isEmpty(subpath)) {
+      return sql`jsonb_extract_path(${element}, ${_.map(subpath, x => sql`${{ quote: x.startsWith('$') ? `$${x}` : x }}`)})`;
+    }
+  } else if (!_.isEmpty(subpath)) {
+    const _subpath = sql`${_.map(subpath, x => sql`${{ quote: x.startsWith('$') ? `$${x}` : x }}`)}`;
+    const _type = compiler.schema[parent.className].fields[colname];
+    if (_type === 'array' || (!_.isString(_type) && (_type?.type === 'array' || _type?.type === 'relation'))) {
+      return sql`jsonb_extract_path(to_jsonb(${element}), ${_subpath})`;
+    } else {
+      return sql`jsonb_extract_path(${element}, ${_subpath})`;
+    }
+  }
+  return element;
+};
+
 export const encodeFieldExpression = (
   compiler: QueryCompiler,
   context: CompileContext,
@@ -43,22 +68,7 @@ export const encodeFieldExpression = (
 ): SQL => {
   const [colname, ...subpath] = _.toPath(field);
   const dataType = parent.className && _.isEmpty(subpath) ? compiler.schema[parent.className].fields[colname] : null;
-  let element = sql`${{ identifier: parent.name }}.${{ identifier: parent.name.startsWith('_expr_$') ? '$' : colname }}`;
-  if (!parent.className) {
-    if (colname !== '$') {
-      element = sql`jsonb_extract_path(${element}, ${_.map([colname, ...subpath], x => sql`${{ quote: x.startsWith('$') ? `$${x}` : x }}`)})`;
-    } else if (!_.isEmpty(subpath)) {
-      element = sql`jsonb_extract_path(${element}, ${_.map(subpath, x => sql`${{ quote: x.startsWith('$') ? `$${x}` : x }}`)})`;
-    }
-  } else if (!_.isEmpty(subpath)) {
-    const _subpath = sql`${_.map(subpath, x => sql`${{ quote: x.startsWith('$') ? `$${x}` : x }}`)}`;
-    const _type = compiler.schema[parent.className].fields[colname];
-    if (_type === 'array' || (!_.isString(_type) && (_type?.type === 'array' || _type?.type === 'relation'))) {
-      element = sql`jsonb_extract_path(to_jsonb(${element}), ${_subpath})`;
-    } else {
-      element = sql`jsonb_extract_path(${element}, ${_subpath})`;
-    }
-  }
+  const element = fetchElement(compiler, parent, colname, subpath);
   const encodeValue = (value: TValue) => dataType ? encodeType(colname, dataType, value) : _encodeJsonValue(_encodeValue(value));
   switch (expr.type) {
     case '$eq':
