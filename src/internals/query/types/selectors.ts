@@ -23,7 +23,7 @@
 //  THE SOFTWARE.
 //
 
-import { TValue } from './value';
+import { TValue } from '../value';
 import { TBooleanExpression } from './expressions';
 
 export const TComparisonKeys = [

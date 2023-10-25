@@ -1,5 +1,5 @@
 //
-//  types.ts
+//  index.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -23,7 +23,7 @@
 //  THE SOFTWARE.
 //
 
-import { Exact } from '../types';
+import { Exact } from '../../types';
 
 type _Digit = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 type _Lower = 'a' | 'b' | 'c' | 'd' | 'e' |

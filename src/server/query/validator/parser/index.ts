@@ -1,5 +1,5 @@
 //
-//  parser.ts
+//  index.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2023 O2ter Limited. All rights reserved.
@@ -34,7 +34,7 @@ import {
   TValueListKeys,
   allFieldQueryKeys,
   TValueSetKeys,
-} from '../../../internals';
+} from '../../../../internals';
 
 export class QuerySelector {
 
