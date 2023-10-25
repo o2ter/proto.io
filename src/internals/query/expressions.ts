@@ -34,9 +34,7 @@ export type TBooleanExpression = {
     [x in (typeof TConditionalKeys)[number]]?: TBooleanExpression[];
   };
 
-type _TExpression = {
+export type TExpression = {
   $key?: string;
   $value?: TValue;
-} & TBooleanExpression;
-
-export type TExpression = _TExpression | TExpression[];
+} & TBooleanExpression | TExpression[];
