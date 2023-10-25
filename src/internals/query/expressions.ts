@@ -26,16 +26,13 @@
 import { TValue } from './value';
 import { TComparisonKeys, TConditionalKeys } from './selectors';
 
-type TComparisonExpression = {
-  [x in (typeof TComparisonKeys)[number]]?: [TExpression, TExpression];
-};
-type TConditionalExpression = {
-  [x in (typeof TConditionalKeys)[number]]?: TExpression[];
-};
-
 export type TBooleanExpression = {
   $not?: TBooleanExpression;
-} & TComparisonExpression & TConditionalExpression;
+} & {
+    [x in (typeof TComparisonKeys)[number]]?: [TExpression, TExpression];
+  } & {
+    [x in (typeof TConditionalKeys)[number]]?: TExpression[];
+  };
 
 export type TExpression = {
   $key?: string;
