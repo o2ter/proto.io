@@ -48,9 +48,9 @@ export class QuerySelector {
         } else if (key === '$expr') {
           exprs.push(new ExpressionSelector(QueryExpression.decode(query as any, dollerSign)));
         } else if (dollerSign && key === '$' && !_.isArray(query)) {
-          exprs.push(new FieldSelector(key, FieldExpression.decode(query)));
+          exprs.push(new FieldSelector(key, FieldSelectorExpression.decode(query)));
         } else if (!key.startsWith('$') && !_.isArray(query)) {
-          exprs.push(new FieldSelector(key, FieldExpression.decode(query)));
+          exprs.push(new FieldSelector(key, FieldSelectorExpression.decode(query)));
         } else {
           throw Error('Invalid expression');
         }
@@ -101,24 +101,24 @@ export class CoditionalSelector extends QuerySelector {
   }
 }
 
-export class FieldExpression {
+export class FieldSelectorExpression {
 
   type: keyof TFieldQuerySelector;
-  value: QuerySelector | FieldExpression | RegExp | TValue;
+  value: QuerySelector | FieldSelectorExpression | RegExp | TValue;
 
-  constructor(type: keyof TFieldQuerySelector, value: QuerySelector | FieldExpression | RegExp | TValue) {
+  constructor(type: keyof TFieldQuerySelector, value: QuerySelector | FieldSelectorExpression | RegExp | TValue) {
     this.type = type;
     this.value = value;
   }
 
-  static decode(selector: TFieldQuerySelector): FieldExpression {
+  static decode(selector: TFieldQuerySelector): FieldSelectorExpression {
     for (const [type, expr] of _.toPairs(selector)) {
       if (_.includes(TComparisonKeys, type)) {
         if (!isValue(expr)) throw Error('Invalid expression');
-        return new FieldExpression(type as any, expr);
+        return new FieldSelectorExpression(type as any, expr);
       } else if (_.includes(TValueListKeys, type) || _.includes(TValueSetKeys, type)) {
         if (!isValue(expr) || !_.isArray(expr)) throw Error('Invalid expression');
-        return new FieldExpression(type as any, expr);
+        return new FieldSelectorExpression(type as any, expr);
       } else {
         switch (type) {
           case '$not':
@@ -126,24 +126,24 @@ export class FieldExpression {
               const _expr = expr ? { ...expr as any } : {};
               const keys = _.keys(_expr);
               if (keys.length !== 1 && !allFieldQueryKeys.includes(keys[0])) throw Error('Invalid expression');
-              return new FieldExpression(type, FieldExpression.decode(_expr));
+              return new FieldSelectorExpression(type, FieldSelectorExpression.decode(_expr));
             }
           case '$pattern':
             if (!_.isString(expr) && !_.isRegExp(expr)) throw Error('Invalid expression');
-            return new FieldExpression(type, expr);
+            return new FieldSelectorExpression(type, expr);
           case '$starts':
           case '$ends':
             if (!_.isString(expr)) throw Error('Invalid expression');
-            return new FieldExpression(type, expr);
+            return new FieldSelectorExpression(type, expr);
           case '$size':
             if (!_.isNumber(expr)) throw Error('Invalid expression');
-            return new FieldExpression(type, expr);
+            return new FieldSelectorExpression(type, expr);
           case '$empty':
             if (!_.isBoolean(expr)) throw Error('Invalid expression');
-            return new FieldExpression(type, expr);
+            return new FieldSelectorExpression(type, expr);
           case '$every':
           case '$some':
-            return new FieldExpression(type, QuerySelector.decode(expr ? { ...expr as any } : {}, true));
+            return new FieldSelectorExpression(type, QuerySelector.decode(expr ? { ...expr as any } : {}, true));
           default: throw Error('Invalid expression');
         }
       }
@@ -151,12 +151,12 @@ export class FieldExpression {
     throw Error('Invalid expression');
   }
 
-  simplify(): FieldExpression {
+  simplify(): FieldSelectorExpression {
     if (this.value instanceof QuerySelector) {
-      return new FieldExpression(this.type, this.value.simplify());
+      return new FieldSelectorExpression(this.type, this.value.simplify());
     }
-    if (this.value instanceof FieldExpression) {
-      return new FieldExpression(this.type, this.value.simplify());
+    if (this.value instanceof FieldSelectorExpression) {
+      return new FieldSelectorExpression(this.type, this.value.simplify());
     }
     return this;
   }
@@ -165,7 +165,7 @@ export class FieldExpression {
     if (this.value instanceof QuerySelector) {
       return this.value.validate(callback);
     }
-    if (this.value instanceof FieldExpression) {
+    if (this.value instanceof FieldSelectorExpression) {
       return this.value.validate(callback);
     }
     return true;
@@ -175,9 +175,9 @@ export class FieldExpression {
 export class FieldSelector extends QuerySelector {
 
   field: string;
-  expr: FieldExpression;
+  expr: FieldSelectorExpression;
 
-  constructor(field: string, expr: FieldExpression) {
+  constructor(field: string, expr: FieldSelectorExpression) {
     super();
     this.field = field;
     this.expr = expr;

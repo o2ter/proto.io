@@ -29,7 +29,7 @@ import { SQL, SqlDialect, sql } from '../../../server/sql';
 import { Decimal, TObject, TValue, TUpdateOp, _TValue, isPrimitiveValue, decodeUpdateOp } from '../../../internals';
 import { TSchema, _typeof, isPrimitive } from '../../../internals/schema';
 import { CompileContext, Populate, QueryCompiler } from '../../../server/sql/compiler';
-import { FieldExpression, QuerySelector } from '../../../server/query/validator/parser';
+import { FieldSelectorExpression, QuerySelector } from '../../../server/query/validator/parser';
 
 const stringArrayAttrs = ['_rperm', '_wperm'];
 
@@ -479,7 +479,7 @@ export const PostgresDialect: SqlDialect = {
     context: CompileContext,
     parent: { className?: string; name: string; },
     field: string,
-    expr: FieldExpression,
+    expr: FieldSelectorExpression,
   ): SQL {
     const [colname, ...subpath] = _.toPath(field);
     const dataType = parent.className && _.isEmpty(subpath) ? compiler.schema[parent.className].fields[colname] : null;
@@ -503,7 +503,7 @@ export const PostgresDialect: SqlDialect = {
     switch (expr.type) {
       case '$eq':
         {
-          if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
+          if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldSelectorExpression) break;
           if (_.isNil(expr.value)) return sql`${element} IS NULL`;
           if (!_.isString(dataType) && dataType?.type === 'pointer' && expr.value instanceof TObject && expr.value.objectId) {
             return sql`(${element} #>> '{_id}') ${this.nullSafeEqual()} ${{ value: expr.value.objectId }}`;
@@ -512,7 +512,7 @@ export const PostgresDialect: SqlDialect = {
         }
       case '$ne':
         {
-          if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
+          if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldSelectorExpression) break;
           if (_.isNil(expr.value)) return sql`${element} IS NOT NULL`;
           if (!_.isString(dataType) && dataType?.type === 'pointer' && expr.value instanceof TObject && expr.value.objectId) {
             return sql`(${element} #>> '{_id}') ${this.nullSafeNotEqual()} ${{ value: expr.value.objectId }}`;
@@ -530,7 +530,7 @@ export const PostgresDialect: SqlDialect = {
             '$lt': '<',
             '$lte': '<=',
           };
-          if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldExpression) break;
+          if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldSelectorExpression) break;
           if (dataType && isPrimitive(dataType)) {
             switch (_typeof(dataType)) {
               case 'boolean':
@@ -666,7 +666,7 @@ export const PostgresDialect: SqlDialect = {
         }
       case '$not':
         {
-          if (!(expr.value instanceof FieldExpression)) break;
+          if (!(expr.value instanceof FieldSelectorExpression)) break;
           return sql`NOT (${this.encodeFieldExpression(compiler, context, parent, field, expr.value)})`;
         }
       case '$pattern':
