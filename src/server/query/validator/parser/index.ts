@@ -35,6 +35,7 @@ import {
   allFieldQueryKeys,
   TValueSetKeys,
 } from '../../../../internals';
+import { QueryExpression } from './expressions';
 
 export class QuerySelector {
 
@@ -186,5 +187,23 @@ export class FieldSelector extends QuerySelector {
 
   validate(callback: (key: string) => boolean) {
     return (this.field === '$' || callback(this.field)) && this.expr.validate(callback);
+  }
+}
+
+export class ExpressionSelector extends QuerySelector {
+
+  expr: QueryExpression;
+
+  constructor(expr: QueryExpression) {
+    super();
+    this.expr = expr;
+  }
+
+  simplify() {
+    return new ExpressionSelector(this.expr.simplify());
+  }
+
+  validate(callback: (key: string) => boolean) {
+    return this.expr.validate(callback);
   }
 }
