@@ -36,7 +36,11 @@ export class QueryExpression {
     const exprs: QueryExpression[] = [];
     for (const selector of _.castArray(expr)) {
       for (const [key, query] of _.toPairs(selector)) {
-        
+        if (_.includes(TConditionalKeys, key) && _.isArray(query)) {
+          exprs.push(new CoditionalExpression(key as any, _.map(query, x => QueryExpression.decode(x as any))));
+        } else {
+          throw Error('Invalid expression');
+        }
       }
     }
     if (_.isEmpty(exprs)) return new QueryExpression;
