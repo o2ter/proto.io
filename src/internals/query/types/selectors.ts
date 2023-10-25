@@ -85,6 +85,6 @@ export type TCoditionalQuerySelector = {
 
 export type TQuerySelector = TCoditionalQuerySelector & {
   $expr?: TBooleanExpression
-} & {
+} | {
   [x: string]: TFieldQuerySelector;
 };
