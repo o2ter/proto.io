@@ -36,6 +36,7 @@ import {
   TValueSetKeys,
 } from '../../../../internals';
 import { QueryExpression } from './expressions';
+import { QueryValidator } from '../validator';
 
 export class QuerySelector {
 
@@ -166,6 +167,7 @@ export class FieldSelectorExpression {
       return this.value.validate(callback);
     }
     if (this.value instanceof FieldSelectorExpression) {
+      if (this.type === '$every' || this.type === '$some') return this.value.validate(k => !!k.match(QueryValidator.patterns.path));
       return this.value.validate(callback);
     }
     return true;
