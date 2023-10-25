@@ -23,10 +23,24 @@
 //  THE SOFTWARE.
 //
 
+import _ from 'lodash';
+import {
+  TConditionalKeys,
+  TComparisonKeys,
+} from '../../../../internals';
+import { TExpression } from '../../../../internals';
+
 export class QueryExpression {
 
-  static decode(): QueryExpression {
-    throw Error('Invalid expression');
+  static decode(expr: _.Many<TExpression>): QueryExpression {
+    const exprs: QueryExpression[] = [];
+    for (const selector of _.castArray(expr)) {
+      for (const [key, query] of _.toPairs(selector)) {
+        
+      }
+    }
+    if (_.isEmpty(exprs)) return new QueryExpression;
+    return (exprs.length === 1 ? exprs[0] : new CoditionalExpression('$and', exprs)).simplify();
   }
 
   simplify(): QueryExpression {
@@ -35,5 +49,37 @@ export class QueryExpression {
 
   validate(callback: (key: string) => boolean) {
     return true;
+  }
+}
+
+export class CoditionalExpression extends QueryExpression {
+
+  type: typeof TConditionalKeys[number];
+  exprs: QueryExpression[];
+
+  constructor(type: typeof TConditionalKeys[number], exprs: QueryExpression[]) {
+    super();
+    this.type = type;
+    this.exprs = exprs;
+  }
+
+  simplify() {
+    if (_.isEmpty(this.exprs)) return new QueryExpression;
+    if (this.exprs.length === 1 && this.type !== '$nor') return this.exprs[0];
+    switch (this.type) {
+      case '$and':
+        return new CoditionalExpression(this.type, _.flatMap(
+          this.exprs, x => x instanceof CoditionalExpression && x.type === '$and' ? _.map(x.exprs, y => y.simplify()) : [x.simplify()]
+        )) as QueryExpression;
+      case '$nor':
+      case '$or':
+        return new CoditionalExpression(this.type, _.flatMap(
+          this.exprs, x => x instanceof CoditionalExpression && x.type === '$or' ? _.map(x.exprs, y => y.simplify()) : [x.simplify()]
+        )) as QueryExpression;
+    }
+  }
+
+  validate(callback: (key: string) => boolean) {
+    return _.every(this.exprs, x => x.validate(callback));
   }
 }
