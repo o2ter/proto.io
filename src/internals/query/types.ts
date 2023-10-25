@@ -23,61 +23,7 @@
 //  THE SOFTWARE.
 //
 
-import _ from 'lodash';
-import { TValue } from './value';
 import { Exact } from '../types';
-
-export const TComparisonKeys = [
-  '$eq',
-  '$gt',
-  '$gte',
-  '$lt',
-  '$lte',
-  '$ne',
-] as const;
-
-export const TValueListKeys = [
-  '$in',
-  '$nin',
-] as const;
-
-export const TValueSetKeys = [
-  '$subset',
-  '$superset',
-  '$disjoint',
-  '$intersect',
-] as const;
-
-export const TConditionalKeys = [
-  '$and',
-  '$nor',
-  '$or',
-] as const;
-
-export const allFieldQueryKeys = [
-  '$not', '$pattern', '$starts', '$ends', '$size', '$empty', '$every', '$some',
-  ...TConditionalKeys,
-  ...TValueListKeys,
-  ...TValueSetKeys
-];
-
-type TThisQuerySelector = { $?: TFieldQuerySelector; };
-
-export type TFieldQuerySelector = {
-  $not?: TFieldQuerySelector;
-  $starts?: string;
-  $ends?: string;
-  $pattern?: RegExp | string;
-  $size?: number;
-  $empty?: boolean;
-  $every?: TQuerySelector | TThisQuerySelector;
-  $some?: TQuerySelector | TThisQuerySelector;
-} & { [x in typeof TComparisonKeys[number]]?: TValue; } &
-  { [x in typeof TValueListKeys[number]]?: TValue[]; } &
-  { [x in typeof TValueSetKeys[number]]?: TValue[]; };
-
-export type TCoditionalQuerySelector = { [x in typeof TConditionalKeys[number]]?: TQuerySelector[]; };
-export type TQuerySelector = TCoditionalQuerySelector | { [x: string]: TFieldQuerySelector; };
 
 type _Digit = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 type _Lower = 'a' | 'b' | 'c' | 'd' | 'e' |

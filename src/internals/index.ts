@@ -32,6 +32,7 @@ export * from './object/methods';
 export * from './buffer';
 export * from './codec';
 export * from './query';
+export * from './query/selectors';
 export * from './query/types';
 export * from './query/value';
 export * from './options';

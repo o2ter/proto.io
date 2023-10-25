@@ -24,7 +24,8 @@
 //
 
 import _ from 'lodash';
-import { FieldName, PathName, PathNameMap, TQuerySelector } from './types';
+import { FieldName, PathName, PathNameMap } from './types';
+import { TQuerySelector } from './selectors';
 import { TValue } from './value';
 import { PVK } from '../private';
 

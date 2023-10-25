@@ -36,7 +36,6 @@ import { TValue, _TValue } from './query/value';
 import { TObject } from './object';
 import { TSerializable } from './codec';
 import { TUser } from './object/user';
-import { TQuerySelector } from './query/types';
 
 export interface ProtoInternalType<Ext> {
 
