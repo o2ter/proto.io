@@ -46,7 +46,7 @@ export class QuerySelector {
         if (_.includes(TConditionalKeys, key) && _.isArray(query)) {
           exprs.push(new CoditionalSelector(key as any, _.map(query, x => QuerySelector.decode(x, dollerSign))));
         } else if (key === '$expr') {
-          exprs.push(new ExpressionSelector(QueryExpression.decode(query as any)));
+          exprs.push(new ExpressionSelector(QueryExpression.decode(query as any, dollerSign)));
         } else if (dollerSign && key === '$' && !_.isArray(query)) {
           exprs.push(new FieldSelector(key, FieldExpression.decode(query)));
         } else if (!key.startsWith('$') && !_.isArray(query)) {

@@ -34,17 +34,23 @@ import { TExpression } from '../../../../internals';
 
 export class QueryExpression {
 
-  static decode(expr: _.Many<TExpression>): QueryExpression {
+  static decode(expr: _.Many<TExpression>, dollerSign: boolean): QueryExpression {
     const exprs: QueryExpression[] = [];
     for (const selector of _.castArray(expr)) {
       for (const [key, query] of _.toPairs(selector)) {
         if (_.includes(TConditionalKeys, key) && _.isArray(query)) {
-          exprs.push(new CoditionalExpression(key as any, _.map(query, x => QueryExpression.decode(x as any))));
+          exprs.push(new CoditionalExpression(key as any, _.map(query, x => QueryExpression.decode(x as any, dollerSign))));
         } else if (_.includes(TComparisonKeys, key) && _.isArray(query) && query.length === 2) {
           const [left, right] = query;
-          exprs.push(new ComparisonExpression(key as any, QueryExpression.decode(left as any), QueryExpression.decode(right as any)));
+          exprs.push(new ComparisonExpression(key as any, QueryExpression.decode(left as any, dollerSign), QueryExpression.decode(right as any, dollerSign)));
         } else if (key === '$key' && _.isString(query)) {
-          exprs.push(new KeyExpression(query));
+          if (dollerSign && query === '$') {
+            exprs.push(new KeyExpression(query));
+          } else if (!query.startsWith('$')) {
+            exprs.push(new KeyExpression(query));
+          } else {
+            throw Error('Invalid expression');
+          }
         } else if (key === '$value' && isValue(query)) {
           exprs.push(new ValueExpression(query));
         } else {
