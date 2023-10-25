@@ -38,6 +38,9 @@ export class QueryExpression {
       for (const [key, query] of _.toPairs(selector)) {
         if (_.includes(TConditionalKeys, key) && _.isArray(query)) {
           exprs.push(new CoditionalExpression(key as any, _.map(query, x => QueryExpression.decode(x as any))));
+        } else if (_.includes(TComparisonKeys, key) && _.isArray(query) && query.length === 2) {
+          const [left, right] = query;
+          exprs.push(new ComparisonExpression(key as any, QueryExpression.decode(left as any), QueryExpression.decode(right as any)));
         } else {
           throw Error('Invalid expression');
         }
@@ -85,5 +88,27 @@ export class CoditionalExpression extends QueryExpression {
 
   validate(callback: (key: string) => boolean) {
     return _.every(this.exprs, x => x.validate(callback));
+  }
+}
+
+export class ComparisonExpression extends QueryExpression {
+
+  type: typeof TComparisonKeys[number];
+  left: QueryExpression;
+  right: QueryExpression;
+
+  constructor(type: typeof TComparisonKeys[number], left: QueryExpression, right: QueryExpression) {
+    super();
+    this.type = type;
+    this.left = left;
+    this.right = right;
+  }
+
+  simplify() {
+    return new ComparisonExpression(this.type, this.left.simplify(), this.right.simplify());
+  }
+
+  validate(callback: (key: string) => boolean) {
+    return this.left.validate(callback) && this.right.validate(callback);
   }
 }
