@@ -39,27 +39,27 @@ export class QueryExpression {
     for (const selector of _.castArray(expr)) {
       for (const [key, query] of _.toPairs(selector)) {
         if (_.includes(TConditionalKeys, key) && _.isArray(query)) {
-          exprs.push(new CoditionalExpression(key as any, _.map(query, x => QueryExpression.decode(x as any, dollerSign))));
+          exprs.push(new QueryCoditionalExpression(key as any, _.map(query, x => QueryExpression.decode(x as any, dollerSign))));
         } else if (_.includes(TComparisonKeys, key) && _.isArray(query) && query.length === 2) {
           const [left, right] = query;
-          exprs.push(new ComparisonExpression(key as any, QueryExpression.decode(left as any, dollerSign), QueryExpression.decode(right as any, dollerSign)));
+          exprs.push(new QueryComparisonExpression(key as any, QueryExpression.decode(left as any, dollerSign), QueryExpression.decode(right as any, dollerSign)));
         } else if (key === '$key' && _.isString(query)) {
           if (dollerSign && query === '$') {
-            exprs.push(new KeyExpression(query));
+            exprs.push(new QueryKeyExpression(query));
           } else if (!query.startsWith('$')) {
-            exprs.push(new KeyExpression(query));
+            exprs.push(new QueryKeyExpression(query));
           } else {
             throw Error('Invalid expression');
           }
         } else if (key === '$value' && isValue(query)) {
-          exprs.push(new ValueExpression(query));
+          exprs.push(new QueryValueExpression(query));
         } else {
           throw Error('Invalid expression');
         }
       }
     }
     if (_.isEmpty(exprs)) return new QueryExpression;
-    return (exprs.length === 1 ? exprs[0] : new CoditionalExpression('$and', exprs)).simplify();
+    return (exprs.length === 1 ? exprs[0] : new QueryCoditionalExpression('$and', exprs)).simplify();
   }
 
   simplify(): QueryExpression {
@@ -71,7 +71,7 @@ export class QueryExpression {
   }
 }
 
-export class CoditionalExpression extends QueryExpression {
+export class QueryCoditionalExpression extends QueryExpression {
 
   type: typeof TConditionalKeys[number];
   exprs: QueryExpression[];
@@ -87,13 +87,13 @@ export class CoditionalExpression extends QueryExpression {
     if (this.exprs.length === 1 && this.type !== '$nor') return this.exprs[0];
     switch (this.type) {
       case '$and':
-        return new CoditionalExpression(this.type, _.flatMap(
-          this.exprs, x => x instanceof CoditionalExpression && x.type === '$and' ? _.map(x.exprs, y => y.simplify()) : [x.simplify()]
+        return new QueryCoditionalExpression(this.type, _.flatMap(
+          this.exprs, x => x instanceof QueryCoditionalExpression && x.type === '$and' ? _.map(x.exprs, y => y.simplify()) : [x.simplify()]
         )) as QueryExpression;
       case '$nor':
       case '$or':
-        return new CoditionalExpression(this.type, _.flatMap(
-          this.exprs, x => x instanceof CoditionalExpression && x.type === '$or' ? _.map(x.exprs, y => y.simplify()) : [x.simplify()]
+        return new QueryCoditionalExpression(this.type, _.flatMap(
+          this.exprs, x => x instanceof QueryCoditionalExpression && x.type === '$or' ? _.map(x.exprs, y => y.simplify()) : [x.simplify()]
         )) as QueryExpression;
     }
   }
@@ -103,7 +103,7 @@ export class CoditionalExpression extends QueryExpression {
   }
 }
 
-export class ComparisonExpression extends QueryExpression {
+export class QueryComparisonExpression extends QueryExpression {
 
   type: typeof TComparisonKeys[number];
   left: QueryExpression;
@@ -117,7 +117,7 @@ export class ComparisonExpression extends QueryExpression {
   }
 
   simplify() {
-    return new ComparisonExpression(this.type, this.left.simplify(), this.right.simplify());
+    return new QueryComparisonExpression(this.type, this.left.simplify(), this.right.simplify());
   }
 
   validate(callback: (key: string) => boolean) {
@@ -125,7 +125,7 @@ export class ComparisonExpression extends QueryExpression {
   }
 }
 
-export class KeyExpression extends QueryExpression {
+export class QueryKeyExpression extends QueryExpression {
 
   key: string;
 
@@ -139,7 +139,7 @@ export class KeyExpression extends QueryExpression {
   }
 }
 
-export class ValueExpression extends QueryExpression {
+export class QueryValueExpression extends QueryExpression {
 
   value: TValue;
 
