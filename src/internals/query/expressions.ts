@@ -31,7 +31,7 @@ export type TBooleanExpression = {
 } & {
     [x in (typeof TComparisonKeys)[number]]?: [TExpression, TExpression];
   } & {
-    [x in (typeof TConditionalKeys)[number]]?: TExpression[];
+    [x in (typeof TConditionalKeys)[number]]?: TBooleanExpression[];
   };
 
 type _TExpression = {
