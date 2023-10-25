@@ -30,6 +30,7 @@ import { Decimal, TObject, TValue, TUpdateOp, _TValue, isPrimitiveValue, decodeU
 import { TSchema, _typeof, isPrimitive } from '../../../internals/schema';
 import { CompileContext, Populate, QueryCompiler } from '../../../server/sql/compiler';
 import { FieldSelectorExpression, QuerySelector } from '../../../server/query/validator/parser';
+import { QueryExpression } from '../../../server/query/validator/parser/expressions';
 
 const stringArrayAttrs = ['_rperm', '_wperm'];
 
@@ -781,6 +782,14 @@ export const PostgresDialect: SqlDialect = {
         }
       default: break;
     }
+    throw Error('Invalid expression');
+  },
+  encodeQueryExpression(
+    compiler: QueryCompiler,
+    context: CompileContext,
+    parent: { className?: string; name: string; },
+    expr: QueryExpression,
+  ): SQL {
     throw Error('Invalid expression');
   },
   encodeSortKey(className: string, key: string): SQL {

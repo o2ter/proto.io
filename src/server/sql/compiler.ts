@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { TSchema, isPointer, isPrimitive, isRelation } from '../../internals/schema';
-import { QueryCoditionalSelector, QueryFieldSelector, QuerySelector } from '../query/validator/parser';
+import { QueryCoditionalSelector, QueryExpressionSelector, QueryFieldSelector, QuerySelector } from '../query/validator/parser';
 import { DecodedBaseQuery, DecodedQuery, FindOneOptions, FindOptions, InsertOptions } from '../storage';
 import { SQL, sql } from './sql';
 import { TValue, TUpdateOp } from '../../internals';
@@ -334,6 +334,9 @@ export class QueryCompiler {
     }
     if (filter instanceof QueryFieldSelector) {
       return this.dialect.encodeFieldExpression(this, context, parent, filter.field, filter.expr);
+    }
+    if (filter instanceof QueryExpressionSelector) {
+      return this.dialect.encodeQueryExpression(this, context, parent, filter.expr);
     }
   }
 

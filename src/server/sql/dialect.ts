@@ -25,6 +25,7 @@
 
 import { TValue, TUpdateOp } from '../../internals';
 import { FieldSelectorExpression } from '../query/validator/parser';
+import { QueryExpression } from '../query/validator/parser/expressions';
 import { TSchema } from '../../internals/schema';
 import { CompileContext, Populate, QueryCompiler } from './compiler';
 import { SQL } from './sql';
@@ -53,6 +54,13 @@ export interface SqlDialect {
     parent: { className?: string; name: string; },
     field: string,
     expr: FieldSelectorExpression,
+  ): SQL
+
+  encodeQueryExpression(
+    compiler: QueryCompiler,
+    context: CompileContext,
+    parent: { className?: string; name: string; },
+    expr: QueryExpression,
   ): SQL
 
   encodePopulate(
