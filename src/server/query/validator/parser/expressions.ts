@@ -127,6 +127,10 @@ export class KeyExpression extends QueryExpression {
     super();
     this.key = key;
   }
+
+  validate(callback: (key: string) => boolean) {
+    return this.key === '$' || callback(this.key);
+  }
 }
 
 export class ValueExpression extends QueryExpression {
