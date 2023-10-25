@@ -25,6 +25,8 @@
 
 import _ from 'lodash';
 import {
+  TValue,
+  isValue,
   TConditionalKeys,
   TComparisonKeys,
 } from '../../../../internals';
@@ -41,6 +43,10 @@ export class QueryExpression {
         } else if (_.includes(TComparisonKeys, key) && _.isArray(query) && query.length === 2) {
           const [left, right] = query;
           exprs.push(new ComparisonExpression(key as any, QueryExpression.decode(left as any), QueryExpression.decode(right as any)));
+        } else if (key === '$key' && _.isString(query)) {
+          exprs.push(new KeyExpression(query));
+        } else if (key === '$value' && isValue(query)) {
+          exprs.push(new ValueExpression(query));
         } else {
           throw Error('Invalid expression');
         }
@@ -110,5 +116,25 @@ export class ComparisonExpression extends QueryExpression {
 
   validate(callback: (key: string) => boolean) {
     return this.left.validate(callback) && this.right.validate(callback);
+  }
+}
+
+export class KeyExpression extends QueryExpression {
+
+  key: string;
+
+  constructor(key: string) {
+    super();
+    this.key = key;
+  }
+}
+
+export class ValueExpression extends QueryExpression {
+
+  value: TValue;
+
+  constructor(value: TValue) {
+    super();
+    this.value = value;
   }
 }
