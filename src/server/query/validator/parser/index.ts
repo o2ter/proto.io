@@ -167,8 +167,13 @@ export class FieldSelectorExpression {
       return this.value.validate(callback);
     }
     if (this.value instanceof FieldSelectorExpression) {
-      if (this.type === '$every' || this.type === '$some') return this.value.validate(k => !!k.match(QueryValidator.patterns.path));
-      return this.value.validate(callback);
+      switch (this.type) {
+        case '$every':
+        case '$some':
+          return this.value.validate(k => !!k.match(QueryValidator.patterns.path));
+        default:
+          return this.value.validate(callback);
+      }
     }
     return true;
   }
