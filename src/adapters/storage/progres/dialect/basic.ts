@@ -32,21 +32,10 @@ export const stringArrayAttrs = ['_rperm', '_wperm'];
 export const nullSafeEqual = () => sql`IS NOT DISTINCT FROM`;
 export const nullSafeNotEqual = () => sql`IS DISTINCT FROM`;
 
-export const quote = (str: string) => {
-  return escapeLiteral(str);
-};
-
-export const identifier = (name: string) => {
-  return escapeIdentifier(name);
-};
-
-export const placeholder = (idx: number) => {
-  return `$${idx}`;
-};
-
-export const boolean = (value: boolean) => {
-  return value ? 'true' : 'false';
-};
+export const quote = (str: string) => escapeLiteral(str);
+export const identifier = (name: string) => escapeIdentifier(name);
+export const placeholder = (idx: number) => `$${idx}`;
+export const boolean = (value: boolean) => value ? 'true' : 'false';
 
 export const encodeSortKey = (className: string, key: string): SQL => {
   const [colname, ...subpath] = _.toPath(key);
