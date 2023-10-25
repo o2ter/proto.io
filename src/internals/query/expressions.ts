@@ -23,6 +23,7 @@
 //  THE SOFTWARE.
 //
 
+import { TValue } from './value';
 import { TComparisonKeys, TConditionalKeys } from './selectors';
 
 type TComparisonExpression = {
@@ -33,7 +34,10 @@ type TConditionalExpression = {
 };
 
 export type TBooleanExpression = {
-  $not?: TExpression;
+  $not?: TBooleanExpression;
 } & TComparisonExpression & TConditionalExpression;
 
-export type TExpression = TBooleanExpression;
+export type TExpression = {
+  $key?: string;
+  $value?: TValue;
+} & TBooleanExpression;
