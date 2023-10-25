@@ -24,6 +24,7 @@
 //
 
 import { TValue } from './value';
+import { TBooleanExpression } from './expressions';
 
 export const TComparisonKeys = [
   '$eq',
@@ -82,4 +83,8 @@ export type TCoditionalQuerySelector = {
   [x in (typeof TConditionalKeys)[number]]?: TQuerySelector[];
 };
 
-export type TQuerySelector = TCoditionalQuerySelector | { [x: string]: TFieldQuerySelector; };
+export type TQuerySelector = TCoditionalQuerySelector & {
+  $expr?: TBooleanExpression
+} & {
+  [x: string]: TFieldQuerySelector;
+};
