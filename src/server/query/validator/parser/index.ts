@@ -44,20 +44,20 @@ export class QuerySelector {
     for (const selector of _.castArray(selectors)) {
       for (const [key, query] of _.toPairs(selector)) {
         if (_.includes(TConditionalKeys, key) && _.isArray(query)) {
-          exprs.push(new CoditionalSelector(key as any, _.map(query, x => QuerySelector.decode(x, dollerSign))));
+          exprs.push(new QueryCoditionalSelector(key as any, _.map(query, x => QuerySelector.decode(x, dollerSign))));
         } else if (key === '$expr') {
-          exprs.push(new ExpressionSelector(QueryExpression.decode(query as any, dollerSign)));
+          exprs.push(new QueryExpressionSelector(QueryExpression.decode(query as any, dollerSign)));
         } else if (dollerSign && key === '$' && !_.isArray(query)) {
-          exprs.push(new FieldSelector(key, FieldSelectorExpression.decode(query)));
+          exprs.push(new QueryFieldSelector(key, FieldSelectorExpression.decode(query)));
         } else if (!key.startsWith('$') && !_.isArray(query)) {
-          exprs.push(new FieldSelector(key, FieldSelectorExpression.decode(query)));
+          exprs.push(new QueryFieldSelector(key, FieldSelectorExpression.decode(query)));
         } else {
           throw Error('Invalid expression');
         }
       }
     }
     if (_.isEmpty(exprs)) return new QuerySelector;
-    return (exprs.length === 1 ? exprs[0] : new CoditionalSelector('$and', exprs)).simplify();
+    return (exprs.length === 1 ? exprs[0] : new QueryCoditionalSelector('$and', exprs)).simplify();
   }
 
   simplify(): QuerySelector {
@@ -69,7 +69,7 @@ export class QuerySelector {
   }
 }
 
-export class CoditionalSelector extends QuerySelector {
+export class QueryCoditionalSelector extends QuerySelector {
 
   type: typeof TConditionalKeys[number];
   exprs: QuerySelector[];
@@ -85,13 +85,13 @@ export class CoditionalSelector extends QuerySelector {
     if (this.exprs.length === 1 && this.type !== '$nor') return this.exprs[0];
     switch (this.type) {
       case '$and':
-        return new CoditionalSelector(this.type, _.flatMap(
-          this.exprs, x => x instanceof CoditionalSelector && x.type === '$and' ? _.map(x.exprs, y => y.simplify()) : [x.simplify()]
+        return new QueryCoditionalSelector(this.type, _.flatMap(
+          this.exprs, x => x instanceof QueryCoditionalSelector && x.type === '$and' ? _.map(x.exprs, y => y.simplify()) : [x.simplify()]
         )) as QuerySelector;
       case '$nor':
       case '$or':
-        return new CoditionalSelector(this.type, _.flatMap(
-          this.exprs, x => x instanceof CoditionalSelector && x.type === '$or' ? _.map(x.exprs, y => y.simplify()) : [x.simplify()]
+        return new QueryCoditionalSelector(this.type, _.flatMap(
+          this.exprs, x => x instanceof QueryCoditionalSelector && x.type === '$or' ? _.map(x.exprs, y => y.simplify()) : [x.simplify()]
         )) as QuerySelector;
     }
   }
@@ -172,7 +172,7 @@ export class FieldSelectorExpression {
   }
 }
 
-export class FieldSelector extends QuerySelector {
+export class QueryFieldSelector extends QuerySelector {
 
   field: string;
   expr: FieldSelectorExpression;
@@ -184,7 +184,7 @@ export class FieldSelector extends QuerySelector {
   }
 
   simplify() {
-    return new FieldSelector(this.field, this.expr.simplify());
+    return new QueryFieldSelector(this.field, this.expr.simplify());
   }
 
   validate(callback: (key: string) => boolean) {
@@ -192,7 +192,7 @@ export class FieldSelector extends QuerySelector {
   }
 }
 
-export class ExpressionSelector extends QuerySelector {
+export class QueryExpressionSelector extends QuerySelector {
 
   expr: QueryExpression;
 
@@ -202,7 +202,7 @@ export class ExpressionSelector extends QuerySelector {
   }
 
   simplify() {
-    return new ExpressionSelector(this.expr.simplify());
+    return new QueryExpressionSelector(this.expr.simplify());
   }
 
   validate(callback: (key: string) => boolean) {

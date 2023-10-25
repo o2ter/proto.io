@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { TSchema, isPointer, isPrimitive, isRelation } from '../../internals/schema';
-import { CoditionalSelector, FieldSelector, QuerySelector } from '../query/validator/parser';
+import { QueryCoditionalSelector, QueryFieldSelector, QuerySelector } from '../query/validator/parser';
 import { DecodedBaseQuery, DecodedQuery, FindOneOptions, FindOptions, InsertOptions } from '../storage';
 import { SQL, sql } from './sql';
 import { TValue, TUpdateOp } from '../../internals';
@@ -312,7 +312,7 @@ export class QueryCompiler {
 
   private _encodeCoditionalSelector(
     parent: { className?: string; name: string; },
-    filter: CoditionalSelector,
+    filter: QueryCoditionalSelector,
     context: CompileContext,
   ) {
     const queries = _.compact(_.map(filter.exprs, x => this._encodeFilter(context, parent, x)));
@@ -329,10 +329,10 @@ export class QueryCompiler {
     parent: { className?: string; name: string; },
     filter: QuerySelector,
   ): SQL | undefined {
-    if (filter instanceof CoditionalSelector) {
+    if (filter instanceof QueryCoditionalSelector) {
       return this._encodeCoditionalSelector(parent, filter, context);
     }
-    if (filter instanceof FieldSelector) {
+    if (filter instanceof QueryFieldSelector) {
       return this.dialect.encodeFieldExpression(this, context, parent, filter.field, filter.expr);
     }
   }

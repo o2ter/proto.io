@@ -31,7 +31,7 @@ import {
   isPrimitiveValue,
 } from '../../../internals';
 import { DecodedBaseQuery, DecodedQuery, FindOptions, FindOneOptions } from '../../storage';
-import { CoditionalSelector, FieldSelector, QuerySelector } from './parser';
+import { QueryCoditionalSelector, QueryFieldSelector, QuerySelector } from './parser';
 import { TSchema, isPointer, isPrimitive, isRelation } from '../../../internals/schema';
 import { ProtoService } from '../../proto';
 import { TQueryBaseOptions } from '../../../internals/query/base';
@@ -293,10 +293,10 @@ export class QueryValidator<E> {
 
     const objectIds = [];
 
-    if (query instanceof CoditionalSelector && query.type === '$and') {
+    if (query instanceof QueryCoditionalSelector && query.type === '$and') {
       for (const expr of query.exprs) {
         if (
-          expr instanceof FieldSelector &&
+          expr instanceof QueryFieldSelector &&
           expr.field === '_id' &&
           expr.expr.type === '$eq'
         ) {
@@ -305,7 +305,7 @@ export class QueryValidator<E> {
         }
       }
     } else if (
-      query instanceof FieldSelector &&
+      query instanceof QueryFieldSelector &&
       query.field === '_id' &&
       query.expr.type === '$eq'
     ) {
