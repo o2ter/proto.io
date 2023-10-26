@@ -29,10 +29,16 @@ import { Decimal, TObject, TValue } from '../../../../internals';
 import { _typeof, isPrimitive } from '../../../../internals/schema';
 import { CompileContext, QueryCompiler } from '../../../../server/sql/compiler';
 import { FieldSelectorExpression, QuerySelector } from '../../../../server/query/validator/parser';
-import { QueryExpression } from '../../../../server/query/validator/parser/expressions';
 import { _encodeValue, _encodeJsonValue } from './encode';
 import { encodeType } from './encode';
 import { nullSafeEqual, nullSafeNotEqual } from './basic';
+import {
+  QueryCoditionalExpression,
+  QueryComparisonExpression,
+  QueryExpression,
+  QueryKeyExpression,
+  QueryValueExpression,
+} from '../../../../server/query/validator/parser/expressions';
 
 const fetchElement = (
   compiler: QueryCompiler,
@@ -360,5 +366,18 @@ export const encodeQueryExpression = (
   parent: { className?: string; name: string; },
   expr: QueryExpression
 ): SQL => {
+
+  if (expr instanceof QueryCoditionalExpression) {
+
+  }
+  if (expr instanceof QueryComparisonExpression) {
+
+  }
+  if (expr instanceof QueryKeyExpression) {
+
+  }
+  if (expr instanceof QueryValueExpression) {
+
+  }
   throw Error('Invalid expression');
 };
