@@ -319,7 +319,7 @@ export class QueryCompiler {
     if (_.isEmpty(queries)) return;
     switch (filter.type) {
       case '$and': return sql`(${{ literal: _.map(queries, x => sql`(${x})`), separator: ' AND ' }})`;
-      case '$nor': return sql`(${{ literal: _.map(queries, x => sql`NOT (${x})`), separator: ' OR ' }})`;
+      case '$nor': return sql`(${{ literal: _.map(queries, x => sql`NOT (${x})`), separator: ' AND ' }})`;
       case '$or': return sql`(${{ literal: _.map(queries, x => sql`(${x})`), separator: ' OR ' }})`;
     }
   }
