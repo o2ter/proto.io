@@ -373,7 +373,7 @@ export const encodeQueryExpression = (
     if (_.isEmpty(queries)) return;
     switch (expr.type) {
       case '$and': return sql`(${{ literal: _.map(queries, x => sql`(${x})`), separator: ' AND ' }})`;
-      case '$nor': return sql`(${{ literal: _.map(queries, x => sql`NOT (${x})`), separator: ' AND ' }})`;
+      case '$nor': return sql`(${{ literal: _.map(queries, x => sql`NOT (${x})`), separator: ' OR ' }})`;
       case '$or': return sql`(${{ literal: _.map(queries, x => sql`(${x})`), separator: ' OR ' }})`;
       default: break;
     }
