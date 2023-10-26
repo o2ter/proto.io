@@ -369,10 +369,12 @@ export const encodeQueryExpression = (
 ): SQL => {
 
   if (expr instanceof QueryCoditionalExpression) {
+    const queries = _.compact(_.map(expr.exprs, x => encodeQueryExpression(compiler, context, parent, x)));
+    if (_.isEmpty(queries)) return sql``;
     switch (expr.type) {
-      case '$and':
-      case '$nor':
-      case '$or':
+      case '$and': return sql`(${{ literal: _.map(queries, x => sql`(${x})`), separator: ' AND ' }})`;
+      case '$nor': return sql`(${{ literal: _.map(queries, x => sql`NOT (${x})`), separator: ' AND ' }})`;
+      case '$or': return sql`(${{ literal: _.map(queries, x => sql`(${x})`), separator: ' OR ' }})`;
       default: break;
     }
   }
