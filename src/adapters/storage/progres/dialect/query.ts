@@ -33,6 +33,7 @@ import { _encodeValue, _encodeJsonValue } from './encode';
 import { encodeType } from './encode';
 import { nullSafeEqual, nullSafeNotEqual } from './basic';
 import {
+  QueryArrayExpression,
   QueryCoditionalExpression,
   QueryComparisonExpression,
   QueryExpression,
@@ -379,6 +380,14 @@ export const encodeQueryExpression = (
     }
   }
   if (expr instanceof QueryComparisonExpression) {
+
+    if (
+      expr.left instanceof QueryArrayExpression &&
+      expr.right instanceof QueryArrayExpression &&
+      expr.left.exprs.length === expr.right.exprs.length
+    ) {
+
+    }
 
   }
   if (expr instanceof QueryNotExpression) {
