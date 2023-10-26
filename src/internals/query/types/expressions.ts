@@ -29,7 +29,7 @@ import { TComparisonKeys, TConditionalKeys } from './selectors';
 export type TBooleanExpression = {
   $not?: TBooleanExpression;
 } & {
-    [x in (typeof TComparisonKeys)[number]]?: [TExpression, TExpression];
+    [x in (typeof TComparisonKeys)[number]]?: [TExpression, TExpression] | [TExpression[], TExpression[]];
   } & {
     [x in (typeof TConditionalKeys)[number]]?: TBooleanExpression[];
   };
@@ -37,4 +37,4 @@ export type TBooleanExpression = {
 export type TExpression = {
   $key?: string;
   $value?: TValue;
-} & TBooleanExpression | TExpression[];
+} & TBooleanExpression;
