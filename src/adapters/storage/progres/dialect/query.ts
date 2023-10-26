@@ -382,7 +382,8 @@ export const encodeQueryExpression = (
 
   }
   if (expr instanceof QueryNotExpression) {
-
+    const _expr = encodeQueryExpression(compiler, context, parent, expr.expr);
+    return _expr ? sql`NOT (${_expr})` : undefined;
   }
   if (expr instanceof QueryKeyExpression) {
 
