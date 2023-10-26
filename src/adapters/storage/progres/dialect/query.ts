@@ -366,11 +366,11 @@ export const encodeQueryExpression = (
   context: CompileContext,
   parent: { className?: string; name: string; },
   expr: QueryExpression
-): SQL => {
+): SQL | undefined => {
 
   if (expr instanceof QueryCoditionalExpression) {
     const queries = _.compact(_.map(expr.exprs, x => encodeQueryExpression(compiler, context, parent, x)));
-    if (_.isEmpty(queries)) throw Error('Invalid expression');
+    if (_.isEmpty(queries)) return;
     switch (expr.type) {
       case '$and': return sql`(${{ literal: _.map(queries, x => sql`(${x})`), separator: ' AND ' }})`;
       case '$nor': return sql`(${{ literal: _.map(queries, x => sql`NOT (${x})`), separator: ' AND ' }})`;

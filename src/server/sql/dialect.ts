@@ -59,7 +59,7 @@ export interface SqlDialect {
     context: CompileContext,
     parent: { className?: string; name: string; },
     expr: QueryExpression,
-  ): SQL
+  ): SQL | undefined
 
   encodePopulate(
     compiler: QueryCompiler,
