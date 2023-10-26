@@ -37,6 +37,7 @@ import {
   QueryComparisonExpression,
   QueryExpression,
   QueryKeyExpression,
+  QueryNotExpression,
   QueryValueExpression,
 } from '../../../../server/query/validator/parser/expressions';
 
@@ -368,9 +369,17 @@ export const encodeQueryExpression = (
 ): SQL => {
 
   if (expr instanceof QueryCoditionalExpression) {
-
+    switch (expr.type) {
+      case '$and':
+      case '$nor':
+      case '$or':
+      default: break;
+    }
   }
   if (expr instanceof QueryComparisonExpression) {
+
+  }
+  if (expr instanceof QueryNotExpression) {
 
   }
   if (expr instanceof QueryKeyExpression) {

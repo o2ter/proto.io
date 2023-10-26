@@ -43,6 +43,8 @@ export class QueryExpression {
         } else if (_.includes(TComparisonKeys, key) && _.isArray(query) && query.length === 2) {
           const [left, right] = query;
           exprs.push(new QueryComparisonExpression(key as any, QueryExpression.decode(left as any, dollerSign), QueryExpression.decode(right as any, dollerSign)));
+        } else if (key === '$not') {
+          exprs.push(new QueryNotExpression(QueryExpression.decode(query as any, dollerSign)));
         } else if (key === '$key' && _.isString(query)) {
           if (dollerSign && query === '$') {
             exprs.push(new QueryKeyExpression(query));
@@ -122,6 +124,24 @@ export class QueryComparisonExpression extends QueryExpression {
 
   validate(callback: (key: string) => boolean) {
     return this.left.validate(callback) && this.right.validate(callback);
+  }
+}
+
+export class QueryNotExpression extends QueryExpression {
+
+  expr: QueryExpression;
+
+  constructor(expr: QueryExpression) {
+    super();
+    this.expr = expr;
+  }
+
+  simplify() {
+    return new QueryNotExpression(this.expr.simplify());
+  }
+
+  validate(callback: (key: string) => boolean) {
+    return this.expr.validate(callback);
   }
 }
 
