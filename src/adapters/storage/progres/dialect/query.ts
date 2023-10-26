@@ -385,11 +385,5 @@ export const encodeQueryExpression = (
     const _expr = encodeQueryExpression(compiler, context, parent, expr.expr);
     return _expr ? sql`NOT (${_expr})` : undefined;
   }
-  if (expr instanceof QueryKeyExpression) {
-
-  }
-  if (expr instanceof QueryValueExpression) {
-
-  }
   throw Error('Invalid expression');
 };
