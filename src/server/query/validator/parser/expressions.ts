@@ -45,6 +45,8 @@ export class QueryExpression {
           exprs.push(new QueryComparisonExpression(key as any, QueryExpression.decode(left as any, dollerSign), QueryExpression.decode(right as any, dollerSign)));
         } else if (key === '$not') {
           exprs.push(new QueryNotExpression(QueryExpression.decode(query as any, dollerSign)));
+        } else if (key === '$array' && _.isArray(query)) {
+          exprs.push(new QueryArrayExpression(_.map(query, x => QueryExpression.decode(x as any, dollerSign))));
         } else if (key === '$key' && _.isString(query)) {
           if (dollerSign && query === '$') {
             exprs.push(new QueryKeyExpression(query));
@@ -142,6 +144,24 @@ export class QueryNotExpression extends QueryExpression {
 
   validate(callback: (key: string) => boolean) {
     return this.expr.validate(callback);
+  }
+}
+
+export class QueryArrayExpression extends QueryExpression {
+
+  exprs: QueryExpression[];
+
+  constructor(exprs: QueryExpression[]) {
+    super();
+    this.exprs = exprs;
+  }
+
+  simplify() {
+    return new QueryArrayExpression(_.map(this.exprs, x => x.simplify())) as QueryExpression;
+  }
+
+  validate(callback: (key: string) => boolean) {
+    return _.every(this.exprs, x => x.validate(callback));
   }
 }
 

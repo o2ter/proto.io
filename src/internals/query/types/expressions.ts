@@ -35,6 +35,7 @@ export type TBooleanExpression = {
   };
 
 export type TExpression = {
+  $array?: TExpression[];
   $key?: string;
   $value?: TValue;
 } & TBooleanExpression;
