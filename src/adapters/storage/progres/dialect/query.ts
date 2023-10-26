@@ -370,7 +370,7 @@ export const encodeQueryExpression = (
 
   if (expr instanceof QueryCoditionalExpression) {
     const queries = _.compact(_.map(expr.exprs, x => encodeQueryExpression(compiler, context, parent, x)));
-    if (_.isEmpty(queries)) return sql``;
+    if (_.isEmpty(queries)) throw Error('Invalid expression');
     switch (expr.type) {
       case '$and': return sql`(${{ literal: _.map(queries, x => sql`(${x})`), separator: ' AND ' }})`;
       case '$nor': return sql`(${{ literal: _.map(queries, x => sql`NOT (${x})`), separator: ' AND ' }})`;
