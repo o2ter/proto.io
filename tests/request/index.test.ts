@@ -1228,3 +1228,48 @@ test('test random 2', async () => {
 
   expect(_.map(result, x => x.get('number')).sort((a, b) => a - b)).toStrictEqual(_.range(1, 10));
 })
+
+test('test expr', async () => {
+
+  for (const i of _.range(1, 10)) {
+    await Proto.Query('Test').insert({ number: i, string: 'expr' });
+  }
+
+  const result = await Proto.Query('Test').equalTo('string', 'expr')
+    .filter({ $expr: { $gt: [{ $key: 'number' }, { $value: 3 }] } })
+    .find();
+
+  expect(_.map(result, x => x.get('number')).sort((a, b) => a - b)).toStrictEqual(_.range(4, 10));
+})
+
+test('test expr 2', async () => {
+
+  for (const i of _.range(1, 10)) {
+    await Proto.Query('Test').insert({ number: i, decimal: new Decimal(i), string: 'expr2' });
+  }
+
+  const result = await Proto.Query('Test').equalTo('string', 'expr2')
+    .filter({
+      $expr: {
+        $gt: [
+          { $array: [{ $key: 'number' }, { $key: 'decimal' }] },
+          { $array: [{ $value: 3 }, { $value: new Decimal(2) }] },
+        ]
+      }
+    })
+    .find();
+
+  const result2 = await Proto.Query('Test').equalTo('string', 'expr2')
+    .filter({
+      $expr: {
+        $gt: [
+          { $array: [{ $key: 'number' }, { $key: 'decimal' }] },
+          { $array: [{ $value: 3 }, { $value: new Decimal(4) }] },
+        ]
+      }
+    })
+    .find();
+
+  expect(_.map(result, x => x.get('number')).sort((a, b) => a - b)).toStrictEqual(_.range(3, 10));
+  expect(_.map(result2, x => x.get('number')).sort((a, b) => a - b)).toStrictEqual(_.range(4, 10));
+})
