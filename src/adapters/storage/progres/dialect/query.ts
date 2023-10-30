@@ -25,8 +25,8 @@
 
 import _ from 'lodash';
 import { SQL, sql } from '../../../../server/sql';
-import { Decimal, TObject, TValue } from '../../../../internals';
-import { _typeof, isPrimitive } from '../../../../internals/schema';
+import { Decimal, TObject, TValue, _TValue } from '../../../../internals';
+import { TSchema, _typeof, isPrimitive } from '../../../../internals/schema';
 import { CompileContext, QueryCompiler } from '../../../../server/sql/compiler';
 import { FieldSelectorExpression, QuerySelector } from '../../../../server/query/validator/parser';
 import { _encodeValue, _encodeJsonValue } from './encode';
@@ -361,6 +361,31 @@ export const encodeFieldExpression = (
   }
   throw Error('Invalid expression');
 };
+
+const encodeTypedQueryExpression = (
+  compiler: QueryCompiler,
+  context: CompileContext,
+  parent: { className?: string; name: string; },
+  expr: QueryExpression
+): [TSchema.Primitive, SQL] | undefined => {
+
+  if (expr instanceof QueryKeyExpression) {
+    const [colname, ...subpath] = _.toPath(expr.key);
+    const dataType = parent.className && _.isEmpty(subpath) ? compiler.schema[parent.className].fields[colname] : null;
+    const _dataType = dataType ? _typeof(dataType) : null;
+    if (_dataType && ['boolean', 'number', 'decimal', 'string', 'date'].includes(_dataType)) {
+      const element = fetchElement(compiler, parent, colname, subpath);
+      return [_dataType as TSchema.Primitive, element];
+    }
+  }
+  if (expr instanceof QueryValueExpression) {
+    if (_.isBoolean(expr.value)) return ['boolean', sql`${{ value: expr.value }}`];
+    if (_.isNumber(expr.value)) return ['number', sql`${{ value: expr.value }}`];
+    if (expr.value instanceof Decimal) return ['decimal', sql`CAST(${{ quote: expr.value.toString() }} AS DECIMAL)`];
+    if (_.isString(expr.value)) return ['string', sql`${{ value: expr.value }}`];
+    if (_.isDate(expr.value)) return ['date', sql`${{ value: expr.value }}`];
+  }
+}
 
 export const encodeQueryExpression = (
   compiler: QueryCompiler,
