@@ -406,14 +406,36 @@ export const encodeQueryExpression = (
   }
   if (expr instanceof QueryComparisonExpression) {
 
+    const operatorMap = {
+      '$eq': nullSafeEqual(),
+      '$ne': nullSafeNotEqual(),
+      '$gt': sql`>`,
+      '$gte': sql`>=`,
+      '$lt': sql`<`,
+      '$lte': sql`<=`,
+    };
+
     if (
       expr.left instanceof QueryArrayExpression &&
       expr.right instanceof QueryArrayExpression &&
       expr.left.exprs.length === expr.right.exprs.length
     ) {
-
+      const _left = _.compact(_.map(expr.left.exprs, x => encodeTypedQueryExpression(compiler, context, parent, x)));
+      const _right = _.compact(_.map(expr.right.exprs, x => encodeTypedQueryExpression(compiler, context, parent, x)));
+      if (
+        _left.length === expr.left.exprs.length &&
+        _right.length === expr.right.exprs.length &&
+        _.every(_.zip(_left, _right), ([l, r]) => l?.[0] === r?.[0])
+      ) {
+        return sql`(${_.map(_left, x => x[1])}) ${operatorMap[expr.type]} (${_.map(_right, x => x[1])})`;
+      }
     }
 
+    const _left = encodeTypedQueryExpression(compiler, context, parent, expr.left);
+    const _right = encodeTypedQueryExpression(compiler, context, parent, expr.right);
+    if (_left && _right && _left[0] === _right[0]) {
+      return sql`${_left[1]} ${operatorMap[expr.type]} ${_right[1]}`;
+    }
   }
   if (expr instanceof QueryNotExpression) {
     const _expr = encodeQueryExpression(compiler, context, parent, expr.expr);
