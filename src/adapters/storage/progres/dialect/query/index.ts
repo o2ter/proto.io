@@ -23,38 +23,5 @@
 //  THE SOFTWARE.
 //
 
-import { SqlDialect } from '../../../../server/sql';
-import {
-  quote,
-  identifier,
-  placeholder,
-  boolean,
-  encodeSortKey,
-  random, 
-} from './basic';
-import { updateOperation } from './update';
-import {
-  encodeQueryExpression
-} from './query';
-import { encodeFieldExpression } from './query/selectors';
-import { selectPopulate, encodePopulate } from './populate';
-import {
-  encodeType,
-  decodeType
-} from './encode';
-
-export const PostgresDialect: SqlDialect = {
-  quote,
-  identifier,
-  placeholder,
-  boolean,
-  encodeType,
-  decodeType,
-  updateOperation,
-  selectPopulate,
-  encodeFieldExpression,
-  encodeQueryExpression,
-  encodePopulate,
-  encodeSortKey,
-  random,
-};
+export { encodeQueryExpression } from './expressions';
+export { encodeFieldExpression } from './selectors';
