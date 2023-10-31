@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { SQL, sql } from '../../../../../server/sql';
 import { Decimal } from '../../../../../internals';
-import { TSchema, _typeof } from '../../../../../internals/schema';
+import { _typeof } from '../../../../../internals/schema';
 import { CompileContext, QueryCompiler } from '../../../../../server/sql/compiler';
 import { nullSafeEqual, nullSafeNotEqual } from '../basic';
 import {
@@ -40,28 +40,57 @@ import {
 } from '../../../../../server/query/validator/parser/expressions';
 import { fetchElement } from './utils';
 
+const isValueExpression = (expr: QueryExpression): boolean => {
+  if (expr instanceof QueryArrayExpression) return _.every(expr.exprs, x => isValueExpression(x));
+  return expr instanceof QueryValueExpression;
+}
+const isArrayExpression = (expr: QueryExpression) => {
+  if (expr instanceof QueryArrayExpression) return true;
+  if (expr instanceof QueryValueExpression) return _.isArray(expr.value);
+  return false;
+}
+const arrayLength = (expr: QueryExpression) => {
+  if (expr instanceof QueryArrayExpression) return expr.exprs.length;
+  if (expr instanceof QueryValueExpression) return _.isArray(expr.value) ? expr.value.length : 0;
+  return 0;
+}
+const mapExpression = <R>(expr: QueryExpression, callback: (x: QueryExpression) => R): R[] => {
+  if (expr instanceof QueryArrayExpression) return _.map(expr.exprs, x => callback(x));
+  if (expr instanceof QueryValueExpression) return _.isArray(expr.value) ? _.map(expr.value, x => callback(new QueryValueExpression(x))) : [];
+  return [];
+}
+
+const _PrimitiveValue = ['boolean', 'number', 'decimal', 'string', 'date'] as const;
+type PrimitiveValue = typeof _PrimitiveValue[number];
+
 const encodeTypedQueryExpression = (
   compiler: QueryCompiler,
   context: CompileContext,
   parent: { className?: string; name: string; },
   expr: QueryExpression
-): [TSchema.Primitive, SQL] | undefined => {
+): { type: PrimitiveValue; sql: SQL }[] | undefined => {
 
   if (expr instanceof QueryKeyExpression) {
     const [colname, ...subpath] = _.toPath(expr.key);
     const dataType = parent.className && _.isEmpty(subpath) ? compiler.schema[parent.className].fields[colname] : null;
     const _dataType = dataType ? _typeof(dataType) : null;
-    if (_dataType && ['boolean', 'number', 'decimal', 'string', 'date'].includes(_dataType)) {
+    if (_dataType && _PrimitiveValue.includes(_dataType as any)) {
       const element = fetchElement(compiler, parent, colname, subpath);
-      return [_dataType as TSchema.Primitive, element];
+      return [{ type: _dataType as PrimitiveValue, sql: element }];
     }
   }
   if (expr instanceof QueryValueExpression) {
-    if (_.isBoolean(expr.value)) return ['boolean', sql`${{ value: expr.value }}`];
-    if (_.isNumber(expr.value)) return ['number', sql`${{ value: expr.value }}`];
-    if (expr.value instanceof Decimal) return ['decimal', sql`CAST(${{ quote: expr.value.toString() }} AS DECIMAL)`];
-    if (_.isString(expr.value)) return ['string', sql`${{ value: expr.value }}`];
-    if (_.isDate(expr.value)) return ['date', sql`${{ value: expr.value }}`];
+    if (_.isBoolean(expr.value)) return [{ type: 'boolean', sql: sql`${{ value: expr.value }}` }];
+    if (_.isNumber(expr.value)) return [
+      { type: 'number', sql: sql`${{ value: expr.value }}` },
+      { type: 'decimal', sql:  sql`CAST(${{ quote: (new Decimal(expr.value)).toString() }} AS DECIMAL)` },
+    ];
+    if (expr.value instanceof Decimal) return [
+      { type: 'decimal', sql: sql`CAST(${{ quote: expr.value.toString() }} AS DECIMAL)` },
+      { type: 'number', sql: sql`${{ value: expr.value.toNumber() }}` },
+    ];
+    if (_.isString(expr.value)) return [{ type: 'string', sql: sql`${{ value: expr.value }}` }];
+    if (_.isDate(expr.value)) return [{ type: 'date', sql: sql`${{ value: expr.value }}` }];
   }
 };
 
@@ -93,22 +122,31 @@ export const encodeQueryExpression = (
       '$lte': sql`<=`,
     };
 
-    if (expr.left instanceof QueryArrayExpression &&
-      expr.right instanceof QueryArrayExpression &&
-      expr.left.exprs.length === expr.right.exprs.length) {
-      const _left = _.compact(_.map(expr.left.exprs, x => encodeTypedQueryExpression(compiler, context, parent, x)));
-      const _right = _.compact(_.map(expr.right.exprs, x => encodeTypedQueryExpression(compiler, context, parent, x)));
-      if (_left.length === expr.left.exprs.length &&
-        _right.length === expr.right.exprs.length &&
-        _.every(_.zip(_left, _right), ([l, r]) => l?.[0] === r?.[0])) {
-        return sql`(${_.map(_left, x => x[1])}) ${operatorMap[expr.type]} (${_.map(_right, x => x[1])})`;
+    if (
+      isArrayExpression(expr.left) &&
+      isArrayExpression(expr.right) &&
+      arrayLength(expr.left) === arrayLength(expr.right)
+    ) {
+      const _left = mapExpression(expr.left, x => encodeTypedQueryExpression(compiler, context, parent, x));
+      const _right = mapExpression(expr.right, x => encodeTypedQueryExpression(compiler, context, parent, x));
+      const mapped = _.compact(_.map(_.zip(_left, _right), ([l, r]) => {
+        const found = _.find(l, _l => _.some(r, _r => _l.type === _r.type));
+        return found ? [found, _.find(r, _r => _r.type === found.type)!] : undefined;
+      }));
+      if (mapped.length === _left.length) {
+        const [l, r] = _.unzip(mapped);
+        return sql`(${_.map(l, x => x.sql)}) ${operatorMap[expr.type]} (${_.map(r, x => x.sql)})`;
       }
     }
 
     const _left = encodeTypedQueryExpression(compiler, context, parent, expr.left);
     const _right = encodeTypedQueryExpression(compiler, context, parent, expr.right);
-    if (_left && _right && _left[0] === _right[0]) {
-      return sql`${_left[1]} ${operatorMap[expr.type]} ${_right[1]}`;
+    if (_left && _right) {
+      const matched = _.find(_left, _l => _.some(_right, _r => _l.type === _r.type));
+      if (matched) {
+        const r = _.find(_right, _r => _r.type === matched.type)!
+        return sql`${matched.sql} ${operatorMap[expr.type]} ${r.sql}`;
+      }
     }
   }
   if (expr instanceof QueryNotExpression) {
