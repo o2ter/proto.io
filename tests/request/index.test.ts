@@ -1264,7 +1264,7 @@ test('test expr 2', async () => {
       $expr: {
         $gt: [
           { $array: [{ $key: 'number' }, { $key: 'decimal' }] },
-          { $array: [{ $value: 3 }, { $value: new Decimal(4) }] },
+          { $value: [3, 4] },
         ]
       }
     })
