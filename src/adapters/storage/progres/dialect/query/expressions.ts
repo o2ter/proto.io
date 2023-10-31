@@ -83,7 +83,7 @@ const encodeTypedQueryExpression = (
     if (_.isBoolean(expr.value)) return [{ type: 'boolean', sql: sql`${{ value: expr.value }}` }];
     if (_.isNumber(expr.value)) return [
       { type: 'number', sql: sql`${{ value: expr.value }}` },
-      { type: 'decimal', sql:  sql`CAST(${{ quote: (new Decimal(expr.value)).toString() }} AS DECIMAL)` },
+      { type: 'decimal', sql: sql`CAST(${{ quote: (new Decimal(expr.value)).toString() }} AS DECIMAL)` },
     ];
     if (expr.value instanceof Decimal) return [
       { type: 'decimal', sql: sql`CAST(${{ quote: expr.value.toString() }} AS DECIMAL)` },
@@ -92,17 +92,25 @@ const encodeTypedQueryExpression = (
     if (_.isString(expr.value)) return [{ type: 'string', sql: sql`${{ value: expr.value }}` }];
     if (_.isDate(expr.value)) return [{ type: 'date', sql: sql`${{ value: expr.value }}` }];
   }
+  if (
+    expr instanceof QueryCoditionalExpression ||
+    expr instanceof QueryComparisonExpression ||
+    expr instanceof QueryNotExpression
+  ) {
+    const sql = encodeBooleanExpression(compiler, context, parent, expr);
+    if (sql) return [{ type: 'boolean', sql }];
+  }
 };
 
 const matchType = (
-  first: { type: PrimitiveValue; sql: SQL }[] | undefined, 
+  first: { type: PrimitiveValue; sql: SQL }[] | undefined,
   second: { type: PrimitiveValue; sql: SQL }[] | undefined,
 ): [{ type: PrimitiveValue; sql: SQL }, { type: PrimitiveValue; sql: SQL }] | undefined => {
   const found = _.find(first, l => _.some(second, r => l.type === r.type));
   return found ? [found, _.find(second, r => r.type === found.type)!] : undefined;
 }
 
-export const encodeQueryExpression = (
+export const encodeBooleanExpression = (
   compiler: QueryCompiler,
   context: CompileContext,
   parent: { className?: string; name: string; },
@@ -110,7 +118,7 @@ export const encodeQueryExpression = (
 ): SQL | undefined => {
 
   if (expr instanceof QueryCoditionalExpression) {
-    const queries = _.compact(_.map(expr.exprs, x => encodeQueryExpression(compiler, context, parent, x)));
+    const queries = _.compact(_.map(expr.exprs, x => encodeBooleanExpression(compiler, context, parent, x)));
     if (_.isEmpty(queries)) return;
     switch (expr.type) {
       case '$and': return sql`(${{ literal: _.map(queries, x => sql`(${x})`), separator: ' AND ' }})`;
@@ -152,7 +160,7 @@ export const encodeQueryExpression = (
     }
   }
   if (expr instanceof QueryNotExpression) {
-    const _expr = encodeQueryExpression(compiler, context, parent, expr.expr);
+    const _expr = encodeBooleanExpression(compiler, context, parent, expr.expr);
     return _expr ? sql`NOT (${_expr})` : undefined;
   }
   throw Error('Invalid expression');
