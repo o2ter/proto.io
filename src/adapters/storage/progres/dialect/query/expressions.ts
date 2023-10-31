@@ -202,7 +202,9 @@ export const encodeBooleanExpression = (
       if (matched) return sql`${matched[0].sql} ${operatorMap[expr.type]} ${matched[1].sql}`;
     }
 
-    return sql`${encodeJsonQueryExpression(compiler, context, parent, expr.left)} ${operatorMap[expr.type]} ${encodeJsonQueryExpression(compiler, context, parent, expr.right)}`;
+    const _left2 = encodeJsonQueryExpression(compiler, context, parent, expr.left);
+    const _right2 = encodeJsonQueryExpression(compiler, context, parent, expr.right);
+    return sql`${_left2} ${operatorMap[expr.type]} ${_right2}`;
   }
   if (expr instanceof QueryNotExpression) {
     const _expr = encodeBooleanExpression(compiler, context, parent, expr.expr);
