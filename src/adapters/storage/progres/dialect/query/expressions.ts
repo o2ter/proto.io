@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { SQL, sql } from '../../../../../server/sql';
 import { Decimal } from '../../../../../internals';
-import { _typeof } from '../../../../../internals/schema';
+import { _typeof, isPrimitive } from '../../../../../internals/schema';
 import { CompileContext, QueryCompiler } from '../../../../../server/sql/compiler';
 import { nullSafeEqual, nullSafeNotEqual } from '../basic';
 import {
@@ -39,6 +39,7 @@ import {
   QueryValueExpression
 } from '../../../../../server/query/validator/parser/expressions';
 import { fetchElement } from './utils';
+import { _encodeJsonValue, _encodeValue } from '../encode';
 
 const isValueExpression = (expr: QueryExpression): boolean => {
   if (expr instanceof QueryArrayExpression) return _.every(expr.exprs, x => isValueExpression(x));
@@ -97,9 +98,51 @@ const encodeTypedQueryExpression = (
     expr instanceof QueryComparisonExpression ||
     expr instanceof QueryNotExpression
   ) {
-    const sql = encodeBooleanExpression(compiler, context, parent, expr);
-    if (sql) return [{ type: 'boolean', sql }];
+    const value = encodeBooleanExpression(compiler, context, parent, expr);
+    if (value) return [{ type: 'boolean', sql: value }];
   }
+};
+
+const encodeJsonQueryExpression = (
+  compiler: QueryCompiler,
+  context: CompileContext,
+  parent: { className?: string; name: string; },
+  expr: QueryExpression
+): SQL => {
+
+  if (expr instanceof QueryKeyExpression) {
+    const [colname, ...subpath] = _.toPath(expr.key);
+    const dataType = parent.className && _.isEmpty(subpath) ? compiler.schema[parent.className].fields[colname] : null;
+    const element = fetchElement(compiler, parent, colname, subpath);
+    if (dataType && isPrimitive(dataType)) {
+      switch (_typeof(dataType)) {
+        case 'boolean': return sql`to_jsonb(${element})`;
+        case 'number': return sql`to_jsonb(${element})`;
+        case 'decimal': return sql`jsonb_build_object('$decimal', CAST(${element} AS TEXT))`;
+        case 'string': return sql`to_jsonb(${element})`;
+        case 'date': return sql`jsonb_build_object(
+          '$date', to_char(${element} AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')
+        )`;
+        default: break;
+      }
+    }
+    return sql`${element}`;
+  }
+  if (expr instanceof QueryValueExpression) {
+    return _encodeJsonValue(_encodeValue(expr.value));
+  }
+  if (expr instanceof QueryArrayExpression) {
+    return sql`jsonb_build_array(${_.map(expr.exprs, x => encodeJsonQueryExpression(compiler, context, parent, x))})`;
+  }
+  if (
+    expr instanceof QueryCoditionalExpression ||
+    expr instanceof QueryComparisonExpression ||
+    expr instanceof QueryNotExpression
+  ) {
+    const value = encodeBooleanExpression(compiler, context, parent, expr);
+    if (value) return sql`to_jsonb(${value})`;
+  }
+  throw Error('Invalid expression');
 };
 
 const matchType = (
@@ -158,6 +201,8 @@ export const encodeBooleanExpression = (
       const matched = matchType(_left, _right);
       if (matched) return sql`${matched[0].sql} ${operatorMap[expr.type]} ${matched[1].sql}`;
     }
+
+    return sql`${encodeJsonQueryExpression(compiler, context, parent, expr.left)} ${operatorMap[expr.type]} ${encodeJsonQueryExpression(compiler, context, parent, expr.right)}`;
   }
   if (expr instanceof QueryNotExpression) {
     const _expr = encodeBooleanExpression(compiler, context, parent, expr.expr);
