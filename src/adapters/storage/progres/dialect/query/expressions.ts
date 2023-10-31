@@ -94,6 +94,14 @@ const encodeTypedQueryExpression = (
   }
 };
 
+const matchType = (
+  first: { type: PrimitiveValue; sql: SQL }[] | undefined, 
+  second: { type: PrimitiveValue; sql: SQL }[] | undefined,
+): [{ type: PrimitiveValue; sql: SQL }, { type: PrimitiveValue; sql: SQL }] | undefined => {
+  const found = _.find(first, l => _.some(second, r => l.type === r.type));
+  return found ? [found, _.find(second, r => r.type === found.type)!] : undefined;
+}
+
 export const encodeQueryExpression = (
   compiler: QueryCompiler,
   context: CompileContext,
@@ -129,10 +137,7 @@ export const encodeQueryExpression = (
     ) {
       const _left = mapExpression(expr.left, x => encodeTypedQueryExpression(compiler, context, parent, x));
       const _right = mapExpression(expr.right, x => encodeTypedQueryExpression(compiler, context, parent, x));
-      const mapped = _.compact(_.map(_.zip(_left, _right), ([l, r]) => {
-        const found = _.find(l, _l => _.some(r, _r => _l.type === _r.type));
-        return found ? [found, _.find(r, _r => _r.type === found.type)!] : undefined;
-      }));
+      const mapped = _.compact(_.map(_.zip(_left, _right), ([l, r]) => matchType(l, r)));
       if (mapped.length === _left.length) {
         const [l, r] = _.unzip(mapped);
         return sql`(${_.map(l, x => x.sql)}) ${operatorMap[expr.type]} (${_.map(r, x => x.sql)})`;
@@ -142,11 +147,8 @@ export const encodeQueryExpression = (
     const _left = encodeTypedQueryExpression(compiler, context, parent, expr.left);
     const _right = encodeTypedQueryExpression(compiler, context, parent, expr.right);
     if (_left && _right) {
-      const matched = _.find(_left, _l => _.some(_right, _r => _l.type === _r.type));
-      if (matched) {
-        const r = _.find(_right, _r => _r.type === matched.type)!
-        return sql`${matched.sql} ${operatorMap[expr.type]} ${r.sql}`;
-      }
+      const matched = matchType(_left, _right);
+      if (matched) return sql`${matched[0].sql} ${operatorMap[expr.type]} ${matched[1].sql}`;
     }
   }
   if (expr instanceof QueryNotExpression) {
