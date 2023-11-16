@@ -45,7 +45,7 @@ const mergeOpts = (lhs: TQueryBaseOptions, rhs: TQueryBaseOptions): TQueryBaseOp
     ...lhs,
     ...rhs,
     filter: [
-      ..._.castArray<TQuerySelector>(lhs.filter), 
+      ..._.castArray<TQuerySelector>(lhs.filter),
       ..._.castArray<TQuerySelector>(rhs.filter)
     ],
     matches: {
