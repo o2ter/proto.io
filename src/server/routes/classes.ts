@@ -52,7 +52,6 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
           random,
           attributes,
           update,
-          replacement,
           setOnInsert,
           ...options
         } = deserialize(req.body) as any;
