@@ -43,7 +43,6 @@ export type QueryCompilerOptions = {
 export type Populate = {
   name: string;
   className: string;
-  colname: string;
   type: TSchema.Relation;
   foreignField?: { colname: string; type: TSchema.Relation; };
   subpaths: string[];
@@ -369,7 +368,6 @@ export class QueryCompiler {
       className,
       name,
       includes: context.includes,
-      colname: field,
     }, populate, field));
   }
 

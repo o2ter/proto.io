@@ -31,7 +31,7 @@ import { _encodePopulateIncludes } from './encode';
 
 export const selectPopulate = (
   compiler: QueryCompiler,
-  parent: Pick<Populate, 'className' | 'name' | 'colname' | 'includes'>,
+  parent: Pick<Populate, 'className' | 'name' | 'includes'>,
   populate: Populate,
   field: string
 ): { column: SQL; join?: SQL; } => {
@@ -44,14 +44,14 @@ export const selectPopulate = (
       column: sql`to_jsonb(${{ identifier: populate.name }}) AS ${{ identifier: field }}`,
       join: sql`
         LEFT JOIN ${{ identifier: populate.name }}
-        ON ${sql`(${{ quote: className + '$' }} || ${_foreign('_id')})`} = ${_local(parent.colname)}
+        ON ${sql`(${{ quote: className + '$' }} || ${_foreign('_id')})`} = ${_local(field)}
       `,
     };
   }
 
   let cond: SQL;
   if (_.isNil(foreignField)) {
-    cond = sql`${sql`(${{ quote: className + '$' }} || ${_foreign('_id')})`} = ANY(${_local(parent.colname)})`;
+    cond = sql`${sql`(${{ quote: className + '$' }} || ${_foreign('_id')})`} = ANY(${_local(field)})`;
   } else if (foreignField.type === 'pointer') {
     cond = sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ${_foreign(foreignField.colname)}`;
   } else {

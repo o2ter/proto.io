@@ -41,7 +41,7 @@ export interface SqlDialect {
 
   selectPopulate(
     compiler: QueryCompiler,
-    parent: Pick<Populate, 'className' | 'name' | 'colname' | 'includes'>,
+    parent: Pick<Populate, 'className' | 'name' | 'includes'>,
     populate: Populate,
     field: string,
   ): { column: SQL, join?: SQL }
