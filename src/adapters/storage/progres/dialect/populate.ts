@@ -31,7 +31,7 @@ import { _encodePopulateIncludes } from './encode';
 
 export const selectPopulate = (
   compiler: QueryCompiler,
-  parent: Pick<Populate, 'className' | 'name' | 'includes'>,
+  parent: Pick<Populate, 'className' | 'name'>,
   populate: Populate,
   field: string
 ): { column: SQL; join?: SQL; } => {
