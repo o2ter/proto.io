@@ -35,27 +35,26 @@ export const selectPopulate = (
   populate: Populate,
   field: string
 ): { column: SQL; join?: SQL; } => {
-  const { name, className, type, foreignField } = populate;
   const _local = (field: string) => sql`${{ identifier: parent.name }}.${{ identifier: field }}`;
-  const _foreign = (field: string) => sql`${{ identifier: name }}.${{ identifier: field }}`;
+  const _foreign = (field: string) => sql`${{ identifier: populate.name }}.${{ identifier: field }}`;
 
-  if (type === 'pointer') {
+  if (populate.type === 'pointer') {
     return {
       column: sql`to_jsonb(${{ identifier: populate.name }}) AS ${{ identifier: field }}`,
       join: sql`
         LEFT JOIN ${{ identifier: populate.name }}
-        ON ${sql`(${{ quote: className + '$' }} || ${_foreign('_id')})`} = ${_local(field)}
+        ON ${sql`(${{ quote: populate.className + '$' }} || ${_foreign('_id')})`} = ${_local(field)}
       `,
     };
   }
 
   let cond: SQL;
-  if (_.isNil(foreignField)) {
-    cond = sql`${sql`(${{ quote: className + '$' }} || ${_foreign('_id')})`} = ANY(${_local(field)})`;
-  } else if (foreignField.type === 'pointer') {
-    cond = sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ${_foreign(foreignField.colname)}`;
+  if (_.isNil(populate.foreignField)) {
+    cond = sql`${sql`(${{ quote: populate.className + '$' }} || ${_foreign('_id')})`} = ANY(${_local(field)})`;
+  } else if (populate.foreignField.type === 'pointer') {
+    cond = sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ${_foreign(populate.foreignField.colname)}`;
   } else {
-    cond = sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ANY(${_foreign(foreignField.colname)})`;
+    cond = sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ANY(${_foreign(populate.foreignField.colname)})`;
   }
   return {
     column: sql`
