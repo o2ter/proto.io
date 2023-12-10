@@ -32,6 +32,29 @@ import { SQL, sql } from './sql';
 import { SqlDialect } from './dialect';
 import { QueryCompiler } from './compiler';
 
+const _decodeObject = (
+  storage: SqlStorage,
+  className: string,
+  attrs: Record<string, any>
+): TObject => {
+  const fields = storage.schema[className].fields;
+  const obj = new TObject(className);
+  for (const [key, value] of _.toPairs(attrs)) {
+    const dataType = fields[key];
+    if (!dataType) continue;
+    if (_.isString(dataType)) {
+      obj[PVK].attributes[key] = storage.dialect.decodeType(dataType, value);
+    } else if (dataType.type !== 'pointer' && dataType.type !== 'relation') {
+      obj[PVK].attributes[key] = storage.dialect.decodeType(dataType.type, value) ?? dataType.default as any;
+    } else if (dataType.type === 'pointer') {
+      if (_.isPlainObject(value)) obj[PVK].attributes[key] = _decodeObject(storage, dataType.target, value);
+    } else if (dataType.type === 'relation') {
+      if (_.isArray(value)) obj[PVK].attributes[key] = value.map(x => _decodeObject(storage, dataType.target, x));
+    }
+  }
+  return obj;
+}
+
 export abstract class SqlStorage implements TStorage {
 
   schedule: ReturnType<typeof storageSchedule>;
@@ -74,22 +97,11 @@ export abstract class SqlStorage implements TStorage {
   abstract _explain(compiler: QueryCompiler, query: DecodedQuery<FindOptions>): PromiseLike<any>
 
   private _decodeObject(className: string, attrs: Record<string, any>): TObject {
-    const fields = this.schema[className].fields;
-    const obj = new TObject(className);
+    const _attrs = {};
     for (const [key, value] of _.toPairs(attrs)) {
-      const dataType = fields[key];
-      if (!dataType) continue;
-      if (_.isString(dataType)) {
-        obj[PVK].attributes[key] = this.dialect.decodeType(dataType, value);
-      } else if (dataType.type !== 'pointer' && dataType.type !== 'relation') {
-        obj[PVK].attributes[key] = this.dialect.decodeType(dataType.type, value) ?? dataType.default as any;
-      } else if (dataType.type === 'pointer') {
-        if (_.isPlainObject(value)) obj[PVK].attributes[key] = this._decodeObject(dataType.target, value);
-      } else if (dataType.type === 'relation') {
-        if (_.isArray(value)) obj[PVK].attributes[key] = value.map(x => this._decodeObject(dataType.target, x));
-      }
+      _.set(_attrs, key, value);
     }
-    return obj;
+    return _decodeObject(this, className, _attrs);
   }
 
   async explain(query: DecodedQuery<FindOptions>) {
