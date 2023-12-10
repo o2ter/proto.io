@@ -44,7 +44,7 @@ export interface SqlDialect {
     parent: Pick<Populate, 'className' | 'name'>,
     populate: Populate,
     field: string,
-  ): { column: SQL, join?: SQL }
+  ): { columns: SQL[], join?: SQL }
 
   encodeFieldExpression(
     compiler: QueryCompiler,

@@ -207,8 +207,9 @@ export class QueryCompiler {
     const _includes = {
       literal: [
         ...this._selectIncludes(fetchName, context.includes),
-        ..._.map(_populates, ({ column }) => column),
-      ], separator: ',\n'
+        ..._.flatMap(_populates, ({ columns }) => columns),
+      ],
+      separator: ',\n',
     };
 
     return {
@@ -249,7 +250,7 @@ export class QueryCompiler {
     const _includes = {
       literal: [
         ...this._selectIncludes(name, _context.includes),
-        ..._.map(_populates, ({ column }) => column),
+        ..._.flatMap(_populates, ({ columns }) => columns),
       ], separator: ',\n'
     };
 
@@ -395,11 +396,11 @@ export class QueryCompiler {
       RETURNING *
     )${!_.isEmpty(stages) ? sql`, ${_.map(stages, (q, n) => sql`${{ identifier: n }} AS (${q})`)}` : sql``}
     SELECT ${{
-        literal: [
-          ...this._selectIncludes(name, context.includes),
-          ..._.map(_populates, ({ column }) => column),
-        ], separator: ',\n'
-      }}
+      literal: [
+        ...this._selectIncludes(name, context.includes),
+        ..._.flatMap(_populates, ({ columns }) => columns),
+      ], separator: ',\n'
+    }}
     FROM ${{ identifier: name }}
     ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
   `;
@@ -480,7 +481,7 @@ export class QueryCompiler {
           SELECT ${{
             literal: [
               ...this._selectIncludes(name, context.includes),
-              ..._.map(populates, ({ column }) => column),
+              ..._.flatMap(populates, ({ columns }) => columns),
             ], separator: ',\n'
           }}
           FROM ${{ identifier: name }}

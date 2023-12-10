@@ -72,11 +72,9 @@ const encodeTypedQueryExpression = (
 ): { type: PrimitiveValue; sql: SQL }[] | undefined => {
 
   if (expr instanceof QueryKeyExpression) {
-    const [colname, ...subpath] = _.toPath(expr.key);
-    const dataType = parent.className && _.isEmpty(subpath) ? compiler.schema[parent.className].fields[colname] : null;
+    const { element, dataType } = fetchElement(compiler, parent, expr.key);
     const _dataType = dataType ? _typeof(dataType) : null;
     if (_dataType && _PrimitiveValue.includes(_dataType as any)) {
-      const element = fetchElement(compiler, parent, colname, subpath);
       return [{ type: _dataType as PrimitiveValue, sql: element }];
     }
   }
@@ -111,9 +109,7 @@ const encodeJsonQueryExpression = (
 ): SQL => {
 
   if (expr instanceof QueryKeyExpression) {
-    const [colname, ...subpath] = _.toPath(expr.key);
-    const dataType = parent.className && _.isEmpty(subpath) ? compiler.schema[parent.className].fields[colname] : null;
-    const element = fetchElement(compiler, parent, colname, subpath);
+    const { element, dataType } = fetchElement(compiler, parent, expr.key);
     if (dataType && isPrimitive(dataType)) {
       switch (_typeof(dataType)) {
         case 'boolean': return sql`to_jsonb(${element})`;

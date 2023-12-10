@@ -41,9 +41,9 @@ export const encodeFieldExpression = (
   field: string,
   expr: FieldSelectorExpression
 ): SQL => {
-  const [colname, ...subpath] = _.toPath(field);
-  const dataType = parent.className && _.isEmpty(subpath) ? compiler.schema[parent.className].fields[colname] : null;
-  const element = fetchElement(compiler, parent, colname, subpath);
+  const [colname] = _.toPath(field);
+  const fetched = fetchElement(compiler, parent, field);
+  const { element, dataType } = fetched;
   const encodeValue = (value: TValue) => dataType ? encodeType(colname, dataType, value) : _encodeJsonValue(_encodeValue(value));
   switch (expr.type) {
     case '$eq':
@@ -51,7 +51,7 @@ export const encodeFieldExpression = (
         if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldSelectorExpression) break;
         if (_.isNil(expr.value)) return sql`${element} IS NULL`;
         if (!_.isString(dataType) && dataType?.type === 'pointer' && expr.value instanceof TObject && expr.value.objectId) {
-          return sql`(${element} #>> '{_id}') ${nullSafeEqual()} ${{ value: expr.value.objectId }}`;
+          return sql`${element} ${nullSafeEqual()} ${{ value: expr.value.objectId }}`;
         }
         return sql`${element} ${nullSafeEqual()} ${encodeValue(expr.value)}`;
       }
@@ -60,7 +60,7 @@ export const encodeFieldExpression = (
         if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldSelectorExpression) break;
         if (_.isNil(expr.value)) return sql`${element} IS NOT NULL`;
         if (!_.isString(dataType) && dataType?.type === 'pointer' && expr.value instanceof TObject && expr.value.objectId) {
-          return sql`(${element} #>> '{_id}') ${nullSafeNotEqual()} ${{ value: expr.value.objectId }}`;
+          return sql`${element} ${nullSafeNotEqual()} ${{ value: expr.value.objectId }}`;
         }
         return sql`${element} ${nullSafeNotEqual()} ${encodeValue(expr.value)}`;
       }
@@ -94,7 +94,7 @@ export const encodeFieldExpression = (
             default: break;
           }
         } else if (!_.isString(dataType) && dataType?.type === 'pointer' && expr.value instanceof TObject && expr.value.objectId) {
-          return sql`(${element} #>> '{_id}') ${{ literal: operatorMap[expr.type] }} ${{ value: expr.value.objectId }}`;
+          return sql`${element} ${{ literal: operatorMap[expr.type] }} ${{ value: expr.value.objectId }}`;
         } else if (!dataType) {
           if (expr.value instanceof Decimal || _.isNumber(expr.value)) {
             return sql`(
@@ -124,14 +124,14 @@ export const encodeFieldExpression = (
               const value = expr.value[0];
               if (!_.isString(dataType) && dataType?.type === 'pointer') {
                 if (!(value instanceof TObject) || !value.objectId) break;
-                return sql`(${element} #>> '{_id}') ${nullSafeEqual()} ${{ value: value.objectId }}`;
+                return sql`${element} ${nullSafeEqual()} ${{ value: value.objectId }}`;
               }
               return sql`${element} ${nullSafeEqual()} ${encodeValue(value)}`;
             }
           default:
             if (!_.isString(dataType) && dataType?.type === 'pointer') {
               if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
-              return sql`(${element} #>> '{_id}') IN (${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)})`;
+              return sql`${element} IN (${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)})`;
             }
             return sql`${element} IN (${_.map(expr.value, x => encodeValue(x))})`;
         }
@@ -146,14 +146,14 @@ export const encodeFieldExpression = (
               const value = expr.value[0];
               if (!_.isString(dataType) && dataType?.type === 'pointer') {
                 if (!(value instanceof TObject) || !value.objectId) break;
-                return sql`(${element} #>> '{_id}') ${nullSafeNotEqual()} ${{ value: value.objectId }}`;
+                return sql`${element} ${nullSafeNotEqual()} ${{ value: value.objectId }}`;
               }
               return sql`${element} ${nullSafeNotEqual()} ${encodeValue(value)}`;
             }
           default:
             if (!_.isString(dataType) && dataType?.type === 'pointer') {
               if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
-              return sql`(${element} #>> '{_id}') NOT IN (${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)})`;
+              return sql`${element} NOT IN (${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)})`;
             }
             return sql`${element} NOT IN (${_.map(expr.value, x => encodeValue(x))})`;
         }

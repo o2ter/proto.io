@@ -25,22 +25,38 @@
 
 import _ from 'lodash';
 import { SQL, sql } from '../../../../server/sql';
-import { isPrimitive } from '../../../../internals/schema';
+import { isPointer, isPrimitive } from '../../../../internals/schema';
 import { CompileContext, Populate, QueryCompiler } from '../../../../server/sql/compiler';
 import { _encodePopulateIncludes } from './encode';
+
+const resolveSubpaths = (
+  compiler: QueryCompiler,
+  populate: Populate,
+) => {
+  const subpaths: string[] = [];
+  for (const [name, type] of _.toPairs(populate.includes)) {
+    if (isPointer(type)) {
+      subpaths.push(..._.map(resolveSubpaths(compiler, populate.populates[name]), s => `${name}.${s}`));
+    } else {
+      subpaths.push(name);
+    }
+  }
+  return subpaths;
+}
 
 export const selectPopulate = (
   compiler: QueryCompiler,
   parent: Pick<Populate, 'className' | 'name'>,
   populate: Populate,
   field: string
-): { column: SQL; join?: SQL; } => {
+): { columns: SQL[]; join?: SQL; } => {
   const _local = (field: string) => sql`${{ identifier: parent.name }}.${{ identifier: field }}`;
   const _foreign = (field: string) => sql`${{ identifier: populate.name }}.${{ identifier: field }}`;
 
   if (populate.type === 'pointer') {
+    const subpaths = resolveSubpaths(compiler, populate);
     return {
-      column: sql`to_jsonb(${{ identifier: populate.name }}) AS ${{ identifier: field }}`,
+      columns: _.map(subpaths, path => sql`${{ identifier: populate.name }}.${{ identifier: path }} AS ${{ identifier: `${field}.${path}` }}`),
       join: sql`
         LEFT JOIN ${{ identifier: populate.name }}
         ON ${sql`(${{ quote: populate.className + '$' }} || ${_foreign('_id')})`} = ${_local(field)}
@@ -57,7 +73,7 @@ export const selectPopulate = (
     cond = sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ANY(${_foreign(populate.foreignField.colname)})`;
   }
   return {
-    column: sql`
+    columns: [sql`
       ARRAY(
         SELECT to_jsonb(${{ identifier: populate.name }}) FROM (
           SELECT ${_.map(_.keys(_.pickBy(populate.includes, v => isPrimitive(v))), (colname) => sql`${{ identifier: populate.name }}.${{ identifier: colname }}`)}
@@ -68,7 +84,7 @@ export const selectPopulate = (
           ${compiler.selectLock ? compiler.isUpdate ? sql`FOR UPDATE NOWAIT` : sql`FOR SHARE NOWAIT` : sql``}
         ) ${{ identifier: populate.name }}
       ) AS ${{ identifier: field }}
-    `,
+    `],
   };
 };
 
@@ -89,9 +105,9 @@ export const encodePopulate = (
       SELECT
       ${{
         literal: [
-          ..._encodePopulateIncludes(parent.name, parent.includes),
+          ..._encodePopulateIncludes(parent.name, parent.includes, parent.type === 'relation'),
           ...parent.foreignField ? [sql`${{ identifier: parent.name }}.${{ identifier: parent.foreignField.colname }}`] : [],
-          ..._.map(_populates, ({ column }) => column),
+          ..._.flatMap(_populates, ({ columns: column }) => column),
         ], separator: ',\n'
       }}
       FROM ${remix?.className === parent.className ? sql`

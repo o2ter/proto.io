@@ -26,12 +26,13 @@
 import _ from 'lodash';
 import { sql } from '../../../../../server/sql';
 import { QueryCompiler } from '../../../../../server/sql/compiler';
+import { TSchema, isPointer } from '../../../../../internals/schema';
 
-export const fetchElement = (
+const _fetchElement = (
   compiler: QueryCompiler,
   parent: { className?: string; name: string; },
   colname: string,
-  subpath: string[]
+  subpath: string[],
 ) => {
   const element = sql`${{ identifier: parent.name }}.${{ identifier: parent.name.startsWith('_expr_$') ? '$' : colname }}`;
   if (!parent.className) {
@@ -50,4 +51,34 @@ export const fetchElement = (
     }
   }
   return element;
+};
+
+const resolvePaths = (
+  compiler: QueryCompiler,
+  className: string,
+  paths: string[],
+): { dataType: TSchema.DataType; colname: string; subpath: string[]; } => {
+  const [colname, ...subpath] = paths;
+  const dataType = compiler.schema[className].fields[colname];
+  if (!_.isEmpty(subpath) && isPointer(dataType)) {
+    const resolved = resolvePaths(compiler, dataType.target, subpath);
+    return { ...resolved, colname: `${colname}.${resolved.colname}` };
+  }
+  return { dataType, colname, subpath };
+}
+
+export const fetchElement = (
+  compiler: QueryCompiler,
+  parent: { className?: string; name: string; },
+  field: string,
+) => {
+  if (parent.className) {
+    const { dataType, colname, subpath } = resolvePaths(compiler, parent.className, _.toPath(field));
+    if (isPointer(dataType)) return { element: sql`${{ identifier: parent.name }}.${{ identifier: `${colname}._id` }}`, dataType };
+    const element = _fetchElement(compiler, parent, colname, subpath);
+    return { element, dataType };
+  }
+  const [colname, ...subpath] = _.toPath(field);
+  const element = _fetchElement(compiler, parent, colname, subpath);
+  return { element, dataType: null };
 };

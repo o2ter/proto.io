@@ -58,11 +58,12 @@ export const _encodeJsonValue = (value: any): SQL => {
 
 export const _encodePopulateIncludes = (
   className: string,
-  includes: Record<string, TSchema.DataType>
+  includes: Record<string, TSchema.DataType>,
+  json: boolean,
 ): SQL[] => {
   const _includes = _.pickBy(includes, v => isPrimitive(v));
   return _.map(_includes, (dataType, colname) => {
-    if (isPrimitive(dataType)) {
+    if (json && isPrimitive(dataType)) {
       switch (_typeof(dataType)) {
         case 'decimal': return sql`jsonb_build_object(
             '$decimal', CAST(${{ identifier: className }}.${{ identifier: colname }} AS TEXT)
