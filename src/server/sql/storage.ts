@@ -73,7 +73,7 @@ export abstract class SqlStorage implements TStorage {
 
   abstract _explain(compiler: QueryCompiler, query: DecodedQuery<FindOptions>): PromiseLike<any>
 
-  private _decodeObject(compiler: QueryCompiler, className: string, attrs: Record<string, any>): TObject {
+  private _decodeObject(className: string, attrs: Record<string, any>): TObject {
     const fields = this.schema[className].fields;
     const obj = new TObject(className);
     for (const [key, value] of _.toPairs(attrs)) {
@@ -84,9 +84,9 @@ export abstract class SqlStorage implements TStorage {
       } else if (dataType.type !== 'pointer' && dataType.type !== 'relation') {
         obj[PVK].attributes[key] = this.dialect.decodeType(dataType.type, value) ?? dataType.default as any;
       } else if (dataType.type === 'pointer') {
-        if (_.isPlainObject(value)) obj[PVK].attributes[key] = this._decodeObject(compiler, dataType.target, value);
+        if (_.isPlainObject(value)) obj[PVK].attributes[key] = this._decodeObject(dataType.target, value);
       } else if (dataType.type === 'relation') {
-        if (_.isArray(value)) obj[PVK].attributes[key] = value.map(x => this._decodeObject(compiler, dataType.target, x));
+        if (_.isArray(value)) obj[PVK].attributes[key] = value.map(x => this._decodeObject(dataType.target, x));
       }
     }
     return obj;
@@ -112,7 +112,7 @@ export abstract class SqlStorage implements TStorage {
       const compiler = new QueryCompiler(self.schema, self.dialect, self.selectLock(), false);
       const objects = self.query(compiler._selectQuery(query));
       for await (const object of objects) {
-        yield self._decodeObject(compiler, query.className, object);
+        yield self._decodeObject(query.className, object);
       }
     });
   }
@@ -125,7 +125,7 @@ export abstract class SqlStorage implements TStorage {
         sort: sql`ORDER BY ${self.dialect.random(opts ?? {})}`,
       }));
       for await (const object of objects) {
-        yield self._decodeObject(compiler, query.className, object);
+        yield self._decodeObject(query.className, object);
       }
     });
   }
@@ -133,25 +133,25 @@ export abstract class SqlStorage implements TStorage {
   async insert(options: InsertOptions, attrs: Record<string, TValue>) {
     const compiler = new QueryCompiler(this.schema, this.dialect, this.selectLock(), true);
     const result = _.first(await this.query(compiler.insert(options, attrs)));
-    return _.isNil(result) ? undefined : this._decodeObject(compiler, options.className, result);
+    return _.isNil(result) ? undefined : this._decodeObject(options.className, result);
   }
 
   async updateOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>) {
     const compiler = new QueryCompiler(this.schema, this.dialect, this.selectLock(), true);
     const updated = _.first(await this.query(compiler.updateOne(query, update)));
-    return _.isNil(updated) ? undefined : this._decodeObject(compiler, query.className, updated);
+    return _.isNil(updated) ? undefined : this._decodeObject(query.className, updated);
   }
 
   async upsertOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValue>) {
     const compiler = new QueryCompiler(this.schema, this.dialect, this.selectLock(), true);
     const upserted = _.first(await this.query(compiler.upsertOne(query, update, setOnInsert)));
-    return _.isNil(upserted) ? undefined : this._decodeObject(compiler, query.className, upserted);
+    return _.isNil(upserted) ? undefined : this._decodeObject(query.className, upserted);
   }
 
   async deleteOne(query: DecodedQuery<FindOneOptions>) {
     const compiler = new QueryCompiler(this.schema, this.dialect, this.selectLock(), true);
     const deleted = _.first(await this.query(compiler.deleteOne(query)));
-    return _.isNil(deleted) ? undefined : this._decodeObject(compiler, query.className, deleted);
+    return _.isNil(deleted) ? undefined : this._decodeObject(query.className, deleted);
   }
 
   async deleteMany(query: DecodedQuery<FindOptions>) {
