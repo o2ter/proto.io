@@ -25,6 +25,7 @@
 
 import _ from 'lodash';
 import express, { RequestHandler } from 'express';
+import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { ProtoService } from './server/proto';
 import { ProtoServiceOptions } from './server/proto/types';
@@ -63,7 +64,13 @@ export const ProtoRoute = async <E>(options: {
   const proto = _proto instanceof ProtoService ? _proto : new ProtoService(_proto);
   await proto[PVK].prepare();
 
+  const corsOpts = {
+    credentials: true,
+    origin: true,
+  };
+
   const router = express.Router().use(
+    cors(corsOpts),
     cookieParser() as any,
     csrfHandler(proto[PVK].options.csrfToken),
     authHandler(proto),
