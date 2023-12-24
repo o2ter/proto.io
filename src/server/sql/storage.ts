@@ -47,7 +47,10 @@ const _decodeObject = (
     } else if (dataType.type !== 'pointer' && dataType.type !== 'relation') {
       obj[PVK].attributes[key] = storage.dialect.decodeType(dataType.type, value) ?? dataType.default as any;
     } else if (dataType.type === 'pointer') {
-      if (_.isPlainObject(value)) obj[PVK].attributes[key] = _decodeObject(storage, dataType.target, value);
+      if (_.isPlainObject(value)) { 
+        const decoded = _decodeObject(storage, dataType.target, value);
+        if (decoded.objectId) obj[PVK].attributes[key] = decoded;
+      }
     } else if (dataType.type === 'relation') {
       if (_.isArray(value)) obj[PVK].attributes[key] = value.map(x => _decodeObject(storage, dataType.target, x));
     }
