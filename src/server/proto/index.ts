@@ -156,8 +156,8 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     await this[PVK].setConfig(values);
   }
 
-  run(name: string, data?: TSerializable, options?: ExtraOptions) {
-    const payload = Object.setPrototypeOf({ data: data ?? null }, this);
+  run(name: string, params?: TSerializable, options?: ExtraOptions) {
+    const payload = Object.setPrototypeOf({ params: params ?? null }, this);
     return this[PVK].run(name, payload, options);
   }
 

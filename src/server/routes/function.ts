@@ -44,7 +44,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       await response(res, () => {
 
         const payload = proto.connect(req, x => ({
-          data: applyObjectMethods(deserialize(req.body, { objAttrs: TObject.defaultReadonlyKeys }), x),
+          params: applyObjectMethods(deserialize(req.body, { objAttrs: TObject.defaultReadonlyKeys }), x),
         }));
 
         return payload[PVK].run(name, payload, { master: payload.isMaster });

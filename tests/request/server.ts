@@ -97,7 +97,7 @@ const Proto = new ProtoService({
 });
 
 Proto.define('echo', (proto) => {
-  return proto.data;
+  return proto.params;
 });
 
 Proto.define('sessionId', (proto) => {
@@ -112,7 +112,7 @@ Proto.define('createUser', async (proto) => {
 });
 
 Proto.define('createUserWithRole', async (proto) => {
-  const { role } = proto.data as any;
+  const { role } = proto.params as any;
   const _role = await proto.Query('Role', { master: true }).equalTo('name', role).first() ?? await proto.Query('Role', { master: true }).insert({ name: role });
   const user = await proto.Query('User').insert({ name: 'test' });
   _role.addToSet('users', [user]);
@@ -121,7 +121,7 @@ Proto.define('createUserWithRole', async (proto) => {
 });
 
 Proto.define('updateWithTransaction', async (proto) => {
-  const { className, values, error } = proto.data as any;
+  const { className, values, error } = proto.params as any;
   try {
 
     await proto.withTransaction(async (proto) => {
@@ -139,7 +139,7 @@ Proto.define('updateWithTransaction', async (proto) => {
 });
 
 Proto.define('updateWithNestedTransaction', async (proto) => {
-  const { className, values, values2, error } = proto.data as any;
+  const { className, values, values2, error } = proto.params as any;
 
   await proto.withTransaction(async (proto) => {
 
@@ -160,7 +160,7 @@ Proto.define('updateWithNestedTransaction', async (proto) => {
 });
 
 Proto.define('updateWithLongTransaction', async (proto) => {
-  const { id } = proto.data as any;
+  const { id } = proto.params as any;
 
   return await proto.withTransaction(async (proto) => {
 
