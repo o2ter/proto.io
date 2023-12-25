@@ -56,6 +56,10 @@ export class QueryValidator<E> {
     digits: /^\d+$/g,
   }
 
+  get _rperm() { return this.master ? [] : [{ _rperm: { $intersect: this.acls } }]; }
+  get _wperm() { return this.master ? [] : [{ _wperm: { $intersect: this.acls } }]; }
+  _expiredAt = { $or: [{ _expired_at: { $eq: null } }, { _expired_at: { $gt: new Date() } }] };
+
   constructor(
     proto: ProtoService<E>,
     acls: string[],
@@ -203,8 +207,6 @@ export class QueryValidator<E> {
 
     const schema = this.schema[className] ?? {};
     const _matches: Record<string, DecodedBaseQuery> = {};
-    const _rperm = this.master ? [] : [{ _rperm: { $intersect: this.acls } }];
-    const _expiredAt = { $or: [{ _expired_at: { $eq: null } }, { _expired_at: { $gt: new Date() } }] };
 
     for (const colname of _.uniq(_.compact(includes.map(x => _.first(x.split('.')))))) {
       if (!this.validateKeyPerm(colname, 'read', schema)) continue;
@@ -213,7 +215,7 @@ export class QueryValidator<E> {
       if (isPrimitive(dataType)) continue;
 
       _matches[colname] = {
-        filter: QuerySelector.decode([..._rperm, _expiredAt]).simplify(),
+        filter: QuerySelector.decode([...this._rperm, this._expiredAt]).simplify(),
         matches: this.decodeMatches(
           dataType.target, {},
           includes.filter(x => x.startsWith(`${colname}.`)).map(x => x.slice(colname.length + 1)),
@@ -236,49 +238,46 @@ export class QueryValidator<E> {
       }
       _matches[colname] = {
         ...match,
-        filter: QuerySelector.decode([..._rperm, _expiredAt, ..._.castArray<TQuerySelector>(match.filter)]).simplify(),
+        filter: QuerySelector.decode([
+          ...this._rperm,
+          this._expiredAt,
+          ..._.castArray<TQuerySelector>(match.filter),
+        ]).simplify(),
         matches: this.decodeMatches(
           dataType.target, match.matches ?? {},
           includes.filter(x => x.startsWith(`${colname}.`)).map(x => x.slice(colname.length + 1)),
         ),
       };
-      if (
-        !_matches[colname].filter.validate(key => this.validateKey(dataType.target, key, 'read', QueryValidator.patterns.path))
-      ) throw Error('No permission');
     }
 
     return _matches;
-  }
-
-  validateSort(
-    matches: Record<string, DecodedBaseQuery>,
-    includes: string[],
-    parent?: string,
-  ) {
-    for (const [colname, match] of _.toPairs(matches)) {
-      const path = parent ? `${parent}.${colname}` : colname;
-      if (!_.every(_.keys(match.sort), k => includes.includes(`${path}.${k}`))) throw Error('Invalid sort keys');
-      this.validateSort(match.matches, includes, path)
-    }
   }
 
   decodeQuery<Q extends FindOptions | FindOptions | FindOneOptions>(query: Q, action: keyof TSchema.ACLs): DecodedQuery<Q> {
 
     const filter = QuerySelector.decode([
       ..._.castArray<TQuerySelector>(query.filter),
-      ...this.master ? [] : [{ [action === 'read' ? '_rperm' : '_wperm']: { $intersect: this.acls } }],
-      { $or: [{ _expired_at: { $eq: null } }, { _expired_at: { $gt: new Date() } }] },
+      ...action === 'read' ? this._rperm : this._wperm,
+      this._expiredAt,
     ]).simplify();
-    if (
-      !filter.validate(key => this.validateKey(query.className, key, 'read', QueryValidator.patterns.path))
-    ) throw Error('No permission');
 
-    const includes = this.decodeIncludes(query.className, query.includes ?? ['*']);
+    const matcheKeyPaths = (
+      matches: Record<string, TQueryBaseOptions>
+    ): string[] => _.flatMap(matches, (match, key) => [
+      ..._.keys(match.sort),
+      ...QuerySelector.decode(match.filter ?? []).keyPaths(),
+      ...matcheKeyPaths(match.matches ?? {}),
+    ].map(x => `${key}.${x}`));
+
+    const keyPaths = _.uniq([
+      ...query.includes ?? ['*'],
+      ..._.keys(query.sort),
+      ...filter.keyPaths(),
+      ...matcheKeyPaths(query.matches ?? {}),
+    ]);
+
+    const includes = this.decodeIncludes(query.className, keyPaths);
     const matches = this.decodeMatches(query.className, query.matches ?? {}, includes);
-
-    const _includes = _.uniq(_.map(includes, k => k.split('.')[0]));
-    if (!_.every(_.keys(query.sort), k => _includes.includes(k))) throw Error('Invalid sort keys');
-    this.validateSort(matches, includes);
 
     return {
       ...query,

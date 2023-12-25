@@ -70,8 +70,8 @@ export class QueryExpression {
     return this;
   }
 
-  validate(callback: (key: string) => boolean) {
-    return true;
+  keyPaths(): string[] {
+    return [];
   }
 }
 
@@ -102,8 +102,8 @@ export class QueryCoditionalExpression extends QueryExpression {
     }
   }
 
-  validate(callback: (key: string) => boolean) {
-    return _.every(this.exprs, x => x.validate(callback));
+  keyPaths(): string[] {
+    return _.uniq(_.flatMap(this.exprs, x => x.keyPaths()));
   }
 }
 
@@ -124,8 +124,11 @@ export class QueryComparisonExpression extends QueryExpression {
     return new QueryComparisonExpression(this.type, this.left.simplify(), this.right.simplify());
   }
 
-  validate(callback: (key: string) => boolean) {
-    return this.left.validate(callback) && this.right.validate(callback);
+  keyPaths(): string[] {
+    return _.uniq([
+      ...this.left.keyPaths(),
+      ...this.right.keyPaths(),
+    ]);
   }
 }
 
@@ -142,8 +145,8 @@ export class QueryNotExpression extends QueryExpression {
     return new QueryNotExpression(this.expr.simplify());
   }
 
-  validate(callback: (key: string) => boolean) {
-    return this.expr.validate(callback);
+  keyPaths(): string[] {
+    return this.expr.keyPaths();
   }
 }
 
@@ -160,8 +163,8 @@ export class QueryArrayExpression extends QueryExpression {
     return new QueryArrayExpression(_.map(this.exprs, x => x.simplify())) as QueryExpression;
   }
 
-  validate(callback: (key: string) => boolean) {
-    return _.every(this.exprs, x => x.validate(callback));
+  keyPaths(): string[] {
+    return _.uniq(_.flatMap(this.exprs, x => x.keyPaths()));
   }
 }
 
@@ -174,8 +177,8 @@ export class QueryKeyExpression extends QueryExpression {
     this.key = key;
   }
 
-  validate(callback: (key: string) => boolean) {
-    return this.key === '$' || callback(this.key);
+  keyPaths(): string[] {
+    return this.key === '$' ? [] : [this.key];
   }
 }
 

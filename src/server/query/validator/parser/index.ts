@@ -65,8 +65,8 @@ export class QuerySelector {
     return this;
   }
 
-  validate(callback: (key: string) => boolean) {
-    return true;
+  keyPaths(): string[] {
+    return [];
   }
 }
 
@@ -97,8 +97,8 @@ export class QueryCoditionalSelector extends QuerySelector {
     }
   }
 
-  validate(callback: (key: string) => boolean) {
-    return _.every(this.exprs, x => x.validate(callback));
+  keyPaths(): string[] {
+    return _.uniq(_.flatMap(this.exprs, x => x.keyPaths()));
   }
 }
 
@@ -162,20 +162,20 @@ export class FieldSelectorExpression {
     return this;
   }
 
-  validate(callback: (key: string) => boolean): boolean {
+  keyPaths(field?: string): string[] {
+    let result: string[] = [];
     if (this.value instanceof QuerySelector) {
-      return this.value.validate(callback);
-    }
-    if (this.value instanceof FieldSelectorExpression) {
+      result = this.value.keyPaths();
+    } else if (this.value instanceof FieldSelectorExpression) {
       switch (this.type) {
         case '$every':
         case '$some':
-          return this.value.validate(k => !!k.match(QueryValidator.patterns.path));
+          result = this.value.keyPaths();
         default:
-          return this.value.validate(callback);
+          result = this.value.keyPaths();
       }
     }
-    return true;
+    return field ? result.map(x => `${field}.${x}`) : result;
   }
 }
 
@@ -194,8 +194,8 @@ export class QueryFieldSelector extends QuerySelector {
     return new QueryFieldSelector(this.field, this.expr.simplify());
   }
 
-  validate(callback: (key: string) => boolean) {
-    return (this.field === '$' || callback(this.field)) && this.expr.validate(callback);
+  keyPaths(): string[] {
+    return this.field === '$' ? this.expr.keyPaths() : this.expr.keyPaths(this.field);
   }
 }
 
@@ -212,7 +212,7 @@ export class QueryExpressionSelector extends QuerySelector {
     return new QueryExpressionSelector(this.expr.simplify());
   }
 
-  validate(callback: (key: string) => boolean) {
-    return this.expr.validate(callback);
+  keyPaths(): string[] {
+    return this.expr.keyPaths();
   }
 }
