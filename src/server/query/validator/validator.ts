@@ -32,7 +32,7 @@ import {
 } from '../../../internals';
 import { DecodedBaseQuery, DecodedQuery, FindOptions, FindOneOptions } from '../../storage';
 import { QueryCoditionalSelector, QueryFieldSelector, QuerySelector } from './parser';
-import { TSchema, isPointer, isPrimitive, isRelation } from '../../../internals/schema';
+import { TSchema, _typeof, isPointer, isPrimitive, isRelation } from '../../../internals/schema';
 import { ProtoService } from '../../proto';
 import { TQueryBaseOptions } from '../../../internals/query/base';
 
@@ -184,9 +184,14 @@ export class QueryValidator<E> {
             if (foreignField.type === 'relation' && !_.isNil(foreignField.foreignField)) throw Error(`Invalid include: ${include}`);
             if (!this.validateKeyPerm(dataType.foreignField, 'read', this.schema[dataType.target])) throw Error('No permission');
           }
+
+          const isDigit = _.first(subpath)?.match(QueryValidator.patterns.digits);
+          const _subpath = isRelation(dataType) && isDigit ? _.slice(subpath, 1) : subpath;
+
           populates[colname] = populates[colname] ?? { className: dataType.target, subpaths: [] };
-          populates[colname].subpaths.push(_.isEmpty(subpath) ? '*' : subpath.join('.'));
-        } else if (_.isEmpty(subpath)) {
+          populates[colname].subpaths.push(_.isEmpty(_subpath) ? '*' : _subpath.join('.'));
+
+        } else if (_.isEmpty(subpath) || _.includes(['object', 'array'], _typeof(dataType))) {
           _includes.push(colname);
         } else {
           throw Error(`Invalid include: ${include}`);

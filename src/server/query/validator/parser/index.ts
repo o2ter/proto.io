@@ -195,7 +195,7 @@ export class QueryFieldSelector extends QuerySelector {
   }
 
   keyPaths(): string[] {
-    return this.field === '$' ? this.expr.keyPaths() : this.expr.keyPaths(this.field);
+    return this.field === '$' ? this.expr.keyPaths() : [this.field, ...this.expr.keyPaths(this.field)];
   }
 }
 
