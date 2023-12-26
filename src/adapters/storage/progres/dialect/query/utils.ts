@@ -26,7 +26,8 @@
 import _ from 'lodash';
 import { sql } from '../../../../../server/sql';
 import { QueryCompiler } from '../../../../../server/sql/compiler';
-import { TSchema, isPointer } from '../../../../../internals/schema';
+import { TSchema, isPointer, isRelation } from '../../../../../internals/schema';
+import { QueryValidator } from '../../../../../server/query/validator/validator';
 
 const _fetchElement = (
   compiler: QueryCompiler,
@@ -63,6 +64,11 @@ const resolvePaths = (
   if (!_.isEmpty(subpath) && isPointer(dataType)) {
     const resolved = resolvePaths(compiler, dataType.target, subpath);
     return { ...resolved, colname: `${colname}.${resolved.colname}` };
+  }
+  const digit = _.first(subpath);
+  if (!_.isEmpty(subpath) && isRelation(dataType) && digit?.match(QueryValidator.patterns.digits)) {
+    const resolved = resolvePaths(compiler, dataType.target, _.slice(subpath, 1));
+    return { dataType, colname, subpath: [digit, resolved.colname, ...resolved.subpath] };
   }
   return { dataType, colname, subpath };
 }

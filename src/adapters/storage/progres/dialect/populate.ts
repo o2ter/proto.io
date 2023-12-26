@@ -53,8 +53,9 @@ export const selectPopulate = (
   const _local = (field: string) => sql`${{ identifier: parent.name }}.${{ identifier: field }}`;
   const _foreign = (field: string) => sql`${{ identifier: populate.name }}.${{ identifier: field }}`;
 
+  const subpaths = resolveSubpaths(compiler, populate);
+
   if (populate.type === 'pointer') {
-    const subpaths = resolveSubpaths(compiler, populate);
     return {
       columns: _.map(subpaths, path => sql`${{ identifier: populate.name }}.${{ identifier: path }} AS ${{ identifier: `${field}.${path}` }}`),
       join: sql`
@@ -76,7 +77,7 @@ export const selectPopulate = (
     columns: [sql`
       ARRAY(
         SELECT to_jsonb(${{ identifier: populate.name }}) FROM (
-          SELECT ${_.map(_.keys(_.pickBy(populate.includes, v => isPrimitive(v))), (colname) => sql`${{ identifier: populate.name }}.${{ identifier: colname }}`)}
+          SELECT ${_.map(subpaths, path => sql`${{ identifier: populate.name }}.${{ identifier: path }} AS ${{ identifier: path }}`)}
           FROM ${{ identifier: populate.name }} WHERE ${cond}
           ${!_.isEmpty(populate.sort) ? sql`ORDER BY ${compiler._encodeSort(populate.name, populate.sort)}` : sql``}
           ${populate.limit ? sql`LIMIT ${{ literal: `${populate.limit}` }}` : sql``}
