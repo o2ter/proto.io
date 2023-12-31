@@ -35,14 +35,11 @@ import {
   TUser,
   ExtraOptions,
   _TValue,
-  TQuerySelector,
 } from '../../internals';
 import { Request } from 'express';
 import { ProtoServiceOptions, ProtoServiceKeyOptions, ProtoFunction, ProtoFunctionOptions, ProtoTrigger } from './types';
 import { sessionId, sessionIsMaster, session, signUser } from './session';
 import { TransactionOptions } from '../storage';
-import { fetchUserPerms } from '../query/validator';
-import { QuerySelector } from '../query/validator/parser';
 
 export class ProtoService<Ext> extends ProtoType<Ext> {
 
