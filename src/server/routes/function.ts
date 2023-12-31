@@ -33,7 +33,6 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
 
   router.get(
     '/functions/:name',
-    express.text({ type: '*/*' }),
     async (req, res) => {
 
       res.setHeader('Cache-Control', ['no-cache', 'no-store']);
