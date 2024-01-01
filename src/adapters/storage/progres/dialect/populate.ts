@@ -25,20 +25,29 @@
 
 import _ from 'lodash';
 import { SQL, sql } from '../../../../server/sql';
-import { isPointer, isPrimitive } from '../../../../internals/schema';
+import { TSchema, isPointer, isPrimitive } from '../../../../internals/schema';
 import { CompileContext, Populate, QueryCompiler } from '../../../../server/sql/compiler';
-import { _encodePopulateIncludes } from './encode';
+import { _encodePopulateInclude } from './encode';
 
 const resolveSubpaths = (
   compiler: QueryCompiler,
   populate: Populate,
 ) => {
-  const subpaths: string[] = [];
+  const subpaths: {
+    path: string;
+    type: TSchema.DataType;
+  }[] = [];
   for (const [name, type] of _.toPairs(populate.includes)) {
     if (isPointer(type)) {
-      subpaths.push(..._.map(resolveSubpaths(compiler, populate.populates[name]), s => `${name}.${s}`));
+      subpaths.push(..._.map(resolveSubpaths(compiler, populate.populates[name]), ({ path, type }) => ({
+        path: `${name}.${path}`,
+        type,
+      })));
     } else {
-      subpaths.push(name);
+      subpaths.push({
+        path: name,
+        type,
+      });
     }
   }
   return subpaths;
@@ -57,7 +66,7 @@ export const selectPopulate = (
 
   if (populate.type === 'pointer') {
     return {
-      columns: _.map(subpaths, path => sql`${{ identifier: populate.name }}.${{ identifier: path }} AS ${{ identifier: `${field}.${path}` }}`),
+      columns: _.map(subpaths, ({ path }) => sql`${{ identifier: populate.name }}.${{ identifier: path }} AS ${{ identifier: `${field}.${path}` }}`),
       join: sql`
         LEFT JOIN ${{ identifier: populate.name }}
         ON ${sql`(${{ quote: populate.className + '$' }} || ${_foreign('_id')})`} = ${_local(field)}
@@ -77,7 +86,7 @@ export const selectPopulate = (
     columns: [sql`
       ARRAY(
         SELECT to_jsonb(${{ identifier: populate.name }}) FROM (
-          SELECT ${_.map(subpaths, path => sql`${{ identifier: populate.name }}.${{ identifier: path }} AS ${{ identifier: path }}`)}
+          SELECT ${_.map(subpaths, ({ path, type }) => _encodePopulateInclude(populate.name, path, type))}
           FROM ${{ identifier: populate.name }} WHERE ${cond}
           ${!_.isEmpty(populate.sort) ? sql`ORDER BY ${compiler._encodeSort(populate.name, populate.sort)}` : sql``}
           ${populate.limit ? sql`LIMIT ${{ literal: `${populate.limit}` }}` : sql``}
@@ -98,23 +107,26 @@ export const encodePopulate = (
   const _filter = compiler._encodeFilter(context, parent, parent.filter);
   const _populates = _.map(parent.populates, (populate, field) => selectPopulate(compiler, parent, populate, field));
   const _joins = _.compact(_.map(_populates, ({ join }) => join));
+  const _includes = _.pickBy(parent.includes, v => isPrimitive(v));
   return _.reduce(parent.populates, (acc, populate) => ({
     ...encodePopulate(compiler, context, populate, remix),
     ...acc,
   }), {
     [parent.name]: sql`
-      SELECT
-      ${{
+      SELECT * FROM (
+        SELECT
+        ${{
         literal: [
-          ..._encodePopulateIncludes(parent.name, parent.includes, parent.type === 'relation'),
-          ...parent.foreignField ? [sql`${{ identifier: parent.name }}.${{ identifier: parent.foreignField.colname }}`] : [],
-          ..._.flatMap(_populates, ({ columns: column }) => column),
-        ], separator: ',\n'
-      }}
-      FROM ${remix?.className === parent.className ? sql`
-      (SELECT * FROM ${{ identifier: remix.name }} UNION SELECT * FROM ${{ identifier: parent.className }})
-      ` : { identifier: parent.className }} AS ${{ identifier: parent.name }}
-      ${!_.isEmpty(_joins) ? { literal: _joins, separator: '\n' } : sql``}
+            ..._.map(_.keys(_includes), colname => sql`${{ identifier: parent.name }}.${{ identifier: colname }}`),
+            ...parent.foreignField ? [sql`${{ identifier: parent.name }}.${{ identifier: parent.foreignField.colname }}`] : [],
+            ..._.flatMap(_populates, ({ columns: column }) => column),
+          ], separator: ',\n'
+        }}
+        FROM ${remix?.className === parent.className ? sql`
+        (SELECT * FROM ${{ identifier: remix.name }} UNION SELECT * FROM ${{ identifier: parent.className }})
+        ` : { identifier: parent.className }} AS ${{ identifier: parent.name }}
+        ${!_.isEmpty(_joins) ? { literal: _joins, separator: '\n' } : sql``}
+      ) AS ${{ identifier: parent.name }}
       ${_filter ? sql`WHERE ${_filter}` : sql``}
     `,
   });

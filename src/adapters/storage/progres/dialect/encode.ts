@@ -56,26 +56,23 @@ export const _encodeJsonValue = (value: any): SQL => {
   return sql`to_jsonb(${{ value }})`;
 };
 
-export const _encodePopulateIncludes = (
+export const _encodePopulateInclude = (
   className: string,
-  includes: Record<string, TSchema.DataType>,
-  json: boolean,
-): SQL[] => {
-  const _includes = _.pickBy(includes, v => isPrimitive(v));
-  return _.map(_includes, (dataType, colname) => {
-    if (json && isPrimitive(dataType)) {
-      switch (_typeof(dataType)) {
-        case 'decimal': return sql`jsonb_build_object(
+  colname: string,
+  dataType: TSchema.DataType,
+): SQL => {
+  switch (_typeof(dataType)) {
+    case 'decimal':
+      return sql`jsonb_build_object(
             '$decimal', CAST(${{ identifier: className }}.${{ identifier: colname }} AS TEXT)
           ) AS ${{ identifier: colname }}`;
-        case 'date': return sql`jsonb_build_object(
+    case 'date':
+      return sql`jsonb_build_object(
             '$date', to_char(${{ identifier: className }}.${{ identifier: colname }} AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')
           ) AS ${{ identifier: colname }}`;
-        default: break;
-      }
-    }
-    return sql`${{ identifier: className }}.${{ identifier: colname }}`;
-  });
+    default:
+      return sql`${{ identifier: className }}.${{ identifier: colname }}`;
+  }
 };
 
 export const encodeType = (colname: string, dataType: TSchema.DataType, value: TValue) => {

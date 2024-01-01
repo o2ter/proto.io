@@ -1050,6 +1050,18 @@ test('test match', async () => {
   expect(matched4?.get('relation2').length).toStrictEqual(1);
   expect(matched4?.get('relation2.0.number')).toStrictEqual(5);
 
+  const matched5 = await Proto.Query('Test')
+    .equalTo('_id', parent.objectId)
+    .includes('relation2')
+    .match('relation2', q => q
+      .equalTo('pointer', parent)
+      .sort({ decimal: -1 })
+      .limit(1))
+    .first();
+
+  expect(matched5?.get('relation2').length).toStrictEqual(1);
+  expect(matched5?.get('relation2.0.number')).toStrictEqual(5);
+
 })
 
 test('test comparable', async () => {
