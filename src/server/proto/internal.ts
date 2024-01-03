@@ -110,6 +110,26 @@ const mergeSchema = (...schemas: Record<string, TSchema>[]) => _.reduce(schemas,
   })),
 }), {} as Record<string, TSchema>);
 
+const proxy = <T>(x: T): T => {
+  const self = x as any;
+  const proxy = _.create(self) as any;
+  const _prototypes = (x: any): any[] => {
+    const prototype = Object.getPrototypeOf(x);
+    if (_.isNil(prototype) || prototype === Object.prototype) return [];
+    return [prototype, ..._prototypes(prototype)];
+  }
+  const prototypes = _prototypes(proxy);
+  for (const name of _.uniq(_.flatMap(prototypes, x => Object.getOwnPropertyNames(x)))) {
+    if (name === 'constructor') continue;
+    if (_.isFunction(self[name])) {
+      proxy[name] = self[name].bind(self);
+    } else {
+      Object.defineProperty(proxy, name, { get: () => self[name] });
+    }
+  }
+  return proxy;
+}
+
 export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
 
   proto: ProtoService<Ext>;
@@ -156,7 +176,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     const func = this.functions?.[name];
 
     if (_.isNil(func)) throw Error('Function not found');
-    if (_.isFunction(func)) return func((payload ?? this.proto)._bindSelf());
+    if (_.isFunction(func)) return func(proxy(payload ?? this.proto));
 
     const { callback, validator } = func;
 
@@ -167,7 +187,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     if (!_.some(validator?.requireAnyUserRoles, x => _.includes(roles, x))) throw Error('No permission');
     if (_.some(validator?.requireAllUserRoles, x => !_.includes(roles, x))) throw Error('No permission');
 
-    return callback((payload ?? this.proto)._bindSelf());
+    return callback(proxy(payload ?? this.proto));
   }
 
   async varifyPassword(user: TUser, password: string, options: ExtraOptions & { master: true }) {
