@@ -156,7 +156,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     const func = this.functions?.[name];
 
     if (_.isNil(func)) throw Error('Function not found');
-    if (_.isFunction(func)) return func(payload ?? this.proto);
+    if (_.isFunction(func)) return func((payload ?? this.proto)._bindSelf());
 
     const { callback, validator } = func;
 
@@ -167,7 +167,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     if (!_.some(validator?.requireAnyUserRoles, x => _.includes(roles, x))) throw Error('No permission');
     if (_.some(validator?.requireAllUserRoles, x => !_.includes(roles, x))) throw Error('No permission');
 
-    return callback(payload ?? this.proto);
+    return callback((payload ?? this.proto)._bindSelf());
   }
 
   async varifyPassword(user: TUser, password: string, options: ExtraOptions & { master: true }) {

@@ -96,12 +96,12 @@ const Proto = new ProtoService({
   fileStorage: new DatabaseFileStorage(),
 });
 
-Proto.define('echo', (proto) => {
-  return proto.params;
+Proto.define('echo', ({ params }) => {
+  return params;
 });
 
-Proto.define('sessionId', (proto) => {
-  return proto.sessionId;
+Proto.define('sessionId', ({ sessionId }) => {
+  return sessionId;
 });
 
 Proto.define('createUser', async (proto) => {

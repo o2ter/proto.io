@@ -112,6 +112,26 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     return _.assign(payload, _.isFunction(attrs) ? attrs(payload) : attrs)
   }
 
+  _bindSelf(): this {
+    const self = this as any;
+    const proxy = _.create(self) as any;
+    const _prototypes = (x: any): any[] => {
+      const prototype = Object.getPrototypeOf(x);
+      if (_.isNil(prototype) || prototype === Object.prototype) return [];
+      return [prototype, ..._prototypes(prototype)];
+    }
+    const prototypes = _prototypes(proxy);
+    for (const name of _.uniq(_.flatMap(prototypes, x => Object.getOwnPropertyNames(x)))) {
+      if (name === 'constructor') continue;
+      if (_.isFunction(self[name])) {
+        proxy[name] = self[name].bind(self);
+      } else {
+        Object.defineProperty(proxy, name, { get: () => self[name] });
+      }
+    }
+    return proxy;
+  }
+
   async becomeUser(req: Request, user: TUser) {
     if (!user.objectId) throw Error('Invalid user object');
     if (req.res) await signUser(this, req.res, user);
