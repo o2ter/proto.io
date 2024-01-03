@@ -86,12 +86,12 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     return sessionId(this);
   }
 
-  async user() {
+  async currentUser() {
     const _session = await session(this);
     return _session?.user;
   }
 
-  async roles() {
+  async currentRoles() {
     const _session = await session(this);
     return _session?.roles ?? [];
   }

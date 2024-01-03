@@ -36,7 +36,7 @@ export const normalize = <T>(x: T): T => {
   return x;
 };
 
-export const fetchUserPerms = async <E>(proto: ProtoService<E>) => _.uniq(_.compact([..._.map(await proto.roles(), x => `role:${x}`), (await proto.user())?.objectId]));
+export const fetchUserPerms = async <E>(proto: ProtoService<E>) => _.uniq(_.compact([..._.map(await proto.currentRoles(), x => `role:${x}`), (await proto.currentUser())?.objectId]));
 
 export const queryValidator = <E>(proto: ProtoService<E>, options: ExtraOptions, disableSecurity: boolean) => {
 

@@ -31,7 +31,7 @@ import { signUser } from '../proto/session';
 export default <E>(proto: ProtoService<E>): RequestHandler => async (req: any, res, next) => {
   try {
     const connected = proto.connect(req);
-    await signUser(connected, res, await connected.user());
+    await signUser(connected, res, await connected.currentUser());
     return next();
   } catch (e) {
     console.error(e);

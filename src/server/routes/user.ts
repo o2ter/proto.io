@@ -36,7 +36,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
     async (req: any, res) => {
       res.setHeader('Cache-Control', ['no-cache', 'no-store']);
       const payload = proto.connect(req);
-      await response(res, () => payload.user());
+      await response(res, () => payload.currentUser());
     }
   );
 
