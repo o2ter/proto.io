@@ -150,5 +150,6 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
     ..._.mapValues(extensions, value => _.isFunction(value) ? { value } : value),
   };
 
-  return Object.defineProperties(object, props);
+  const _props = _.pickBy(props, (_v, k) => !Object.hasOwn(object, k)) as typeof props;
+  return Object.defineProperties(object, _props);
 };
