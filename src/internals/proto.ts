@@ -60,10 +60,14 @@ export abstract class ProtoType<Ext> {
   abstract run(name: string, data?: TSerializable, options?: ExtraOptions): Promise<void | TSerializable>
   abstract Query<T extends string>(className: T, options?: ExtraOptions): TQuery<T, Ext>;
 
+  rebind<T extends TSerializable | undefined, E>(object: T): T {
+    return applyObjectMethods(object, this);
+  }
+
   Object<T extends string>(className: T, objectId?: string): TObjectType<T, Ext> {
     const attrs: Record<string, TValue> = objectId ? { _id: objectId } : {};
     const obj = isObjKey(className, TObjectTypes) ? new TObjectTypes[className](attrs) : new TObject(className, attrs);
-    return applyObjectMethods(obj as TObjectType<T, Ext>, this);
+    return this.rebind(obj as TObjectType<T, Ext>);
   }
 
   File(filename: string, data: FileData, type?: string) {
