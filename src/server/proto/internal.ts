@@ -45,6 +45,7 @@ import { generateId } from '../crypto/random';
 import { TSchema, defaultObjectKeyTypes, isPrimitive, isRelation } from '../../internals/schema';
 import { QueryValidator } from '../query/validator/validator';
 import { passwordHash, varifyPassword } from '../crypto/password';
+import { proxy } from './proxy';
 
 const validateSchema = (schema: Record<string, TSchema>) => {
 
@@ -109,26 +110,6 @@ const mergeSchema = (...schemas: Record<string, TSchema>[]) => _.reduce(schemas,
     ],
   })),
 }), {} as Record<string, TSchema>);
-
-const proxy = <T>(x: T): T => {
-  const self = x as any;
-  const proxy = _.create(self) as any;
-  const _prototypes = (x: any): any[] => {
-    const prototype = Object.getPrototypeOf(x);
-    if (_.isNil(prototype) || prototype === Object.prototype) return [];
-    return [prototype, ..._prototypes(prototype)];
-  }
-  const prototypes = _prototypes(proxy);
-  for (const name of _.uniq(_.flatMap(prototypes, x => Object.getOwnPropertyNames(x)))) {
-    if (name === 'constructor') continue;
-    if (_.isFunction(self[name])) {
-      proxy[name] = self[name].bind(self);
-    } else {
-      Object.defineProperty(proxy, name, { get: () => self[name] });
-    }
-  }
-  return proxy;
-}
 
 export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
 
@@ -297,7 +278,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     const context = options?.context ?? {};
 
     if (_.isFunction(beforeSave)) {
-      await beforeSave(Object.setPrototypeOf({ object, context }, this.proto));
+      await beforeSave(proxy(Object.setPrototypeOf({ object, context }, this.proto)));
     }
 
     if (object.objectId) {
@@ -307,7 +288,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     }
 
     if (_.isFunction(afterSave)) {
-      await afterSave(Object.setPrototypeOf({ object, context }, this.proto));
+      await afterSave(proxy(Object.setPrototypeOf({ object, context }, this.proto)));
     }
 
     return object;
@@ -322,7 +303,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     const context = options?.context ?? {};
 
     if (_.isFunction(beforeDelete)) {
-      await beforeDelete(Object.setPrototypeOf({ object, context }, this.proto));
+      await beforeDelete(proxy(Object.setPrototypeOf({ object, context }, this.proto)));
     }
 
     const deleted = await this.proto.Query(object.className, options)
@@ -338,7 +319,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     this.destoryFileData(object.token!);
 
     if (_.isFunction(afterDelete)) {
-      await afterDelete(Object.setPrototypeOf({ object, context }, this.proto));
+      await afterDelete(proxy(Object.setPrototypeOf({ object, context }, this.proto)));
     }
 
     return object;

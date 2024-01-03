@@ -42,6 +42,7 @@ import {
   TQueryRandomOptions,
 } from '../../internals';
 import { queryValidator } from './validator';
+import { proxy } from '../proto/proxy';
 
 export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
 
@@ -111,7 +112,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
       object[PVK].mutated[key] = { $set: value };
     }
 
-    if (_.isFunction(beforeSave)) await beforeSave(Object.setPrototypeOf({ object, context }, this._proto));
+    if (_.isFunction(beforeSave)) await beforeSave(proxy(Object.setPrototypeOf({ object, context }, this._proto)));
 
     const result = this._objectMethods(
       await this._storage.insert({
@@ -121,7 +122,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
       }, _.fromPairs(object.keys().map(k => [k, object.get(k)])))
     );
     if (!result) throw Error('Unable to insert document');
-    if (_.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, this._proto));
+    if (_.isFunction(afterSave)) await afterSave(proxy(Object.setPrototypeOf({ object: result, context }, this._proto)));
     return result;
   }
 
@@ -139,7 +140,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
       if (!object) return undefined;
 
       object[PVK].mutated = update;
-      await beforeSave(Object.setPrototypeOf({ object, context }, this._proto));
+      await beforeSave(proxy(Object.setPrototypeOf({ object, context }, this._proto)));
 
       update = object[PVK].mutated;
     }
@@ -147,7 +148,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
     const result = this._objectMethods(
       await this._storage.updateOne(this._queryOptions, update)
     );
-    if (result && _.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, this._proto));
+    if (result && _.isFunction(afterSave)) await afterSave(proxy(Object.setPrototypeOf({ object: result, context }, this._proto)));
     return result;
   }
 
@@ -172,7 +173,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
         }
       }
 
-      await beforeSave(Object.setPrototypeOf({ object, context }, this._proto));
+      await beforeSave(proxy(Object.setPrototypeOf({ object, context }, this._proto)));
 
       if (object.objectId) {
         update = object[PVK].mutated;
@@ -191,7 +192,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
       await this._storage.upsertOne(this._queryOptions, update, setOnInsert)
     );
     if (!result) throw Error('Unable to upsert document');
-    if (_.isFunction(afterSave)) await afterSave(Object.setPrototypeOf({ object: result, context }, this._proto));
+    if (_.isFunction(afterSave)) await afterSave(proxy(Object.setPrototypeOf({ object: result, context }, this._proto)));
     return result;
   }
 
@@ -209,7 +210,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
       );
       if (!object) return undefined;
 
-      await beforeDelete(Object.setPrototypeOf({ object, context }, this._proto));
+      await beforeDelete(proxy(Object.setPrototypeOf({ object, context }, this._proto)));
 
       result = this._objectMethods(
         await this._storage.deleteOne({
@@ -224,7 +225,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
       );
     }
 
-    if (result && _.isFunction(afterDelete)) await afterDelete(Object.setPrototypeOf({ object: result, context }, this._proto));
+    if (result && _.isFunction(afterDelete)) await afterDelete(proxy(Object.setPrototypeOf({ object: result, context }, this._proto)));
     return result;
   }
 
@@ -240,7 +241,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
       if (_.isEmpty(objects)) return 0;
 
       if (_.isFunction(beforeDelete)) {
-        await Promise.all(_.map(objects, object => beforeDelete(Object.setPrototypeOf({ object, context }, this._proto))));
+        await Promise.all(_.map(objects, object => beforeDelete(proxy(Object.setPrototypeOf({ object, context }, this._proto)))));
       }
 
       await this._storage.deleteMany({
@@ -249,7 +250,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
       });
 
       if (_.isFunction(afterDelete)) {
-        await Promise.all(_.map(objects, object => afterDelete(Object.setPrototypeOf({ object, context }, this._proto))));
+        await Promise.all(_.map(objects, object => afterDelete(proxy(Object.setPrototypeOf({ object, context }, this._proto)))));
       }
 
       return objects.length;
