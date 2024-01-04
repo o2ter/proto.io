@@ -124,7 +124,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
     const names: string[] = [];
     for (const index of indexes) {
       if (_.isEmpty(index.keys)) continue;
-      names.push(`${className}$${_.map(index.keys, (v, k) => `${k}:${v}`).join('$')}`);
+      names.push(`${className}$${index.unique ? 'u' : ''}$${_.map(index.keys, (v, k) => `${k}:${v}`).join('$')}`);
     }
     for (const [name, { is_primary }] of _.toPairs(await this.indices(className))) {
       if (is_primary || names.includes(name)) continue;
