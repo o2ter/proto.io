@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { PoolConfig } from 'pg';
 import { TObject } from '../../../internals';
-import { TSchema, isRelation } from '../../../internals/schema';
+import { TSchema, isPointer, isRelation } from '../../../internals/schema';
 import { PostgresDriver, PostgresClientDriver } from './driver';
 import { sql } from '../../../server/sql';
 import { PostgresStorageClient } from './client';
@@ -109,10 +109,12 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
   }
 
   private _indicesOf(schema: TSchema) {
+    const pointers = _.pickBy(schema.fields, v => isPointer(v));
     const relations = _.pickBy(schema.fields, v => isRelation(v) && _.isNil(v.foreignField));
     return {
       relations,
       indexes: [
+        ..._.map(_.keys(pointers), k => ({ keys: { [k]: 1 } }) as TSchema.Indexes),
         ..._.map(_.keys(relations), k => ({ keys: { [k]: 1 } }) as TSchema.Indexes),
         ...(schema.indexes ?? []),
       ],
