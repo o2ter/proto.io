@@ -30,7 +30,6 @@ import { ProtoOptions } from './types';
 import { ProtoClient } from './index';
 import {
   PVK,
-  applyObjectMethods,
   TSerializable,
   ProtoInternalType,
   TFile,
@@ -80,7 +79,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
       throw Error(error.message, { cause: error });
     }
 
-    return applyObjectMethods(deserialize(res.data), this.proto);
+    return this.proto.rebind(deserialize(res.data));
   }
 
   async currentUser(options?: RequestOptions): Promise<TObjectType<'User', Ext> | undefined> {
@@ -100,7 +99,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
       throw Error(error.message, { cause: error });
     }
 
-    const user = applyObjectMethods(deserialize(res.data), this.proto) as TObjectType<'User', Ext>;
+    const user = this.proto.rebind(deserialize(res.data)) as TObjectType<'User', Ext>;
     if (!_.isNil(user) && !(user instanceof TUser)) throw Error('Unknown error');
 
     return user ?? undefined;

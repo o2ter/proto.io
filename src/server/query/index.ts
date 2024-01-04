@@ -82,7 +82,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
   }
 
   private _objectMethods<U extends TObject | TObject[] | undefined>(object: U) {
-    return applyObjectMethods(object, this._proto) as TExtended<U, T, E>;
+    return this._proto.rebind(object) as TExtended<U, T, E>;
   }
 
   find() {
