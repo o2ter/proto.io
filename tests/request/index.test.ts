@@ -582,6 +582,9 @@ test('test types 3', async () => {
 test('test types 4', async () => {
   const inserted = await Proto.Query('Test').insert({
     array: [[1, 2, 3], [4, 5, 6]],
+    shape: {
+      array: [[1, 2, 3], [4, 5, 6]],
+    },
   });
 
   const q = Proto.Query('Test').equalTo('_id', inserted.objectId);
@@ -589,33 +592,54 @@ test('test types 4', async () => {
   expect((await q.clone().size('array', 0).first())?.objectId).toBeUndefined();
   expect((await q.clone().every('array', q => q.every('$', q => q.equalTo('$', 0))).first())?.objectId).toBeUndefined();
 
+  expect((await q.clone().size('shape.array', 0).first())?.objectId).toBeUndefined();
+  expect((await q.clone().every('shape.array', q => q.every('$', q => q.equalTo('$', 0))).first())?.objectId).toBeUndefined();
+
   expect((await q.clone().size('array', 2).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().every('array', q => q.size('$', 3)).first())?.objectId).toStrictEqual(inserted.objectId);
+
+  expect((await q.clone().size('shape.array', 2).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().every('shape.array', q => q.size('$', 3)).first())?.objectId).toStrictEqual(inserted.objectId);
 
   expect((await q.clone().some('array', q => q.some('$', q => q.equalTo('$', 1))).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().some('array', q => q.some('$', q => q.notEqualTo('$', 0))).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().every('array', q => q.every('$', q => q.notEqualTo('$', 0))).first())?.objectId).toStrictEqual(inserted.objectId);
+
+  expect((await q.clone().some('shape.array', q => q.some('$', q => q.equalTo('$', 1))).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().some('shape.array', q => q.some('$', q => q.notEqualTo('$', 0))).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().every('shape.array', q => q.every('$', q => q.notEqualTo('$', 0))).first())?.objectId).toStrictEqual(inserted.objectId);
 
 })
 
 test('test types 5', async () => {
   const inserted = await Proto.Query('Test').insert({
     array: [{ array: [1, 2, 3] }, { array: [4, 5, 6] }],
+    shape: {
+      array: [{ array: [1, 2, 3] }, { array: [4, 5, 6] }],
+    },
   });
 
   const q = Proto.Query('Test').equalTo('_id', inserted.objectId);
 
   expect((await q.clone().every('array', q => q.every('array', q => q.equalTo('$', 0))).first())?.objectId).toBeUndefined();
+  expect((await q.clone().every('shape.array', q => q.every('array', q => q.equalTo('$', 0))).first())?.objectId).toBeUndefined();
 
   expect((await q.clone().some('array', q => q.some('array', q => q.equalTo('$', 1))).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().some('array', q => q.some('array', q => q.notEqualTo('$', 0))).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().every('array', q => q.every('array', q => q.notEqualTo('$', 0))).first())?.objectId).toStrictEqual(inserted.objectId);
+
+  expect((await q.clone().some('shape.array', q => q.some('array', q => q.equalTo('$', 1))).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().some('shape.array', q => q.some('array', q => q.notEqualTo('$', 0))).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().every('shape.array', q => q.every('array', q => q.notEqualTo('$', 0))).first())?.objectId).toStrictEqual(inserted.objectId);
 
 })
 
 test('test types 6', async () => {
   const inserted = await Proto.Query('Test').insert({
     array: [[1, 2, 3], [4, 5, 6], new Date],
+    shape: {
+      array: [[1, 2, 3], [4, 5, 6], new Date],
+    },
   });
 
   const q = Proto.Query('Test').equalTo('_id', inserted.objectId);
@@ -623,14 +647,23 @@ test('test types 6', async () => {
   expect((await q.clone().every('array', q => q.every('$', q => q.equalTo('$', 0))).first())?.objectId).toBeUndefined();
   expect((await q.clone().every('array', q => q.every('$', q => q.notEqualTo('$', 0))).first())?.objectId).toBeUndefined();
 
+  expect((await q.clone().every('shape.array', q => q.every('$', q => q.equalTo('$', 0))).first())?.objectId).toBeUndefined();
+  expect((await q.clone().every('shape.array', q => q.every('$', q => q.notEqualTo('$', 0))).first())?.objectId).toBeUndefined();
+
   expect((await q.clone().some('array', q => q.some('$', q => q.equalTo('$', 1))).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().some('array', q => q.some('$', q => q.notEqualTo('$', 0))).first())?.objectId).toStrictEqual(inserted.objectId);
+
+  expect((await q.clone().some('shape.array', q => q.some('$', q => q.equalTo('$', 1))).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().some('shape.array', q => q.some('$', q => q.notEqualTo('$', 0))).first())?.objectId).toStrictEqual(inserted.objectId);
 
 })
 
 test('test types 7', async () => {
   const inserted = await Proto.Query('Test').insert({
     array: [{ array: [1, 2, 3] }, { array: [4, 5, 6] }, new Date],
+    shape: {
+      array: [{ array: [1, 2, 3] }, { array: [4, 5, 6] }, new Date],
+    },
   });
 
   const q = Proto.Query('Test').equalTo('_id', inserted.objectId);
@@ -638,8 +671,14 @@ test('test types 7', async () => {
   expect((await q.clone().every('array', q => q.every('array', q => q.equalTo('$', 0))).first())?.objectId).toBeUndefined();
   expect((await q.clone().every('array', q => q.every('array', q => q.notEqualTo('$', 0))).first())?.objectId).toBeUndefined();
 
+  expect((await q.clone().every('shape.array', q => q.every('array', q => q.equalTo('$', 0))).first())?.objectId).toBeUndefined();
+  expect((await q.clone().every('shape.array', q => q.every('array', q => q.notEqualTo('$', 0))).first())?.objectId).toBeUndefined();
+
   expect((await q.clone().some('array', q => q.some('array', q => q.equalTo('$', 1))).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().some('array', q => q.some('array', q => q.notEqualTo('$', 0))).first())?.objectId).toStrictEqual(inserted.objectId);
+
+  expect((await q.clone().some('shape.array', q => q.some('array', q => q.equalTo('$', 1))).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().some('shape.array', q => q.some('array', q => q.notEqualTo('$', 0))).first())?.objectId).toStrictEqual(inserted.objectId);
 
 })
 
