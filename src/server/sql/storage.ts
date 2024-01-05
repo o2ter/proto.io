@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { DecodedQuery, FindOptions, FindOneOptions, InsertOptions, TStorage, TransactionOptions } from '../storage';
-import { TSchema } from '../../internals/schema';
+import { TSchema, isPointer, isRelation, isShapedObject } from '../../internals/schema';
 import { ScheduleOp, storageSchedule } from '../schedule';
 import { PVK, TObject, TValue, TUpdateOp, asyncStream, _TValue, TQueryRandomOptions } from '../../internals';
 import { SQL, sql } from './sql';
@@ -85,15 +85,17 @@ export abstract class SqlStorage implements TStorage {
       if (!dataType) continue;
       if (_.isString(dataType)) {
         obj[PVK].attributes[key] = this.dialect.decodeType(dataType, value);
-      } else if (dataType.type !== 'pointer' && dataType.type !== 'relation') {
-        obj[PVK].attributes[key] = this.dialect.decodeType(dataType.type, value) ?? dataType.default as any;
-      } else if (dataType.type === 'pointer') {
+      } else if (isShapedObject(dataType)) {
+        obj[PVK].attributes[key] = this.dialect.decodeType(dataType.type, value);
+      } else if (isPointer(dataType)) {
         if (_.isPlainObject(value)) {
           const decoded = this._decodeObject(dataType.target, value);
           if (decoded.objectId) obj[PVK].attributes[key] = decoded;
         }
-      } else if (dataType.type === 'relation') {
+      } else if (isRelation(dataType)) {
         if (_.isArray(value)) obj[PVK].attributes[key] = value.map(x => this._decodeObject(dataType.target, x));
+      } else {
+        obj[PVK].attributes[key] = this.dialect.decodeType(dataType.type, value) ?? dataType.default as any;
       }
     }
     return obj;
