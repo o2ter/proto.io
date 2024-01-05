@@ -24,11 +24,11 @@
 //
 
 import _ from 'lodash';
-import { TSchema, isPointer, isPrimitive, isRelation } from '../../internals/schema';
+import { TSchema, isPointer, isPrimitive, isRelation, isShapedObject, shapedObjectPaths } from '../../internals/schema';
 import { QueryCoditionalSelector, QueryExpressionSelector, QueryFieldSelector, QuerySelector } from '../query/validator/parser';
 import { DecodedBaseQuery, DecodedQuery, FindOneOptions, FindOptions, InsertOptions } from '../storage';
 import { SQL, sql } from './sql';
-import { TValue, TUpdateOp } from '../../internals';
+import { TValue, TUpdateOp, decodeUpdateOp } from '../../internals';
 import { generateId } from '../crypto/random';
 import { SqlDialect } from './dialect';
 import { _resolveColumn } from '../query/validator/validator';
@@ -291,9 +291,19 @@ export class QueryCompiler {
     const updates: SQL[] = [];
     for (const [path, op] of _.toPairs(attrs)) {
       const { paths: [column, ...subpath], dataType } = _resolveColumn(this.schema, className, path);
-      updates.push(sql`${{ identifier: column }} = ${this.dialect.updateOperation(
-        [column, ...subpath], dataType, op
-      )}`);
+      if (isShapedObject(dataType)) {
+        const [_op, value] = decodeUpdateOp(op);
+        if (_op !== '$set') throw Error('Invalid update operation');
+        for (const { path, type } of shapedObjectPaths(dataType)) {
+          updates.push(sql`${{ identifier: column }} = ${this.dialect.updateOperation(
+            [`${column}.${path}`], type, { $set: _.get(value, path) ?? null }
+          )}`);
+        }
+      } else {
+        updates.push(sql`${{ identifier: column }} = ${this.dialect.updateOperation(
+          [column, ...subpath], dataType, op
+        )}`);
+      }
     }
     return updates;
   }
