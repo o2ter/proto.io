@@ -1391,9 +1391,26 @@ test('test update', async () => {
         }
       },
       array: { $set: [1, 2, 3, date, new Decimal('0.001')] },
+      'shape.boolean': { $set: true },
+      'shape.number': { $set: 42.5 },
+      'shape.decimal': { $set: new Decimal('0.001') },
+      'shape.string': { $set: 'hello' },
+      'shape.date': { $set: date },
+      'shape.object': {
+        $set: {
+          boolean: true,
+          number: 42.5,
+          decimal: new Decimal('0.001'),
+          string: 'hello',
+          date: date,
+        }
+      },
+      'shape.array': { $set: [1, 2, 3, date, new Decimal('0.001')] },
     });
+
   expect(updated?.objectId).toStrictEqual(inserted.objectId);
   expect(updated?.__v).toStrictEqual(1);
+
   expect(updated?.get('boolean')).toStrictEqual(true);
   expect(updated?.get('number')).toStrictEqual(42.5);
   expect(updated?.get('decimal')).toStrictEqual(new Decimal('0.001'));
@@ -1407,13 +1424,30 @@ test('test update', async () => {
     date: date,
   });
   expect(updated?.get('array')).toStrictEqual([1, 2, 3, date, new Decimal('0.001')]);
+
+  expect(updated?.get('shape.boolean')).toStrictEqual(true);
+  expect(updated?.get('shape.number')).toStrictEqual(42.5);
+  expect(updated?.get('shape.decimal')).toStrictEqual(new Decimal('0.001'));
+  expect(updated?.get('shape.string')).toStrictEqual('hello');
+  expect(updated?.get('shape.date')).toStrictEqual(date);
+  expect(updated?.get('shape.object')).toStrictEqual({
+    boolean: true,
+    number: 42.5,
+    decimal: new Decimal('0.001'),
+    string: 'hello',
+    date: date,
+  });
+  expect(updated?.get('shape.array')).toStrictEqual([1, 2, 3, date, new Decimal('0.001')]);
 })
 
 test('test upsert', async () => {
   const date = new Date;
   const upserted = await Proto.Query('Test')
     .equalTo('_id', '')
-    .upsertOne({ string: { $set: 'update' } }, {
+    .upsertOne({
+      string: { $set: 'update' },
+      'shape.string': { $set: 'update' },
+     }, {
       boolean: true,
       number: 42.5,
       decimal: new Decimal('0.001'),
@@ -1427,9 +1461,26 @@ test('test upsert', async () => {
         date: date,
       },
       array: [1, 2, 3, date, new Decimal('0.001')],
+      shape: {
+        boolean: true,
+        number: 42.5,
+        decimal: new Decimal('0.001'),
+        string: 'hello',
+        date: date,
+        object: {
+          boolean: true,
+          number: 42.5,
+          decimal: new Decimal('0.001'),
+          string: 'hello',
+          date: date,
+        },
+        array: [1, 2, 3, date, new Decimal('0.001')],
+      },
     });
+
   expect(upserted.objectId).toBeTruthy();
   expect(upserted.__v).toStrictEqual(0);
+
   expect(upserted.get('boolean')).toStrictEqual(true);
   expect(upserted.get('number')).toStrictEqual(42.5);
   expect(upserted.get('decimal')).toStrictEqual(new Decimal('0.001'));
@@ -1443,6 +1494,20 @@ test('test upsert', async () => {
     date: date,
   });
   expect(upserted.get('array')).toStrictEqual([1, 2, 3, date, new Decimal('0.001')]);
+
+  expect(upserted.get('shape.boolean')).toStrictEqual(true);
+  expect(upserted.get('shape.number')).toStrictEqual(42.5);
+  expect(upserted.get('shape.decimal')).toStrictEqual(new Decimal('0.001'));
+  expect(upserted.get('shape.string')).toStrictEqual('hello');
+  expect(upserted.get('shape.date')).toStrictEqual(date);
+  expect(upserted.get('shape.object')).toStrictEqual({
+    boolean: true,
+    number: 42.5,
+    decimal: new Decimal('0.001'),
+    string: 'hello',
+    date: date,
+  });
+  expect(upserted.get('shape.array')).toStrictEqual([1, 2, 3, date, new Decimal('0.001')]);
 })
 
 test('test upsert 2', async () => {
@@ -1466,9 +1531,26 @@ test('test upsert 2', async () => {
         }
       },
       array: { $set: [1, 2, 3, date, new Decimal('0.001')] },
+      'shape.boolean': { $set: true },
+      'shape.number': { $set: 42.5 },
+      'shape.decimal': { $set: new Decimal('0.001') },
+      'shape.string': { $set: 'hello' },
+      'shape.date': { $set: date },
+      'shape.object': {
+        $set: {
+          boolean: true,
+          number: 42.5,
+          decimal: new Decimal('0.001'),
+          string: 'hello',
+          date: date,
+        }
+      },
+      'shape.array': { $set: [1, 2, 3, date, new Decimal('0.001')] },
     }, { string: 'insert' });
+  
   expect(upserted.objectId).toStrictEqual(inserted.objectId);
   expect(upserted.__v).toStrictEqual(1);
+
   expect(upserted.get('boolean')).toStrictEqual(true);
   expect(upserted.get('number')).toStrictEqual(42.5);
   expect(upserted.get('decimal')).toStrictEqual(new Decimal('0.001'));
@@ -1482,6 +1564,20 @@ test('test upsert 2', async () => {
     date: date,
   });
   expect(upserted.get('array')).toStrictEqual([1, 2, 3, date, new Decimal('0.001')]);
+
+  expect(upserted.get('shape.boolean')).toStrictEqual(true);
+  expect(upserted.get('shape.number')).toStrictEqual(42.5);
+  expect(upserted.get('shape.decimal')).toStrictEqual(new Decimal('0.001'));
+  expect(upserted.get('shape.string')).toStrictEqual('hello');
+  expect(upserted.get('shape.date')).toStrictEqual(date);
+  expect(upserted.get('shape.object')).toStrictEqual({
+    boolean: true,
+    number: 42.5,
+    decimal: new Decimal('0.001'),
+    string: 'hello',
+    date: date,
+  });
+  expect(upserted.get('shape.array')).toStrictEqual([1, 2, 3, date, new Decimal('0.001')]);
 })
 
 test('test match', async () => {
@@ -1567,6 +1663,20 @@ test('test comparable', async () => {
       string: 'hello',
       date: date,
     },
+    shape: {
+      boolean: true,
+      number: 42.5,
+      decimal: new Decimal('0.001'),
+      string: 'hello',
+      date: date,
+      object: {
+        boolean: true,
+        number: 42.5,
+        decimal: new Decimal('0.001'),
+        string: 'hello',
+        date: date,
+      },
+    },
   });
 
   const q = Proto.Query('Test').equalTo('_id', inserted.objectId).includes('*', 'relation');
@@ -1578,6 +1688,13 @@ test('test comparable', async () => {
   expect((await q.clone().lessThanOrEqualTo('decimal', 0).first())?.objectId).toBeUndefined();
   expect((await q.clone().greaterThanOrEqualTo('date', new Date).first())?.objectId).toBeUndefined();
 
+  expect((await q.clone().lessThan('shape.number', 0).first())?.objectId).toBeUndefined();
+  expect((await q.clone().lessThan('shape.decimal', 0).first())?.objectId).toBeUndefined();
+  expect((await q.clone().greaterThan('shape.date', new Date).first())?.objectId).toBeUndefined();
+  expect((await q.clone().lessThanOrEqualTo('shape.number', 0).first())?.objectId).toBeUndefined();
+  expect((await q.clone().lessThanOrEqualTo('shape.decimal', 0).first())?.objectId).toBeUndefined();
+  expect((await q.clone().greaterThanOrEqualTo('shape.date', new Date).first())?.objectId).toBeUndefined();
+
   expect((await q.clone().greaterThan('number', 0).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().greaterThan('decimal', 0).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().lessThan('decimal', 1).first())?.objectId).toStrictEqual(inserted.objectId);
@@ -1587,10 +1704,24 @@ test('test comparable', async () => {
   expect((await q.clone().greaterThanOrEqualTo('decimal', 0).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().lessThanOrEqualTo('date', new Date).first())?.objectId).toStrictEqual(inserted.objectId);
 
+  expect((await q.clone().greaterThan('shape.number', 0).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().greaterThan('shape.decimal', 0).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().lessThan('shape.decimal', 1).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().lessThan('shape.decimal', new Decimal('1')).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().lessThan('shape.date', new Date).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().greaterThanOrEqualTo('shape.number', 0).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().greaterThanOrEqualTo('shape.decimal', 0).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().lessThanOrEqualTo('shape.date', new Date).first())?.objectId).toStrictEqual(inserted.objectId);
+
   expect((await q.clone().lessThanOrEqualTo('number', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().lessThanOrEqualTo('decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().greaterThanOrEqualTo('number', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().greaterThanOrEqualTo('decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
+
+  expect((await q.clone().lessThanOrEqualTo('shape.number', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().lessThanOrEqualTo('shape.decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().greaterThanOrEqualTo('shape.number', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().greaterThanOrEqualTo('shape.decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
 
   expect((await q.clone().lessThan('object.number', 0).first())?.objectId).toBeUndefined();
   expect((await q.clone().lessThan('object.decimal', 0).first())?.objectId).toBeUndefined();
@@ -1598,6 +1729,13 @@ test('test comparable', async () => {
   expect((await q.clone().lessThanOrEqualTo('object.number', 0).first())?.objectId).toBeUndefined();
   expect((await q.clone().lessThanOrEqualTo('object.decimal', 0).first())?.objectId).toBeUndefined();
   expect((await q.clone().greaterThanOrEqualTo('object.date', new Date).first())?.objectId).toBeUndefined();
+
+  expect((await q.clone().lessThan('shape.object.number', 0).first())?.objectId).toBeUndefined();
+  expect((await q.clone().lessThan('shape.object.decimal', 0).first())?.objectId).toBeUndefined();
+  expect((await q.clone().greaterThan('shape.object.date', new Date).first())?.objectId).toBeUndefined();
+  expect((await q.clone().lessThanOrEqualTo('shape.object.number', 0).first())?.objectId).toBeUndefined();
+  expect((await q.clone().lessThanOrEqualTo('shape.object.decimal', 0).first())?.objectId).toBeUndefined();
+  expect((await q.clone().greaterThanOrEqualTo('shape.object.date', new Date).first())?.objectId).toBeUndefined();
 
   expect((await q.clone().greaterThan('object.number', 0).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().greaterThan('object.decimal', 0).first())?.objectId).toStrictEqual(inserted.objectId);
@@ -1608,10 +1746,24 @@ test('test comparable', async () => {
   expect((await q.clone().greaterThanOrEqualTo('object.decimal', 0).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().lessThanOrEqualTo('object.date', new Date).first())?.objectId).toStrictEqual(inserted.objectId);
 
+  expect((await q.clone().greaterThan('shape.object.number', 0).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().greaterThan('shape.object.decimal', 0).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().lessThan('shape.object.decimal', 1).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().lessThan('shape.object.decimal', new Decimal('1')).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().lessThan('shape.object.date', new Date).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().greaterThanOrEqualTo('shape.object.number', 0).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().greaterThanOrEqualTo('shape.object.decimal', 0).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().lessThanOrEqualTo('shape.object.date', new Date).first())?.objectId).toStrictEqual(inserted.objectId);
+
   expect((await q.clone().lessThanOrEqualTo('object.number', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().lessThanOrEqualTo('object.decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().greaterThanOrEqualTo('object.number', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().greaterThanOrEqualTo('object.decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
+
+  expect((await q.clone().lessThanOrEqualTo('shape.object.number', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().lessThanOrEqualTo('shape.object.decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().greaterThanOrEqualTo('shape.object.number', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().greaterThanOrEqualTo('shape.object.decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
 
 })
 
