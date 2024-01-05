@@ -80,9 +80,13 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
     `);
   }
 
+  private fields(schema: TSchema) {
+
+  }
+
   private async _createTable(className: string, schema: TSchema) {
     const fields = _.pickBy(
-      schema.fields, (x, k) => !_.includes(TObject.defaultKeys, k) && (!isRelation(x) || _.isNil(x.foreignField))
+      this.fields(schema), (x, k) => !_.includes(TObject.defaultKeys, k) && (!isRelation(x) || _.isNil(x.foreignField))
     );
     await this.query(sql`
       CREATE TABLE
@@ -109,8 +113,9 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
   }
 
   private _indicesOf(schema: TSchema) {
-    const pointers = _.pickBy(schema.fields, v => isPointer(v));
-    const relations = _.pickBy(schema.fields, v => isRelation(v) && _.isNil(v.foreignField));
+    const fields = this.fields(schema);
+    const pointers = _.pickBy(fields, v => isPointer(v));
+    const relations = _.pickBy(fields, v => isRelation(v) && _.isNil(v.foreignField));
     return {
       relations,
       indexes: [
@@ -140,10 +145,11 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
       'timestamp without time zone': 'timestamp',
       'numeric': 'decimal',
     };
+    const fields = this.fields(schema);
     const rebuild: { name: string; type: string; }[] = [];
     for (const column of columns) {
       if (TObject.defaultKeys.includes(column.name)) continue;
-      const dataType = schema.fields[column.name];
+      const dataType = fields[column.name];
       if (!_.isString(dataType) && dataType.type === 'relation' && !_.isNil(dataType.foreignField)) continue;
       const pgType = this._pgType(_.isString(dataType) ? dataType : dataType.type);
       if (pgType.toLowerCase() === (typeMap[column.type] ?? column.type)) continue;
