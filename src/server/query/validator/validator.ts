@@ -127,6 +127,15 @@ export class QueryValidator<E> {
     return true;
   }
 
+  validateForeignField(dataType: TSchema.RelationType, type: keyof TSchema.FLPs, errorMeg: string) {
+    if (_.isNil(dataType.foreignField)) return;
+    const foreignField = this.schema[dataType.target]?.fields[dataType.foreignField];
+    if (_.isNil(foreignField) || _.isString(foreignField)) throw Error(errorMeg);
+    if (isPrimitive(foreignField)) throw Error(errorMeg);
+    if (foreignField.type === 'relation' && !_.isNil(foreignField.foreignField)) throw Error(errorMeg);
+    if (!this.validateKeyPerm(dataType.foreignField, type, this.schema[dataType.target])) throw Error('No permission');
+  }
+
   validateKey(
     className: string,
     key: string | string[],
@@ -165,13 +174,7 @@ export class QueryValidator<E> {
     for (const relation of relations) {
       if (_.isNil(this.schema[relation.target])) return false;
       if (type === 'read' && !this.validateCLPs(relation.target, 'get')) return false;
-      if (relation.type === 'relation' && !_.isNil(relation.foreignField)) {
-        const foreignField = this.schema[relation.target]?.fields[relation.foreignField];
-        if (_.isNil(foreignField) || _.isString(foreignField)) throw Error(`Invalid key: ${_key}`);
-        if (isPrimitive(foreignField)) throw Error(`Invalid key: ${_key}`);
-        if (foreignField.type === 'relation' && !_.isNil(foreignField.foreignField)) throw Error(`Invalid key: ${_key}`);
-        if (!this.validateKeyPerm(relation.foreignField, type, this.schema[relation.target])) throw Error('No permission');
-      }
+      if (relation.type === 'relation') this.validateForeignField(relation, type, `Invalid key: ${_key}`);
     }
 
     if (isShapedObject(dataType)) {
@@ -212,19 +215,17 @@ export class QueryValidator<E> {
 
         if (isPointer(dataType) || isRelation(dataType)) {
           if (!this.validateCLPs(dataType.target, 'get')) throw Error('No permission');
-          if (dataType.type === 'relation' && !_.isNil(dataType.foreignField)) {
-            const foreignField = this.schema[dataType.target]?.fields[dataType.foreignField];
-            if (_.isNil(foreignField) || _.isString(foreignField)) throw Error(`Invalid include: ${include}`);
-            if (isPrimitive(foreignField)) throw Error(`Invalid include: ${include}`);
-            if (foreignField.type === 'relation' && !_.isNil(foreignField.foreignField)) throw Error(`Invalid include: ${include}`);
-            if (!this.validateKeyPerm(dataType.foreignField, 'read', this.schema[dataType.target])) throw Error('No permission');
-          }
+          if (dataType.type === 'relation') this.validateForeignField(dataType, 'read', `Invalid include: ${include}`);
 
           const isDigit = _.first(subpath)?.match(QueryValidator.patterns.digits);
           const _subpath = isRelation(dataType) && isDigit ? _.slice(subpath, 1) : subpath;
 
           populates[colname] = populates[colname] ?? { className: dataType.target, subpaths: [] };
           populates[colname].subpaths.push(_.isEmpty(_subpath) ? '*' : _subpath.join('.'));
+
+        } else if (_.isEmpty(subpath) && isShapedObject(dataType)) {
+
+          const paths = shapedObjectPaths(dataType);
 
         } else if (_.isEmpty(subpath) || _.includes(['object', 'array'], _typeof(dataType))) {
           _includes.push(colname);
@@ -269,13 +270,7 @@ export class QueryValidator<E> {
       const dataType = schema.fields[colname];
       if (!isRelation(dataType)) throw Error(`Invalid match: ${colname}`);
       if (!this.validateCLPs(dataType.target, 'get')) throw Error('No permission');
-      if (!_.isNil(dataType.foreignField)) {
-        const foreignField = this.schema[dataType.target]?.fields[dataType.foreignField];
-        if (_.isNil(foreignField) || _.isString(foreignField)) throw Error(`Invalid match: ${colname}`);
-        if (isPrimitive(foreignField)) throw Error(`Invalid match: ${colname}`);
-        if (foreignField.type === 'relation' && !_.isNil(foreignField.foreignField)) throw Error(`Invalid match: ${colname}`);
-        if (!this.validateKeyPerm(dataType.foreignField, 'read', this.schema[dataType.target])) throw Error('No permission');
-      }
+      this.validateForeignField(dataType, 'read', `Invalid match: ${colname}`);
       _matches[colname] = {
         ...match,
         filter: QuerySelector.decode([
