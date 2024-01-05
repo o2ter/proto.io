@@ -1063,9 +1063,11 @@ test('test save keys', async () => {
 
   const obj = Proto.Object('Test');
   obj.set('pointer', inserted);
+  obj.set('shape.pointer', inserted);
   await obj.save();
 
   expect(obj.get('pointer')?.objectId).toStrictEqual(inserted.objectId);
+  //expect(obj.get('shape.pointer')?.objectId).toStrictEqual(inserted.objectId);
 })
 
 test('test save keys 2', async () => {
@@ -1073,9 +1075,11 @@ test('test save keys 2', async () => {
 
   const obj = Proto.Object('Test');
   obj.set('relation', [inserted]);
+  obj.set('shape.relation', [inserted]);
   await obj.save();
 
   expect(obj.get('relation')?.[0]?.objectId).toStrictEqual(inserted.objectId);
+  //expect(obj.get('shape.relation')?.[0]?.objectId).toStrictEqual(inserted.objectId);
 })
 
 test('test pointer', async () => {
@@ -1101,6 +1105,8 @@ test('test pointer', async () => {
     .updateOne({
       pointer: { $set: inserted },
       pointer2: { $set: inserted },
+      'shape.pointer': { $set: inserted },
+      'shape.pointer2': { $set: inserted },
     });
 
   expect(updated?.get('pointer.boolean')).toStrictEqual(true);
@@ -1115,6 +1121,18 @@ test('test pointer', async () => {
   expect(updated?.get('pointer2.string')).toStrictEqual('hello');
   expect(updated?.get('pointer2.date')).toStrictEqual(date);
 
+  // expect(updated?.get('shape.pointer.boolean')).toStrictEqual(true);
+  // expect(updated?.get('shape.pointer.number')).toStrictEqual(42.5);
+  // expect(updated?.get('shape.pointer.decimal')).toStrictEqual(new Decimal('0.001'));
+  // expect(updated?.get('shape.pointer.string')).toStrictEqual('hello');
+  // expect(updated?.get('shape.pointer.date')).toStrictEqual(date);
+
+  // expect(updated?.get('shape.pointer2.boolean')).toStrictEqual(true);
+  // expect(updated?.get('shape.pointer2.number')).toStrictEqual(42.5);
+  // expect(updated?.get('shape.pointer2.decimal')).toStrictEqual(new Decimal('0.001'));
+  // expect(updated?.get('shape.pointer2.string')).toStrictEqual('hello');
+  // expect(updated?.get('shape.pointer2.date')).toStrictEqual(date);
+
   const q = Proto.Query('Test').equalTo('_id', inserted.objectId).includes('pointer');
 
   expect((await q.clone().equalTo('pointer', inserted).first())?.objectId).toStrictEqual(inserted.objectId);
@@ -1123,17 +1141,28 @@ test('test pointer', async () => {
   expect((await q.clone().equalTo('pointer.decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().equalTo('pointer.string', 'hello').first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().equalTo('pointer.date', date).first())?.objectId).toStrictEqual(inserted.objectId);
+
+  expect((await q.clone().equalTo('shape.pointer', inserted).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('shape.pointer.boolean', true).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('shape.pointer.number', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('shape.pointer.decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('shape.pointer.string', 'hello').first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('shape.pointer.date', date).first())?.objectId).toStrictEqual(inserted.objectId);
 })
 
 test('test pointer 2', async () => {
   const invalid = Proto.Object('Test', 'xxxxxxxxxx');
   const inserted = await Proto.Query('Test').insert({
     pointer: invalid,
+    shape: {
+      pointer: invalid,
+    },
   });
 
   const q = Proto.Query('Test').equalTo('_id', inserted.objectId).includes('pointer');
 
   expect((await q.clone().equalTo('pointer', null).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('shape.pointer', null).first())?.objectId).toStrictEqual(inserted.objectId);
 
 })
 
@@ -1159,6 +1188,7 @@ test('test relation', async () => {
     .includes('*', 'relation')
     .updateOne({
       relation: { $set: [inserted] },
+      'shape.relation': { $set: [inserted] },
     });
 
   expect(updated?.get('relation.0.boolean')).toStrictEqual(true);
@@ -1167,6 +1197,12 @@ test('test relation', async () => {
   expect(updated?.get('relation.0.string')).toStrictEqual('hello');
   expect(updated?.get('relation.0.date')).toStrictEqual(date);
 
+  // expect(updated?.get('shape.relation.0.boolean')).toStrictEqual(true);
+  // expect(updated?.get('shape.relation.0.number')).toStrictEqual(42.5);
+  // expect(updated?.get('shape.relation.0.decimal')).toStrictEqual(new Decimal('0.001'));
+  // expect(updated?.get('shape.relation.0.string')).toStrictEqual('hello');
+  // expect(updated?.get('shape.relation.0.date')).toStrictEqual(date);
+
   const q = Proto.Query('Test').equalTo('_id', inserted.objectId).includes('*', 'relation');
 
   expect((await q.clone().equalTo('relation.0.boolean', true).first())?.objectId).toStrictEqual(inserted.objectId);
@@ -1174,6 +1210,12 @@ test('test relation', async () => {
   expect((await q.clone().equalTo('relation.0.decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().equalTo('relation.0.string', 'hello').first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().equalTo('relation.0.date', date).first())?.objectId).toStrictEqual(inserted.objectId);
+
+  expect((await q.clone().equalTo('shape.relation.0.boolean', true).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('shape.relation.0.number', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('shape.relation.0.decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('shape.relation.0.string', 'hello').first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('shape.relation.0.date', date).first())?.objectId).toStrictEqual(inserted.objectId);
 
 })
 
@@ -1199,6 +1241,7 @@ test('test relation 2', async () => {
     .includes('relation2')
     .updateOne({
       pointer: { $set: inserted },
+      'shape.pointer': { $set: inserted },
     });
 
   expect(updated?.get('relation2').length).toStrictEqual(1);
@@ -1208,6 +1251,13 @@ test('test relation 2', async () => {
   expect(updated?.get('relation2.0.string')).toStrictEqual('hello');
   expect(updated?.get('relation2.0.date')).toStrictEqual(date);
 
+  // expect(updated?.get('shape.relation2').length).toStrictEqual(1);
+  // expect(updated?.get('shape.relation2.0.boolean')).toStrictEqual(true);
+  // expect(updated?.get('shape.relation2.0.number')).toStrictEqual(42.5);
+  // expect(updated?.get('shape.relation2.0.decimal')).toStrictEqual(new Decimal('0.001'));
+  // expect(updated?.get('shape.relation2.0.string')).toStrictEqual('hello');
+  // expect(updated?.get('shape.relation2.0.date')).toStrictEqual(date);
+
   const q = Proto.Query('Test').equalTo('_id', inserted.objectId).includes('relation2');
 
   expect((await q.clone().equalTo('relation2.0.boolean', true).first())?.objectId).toStrictEqual(inserted.objectId);
@@ -1215,6 +1265,12 @@ test('test relation 2', async () => {
   expect((await q.clone().equalTo('relation2.0.decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().equalTo('relation2.0.string', 'hello').first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().equalTo('relation2.0.date', date).first())?.objectId).toStrictEqual(inserted.objectId);
+
+  expect((await q.clone().equalTo('shape.relation2.0.boolean', true).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('shape.relation2.0.number', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('shape.relation2.0.decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('shape.relation2.0.string', 'hello').first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('shape.relation2.0.date', date).first())?.objectId).toStrictEqual(inserted.objectId);
 
 })
 
@@ -1240,6 +1296,7 @@ test('test relation 3', async () => {
     .includes('relation3')
     .updateOne({
       relation: { $set: [inserted] },
+      'shape.relation': { $set: [inserted] },
     });
 
   expect(updated?.get('relation3').length).toStrictEqual(1);
@@ -1249,6 +1306,13 @@ test('test relation 3', async () => {
   expect(updated?.get('relation3.0.string')).toStrictEqual('hello');
   expect(updated?.get('relation3.0.date')).toStrictEqual(date);
 
+  // expect(updated?.get('shape.relation3').length).toStrictEqual(1);
+  // expect(updated?.get('shape.relation3.0.boolean')).toStrictEqual(true);
+  // expect(updated?.get('shape.relation3.0.number')).toStrictEqual(42.5);
+  // expect(updated?.get('shape.relation3.0.decimal')).toStrictEqual(new Decimal('0.001'));
+  // expect(updated?.get('shape.relation3.0.string')).toStrictEqual('hello');
+  // expect(updated?.get('shape.relation3.0.date')).toStrictEqual(date);
+
   const q = Proto.Query('Test').equalTo('_id', inserted.objectId).includes('relation3');
 
   expect((await q.clone().equalTo('relation3.0.boolean', true).first())?.objectId).toStrictEqual(inserted.objectId);
@@ -1257,18 +1321,30 @@ test('test relation 3', async () => {
   expect((await q.clone().equalTo('relation3.0.string', 'hello').first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().equalTo('relation3.0.date', date).first())?.objectId).toStrictEqual(inserted.objectId);
 
+  expect((await q.clone().equalTo('shape.relation3.0.boolean', true).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('shape.relation3.0.number', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('shape.relation3.0.decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('shape.relation3.0.string', 'hello').first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('shape.relation3.0.date', date).first())?.objectId).toStrictEqual(inserted.objectId);
+
 })
 
 test('test relation 4', async () => {
   const invalid = Proto.Object('Test', 'xxxxxxxxxx');
   const inserted = await Proto.Query('Test').insert({
     relation: [invalid],
+    shape: {
+      relation: [invalid],
+    },
   });
 
   const q = Proto.Query('Test').equalTo('_id', inserted.objectId).includes('relation');
 
   expect((await q.clone().equalTo('relation', []).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().size('relation', 0).first())?.objectId).toStrictEqual(inserted.objectId);
+
+  expect((await q.clone().equalTo('shape.relation', []).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().size('shape.relation', 0).first())?.objectId).toStrictEqual(inserted.objectId);
 
 })
 
