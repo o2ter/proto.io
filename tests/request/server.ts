@@ -88,7 +88,7 @@ const Proto = new ProtoService({
         relation3: { type: 'relation', target: 'Test', foreignField: 'relation' },
         'test_field-name': 'string',
         shape: {
-          type: 'object',
+          type: 'shape',
           shape: {
             default: { type: 'number', default: 42 },
             boolean: 'boolean',

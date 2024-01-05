@@ -31,7 +31,7 @@ export namespace TSchema {
   export type ACLs = { read: TSchema.ACL; update: TSchema.ACL; };
   export type Primitive = 'boolean' | 'number' | 'decimal' | 'string' | 'date' | 'object' | 'array';
   export type PrimitiveType = Primitive | { type: Primitive; default?: _TValue; };
-  export type ShapedObject = { type: 'object'; shape: Record<string, DataType>; };
+  export type ShapedObject = { type: 'shape'; shape: Record<string, DataType>; };
   export type Relation = 'pointer' | 'relation';
   export type PointerType = { type: 'pointer'; target: string; };
   export type RelationType = { type: 'relation'; target: string; foreignField?: string; };
@@ -55,8 +55,8 @@ export namespace TSchema {
   };
 }
 
-export const isPrimitive = (x: TSchema.DataType): x is TSchema.PrimitiveType => _.isString(x) || (x.type !== 'pointer' && x.type !== 'relation' && !('shape' in x));
-export const isShapedObject = (x: TSchema.DataType): x is TSchema.ShapedObject => !_.isString(x) && x.type === 'object' && 'shape' in x;
+export const isPrimitive = (x: TSchema.DataType): x is TSchema.PrimitiveType => _.isString(x) || (x.type !== 'pointer' && x.type !== 'relation' && x.type !== 'shape');
+export const isShapedObject = (x: TSchema.DataType): x is TSchema.ShapedObject => !_.isString(x) && x.type === 'shape';
 export const isPointer = (x: TSchema.DataType): x is TSchema.PointerType => !_.isString(x) && x.type === 'pointer';
 export const isRelation = (x: TSchema.DataType): x is TSchema.RelationType => !_.isString(x) && x.type === 'relation';
 export const _typeof = (x: TSchema.DataType) => _.isString(x) ? x : x.type !== 'pointer' && x.type !== 'relation' ? x.type : x.target;
@@ -65,7 +65,7 @@ export const shapedObjectPaths = (x: TSchema.ShapedObject): {
   path: string,
   type: Exclude<TSchema.DataType, TSchema.ShapedObject>,
 }[] => _.flatMap(x.shape, (v, k) => (
-  isShapedObject(v) ? _.map(shapedObjectPaths(v), x => ({ path: `${k}.${x.path}`, type: v.type })) : { path: k, type: v }
+  isShapedObject(v) ? _.map(shapedObjectPaths(v), x => ({ path: `${k}.${x.path}`, type: x.type })) : { path: k, type: v }
 ));
 
 export interface TSchema {
