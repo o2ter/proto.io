@@ -30,10 +30,10 @@ import { TSchema, isPointer, isRelation } from '../../../../../internals/schema'
 import { QueryValidator, _resolveColumn } from '../../../../../server/query/validator/validator';
 
 const _fetchElement = (
-  compiler: QueryCompiler,
   parent: { className?: string; name: string; },
   colname: string,
   subpath: string[],
+  dataType?: TSchema.DataType,
 ) => {
   const element = sql`${{ identifier: parent.name }}.${{ identifier: parent.name.startsWith('_expr_$') ? '$' : colname }}`;
   if (!parent.className) {
@@ -44,8 +44,7 @@ const _fetchElement = (
     }
   } else if (!_.isEmpty(subpath)) {
     const _subpath = sql`${_.map(subpath, x => sql`${{ quote: x.startsWith('$') ? `$${x}` : x }}`)}`;
-    const _type = compiler.schema[parent.className].fields[colname];
-    if (_type === 'array' || (!_.isString(_type) && (_type?.type === 'array' || _type?.type === 'relation'))) {
+    if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
       return sql`jsonb_extract_path(to_jsonb(${element}), ${_subpath})`;
     } else {
       return sql`jsonb_extract_path(${element}, ${_subpath})`;
@@ -80,10 +79,10 @@ export const fetchElement = (
   if (parent.className) {
     const { dataType, colname, subpath } = resolvePaths(compiler, parent.className, _.toPath(field));
     if (isPointer(dataType)) return { element: sql`${{ identifier: parent.name }}.${{ identifier: `${colname}._id` }}`, dataType };
-    const element = _fetchElement(compiler, parent, colname, subpath);
+    const element = _fetchElement(parent, colname, subpath, dataType);
     return { element, dataType: _.isEmpty(subpath) ? dataType : null };
   }
   const [colname, ...subpath] = _.toPath(field);
-  const element = _fetchElement(compiler, parent, colname, subpath);
+  const element = _fetchElement(parent, colname, subpath);
   return { element, dataType: null };
 };
