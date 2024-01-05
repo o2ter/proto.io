@@ -173,7 +173,11 @@ export class QueryValidator<E> {
       }
     }
 
-    if (isShapedObject(dataType)) throw Error(`Invalid key: ${_key}`);
+    if (isShapedObject(dataType)) {
+      if (!_.isEmpty(subpath)) throw Error(`Invalid key: ${_key}`);
+      return true;
+    }
+
     return this.validateKey(dataType.target, isElem ? subpath.slice(1) : subpath, type, validator);
   }
 
