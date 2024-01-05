@@ -32,7 +32,7 @@ import {
 } from '../../../internals';
 import { DecodedBaseQuery, DecodedQuery, FindOptions, FindOneOptions } from '../../storage';
 import { QueryCoditionalSelector, QueryFieldSelector, QuerySelector } from './parser';
-import { TSchema, _typeof, isPointer, isPrimitive, isRelation, isShapedObject } from '../../../internals/schema';
+import { TSchema, _typeof, isPointer, isPrimitive, isRelation, isShapedObject, shapedObjectPaths } from '../../../internals/schema';
 import { ProtoService } from '../../proto';
 import { TQueryBaseOptions } from '../../../internals/query/base';
 
@@ -137,12 +137,12 @@ export class QueryValidator<E> {
     const _key = _.isArray(key) ? key.join('.') : key;
     if (!_key.match(validator)) throw Error(`Invalid key: ${_key}`);
 
-    const [colname, ...subpath] = _.toPath(_key);
+    const [colname, ..._subpath] = _.toPath(_key);
     if (!this.validateKeyPerm(colname, type, schema)) return false;
-    if (_.isEmpty(subpath) && TObject.defaultKeys.includes(colname)) return true;
-    if (_.isEmpty(subpath)) return true;
+    if (_.isEmpty(_subpath) && TObject.defaultKeys.includes(colname)) return true;
+    if (_.isEmpty(_subpath)) return true;
 
-    const dataType = schema.fields[colname];
+    const { paths: [_colname, ...subpath], dataType } = _resolveColumn(this.schema, className, _key);
     const isElem = _.first(subpath)?.match(QueryValidator.patterns.digits);
     if (isElem) {
       if (dataType === 'array') return true;
@@ -150,16 +150,30 @@ export class QueryValidator<E> {
     }
 
     if (isPrimitive(dataType)) return true;
-    if (_.isNil(this.schema[dataType.target])) return false;
-    if (type === 'read' && !this.validateCLPs(dataType.target, 'get')) return false;
-    if (dataType.type === 'relation' && !_.isNil(dataType.foreignField)) {
-      const foreignField = this.schema[dataType.target]?.fields[dataType.foreignField];
-      if (_.isNil(foreignField) || _.isString(foreignField)) throw Error(`Invalid key: ${_key}`);
-      if (isPrimitive(foreignField)) throw Error(`Invalid key: ${_key}`);
-      if (foreignField.type === 'relation' && !_.isNil(foreignField.foreignField)) throw Error(`Invalid key: ${_key}`);
-      if (!this.validateKeyPerm(dataType.foreignField, type, this.schema[dataType.target])) throw Error('No permission');
+
+    const relations: (TSchema.PointerType | TSchema.RelationType)[] = [];
+
+    if (isShapedObject(dataType)) {
+      for (const { type } of shapedObjectPaths(dataType)) {
+        if (!isPrimitive(type)) relations.push(type);
+      }
+    } else {
+      relations.push(dataType);
     }
 
+    for (const relation of relations) {
+      if (_.isNil(this.schema[relation.target])) return false;
+      if (type === 'read' && !this.validateCLPs(relation.target, 'get')) return false;
+      if (relation.type === 'relation' && !_.isNil(relation.foreignField)) {
+        const foreignField = this.schema[relation.target]?.fields[relation.foreignField];
+        if (_.isNil(foreignField) || _.isString(foreignField)) throw Error(`Invalid key: ${_key}`);
+        if (isPrimitive(foreignField)) throw Error(`Invalid key: ${_key}`);
+        if (foreignField.type === 'relation' && !_.isNil(foreignField.foreignField)) throw Error(`Invalid key: ${_key}`);
+        if (!this.validateKeyPerm(relation.foreignField, type, this.schema[relation.target])) throw Error('No permission');
+      }
+    }
+
+    if (isShapedObject(dataType)) throw Error(`Invalid key: ${_key}`);
     return this.validateKey(dataType.target, isElem ? subpath.slice(1) : subpath, type, validator);
   }
 
