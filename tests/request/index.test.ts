@@ -136,6 +136,12 @@ test('test count', async () => {
   expect(count).toBeGreaterThan(0);
 })
 
+test('test field name', async () => {
+  const inserted = await Proto.Query('Test').insert({ 'test_field-name': 'hello' });
+  expect(inserted.objectId).toBeTruthy();
+  expect(inserted.get('test_field-name')).toStrictEqual('hello');
+})
+
 test('test insert', async () => {
   const inserted = await Proto.Query('Test').insert({ string: 'hello' });
   expect(inserted.objectId).toBeTruthy();

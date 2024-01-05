@@ -68,8 +68,8 @@ export class QueryValidator<E> {
   disableSecurity: boolean;
 
   static patterns = {
-    path: /^[a-z_]\w*(\[\d+\]|\.\d*|\.[a-z_]\w*)*$/gi,
-    name: /^[a-z_]\w*$/gi,
+    path: /^[a-z_][\w-]*(\[\d+\]|\.\d*|\.[a-z_][\w-]*)*$/gi,
+    name: /^[a-z_][\w-]*$/gi,
     digits: /^\d+$/g,
   }
 

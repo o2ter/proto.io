@@ -39,7 +39,7 @@ type _String<T extends string, C extends string | number> = T extends `${infer H
   : never;
 
 export type Digits<T extends string> = T extends `${number}` ? T : never;
-export type FieldName<T extends string> = string extends T ? string : T extends `${'_' | _Alphabet}${'' | _String<infer _U, '_' | _Alphabet | _Digit>}` ? T : never;
+export type FieldName<T extends string> = string extends T ? string : T extends `${'_' | _Alphabet}${'' | _String<infer _U, '_' | '-' | _Alphabet | _Digit>}` ? T : never;
 
 type PathArrayGetter<T extends string> = T extends `[${Digits<infer _T>}]` ? T
   : T extends `[${Digits<infer L>}]${infer R}`

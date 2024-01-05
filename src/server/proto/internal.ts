@@ -42,10 +42,30 @@ import {
   _TValue,
 } from '../../internals';
 import { generateId } from '../crypto/random';
-import { TSchema, defaultObjectKeyTypes, isPrimitive, isRelation } from '../../internals/schema';
+import { TSchema, defaultObjectKeyTypes, isPrimitive, isRelation, isShapedObject } from '../../internals/schema';
 import { QueryValidator } from '../query/validator/validator';
 import { passwordHash, varifyPassword } from '../crypto/password';
 import { proxy } from './proxy';
+
+const validateForeignField = (schema: Record<string, TSchema>, key: string, dataType: TSchema.RelationType) => {
+  if (!dataType.foreignField) return;
+  if (_.isNil(schema[dataType.target])) throw Error(`Invalid foreign field: ${key}`);
+  const foreignField = schema[dataType.target].fields[dataType.foreignField];
+  if (_.isNil(foreignField)) throw Error(`Invalid foreign field: ${key}`);
+  if (isPrimitive(foreignField)) throw Error(`Invalid foreign field: ${key}`);
+  if (foreignField.type === 'relation' && !_.isNil(foreignField.foreignField)) throw Error(`Invalid foreign field: ${key}`);
+}
+
+const validateShapedObject = (schema: Record<string, TSchema>, dataType: TSchema.ShapedObject) => { 
+  for (const [key, type] of _.entries(dataType.shape)) {
+    if (!key.match(QueryValidator.patterns.name)) throw Error(`Invalid field name: ${key}`);
+    if (isShapedObject(type)) {
+      validateShapedObject(schema, type);
+    } else if (isRelation(type)) {
+      validateForeignField(schema, key, type);
+    }
+  }
+}
 
 const validateSchema = (schema: Record<string, TSchema>) => {
 
@@ -58,13 +78,10 @@ const validateSchema = (schema: Record<string, TSchema>) => {
     for (const [key, dataType] of _.toPairs(_schema.fields)) {
       if (_.includes(TObject.defaultKeys, key)) throw Error(`Reserved field name: ${key}`);
       if (!key.match(QueryValidator.patterns.name)) throw Error(`Invalid field name: ${key}`);
-
-      if (isRelation(dataType) && dataType.foreignField) {
-        if (_.isNil(schema[dataType.target])) throw Error(`Invalid foreign field: ${key}`);
-        const foreignField = schema[dataType.target].fields[dataType.foreignField];
-        if (_.isNil(foreignField)) throw Error(`Invalid foreign field: ${key}`);
-        if (isPrimitive(foreignField)) throw Error(`Invalid foreign field: ${key}`);
-        if (foreignField.type === 'relation' && !_.isNil(foreignField.foreignField)) throw Error(`Invalid foreign field: ${key}`);
+      if (isShapedObject(dataType)) {
+        validateShapedObject(schema, dataType);
+      } else if (isRelation(dataType)) {
+        validateForeignField(schema, key, dataType);
       }
     }
 
