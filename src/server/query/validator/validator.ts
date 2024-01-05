@@ -201,14 +201,18 @@ export class QueryValidator<E> {
   decodeIncludes(className: string, includes: string[]): string[] {
 
     const schema = this.schema[className] ?? {};
-    const primitive = _.keys(_.pickBy(schema.fields, v => isPrimitive(v)));
 
     const _includes: string[] = [];
     const populates: Record<string, { className: string; subpaths: string[]; }> = {};
 
     for (const include of includes) {
       if (include === '*') {
-        _includes.push(..._.filter(primitive, k => this.validateKeyPerm(k, 'read', schema)));
+        const primitive = _.pickBy(schema.fields, (v, k) => isPrimitive(v) && this.validateKeyPerm(k, 'read', schema));
+        const shapedObject = _.pickBy(schema.fields, (v, k) => isShapedObject(v) && this.validateKeyPerm(k, 'read', schema));
+        _includes.push(
+          ..._.keys(primitive),
+          ..._.flatMap(shapedObject, (v, k) => _.flatMap(shapedObjectPaths(v as any), x => isPrimitive(x.type) ? [`${k}.${x.path}`] : [])),
+        );
       } else {
         const { paths: [colname, ...subpath], dataType } = _resolveColumn(this.schema, className, include);
         if (!this.validateKeyPerm(colname, 'read', schema)) throw Error('No permission');

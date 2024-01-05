@@ -55,7 +55,7 @@ export namespace TSchema {
   };
 }
 
-export const isPrimitive = (x: TSchema.DataType): x is TSchema.PrimitiveType => _.isString(x) || (x.type !== 'pointer' && x.type !== 'relation');
+export const isPrimitive = (x: TSchema.DataType): x is TSchema.PrimitiveType => _.isString(x) || (x.type !== 'pointer' && x.type !== 'relation' && !('shape' in x));
 export const isShapedObject = (x: TSchema.DataType): x is TSchema.ShapedObject => !_.isString(x) && x.type === 'object' && 'shape' in x;
 export const isPointer = (x: TSchema.DataType): x is TSchema.PointerType => !_.isString(x) && x.type === 'pointer';
 export const isRelation = (x: TSchema.DataType): x is TSchema.RelationType => !_.isString(x) && x.type === 'relation';
