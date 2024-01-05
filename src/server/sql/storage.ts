@@ -88,7 +88,7 @@ export abstract class SqlStorage implements TStorage {
           const decoded = this._decodeObject(type.target, _value);
           if (decoded.objectId) _.set(result, path, decoded);
         }
-      } else if (isRelation(type)) {
+      } else {
         const _value = _.get(value, path);
         if (_.isArray(_value)) _.set(result, path, _value.map(x => this._decodeObject(type.target, x)));
       }
