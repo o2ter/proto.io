@@ -237,8 +237,8 @@ export class QueryValidator<E> {
               if (!this.validateCLPs(type.target, 'get')) throw Error('No permission');
               if (type.type === 'relation') this.validateForeignField(type, 'read', `Invalid include: ${include}`);
 
-              populates[colname] = populates[colname] ?? { className: type.target, subpaths: [] };
-              populates[colname].subpaths.push('*');
+              populates[`${colname}.${path}`] = populates[`${colname}.${path}`] ?? { className: type.target, subpaths: [] };
+              populates[`${colname}.${path}`].subpaths.push('*');
             }
           }
 
