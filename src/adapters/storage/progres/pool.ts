@@ -81,7 +81,10 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
   }
 
   private fields(schema: TSchema) {
+    const fields: Record<string, Exclude<TSchema.DataType, TSchema.ShapedObject>> = {};
 
+
+    return fields;
   }
 
   private async _createTable(className: string, schema: TSchema) {
