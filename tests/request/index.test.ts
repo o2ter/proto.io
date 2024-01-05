@@ -691,6 +691,13 @@ test('test update types', async () => {
     decimal: new Decimal('0.001'),
     string: 'hello',
     date: date,
+    shape: {
+      boolean: true,
+      number: 42.5,
+      decimal: new Decimal('0.001'),
+      string: 'hello',
+      date: date,
+    },
   });
 
   const q = Proto.Query('Test').equalTo('_id', inserted.objectId);
@@ -720,6 +727,32 @@ test('test update types', async () => {
   expect((await q.clone().updateOne({ number: { $max: 10 } }))?.get('number')).toStrictEqual(10);
   expect((await q.clone().updateOne({ decimal: { $max: 10 } }))?.get('decimal')).toStrictEqual(new Decimal('10'));
   expect((await q.clone().updateOne({ date: { $max: date2 } }))?.get('date')).toStrictEqual(date2);
+
+  expect((await q.clone().updateOne({ 'shape.boolean': { $set: false } }))?.get('shape.boolean')).toStrictEqual(false);
+  expect((await q.clone().updateOne({ 'shape.number': { $set: 64 } }))?.get('shape.number')).toStrictEqual(64);
+  expect((await q.clone().updateOne({ 'shape.decimal': { $set: new Decimal('0.002') } }))?.get('shape.decimal')).toStrictEqual(new Decimal('0.002'));
+  expect((await q.clone().updateOne({ 'shape.string': { $set: 'world' } }))?.get('shape.string')).toStrictEqual('world');
+  expect((await q.clone().updateOne({ 'shape.date': { $set: date2 } }))?.get('shape.date')).toStrictEqual(date2);
+
+  expect((await q.clone().updateOne({ 'shape.number': { $inc: 2 } }))?.get('shape.number')).toStrictEqual(66);
+  expect((await q.clone().updateOne({ 'shape.decimal': { $inc: 1 } }))?.get('shape.decimal')).toStrictEqual(new Decimal('1.002'));
+
+  expect((await q.clone().updateOne({ 'shape.number': { $dec: 2 } }))?.get('shape.number')).toStrictEqual(64);
+  expect((await q.clone().updateOne({ 'shape.decimal': { $dec: 1 } }))?.get('shape.decimal')).toStrictEqual(new Decimal('0.002'));
+
+  expect((await q.clone().updateOne({ 'shape.number': { $mul: 2 } }))?.get('shape.number')).toStrictEqual(128);
+  expect((await q.clone().updateOne({ 'shape.decimal': { $mul: 2 } }))?.get('shape.decimal')).toStrictEqual(new Decimal('0.004'));
+
+  expect((await q.clone().updateOne({ 'shape.number': { $div: 2 } }))?.get('shape.number')).toStrictEqual(64);
+  expect((await q.clone().updateOne({ 'shape.decimal': { $div: 2 } }))?.get('shape.decimal')).toStrictEqual(new Decimal('0.002'));
+
+  expect((await q.clone().updateOne({ 'shape.number': { $min: 2 } }))?.get('shape.number')).toStrictEqual(2);
+  expect((await q.clone().updateOne({ 'shape.decimal': { $min: 0 } }))?.get('shape.decimal')).toStrictEqual(new Decimal('0'));
+  expect((await q.clone().updateOne({ 'shape.date': { $min: date } }))?.get('shape.date')).toStrictEqual(date);
+
+  expect((await q.clone().updateOne({ 'shape.number': { $max: 10 } }))?.get('shape.number')).toStrictEqual(10);
+  expect((await q.clone().updateOne({ 'shape.decimal': { $max: 10 } }))?.get('shape.decimal')).toStrictEqual(new Decimal('10'));
+  expect((await q.clone().updateOne({ 'shape.date': { $max: date2 } }))?.get('shape.date')).toStrictEqual(date2);
 })
 
 test('test update types 2', async () => {
@@ -732,6 +765,15 @@ test('test update types 2', async () => {
       decimal: new Decimal('0.001'),
       string: 'hello',
       date: date,
+    },
+    shape: {
+      object: {
+        boolean: true,
+        number: 42.5,
+        decimal: new Decimal('0.001'),
+        string: 'hello',
+        date: date,
+      },
     },
   });
 
@@ -762,6 +804,32 @@ test('test update types 2', async () => {
   expect((await q.clone().updateOne({ 'object.number': { $max: 10 } }))?.get('object.number')).toStrictEqual(10);
   expect((await q.clone().updateOne({ 'object.decimal': { $max: 10 } }))?.get('object.decimal')).toStrictEqual(new Decimal('10'));
   expect((await q.clone().updateOne({ 'object.date': { $max: date2 } }))?.get('object.date')).toStrictEqual(date2);
+
+  expect((await q.clone().updateOne({ 'shape.object.boolean': { $set: false } }))?.get('shape.object.boolean')).toStrictEqual(false);
+  expect((await q.clone().updateOne({ 'shape.object.number': { $set: 64 } }))?.get('shape.object.number')).toStrictEqual(64);
+  expect((await q.clone().updateOne({ 'shape.object.decimal': { $set: new Decimal('0.002') } }))?.get('shape.object.decimal')).toStrictEqual(new Decimal('0.002'));
+  expect((await q.clone().updateOne({ 'shape.object.string': { $set: 'world' } }))?.get('shape.object.string')).toStrictEqual('world');
+  expect((await q.clone().updateOne({ 'shape.object.date': { $set: date2 } }))?.get('shape.object.date')).toStrictEqual(date2);
+
+  expect((await q.clone().updateOne({ 'shape.object.number': { $inc: 2 } }))?.get('shape.object.number')).toStrictEqual(66);
+  expect((await q.clone().updateOne({ 'shape.object.decimal': { $inc: 1 } }))?.get('shape.object.decimal')).toStrictEqual(new Decimal('1.002'));
+
+  expect((await q.clone().updateOne({ 'shape.object.number': { $dec: 2 } }))?.get('shape.object.number')).toStrictEqual(64);
+  expect((await q.clone().updateOne({ 'shape.object.decimal': { $dec: 1 } }))?.get('shape.object.decimal')).toStrictEqual(new Decimal('0.002'));
+
+  expect((await q.clone().updateOne({ 'shape.object.number': { $mul: 2 } }))?.get('shape.object.number')).toStrictEqual(128);
+  expect((await q.clone().updateOne({ 'shape.object.decimal': { $mul: 2 } }))?.get('shape.object.decimal')).toStrictEqual(new Decimal('0.004'));
+
+  expect((await q.clone().updateOne({ 'shape.object.number': { $div: 2 } }))?.get('shape.object.number')).toStrictEqual(64);
+  expect((await q.clone().updateOne({ 'shape.object.decimal': { $div: 2 } }))?.get('shape.object.decimal')).toStrictEqual(new Decimal('0.002'));
+
+  expect((await q.clone().updateOne({ 'shape.object.number': { $min: 2 } }))?.get('shape.object.number')).toStrictEqual(2);
+  expect((await q.clone().updateOne({ 'shape.object.decimal': { $min: 0 } }))?.get('shape.object.decimal')).toStrictEqual(new Decimal('0'));
+  expect((await q.clone().updateOne({ 'shape.object.date': { $min: date } }))?.get('shape.object.date')).toStrictEqual(date);
+
+  expect((await q.clone().updateOne({ 'shape.object.number': { $max: 10 } }))?.get('shape.object.number')).toStrictEqual(10);
+  expect((await q.clone().updateOne({ 'shape.object.decimal': { $max: 10 } }))?.get('shape.object.decimal')).toStrictEqual(new Decimal('10'));
+  expect((await q.clone().updateOne({ 'shape.object.date': { $max: date2 } }))?.get('shape.object.date')).toStrictEqual(date2);
 })
 
 test('test update types 3', async () => {
