@@ -37,7 +37,7 @@ export interface SqlDialect {
   boolean(value: boolean): string;
   encodeType(colname: string, type: TSchema.DataType, value: TValue): SQL;
   decodeType(type: TSchema.Primitive, value: any): TValue;
-  updateOperation(schema: Record<string, TSchema>, className: string, path: string, operation: TUpdateOp): SQL;
+  updateOperation(paths: string[], dataType: TSchema.DataType, operation: TUpdateOp): SQL;
 
   selectPopulate(
     compiler: QueryCompiler,

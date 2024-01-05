@@ -31,10 +31,9 @@ import { _encodeValue, _encodeJsonValue } from './encode';
 import { stringArrayAttrs } from './basic';
 import { encodeType } from './encode';
 import { nullSafeEqual } from './basic';
-import { _resolveColumn } from '../../../../server/query/validator/validator';
 
-export const updateOperation = (schema: Record<string, TSchema>, className: string, path: string, operation: TUpdateOp) => {
-  const { paths: [column, ...subpath], dataType } = _resolveColumn(schema, className, path);
+export const updateOperation = (paths: string[], dataType: TSchema.DataType, operation: TUpdateOp) => {
+  const [column, ...subpath] = paths;
   const [op, value] = decodeUpdateOp(operation);
   if (_.isEmpty(subpath)) {
     switch (op) {
