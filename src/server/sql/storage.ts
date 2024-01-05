@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { DecodedQuery, FindOptions, FindOneOptions, InsertOptions, TStorage, TransactionOptions } from '../storage';
-import { TSchema, isPointer, isRelation, isShapedObject } from '../../internals/schema';
+import { TSchema, isPointer, isPrimitive, isRelation, isShapedObject, shapedObjectPaths } from '../../internals/schema';
 import { ScheduleOp, storageSchedule } from '../schedule';
 import { PVK, TObject, TValue, TUpdateOp, asyncStream, _TValue, TQueryRandomOptions } from '../../internals';
 import { SQL, sql } from './sql';
@@ -74,6 +74,26 @@ export abstract class SqlStorage implements TStorage {
   abstract _explain(compiler: QueryCompiler, query: DecodedQuery<FindOptions>): PromiseLike<any>
 
   private _decodeShapedObject(dataType: TSchema.ShapedObject, value: any) {
+    const result = {};
+    for (const { path, type } of shapedObjectPaths(dataType)) {
+      if (_.isString(type)) {
+        const _value = _.get(value, path);
+        if (!_.isNil(_value)) _.set(result, path, _value);
+      } else if (isPrimitive(type)) {
+        const _value = _.get(value, path) ?? type.default;
+        if (!_.isNil(_value)) _.set(result, path, _value);
+      } else if (isPointer(type)) {
+        const _value = _.get(value, path);
+        if (_.isPlainObject(_value)) {
+          const decoded = this._decodeObject(type.target, _value);
+          if (decoded.objectId) _.set(result, path, decoded);
+        }
+      } else if (isRelation(type)) {
+        const _value = _.get(value, path);
+        if (_.isArray(_value)) _.set(result, path, _value.map(x => this._decodeObject(type.target, x)));
+      }
+    }
+    return result;
   }
 
   private _decodeObject(className: string, attrs: Record<string, any>): TObject {
