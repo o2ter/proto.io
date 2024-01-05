@@ -61,6 +61,8 @@ export const isPointer = (x: TSchema.DataType): x is TSchema.PointerType => !_.i
 export const isRelation = (x: TSchema.DataType): x is TSchema.RelationType => !_.isString(x) && x.type === 'relation';
 export const _typeof = (x: TSchema.DataType) => _.isString(x) ? x : x.type !== 'pointer' && x.type !== 'relation' ? x.type : x.target;
 
+export const shapedObjectPaths = (x: TSchema.ShapedObject): string[] => _.flatMap(x.shape, (v, k) => isShapedObject(v) ? _.map(shapedObjectPaths(v), x => `${k}.${x}`) : [k]);
+
 export interface TSchema {
   fields: Record<string, TSchema.DataType>;
   classLevelPermissions?: TSchema.CLPs;
