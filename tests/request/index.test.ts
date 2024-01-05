@@ -845,6 +845,17 @@ test('test update types 3', async () => {
         date: date,
       },
     }],
+    shape: {
+      array: [{
+        object: {
+          boolean: true,
+          number: 42.5,
+          decimal: new Decimal('0.001'),
+          string: 'hello',
+          date: date,
+        },
+      }],
+    },
   });
 
   const q = Proto.Query('Test').equalTo('_id', inserted.objectId);
@@ -874,11 +885,40 @@ test('test update types 3', async () => {
   expect((await q.clone().updateOne({ 'array.0.object.number': { $max: 10 } }))?.get('array.0.object.number')).toStrictEqual(10);
   expect((await q.clone().updateOne({ 'array.0.object.decimal': { $max: 10 } }))?.get('array.0.object.decimal')).toStrictEqual(new Decimal('10'));
   expect((await q.clone().updateOne({ 'array.0.object.date': { $max: date2 } }))?.get('array.0.object.date')).toStrictEqual(date2);
+
+  expect((await q.clone().updateOne({ 'shape.array.0.object.boolean': { $set: false } }))?.get('shape.array.0.object.boolean')).toStrictEqual(false);
+  expect((await q.clone().updateOne({ 'shape.array.0.object.number': { $set: 64 } }))?.get('shape.array.0.object.number')).toStrictEqual(64);
+  expect((await q.clone().updateOne({ 'shape.array.0.object.decimal': { $set: new Decimal('0.002') } }))?.get('shape.array.0.object.decimal')).toStrictEqual(new Decimal('0.002'));
+  expect((await q.clone().updateOne({ 'shape.array.0.object.string': { $set: 'world' } }))?.get('shape.array.0.object.string')).toStrictEqual('world');
+  expect((await q.clone().updateOne({ 'shape.array.0.object.date': { $set: date2 } }))?.get('shape.array.0.object.date')).toStrictEqual(date2);
+
+  expect((await q.clone().updateOne({ 'shape.array.0.object.number': { $inc: 2 } }))?.get('shape.array.0.object.number')).toStrictEqual(66);
+  expect((await q.clone().updateOne({ 'shape.array.0.object.decimal': { $inc: 1 } }))?.get('shape.array.0.object.decimal')).toStrictEqual(new Decimal('1.002'));
+
+  expect((await q.clone().updateOne({ 'shape.array.0.object.number': { $dec: 2 } }))?.get('shape.array.0.object.number')).toStrictEqual(64);
+  expect((await q.clone().updateOne({ 'shape.array.0.object.decimal': { $dec: 1 } }))?.get('shape.array.0.object.decimal')).toStrictEqual(new Decimal('0.002'));
+
+  expect((await q.clone().updateOne({ 'shape.array.0.object.number': { $mul: 2 } }))?.get('shape.array.0.object.number')).toStrictEqual(128);
+  expect((await q.clone().updateOne({ 'shape.array.0.object.decimal': { $mul: 2 } }))?.get('shape.array.0.object.decimal')).toStrictEqual(new Decimal('0.004'));
+
+  expect((await q.clone().updateOne({ 'shape.array.0.object.number': { $div: 2 } }))?.get('shape.array.0.object.number')).toStrictEqual(64);
+  expect((await q.clone().updateOne({ 'shape.array.0.object.decimal': { $div: 2 } }))?.get('shape.array.0.object.decimal')).toStrictEqual(new Decimal('0.002'));
+
+  expect((await q.clone().updateOne({ 'shape.array.0.object.number': { $min: 2 } }))?.get('shape.array.0.object.number')).toStrictEqual(2);
+  expect((await q.clone().updateOne({ 'shape.array.0.object.decimal': { $min: 0 } }))?.get('shape.array.0.object.decimal')).toStrictEqual(new Decimal('0'));
+  expect((await q.clone().updateOne({ 'shape.array.0.object.date': { $min: date } }))?.get('shape.array.0.object.date')).toStrictEqual(date);
+
+  expect((await q.clone().updateOne({ 'shape.array.0.object.number': { $max: 10 } }))?.get('shape.array.0.object.number')).toStrictEqual(10);
+  expect((await q.clone().updateOne({ 'shape.array.0.object.decimal': { $max: 10 } }))?.get('shape.array.0.object.decimal')).toStrictEqual(new Decimal('10'));
+  expect((await q.clone().updateOne({ 'shape.array.0.object.date': { $max: date2 } }))?.get('shape.array.0.object.date')).toStrictEqual(date2);
 })
 
 test('test update types 4', async () => {
   const inserted = await Proto.Query('Test').insert({
     array: [1, 2, 3],
+    shape: {
+      array: [1, 2, 3],
+    },
   });
 
   const q = Proto.Query('Test').equalTo('_id', inserted.objectId);
@@ -888,12 +928,23 @@ test('test update types 4', async () => {
   expect((await q.clone().updateOne({ array: { $removeAll: [4] } }))?.get('array')).toStrictEqual([1, 2, 3, 5]);
   expect((await q.clone().updateOne({ array: { $popFirst: 1 } }))?.get('array')).toStrictEqual([2, 3, 5]);
   expect((await q.clone().updateOne({ array: { $popLast: 1 } }))?.get('array')).toStrictEqual([2, 3]);
+
+  expect((await q.clone().updateOne({ 'shape.array': { $addToSet: [2, 3, 4] } }))?.get('shape.array')).toStrictEqual([1, 2, 3, 4]);
+  expect((await q.clone().updateOne({ 'shape.array': { $push: [4, 5] } }))?.get('shape.array')).toStrictEqual([1, 2, 3, 4, 4, 5]);
+  expect((await q.clone().updateOne({ 'shape.array': { $removeAll: [4] } }))?.get('shape.array')).toStrictEqual([1, 2, 3, 5]);
+  expect((await q.clone().updateOne({ 'shape.array': { $popFirst: 1 } }))?.get('shape.array')).toStrictEqual([2, 3, 5]);
+  expect((await q.clone().updateOne({ 'shape.array': { $popLast: 1 } }))?.get('shape.array')).toStrictEqual([2, 3]);
 })
 
 test('test update types 5', async () => {
   const inserted = await Proto.Query('Test').insert({
     object: {
       array: [1, 2, 3],
+    },
+    shape: {
+      object: {
+        array: [1, 2, 3],
+      },
     },
   });
 
@@ -904,6 +955,12 @@ test('test update types 5', async () => {
   expect((await q.clone().updateOne({ 'object.array': { $removeAll: [4] } }))?.get('object.array')).toStrictEqual([1, 2, 3, 5]);
   expect((await q.clone().updateOne({ 'object.array': { $popFirst: 1 } }))?.get('object.array')).toStrictEqual([2, 3, 5]);
   expect((await q.clone().updateOne({ 'object.array': { $popLast: 1 } }))?.get('object.array')).toStrictEqual([2, 3]);
+
+  expect((await q.clone().updateOne({ 'shape.object.array': { $addToSet: [2, 3, 4] } }))?.get('shape.object.array')).toStrictEqual([1, 2, 3, 4]);
+  expect((await q.clone().updateOne({ 'shape.object.array': { $push: [4, 5] } }))?.get('shape.object.array')).toStrictEqual([1, 2, 3, 4, 4, 5]);
+  expect((await q.clone().updateOne({ 'shape.object.array': { $removeAll: [4] } }))?.get('shape.object.array')).toStrictEqual([1, 2, 3, 5]);
+  expect((await q.clone().updateOne({ 'shape.object.array': { $popFirst: 1 } }))?.get('shape.object.array')).toStrictEqual([2, 3, 5]);
+  expect((await q.clone().updateOne({ 'shape.object.array': { $popLast: 1 } }))?.get('shape.object.array')).toStrictEqual([2, 3]);
 })
 
 test('test update types 6', async () => {
@@ -913,6 +970,13 @@ test('test update types 6', async () => {
         array: [1, 2, 3],
       },
     }],
+    shape: {
+      array: [{
+        object: {
+          array: [1, 2, 3],
+        },
+      }],
+    },
   });
 
   const q = Proto.Query('Test').equalTo('_id', inserted.objectId);
@@ -922,6 +986,12 @@ test('test update types 6', async () => {
   expect((await q.clone().updateOne({ 'array.0.object.array': { $removeAll: [4] } }))?.get('array.0.object.array')).toStrictEqual([1, 2, 3, 5]);
   expect((await q.clone().updateOne({ 'array.0.object.array': { $popFirst: 1 } }))?.get('array.0.object.array')).toStrictEqual([2, 3, 5]);
   expect((await q.clone().updateOne({ 'array.0.object.array': { $popLast: 1 } }))?.get('array.0.object.array')).toStrictEqual([2, 3]);
+
+  expect((await q.clone().updateOne({ 'shape.array.0.object.array': { $addToSet: [2, 3, 4] } }))?.get('shape.array.0.object.array')).toStrictEqual([1, 2, 3, 4]);
+  expect((await q.clone().updateOne({ 'shape.array.0.object.array': { $push: [4, 5] } }))?.get('shape.array.0.object.array')).toStrictEqual([1, 2, 3, 4, 4, 5]);
+  expect((await q.clone().updateOne({ 'shape.array.0.object.array': { $removeAll: [4] } }))?.get('shape.array.0.object.array')).toStrictEqual([1, 2, 3, 5]);
+  expect((await q.clone().updateOne({ 'shape.array.0.object.array': { $popFirst: 1 } }))?.get('shape.array.0.object.array')).toStrictEqual([2, 3, 5]);
+  expect((await q.clone().updateOne({ 'shape.array.0.object.array': { $popLast: 1 } }))?.get('shape.array.0.object.array')).toStrictEqual([2, 3]);
 })
 
 test('test update types 7', async () => {
