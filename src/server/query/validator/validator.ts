@@ -260,12 +260,9 @@ export class QueryValidator<E> {
     const schema = this.schema[className] ?? {};
     const _matches: Record<string, DecodedBaseQuery> = {};
 
-    for (const colname of _.uniq(_.compact(includes.map(x => _.first(x.split('.')))))) {
+    for (const { paths: [colname], dataType } of _.map(includes, x => _resolveColumn(this.schema, className, x))) {
       if (!this.validateKeyPerm(colname, 'read', schema)) continue;
-
-      const dataType = schema.fields[colname];
-      if (isPrimitive(dataType)) continue;
-
+      if (isPrimitive(dataType) || isShapedObject(dataType)) continue;
       _matches[colname] = {
         filter: QuerySelector.decode([...this._rperm, this._expiredAt]).simplify(),
         matches: this.decodeMatches(
@@ -278,7 +275,7 @@ export class QueryValidator<E> {
     for (const [colname, match] of _.toPairs(matches)) {
       if (!this.validateKeyPerm(colname, 'read', schema)) throw Error('No permission');
 
-      const dataType = schema.fields[colname];
+      const { dataType } = _resolveColumn(this.schema, className, colname);
       if (!isRelation(dataType)) throw Error(`Invalid match: ${colname}`);
       if (!this.validateCLPs(dataType.target, 'get')) throw Error('No permission');
       this.validateForeignField(dataType, 'read', `Invalid match: ${colname}`);
