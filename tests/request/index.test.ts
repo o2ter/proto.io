@@ -1022,6 +1022,16 @@ test('test update types 8', async () => {
       date: date,
       array: [1, 2, 3, date, new Decimal('0.001')],
     },
+    shape: {
+      object: {
+        boolean: true,
+        number: 42.5,
+        decimal: new Decimal('0.001'),
+        string: 'hello',
+        date: date,
+        array: [1, 2, 3, date, new Decimal('0.001')],
+      },
+    },
   });
 
   const q = Proto.Query('Test').equalTo('_id', inserted.objectId);
@@ -1032,6 +1042,13 @@ test('test update types 8', async () => {
   expect((await q.clone().updateOne({ string: { $set: null } }))?.get('string')).toStrictEqual(null);
   expect((await q.clone().updateOne({ date: { $set: null } }))?.get('date')).toStrictEqual(null);
   expect((await q.clone().updateOne({ array: { $set: null } }))?.get('array')).toStrictEqual(null);
+
+  expect((await q.clone().updateOne({ 'shape.boolean': { $set: null } }))?.get('shape.boolean')).toBeUndefined();
+  expect((await q.clone().updateOne({ 'shape.number': { $set: null } }))?.get('shape.number')).toBeUndefined();
+  expect((await q.clone().updateOne({ 'shape.decimal': { $set: null } }))?.get('shape.decimal')).toBeUndefined();
+  expect((await q.clone().updateOne({ 'shape.string': { $set: null } }))?.get('shape.string')).toBeUndefined();
+  expect((await q.clone().updateOne({ 'shape.date': { $set: null } }))?.get('shape.date')).toBeUndefined();
+  expect((await q.clone().updateOne({ 'shape.array': { $set: null } }))?.get('shape.array')).toBeUndefined();
 })
 
 test('test save keys', async () => {
