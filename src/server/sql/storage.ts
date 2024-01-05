@@ -73,6 +73,9 @@ export abstract class SqlStorage implements TStorage {
 
   abstract _explain(compiler: QueryCompiler, query: DecodedQuery<FindOptions>): PromiseLike<any>
 
+  private _decodeShapedObject(dataType: TSchema.ShapedObject, value: any) {
+  }
+
   private _decodeObject(className: string, attrs: Record<string, any>): TObject {
     const fields = this.schema[className].fields;
     const obj = new TObject(className);
@@ -86,7 +89,7 @@ export abstract class SqlStorage implements TStorage {
       if (_.isString(dataType)) {
         obj[PVK].attributes[key] = this.dialect.decodeType(dataType, value);
       } else if (isShapedObject(dataType)) {
-        obj[PVK].attributes[key] = this.dialect.decodeType(dataType.type, value);
+        obj[PVK].attributes[key] = this._decodeShapedObject(dataType, value);
       } else if (isPointer(dataType)) {
         if (_.isPlainObject(value)) {
           const decoded = this._decodeObject(dataType.target, value);
