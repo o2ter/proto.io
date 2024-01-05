@@ -296,7 +296,7 @@ export class QueryCompiler {
         if (_op !== '$set') throw Error('Invalid update operation');
         for (const { path, type } of shapedObjectPaths(dataType)) {
           if (!isRelation(type) || _.isNil(type.foreignField)) {
-            updates.push(sql`${{ identifier: column }} = ${this.dialect.updateOperation(
+            updates.push(sql`${{ identifier: `${column}.${path}` }} = ${this.dialect.updateOperation(
               [`${column}.${path}`], type, { $set: _.get(value, path) ?? null }
             )}`);
           }

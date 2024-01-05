@@ -1088,6 +1088,18 @@ test('test save keys 2', async () => {
   expect(obj.get('shape.relation')?.[0]?.objectId).toStrictEqual(inserted.objectId);
 })
 
+test('test save keys 3', async () => {
+  const obj = await Proto.Query('Test').insert({});
+  obj.set('shape', { 
+    number: 42,
+    string: 'hello',
+  });
+  await obj.save();
+
+  expect(obj.get('shape.number')).toStrictEqual(42);
+  expect(obj.get('shape.string')).toStrictEqual('hello');
+})
+
 test('test pointer', async () => {
   const date = new Date;
   const inserted = await Proto.Query('Test').insert({
