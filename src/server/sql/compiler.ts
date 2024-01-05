@@ -289,11 +289,10 @@ export class QueryCompiler {
 
   private _encodeUpdateAttrs(className: string, attrs: Record<string, TUpdateOp>): SQL[] {
     const updates: SQL[] = [];
-    const fields = this.schema[className].fields;
     for (const [path, op] of _.toPairs(attrs)) {
       const [colname] = _.toPath(path);
       updates.push(sql`${{ identifier: colname }} = ${this.dialect.updateOperation(
-        path, fields[colname], op
+        this.schema, className, path, op
       )}`);
     }
     return updates;
