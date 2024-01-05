@@ -225,7 +225,18 @@ export class QueryValidator<E> {
 
         } else if (_.isEmpty(subpath) && isShapedObject(dataType)) {
 
-          const paths = shapedObjectPaths(dataType);
+          for (const { path, type } of shapedObjectPaths(dataType)) {
+            if (isPrimitive(type)) {
+              _includes.push(`${colname}.${path}`);
+            } else {
+
+              if (!this.validateCLPs(type.target, 'get')) throw Error('No permission');
+              if (type.type === 'relation') this.validateForeignField(type, 'read', `Invalid include: ${include}`);
+
+              populates[colname] = populates[colname] ?? { className: type.target, subpaths: [] };
+              populates[colname].subpaths.push('*');
+            }
+          }
 
         } else if (_.isEmpty(subpath) || _.includes(['object', 'array'], _typeof(dataType))) {
           _includes.push(colname);
