@@ -24,17 +24,18 @@
 //
 
 import _ from 'lodash';
-import { _TValue } from '.';
+import { _TValue } from './query/value';
 
 export namespace TSchema {
   export type ACL = string[];
   export type ACLs = { read: TSchema.ACL; update: TSchema.ACL; };
   export type Primitive = 'boolean' | 'number' | 'decimal' | 'string' | 'date' | 'object' | 'array';
+  export type PrimitiveType = Primitive | { type: Primitive; default?: _TValue; };
+  export type ShapedObject = { type: 'object'; shape: Record<string, DataType>; default?: _TValue; };
   export type Relation = 'pointer' | 'relation';
   export type PointerType = { type: 'pointer'; target: string; };
   export type RelationType = { type: 'relation'; target: string; foreignField?: string; };
-  export type PrimitiveType = Primitive | { type: Primitive; default?: _TValue; };
-  export type DataType = PrimitiveType | PointerType | RelationType;
+  export type DataType = PrimitiveType | ShapedObject | PointerType | RelationType;
   export type CLPs = {
     get?: TSchema.ACL;
     find?: TSchema.ACL;
@@ -54,6 +55,7 @@ export namespace TSchema {
   };
 }
 
+export const isShapedObject = (x: TSchema.DataType): x is TSchema.ShapedObject => !_.isString(x) && x.type === 'object' && 'shape' in x;
 export const isPrimitive = (x: TSchema.DataType): x is TSchema.PrimitiveType => _.isString(x) || (x.type !== 'pointer' && x.type !== 'relation');
 export const isPointer = (x: TSchema.DataType): x is TSchema.PointerType => !_.isString(x) && x.type === 'pointer';
 export const isRelation = (x: TSchema.DataType): x is TSchema.RelationType => !_.isString(x) && x.type === 'relation';

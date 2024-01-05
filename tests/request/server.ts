@@ -73,6 +73,18 @@ const Proto = new ProtoService({
         date: 'date',
         object: 'object',
         array: 'array',
+        shape: {
+          type: 'object',
+          shape: {
+            boolean: 'boolean',
+            number: 'number',
+            decimal: 'decimal',
+            string: 'string',
+            date: 'date',
+            object: 'object',
+            array: 'array',
+          },
+        },
         null_boolean: 'boolean',
         null_number: 'number',
         null_decimal: 'decimal',

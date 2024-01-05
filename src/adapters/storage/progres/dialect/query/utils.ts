@@ -27,7 +27,7 @@ import _ from 'lodash';
 import { sql } from '../../../../../server/sql';
 import { QueryCompiler } from '../../../../../server/sql/compiler';
 import { TSchema, isPointer, isRelation } from '../../../../../internals/schema';
-import { QueryValidator } from '../../../../../server/query/validator/validator';
+import { QueryValidator, _resolveColumn } from '../../../../../server/query/validator/validator';
 
 const _fetchElement = (
   compiler: QueryCompiler,
@@ -59,8 +59,7 @@ const resolvePaths = (
   className: string,
   paths: string[],
 ): { dataType: TSchema.DataType; colname: string; subpath: string[]; } => {
-  const [colname, ...subpath] = paths;
-  const dataType = compiler.schema[className].fields[colname];
+  const { paths: [colname, ...subpath], dataType } = _resolveColumn(compiler.schema, className, paths.join('.'));
   if (!_.isEmpty(subpath) && isPointer(dataType)) {
     const resolved = resolvePaths(compiler, dataType.target, subpath);
     return { ...resolved, colname: `${colname}.${resolved.colname}` };

@@ -32,7 +32,7 @@ import {
 } from '../../../internals';
 import { DecodedBaseQuery, DecodedQuery, FindOptions, FindOneOptions } from '../../storage';
 import { QueryCoditionalSelector, QueryFieldSelector, QuerySelector } from './parser';
-import { TSchema, _typeof, isPointer, isPrimitive, isRelation } from '../../../internals/schema';
+import { TSchema, _typeof, isPointer, isPrimitive, isRelation, isShapedObject } from '../../../internals/schema';
 import { ProtoService } from '../../proto';
 import { TQueryBaseOptions } from '../../../internals/query/base';
 
@@ -41,6 +41,23 @@ export const recursiveCheck = (x: any, stack: any[]) => {
   if (_.isRegExp(x) || isPrimitiveValue(x) || x instanceof TObject) return;
   const children = _.isArray(x) ? x : _.values(x);
   children.forEach(v => recursiveCheck(v, [...stack, x]));
+}
+
+export const _resolveColumn = (schema: Record<string, TSchema>, className: string, path: string) => {
+  const _schema = schema[className] ?? {};
+  let [colname, ...subpath] = path.split('.');
+  let dataType = _schema.fields[colname];
+  while (dataType && !_.isEmpty(subpath) && isShapedObject(dataType)) {
+    const [key, ...remain] = subpath;
+    if (!dataType.shape[key]) break;
+    dataType = dataType.shape[key];
+    colname = `${colname}.${key}`;
+    subpath = remain;
+  }
+  return {
+    paths: [colname, ...subpath],
+    dataType,
+  };
 }
 
 export class QueryValidator<E> {

@@ -31,6 +31,7 @@ import { SQL, sql } from './sql';
 import { TValue, TUpdateOp } from '../../internals';
 import { generateId } from '../crypto/random';
 import { SqlDialect } from './dialect';
+import { _resolveColumn } from '../query/validator/validator';
 
 export type QueryCompilerOptions = {
   className: string;
@@ -138,14 +139,12 @@ export class QueryCompiler {
 
   private _encodeIncludes(className: string, includes: string[], matches: Record<string, DecodedBaseQuery>) {
 
-    const schema = this.schema[className] ?? {};
     const names: Record<string, TSchema.DataType> = {};
     const populates: Record<string, Populate> = {};
 
     for (const include of includes) {
-      const [colname, ...subpath] = include.split('.');
+      const { paths: [colname, ...subpath], dataType } = _resolveColumn(this.schema, className, include);
 
-      const dataType = schema.fields[colname];
       names[colname] = dataType;
 
       if (isPointer(dataType) || isRelation(dataType)) {
@@ -396,11 +395,11 @@ export class QueryCompiler {
       RETURNING *
     )${!_.isEmpty(stages) ? sql`, ${_.map(stages, (q, n) => sql`${{ identifier: n }} AS (${q})`)}` : sql``}
     SELECT ${{
-      literal: [
-        ...this._selectIncludes(name, context.includes),
-        ..._.flatMap(_populates, ({ columns }) => columns),
-      ], separator: ',\n'
-    }}
+        literal: [
+          ...this._selectIncludes(name, context.includes),
+          ..._.flatMap(_populates, ({ columns }) => columns),
+        ], separator: ',\n'
+      }}
     FROM ${{ identifier: name }}
     ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
   `;
