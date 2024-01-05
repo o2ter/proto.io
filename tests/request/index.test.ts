@@ -1357,12 +1357,17 @@ test('test relation 5', async () => {
     .updateOne({
       pointer: { $set: inserted },
       relation: { $set: [inserted] },
+      'shape.pointer': { $set: inserted },
+      'shape.relation': { $set: [inserted] },
     });
 
   const q = Proto.Query('Test').equalTo('_id', inserted.objectId);
 
   expect((await q.clone().equalTo('relation.0.pointer.number', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().equalTo('relation.0.relation.0.pointer.number', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
+
+  expect((await q.clone().equalTo('shape.relation.0.pointer.number', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('shape.relation.0.relation.0.pointer.number', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
 })
 
 test('test update', async () => {
