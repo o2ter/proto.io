@@ -80,7 +80,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
     `);
   }
 
-  private fields(schema: TSchema) {
+  private _fields(schema: TSchema) {
     const fields: Record<string, Exclude<TSchema.DataType, TSchema.ShapedObject>> = {};
     for (const [key, dataType] of _.entries(schema.fields)) {
       if (isShapedObject(dataType)) {
@@ -96,7 +96,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
 
   private async _createTable(className: string, schema: TSchema) {
     const fields = _.pickBy(
-      this.fields(schema), (x, k) => !_.includes(TObject.defaultKeys, k) && (!isRelation(x) || _.isNil(x.foreignField))
+      this._fields(schema), (x, k) => !_.includes(TObject.defaultKeys, k) && (!isRelation(x) || _.isNil(x.foreignField))
     );
     await this.query(sql`
       CREATE TABLE
@@ -123,7 +123,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
   }
 
   private _indicesOf(schema: TSchema) {
-    const fields = this.fields(schema);
+    const fields = this._fields(schema);
     const pointers = _.pickBy(fields, v => isPointer(v));
     const relations = _.pickBy(fields, v => isRelation(v) && _.isNil(v.foreignField));
     return {
@@ -155,7 +155,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
       'timestamp without time zone': 'timestamp',
       'numeric': 'decimal',
     };
-    const fields = this.fields(schema);
+    const fields = this._fields(schema);
     const rebuild: { name: string; type: string; }[] = [];
     for (const column of columns) {
       if (TObject.defaultKeys.includes(column.name)) continue;
