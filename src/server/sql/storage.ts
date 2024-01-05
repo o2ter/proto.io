@@ -79,18 +79,18 @@ export abstract class SqlStorage implements TStorage {
       if (_.isString(type)) {
         const _value = _.get(value, path);
         if (!_.isNil(_value)) _.set(result, path, _value);
-      } else if (isPrimitive(type)) {
-        const _value = _.get(value, path) ?? type.default;
-        if (!_.isNil(_value)) _.set(result, path, _value);
       } else if (isPointer(type)) {
         const _value = _.get(value, path);
         if (_.isPlainObject(_value)) {
           const decoded = this._decodeObject(type.target, _value);
           if (decoded.objectId) _.set(result, path, decoded);
         }
-      } else {
+      } else if (isRelation(type)) {
         const _value = _.get(value, path);
         if (_.isArray(_value)) _.set(result, path, _value.map(x => this._decodeObject(type.target, x)));
+      } else {
+        const _value = _.get(value, path) ?? type.default;
+        if (!_.isNil(_value)) _.set(result, path, _value);
       }
     }
     return result;
