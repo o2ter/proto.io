@@ -106,6 +106,7 @@ export class QueryValidator<E> {
     type: keyof TSchema.FLPs,
     schema: TSchema,
   ) {
+    key = _.first(key?.split('.')) ?? key;
     if (_.isEmpty(key) || (!_.has(schema.fields, key) && !TObject.defaultKeys.includes(key))) throw Error(`Invalid key: ${key}`);
     if (type === 'read' && TObject.defaultKeys.includes(key)) return true;
     if (type !== 'read' && TObject.defaultReadonlyKeys.includes(key)) return false;
@@ -206,10 +207,9 @@ export class QueryValidator<E> {
       if (include === '*') {
         _includes.push(..._.filter(primitive, k => this.validateKeyPerm(k, 'read', schema)));
       } else {
-        const [colname, ...subpath] = include.split('.');
+        const { paths: [colname, ...subpath], dataType } = _resolveColumn(this.schema, className, include);
         if (!this.validateKeyPerm(colname, 'read', schema)) throw Error('No permission');
 
-        const dataType = schema.fields[colname];
         if (isPointer(dataType) || isRelation(dataType)) {
           if (!this.validateCLPs(dataType.target, 'get')) throw Error('No permission');
           if (dataType.type === 'relation' && !_.isNil(dataType.foreignField)) {
