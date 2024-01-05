@@ -314,8 +314,12 @@ test('test types 2', async () => {
   const date = new Date;
   const inserted = await Proto.Query('Test').insert({
     array: [1, 2, 3, date, new Decimal('0.001')],
+    shape: {
+      array: [1, 2, 3, date, new Decimal('0.001')],
+    },
   });
   expect(inserted.get('array')).toStrictEqual([1, 2, 3, date, new Decimal('0.001')]);
+  expect(inserted.get('shape.array')).toStrictEqual([1, 2, 3, date, new Decimal('0.001')]);
 
   const q = Proto.Query('Test').equalTo('_id', inserted.objectId);
 
@@ -325,8 +329,17 @@ test('test types 2', async () => {
   expect((await q.clone().notEqualTo('array.3', date).first())?.objectId).toBeUndefined();
   expect((await q.clone().notEqualTo('array.4', new Decimal('0.001')).first())?.objectId).toBeUndefined();
 
+  expect((await q.clone().notEqualTo('shape.array.0', 1).first())?.objectId).toBeUndefined();
+  expect((await q.clone().notEqualTo('shape.array.1', 2).first())?.objectId).toBeUndefined();
+  expect((await q.clone().notEqualTo('shape.array.2', 3).first())?.objectId).toBeUndefined();
+  expect((await q.clone().notEqualTo('shape.array.3', date).first())?.objectId).toBeUndefined();
+  expect((await q.clone().notEqualTo('shape.array.4', new Decimal('0.001')).first())?.objectId).toBeUndefined();
+
   expect((await q.clone().every('array', q => q.notEqualTo('$', 3)).first())?.objectId).toBeUndefined();
   expect((await q.clone().some('array', q => q.equalTo('$', null)).first())?.objectId).toBeUndefined();
+
+  expect((await q.clone().every('shape.array', q => q.notEqualTo('$', 3)).first())?.objectId).toBeUndefined();
+  expect((await q.clone().some('shape.array', q => q.equalTo('$', null)).first())?.objectId).toBeUndefined();
 
   expect((await q.clone().notContainsIn('array.0', [1, 2, 3, date, new Decimal('0.001')]).first())?.objectId).toBeUndefined();
   expect((await q.clone().notContainsIn('array.1', [1, 2, 3, date, new Decimal('0.001')]).first())?.objectId).toBeUndefined();
@@ -334,13 +347,26 @@ test('test types 2', async () => {
   expect((await q.clone().notContainsIn('array.3', [1, 2, 3, date, new Decimal('0.001')]).first())?.objectId).toBeUndefined();
   expect((await q.clone().notContainsIn('array.4', [1, 2, 3, date, new Decimal('0.001')]).first())?.objectId).toBeUndefined();
 
+  expect((await q.clone().notContainsIn('shape.array.0', [1, 2, 3, date, new Decimal('0.001')]).first())?.objectId).toBeUndefined();
+  expect((await q.clone().notContainsIn('shape.array.1', [1, 2, 3, date, new Decimal('0.001')]).first())?.objectId).toBeUndefined();
+  expect((await q.clone().notContainsIn('shape.array.2', [1, 2, 3, date, new Decimal('0.001')]).first())?.objectId).toBeUndefined();
+  expect((await q.clone().notContainsIn('shape.array.3', [1, 2, 3, date, new Decimal('0.001')]).first())?.objectId).toBeUndefined();
+  expect((await q.clone().notContainsIn('shape.array.4', [1, 2, 3, date, new Decimal('0.001')]).first())?.objectId).toBeUndefined();
+
   expect((await q.clone().isSubset('array', [1, 2, 3]).first())?.objectId).toBeUndefined();
   expect((await q.clone().isSubset('array', [4, 5, 6]).first())?.objectId).toBeUndefined();
   expect((await q.clone().isDisjoint('array', [1, 2, 3]).first())?.objectId).toBeUndefined();
   expect((await q.clone().isSuperset('array', [4, 5, 6]).first())?.objectId).toBeUndefined();
   expect((await q.clone().isIntersect('array', [4, 5, 6]).first())?.objectId).toBeUndefined();
 
+  expect((await q.clone().isSubset('shape.array', [1, 2, 3]).first())?.objectId).toBeUndefined();
+  expect((await q.clone().isSubset('shape.array', [4, 5, 6]).first())?.objectId).toBeUndefined();
+  expect((await q.clone().isDisjoint('shape.array', [1, 2, 3]).first())?.objectId).toBeUndefined();
+  expect((await q.clone().isSuperset('shape.array', [4, 5, 6]).first())?.objectId).toBeUndefined();
+  expect((await q.clone().isIntersect('shape.array', [4, 5, 6]).first())?.objectId).toBeUndefined();
+
   expect((await q.clone().containsIn('array.0', [1, 2, 3, 42.5, 'hello']).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().containsIn('shape.array.0', [1, 2, 3, 42.5, 'hello']).first())?.objectId).toStrictEqual(inserted.objectId);
 
   expect((await q.clone().notEqualTo('array.0', 4).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().notEqualTo('array.1', 5).first())?.objectId).toStrictEqual(inserted.objectId);
@@ -348,8 +374,17 @@ test('test types 2', async () => {
   expect((await q.clone().notEqualTo('array.3', new Date).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().notEqualTo('array.4', new Decimal('1.001')).first())?.objectId).toStrictEqual(inserted.objectId);
 
+  expect((await q.clone().notEqualTo('shape.array.0', 4).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().notEqualTo('shape.array.1', 5).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().notEqualTo('shape.array.2', 6).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().notEqualTo('shape.array.3', new Date).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().notEqualTo('shape.array.4', new Decimal('1.001')).first())?.objectId).toStrictEqual(inserted.objectId);
+
   expect((await q.clone().some('array', q => q.equalTo('$', 3)).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().every('array', q => q.notEqualTo('$', null)).first())?.objectId).toStrictEqual(inserted.objectId);
+
+  expect((await q.clone().some('shape.array', q => q.equalTo('$', 3)).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().every('shape.array', q => q.notEqualTo('$', null)).first())?.objectId).toStrictEqual(inserted.objectId);
 
   expect((await q.clone().containsIn('array.0', [1, 2, 3, date, new Decimal('0.001')]).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().containsIn('array.1', [1, 2, 3, date, new Decimal('0.001')]).first())?.objectId).toStrictEqual(inserted.objectId);
@@ -357,11 +392,23 @@ test('test types 2', async () => {
   expect((await q.clone().containsIn('array.3', [1, 2, 3, date, new Decimal('0.001')]).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().containsIn('array.4', [1, 2, 3, date, new Decimal('0.001')]).first())?.objectId).toStrictEqual(inserted.objectId);
 
+  expect((await q.clone().containsIn('shape.array.0', [1, 2, 3, date, new Decimal('0.001')]).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().containsIn('shape.array.1', [1, 2, 3, date, new Decimal('0.001')]).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().containsIn('shape.array.2', [1, 2, 3, date, new Decimal('0.001')]).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().containsIn('shape.array.3', [1, 2, 3, date, new Decimal('0.001')]).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().containsIn('shape.array.4', [1, 2, 3, date, new Decimal('0.001')]).first())?.objectId).toStrictEqual(inserted.objectId);
+
   expect((await q.clone().isSubset('array', [1, 2, 3, 4, 5, 6, date, new Decimal('0.001')]).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().isDisjoint('array', [4, 5, 6]).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().isSuperset('array', [1, 2, 3]).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().isIntersect('array', [1, 2, 3]).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().notEmpty('array').first())?.objectId).toStrictEqual(inserted.objectId);
+
+  expect((await q.clone().isSubset('shape.array', [1, 2, 3, 4, 5, 6, date, new Decimal('0.001')]).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().isDisjoint('shape.array', [4, 5, 6]).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().isSuperset('shape.array', [1, 2, 3]).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().isIntersect('shape.array', [1, 2, 3]).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().notEmpty('shape.array').first())?.objectId).toStrictEqual(inserted.objectId);
 
 })
 
