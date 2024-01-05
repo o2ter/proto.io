@@ -1063,11 +1063,11 @@ test('test save keys', async () => {
 
   const obj = Proto.Object('Test');
   obj.set('pointer', inserted);
-  obj.set('shape.pointer', inserted);
+  obj.set('shape', { pointer: inserted });
   await obj.save();
 
   expect(obj.get('pointer')?.objectId).toStrictEqual(inserted.objectId);
-  //expect(obj.get('shape.pointer')?.objectId).toStrictEqual(inserted.objectId);
+  expect(obj.get('shape.pointer')?.objectId).toStrictEqual(inserted.objectId);
 })
 
 test('test save keys 2', async () => {
@@ -1075,11 +1075,11 @@ test('test save keys 2', async () => {
 
   const obj = Proto.Object('Test');
   obj.set('relation', [inserted]);
-  obj.set('shape.relation', [inserted]);
+  obj.set('shape', { relation: [inserted] });
   await obj.save();
 
   expect(obj.get('relation')?.[0]?.objectId).toStrictEqual(inserted.objectId);
-  //expect(obj.get('shape.relation')?.[0]?.objectId).toStrictEqual(inserted.objectId);
+  expect(obj.get('shape.relation')?.[0]?.objectId).toStrictEqual(inserted.objectId);
 })
 
 test('test pointer', async () => {
@@ -1447,7 +1447,7 @@ test('test upsert', async () => {
     .upsertOne({
       string: { $set: 'update' },
       'shape.string': { $set: 'update' },
-     }, {
+    }, {
       boolean: true,
       number: 42.5,
       decimal: new Decimal('0.001'),
@@ -1547,7 +1547,7 @@ test('test upsert 2', async () => {
       },
       'shape.array': { $set: [1, 2, 3, date, new Decimal('0.001')] },
     }, { string: 'insert' });
-  
+
   expect(upserted.objectId).toStrictEqual(inserted.objectId);
   expect(upserted.__v).toStrictEqual(1);
 
