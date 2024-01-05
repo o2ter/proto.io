@@ -77,7 +77,7 @@ export abstract class SqlStorage implements TStorage {
     const result = {};
     for (const { path, type } of shapedObjectPaths(dataType)) {
       if (_.isString(type)) {
-        const _value = _.get(value, path);
+        const _value = this.dialect.decodeType(type, _.get(value, path));
         if (!_.isNil(_value)) _.set(result, path, _value);
       } else if (isPointer(type)) {
         const _value = _.get(value, path);
@@ -89,7 +89,7 @@ export abstract class SqlStorage implements TStorage {
         const _value = _.get(value, path);
         if (_.isArray(_value)) _.set(result, path, _value.map(x => this._decodeObject(type.target, x)));
       } else {
-        const _value = _.get(value, path) ?? type.default;
+        const _value = this.dialect.decodeType(type.type, _.get(value, path)) ?? type.default;
         if (!_.isNil(_value)) _.set(result, path, _value);
       }
     }
