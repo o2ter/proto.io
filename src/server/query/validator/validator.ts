@@ -182,7 +182,8 @@ export class QueryValidator<E> {
       return true;
     }
 
-    return this.validateKey(dataType.target, isElem ? subpath.slice(1) : subpath, type, validator);
+    const _sub = isElem ? subpath.slice(1) : subpath;
+    return _.isEmpty(_sub) || this.validateKey(dataType.target, _sub, type, validator);
   }
 
   validateFields<T extends Record<string, any>>(

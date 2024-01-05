@@ -1002,13 +1002,20 @@ test('test update types 7', async () => {
   const obj5 = await Proto.Query('Test').insert({});
   const inserted = await Proto.Query('Test').insert({
     relation: [obj1, obj2, obj3],
+    shape: {
+      relation: [obj1, obj2, obj3],
+    },
   });
 
-  const q = Proto.Query('Test').equalTo('_id', inserted.objectId).includes('relation');
+  const q = Proto.Query('Test').equalTo('_id', inserted.objectId).includes('relation', 'shape');
 
   expect((await q.clone().updateOne({ relation: { $addToSet: [obj2, obj3, obj4] } }))?.get('relation').map((x: any) => x.objectId).sort()).toStrictEqual([obj1, obj2, obj3, obj4].map(x => x.objectId).sort());
   expect((await q.clone().updateOne({ relation: { $push: [obj4, obj5] } }))?.get('relation').map((x: any) => x.objectId).sort()).toStrictEqual([obj1, obj2, obj3, obj4, obj5].map(x => x.objectId).sort());
   expect((await q.clone().updateOne({ relation: { $removeAll: [obj4] } }))?.get('relation').map((x: any) => x.objectId).sort()).toStrictEqual([obj1, obj2, obj3, obj5].map(x => x.objectId).sort());
+
+  expect((await q.clone().updateOne({ 'shape.relation': { $addToSet: [obj2, obj3, obj4] } }))?.get('shape.relation').map((x: any) => x.objectId).sort()).toStrictEqual([obj1, obj2, obj3, obj4].map(x => x.objectId).sort());
+  expect((await q.clone().updateOne({ 'shape.relation': { $push: [obj4, obj5] } }))?.get('shape.relation').map((x: any) => x.objectId).sort()).toStrictEqual([obj1, obj2, obj3, obj4, obj5].map(x => x.objectId).sort());
+  expect((await q.clone().updateOne({ 'shape.relation': { $removeAll: [obj4] } }))?.get('shape.relation').map((x: any) => x.objectId).sort()).toStrictEqual([obj1, obj2, obj3, obj5].map(x => x.objectId).sort());
 })
 
 test('test update types 8', async () => {
