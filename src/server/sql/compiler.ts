@@ -295,9 +295,11 @@ export class QueryCompiler {
         const [_op, value] = decodeUpdateOp(op);
         if (_op !== '$set') throw Error('Invalid update operation');
         for (const { path, type } of shapedObjectPaths(dataType)) {
-          updates.push(sql`${{ identifier: column }} = ${this.dialect.updateOperation(
-            [`${column}.${path}`], type, { $set: _.get(value, path) ?? null }
-          )}`);
+          if (!isRelation(type) || _.isNil(type.foreignField)) {
+            updates.push(sql`${{ identifier: column }} = ${this.dialect.updateOperation(
+              [`${column}.${path}`], type, { $set: _.get(value, path) ?? null }
+            )}`);
+          }
         }
       } else {
         updates.push(sql`${{ identifier: column }} = ${this.dialect.updateOperation(
@@ -310,10 +312,19 @@ export class QueryCompiler {
 
   private _encodeObjectAttrs(className: string, attrs: Record<string, TValue>
   ): Record<string, SQL> {
-    const fields = this.schema[className].fields;
     const result: Record<string, SQL> = {};
     for (const [key, value] of _.toPairs(attrs)) {
-      result[key] = this.dialect.encodeType(key, fields[key], value);
+      const { paths: [column, ...subpath], dataType } = _resolveColumn(this.schema, className, key);
+      if (!_.isEmpty(subpath)) throw Error(`Invalid insert key: ${key}`);
+      if (isShapedObject(dataType)) {
+        for (const { path, type } of shapedObjectPaths(dataType)) {
+          if (!isRelation(type) || _.isNil(type.foreignField)) {
+            result[`${column}.${path}`] = this.dialect.encodeType(`${column}.${path}`, type, _.get(value, path) ?? null);
+          }
+        }
+      } else {
+        result[column] = this.dialect.encodeType(column, dataType, value);
+      }
     }
     return result;
   }
