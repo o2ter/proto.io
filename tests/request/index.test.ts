@@ -1101,7 +1101,7 @@ test('test pointer', async () => {
   });
   const updated = await Proto.Query('Test')
     .equalTo('_id', inserted.objectId)
-    .includes('pointer', 'pointer2')
+    .includes('pointer', 'pointer2', 'shape.pointer', 'shape.pointer2')
     .updateOne({
       pointer: { $set: inserted },
       pointer2: { $set: inserted },
@@ -1121,17 +1121,17 @@ test('test pointer', async () => {
   expect(updated?.get('pointer2.string')).toStrictEqual('hello');
   expect(updated?.get('pointer2.date')).toStrictEqual(date);
 
-  // expect(updated?.get('shape.pointer.boolean')).toStrictEqual(true);
-  // expect(updated?.get('shape.pointer.number')).toStrictEqual(42.5);
-  // expect(updated?.get('shape.pointer.decimal')).toStrictEqual(new Decimal('0.001'));
-  // expect(updated?.get('shape.pointer.string')).toStrictEqual('hello');
-  // expect(updated?.get('shape.pointer.date')).toStrictEqual(date);
+  expect(updated?.get('shape.pointer.boolean')).toStrictEqual(true);
+  expect(updated?.get('shape.pointer.number')).toStrictEqual(42.5);
+  expect(updated?.get('shape.pointer.decimal')).toStrictEqual(new Decimal('0.001'));
+  expect(updated?.get('shape.pointer.string')).toStrictEqual('hello');
+  expect(updated?.get('shape.pointer.date')).toStrictEqual(date);
 
-  // expect(updated?.get('shape.pointer2.boolean')).toStrictEqual(true);
-  // expect(updated?.get('shape.pointer2.number')).toStrictEqual(42.5);
-  // expect(updated?.get('shape.pointer2.decimal')).toStrictEqual(new Decimal('0.001'));
-  // expect(updated?.get('shape.pointer2.string')).toStrictEqual('hello');
-  // expect(updated?.get('shape.pointer2.date')).toStrictEqual(date);
+  expect(updated?.get('shape.pointer2.boolean')).toStrictEqual(true);
+  expect(updated?.get('shape.pointer2.number')).toStrictEqual(42.5);
+  expect(updated?.get('shape.pointer2.decimal')).toStrictEqual(new Decimal('0.001'));
+  expect(updated?.get('shape.pointer2.string')).toStrictEqual('hello');
+  expect(updated?.get('shape.pointer2.date')).toStrictEqual(date);
 
   const q = Proto.Query('Test').equalTo('_id', inserted.objectId).includes('pointer');
 
@@ -1185,7 +1185,7 @@ test('test relation', async () => {
   });
   const updated = await Proto.Query('Test')
     .equalTo('_id', inserted.objectId)
-    .includes('*', 'relation')
+    .includes('*', 'relation', 'shape.relation')
     .updateOne({
       relation: { $set: [inserted] },
       'shape.relation': { $set: [inserted] },
@@ -1197,11 +1197,11 @@ test('test relation', async () => {
   expect(updated?.get('relation.0.string')).toStrictEqual('hello');
   expect(updated?.get('relation.0.date')).toStrictEqual(date);
 
-  // expect(updated?.get('shape.relation.0.boolean')).toStrictEqual(true);
-  // expect(updated?.get('shape.relation.0.number')).toStrictEqual(42.5);
-  // expect(updated?.get('shape.relation.0.decimal')).toStrictEqual(new Decimal('0.001'));
-  // expect(updated?.get('shape.relation.0.string')).toStrictEqual('hello');
-  // expect(updated?.get('shape.relation.0.date')).toStrictEqual(date);
+  expect(updated?.get('shape.relation.0.boolean')).toStrictEqual(true);
+  expect(updated?.get('shape.relation.0.number')).toStrictEqual(42.5);
+  expect(updated?.get('shape.relation.0.decimal')).toStrictEqual(new Decimal('0.001'));
+  expect(updated?.get('shape.relation.0.string')).toStrictEqual('hello');
+  expect(updated?.get('shape.relation.0.date')).toStrictEqual(date);
 
   const q = Proto.Query('Test').equalTo('_id', inserted.objectId).includes('*', 'relation');
 
@@ -1238,7 +1238,7 @@ test('test relation 2', async () => {
   });
   const updated = await Proto.Query('Test')
     .equalTo('_id', inserted.objectId)
-    .includes('relation2')
+    .includes('relation2', 'shape.relation2')
     .updateOne({
       pointer: { $set: inserted },
       'shape.pointer': { $set: inserted },
@@ -1251,12 +1251,12 @@ test('test relation 2', async () => {
   expect(updated?.get('relation2.0.string')).toStrictEqual('hello');
   expect(updated?.get('relation2.0.date')).toStrictEqual(date);
 
-  // expect(updated?.get('shape.relation2').length).toStrictEqual(1);
-  // expect(updated?.get('shape.relation2.0.boolean')).toStrictEqual(true);
-  // expect(updated?.get('shape.relation2.0.number')).toStrictEqual(42.5);
-  // expect(updated?.get('shape.relation2.0.decimal')).toStrictEqual(new Decimal('0.001'));
-  // expect(updated?.get('shape.relation2.0.string')).toStrictEqual('hello');
-  // expect(updated?.get('shape.relation2.0.date')).toStrictEqual(date);
+  expect(updated?.get('shape.relation2').length).toStrictEqual(1);
+  expect(updated?.get('shape.relation2.0.boolean')).toStrictEqual(true);
+  expect(updated?.get('shape.relation2.0.number')).toStrictEqual(42.5);
+  expect(updated?.get('shape.relation2.0.decimal')).toStrictEqual(new Decimal('0.001'));
+  expect(updated?.get('shape.relation2.0.string')).toStrictEqual('hello');
+  expect(updated?.get('shape.relation2.0.date')).toStrictEqual(date);
 
   const q = Proto.Query('Test').equalTo('_id', inserted.objectId).includes('relation2');
 
@@ -1293,7 +1293,7 @@ test('test relation 3', async () => {
   });
   const updated = await Proto.Query('Test')
     .equalTo('_id', inserted.objectId)
-    .includes('relation3')
+    .includes('relation3', 'shape.relation3')
     .updateOne({
       relation: { $set: [inserted] },
       'shape.relation': { $set: [inserted] },
@@ -1306,12 +1306,12 @@ test('test relation 3', async () => {
   expect(updated?.get('relation3.0.string')).toStrictEqual('hello');
   expect(updated?.get('relation3.0.date')).toStrictEqual(date);
 
-  // expect(updated?.get('shape.relation3').length).toStrictEqual(1);
-  // expect(updated?.get('shape.relation3.0.boolean')).toStrictEqual(true);
-  // expect(updated?.get('shape.relation3.0.number')).toStrictEqual(42.5);
-  // expect(updated?.get('shape.relation3.0.decimal')).toStrictEqual(new Decimal('0.001'));
-  // expect(updated?.get('shape.relation3.0.string')).toStrictEqual('hello');
-  // expect(updated?.get('shape.relation3.0.date')).toStrictEqual(date);
+  expect(updated?.get('shape.relation3').length).toStrictEqual(1);
+  expect(updated?.get('shape.relation3.0.boolean')).toStrictEqual(true);
+  expect(updated?.get('shape.relation3.0.number')).toStrictEqual(42.5);
+  expect(updated?.get('shape.relation3.0.decimal')).toStrictEqual(new Decimal('0.001'));
+  expect(updated?.get('shape.relation3.0.string')).toStrictEqual('hello');
+  expect(updated?.get('shape.relation3.0.date')).toStrictEqual(date);
 
   const q = Proto.Query('Test').equalTo('_id', inserted.objectId).includes('relation3');
 
