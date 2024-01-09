@@ -1601,8 +1601,9 @@ test('test upsert 2', async () => {
 test('test match', async () => {
 
   const parent = await Proto.Query('Test').insert({});
+  let obj;
   for (const i of [1, 2, 3, 4, 5]) {
-    await Proto.Query('Test').insert({
+    obj = await Proto.Query('Test').insert({
       number: i,
       decimal: new Decimal(`0.00${i}`),
       pointer: parent,
@@ -1663,6 +1664,17 @@ test('test match', async () => {
 
   expect(matched5?.get('relation2').length).toStrictEqual(1);
   expect(matched5?.get('relation2.0.number')).toStrictEqual(5);
+
+  const matched6 = await Proto.Query('Test')
+    .equalTo('_id', obj!.objectId)
+    .match('pointer.relation2', q => q
+      .greaterThan('number', 1)
+      .sort({ _created_at: 1 })
+      .limit(1))
+    .first();
+
+  expect(matched6?.get('pointer.relation2').length).toStrictEqual(1);
+  expect(matched6?.get('pointer.relation2.0.number')).toStrictEqual(2);
 
 })
 

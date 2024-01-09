@@ -154,7 +154,7 @@ class TQueryFilterBase {
     return this.filter({ [key]: { $some: { $and: _.castArray<TQuerySelector>(query[PVK].options.filter) } } });
   }
 
-  match<T extends string>(key: FieldName<T>, callback: (query: TQueryBase) => void) {
+  match<T extends string>(key: PathName<T>, callback: (query: TQueryBase) => void) {
     const query = new TQueryBase();
     callback(query);
     if (_.isNil(this[PVK].options.matches)) {

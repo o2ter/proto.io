@@ -43,14 +43,20 @@ export const recursiveCheck = (x: any, stack: any[]) => {
   children.forEach(v => recursiveCheck(v, [...stack, x]));
 }
 
-export const _resolveColumn = (schema: Record<string, TSchema>, className: string, path: string) => {
+export const _resolveColumn = (schema: Record<string, TSchema>, className: string, path: string, resolvePointer: boolean = false) => {
   const _schema = schema[className] ?? {};
   let [colname, ...subpath] = path.split('.');
   let dataType = _schema.fields[colname];
-  while (dataType && !_.isEmpty(subpath) && isShapedObject(dataType)) {
+  while (dataType && !_.isEmpty(subpath) && (isShapedObject(dataType) || (resolvePointer && isPointer(dataType)))) {
     const [key, ...remain] = subpath;
-    if (!dataType.shape[key]) break;
-    dataType = dataType.shape[key];
+    if (isPointer(dataType)) {
+      const _schema = schema[dataType.target] ?? {};
+      if (!_schema.fields[key]) break;
+      dataType = _schema.fields[key];
+    } else {
+      if (!dataType.shape[key]) break;
+      dataType = dataType.shape[key];
+    }
     colname = `${colname}.${key}`;
     subpath = remain;
   }
@@ -280,7 +286,7 @@ export class QueryValidator<E> {
     for (const [colname, match] of _.toPairs(matches)) {
       if (!this.validateKeyPerm(colname, 'read', schema)) throw Error('No permission');
 
-      const { dataType } = _resolveColumn(this.schema, className, colname);
+      const { dataType } = _resolveColumn(this.schema, className, colname, true);
       if (!isRelation(dataType)) throw Error(`Invalid match: ${colname}`);
       if (!this.validateCLPs(dataType.target, 'get')) throw Error('No permission');
       this.validateForeignField(dataType, 'read', `Invalid match: ${colname}`);
