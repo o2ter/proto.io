@@ -43,20 +43,14 @@ export const recursiveCheck = (x: any, stack: any[]) => {
   children.forEach(v => recursiveCheck(v, [...stack, x]));
 }
 
-export const _resolveColumn = (schema: Record<string, TSchema>, className: string, path: string, resolvePointer: boolean = false) => {
+export const _resolveColumn = (schema: Record<string, TSchema>, className: string, path: string) => {
   const _schema = schema[className] ?? {};
   let [colname, ...subpath] = path.split('.');
   let dataType = _schema.fields[colname];
-  while (dataType && !_.isEmpty(subpath) && (isShapedObject(dataType) || (resolvePointer && isPointer(dataType)))) {
+  while (dataType && !_.isEmpty(subpath) && isShapedObject(dataType)) {
     const [key, ...remain] = subpath;
-    if (isPointer(dataType)) {
-      const _schema = schema[dataType.target] ?? {};
-      if (!_schema.fields[key]) break;
-      dataType = _schema.fields[key];
-    } else {
-      if (!dataType.shape[key]) break;
-      dataType = dataType.shape[key];
-    }
+    if (!dataType.shape[key]) break;
+    dataType = dataType.shape[key];
     colname = `${colname}.${key}`;
     subpath = remain;
   }
@@ -286,22 +280,34 @@ export class QueryValidator<E> {
     for (const [colname, match] of _.toPairs(matches)) {
       if (!this.validateKeyPerm(colname, 'read', schema)) throw Error('No permission');
 
-      const { dataType } = _resolveColumn(this.schema, className, colname, true);
-      if (!isRelation(dataType)) throw Error(`Invalid match: ${colname}`);
-      if (!this.validateCLPs(dataType.target, 'get')) throw Error('No permission');
-      this.validateForeignField(dataType, 'read', `Invalid match: ${colname}`);
-      _matches[colname] = {
-        ...match,
-        filter: QuerySelector.decode([
-          ...this._rperm,
-          this._expiredAt,
-          ..._.castArray<TQuerySelector>(match.filter),
-        ]).simplify(),
-        matches: this.decodeMatches(
-          dataType.target, match.matches ?? {},
-          includes.filter(x => x.startsWith(`${colname}.`)).map(x => x.slice(colname.length + 1)),
-        ),
-      };
+      const { paths: [_colname, ...subpath], dataType } = _resolveColumn(this.schema, className, colname);
+
+      if (isPointer(dataType) && !_.isEmpty(subpath)) {
+        _matches[_colname] = {
+          filter: QuerySelector.decode([...this._rperm, this._expiredAt]).simplify(),
+          matches: this.decodeMatches(
+            dataType.target, { [subpath.join('.')]: match },
+            includes.filter(x => x.startsWith(`${_colname}.`)).map(x => x.slice(_colname.length + 1)),
+          ),
+        };
+      } else if (isRelation(dataType)) {
+        if (!this.validateCLPs(dataType.target, 'get')) throw Error('No permission');
+        this.validateForeignField(dataType, 'read', `Invalid match: ${colname}`);
+        _matches[_colname] = {
+          ...match,
+          filter: QuerySelector.decode([
+            ...this._rperm,
+            this._expiredAt,
+            ..._.castArray<TQuerySelector>(match.filter),
+          ]).simplify(),
+          matches: this.decodeMatches(
+            dataType.target, match.matches ?? {},
+            includes.filter(x => x.startsWith(`${_colname}.`)).map(x => x.slice(_colname.length + 1)),
+          ),
+        };
+      } else {
+        throw Error(`Invalid match: ${colname}`);
+      }
     }
 
     return _matches;
