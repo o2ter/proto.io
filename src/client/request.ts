@@ -57,6 +57,7 @@ export default class Service<Ext> {
     const res = await this.service.request({
       signal: abortSignal,
       headers: {
+        'Content-Type': 'application/json; charset=utf-8',
         ...master ? {
           [MASTER_USER_HEADER_NAME]: this.proto.options.masterUser?.user,
           [MASTER_PASS_HEADER_NAME]: this.proto.options.masterUser?.pass,
