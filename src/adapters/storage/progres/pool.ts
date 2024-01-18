@@ -166,6 +166,11 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
       if (pgType.toLowerCase() === (typeMap[column.type] ?? column.type)) continue;
       rebuild.push({ name: column.name, type: pgType });
     }
+    for (const column of _.difference(_.keys(fields), _.map(columns, x => x.name))) {
+      const dataType = fields[column];
+      const pgType = this._pgType(_.isString(dataType) ? dataType : dataType.type);
+      rebuild.push({ name: column, type: pgType });
+    }
     if (_.isEmpty(rebuild)) return;
     await this.query(sql`
       ALTER TABLE ${{ identifier: className }}
