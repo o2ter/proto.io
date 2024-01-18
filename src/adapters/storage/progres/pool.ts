@@ -160,6 +160,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
     for (const column of columns) {
       if (TObject.defaultKeys.includes(column.name)) continue;
       const dataType = fields[column.name];
+      if (!dataType) continue;
       if (!_.isString(dataType) && dataType.type === 'relation' && !_.isNil(dataType.foreignField)) continue;
       const pgType = this._pgType(_.isString(dataType) ? dataType : dataType.type);
       if (pgType.toLowerCase() === (typeMap[column.type] ?? column.type)) continue;
