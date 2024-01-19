@@ -81,9 +81,9 @@ const validateSchema = (schema: Record<string, TSchema>) => {
       if (isShapedObject(dataType)) {
         validateShapedObject(schema, dataType);
       } else if (isPointer(dataType)) {
-        if (_.isNil(schema[dataType.target])) throw Error(`Invalid target: ${key}`);
+        if (_.isNil(defaultSchema[dataType.target] ?? schema[dataType.target])) throw Error(`Invalid target: ${key}`);
       } else if (isRelation(dataType)) {
-        if (_.isNil(schema[dataType.target])) throw Error(`Invalid target: ${key}`);
+        if (_.isNil(defaultSchema[dataType.target] ?? schema[dataType.target])) throw Error(`Invalid target: ${key}`);
         validateForeignField(schema, key, dataType);
       }
     }
