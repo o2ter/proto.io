@@ -103,13 +103,13 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
       async value(keys: string[], options?: ExtraOptions) {
         const fetched = await query(options).equalTo('_id', this.objectId).includes(...keys).first();
         if (!fetched) throw Error('Unable to fetch document');
-        object[PVK].attributes = fetched.attributes;
-        return object;
+        this[PVK].attributes = fetched.attributes;
+        return this;
       },
     },
     save: {
       async value(options?: ExtraOptions & { cascadeSave?: boolean }) {
-        const mutated = _.values(object[PVK].mutated);
+        const mutated = _.values(this[PVK].mutated);
         if (options?.cascadeSave !== false) {
           for (const update of _.values(mutated)) {
             const [, value] = decodeUpdateOp(update);
@@ -120,18 +120,18 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
           const updated = await query(options)
             .equalTo('_id', this.objectId)
             .includes(...this.keys())
-            .updateOne(object[PVK].mutated);
+            .updateOne(this[PVK].mutated);
           if (!updated) throw Error('Unable to save document');
-          object[PVK].attributes = updated.attributes;
-          object[PVK].mutated = {};
+          this[PVK].attributes = updated.attributes;
+          this[PVK].mutated = {};
         } else {
           const created = await query(options)
             .includes(...this.keys())
             .insert(_.fromPairs(this.keys().map(k => [k, this.get(k)])));
-          object[PVK].attributes = created.attributes;
-          object[PVK].mutated = {};
+          this[PVK].attributes = created.attributes;
+          this[PVK].mutated = {};
         }
-        return object;
+        return this;
       },
     },
     destory: {
@@ -141,9 +141,9 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
           .includes(...this.keys())
           .deleteOne();
         if (!deleted) throw Error('Unable to destory document');
-        object[PVK].attributes = deleted.attributes;
-        object[PVK].mutated = {};
-        return object;
+        this[PVK].attributes = deleted.attributes;
+        this[PVK].mutated = {};
+        return this;
       },
     },
     ...typedMethods[className] ?? {},
