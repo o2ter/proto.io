@@ -42,7 +42,7 @@ import {
   _TValue,
 } from '../../internals';
 import { generateId } from '../crypto/random';
-import { TSchema, defaultObjectKeyTypes, isPrimitive, isRelation, isShapedObject } from '../../internals/schema';
+import { TSchema, defaultObjectKeyTypes, isPointer, isPrimitive, isRelation, isShapedObject } from '../../internals/schema';
 import { QueryValidator } from '../query/validator/validator';
 import { passwordHash, varifyPassword } from '../crypto/password';
 import { proxy } from './proxy';
@@ -80,7 +80,10 @@ const validateSchema = (schema: Record<string, TSchema>) => {
       if (!key.match(QueryValidator.patterns.name)) throw Error(`Invalid field name: ${key}`);
       if (isShapedObject(dataType)) {
         validateShapedObject(schema, dataType);
+      } else if (isPointer(dataType)) {
+        if (_.isNil(schema[dataType.target])) throw Error(`Invalid target: ${key}`);
       } else if (isRelation(dataType)) {
+        if (_.isNil(schema[dataType.target])) throw Error(`Invalid target: ${key}`);
         validateForeignField(schema, key, dataType);
       }
     }
