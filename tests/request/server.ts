@@ -168,6 +168,14 @@ Proto.define('echo', ({ params }) => {
   return params;
 });
 
+Proto.define('echoMaster', ({ params }) => {
+  return params;
+}, {
+  validator: {
+    requireMaster: true,
+  },
+});
+
 Proto.define('sessionId', ({ sessionId }) => {
   return sessionId;
 });

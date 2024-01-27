@@ -49,6 +49,11 @@ test('echo', async () => {
   const result = await Proto.run('echo', 'hello, world');
   expect(result).toStrictEqual('hello, world');
 });
+test('echoMaster', async () => {
+  await expect(() => Proto.run('echoMaster', 'hello, world')).rejects.toThrow('No permission');
+  const result = await Proto.run('echoMaster', 'hello, world', { master: true });
+  expect(result).toStrictEqual('hello, world');
+});
 test('test codec', async () => {
 
   const obj = {
