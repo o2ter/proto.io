@@ -183,7 +183,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
 
     const roles = await this.proto.currentRoles();
 
-    if (!!validator?.requireUser && !this.proto.currentUser) throw Error('No permission');
+    if (!!validator?.requireUser && !(await this.proto.currentUser())) throw Error('No permission');
     if (!!validator?.requireMaster && !options?.master) throw Error('No permission');
     if (!_.some(validator?.requireAnyUserRoles, x => _.includes(roles, x))) throw Error('No permission');
     if (_.some(validator?.requireAllUserRoles, x => !_.includes(roles, x))) throw Error('No permission');
