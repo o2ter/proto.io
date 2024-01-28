@@ -76,9 +76,7 @@ export abstract class TQuery<T extends string, Ext> extends TQueryBase {
   }
 
   async get(id: string) {
-    const query = this.clone({});
-    if (this[PVK].options.includes) query.includes(...this[PVK].options.includes);
-    return _.first(await query.equalTo('_id', id).limit(1).find());
+    return _.first(await this.clone().equalTo('_id', id).limit(1).find());
   }
 
   async first() {
