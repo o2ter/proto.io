@@ -49,7 +49,7 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
 
   constructor(options: ProtoServiceOptions<Ext> & ProtoServiceKeyOptions) {
     super();
-    this[PVK] = new ProtoInternal(this, {
+    this[PVK] = new ProtoInternal({
       objectIdSize: 10,
       maxFetchLimit: 1000,
       maxUploadSize: 20 * 1024 * 1024,
@@ -122,15 +122,15 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
   }
 
   varifyPassword(user: TUser, password: string, options: ExtraOptions & { master: true }) {
-    return this[PVK].varifyPassword(user, password, options);
+    return this[PVK].varifyPassword(this, user, password, options);
   }
 
   setPassword(user: TUser, password: string, options: ExtraOptions & { master: true }) {
-    return this[PVK].setPassword(user, password, options);
+    return this[PVK].setPassword(this, user, password, options);
   }
 
   unsetPassword(user: TUser, options: ExtraOptions & { master: true }) {
-    return this[PVK].unsetPassword(user, options);
+    return this[PVK].unsetPassword(this, user, options);
   }
 
   get schema(): ProtoServiceOptions<Ext>['schema'] {
@@ -155,7 +155,7 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
 
   run(name: string, params?: TSerializable, options?: ExtraOptions) {
     const payload = Object.setPrototypeOf({ params: params ?? null }, this);
-    return this[PVK].run(name, payload, options);
+    return this[PVK].run(this, name, payload, options);
   }
 
   define(

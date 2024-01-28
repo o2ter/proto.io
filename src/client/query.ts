@@ -76,7 +76,7 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E> {
   }
 
   explain() {
-    return this._proto[PVK].request({
+    return this._proto[PVK].request(this._proto, {
       operation: 'explain',
       context: this._options?.context ?? {},
       ...this._queryOptions,
@@ -84,7 +84,7 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E> {
   }
 
   count() {
-    return this._proto[PVK].request({
+    return this._proto[PVK].request(this._proto, {
       operation: 'count',
       context: this._options?.context ?? {},
       ...this._queryOptions,
@@ -92,7 +92,7 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E> {
   }
 
   find() {
-    const request = () => this._proto[PVK].request({
+    const request = () => this._proto[PVK].request(this._proto, {
       operation: 'find',
       context: this._options?.context ?? {},
       ...this._queryOptions,
@@ -101,7 +101,7 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E> {
   }
 
   random(opts?: TQueryRandomOptions) {
-    const request = () => this._proto[PVK].request({
+    const request = () => this._proto[PVK].request(this._proto, {
       operation: 'random',
       context: this._options?.context ?? {},
       random: opts,
@@ -111,7 +111,7 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E> {
   }
 
   insert(attrs: Record<string, TValue>) {
-    return this._proto[PVK].request({
+    return this._proto[PVK].request(this._proto, {
       operation: 'insert',
       context: this._options?.context ?? {},
       attributes: attrs,
@@ -120,7 +120,7 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E> {
   }
 
   updateOne(update: Record<string, TUpdateOp>) {
-    return this._proto[PVK].request({
+    return this._proto[PVK].request(this._proto, {
       operation: 'updateOne',
       context: this._options?.context ?? {},
       update,
@@ -129,7 +129,7 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E> {
   }
 
   upsertOne(update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValue>) {
-    return this._proto[PVK].request({
+    return this._proto[PVK].request(this._proto, {
       operation: 'upsertOne',
       context: this._options?.context ?? {},
       update,
@@ -139,7 +139,7 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E> {
   }
 
   deleteOne() {
-    return this._proto[PVK].request({
+    return this._proto[PVK].request(this._proto, {
       operation: 'deleteOne',
       context: this._options?.context ?? {},
       ...this._queryOptions,
@@ -147,7 +147,7 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E> {
   }
 
   deleteMany() {
-    return this._proto[PVK].request({
+    return this._proto[PVK].request(this._proto, {
       operation: 'deleteMany',
       context: this._options?.context ?? {},
       ...this._queryOptions,

@@ -78,12 +78,24 @@ test('test session id', async () => {
   expect(await Proto.run('sessionId')).toStrictEqual(sessionId);
 });
 test('test user', async () => {
+
+  await expect(() => Proto.run('echoUser', 'hello, world')).rejects.toThrow('No permission');
+
   await Proto.run('createUser');
+
   const user = await Proto.currentUser();
   expect(user?.objectId).toBeTruthy();
+
+  const result = await Proto.run('echoUser', 'hello, world');
+  expect(result).toStrictEqual('hello, world');
+
   await Proto.logout();
+
   const user2 = await Proto.currentUser();
   expect(user2?.objectId).toBeUndefined();
+
+  await expect(() => Proto.run('echoUser', 'hello, world')).rejects.toThrow('No permission');
+
 });
 test('test files', async () => {
   const file = Proto.File('test.txt', 'hello, world', 'text/plain');

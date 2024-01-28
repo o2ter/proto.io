@@ -46,7 +46,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
           params: null,
         }));
 
-        return payload[PVK].run(name, payload, { master: payload.isMaster });
+        return payload[PVK].run(payload, name, payload, { master: payload.isMaster });
       });
     }
   );
@@ -67,7 +67,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
           params: x.rebind(deserialize(req.body, { objAttrs: TObject.defaultReadonlyKeys })),
         }));
 
-        return payload[PVK].run(name, payload, { master: payload.isMaster });
+        return payload[PVK].run(payload, name, payload, { master: payload.isMaster });
       });
     }
   );

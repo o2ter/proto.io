@@ -64,12 +64,12 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
     'File': {
       save: {
         value(options?: ExtraOptions) {
-          return proto[PVK].saveFile(this as TFile, options);
+          return proto[PVK].saveFile(proto, this as TFile, options);
         },
       },
       destory: {
         value(options?: ExtraOptions) {
-          return proto[PVK].deleteFile(this as TFile, options);
+          return proto[PVK].deleteFile(proto, this as TFile, options);
         },
       },
       url: {
@@ -83,7 +83,7 @@ export const applyObjectMethods = <T extends TSerializable | undefined, E>(
       },
       fileData: {
         value(options?: ExtraOptions) {
-          return proto[PVK].fileData(this as TFile, options);
+          return proto[PVK].fileData(proto, this as TFile, options);
         },
       },
     },

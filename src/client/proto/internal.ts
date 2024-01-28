@@ -50,17 +50,16 @@ import { TSchema } from '../../internals/schema';
 
 export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
 
-  proto: ProtoClient<Ext>;
   options: ProtoOptions<Ext>;
 
   service = new Service(this);
 
-  constructor(proto: ProtoClient<Ext>, options: ProtoOptions<Ext>) {
-    this.proto = proto;
+  constructor(options: ProtoOptions<Ext>) {
     this.options = options;
   }
 
   async request(
+    proto: ProtoClient<Ext>,
     data?: TSerializable,
     options?: Parameters<Service<Ext>['request']>[0]
   ) {
@@ -79,10 +78,10 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
       throw Error(error.message, { cause: error });
     }
 
-    return this.proto.rebind(deserialize(res.data));
+    return proto.rebind(deserialize(res.data));
   }
 
-  async currentUser(options?: RequestOptions): Promise<TObjectType<'User', Ext> | undefined> {
+  async currentUser(proto: ProtoClient<Ext>, options?: RequestOptions): Promise<TObjectType<'User', Ext> | undefined> {
 
     const { serializeOpts, context, ...opts } = options ?? {};
 
@@ -99,7 +98,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
       throw Error(error.message, { cause: error });
     }
 
-    const user = this.proto.rebind(deserialize(res.data)) as TObjectType<'User', Ext>;
+    const user = proto.rebind(deserialize(res.data)) as TObjectType<'User', Ext>;
     if (!_.isNil(user) && !(user instanceof TUser)) throw Error('Unknown error');
 
     return user ?? undefined;
@@ -223,9 +222,9 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     return deserialize(res.data) as any;
   }
 
-  async updateFile(object: TFile, options?: RequestOptions) {
+  async updateFile(proto: ProtoClient<Ext>, object: TFile, options?: RequestOptions) {
 
-    const updated = await this.proto.Query(object.className, options)
+    const updated = await proto.Query(object.className, options)
       .equalTo('_id', object.objectId)
       .includes(...object.keys())
       .updateOne(object[PVK].mutated);
@@ -239,7 +238,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     return object;
   }
 
-  async createFile(object: TFile, options?: RequestOptions) {
+  async createFile(proto: ProtoClient<Ext>, object: TFile, options?: RequestOptions) {
 
     const { serializeOpts, context, ...opts } = options ?? {};
     const { data } = object[PVK].extra;
@@ -287,13 +286,13 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     return object;
   }
 
-  async saveFile(object: TFile, options?: RequestOptions) {
-    return object.objectId ? this.updateFile(object, options) : this.createFile(object, options);
+  async saveFile(proto: ProtoClient<Ext>, object: TFile, options?: RequestOptions) {
+    return object.objectId ? this.updateFile(proto, object, options) : this.createFile(proto, object, options);
   }
 
-  async deleteFile(object: TFile, options?: ExtraOptions) {
+  async deleteFile(proto: ProtoClient<Ext>, object: TFile, options?: ExtraOptions) {
 
-    const deleted = await this.proto.Query(object.className, options)
+    const deleted = await proto.Query(object.className, options)
       .equalTo('_id', object.objectId)
       .deleteOne();
 
@@ -306,7 +305,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     return object;
   }
 
-  fileData(object: TFile, options?: RequestOptions | undefined) {
+  fileData(proto: ProtoClient<Ext>, object: TFile, options?: RequestOptions | undefined) {
 
     const { serializeOpts, context, ...opts } = options ?? {};
 

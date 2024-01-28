@@ -41,7 +41,7 @@ export class ProtoClient<Ext> extends ProtoType<Ext> {
 
   constructor(options: ProtoOptions<Ext>) {
     super();
-    this[PVK] = new ProtoClientInternal(this, { ...options });
+    this[PVK] = new ProtoClientInternal({ ...options });
   }
 
   Query<T extends string>(className: T, options?: RequestOptions): TQuery<T, Ext> {
@@ -61,7 +61,7 @@ export class ProtoClient<Ext> extends ProtoType<Ext> {
     data?: TSerializable,
     options?: RequestOptions
   ): Promise<void | TSerializable> {
-    return this[PVK].request(data, {
+    return this[PVK].request(this, data, {
       method: 'post',
       url: `functions/${name}`,
       ...(options ?? {})
@@ -69,7 +69,7 @@ export class ProtoClient<Ext> extends ProtoType<Ext> {
   }
 
   currentUser(options?: RequestOptions) {
-    return this[PVK].currentUser(options);
+    return this[PVK].currentUser(this, options);
   }
 
   logout(options?: RequestOptions) {

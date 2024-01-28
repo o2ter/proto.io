@@ -176,6 +176,14 @@ Proto.define('echoMaster', ({ params }) => {
   },
 });
 
+Proto.define('echoUser', ({ params }) => {
+  return params;
+}, {
+  validator: {
+    requireUser: true,
+  },
+});
+
 Proto.define('sessionId', ({ sessionId }) => {
   return sessionId;
 });

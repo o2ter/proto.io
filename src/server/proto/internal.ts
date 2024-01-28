@@ -133,7 +133,6 @@ const mergeSchema = (...schemas: Record<string, TSchema>[]) => _.reduce(schemas,
 
 export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
 
-  proto: ProtoService<Ext>;
   options: Required<ProtoServiceOptions<Ext>> & ProtoServiceKeyOptions;
 
   functions: Record<string, ProtoFunction<Ext> | ProtoFunctionOptions<Ext>> = {};
@@ -148,9 +147,8 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     afterDeleteFile?: ProtoTrigger<'File', Ext>;
   } = {};
 
-  constructor(proto: ProtoService<Ext>, options: Required<ProtoServiceOptions<Ext>> & ProtoServiceKeyOptions) {
+  constructor(options: Required<ProtoServiceOptions<Ext>> & ProtoServiceKeyOptions) {
     validateSchema(options.schema);
-    this.proto = proto;
     this.options = {
       ...options,
       schema: mergeSchema(defaultSchema, options.fileStorage.schema, options.schema),
@@ -172,28 +170,28 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     return this.options.storage.setConfig(values);
   }
 
-  async run(name: string, payload: any, options?: ExtraOptions) {
+  async run(proto: ProtoService<Ext>, name: string, payload: any, options?: ExtraOptions) {
 
     const func = this.functions?.[name];
 
     if (_.isNil(func)) throw Error('Function not found');
-    if (_.isFunction(func)) return func(proxy(payload ?? this.proto));
+    if (_.isFunction(func)) return func(proxy(payload ?? proto));
 
     const { callback, validator } = func;
 
-    const roles = await this.proto.currentRoles();
+    const roles = await proto.currentRoles();
 
-    if (!!validator?.requireUser && !(await this.proto.currentUser())) throw Error('No permission');
+    if (!!validator?.requireUser && !(await proto.currentUser())) throw Error('No permission');
     if (!!validator?.requireMaster && !options?.master) throw Error('No permission');
     if (_.isArray(validator?.requireAnyUserRoles) && !_.some(validator?.requireAnyUserRoles, x => _.includes(roles, x))) throw Error('No permission');
     if (_.isArray(validator?.requireAllUserRoles) && _.some(validator?.requireAllUserRoles, x => !_.includes(roles, x))) throw Error('No permission');
 
-    return callback(proxy(payload ?? this.proto));
+    return callback(proxy(payload ?? proto));
   }
 
-  async varifyPassword(user: TUser, password: string, options: ExtraOptions & { master: true }) {
+  async varifyPassword(proto: ProtoService<Ext>, user: TUser, password: string, options: ExtraOptions & { master: true }) {
     if (!user.objectId) throw Error('Invalid user object');
-    const _user = await this.proto.InsecureQuery('User', options)
+    const _user = await proto.InsecureQuery('User', options)
       .equalTo('_id', user.objectId)
       .includes('_id', 'password')
       .first();
@@ -201,12 +199,12 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     return varifyPassword(alg, password, opts);
   }
 
-  async setPassword(user: TUser, password: string, options: ExtraOptions & { master: true }) {
+  async setPassword(proto: ProtoService<Ext>, user: TUser, password: string, options: ExtraOptions & { master: true }) {
     if (!user.objectId) throw Error('Invalid user object');
     if (_.isEmpty(password)) throw Error('Invalid password');
     const { alg, ...opts } = this.options.passwordHashOptions;
     const hashed = await passwordHash(alg, password, opts);
-    await this.proto.InsecureQuery('User', options)
+    await proto.InsecureQuery('User', options)
       .equalTo('_id', user.objectId)
       .includes('_id')
       .updateOne({
@@ -214,9 +212,9 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
       });
   }
 
-  async unsetPassword(user: TUser, options: ExtraOptions & { master: true }) {
+  async unsetPassword(proto: ProtoService<Ext>, user: TUser, options: ExtraOptions & { master: true }) {
     if (!user.objectId) throw Error('Invalid user object');
-    await this.proto.InsecureQuery('User', options)
+    await proto.InsecureQuery('User', options)
       .equalTo('_id', user.objectId)
       .includes('_id')
       .updateOne({
@@ -224,9 +222,9 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
       });
   }
 
-  async updateFile(object: TFile, options?: ExtraOptions) {
+  async updateFile(proto: ProtoService<Ext>, object: TFile, options?: ExtraOptions) {
 
-    const updated = await this.proto.Query(object.className, options)
+    const updated = await proto.Query(object.className, options)
       .equalTo('_id', object.objectId)
       .includes(...object.keys())
       .updateOne(object[PVK].mutated);
@@ -240,7 +238,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     return object;
   }
 
-  async createFile(object: TFile, options?: ExtraOptions) {
+  async createFile(proto: ProtoService<Ext>, object: TFile, options?: ExtraOptions) {
 
     const data = object[PVK].extra.data as FileData | { _id: string; size: number; };
     if (_.isNil(data)) throw Error('Invalid file object');
@@ -253,14 +251,14 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     };
 
     if (_.isString(data)) {
-      file = await this.proto.fileStorage.create(this.proto, Buffer.from(data), info);
+      file = await proto.fileStorage.create(proto, Buffer.from(data), info);
     } else if (isBinaryData(data) || data instanceof Readable) {
-      file = await this.proto.fileStorage.create(this.proto, data, info);
+      file = await proto.fileStorage.create(proto, data, info);
     } else if (data instanceof Blob) {
-      file = await this.proto.fileStorage.create(this.proto, await data.arrayBuffer(), info);
+      file = await proto.fileStorage.create(proto, await data.arrayBuffer(), info);
     } else if ('base64' in data) {
       const buffer = base64ToBuffer(data.base64);
-      file = await this.proto.fileStorage.create(this.proto, buffer, info);
+      file = await proto.fileStorage.create(proto, buffer, info);
     } else if ('_id' in data && 'size' in data) {
       file = data;
     } else {
@@ -272,7 +270,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
       object.set('token', file._id);
       object.set('size', file.size);
 
-      const created = await this.proto.Query(object.className, options)
+      const created = await proto.Query(object.className, options)
         .includes(...object.keys())
         .insert(_.fromPairs(object.keys().map(k => [k, object.get(k)])));
 
@@ -285,12 +283,12 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
       return object;
 
     } catch (e) {
-      this.destoryFileData(file._id);
+      this.destoryFileData(proto, file._id);
       throw e;
     }
   }
 
-  async saveFile(object: TFile, options?: ExtraOptions) {
+  async saveFile(proto: ProtoService<Ext>, object: TFile, options?: ExtraOptions) {
 
     const beforeSave = this.triggers?.beforeSaveFile;
     const afterSave = this.triggers?.afterSaveFile;
@@ -298,23 +296,23 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     const context = options?.context ?? {};
 
     if (_.isFunction(beforeSave)) {
-      await beforeSave(proxy(Object.setPrototypeOf({ object, context }, this.proto)));
+      await beforeSave(proxy(Object.setPrototypeOf({ object, context }, proto)));
     }
 
     if (object.objectId) {
-      object = await this.updateFile(object, options);
+      object = await this.updateFile(proto, object, options);
     } else {
-      object = await this.createFile(object, options);
+      object = await this.createFile(proto, object, options);
     }
 
     if (_.isFunction(afterSave)) {
-      await afterSave(proxy(Object.setPrototypeOf({ object, context }, this.proto)));
+      await afterSave(proxy(Object.setPrototypeOf({ object, context }, proto)));
     }
 
     return object;
   }
 
-  async deleteFile(object: TFile, options?: ExtraOptions) {
+  async deleteFile(proto: ProtoService<Ext>, object: TFile, options?: ExtraOptions) {
 
     const beforeDelete = this.triggers?.beforeDeleteFile;
     const afterDelete = this.triggers?.afterDeleteFile;
@@ -323,10 +321,10 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     const context = options?.context ?? {};
 
     if (_.isFunction(beforeDelete)) {
-      await beforeDelete(proxy(Object.setPrototypeOf({ object, context }, this.proto)));
+      await beforeDelete(proxy(Object.setPrototypeOf({ object, context }, proto)));
     }
 
-    const deleted = await this.proto.Query(object.className, options)
+    const deleted = await proto.Query(object.className, options)
       .equalTo('_id', object.objectId)
       .deleteOne();
 
@@ -336,30 +334,30 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
       object[PVK].extra = {};
     }
 
-    this.destoryFileData(object.token!);
+    this.destoryFileData(proto, object.token!);
 
     if (_.isFunction(afterDelete)) {
-      await afterDelete(proxy(Object.setPrototypeOf({ object, context }, this.proto)));
+      await afterDelete(proxy(Object.setPrototypeOf({ object, context }, proto)));
     }
 
     return object;
   }
 
-  fileData(object: TFile, options?: ExtraOptions) {
+  fileData(proto: ProtoService<Ext>, object: TFile, options?: ExtraOptions) {
     const self = this;
     return Readable.from({
       [Symbol.asyncIterator]: async function* () {
         object = await object.fetchIfNeeded(['token'], options);
-        const chunks = self.options.fileStorage.fileData(self.proto, object.attributes.token as string);
+        const chunks = self.options.fileStorage.fileData(proto, object.attributes.token as string);
         yield* chunks;
       }
     });
   }
 
-  destoryFileData(id: string) {
+  destoryFileData(proto: ProtoService<Ext>, id: string) {
     (async () => {
       try {
-        await this.proto.fileStorage.destory(this.proto, id);
+        await proto.fileStorage.destory(proto, id);
       } catch (e) {
         console.error(e);
       }

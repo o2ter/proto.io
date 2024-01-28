@@ -44,10 +44,10 @@ export interface ProtoInternalType<Ext> {
     classExtends?: TExtensions<Ext>;
   };
 
-  saveFile(object: TFile, options?: ExtraOptions): Promise<TFile>;
-  deleteFile(object: TFile, options?: ExtraOptions): Promise<TFile>;
+  saveFile(proto: ProtoType<Ext>, object: TFile, options?: ExtraOptions): Promise<TFile>;
+  deleteFile(proto: ProtoType<Ext>, object: TFile, options?: ExtraOptions): Promise<TFile>;
 
-  fileData(object: TFile, options?: ExtraOptions): FileStream;
+  fileData(proto: ProtoType<Ext>, object: TFile, options?: ExtraOptions): FileStream;
 }
 
 export abstract class ProtoType<Ext> {
