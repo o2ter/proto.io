@@ -31,13 +31,13 @@ import { PVK } from '../private';
 
 interface TQueryFilterBaseOptions {
   filter?: TQuerySelector | TQuerySelector[];
-  matches?: Record<string, TQueryBaseOptions>;
 };
 
 export interface TQueryBaseOptions extends TQueryFilterBaseOptions {
   sort?: Record<string, 1 | -1>;
   skip?: number;
   limit?: number;
+  matches?: Record<string, TQueryBaseOptions>;
 };
 
 const mergeOpts = (lhs: TQueryBaseOptions, rhs: TQueryBaseOptions): TQueryBaseOptions => {
@@ -154,21 +154,39 @@ class TQueryFilterBase {
     return this.filter({ [key]: { $some: { $and: _.castArray<TQuerySelector>(query[PVK].options.filter) } } });
   }
 
-  match<T extends string>(key: PathName<T>, callback: (query: TQueryBase) => void) {
-    const query = new TQueryBase();
-    callback(query);
-    if (_.isNil(this[PVK].options.matches)) {
-      this[PVK].options.matches = { [key]: query[PVK].options };
-    } else if (_.isNil(this[PVK].options.matches[key])) {
-      this[PVK].options.matches = { ...this[PVK].options.matches };
-      this[PVK].options.matches[key] = query[PVK].options;
-    } else {
-      this[PVK].options.matches = { ...this[PVK].options.matches };
-      this[PVK].options.matches[key] = mergeOpts(this[PVK].options.matches[key], query[PVK].options);
-    }
-    return this;
+  and(...callbacks: ((query: TQueryFilterBase) => void)[]) {
+    return this.filter({
+      $and: _.flatMap(callbacks, callback => {
+        const query = new TQueryFilterBase();
+        callback(query);
+        return _.castArray<TQuerySelector>(query[PVK].options.filter);
+      }),
+    });
   }
 
+  or(...callbacks: ((query: TQueryFilterBase) => void)[]) {
+    return this.filter({
+      $or: _.map(callbacks, callback => {
+        const query = new TQueryFilterBase();
+        callback(query);
+        return {
+          $and: _.castArray<TQuerySelector>(query[PVK].options.filter),
+        };
+      }),
+    });
+  }
+
+  nor(...callbacks: ((query: TQueryFilterBase) => void)[]) {
+    return this.filter({
+      $nor: _.map(callbacks, callback => {
+        const query = new TQueryFilterBase();
+        callback(query);
+        return {
+          $and: _.castArray<TQuerySelector>(query[PVK].options.filter),
+        };
+      }),
+    });
+  }
 }
 
 export class TQueryBase extends TQueryFilterBase {
@@ -192,4 +210,18 @@ export class TQueryBase extends TQueryFilterBase {
     return this;
   }
 
+  match<T extends string>(key: PathName<T>, callback: (query: TQueryBase) => void) {
+    const query = new TQueryBase();
+    callback(query);
+    if (_.isNil(this[PVK].options.matches)) {
+      this[PVK].options.matches = { [key]: query[PVK].options };
+    } else if (_.isNil(this[PVK].options.matches[key])) {
+      this[PVK].options.matches = { ...this[PVK].options.matches };
+      this[PVK].options.matches[key] = query[PVK].options;
+    } else {
+      this[PVK].options.matches = { ...this[PVK].options.matches };
+      this[PVK].options.matches[key] = mergeOpts(this[PVK].options.matches[key], query[PVK].options);
+    }
+    return this;
+  }
 }
