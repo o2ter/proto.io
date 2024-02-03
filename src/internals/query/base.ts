@@ -199,13 +199,13 @@ export class TQueryBase extends TQueryFilterBase {
   }
 
   skip(skip: number) {
-    if (!_.isInteger(skip) || skip < 0) throw Error('Invalid skip number');
+    if (!_.isSafeInteger(skip) || skip < 0) throw Error('Invalid skip number');
     this[PVK].options.skip = skip;
     return this;
   }
 
   limit(limit: number) {
-    if (!_.isInteger(limit) || limit < 0) throw Error('Invalid limit number');
+    if (!_.isSafeInteger(limit) || limit < 0) throw Error('Invalid limit number');
     this[PVK].options.limit = limit;
     return this;
   }

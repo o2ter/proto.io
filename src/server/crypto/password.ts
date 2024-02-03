@@ -49,11 +49,11 @@ const _passwordHash = async <T extends keyof _PasswordHashOptions>(
   switch (alg) {
     case 'scrypt':
 
-      if (!_.isInteger(options.log2n)) throw Error('Invalid options');
-      if (!_.isInteger(options.blockSize)) throw Error('Invalid options');
-      if (!_.isInteger(options.parallel)) throw Error('Invalid options');
-      if (!_.isInteger(options.keySize)) throw Error('Invalid options');
-      if (!_.isInteger(options.saltSize)) throw Error('Invalid options');
+      if (!_.isSafeInteger(options.log2n)) throw Error('Invalid options');
+      if (!_.isSafeInteger(options.blockSize)) throw Error('Invalid options');
+      if (!_.isSafeInteger(options.parallel)) throw Error('Invalid options');
+      if (!_.isSafeInteger(options.keySize)) throw Error('Invalid options');
+      if (!_.isSafeInteger(options.saltSize)) throw Error('Invalid options');
 
       const _opts: ScryptOptions = {
         N: 1 << options.log2n,

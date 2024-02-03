@@ -252,7 +252,7 @@ export const encodeFieldExpression = (
       }
     case '$size':
       {
-        if (!_.isNumber(expr.value) || !_.isInteger(expr.value)) break;
+        if (!_.isNumber(expr.value) || !_.isSafeInteger(expr.value)) break;
         if (dataType === 'string' || (!_.isString(dataType) && dataType?.type === 'string')) {
           return sql`COALESCE(length(${element}), 0) = ${{ value: expr.value }}`;
         } else if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {

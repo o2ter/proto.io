@@ -49,10 +49,10 @@ export const updateOperation = (paths: string[], dataType: TSchema.DataType, ope
     if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
       switch (op) {
         case '$popFirst':
-          if (!_.isNumber(value) || !_.isInteger(value) || value < 0) break;
+          if (!_.isNumber(value) || !_.isSafeInteger(value) || value < 0) break;
           return sql`${{ identifier: column }}[${{ literal: `${value + 1}` }}:]`;
         case '$popLast':
-          if (!_.isNumber(value) || !_.isInteger(value) || value < 0) break;
+          if (!_.isNumber(value) || !_.isSafeInteger(value) || value < 0) break;
           return sql`${{ identifier: column }}[:array_length(${{ identifier: column }}, 1) - ${{ literal: `${value}` }}]`;
         default:
           {
@@ -224,7 +224,7 @@ export const updateOperation = (paths: string[], dataType: TSchema.DataType, ope
           END
         `);
       case '$popFirst':
-        if (!_.isNumber(value) || !_.isInteger(value) || value < 0) break;
+        if (!_.isNumber(value) || !_.isSafeInteger(value) || value < 0) break;
         return updateKey(sql`
           CASE
           WHEN jsonb_typeof(${element}) ${nullSafeEqual()} 'array'
@@ -235,7 +235,7 @@ export const updateOperation = (paths: string[], dataType: TSchema.DataType, ope
           END
         `);
       case '$popLast':
-        if (!_.isNumber(value) || !_.isInteger(value) || value < 0) break;
+        if (!_.isNumber(value) || !_.isSafeInteger(value) || value < 0) break;
         return updateKey(sql`
           CASE
           WHEN jsonb_typeof(${element}) ${nullSafeEqual()} 'array'
