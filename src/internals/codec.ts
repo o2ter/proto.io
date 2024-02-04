@@ -32,7 +32,7 @@ import { TValue } from './query/value';
 
 export { Decimal };
 type TNumber = number | Decimal | BigInt;
-type TPrimitive = Date | string | TNumber | boolean | null;
+type TPrimitive = Date | string | TNumber | boolean | null | undefined;
 type TDictionary = { [x: string]: TSerializable };
 export type TSerializable = TDictionary | TSerializable[] | TPrimitive | TObject;
 

@@ -25,6 +25,7 @@
 
 import _ from 'lodash';
 import { PVK } from './private';
+import type { Request } from 'express';
 import { ExtraOptions } from './options';
 import { TQuery } from './query';
 import { TExtensions, TObjectType, TObjectTypes } from './object/types';
@@ -62,6 +63,13 @@ export abstract class ProtoType<Ext> {
 
   rebind<T extends TSerializable | undefined, E>(object: T): T {
     return applyObjectMethods(object, this);
+  }
+
+  connect<R extends Request, T extends object>(
+    req: R,
+    attrs?: T | ((x: this & { req: R; }) => T)
+  ): this & { req: R; } & T {
+    throw Error('Invalid operation');
   }
 
   Object<T extends string>(className: T, objectId?: string): TObjectType<T, Ext> {

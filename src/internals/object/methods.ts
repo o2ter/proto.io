@@ -37,7 +37,7 @@ export type TExtended<U, T extends string, E> = U extends TObject ?
   TObjectType<T, E> : U extends (infer U)[] ?
   TExtended<U, T, E>[] : U;
 
-export const applyObjectMethods = <T extends TSerializable | undefined, E>(
+export const applyObjectMethods = <T extends TSerializable, E>(
   object: T,
   proto: ProtoType<E>,
 ): T => {

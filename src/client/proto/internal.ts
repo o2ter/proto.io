@@ -68,7 +68,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
 
     const res = await this.service.request({
       baseURL: this.options.endpoint,
-      data: serialize(data ?? null, serializeOpts),
+      data: serialize(data, serializeOpts),
       responseType: 'text',
       ...opts,
     });
