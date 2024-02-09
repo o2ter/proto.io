@@ -67,7 +67,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
 
   private get _dispatcher(): ReturnType<typeof dispatcher<E>> {
     return dispatcher(
-      this._options?.session ?? this._proto as any,
+      this._options?.session ?? this._proto,
       this._options ?? {},
       this instanceof InsecureProtoQuery
     );
