@@ -195,7 +195,7 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     this[PVK].triggers.afterDeleteFile = callback;
   }
 
-  lockTable(className: string, update: boolean) {
+  lockTable(className: string | string[], update: boolean) {
     return this.storage.lockTable(className, update);
   }
 

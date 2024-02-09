@@ -86,7 +86,7 @@ export interface TStorage {
 
   deleteMany(query: DecodedQuery<FindOptions>): PromiseLike<number>;
 
-  lockTable(className: string, update: boolean): Promise<void>;
+  lockTable(className: string | string[], update: boolean): Promise<void>;
 
   withConnection<T>(callback: (connection: TStorage) => PromiseLike<T>): PromiseLike<T>;
   withTransaction<T>(
