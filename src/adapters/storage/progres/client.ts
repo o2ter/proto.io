@@ -118,6 +118,10 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
     return this._driver.indices(table, namespace);
   }
 
+  async lockTable(table: string, update: boolean): Promise<void> {
+    await this.query(sql`LOCK ${{ identifier: table }} IN ${update ? sql`EXCLUSIVE` : sql`SHARE`} MODE NOWAIT`);
+  }
+
   withConnection<T>(
     callback: (connection: PostgresStorageClient<PostgresClientDriver>) => PromiseLike<T>
   ) {

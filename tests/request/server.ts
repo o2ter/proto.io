@@ -65,6 +65,7 @@ const Proto = new ProtoService({
     },
     'Test': {
       fields: {
+        unique: 'number',
         default: { type: 'number', default: 42 },
         boolean: 'boolean',
         number: 'number',
@@ -118,6 +119,7 @@ const Proto = new ProtoService({
         no_permission: { read: ['role:admin'], create: ['role:admin'], update: ['role:admin'] }
       },
       indexes: [
+        { keys: { unique: 1 }, unique: true },
         { keys: { default: 1 } },
         { keys: { boolean: 1 } },
         { keys: { number: 1 } },
@@ -263,6 +265,44 @@ Proto.define('updateWithLongTransaction', async (proto) => {
   }, { mode: 'repeatable', retry: true });
 });
 
+Proto.define('updateWithLongTransaction2', async (proto) => {
+
+  return await proto.withTransaction(async (proto) => {
+
+    await proto.lockTable('Test', true);
+
+    const count = await proto.Query('Test').equalTo('string', 'updateWithLongTransaction2').count();
+
+    await new Promise<void>(res => setTimeout(res, 100));
+
+    await proto.Query('Test').insert({
+      number: 0,
+      string: 'updateWithLongTransaction2',
+    });
+
+    return count;
+
+  }, { mode: 'repeatable', retry: true });
+});
+
+Proto.define('updateWithLongTransaction3', async (proto) => {
+
+  return await proto.withTransaction(async (proto) => {
+
+    await proto.lockTable('Test', true);
+
+    await proto.Query('Test').insert({
+      number: 0,
+      string: 'updateWithLongTransaction3',
+    });
+
+    await new Promise<void>(res => setTimeout(res, 100));
+
+    return proto.Query('Test').equalTo('string', 'updateWithLongTransaction3').count();
+
+  }, { mode: 'repeatable', retry: true });
+});
+
 Proto.define('updateWithTransactionSession', async (proto) => {
   const { className, values, error } = proto.params as any;
   try {
@@ -318,6 +358,44 @@ Proto.define('updateWithLongTransactionSession', async (proto) => {
     object = await Proto.Query('Test', { session: proto }).equalTo('_id', id).updateOne({ number: { $set: object?.get('number') + 1 } });
 
     return object?.get('number');
+
+  }, { mode: 'repeatable', retry: true });
+});
+
+Proto.define('updateWithLongTransactionSession2', async (proto) => {
+
+  return await proto.withTransaction(async (proto) => {
+
+    await proto.lockTable('Test', true);
+
+    const count = await Proto.Query('Test', { session: proto }).equalTo('string', 'updateWithLongTransactionSession2').count();
+
+    await new Promise<void>(res => setTimeout(res, 100));
+
+    await Proto.Query('Test', { session: proto }).insert({
+      number: 0,
+      string: 'updateWithLongTransactionSession2',
+    });
+
+    return count;
+
+  }, { mode: 'repeatable', retry: true });
+});
+
+Proto.define('updateWithLongTransactionSession3', async (proto) => {
+
+  return await proto.withTransaction(async (proto) => {
+
+    await proto.lockTable('Test', true);
+
+    await Proto.Query('Test', { session: proto }).insert({
+      number: 0,
+      string: 'updateWithLongTransactionSession3',
+    });
+
+    await new Promise<void>(res => setTimeout(res, 100));
+
+    return Proto.Query('Test', { session: proto }).equalTo('string', 'updateWithLongTransactionSession3').count();
 
   }, { mode: 'repeatable', retry: true });
 });

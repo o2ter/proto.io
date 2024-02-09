@@ -1923,6 +1923,32 @@ test('test long transaction', async () => {
   expect(results.sort((a, b) => a - b)).toStrictEqual([2, 4, 6, 8, 10]);
 })
 
+test('test long transaction 2', async () => {
+
+  const results = await Promise.all([
+    Proto.run('updateWithLongTransaction2'),
+    Proto.run('updateWithLongTransaction2'),
+    Proto.run('updateWithLongTransaction2'),
+    Proto.run('updateWithLongTransaction2'),
+    Proto.run('updateWithLongTransaction2'),
+  ]) as number[];
+
+  expect(results.sort((a, b) => a - b)).toStrictEqual([0, 1, 2, 3, 4]);
+})
+
+test('test long transaction 3', async () => {
+
+  const results = await Promise.all([
+    Proto.run('updateWithLongTransaction3'),
+    Proto.run('updateWithLongTransaction3'),
+    Proto.run('updateWithLongTransaction3'),
+    Proto.run('updateWithLongTransaction3'),
+    Proto.run('updateWithLongTransaction3'),
+  ]) as number[];
+
+  expect(results.sort((a, b) => a - b)).toStrictEqual([1, 2, 3, 4, 5]);
+})
+
 test('test transaction session', async () => {
 
   const object = await Proto.Query('Test').insert({});
@@ -2000,6 +2026,32 @@ test('test long transaction session', async () => {
   ]) as number[];
 
   expect(results.sort((a, b) => a - b)).toStrictEqual([2, 4, 6, 8, 10]);
+})
+
+test('test long transaction session 2', async () => {
+
+  const results = await Promise.all([
+    Proto.run('updateWithLongTransactionSession2'),
+    Proto.run('updateWithLongTransactionSession2'),
+    Proto.run('updateWithLongTransactionSession2'),
+    Proto.run('updateWithLongTransactionSession2'),
+    Proto.run('updateWithLongTransactionSession2'),
+  ]) as number[];
+
+  expect(results.sort((a, b) => a - b)).toStrictEqual([0, 1, 2, 3, 4]);
+})
+
+test('test long transaction session 3', async () => {
+
+  const results = await Promise.all([
+    Proto.run('updateWithLongTransactionSession3'),
+    Proto.run('updateWithLongTransactionSession3'),
+    Proto.run('updateWithLongTransactionSession3'),
+    Proto.run('updateWithLongTransactionSession3'),
+    Proto.run('updateWithLongTransactionSession3'),
+  ]) as number[];
+
+  expect(results.sort((a, b) => a - b)).toStrictEqual([1, 2, 3, 4, 5]);
 })
 
 test('test random', async () => {
