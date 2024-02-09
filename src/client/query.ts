@@ -35,7 +35,6 @@ import {
   TObjectType,
   TQueryOptions,
   TUpdateOp,
-  PathName,
   TQueryRandomOptions,
 } from '../internals';
 

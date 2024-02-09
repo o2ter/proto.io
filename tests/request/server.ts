@@ -263,6 +263,65 @@ Proto.define('updateWithLongTransaction', async (proto) => {
   }, { mode: 'repeatable', retry: true });
 });
 
+Proto.define('updateWithTransactionSession', async (proto) => {
+  const { className, values, error } = proto.params as any;
+  try {
+
+    await proto.withTransaction(async (proto) => {
+      await Proto.Query(className, { session: proto })
+        .equalTo('_id', values._id)
+        .updateOne(_.mapValues(_.omit(values, '_id'), v => ({ $set: v })));
+      if (_.isString(error)) throw Error(error);
+    });
+
+    return { success: true, error: null };
+
+  } catch (e: any) {
+    return { success: false, error: e.message };
+  }
+});
+
+Proto.define('updateWithNestedTransactionSession', async (proto) => {
+  const { className, values, values2, error } = proto.params as any;
+
+  await proto.withTransaction(async (proto) => {
+
+    await Proto.Query(className, { session: proto })
+      .equalTo('_id', values._id)
+      .updateOne(_.mapValues(_.omit(values, '_id'), v => ({ $set: v })));
+
+    try {
+
+      await proto.withTransaction(async (proto) => {
+        await Proto.Query(className, { session: proto })
+          .equalTo('_id', values2._id)
+          .updateOne(_.mapValues(_.omit(values2, '_id'), v => ({ $set: v })));
+        if (_.isString(error)) throw Error(error);
+      });
+    } catch { }
+  });
+});
+
+Proto.define('updateWithLongTransactionSession', async (proto) => {
+  const { id } = proto.params as any;
+
+  return await proto.withTransaction(async (proto) => {
+
+    let object = await Proto.Query('Test', { session: proto }).equalTo('_id', id).first();
+
+    await new Promise<void>(res => setTimeout(res, 100));
+
+    object = await Proto.Query('Test', { session: proto }).equalTo('_id', id).updateOne({ number: { $set: object?.get('number') + 1 } });
+
+    await new Promise<void>(res => setTimeout(res, 100));
+
+    object = await Proto.Query('Test', { session: proto }).equalTo('_id', id).updateOne({ number: { $set: object?.get('number') + 1 } });
+
+    return object?.get('number');
+
+  }, { mode: 'repeatable', retry: true });
+});
+
 beforeAll(async () => {
 
   const app = express();

@@ -43,7 +43,7 @@ import {
 } from '../../internals';
 import { generateId } from '../crypto/random';
 import { TSchema, defaultObjectKeyTypes, isPointer, isPrimitive, isRelation, isShapedObject } from '../../internals/schema';
-import { QueryValidator } from '../query/validator/validator';
+import { QueryValidator } from '../query/dispatcher/validator';
 import { passwordHash, varifyPassword } from '../crypto/password';
 import { proxy } from './proxy';
 

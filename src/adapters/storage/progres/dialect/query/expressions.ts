@@ -37,7 +37,7 @@ import {
   QueryKeyExpression,
   QueryNotExpression,
   QueryValueExpression
-} from '../../../../../server/query/validator/parser/expressions';
+} from '../../../../../server/query/dispatcher/parser/expressions';
 import { fetchElement } from './utils';
 import { _encodeJsonValue, _encodeValue } from '../encode';
 

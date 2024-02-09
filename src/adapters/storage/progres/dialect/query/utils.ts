@@ -27,7 +27,7 @@ import _ from 'lodash';
 import { sql } from '../../../../../server/sql';
 import { QueryCompiler } from '../../../../../server/sql/compiler';
 import { TSchema, isPointer, isRelation } from '../../../../../internals/schema';
-import { QueryValidator, _resolveColumn } from '../../../../../server/query/validator/validator';
+import { QueryValidator, _resolveColumn } from '../../../../../server/query/dispatcher/validator';
 
 const _fetchElement = (
   parent: { className?: string; name: string; },

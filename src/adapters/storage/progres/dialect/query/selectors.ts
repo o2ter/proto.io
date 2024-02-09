@@ -28,7 +28,7 @@ import { SQL, sql } from '../../../../../server/sql';
 import { Decimal, TObject, TValue } from '../../../../../internals';
 import { _typeof, isPrimitive } from '../../../../../internals/schema';
 import { CompileContext, QueryCompiler } from '../../../../../server/sql/compiler';
-import { FieldSelectorExpression, QuerySelector } from '../../../../../server/query/validator/parser';
+import { FieldSelectorExpression, QuerySelector } from '../../../../../server/query/dispatcher/parser';
 import { _encodeValue, _encodeJsonValue } from '../encode';
 import { encodeType } from '../encode';
 import { nullSafeEqual, nullSafeNotEqual } from '../basic';

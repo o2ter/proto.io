@@ -24,7 +24,7 @@
 //
 
 import { TObject, TUpdateOp, TValue, TQueryOptions, _TValue, TQueryRandomOptions } from '../internals';
-import { QuerySelector } from './query/validator/parser';
+import { QuerySelector } from './query/dispatcher/parser';
 import { TSchema } from '../internals/schema';
 import { TQueryBaseOptions } from '../internals/query/base';
 

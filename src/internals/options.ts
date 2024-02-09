@@ -24,8 +24,10 @@
 //
 
 import { TSerializable } from './codec';
+import { ProtoType } from './proto';
 
 export type ExtraOptions = {
   master?: boolean;
   context?: TSerializable;
+  session?: ProtoType<unknown>;
 };
