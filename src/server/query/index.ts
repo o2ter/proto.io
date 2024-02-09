@@ -43,16 +43,12 @@ import {
 import { dispatcher } from './dispatcher';
 import { proxy } from '../proto/proxy';
 
-export type QueryExtraOptions<E> = ExtraOptions & {
-  session?: ProtoService<E>;
-};
-
 export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
 
   protected _proto: ProtoService<E>;
-  protected _options?: QueryExtraOptions<E>;
+  protected _options?: ExtraOptions<ProtoService<E>>;
 
-  constructor(className: T, proto: ProtoService<E>, options?: QueryExtraOptions<E>) {
+  constructor(className: T, proto: ProtoService<E>, options?: ExtraOptions<ProtoService<E>>) {
     super(className);
     this._proto = proto;
     this._options = options;

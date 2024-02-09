@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { InsecureProtoQuery, ProtoQuery, QueryExtraOptions } from '../query';
+import { InsecureProtoQuery, ProtoQuery } from '../query';
 import { ProtoInternal } from './internal';
 import {
   PVK,
@@ -73,11 +73,11 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     return _.keys(this[PVK].options.schema);
   }
 
-  Query<T extends string>(className: T, options?: QueryExtraOptions<Ext>): TQuery<T, Ext> {
+  Query<T extends string>(className: T, options?: ExtraOptions<ProtoService<Ext>>): TQuery<T, Ext> {
     return new ProtoQuery<T, Ext>(className, this, options);
   }
 
-  InsecureQuery<T extends string>(className: T, options: ExtraOptions & { master: true }): TQuery<T, Ext> {
+  InsecureQuery<T extends string>(className: T, options: ExtraOptions<ProtoService<Ext>> & { master: true }): TQuery<T, Ext> {
     if (options.master !== true) throw Error('No permission');
     return new InsecureProtoQuery<T, Ext>(className, this, options);
   }
@@ -121,15 +121,15 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     if (req.res) await signUser(this, req.res, undefined);
   }
 
-  varifyPassword(user: TUser, password: string, options: ExtraOptions & { master: true }) {
+  varifyPassword(user: TUser, password: string, options: ExtraOptions<ProtoService<Ext>> & { master: true }) {
     return this[PVK].varifyPassword(this, user, password, options);
   }
 
-  setPassword(user: TUser, password: string, options: ExtraOptions & { master: true }) {
+  setPassword(user: TUser, password: string, options: ExtraOptions<ProtoService<Ext>> & { master: true }) {
     return this[PVK].setPassword(this, user, password, options);
   }
 
-  unsetPassword(user: TUser, options: ExtraOptions & { master: true }) {
+  unsetPassword(user: TUser, options: ExtraOptions<ProtoService<Ext>> & { master: true }) {
     return this[PVK].unsetPassword(this, user, options);
   }
 
@@ -153,7 +153,7 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     await this[PVK].setConfig(values);
   }
 
-  run(name: string, params?: TSerializable, options?: QueryExtraOptions<Ext>) {
+  run(name: string, params?: TSerializable, options?: ExtraOptions<ProtoService<Ext>>) {
     const payload = Object.setPrototypeOf({ params }, this);
     return this[PVK].run(this, name, payload, options);
   }
