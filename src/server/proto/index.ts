@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { InsecureProtoQuery, ProtoQuery } from '../query';
+import { InsecureProtoQuery, ProtoQuery, QueryExtraOptions } from '../query';
 import { ProtoInternal } from './internal';
 import {
   PVK,
@@ -73,7 +73,7 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     return _.keys(this[PVK].options.schema);
   }
 
-  Query<T extends string>(className: T, options?: ExtraOptions): TQuery<T, Ext> {
+  Query<T extends string>(className: T, options?: QueryExtraOptions<Ext>): TQuery<T, Ext> {
     return new ProtoQuery<T, Ext>(className, this, options);
   }
 
@@ -153,7 +153,7 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     await this[PVK].setConfig(values);
   }
 
-  run(name: string, params?: TSerializable, options?: ExtraOptions) {
+  run(name: string, params?: TSerializable, options?: QueryExtraOptions<Ext>) {
     const payload = Object.setPrototypeOf({ params }, this);
     return this[PVK].run(this, name, payload, options);
   }
