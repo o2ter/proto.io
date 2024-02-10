@@ -84,7 +84,7 @@ type SessionInfo<E> = Partial<Awaited<ReturnType<typeof fetchSessionInfo<E>>>>;
 const sessionInfoMap = new WeakMap<Request, SessionInfo<any>>();
 
 const fetchSessionInfo = async <E>(proto: ProtoService<E>, userId?: string) => {
-  const user = _.isString(userId) ? await proto.Query('User', { master: true }).get(userId) : undefined;
+  const user = _.isString(userId) ? await proto.Query('User').get(userId, { master: true }) : undefined;
   const roles = user instanceof TUser ? _.compact(_.map(await proto.userRoles(user), x => x.name)) : [];
   return {
     roles: roles,

@@ -28,7 +28,7 @@ import { TExtensions, TFile, TObject, TQuery, TRole, TUser } from '../index';
 export * from '../codec';
 export const classExtends = <E>(x: TExtensions<E>) => x;
 
-export const isQuery = (x: any): x is TQuery<any, any> => {
+export const isQuery = (x: any): x is TQuery<any, any, any, any> => {
   return x instanceof TQuery;
 }
 

@@ -57,33 +57,35 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
         } = deserialize(req.body) as any;
 
         const payload = proto.connect(req);
-        const query = payload.Query(name, { master: payload.isMaster, context });
+        const query = payload.Query(name);
         query[PVK].options = options;
+
+        const opts = { master: payload.isMaster, context };
 
         switch (operation) {
           case 'explain':
             if (!payload.isMaster) throw Error('No permission');
-            return query.explain();
-          case 'count': return query.count();
+            return query.explain(opts);
+          case 'count': return query.count(opts);
           case 'find':
             {
               const maxFetchLimit = _.isFunction(payload[PVK].options.maxFetchLimit) ? await payload[PVK].options.maxFetchLimit(payload) : payload[PVK].options.maxFetchLimit;
               query[PVK].options.limit = query[PVK].options.limit ?? maxFetchLimit;
               if (query[PVK].options.limit > maxFetchLimit) throw Error('Query over limit');
-              return await query.find();
+              return await query.find(opts);
             }
           case 'random':
             {
               const maxFetchLimit = _.isFunction(payload[PVK].options.maxFetchLimit) ? await payload[PVK].options.maxFetchLimit(payload) : payload[PVK].options.maxFetchLimit;
               query[PVK].options.limit = query[PVK].options.limit ?? maxFetchLimit;
               if (query[PVK].options.limit > maxFetchLimit) throw Error('Query over limit');
-              return await query.random(random);
+              return await query.random(random, opts);
             }
-          case 'insert': return query.insert(attributes);
-          case 'updateOne': return query.updateOne(update);
-          case 'upsertOne': return query.upsertOne(update, setOnInsert);
-          case 'deleteOne': return query.deleteOne();
-          case 'deleteMany': return query.deleteMany();
+          case 'insert': return query.insert(attributes, opts);
+          case 'updateOne': return query.updateOne(update, opts);
+          case 'upsertOne': return query.upsertOne(update, setOnInsert, opts);
+          case 'deleteOne': return query.deleteOne(opts);
+          case 'deleteMany': return query.deleteMany(opts);
           default: throw Error('Invalid operation');
         }
       });
@@ -103,7 +105,9 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       if (!_.includes(classes, name)) return res.sendStatus(404);
 
       const payload = proto.connect(req);
-      const query = payload.Query(name, { master: payload.isMaster });
+      const query = payload.Query(name);
+
+      const opts = { master: payload.isMaster };
 
       await response(res, async () => {
 
@@ -124,7 +128,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
         query[PVK].options.limit = _.isNumber(limit) ? limit : maxFetchLimit;
 
         if (query[PVK].options.limit > maxFetchLimit) throw Error('Query over limit');
-        return await query.find();
+        return await query.find(opts);
       });
     }
   );
@@ -142,7 +146,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
 
       const payload = proto.connect(req);
 
-      await response(res, () => payload.Query(name, { master: payload.isMaster }).get(id));
+      await response(res, () => payload.Query(name).get(id, { master: payload.isMaster }));
     }
   );
 
@@ -159,10 +163,10 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       if (!_.includes(classes, name)) return res.sendStatus(404);
 
       const payload = proto.connect(req);
-      const query = payload.Query(name, { master: payload.isMaster }).equalTo('_id', id);
+      const query = payload.Query(name).equalTo('_id', id);
 
       const update = _.mapValues(deserialize(req.body) as any, v => ({ $set: v }));
-      await response(res, () => query.updateOne(update as any));
+      await response(res, () => query.updateOne(update as any, { master: payload.isMaster }));
     }
   );
 
@@ -181,9 +185,9 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       if (!_.includes(classes, name)) return res.sendStatus(404);
 
       const payload = proto.connect(req);
-      const query = payload.Query(name, { master: payload.isMaster }).equalTo('_id', id);
+      const query = payload.Query(name).equalTo('_id', id);
 
-      await response(res, () => query.deleteOne());
+      await response(res, () => query.deleteOne({ master: payload.isMaster }));
     }
   );
 

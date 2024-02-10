@@ -38,28 +38,28 @@ import { TObject } from './object';
 import { TSerializable } from './codec';
 import { TUser } from './object/user';
 
-export interface ProtoInternalType<Ext> {
+export interface ProtoInternalType<Ext, P> {
 
   options: {
     endpoint: string;
     classExtends?: TExtensions<Ext>;
   };
 
-  saveFile(proto: ProtoType<Ext>, object: TFile, options?: ExtraOptions): Promise<TFile>;
-  deleteFile(proto: ProtoType<Ext>, object: TFile, options?: ExtraOptions): Promise<TFile>;
+  saveFile(proto: P, object: TFile, options?: ExtraOptions<boolean, P>): Promise<TFile>;
+  deleteFile(proto: P, object: TFile, options?: ExtraOptions<boolean, P>): Promise<TFile>;
 
-  fileData(proto: ProtoType<Ext>, object: TFile, options?: ExtraOptions): FileStream;
+  fileData(proto: P, object: TFile, options?: ExtraOptions<boolean, P>): FileStream;
 }
 
 export abstract class ProtoType<Ext> {
 
-  abstract [PVK]: ProtoInternalType<Ext>;
+  abstract [PVK]: ProtoInternalType<Ext, this>;
 
   abstract config(): Promise<Record<string, _TValue>>;
   abstract setConfig(values: Record<string, _TValue>, options: { master: true; }): Promise<void>;
 
-  abstract run(name: string, data?: TSerializable, options?: ExtraOptions): Promise<void | TSerializable>
-  abstract Query<T extends string>(className: T, options?: ExtraOptions): TQuery<T, Ext>;
+  abstract run(name: string, data?: TSerializable, options?: ExtraOptions<boolean, this>): Promise<void | TSerializable>
+  abstract Query<T extends string>(className: T): TQuery<T, Ext, boolean, this>;
 
   rebind<T extends TSerializable | undefined, E>(object: T): T {
     return applyObjectMethods(object, this);
@@ -87,17 +87,17 @@ export abstract class ProtoType<Ext> {
   }
 
   async userRoles(user: TUser) {
-    let queue = await this.Query('Role', { master: true })
+    let queue = await this.Query('Role')
       .isIntersect('users', [user])
       .includes('users', 'name')
-      .find();
+      .find({ master: true });
     let roles = queue;
     while (!_.isEmpty(queue)) {
-      queue = await this.Query('Role', { master: true })
+      queue = await this.Query('Role')
         .isIntersect('roles', queue)
         .notContainsIn('_id', _.compact(_.map(roles, x => x.objectId)))
         .includes('roles', 'name')
-        .find();
+        .find({ master: true });
       roles = _.uniqBy([...roles, ...queue], x => x.objectId);
     }
     return roles;

@@ -199,7 +199,7 @@ Proto.define('createUser', async (proto) => {
 
 Proto.define('createUserWithRole', async (proto) => {
   const { role } = proto.params as any;
-  const _role = await proto.Query('Role', { master: true }).equalTo('name', role).first() ?? await proto.Query('Role', { master: true }).insert({ name: role });
+  const _role = await proto.Query('Role').equalTo('name', role).first({ master: true }) ?? await proto.Query('Role').insert({ name: role }, { master: true });
   const user = await proto.Query('User').insert({ name: 'test' });
   _role.addToSet('users', [user]);
   await _role.save({ master: true });
@@ -308,9 +308,9 @@ Proto.define('updateWithTransactionSession', async (proto) => {
   try {
 
     await proto.withTransaction(async (proto) => {
-      await Proto.Query(className, { session: proto })
+      await Proto.Query(className)
         .equalTo('_id', values._id)
-        .updateOne(_.mapValues(_.omit(values, '_id'), v => ({ $set: v })));
+        .updateOne(_.mapValues(_.omit(values, '_id'), v => ({ $set: v })), { session: proto });
       if (_.isString(error)) throw Error(error);
     });
 
@@ -326,16 +326,16 @@ Proto.define('updateWithNestedTransactionSession', async (proto) => {
 
   await proto.withTransaction(async (proto) => {
 
-    await Proto.Query(className, { session: proto })
+    await Proto.Query(className)
       .equalTo('_id', values._id)
-      .updateOne(_.mapValues(_.omit(values, '_id'), v => ({ $set: v })));
+      .updateOne(_.mapValues(_.omit(values, '_id'), v => ({ $set: v })), { session: proto });
 
     try {
 
       await proto.withTransaction(async (proto) => {
-        await Proto.Query(className, { session: proto })
+        await Proto.Query(className)
           .equalTo('_id', values2._id)
-          .updateOne(_.mapValues(_.omit(values2, '_id'), v => ({ $set: v })));
+          .updateOne(_.mapValues(_.omit(values2, '_id'), v => ({ $set: v })), { session: proto });
         if (_.isString(error)) throw Error(error);
       });
     } catch { }
@@ -347,15 +347,15 @@ Proto.define('updateWithLongTransactionSession', async (proto) => {
 
   return await proto.withTransaction(async (proto) => {
 
-    let object = await Proto.Query('Test', { session: proto }).equalTo('_id', id).first();
+    let object = await Proto.Query('Test').equalTo('_id', id).first({ session: proto });
 
     await new Promise<void>(res => setTimeout(res, 100));
 
-    object = await Proto.Query('Test', { session: proto }).equalTo('_id', id).updateOne({ number: { $set: object?.get('number') + 1 } });
+    object = await Proto.Query('Test').equalTo('_id', id).updateOne({ number: { $set: object?.get('number') + 1 } }, { session: proto });
 
     await new Promise<void>(res => setTimeout(res, 100));
 
-    object = await Proto.Query('Test', { session: proto }).equalTo('_id', id).updateOne({ number: { $set: object?.get('number') + 1 } });
+    object = await Proto.Query('Test').equalTo('_id', id).updateOne({ number: { $set: object?.get('number') + 1 } }, { session: proto });
 
     return object?.get('number');
 
@@ -368,14 +368,14 @@ Proto.define('updateWithLongTransactionSession2', async (proto) => {
 
     await proto.lockTable('Test', true);
 
-    const count = await Proto.Query('Test', { session: proto }).equalTo('string', 'updateWithLongTransactionSession2').count();
+    const count = await Proto.Query('Test').equalTo('string', 'updateWithLongTransactionSession2').count({ session: proto });
 
     await new Promise<void>(res => setTimeout(res, 100));
 
-    await Proto.Query('Test', { session: proto }).insert({
+    await Proto.Query('Test').insert({
       number: 0,
       string: 'updateWithLongTransactionSession2',
-    });
+    }, { session: proto });
 
     return count;
 
@@ -388,14 +388,14 @@ Proto.define('updateWithLongTransactionSession3', async (proto) => {
 
     await proto.lockTable('Test', true);
 
-    await Proto.Query('Test', { session: proto }).insert({
+    await Proto.Query('Test').insert({
       number: 0,
       string: 'updateWithLongTransactionSession3',
-    });
+    }, { session: proto });
 
     await new Promise<void>(res => setTimeout(res, 100));
 
-    return Proto.Query('Test', { session: proto }).equalTo('string', 'updateWithLongTransactionSession3').count();
+    return Proto.Query('Test').equalTo('string', 'updateWithLongTransactionSession3').count({ session: proto });
 
   }, { mode: 'repeatable', retry: true });
 });

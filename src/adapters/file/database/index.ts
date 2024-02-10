@@ -84,13 +84,13 @@ export class DatabaseFileStorage implements TFileStorage {
       const chunkSize = data.byteLength;
       const compressed = await promisify(deflate)(data);
 
-      const created = await proto.Query('_FileChunk', { master: true }).insert({
+      const created = await proto.Query('_FileChunk').insert({
         token,
         start: size,
         end: size + chunkSize,
         size: chunkSize,
         base64: bufferToBase64(compressed),
-      });
+      }, { master: true });
       if (!created) throw Error('Unable to save file');
 
       size += chunkSize;
@@ -101,12 +101,12 @@ export class DatabaseFileStorage implements TFileStorage {
   }
 
   async destory<E>(proto: ProtoService<E>, id: string) {
-    await proto.Query('_FileChunk', { master: true }).equalTo('token', id).deleteMany();
+    await proto.Query('_FileChunk').equalTo('token', id).deleteMany({ master: true });
   }
 
   async* fileData<E>(proto: ProtoService<E>, id: string, start?: number, end?: number) {
 
-    const query = proto.Query('_FileChunk', { master: true })
+    const query = proto.Query('_FileChunk')
       .sort({ start: 1 })
       .filter({
         token: { $eq: id },
@@ -114,7 +114,7 @@ export class DatabaseFileStorage implements TFileStorage {
         ...end ? { start: { $lt: end } } : {},
       });
 
-    for await (const chunk of query.find()) {
+    for await (const chunk of query.find({ master: true })) {
 
       const startBytes = chunk.get('start');
       const endBytes = chunk.get('end');

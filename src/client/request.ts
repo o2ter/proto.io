@@ -34,8 +34,9 @@ import {
 } from '../internals/common/const';
 import { RequestOptions } from './options';
 import { ProtoClientInternal } from './proto/internal';
+import { ProtoType } from '../internals';
 
-export default class Service<Ext> {
+export default class Service<Ext, P extends ProtoType<any>> {
 
   service = axios.create({
     xsrfCookieName: XSRF_COOKIE_NAME,
@@ -44,13 +45,13 @@ export default class Service<Ext> {
     withCredentials: true,
   });
 
-  proto: ProtoClientInternal<Ext>;
+  proto: ProtoClientInternal<Ext, P>;
 
-  constructor(proto: ProtoClientInternal<Ext>) {
+  constructor(proto: ProtoClientInternal<Ext, P>) {
     this.proto = proto;
   }
 
-  async request<T = any, D = any>(config: RequestOptions & AxiosRequestConfig<D>): Promise<AxiosResponse<T, D>> {
+  async request<T = any, D = any>(config: RequestOptions<boolean, P> & AxiosRequestConfig<D>): Promise<AxiosResponse<T, D>> {
 
     const { master, abortSignal, serializeOpts, context, headers, ...opts } = config ?? {};
 

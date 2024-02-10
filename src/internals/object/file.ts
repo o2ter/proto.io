@@ -31,7 +31,7 @@ import { TValue } from '../query/value';
 
 export interface TFile {
   url: string | undefined;
-  fileData(options?: ExtraOptions): FileStream;
+  fileData(options?: ExtraOptions<boolean, any>): FileStream;
 }
 
 export class TFile extends TObject {

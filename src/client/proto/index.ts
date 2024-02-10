@@ -37,21 +37,21 @@ import { ProtoOptions } from './types';
 
 export class ProtoClient<Ext> extends ProtoType<Ext> {
 
-  [PVK]: ProtoClientInternal<Ext>;
+  [PVK]: ProtoClientInternal<Ext, ProtoClient<Ext>>;
 
   constructor(options: ProtoOptions<Ext>) {
     super();
     this[PVK] = new ProtoClientInternal({ ...options });
   }
 
-  Query<T extends string>(className: T, options?: RequestOptions): TQuery<T, Ext> {
-    return new ProtoClientQuery<T, Ext>(className, this, options);
+  Query<T extends string>(className: T): TQuery<T, Ext, boolean, ProtoClient<Ext>> {
+    return new ProtoClientQuery<T, Ext>(className, this);
   }
 
-  config(options?: RequestOptions): Promise<Record<string, _TValue>> {
+  config(options?: RequestOptions<boolean, ProtoClient<Ext>>): Promise<Record<string, _TValue>> {
     return this[PVK].config(options);
   }
-  async setConfig(values: Record<string, _TValue>, options: RequestOptions & { master: true; }) {
+  async setConfig(values: Record<string, _TValue>, options: RequestOptions<true, ProtoClient<Ext>>) {
     if (options.master !== true) throw Error('No permission');
     await this[PVK].setConfig(values, options);
   }
@@ -59,7 +59,7 @@ export class ProtoClient<Ext> extends ProtoType<Ext> {
   run(
     name: string,
     data?: TSerializable,
-    options?: RequestOptions
+    options?: RequestOptions<boolean, ProtoClient<Ext>>
   ): Promise<void | TSerializable> {
     return this[PVK].request(this, data, {
       method: 'post',
@@ -68,23 +68,23 @@ export class ProtoClient<Ext> extends ProtoType<Ext> {
     });
   }
 
-  currentUser(options?: RequestOptions) {
+  currentUser(options?: RequestOptions<boolean, ProtoClient<Ext>>) {
     return this[PVK].currentUser(this, options);
   }
 
-  logout(options?: RequestOptions) {
+  logout(options?: RequestOptions<boolean, ProtoClient<Ext>>) {
     return this[PVK].logout(options);
   }
 
-  setPassword(user: TUser, password: string, options: RequestOptions & { master: true }) {
+  setPassword(user: TUser, password: string, options: RequestOptions<true, ProtoClient<Ext>>) {
     return this[PVK].setPassword(user, password, options);
   }
 
-  unsetPassword(user: TUser, options: RequestOptions & { master: true }) {
+  unsetPassword(user: TUser, options: RequestOptions<true, ProtoClient<Ext>>) {
     return this[PVK].unsetPassword(user, options);
   }
 
-  schema(options: RequestOptions & { master: true }) {
+  schema(options: RequestOptions<true, ProtoClient<Ext>>) {
     return this[PVK].schema(options);
   }
 }

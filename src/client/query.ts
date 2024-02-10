@@ -38,15 +38,13 @@ import {
   TQueryRandomOptions,
 } from '../internals';
 
-export class ProtoClientQuery<T extends string, E> extends TQuery<T, E> {
+export class ProtoClientQuery<T extends string, E> extends TQuery<T, E, boolean, ProtoClient<E>> {
 
   private _proto: ProtoClient<E>;
-  private _options?: RequestOptions;
 
-  constructor(className: T, proto: ProtoClient<E>, options?: RequestOptions) {
+  constructor(className: T, proto: ProtoClient<E>) {
     super(className);
     this._proto = proto;
-    this._options = options;
   }
 
   private get _queryOptions() {
@@ -56,8 +54,8 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E> {
     } as any;
   }
 
-  private get _requestOpt() {
-    const { context, ...opts } = this._options ?? {};
+  private _requestOpt(options?: RequestOptions<boolean, ProtoClient<E>>) {
+    const { context, ...opts } = options ?? {};
     return {
       method: 'post',
       url: `classes/${this.className}`,
@@ -69,88 +67,101 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E> {
   }
 
   clone(options?: TQueryOptions) {
-    const clone = new ProtoClientQuery(this.className, this._proto, this._options);
+    const clone = new ProtoClientQuery(this.className, this._proto);
     clone[PVK].options = options ?? { ...this[PVK].options };
     return clone;
   }
 
-  explain() {
+  explain(options?: RequestOptions<boolean, ProtoClient<E>>) {
     return this._proto[PVK].request(this._proto, {
       operation: 'explain',
-      context: this._options?.context ?? {},
+      context: options?.context ?? {},
       ...this._queryOptions,
-    }, this._requestOpt);
+    }, this._requestOpt(options));
   }
 
-  count() {
+  count(options?: RequestOptions<boolean, ProtoClient<E>>) {
     return this._proto[PVK].request(this._proto, {
       operation: 'count',
-      context: this._options?.context ?? {},
+      context: options?.context ?? {},
       ...this._queryOptions,
-    }, this._requestOpt) as any;
+    }, this._requestOpt(options)) as any;
   }
 
-  find() {
+  find(options?: RequestOptions<boolean, ProtoClient<E>>) {
     const request = () => this._proto[PVK].request(this._proto, {
       operation: 'find',
-      context: this._options?.context ?? {},
+      context: options?.context ?? {},
       ...this._queryOptions,
-    }, this._requestOpt) as Promise<TObjectType<T, E>[]>;
+    }, this._requestOpt(options)) as Promise<TObjectType<T, E>[]>;
     return asyncStream(request);
   }
 
-  random(opts?: TQueryRandomOptions) {
+  random(
+    opts?: TQueryRandomOptions,
+    options?: RequestOptions<boolean, ProtoClient<E>>
+  ) {
     const request = () => this._proto[PVK].request(this._proto, {
       operation: 'random',
-      context: this._options?.context ?? {},
+      context: options?.context ?? {},
       random: opts,
       ...this._queryOptions,
-    }, this._requestOpt) as Promise<TObjectType<T, E>[]>;
+    }, this._requestOpt(options)) as Promise<TObjectType<T, E>[]>;
     return asyncStream(request);
   }
 
-  insert(attrs: Record<string, TValue>) {
+  insert(
+    attrs: Record<string, TValue>,
+    options?: RequestOptions<boolean, ProtoClient<E>>
+  ) {
     return this._proto[PVK].request(this._proto, {
       operation: 'insert',
-      context: this._options?.context ?? {},
+      context: options?.context ?? {},
       attributes: attrs,
       ...this._queryOptions,
-    }, this._requestOpt) as any;
+    }, this._requestOpt(options)) as any;
   }
 
-  updateOne(update: Record<string, TUpdateOp>) {
+  updateOne(
+    update: Record<string, TUpdateOp>,
+    options?: RequestOptions<boolean, ProtoClient<E>>
+  ) {
     return this._proto[PVK].request(this._proto, {
       operation: 'updateOne',
-      context: this._options?.context ?? {},
+      context: options?.context ?? {},
       update,
       ...this._queryOptions,
-    }, this._requestOpt) as any;
+    }, this._requestOpt(options)) as any;
   }
 
-  upsertOne(update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValue>) {
+  upsertOne(
+    update: Record<string, TUpdateOp>,
+    setOnInsert: Record<string, TValue>,
+    options?: RequestOptions<boolean, ProtoClient<E>>
+  ) {
     return this._proto[PVK].request(this._proto, {
       operation: 'upsertOne',
-      context: this._options?.context ?? {},
+      context: options?.context ?? {},
       update,
       setOnInsert,
       ...this._queryOptions,
-    }, this._requestOpt) as any;
+    }, this._requestOpt(options)) as any;
   }
 
-  deleteOne() {
+  deleteOne(options?: RequestOptions<boolean, ProtoClient<E>>) {
     return this._proto[PVK].request(this._proto, {
       operation: 'deleteOne',
-      context: this._options?.context ?? {},
+      context: options?.context ?? {},
       ...this._queryOptions,
-    }, this._requestOpt) as any;
+    }, this._requestOpt(options)) as any;
   }
 
-  deleteMany() {
+  deleteMany(options?: RequestOptions<boolean, ProtoClient<E>>) {
     return this._proto[PVK].request(this._proto, {
       operation: 'deleteMany',
-      context: this._options?.context ?? {},
+      context: options?.context ?? {},
       ...this._queryOptions,
-    }, this._requestOpt) as any;
+    }, this._requestOpt(options)) as any;
   }
 
 }

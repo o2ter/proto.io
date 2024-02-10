@@ -43,15 +43,13 @@ import {
 import { dispatcher } from './dispatcher';
 import { proxy } from '../proto/proxy';
 
-export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
+export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T, E, M, ProtoService<E>> {
 
   protected _proto: ProtoService<E>;
-  protected _options?: ExtraOptions<ProtoService<E>>;
 
-  constructor(className: T, proto: ProtoService<E>, options?: ExtraOptions<ProtoService<E>>) {
+  constructor(className: T, proto: ProtoService<E>) {
     super(className);
     this._proto = proto;
-    this._options = options;
   }
 
   private get _queryOptions() {
@@ -61,24 +59,29 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
     };
   }
 
-  private get _dispatcher(): ReturnType<typeof dispatcher<E>> {
+  private _dispatcher(
+    options?: ExtraOptions<M, ProtoService<E>>
+  ): ReturnType<typeof dispatcher<E>> {
+    if (this instanceof InsecureProtoQuery) {
+      if (options?.master !== true) throw Error('No permission');
+    }
     return dispatcher(
-      this._options?.session ?? this._proto,
-      this._options ?? {},
+      options?.session ?? this._proto,
+      options ?? {},
       this instanceof InsecureProtoQuery
     );
   }
 
-  explain() {
-    return this._dispatcher.explain(this._queryOptions);
+  explain(options?: ExtraOptions<M, ProtoService<E>>) {
+    return this._dispatcher(options).explain(this._queryOptions);
   }
 
-  count() {
-    return this._dispatcher.count(this._queryOptions);
+  count(options?: ExtraOptions<M, ProtoService<E>>) {
+    return this._dispatcher(options).count(this._queryOptions);
   }
 
   clone(options?: TQueryOptions) {
-    const clone = new ProtoQuery(this.className, this._proto, this._options);
+    const clone = new ProtoQuery(this.className, this._proto);
     clone[PVK].options = options ?? { ...this[PVK].options };
     return clone;
   }
@@ -87,27 +90,33 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
     return this._proto.rebind(object) as TExtended<U, T, E>;
   }
 
-  find() {
+  find(options?: ExtraOptions<M, ProtoService<E>>) {
     const self = this;
     return asyncStream(async function* () {
-      const objects = await self._dispatcher.find(self._queryOptions);
+      const objects = await self._dispatcher(options).find(self._queryOptions);
       for await (const object of objects) yield self._objectMethods(object);
     });
   }
 
-  random(opts?: TQueryRandomOptions) {
+  random(
+    opts?: TQueryRandomOptions,
+    options?: ExtraOptions<M, ProtoService<E>>
+  ) {
     const self = this;
     return asyncStream(async function* () {
-      const objects = await self._dispatcher.random(self._queryOptions, opts);
+      const objects = await self._dispatcher(options).random(self._queryOptions, opts);
       for await (const object of objects) yield self._objectMethods(object);
     });
   }
 
-  async insert(attrs: Record<string, TValue>) {
+  async insert(
+    attrs: Record<string, TValue>,
+    options?: ExtraOptions<M, ProtoService<E>>
+  ) {
     const beforeSave = this._proto[PVK].triggers?.beforeSave?.[this.className];
     const afterSave = this._proto[PVK].triggers?.afterSave?.[this.className];
 
-    const context = this._options?.context ?? {};
+    const context = options?.context ?? {};
 
     const object = this._proto.Object(this.className);
     for (const [key, value] of _.toPairs(attrs)) {
@@ -117,7 +126,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
     if (_.isFunction(beforeSave)) await beforeSave(proxy(Object.setPrototypeOf({ object, context }, this._proto)));
 
     const result = this._objectMethods(
-      await this._dispatcher.insert({
+      await this._dispatcher(options).insert({
         className: this.className,
         includes: this[PVK].options.includes,
         matches: this[PVK].options.matches,
@@ -128,16 +137,19 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
     return result;
   }
 
-  async updateOne(update: Record<string, TUpdateOp>) {
+  async updateOne(
+    update: Record<string, TUpdateOp>,
+    options?: ExtraOptions<M, ProtoService<E>>
+  ) {
     const beforeSave = this._proto[PVK].triggers?.beforeSave?.[this.className];
     const afterSave = this._proto[PVK].triggers?.afterSave?.[this.className];
 
-    const context = this._options?.context ?? {};
+    const context = options?.context ?? {};
 
     if (_.isFunction(beforeSave)) {
 
       const object = this._objectMethods(
-        _.first(await asyncIterableToArray(await this._dispatcher.find({ ...this._queryOptions, limit: 1 })))
+        _.first(await asyncIterableToArray(await this._dispatcher(options).find({ ...this._queryOptions, limit: 1 })))
       );
       if (!object) return undefined;
 
@@ -148,22 +160,26 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
     }
 
     const result = this._objectMethods(
-      await this._dispatcher.updateOne(this._queryOptions, update)
+      await this._dispatcher(options).updateOne(this._queryOptions, update)
     );
     if (result && _.isFunction(afterSave)) await afterSave(proxy(Object.setPrototypeOf({ object: result, context }, this._proto)));
     return result;
   }
 
-  async upsertOne(update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValue>) {
+  async upsertOne(
+    update: Record<string, TUpdateOp>,
+    setOnInsert: Record<string, TValue>,
+    options?: ExtraOptions<M, ProtoService<E>>
+  ) {
     const beforeSave = this._proto[PVK].triggers?.beforeSave?.[this.className];
     const afterSave = this._proto[PVK].triggers?.afterSave?.[this.className];
 
-    const context = this._options?.context ?? {};
+    const context = options?.context ?? {};
 
     if (_.isFunction(beforeSave)) {
 
       let object = this._objectMethods(
-        _.first(await asyncIterableToArray(await this._dispatcher.find({ ...this._queryOptions, limit: 1 })))
+        _.first(await asyncIterableToArray(await this._dispatcher(options).find({ ...this._queryOptions, limit: 1 })))
       );
 
       if (object) {
@@ -191,31 +207,31 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
     }
 
     const result = this._objectMethods(
-      await this._dispatcher.upsertOne(this._queryOptions, update, setOnInsert)
+      await this._dispatcher(options).upsertOne(this._queryOptions, update, setOnInsert)
     );
     if (!result) throw Error('Unable to upsert document');
     if (_.isFunction(afterSave)) await afterSave(proxy(Object.setPrototypeOf({ object: result, context }, this._proto)));
     return result;
   }
 
-  async deleteOne() {
+  async deleteOne(options?: ExtraOptions<M, ProtoService<E>>) {
     const beforeDelete = this._proto[PVK].triggers?.beforeDelete?.[this.className];
     const afterDelete = this._proto[PVK].triggers?.afterDelete?.[this.className];
 
-    const context = this._options?.context ?? {};
+    const context = options?.context ?? {};
     let result: TObjectType<T, E> | undefined;
 
     if (_.isFunction(beforeDelete)) {
 
       const object = this._objectMethods(
-        _.first(await asyncIterableToArray(await this._dispatcher.find({ ...this._queryOptions, limit: 1 })))
+        _.first(await asyncIterableToArray(await this._dispatcher(options).find({ ...this._queryOptions, limit: 1 })))
       );
       if (!object) return undefined;
 
       await beforeDelete(proxy(Object.setPrototypeOf({ object, context }, this._proto)));
 
       result = this._objectMethods(
-        await this._dispatcher.deleteOne({
+        await this._dispatcher(options).deleteOne({
           ...this._queryOptions,
           filter: { _id: { $eq: object.objectId } },
         })
@@ -223,7 +239,7 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
 
     } else {
       result = this._objectMethods(
-        await this._dispatcher.deleteOne(this._queryOptions)
+        await this._dispatcher(options).deleteOne(this._queryOptions)
       );
     }
 
@@ -231,22 +247,22 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
     return result;
   }
 
-  async deleteMany() {
+  async deleteMany(options?: ExtraOptions<M, ProtoService<E>>) {
     const beforeDelete = this._proto[PVK].triggers?.beforeDelete?.[this.className];
     const afterDelete = this._proto[PVK].triggers?.afterDelete?.[this.className];
 
-    const context = this._options?.context ?? {};
+    const context = options?.context ?? {};
 
     if (_.isFunction(beforeDelete) || _.isFunction(afterDelete)) {
 
-      const objects = this._objectMethods(await asyncIterableToArray(await this._dispatcher.find(this._queryOptions)));
+      const objects = this._objectMethods(await asyncIterableToArray(await this._dispatcher(options).find(this._queryOptions)));
       if (_.isEmpty(objects)) return 0;
 
       if (_.isFunction(beforeDelete)) {
         await Promise.all(_.map(objects, object => beforeDelete(proxy(Object.setPrototypeOf({ object, context }, this._proto)))));
       }
 
-      await this._dispatcher.deleteMany({
+      await this._dispatcher(options).deleteMany({
         ...this._queryOptions,
         filter: { _id: { $in: _.map(objects, x => x.objectId!) } },
       });
@@ -258,15 +274,15 @@ export class ProtoQuery<T extends string, E> extends TQuery<T, E> {
       return objects.length;
     }
 
-    return this._dispatcher.deleteMany(this._queryOptions);
+    return this._dispatcher(options).deleteMany(this._queryOptions);
   }
 
 }
 
-export class InsecureProtoQuery<T extends string, E> extends ProtoQuery<T, E> {
+export class InsecureProtoQuery<T extends string, E> extends ProtoQuery<T, E, true> {
 
   clone(options?: TQueryOptions) {
-    const clone = new InsecureProtoQuery(this.className, this._proto, this._options);
+    const clone = new InsecureProtoQuery(this.className, this._proto);
     clone[PVK].options = options ?? { ...this[PVK].options };
     return clone;
   }

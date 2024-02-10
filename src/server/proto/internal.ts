@@ -27,7 +27,6 @@ import _ from 'lodash';
 import { Blob } from 'node:buffer';
 import { Readable } from 'node:stream';
 import { defaultSchema } from './defaults';
-import { ProtoService } from './index';
 import { ProtoServiceOptions, ProtoFunction, ProtoFunctionOptions, ProtoTrigger, ProtoServiceKeyOptions } from './types';
 import {
   PVK,
@@ -46,6 +45,7 @@ import { TSchema, defaultObjectKeyTypes, isPointer, isPrimitive, isRelation, isS
 import { QueryValidator } from '../query/dispatcher/validator';
 import { passwordHash, varifyPassword } from '../crypto/password';
 import { proxy } from './proxy';
+import { ProtoService } from '.';
 
 const validateForeignField = (schema: Record<string, TSchema>, key: string, dataType: TSchema.RelationType) => {
   if (!dataType.foreignField) return;
@@ -131,7 +131,7 @@ const mergeSchema = (...schemas: Record<string, TSchema>[]) => _.reduce(schemas,
   })),
 }), {} as Record<string, TSchema>);
 
-export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
+export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInternalType<Ext, P> {
 
   options: Required<ProtoServiceOptions<Ext>> & ProtoServiceKeyOptions;
 
@@ -170,7 +170,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     return this.options.storage.setConfig(values);
   }
 
-  async run(proto: ProtoService<Ext>, name: string, payload: any, options?: ExtraOptions) {
+  async run(proto: P, name: string, payload: any, options?: ExtraOptions<boolean, P>) {
 
     const func = this.functions?.[name];
 
@@ -189,45 +189,45 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     return callback(proxy(payload ?? proto));
   }
 
-  async varifyPassword(proto: ProtoService<Ext>, user: TUser, password: string, options: ExtraOptions & { master: true }) {
+  async varifyPassword(proto: P, user: TUser, password: string, options: ExtraOptions<true, P>) {
     if (!user.objectId) throw Error('Invalid user object');
-    const _user = await proto.InsecureQuery('User', options)
+    const _user = await proto.InsecureQuery('User')
       .equalTo('_id', user.objectId)
       .includes('_id', 'password')
-      .first();
+      .first(options);
     const { alg, ...opts } = _user?.get('password') ?? {};
     return varifyPassword(alg, password, opts);
   }
 
-  async setPassword(proto: ProtoService<Ext>, user: TUser, password: string, options: ExtraOptions & { master: true }) {
+  async setPassword(proto: P, user: TUser, password: string, options: ExtraOptions<true, P>) {
     if (!user.objectId) throw Error('Invalid user object');
     if (_.isEmpty(password)) throw Error('Invalid password');
     const { alg, ...opts } = this.options.passwordHashOptions;
     const hashed = await passwordHash(alg, password, opts);
-    await proto.InsecureQuery('User', options)
+    await proto.InsecureQuery('User')
       .equalTo('_id', user.objectId)
       .includes('_id')
       .updateOne({
         password: { $set: hashed },
-      });
+      }, options);
   }
 
-  async unsetPassword(proto: ProtoService<Ext>, user: TUser, options: ExtraOptions & { master: true }) {
+  async unsetPassword(proto: P, user: TUser, options: ExtraOptions<true, P>) {
     if (!user.objectId) throw Error('Invalid user object');
-    await proto.InsecureQuery('User', options)
+    await proto.InsecureQuery('User')
       .equalTo('_id', user.objectId)
       .includes('_id')
       .updateOne({
         password: { $set: {} },
-      });
+      }, options);
   }
 
-  async updateFile(proto: ProtoService<Ext>, object: TFile, options?: ExtraOptions) {
+  async updateFile(proto: P, object: TFile, options?: ExtraOptions<boolean, P>) {
 
-    const updated = await proto.Query(object.className, options)
+    const updated = await proto.Query(object.className)
       .equalTo('_id', object.objectId)
       .includes(...object.keys())
-      .updateOne(object[PVK].mutated);
+      .updateOne(object[PVK].mutated, options);
 
     if (updated) {
       object[PVK].attributes = updated.attributes;
@@ -238,7 +238,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     return object;
   }
 
-  async createFile(proto: ProtoService<Ext>, object: TFile, options?: ExtraOptions) {
+  async createFile(proto: P, object: TFile, options?: ExtraOptions<boolean, P>) {
 
     const data = object[PVK].extra.data as FileData | { _id: string; size: number; };
     if (_.isNil(data)) throw Error('Invalid file object');
@@ -270,9 +270,9 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
       object.set('token', file._id);
       object.set('size', file.size);
 
-      const created = await proto.Query(object.className, options)
+      const created = await proto.Query(object.className)
         .includes(...object.keys())
-        .insert(_.fromPairs(object.keys().map(k => [k, object.get(k)])));
+        .insert(_.fromPairs(object.keys().map(k => [k, object.get(k)])), options);
 
       if (created) {
         object[PVK].attributes = created.attributes;
@@ -288,7 +288,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     }
   }
 
-  async saveFile(proto: ProtoService<Ext>, object: TFile, options?: ExtraOptions) {
+  async saveFile(proto: P, object: TFile, options?: ExtraOptions<boolean, P>) {
 
     const beforeSave = this.triggers?.beforeSaveFile;
     const afterSave = this.triggers?.afterSaveFile;
@@ -312,7 +312,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     return object;
   }
 
-  async deleteFile(proto: ProtoService<Ext>, object: TFile, options?: ExtraOptions) {
+  async deleteFile(proto: P, object: TFile, options?: ExtraOptions<boolean, P>) {
 
     const beforeDelete = this.triggers?.beforeDeleteFile;
     const afterDelete = this.triggers?.afterDeleteFile;
@@ -324,9 +324,9 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
       await beforeDelete(proxy(Object.setPrototypeOf({ object, context }, proto)));
     }
 
-    const deleted = await proto.Query(object.className, options)
+    const deleted = await proto.Query(object.className)
       .equalTo('_id', object.objectId)
-      .deleteOne();
+      .deleteOne(options);
 
     if (deleted) {
       object[PVK].attributes = deleted.attributes;
@@ -343,7 +343,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     return object;
   }
 
-  fileData(proto: ProtoService<Ext>, object: TFile, options?: ExtraOptions) {
+  fileData(proto: P, object: TFile, options?: ExtraOptions<boolean, P>) {
     const self = this;
     return Readable.from({
       [Symbol.asyncIterator]: async function* () {
@@ -354,7 +354,7 @@ export class ProtoInternal<Ext> implements ProtoInternalType<Ext> {
     });
   }
 
-  destoryFileData(proto: ProtoService<Ext>, id: string) {
+  destoryFileData(proto: P, id: string) {
     (async () => {
       try {
         await proto.fileStorage.destory(proto, id);

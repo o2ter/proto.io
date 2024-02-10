@@ -27,7 +27,6 @@ import _ from 'lodash';
 import Service from '../request';
 import { RequestOptions } from '../options';
 import { ProtoOptions } from './types';
-import { ProtoClient } from './index';
 import {
   PVK,
   TSerializable,
@@ -44,11 +43,12 @@ import {
   isBlob,
   _TValue,
   TObjectType,
+  ProtoType,
 } from '../../internals';
 import { iterableToStream, streamToIterable } from '../stream';
 import { TSchema } from '../../internals/schema';
 
-export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
+export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements ProtoInternalType<Ext, P> {
 
   options: ProtoOptions<Ext>;
 
@@ -59,9 +59,9 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
   }
 
   async request(
-    proto: ProtoClient<Ext>,
+    proto: P,
     data?: TSerializable,
-    options?: Parameters<Service<Ext>['request']>[0]
+    options?: Parameters<Service<Ext, P>['request']>[0]
   ) {
 
     const { serializeOpts, context, ...opts } = options ?? {};
@@ -81,7 +81,10 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     return proto.rebind(deserialize(res.data));
   }
 
-  async currentUser(proto: ProtoClient<Ext>, options?: RequestOptions): Promise<TObjectType<'User', Ext> | undefined> {
+  async currentUser(
+    proto: P,
+    options?: RequestOptions<boolean, P>
+  ): Promise<TObjectType<'User', Ext> | undefined> {
 
     const { serializeOpts, context, ...opts } = options ?? {};
 
@@ -104,7 +107,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     return user ?? undefined;
   }
 
-  async config(options?: RequestOptions) {
+  async config(options?: RequestOptions<boolean, P>) {
 
     const { serializeOpts, context, ...opts } = options ?? {};
 
@@ -123,7 +126,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
 
     return deserialize(res.data) as Record<string, _TValue>;
   }
-  async setConfig(values: Record<string, _TValue>, options: RequestOptions) {
+  async setConfig(values: Record<string, _TValue>, options: RequestOptions<boolean, P>) {
 
     const { serializeOpts, context, ...opts } = options ?? {};
 
@@ -142,7 +145,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     }
   }
 
-  async logout(options?: RequestOptions) {
+  async logout(options?: RequestOptions<boolean, P>) {
 
     const { serializeOpts, context, ...opts } = options ?? {};
 
@@ -160,7 +163,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     }
   }
 
-  async setPassword(user: TUser, password: string, options: RequestOptions & { master: true }) {
+  async setPassword(user: TUser, password: string, options: RequestOptions<true, P>) {
 
     if (!user.objectId) throw Error('Invalid user');
     if (_.isEmpty(password)) throw Error('Invalid password');
@@ -182,7 +185,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     }
   }
 
-  async unsetPassword(user: TUser, options: RequestOptions & { master: true }) {
+  async unsetPassword(user: TUser, options: RequestOptions<true, P>) {
 
     if (!user.objectId) throw Error('Invalid user');
 
@@ -202,7 +205,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     }
   }
 
-  async schema(options: RequestOptions & { master: true }): Promise<Record<string, TSchema>> {
+  async schema(options: RequestOptions<true, P>): Promise<Record<string, TSchema>> {
 
     const { serializeOpts, context, ...opts } = options ?? {};
 
@@ -222,12 +225,12 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     return deserialize(res.data) as any;
   }
 
-  async updateFile(proto: ProtoClient<Ext>, object: TFile, options?: RequestOptions) {
+  async updateFile(proto: P, object: TFile, options?: RequestOptions<boolean, P>) {
 
-    const updated = await proto.Query(object.className, options)
+    const updated = await proto.Query(object.className)
       .equalTo('_id', object.objectId)
       .includes(...object.keys())
-      .updateOne(object[PVK].mutated);
+      .updateOne(object[PVK].mutated, options);
 
     if (updated) {
       object[PVK].attributes = updated.attributes;
@@ -238,7 +241,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     return object;
   }
 
-  async createFile(proto: ProtoClient<Ext>, object: TFile, options?: RequestOptions) {
+  async createFile(proto: P, object: TFile, options?: RequestOptions<boolean, P>) {
 
     const { serializeOpts, context, ...opts } = options ?? {};
     const { data } = object[PVK].extra;
@@ -286,15 +289,15 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     return object;
   }
 
-  async saveFile(proto: ProtoClient<Ext>, object: TFile, options?: RequestOptions) {
+  async saveFile(proto: P, object: TFile, options?: RequestOptions<boolean, P>) {
     return object.objectId ? this.updateFile(proto, object, options) : this.createFile(proto, object, options);
   }
 
-  async deleteFile(proto: ProtoClient<Ext>, object: TFile, options?: ExtraOptions) {
+  async deleteFile(proto: P, object: TFile, options?: ExtraOptions<boolean, any>) {
 
-    const deleted = await proto.Query(object.className, options)
+    const deleted = await proto.Query(object.className)
       .equalTo('_id', object.objectId)
-      .deleteOne();
+      .deleteOne(options);
 
     if (deleted) {
       object[PVK].attributes = deleted.attributes;
@@ -305,7 +308,7 @@ export class ProtoClientInternal<Ext> implements ProtoInternalType<Ext> {
     return object;
   }
 
-  fileData(proto: ProtoClient<Ext>, object: TFile, options?: RequestOptions | undefined) {
+  fileData(proto: P, object: TFile, options?: RequestOptions<boolean, P>) {
 
     const { serializeOpts, context, ...opts } = options ?? {};
 

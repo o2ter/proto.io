@@ -58,17 +58,17 @@ export const applyObjectMethods = <T extends TSerializable, E>(
 
   const classExtends = proto[PVK].options.classExtends ?? {} as TExtensions<E>;
   const extensions = classExtends[className as keyof E] ?? {};
-  const query = (options?: ExtraOptions) => proto.Query(className, options);
+  const query = () => proto.Query(className);
 
   const typedMethods: Record<string, PropertyDescriptorMap & ThisType<TObject>> = {
     'File': {
       save: {
-        value(options?: ExtraOptions) {
+        value(options?: ExtraOptions<boolean, ProtoType<E>>) {
           return proto[PVK].saveFile(proto, this as TFile, options);
         },
       },
       destory: {
-        value(options?: ExtraOptions) {
+        value(options?: ExtraOptions<boolean, ProtoType<E>>) {
           return proto[PVK].deleteFile(proto, this as TFile, options);
         },
       },
@@ -82,7 +82,7 @@ export const applyObjectMethods = <T extends TSerializable, E>(
         }
       },
       fileData: {
-        value(options?: ExtraOptions) {
+        value(options?: ExtraOptions<boolean, ProtoType<E>>) {
           return proto[PVK].fileData(proto, this as TFile, options);
         },
       },
@@ -100,15 +100,15 @@ export const applyObjectMethods = <T extends TSerializable, E>(
       }
     },
     fetchWithInclude: {
-      async value(keys: string[], options?: ExtraOptions) {
-        const fetched = await query(options).equalTo('_id', this.objectId).includes(...keys).first();
+      async value(keys: string[], options?: ExtraOptions<boolean, ProtoType<E>>) {
+        const fetched = await query().equalTo('_id', this.objectId).includes(...keys).first(options);
         if (!fetched) throw Error('Unable to fetch document');
         this[PVK].attributes = fetched.attributes;
         return this;
       },
     },
     save: {
-      async value(options?: ExtraOptions & { cascadeSave?: boolean }) {
+      async value(options?: ExtraOptions<boolean, ProtoType<E>> & { cascadeSave?: boolean }) {
         const mutated = _.values(this[PVK].mutated);
         if (options?.cascadeSave !== false) {
           for (const update of _.values(mutated)) {
@@ -117,17 +117,17 @@ export const applyObjectMethods = <T extends TSerializable, E>(
           }
         }
         if (this.objectId) {
-          const updated = await query(options)
+          const updated = await query()
             .equalTo('_id', this.objectId)
             .includes(...this.keys())
-            .updateOne(this[PVK].mutated);
+            .updateOne(this[PVK].mutated, options);
           if (!updated) throw Error('Unable to save document');
           this[PVK].attributes = updated.attributes;
           this[PVK].mutated = {};
         } else {
-          const created = await query(options)
+          const created = await query()
             .includes(...this.keys())
-            .insert(_.fromPairs(this.keys().map(k => [k, this.get(k)])));
+            .insert(_.fromPairs(this.keys().map(k => [k, this.get(k)])), options);
           this[PVK].attributes = created.attributes;
           this[PVK].mutated = {};
         }
@@ -135,11 +135,11 @@ export const applyObjectMethods = <T extends TSerializable, E>(
       },
     },
     destory: {
-      async value(options?: ExtraOptions) {
-        const deleted = await query(options)
+      async value(options?: ExtraOptions<boolean, ProtoType<E>>) {
+        const deleted = await query()
           .equalTo('_id', this.objectId)
           .includes(...this.keys())
-          .deleteOne();
+          .deleteOne(options);
         if (!deleted) throw Error('Unable to destory document');
         this[PVK].attributes = deleted.attributes;
         this[PVK].mutated = {};

@@ -31,6 +31,8 @@ import { TObjectType } from '../object/types';
 import { asyncStream } from '../utils';
 import { TQueryBase, TQueryBaseOptions } from './base';
 import { TUpdateOp } from '../object/types';
+import { ProtoType } from '../proto';
+import { ExtraOptions } from '../options';
 
 export interface TQueryOptions extends TQueryBaseOptions {
   includes?: string[];
@@ -40,7 +42,7 @@ export interface TQueryRandomOptions {
   weight?: string;
 };
 
-export abstract class TQuery<T extends string, Ext> extends TQueryBase {
+export abstract class TQuery<T extends string, Ext, M extends boolean, P> extends TQueryBase {
 
   [PVK]: {
     className: T;
@@ -59,38 +61,51 @@ export abstract class TQuery<T extends string, Ext> extends TQueryBase {
     return this[PVK].className;
   }
 
-  abstract clone(options?: TQueryOptions): TQuery<T, Ext>;
-  abstract explain(): PromiseLike<any>;
-  abstract count(): PromiseLike<number>;
-  abstract find(): ReturnType<typeof asyncStream<TObjectType<T, Ext>>>;
-  abstract random(opts?: TQueryRandomOptions): ReturnType<typeof asyncStream<TObjectType<T, Ext>>>;
-  abstract insert(attrs: Record<string, TValue>): PromiseLike<TObjectType<T, Ext>>;
-  abstract updateOne(update: Record<string, TUpdateOp>): PromiseLike<TObjectType<T, Ext> | undefined>;
-  abstract upsertOne(update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValue>): PromiseLike<TObjectType<T, Ext>>;
-  abstract deleteOne(): PromiseLike<TObjectType<T, Ext> | undefined>;
-  abstract deleteMany(): PromiseLike<number>;
+  abstract clone(options?: TQueryOptions): TQuery<T, Ext, M, P>;
+  abstract explain(options?: ExtraOptions<M, P>): PromiseLike<any>;
+  abstract count(options?: ExtraOptions<M, P>): PromiseLike<number>;
+  abstract find(options?: ExtraOptions<M, P>): ReturnType<typeof asyncStream<TObjectType<T, Ext>>>;
+  abstract random(
+    opts?: TQueryRandomOptions,
+    options?: ExtraOptions<M, P>
+  ): ReturnType<typeof asyncStream<TObjectType<T, Ext>>>;
+  abstract insert(
+    attrs: Record<string, TValue>,
+    options?: ExtraOptions<M, P>
+  ): PromiseLike<TObjectType<T, Ext>>;
+  abstract updateOne(
+    update: Record<string, TUpdateOp>,
+    options?: ExtraOptions<M, P>
+  ): PromiseLike<TObjectType<T, Ext> | undefined>;
+  abstract upsertOne(
+    update: Record<string, TUpdateOp>,
+    setOnInsert: Record<string, TValue>,
+    options?: ExtraOptions<M, P>
+  ): PromiseLike<TObjectType<T, Ext>>;
+  abstract deleteOne(options?: ExtraOptions<M, P>): PromiseLike<TObjectType<T, Ext> | undefined>;
+  abstract deleteMany(options?: ExtraOptions<M, P>): PromiseLike<number>;
 
   includes<T extends string[]>(...includes: IncludePaths<T>) {
     this[PVK].options.includes = this[PVK].options.includes ? [...this[PVK].options.includes, ...includes] : includes;
     return this;
   }
 
-  async get(id: string) {
-    return _.first(await this.clone().equalTo('_id', id).limit(1).find());
+  async get(id: string, options?: ExtraOptions<M, P>) {
+    return _.first(await this.clone().equalTo('_id', id).limit(1).find(options));
   }
 
-  async first() {
-    return _.first(await this.clone().limit(1).find());
+  async first(options?: ExtraOptions<M, P>) {
+    return _.first(await this.clone().limit(1).find(options));
   }
 
-  async randomOne(opts?: TQueryRandomOptions) {
-    return _.first(await this.clone().limit(1).random(opts));
+  async randomOne(opts?: TQueryRandomOptions, options?: ExtraOptions<M, P>) {
+    return _.first(await this.clone().limit(1).random(opts, options));
   }
 
-  async exists() {
+  async exists(options?: ExtraOptions<M, P>) {
     const query = this.clone();
     this[PVK].options.includes = [];
-    return !_.isNil(await query.limit(1).find());
+    return !_.isNil(await query.limit(1).find(options));
   }
 
 }

@@ -68,9 +68,9 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       const { id, name } = req.params;
 
       const payload = proto.connect(req);
-      const query = payload.Query('File', { master: payload.isMaster }).equalTo('_id', id);
+      const query = payload.Query('File').equalTo('_id', id);
 
-      const file = await query.first();
+      const file = await query.first({ master: payload.isMaster });
       if (!file || file.filename !== name) return res.sendStatus(404);
       if (_.isNil(file.token) || _.isNil(file.size) || _.isNil(file.type)) return res.sendStatus(404);
 
