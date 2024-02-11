@@ -28,10 +28,11 @@ import { TObject } from './index';
 import { ExtraOptions } from '../options';
 import { FileStream } from '../buffer';
 import { TValue } from '../query/value';
+import { ProtoType } from '../proto';
 
 export interface TFile {
   url: string | undefined;
-  fileData(options?: ExtraOptions<boolean, any>): FileStream;
+  fileData(options?: ExtraOptions<boolean, ProtoType<any>>): FileStream;
 }
 
 export class TFile extends TObject {
