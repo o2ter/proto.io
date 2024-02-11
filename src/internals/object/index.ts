@@ -30,6 +30,7 @@ import { TValue, cloneValue, isPrimitiveValue } from '../query/value';
 import { TSchema, defaultObjectKeys, defaultObjectReadonlyKeys } from '../schema';
 import { PathName } from '../query/types';
 import { TUpdateOp, TUpdateOpKeys } from './types';
+import { ProtoType } from '../proto';
 
 export const decodeUpdateOp = (update: TUpdateOp) => {
   const pairs = _.toPairs(update);
@@ -39,9 +40,9 @@ export const decodeUpdateOp = (update: TUpdateOp) => {
 
 export interface TObject {
   clone(): TObject;
-  fetchWithInclude(keys: string[], options?: ExtraOptions<boolean, any>): PromiseLike<this>;
-  save(options?: ExtraOptions<boolean, any> & { cascadeSave?: boolean }): PromiseLike<this>;
-  destory(options?: ExtraOptions<boolean, any>): PromiseLike<this>;
+  fetchWithInclude(keys: string[], options?: ExtraOptions<boolean, ProtoType<any>>): PromiseLike<this>;
+  save(options?: ExtraOptions<boolean, ProtoType<any>> & { cascadeSave?: boolean }): PromiseLike<this>;
+  destory(options?: ExtraOptions<boolean, ProtoType<any>>): PromiseLike<this>;
 }
 
 export class TObject {
