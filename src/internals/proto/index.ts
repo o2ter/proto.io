@@ -73,11 +73,6 @@ export abstract class ProtoType<Ext> {
     return applyObjectMethods(object, this);
   }
 
-  abstract connect<R extends Request, T extends object>(
-    req: R,
-    attrs?: T | ((x: this & { req: R; }) => T)
-  ): this & { req: R; } & T;
-
   Object<T extends string>(className: T, objectId?: string): TObjectType<T, Ext> {
     const attrs: Record<string, TValue> = objectId ? { _id: objectId } : {};
     const obj = isObjKey(className, TObjectTypes) ? new TObjectTypes[className](attrs) : new TObject(className, attrs);
@@ -108,25 +103,33 @@ export abstract class ProtoType<Ext> {
     }
     return roles;
   }
+};
 
-  abstract define(
+export interface ProtoType<Ext> {
+
+  connect<R extends Request, T extends object>(
+    req: R,
+    attrs?: T | ((x: this & { req: R; }) => T)
+  ): this & { req: R; } & T;
+
+  define(
     name: string,
     callback: ProtoFunction<Ext>,
     options?: Omit<ProtoFunctionOptions<Ext>, 'callback'>,
   ): void;
 
-  abstract beforeSave<T extends string>(name: T, callback: ProtoTrigger<T, Ext>): void;
-  abstract afterSave<T extends string>(name: T, callback: ProtoTrigger<T, Ext>): void;
-  abstract beforeDelete<T extends string>(name: T, callback: ProtoTrigger<T, Ext>): void;
-  abstract afterDelete<T extends string>(name: T, callback: ProtoTrigger<T, Ext>): void;
-  abstract beforeSaveFile(callback: ProtoTrigger<'File', Ext>): void;
-  abstract afterSaveFile(callback: ProtoTrigger<'File', Ext>): void;
-  abstract beforeDeleteFile(callback: ProtoTrigger<'File', Ext>): void;
-  abstract afterDeleteFile(callback: ProtoTrigger<'File', Ext>): void;
+  beforeSave<T extends string>(name: T, callback: ProtoTrigger<T, Ext>): void;
+  afterSave<T extends string>(name: T, callback: ProtoTrigger<T, Ext>): void;
+  beforeDelete<T extends string>(name: T, callback: ProtoTrigger<T, Ext>): void;
+  afterDelete<T extends string>(name: T, callback: ProtoTrigger<T, Ext>): void;
+  beforeSaveFile(callback: ProtoTrigger<'File', Ext>): void;
+  afterSaveFile(callback: ProtoTrigger<'File', Ext>): void;
+  beforeDeleteFile(callback: ProtoTrigger<'File', Ext>): void;
+  afterDeleteFile(callback: ProtoTrigger<'File', Ext>): void;
 
-  abstract lockTable(className: string | string[], update: boolean): void;
+  lockTable(className: string | string[], update: boolean): void;
 
-  abstract withTransaction<T>(
+  withTransaction<T>(
     callback: (connection: ProtoType<Ext>) => PromiseLike<T>,
     options?: TransactionOptions,
   ): void;
