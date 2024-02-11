@@ -32,9 +32,11 @@ import {
   ProtoType, TQuery,
   TSerializable,
   TUser,
+  TransactionOptions,
   _TValue
 } from '../../internals';
 import { ProtoOptions } from './types';
+import { ProtoFunction, ProtoFunctionOptions, ProtoTrigger } from '../../internals/proto/types';
 
 export class ProtoClient<Ext> extends ProtoType<Ext> {
 
@@ -57,8 +59,11 @@ export class ProtoClient<Ext> extends ProtoType<Ext> {
     await this[PVK].setConfig(values, options);
   }
 
-  connect<R extends Request, T extends object>(): this & { req: R; } & T {
-    throw Error('Invalid operation');
+  connect<R extends Request, T extends object>(
+    req: R,
+    attrs?: T | ((x: this & { req: R; }) => T)
+  ): this & { req: R; } & T {
+    throw new Error('Invalid operation');
   }
 
   run(
@@ -93,37 +98,46 @@ export class ProtoClient<Ext> extends ProtoType<Ext> {
     return this[PVK].schema(options);
   }
 
-  define(): void {
+  define(
+    name: string, callback: ProtoFunction<Ext>,
+    options?: Omit<ProtoFunctionOptions<Ext>, 'callback'>
+  ): void {
     throw new Error('Invalid operation');
   }
-  beforeSave(): void {
+  beforeSave<T extends string>(name: T, callback: ProtoTrigger<T, Ext>): void {
     throw new Error('Invalid operation');
   }
-  afterSave(): void {
+  afterSave<T extends string>(name: T, callback: ProtoTrigger<T, Ext>): void {
     throw new Error('Invalid operation');
   }
-  beforeDelete(): void {
+  beforeDelete<T extends string>(name: T, callback: ProtoTrigger<T, Ext>): void {
     throw new Error('Invalid operation');
   }
-  afterDelete(): void {
+  afterDelete<T extends string>(name: T, callback: ProtoTrigger<T, Ext>): void {
     throw new Error('Invalid operation');
   }
-  beforeSaveFile(): void {
+  beforeSaveFile(callback: ProtoTrigger<'File', Ext>): void {
     throw new Error('Invalid operation');
   }
-  afterSaveFile(): void {
+  afterSaveFile(callback: ProtoTrigger<'File', Ext>): void {
     throw new Error('Invalid operation');
   }
-  beforeDeleteFile(): void {
+  beforeDeleteFile(callback: ProtoTrigger<'File', Ext>): void {
     throw new Error('Invalid operation');
   }
-  afterDeleteFile(): void {
+  afterDeleteFile(callback: ProtoTrigger<'File', Ext>): void {
     throw new Error('Invalid operation');
   }
-  lockTable(): void {
+  lockTable(
+    className: string | string[],
+    update: boolean
+  ): void {
     throw new Error('Invalid operation');
   }
-  withTransaction(): void {
+  withTransaction<T>(
+    callback: (connection: ProtoType<Ext>) => PromiseLike<T>,
+    options?: TransactionOptions
+  ): void {
     throw new Error('Invalid operation');
   }
 }
