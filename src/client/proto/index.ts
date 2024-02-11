@@ -57,10 +57,7 @@ export class ProtoClient<Ext> extends ProtoType<Ext> {
     await this[PVK].setConfig(values, options);
   }
 
-  connect<R extends Request, T extends object>(
-    req: R,
-    attrs?: T | ((x: this & { req: R; }) => T)
-  ): this & { req: R; } & T {
+  connect<R extends Request, T extends object>(): this & { req: R; } & T {
     throw Error('Invalid operation');
   }
 
@@ -94,5 +91,39 @@ export class ProtoClient<Ext> extends ProtoType<Ext> {
 
   schema(options: RequestOptions<true, this>) {
     return this[PVK].schema(options);
+  }
+
+  define(): void {
+    throw new Error('Invalid operation');
+  }
+  beforeSave(): void {
+    throw new Error('Invalid operation');
+  }
+  afterSave(): void {
+    throw new Error('Invalid operation');
+  }
+  beforeDelete(): void {
+    throw new Error('Invalid operation');
+  }
+  afterDelete(): void {
+    throw new Error('Invalid operation');
+  }
+  beforeSaveFile(): void {
+    throw new Error('Invalid operation');
+  }
+  afterSaveFile(): void {
+    throw new Error('Invalid operation');
+  }
+  beforeDeleteFile(): void {
+    throw new Error('Invalid operation');
+  }
+  afterDeleteFile(): void {
+    throw new Error('Invalid operation');
+  }
+  lockTable(): void {
+    throw new Error('Invalid operation');
+  }
+  withTransaction(): void {
+    throw new Error('Invalid operation');
   }
 }

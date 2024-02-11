@@ -27,6 +27,7 @@ import { TObject, TUpdateOp, TValue, TQueryOptions, _TValue, TQueryRandomOptions
 import { QuerySelector } from './query/dispatcher/parser';
 import { TSchema } from '../internals/schema';
 import { TQueryBaseOptions } from '../internals/query/base';
+import { TransactionOptions } from '../internals/proto';
 
 type CommonFindOptions = { className: string; };
 export type FindOptions = CommonFindOptions & TQueryOptions;
@@ -51,13 +52,6 @@ export type InsertOptions = {
   includes: string[];
   matches: Record<string, DecodedBaseQuery>;
   objectIdSize: number;
-};
-
-export type TransactionMode = 'default' | 'committed' | 'repeatable' | 'serializable';
-
-export type TransactionOptions = {
-  mode?: TransactionMode;
-  retry?: number | boolean;
 };
 
 export interface TStorage {

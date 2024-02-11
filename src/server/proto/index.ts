@@ -37,9 +37,10 @@ import {
   _TValue,
 } from '../../internals';
 import { Request } from 'express';
-import { ProtoServiceOptions, ProtoServiceKeyOptions, ProtoFunction, ProtoFunctionOptions, ProtoTrigger } from './types';
+import { ProtoServiceOptions, ProtoServiceKeyOptions } from './types';
+import { ProtoFunction, ProtoFunctionOptions, ProtoTrigger } from '../../internals/proto/types';
 import { sessionId, sessionIsMaster, session, signUser } from './session';
-import { TransactionOptions } from '../storage';
+import { TransactionOptions } from '../../internals/proto';
 
 export class ProtoService<Ext> extends ProtoType<Ext> {
 

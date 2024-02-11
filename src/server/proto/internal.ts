@@ -27,7 +27,8 @@ import _ from 'lodash';
 import { Blob } from 'node:buffer';
 import { Readable } from 'node:stream';
 import { defaultSchema } from './defaults';
-import { ProtoServiceOptions, ProtoFunction, ProtoFunctionOptions, ProtoTrigger, ProtoServiceKeyOptions } from './types';
+import { ProtoServiceOptions, ProtoServiceKeyOptions } from './types';
+import { ProtoFunction, ProtoFunctionOptions, ProtoTrigger } from '../../internals/proto/types';
 import {
   PVK,
   TFile,

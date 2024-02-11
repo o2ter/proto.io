@@ -23,33 +23,22 @@
 //  THE SOFTWARE.
 //
 
-import { TExtensions } from '../../internals';
-import { TFileStorage } from '../file';
-import { TStorage } from '../storage';
-import { TSchema } from '../../internals/schema';
-import { CookieOptions } from 'express';
-import { SignOptions, VerifyOptions } from 'jsonwebtoken';
-import { Awaitable } from '../../internals/types';
-import { ProtoService } from '.';
-import { PasswordHashOptions } from '../crypto/password';
+import { Awaitable } from '../types';
+import { ProtoService } from '../../server/proto';
+import { TSerializable } from '../codec';
+import { TObjectType } from '../object/types';
 
-export type ProtoServiceOptions<Ext> = {
-  endpoint: string;
-  schema: Record<string, TSchema>;
-  storage: TStorage;
-  fileStorage: TFileStorage;
-  classExtends?: TExtensions<Ext>;
-  objectIdSize?: number;
-  maxFetchLimit?: number | ((proto: ProtoService<Ext>) => Awaitable<number>);
-  maxUploadSize?: number | ((proto: ProtoService<Ext>) => Awaitable<number>);
-  cookieOptions?: CookieOptions;
-  jwtSignOptions?: SignOptions;
-  jwtVerifyOptions?: VerifyOptions;
-  passwordHashOptions?: PasswordHashOptions;
+type Callback<T, R, E> = (request: ProtoService<E> & T) => Awaitable<R>;
+export type ProtoFunction<E> = Callback<{ params: TSerializable; }, void | TSerializable, E>;
+export type ProtoTrigger<T, E> = Callback<{ object: TObjectType<T, E>; context: TSerializable; }, void, E>;
+type Validator = {
+  requireUser?: boolean;
+  requireMaster?: boolean;
+  requireAnyUserRoles?: string[];
+  requireAllUserRoles?: string[];
 };
 
-export type ProtoServiceKeyOptions = {
-  jwtToken?: string;
-  csrfToken?: string;
-  masterUsers?: { user: string; pass: string; }[];
+export type ProtoFunctionOptions<E> = {
+  callback: ProtoFunction<E>;
+  validator?: Validator;
 };

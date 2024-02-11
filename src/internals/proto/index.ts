@@ -24,19 +24,27 @@
 //
 
 import _ from 'lodash';
-import { PVK } from './private';
+import { PVK } from '../private';
 import type { Request } from 'express';
-import { ExtraOptions } from './options';
-import { TQuery } from './query';
-import { TExtensions, TObjectType, TObjectTypes } from './object/types';
-import { TFile } from './object/file';
-import { FileData, FileStream } from './buffer';
-import { isObjKey } from './utils';
-import { applyObjectMethods } from './object/methods';
-import { TValue, _TValue } from './query/value';
-import { TObject } from './object';
-import { TSerializable } from './codec';
-import { TUser } from './object/user';
+import { ExtraOptions } from '../options';
+import { TQuery } from '../query';
+import { TExtensions, TObjectType, TObjectTypes } from '../object/types';
+import { TFile } from '../object/file';
+import { FileData, FileStream } from '../buffer';
+import { isObjKey } from '../utils';
+import { applyObjectMethods } from '../object/methods';
+import { TValue, _TValue } from '../query/value';
+import { TObject } from '../object';
+import { TSerializable } from '../codec';
+import { TUser } from '../object/user';
+import { ProtoFunction, ProtoFunctionOptions, ProtoTrigger } from './types';
+
+export type TransactionMode = 'default' | 'committed' | 'repeatable' | 'serializable';
+
+export type TransactionOptions = {
+  mode?: TransactionMode;
+  retry?: number | boolean;
+};
 
 export interface ProtoInternalType<Ext, P extends ProtoType<any>> {
 
@@ -100,4 +108,26 @@ export abstract class ProtoType<Ext> {
     }
     return roles;
   }
+
+  abstract define(
+    name: string,
+    callback: ProtoFunction<Ext>,
+    options?: Omit<ProtoFunctionOptions<Ext>, 'callback'>,
+  ): void;
+
+  abstract beforeSave<T extends string>(name: T, callback: ProtoTrigger<T, Ext>): void;
+  abstract afterSave<T extends string>(name: T, callback: ProtoTrigger<T, Ext>): void;
+  abstract beforeDelete<T extends string>(name: T, callback: ProtoTrigger<T, Ext>): void;
+  abstract afterDelete<T extends string>(name: T, callback: ProtoTrigger<T, Ext>): void;
+  abstract beforeSaveFile(callback: ProtoTrigger<'File', Ext>): void;
+  abstract afterSaveFile(callback: ProtoTrigger<'File', Ext>): void;
+  abstract beforeDeleteFile(callback: ProtoTrigger<'File', Ext>): void;
+  abstract afterDeleteFile(callback: ProtoTrigger<'File', Ext>): void;
+
+  abstract lockTable(className: string | string[], update: boolean): void;
+
+  abstract withTransaction<T>(
+    callback: (connection: ProtoType<Ext>) => PromiseLike<T>,
+    options?: TransactionOptions,
+  ): void;
 };

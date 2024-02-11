@@ -24,7 +24,8 @@
 //
 
 import _ from 'lodash';
-import { DecodedQuery, FindOptions, FindOneOptions, InsertOptions, TStorage, TransactionOptions } from '../storage';
+import { DecodedQuery, FindOptions, FindOneOptions, InsertOptions, TStorage } from '../storage';
+import { TransactionOptions } from '../../internals/proto';
 import { TSchema, isPointer, isPrimitive, isRelation, isShapedObject, shapedObjectPaths } from '../../internals/schema';
 import { ScheduleOp, storageSchedule } from '../schedule';
 import { PVK, TObject, TValue, TUpdateOp, asyncStream, _TValue, TQueryRandomOptions } from '../../internals';

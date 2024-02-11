@@ -30,7 +30,8 @@ import { SqlStorage, sql } from '../../../server/sql';
 import { PostgresDialect } from './dialect';
 import { _decodeValue, _encodeValue, _encodeJsonValue } from './dialect/encode';
 import { QueryCompiler } from '../../../server/sql/compiler';
-import { DecodedQuery, FindOptions, TransactionOptions } from '../../../server/storage';
+import { DecodedQuery, FindOptions } from '../../../server/storage';
+import { TransactionOptions } from '../../../internals/proto';
 import { ScheduleOp } from '../../../server/schedule';
 
 export class PostgresStorageClient<Driver extends PostgresClientDriver> extends SqlStorage {
