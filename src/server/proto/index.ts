@@ -43,7 +43,7 @@ import { TransactionOptions } from '../storage';
 
 export class ProtoService<Ext> extends ProtoType<Ext> {
 
-  [PVK]: ProtoInternal<Ext, ProtoService<Ext>>;
+  [PVK]: ProtoInternal<Ext, this>;
   req?: Request;
   private _storage?: ProtoServiceOptions<Ext>['storage'];
 
@@ -73,11 +73,11 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     return _.keys(this[PVK].options.schema);
   }
 
-  Query<T extends string>(className: T): TQuery<T, Ext, boolean, ProtoService<Ext>> {
+  Query<T extends string>(className: T): TQuery<T, Ext, boolean, this> {
     return new ProtoQuery<T, Ext, boolean>(className, this);
   }
 
-  InsecureQuery<T extends string>(className: T): TQuery<T, Ext, true, ProtoService<Ext>> {
+  InsecureQuery<T extends string>(className: T): TQuery<T, Ext, true, this> {
     return new InsecureProtoQuery<T, Ext>(className, this);
   }
 
@@ -120,15 +120,15 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     if (req.res) await signUser(this, req.res, undefined);
   }
 
-  varifyPassword(user: TUser, password: string, options: ExtraOptions<true, ProtoService<Ext>>) {
+  varifyPassword(user: TUser, password: string, options: ExtraOptions<true, this>) {
     return this[PVK].varifyPassword(this, user, password, options);
   }
 
-  setPassword(user: TUser, password: string, options: ExtraOptions<true, ProtoService<Ext>>) {
+  setPassword(user: TUser, password: string, options: ExtraOptions<true, this>) {
     return this[PVK].setPassword(this, user, password, options);
   }
 
-  unsetPassword(user: TUser, options: ExtraOptions<true, ProtoService<Ext>>) {
+  unsetPassword(user: TUser, options: ExtraOptions<true, this>) {
     return this[PVK].unsetPassword(this, user, options);
   }
 
@@ -152,7 +152,7 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     await this[PVK].setConfig(values);
   }
 
-  run(name: string, params?: TSerializable, options?: ExtraOptions<boolean, ProtoService<Ext>>) {
+  run(name: string, params?: TSerializable, options?: ExtraOptions<boolean, this>) {
     const payload = Object.setPrototypeOf({ params }, this);
     return this[PVK].run(this, name, payload, options);
   }

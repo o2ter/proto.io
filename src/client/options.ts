@@ -23,7 +23,11 @@
 //  THE SOFTWARE.
 //
 
-import { ExtraOptions, ProtoType, SerializeOptions } from '../internals';
+import {
+  ExtraOptions,
+  ProtoType,
+  SerializeOptions,
+} from '../internals';
 
 export type RequestOptions<M extends boolean, P extends ProtoType<any>> = ExtraOptions<M, P> & {
   abortSignal?: AbortSignal;

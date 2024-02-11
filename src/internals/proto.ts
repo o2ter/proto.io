@@ -38,7 +38,7 @@ import { TObject } from './object';
 import { TSerializable } from './codec';
 import { TUser } from './object/user';
 
-export interface ProtoInternalType<Ext, P> {
+export interface ProtoInternalType<Ext, P extends ProtoType<any>> {
 
   options: {
     endpoint: string;
@@ -61,16 +61,14 @@ export abstract class ProtoType<Ext> {
   abstract run(name: string, data?: TSerializable, options?: ExtraOptions<boolean, this>): Promise<void | TSerializable>
   abstract Query<T extends string>(className: T): TQuery<T, Ext, boolean, this>;
 
-  rebind<T extends TSerializable | undefined, E>(object: T): T {
+  rebind<T extends TSerializable | undefined>(object: T): T {
     return applyObjectMethods(object, this);
   }
 
-  connect<R extends Request, T extends object>(
+  abstract connect<R extends Request, T extends object>(
     req: R,
     attrs?: T | ((x: this & { req: R; }) => T)
-  ): this & { req: R; } & T {
-    throw Error('Invalid operation');
-  }
+  ): this & { req: R; } & T;
 
   Object<T extends string>(className: T, objectId?: string): TObjectType<T, Ext> {
     const attrs: Record<string, TValue> = objectId ? { _id: objectId } : {};

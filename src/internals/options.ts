@@ -24,8 +24,9 @@
 //
 
 import { TSerializable } from './codec';
+import { ProtoType } from './proto';
 
-export type ExtraOptions<M extends boolean, P> = {
+export type ExtraOptions<M extends boolean, P extends ProtoType<any>> = {
   master?: M;
   context?: TSerializable;
   session?: P;

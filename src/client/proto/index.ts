@@ -23,6 +23,7 @@
 //  THE SOFTWARE.
 //
 
+import type { Request } from 'express';
 import { ProtoClientQuery } from '../query';
 import { RequestOptions } from '../options';
 import { ProtoClientInternal } from './internal';
@@ -37,29 +38,36 @@ import { ProtoOptions } from './types';
 
 export class ProtoClient<Ext> extends ProtoType<Ext> {
 
-  [PVK]: ProtoClientInternal<Ext, ProtoClient<Ext>>;
+  [PVK]: ProtoClientInternal<Ext, this>;
 
   constructor(options: ProtoOptions<Ext>) {
     super();
     this[PVK] = new ProtoClientInternal({ ...options });
   }
 
-  Query<T extends string>(className: T): TQuery<T, Ext, boolean, ProtoClient<Ext>> {
+  Query<T extends string>(className: T): TQuery<T, Ext, boolean, this> {
     return new ProtoClientQuery<T, Ext>(className, this);
   }
 
-  config(options?: RequestOptions<boolean, ProtoClient<Ext>>): Promise<Record<string, _TValue>> {
+  config(options?: RequestOptions<boolean, this>): Promise<Record<string, _TValue>> {
     return this[PVK].config(options);
   }
-  async setConfig(values: Record<string, _TValue>, options: RequestOptions<true, ProtoClient<Ext>>) {
+  async setConfig(values: Record<string, _TValue>, options: RequestOptions<true, this>) {
     if (options.master !== true) throw Error('No permission');
     await this[PVK].setConfig(values, options);
+  }
+
+  connect<R extends Request, T extends object>(
+    req: R,
+    attrs?: T | ((x: this & { req: R; }) => T)
+  ): this & { req: R; } & T {
+    throw Error('Invalid operation');
   }
 
   run(
     name: string,
     data?: TSerializable,
-    options?: RequestOptions<boolean, ProtoClient<Ext>>
+    options?: RequestOptions<boolean, this>
   ): Promise<void | TSerializable> {
     return this[PVK].request(this, data, {
       method: 'post',
@@ -68,23 +76,23 @@ export class ProtoClient<Ext> extends ProtoType<Ext> {
     });
   }
 
-  currentUser(options?: RequestOptions<boolean, ProtoClient<Ext>>) {
+  currentUser(options?: RequestOptions<boolean, this>) {
     return this[PVK].currentUser(this, options);
   }
 
-  logout(options?: RequestOptions<boolean, ProtoClient<Ext>>) {
+  logout(options?: RequestOptions<boolean, this>) {
     return this[PVK].logout(options);
   }
 
-  setPassword(user: TUser, password: string, options: RequestOptions<true, ProtoClient<Ext>>) {
+  setPassword(user: TUser, password: string, options: RequestOptions<true, this>) {
     return this[PVK].setPassword(user, password, options);
   }
 
-  unsetPassword(user: TUser, options: RequestOptions<true, ProtoClient<Ext>>) {
+  unsetPassword(user: TUser, options: RequestOptions<true, this>) {
     return this[PVK].unsetPassword(user, options);
   }
 
-  schema(options: RequestOptions<true, ProtoClient<Ext>>) {
+  schema(options: RequestOptions<true, this>) {
     return this[PVK].schema(options);
   }
 }

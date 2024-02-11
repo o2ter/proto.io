@@ -42,7 +42,11 @@ export interface TQueryRandomOptions {
   weight?: string;
 };
 
-export abstract class TQuery<T extends string, Ext, M extends boolean, P> extends TQueryBase {
+export abstract class TQuery<
+  T extends string, Ext,
+  M extends boolean,
+  P extends ProtoType<any>
+> extends TQueryBase {
 
   [PVK]: {
     className: T;
