@@ -54,7 +54,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
 
         if (!payload.isMaster) throw Error('No permission');
 
-        const user = await payload.Query('User', { master: true }).get(id);
+        const user = await payload.Query('User').get(id, { master: true });
         if (!user) throw Error('User not found');
 
         const { password } = _.isEmpty(req.body) ? { password: null } : deserialize(req.body) as any;
