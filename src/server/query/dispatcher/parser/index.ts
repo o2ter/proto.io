@@ -36,7 +36,6 @@ import {
   TValueSetKeys,
 } from '../../../../internals';
 import { QueryExpression } from './expressions';
-import { QueryValidator } from '../validator';
 
 export class QuerySelector {
 

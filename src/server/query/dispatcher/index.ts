@@ -22,6 +22,7 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
 //
+
 import _ from 'lodash';
 import { ProtoService } from '../../proto/index';
 import { ExtraOptions, PVK, TValue, TUpdateOp, TQueryRandomOptions } from '../../../internals';
