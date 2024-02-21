@@ -118,6 +118,16 @@ export class TObject {
     return _.uniq([..._.keys(this[PVK].attributes), ..._.compact(_.map(_.keys(this[PVK].mutated), x => _.first(_.toPath(x))))]);
   }
 
+  toObject() {
+    const toObject = (value: TValue): TValue => {
+      if (isPrimitiveValue(value)) return value;
+      if (value instanceof TObject) return value.toObject();
+      if (_.isArray(value)) return _.map(value, toObject);
+      return _.mapValues(value, toObject);
+    }
+    return _.fromPairs(_.map(this.keys(), k => [k, toObject(this.get(k))]));
+  }
+
   private attrValue(key: string): TValue {
     let value: TValue = this[PVK].attributes;
     for (const k of _.toPath(key)) {
