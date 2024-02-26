@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import express from 'express';
-import { ProtoService, ProtoRoute } from '../../src/index';
+import { ProtoService, ProtoRoute, schema } from '../../src/index';
 import { beforeAll, afterAll } from '@jest/globals';
 import DatabaseFileStorage from '../../src/adapters/file/database';
 import PostgresStorage from '../../src/adapters/storage/progres';
@@ -88,32 +88,29 @@ const Proto = new ProtoService({
         relation2: { type: 'relation', target: 'Test', foreignField: 'pointer' },
         relation3: { type: 'relation', target: 'Test', foreignField: 'relation' },
         'test_field-name': 'string',
-        shape: {
-          type: 'shape',
-          shape: {
-            default: { type: 'number', default: 42 },
-            boolean: 'boolean',
-            number: 'number',
-            decimal: 'decimal',
-            string: 'string',
-            date: 'date',
-            object: 'object',
-            array: 'array',
-            null_boolean: 'boolean',
-            null_number: 'number',
-            null_decimal: 'decimal',
-            null_string: 'string',
-            null_date: 'date',
-            null_object: 'object',
-            null_array: 'array',
-            pointer: { type: 'pointer', target: 'Test' },
-            pointer2: { type: 'pointer', target: 'Test' },
-            relation: { type: 'relation', target: 'Test' },
-            relation2: { type: 'relation', target: 'Test', foreignField: 'pointer' },
-            relation3: { type: 'relation', target: 'Test', foreignField: 'relation' },
-            'test_field-name': 'string',
-          },
-        },
+        shape: schema.shape({
+          default: { type: 'number', default: 42 },
+          boolean: 'boolean',
+          number: 'number',
+          decimal: 'decimal',
+          string: 'string',
+          date: 'date',
+          object: 'object',
+          array: 'array',
+          null_boolean: 'boolean',
+          null_number: 'number',
+          null_decimal: 'decimal',
+          null_string: 'string',
+          null_date: 'date',
+          null_object: 'object',
+          null_array: 'array',
+          pointer: { type: 'pointer', target: 'Test' },
+          pointer2: { type: 'pointer', target: 'Test' },
+          relation: { type: 'relation', target: 'Test' },
+          relation2: { type: 'relation', target: 'Test', foreignField: 'pointer' },
+          relation3: { type: 'relation', target: 'Test', foreignField: 'relation' },
+          'test_field-name': 'string',
+        }),
       },
       fieldLevelPermissions: {
         no_permission: { read: ['role:admin'], create: ['role:admin'], update: ['role:admin'] }
