@@ -44,7 +44,9 @@ export * from './internals/common';
 export { ProtoService } from './server/proto';
 export { ProtoClient } from './client';
 
-export const schema = (x: Record<string, TSchema>) => x;
+export const schema = _.assign((x: Record<string, TSchema>) => x, {
+  shape: (shape: Record<string, TSchema.DataType>) => ({ type: 'shape', shape }) as const,
+});
 
 type AdapterHandler<E, Handler extends RequestHandler = RequestHandler>
   = Handler extends (req: infer Req, ...args: infer Rest) => void
