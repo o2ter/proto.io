@@ -49,6 +49,14 @@ test('test methods', async () => {
 
 });
 
+test('test override methods', async () => {
+
+  const user = proto.Object('User');
+
+  expect(await user.override()).toStrictEqual('override');
+
+});
+
 test('test property', async () => {
 
   const user = proto.Object('User');

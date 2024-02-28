@@ -59,11 +59,11 @@ type PropertyMap<T, O, A> = {
 } & ThisType<O & PropertyMapToMethods<T> & PropertyMapToMethods<A>>;
 
 export type TExtensions<E> = {
-  [K in keyof E]: PropertyMap<E[K], _TObjectType<K>, '*' extends keyof E ? E['*'] : {}>;
+  [K in keyof E]: PropertyMap<E[K], _TObjectType<K>, '*' extends keyof E ? Omit<E['*'], keyof E[K]> : {}>;
 };
 
 type TMethods<K, E> = K extends keyof E
-  ? '*' extends keyof E ? PropertyMapToMethods<E['*'] & E[K]> : PropertyMapToMethods<E[K]>
+  ? '*' extends keyof E ? PropertyMapToMethods<Omit<E['*'], keyof E[K]> & E[K]> : PropertyMapToMethods<E[K]>
   : {};
 export type TObjectType<K, E> = _TObjectType<K> & TMethods<K, E>;
 

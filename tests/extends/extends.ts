@@ -30,8 +30,14 @@ export default classExtends({
     async softDelete() {
       return 'deleted';
     },
+    async override() {
+      return 0;
+    },
   },
   'User': {
+    async override() {
+      return 'override';
+    },
     name: {
       get(): string {
         return this.get('name') as string;
