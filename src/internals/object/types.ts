@@ -36,7 +36,7 @@ export const TObjectTypes = {
   'File': TFile,
 };
 
-type _TObjectType<T> = T extends keyof typeof TObjectTypes ? InstanceType<(typeof TObjectTypes)[T]> : TObject;
+type _TObjectType<K> = K extends keyof typeof TObjectTypes ? InstanceType<(typeof TObjectTypes)[K]> : TObject;
 
 type PickBy<T, C> = {
   [P in keyof T as T[P] extends C ? P : never]: T[P];
@@ -54,16 +54,18 @@ type PropertyMapToMethods<T> = PickBy<T, Function> &
   { [P in keyof PickBy<T, ReadWriteProperty<any>>]: T[P] extends PropertyDescriptor<infer V> ? V : never; } &
   { readonly [P in keyof PickBy<T, ReadOnlyProperty<any>>]: T[P] extends PropertyDescriptor<infer V> ? V : never; }
 type Property<T> = T extends Function ? T | PropertyDescriptor<T> : PropertyDescriptor<T>;
-type PropertyMap<T, O> = {
+type PropertyMap<T, O, A> = {
   [K in keyof T]: T[K] extends Property<any> ? T[K] : never;
-} & ThisType<O & PropertyMapToMethods<T>>;
+} & ThisType<O & PropertyMapToMethods<T> & PropertyMapToMethods<A>>;
 
-export type TExtensions<T> = {
-  [K in keyof T]: PropertyMap<T[K], _TObjectType<K>>;
+export type TExtensions<E> = {
+  [K in keyof E]: PropertyMap<E[K], _TObjectType<K>, '*' extends keyof E ? E['*'] : {}>;
 };
 
-type TMethods<T, E> = T extends keyof E ? PropertyMapToMethods<E[T]> : {};
-export type TObjectType<T, E> = _TObjectType<T> & TMethods<T, E>;
+type TMethods<K, E> = K extends keyof E
+  ? '*' extends keyof E ? PropertyMapToMethods<E['*'] & E[K]> : PropertyMapToMethods<E[K]>
+  : {};
+export type TObjectType<K, E> = _TObjectType<K> & TMethods<K, E>;
 
 export const TUpdateOpKeys = [
   '$set',

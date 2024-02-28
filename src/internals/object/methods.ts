@@ -57,7 +57,10 @@ export const applyObjectMethods = <T extends TSerializable, E>(
   }
 
   const classExtends = proto[PVK].options.classExtends ?? {} as TExtensions<E>;
-  const extensions = classExtends[className as keyof E] ?? {};
+  const extensions = {
+    ...classExtends['*' as keyof E] ?? {},
+    ...classExtends[className as keyof E] ?? {},
+  };
   const query = () => proto.Query(className);
 
   const typedMethods: Record<string, PropertyDescriptorMap & ThisType<TObject>> = {

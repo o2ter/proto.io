@@ -26,12 +26,14 @@
 import { classExtends } from '../../src/client';
 
 export default classExtends({
-  'User': {
+  '*': {
     async softDelete() {
       return 'deleted';
     },
+  },
+  'User': {
     name: {
-      get() {
+      get(): string {
         return this.get('name') as string;
       },
       set(value: string) {
