@@ -225,6 +225,10 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
 
   async updateFile(proto: P, object: TFile, options?: ExtraOptions<boolean, P>) {
 
+    if ('filename' in object[PVK].mutated && _.isEmpty(object.get('filename'))) {
+      throw Error('Invalid filename');
+    }
+
     const updated = await proto.Query(object.className)
       .equalTo('_id', object.objectId)
       .includes(...object.keys())
@@ -250,6 +254,10 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
       mimeType: object.get('type'),
       filename: object.get('filename'),
     };
+
+    if (_.isEmpty(info.filename)) {
+      throw Error('Invalid filename');
+    }
 
     if (_.isString(data)) {
       file = await proto.fileStorage.create(proto, Buffer.from(data), info);
