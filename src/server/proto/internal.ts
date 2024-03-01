@@ -281,7 +281,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
 
       const created = await proto.Query(object.className)
         .includes(...object.keys())
-        .insert(_.fromPairs(object.keys().map(k => [k, object.get(k)])), options);
+        .insert(_.fromPairs([...object.entries()]), options);
 
       if (created) {
         object[PVK].attributes = created.attributes;

@@ -130,7 +130,7 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
         className: this.className,
         includes: this[PVK].options.includes,
         matches: this[PVK].options.matches,
-      }, _.fromPairs(object.keys().map(k => [k, object.get(k)])))
+      }, _.fromPairs([...object.entries()]))
     );
     if (!result) throw Error('Unable to insert document');
     if (_.isFunction(afterSave)) await afterSave(proxy(Object.setPrototypeOf({ object: result, context }, this._proto)));

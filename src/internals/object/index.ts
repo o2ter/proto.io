@@ -120,7 +120,7 @@ export class TObject {
 
   *entries() {
     for (const key of this.keys()) {
-      yield [key, this.get(key)] as const;
+      yield [key, this.get(key)] as [string, any];
     }
   }
 
