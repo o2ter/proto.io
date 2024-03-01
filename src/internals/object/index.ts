@@ -134,7 +134,7 @@ export class TObject {
     return _.fromPairs(_.map(this.keys(), k => [k, toObject(this.get(k))]));
   }
 
-  private attrValue(key: string): TValue {
+  private _value(key: string): TValue {
     let value: TValue = this[PVK].attributes;
     for (const k of _.toPath(key)) {
       if (isPrimitiveValue(value)) return null;
@@ -149,9 +149,9 @@ export class TObject {
 
   get<T extends string>(key: PathName<T>): any {
     if (_.isEmpty(key)) throw Error('Invalid key');
-    if (_.isNil(this[PVK].mutated[key])) return this.attrValue(key);
+    if (_.isNil(this[PVK].mutated[key])) return this._value(key);
     const [op, value] = decodeUpdateOp(this[PVK].mutated[key]);
-    return op === '$set' ? value : this.attrValue(key);
+    return op === '$set' ? value : this._value(key);
   }
 
   set<T extends string>(key: PathName<T>, value: TValue | undefined) {
