@@ -24,26 +24,41 @@
 //
 
 import _ from 'lodash';
-import { ProtoService } from '../proto/index';
-import { TSchema } from '../../internals/schema';
+import { TFileStorage } from '../../../server/file';
+import { ProtoService } from '../../../server/proto';
+import { TSchema } from '../../../internals/schema';
+import { Storage } from '@google-cloud/storage';
 
-type TFileInfo = {
-  mimeType?: string;
-  filename?: string;
-};
+export class GoogleCloudStorage implements TFileStorage {
 
-export interface TFileStorage {
+  storage: Storage;
+  bucket: string;
 
-  schema: Record<string, TSchema>;
+  constructor(storage: Storage, bucket: string) {
+    this.storage = storage;
+    this.bucket = bucket;
+  }
 
-  create<E>(
+  get schema(): Record<string, TSchema> {
+    return {
+    }
+  }
+
+  async create<E>(
     proto: ProtoService<E>,
     stream: BinaryData | AsyncIterable<BinaryData>,
-    info: TFileInfo,
-  ): PromiseLike<{ _id: string; size: number; }>;
+  ) {
 
-  destory<E>(proto: ProtoService<E>, id: string): PromiseLike<void>;
+  }
 
-  fileData<E>(proto: ProtoService<E>, id: string, start?: number, end?: number): AsyncIterable<BinaryData>;
+  async destory<E>(proto: ProtoService<E>, id: string) {
+    await this.storage.bucket(this.bucket).file(id).delete({ ignoreNotFound: true });
+  }
 
-}
+  async* fileData<E>(proto: ProtoService<E>, id: string, start?: number, end?: number) {
+
+  }
+
+};
+
+export default GoogleCloudStorage;

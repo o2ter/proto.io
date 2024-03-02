@@ -141,10 +141,6 @@ export class DatabaseFileStorage implements TFileStorage {
 
   }
 
-  async fileLocation<E>(proto: ProtoService<E>, id: string) {
-    return undefined;
-  }
-
 };
 
 export default DatabaseFileStorage;

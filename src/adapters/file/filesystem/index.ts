@@ -24,26 +24,39 @@
 //
 
 import _ from 'lodash';
-import { ProtoService } from '../proto/index';
-import { TSchema } from '../../internals/schema';
+import fs from 'fs/promises';
+import { TFileStorage } from '../../../server/file';
+import { ProtoService } from '../../../server/proto';
+import { TSchema } from '../../../internals/schema';
 
-type TFileInfo = {
-  mimeType?: string;
-  filename?: string;
-};
+export class FileSystemStorage implements TFileStorage {
 
-export interface TFileStorage {
+  volumn: string;
 
-  schema: Record<string, TSchema>;
+  constructor(volumn: string) {
+    this.volumn = volumn;
+  }
 
-  create<E>(
+  get schema(): Record<string, TSchema> {
+    return {
+    }
+  }
+
+  async create<E>(
     proto: ProtoService<E>,
     stream: BinaryData | AsyncIterable<BinaryData>,
-    info: TFileInfo,
-  ): PromiseLike<{ _id: string; size: number; }>;
+  ) {
 
-  destory<E>(proto: ProtoService<E>, id: string): PromiseLike<void>;
+  }
 
-  fileData<E>(proto: ProtoService<E>, id: string, start?: number, end?: number): AsyncIterable<BinaryData>;
+  async destory<E>(proto: ProtoService<E>, id: string) {
+    try { await fs.unlink(id); } catch { }
+  }
 
-}
+  async* fileData<E>(proto: ProtoService<E>, id: string, start?: number, end?: number) {
+
+  }
+
+};
+
+export default FileSystemStorage;

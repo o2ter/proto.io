@@ -74,9 +74,6 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       if (!file || file.filename !== name) return res.sendStatus(404);
       if (_.isNil(file.token) || _.isNil(file.size) || _.isNil(file.type)) return res.sendStatus(404);
 
-      const location = await payload.fileStorage.fileLocation(payload, file.token);
-      if (location) return res.redirect(location);
-
       const ranges = req.range(file.size);
 
       const match = req.headers['if-none-match'];
