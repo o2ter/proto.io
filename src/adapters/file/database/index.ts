@@ -24,23 +24,15 @@
 //
 
 import _ from 'lodash';
-import { promisify } from 'util';
-import { deflate as _deflate, unzip as _unzip } from 'zlib';
-import { PVK, base64ToBuffer, bufferToBase64 } from '../../../internals';
-import { TFileStorage } from '../../../server/file';
+import { base64ToBuffer, bufferToBase64 } from '../../../internals';
 import { ProtoService } from '../../../server/proto';
 import { TSchema } from '../../../internals/schema';
-import { streamChunk } from '../../../server/file/stream';
+import FileStorageBase from '../base';
 
-const deflate = promisify(_deflate);
-const unzip = promisify(_unzip);
-
-export class DatabaseFileStorage implements TFileStorage {
-
-  chunkSize: number;
+export class DatabaseFileStorage extends FileStorageBase {
 
   constructor(chunkSize: number = 16 * 1024) {
-    this.chunkSize = chunkSize;
+    super(chunkSize);
   }
 
   get schema(): Record<string, TSchema> {
@@ -72,51 +64,29 @@ export class DatabaseFileStorage implements TFileStorage {
     }
   }
 
-  async create<E>(
-    proto: ProtoService<E>,
-    stream: BinaryData | AsyncIterable<BinaryData>,
-  ) {
+  async createChunk<E>(proto: ProtoService<E>, token: string, start: number, end: number, compressed: Buffer) {
 
-    const token = proto[PVK].generateId();
-    let size = 0;
+    const created = await proto.Query('_FileChunk').insert({
+      token,
+      start: start,
+      end: end,
+      size: end - start,
+      base64: bufferToBase64(compressed),
+    }, { master: true });
 
-    const maxUploadSize = _.isFunction(proto[PVK].options.maxUploadSize) ? await proto[PVK].options.maxUploadSize(proto) : proto[PVK].options.maxUploadSize;
+    if (!created) throw Error('Unable to save file');
 
-    for await (const data of streamChunk(stream, this.chunkSize)) {
-
-      const chunkSize = data.byteLength;
-      const compressed = await deflate(data);
-
-      const created = await proto.Query('_FileChunk').insert({
-        token,
-        start: size,
-        end: size + chunkSize,
-        size: chunkSize,
-        base64: bufferToBase64(compressed),
-      }, { master: true });
-      if (!created) throw Error('Unable to save file');
-
-      size += chunkSize;
-      if (size > maxUploadSize) throw Error('Payload too large');
-    }
-
-    return { _id: token, size };
   }
 
-  async destory<E>(proto: ProtoService<E>, id: string) {
-    await proto.Query('_FileChunk').equalTo('token', id).deleteMany({ master: true });
-  }
-
-  async* fileData<E>(proto: ProtoService<E>, id: string, start?: number, end?: number) {
+  async* readChunks<E>(proto: ProtoService<E>, token: string, start?: number | undefined, end?: number | undefined) {
 
     const query = proto.Query('_FileChunk')
       .sort({ start: 1 })
       .filter({
-        token: { $eq: id },
+        token: { $eq: token },
         ...start ? { end: { $gt: start } } : {},
         ...end ? { start: { $lt: end } } : {},
       });
-
     for await (const chunk of query.find({ master: true })) {
 
       const startBytes = chunk.get('start');
@@ -125,25 +95,17 @@ export class DatabaseFileStorage implements TFileStorage {
 
       if (!_.isNumber(startBytes) || !_.isNumber(endBytes) || !_.isString(base64)) throw Error('Corrupted data');
 
-      const data = base64ToBuffer(base64);
-      const uncompressed = await unzip(data);
-
-      if (_.isNumber(start) || _.isNumber(end)) {
-
-        const _start = _.isNumber(start) && start > startBytes ? start - startBytes : 0;
-        const _end = _.isNumber(end) && end < endBytes ? end - startBytes : undefined;
-
-        yield uncompressed.subarray(_start, _end);
-
-      } else {
-
-        yield uncompressed;
-      }
-
+      yield {
+        start: startBytes,
+        end: endBytes,
+        data: base64ToBuffer(base64),
+      };
     }
-
   }
 
+  async destory<E>(proto: ProtoService<E>, id: string) {
+    await proto.Query('_FileChunk').equalTo('token', id).deleteMany({ master: true });
+  }
 };
 
 export default DatabaseFileStorage;

@@ -24,16 +24,18 @@
 //
 
 import _ from 'lodash';
+import path from 'path';
 import fs from 'fs/promises';
-import { TFileStorage } from '../../../server/file';
 import { ProtoService } from '../../../server/proto';
 import { TSchema } from '../../../internals/schema';
+import FileStorageBase from '../base';
 
-export class FileSystemStorage implements TFileStorage {
+export class FileSystemStorage extends FileStorageBase {
 
   volumn: string;
 
-  constructor(volumn: string) {
+  constructor(volumn: string, chunkSize: number = 16 * 1024) {
+    super(chunkSize);
     this.volumn = volumn;
   }
 
@@ -42,21 +44,23 @@ export class FileSystemStorage implements TFileStorage {
     }
   }
 
-  async create<E>(
-    proto: ProtoService<E>,
-    stream: BinaryData | AsyncIterable<BinaryData>,
-  ) {
+  async createChunk<E>(proto: ProtoService<E>, token: string, start: number, end: number, compressed: Buffer) {
+
+  }
+
+  async* readChunks<E>(proto: ProtoService<E>, token: string, start?: number | undefined, end?: number | undefined) {
 
   }
 
   async destory<E>(proto: ProtoService<E>, id: string) {
-    try { await fs.unlink(id); } catch { }
+    try {
+      const directory = path.resolve(this.volumn, id);
+      for (const file of await fs.readdir(directory)) {
+        await fs.unlink(path.join(directory, file));
+      }
+      await fs.rmdir(directory);
+    } catch { }
   }
-
-  async* fileData<E>(proto: ProtoService<E>, id: string, start?: number, end?: number) {
-
-  }
-
 };
 
 export default FileSystemStorage;

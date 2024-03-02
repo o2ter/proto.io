@@ -24,19 +24,24 @@
 //
 
 import _ from 'lodash';
-import { TFileStorage } from '../../../server/file';
 import { ProtoService } from '../../../server/proto';
 import { TSchema } from '../../../internals/schema';
 import { Storage } from '@google-cloud/storage';
+import FileStorageBase from '../base';
 
-export class GoogleCloudStorage implements TFileStorage {
+export class GoogleCloudStorage extends FileStorageBase {
 
-  storage: Storage;
-  bucket: string;
+  private _storage: Storage;
+  private _bucket: string;
 
-  constructor(storage: Storage, bucket: string) {
-    this.storage = storage;
-    this.bucket = bucket;
+  constructor(storage: Storage, bucket: string, chunkSize: number = 16 * 1024) {
+    super(chunkSize);
+    this._storage = storage;
+    this._bucket = bucket;
+  }
+
+  get bucket() {
+    return this._storage.bucket(this._bucket);
   }
 
   get schema(): Record<string, TSchema> {
@@ -44,21 +49,17 @@ export class GoogleCloudStorage implements TFileStorage {
     }
   }
 
-  async create<E>(
-    proto: ProtoService<E>,
-    stream: BinaryData | AsyncIterable<BinaryData>,
-  ) {
+  async createChunk<E>(proto: ProtoService<E>, token: string, start: number, end: number, compressed: Buffer) {
+
+  }
+
+  async* readChunks<E>(proto: ProtoService<E>, token: string, start?: number | undefined, end?: number | undefined) {
 
   }
 
   async destory<E>(proto: ProtoService<E>, id: string) {
-    await this.storage.bucket(this.bucket).file(id).delete({ ignoreNotFound: true });
+    await this.bucket.deleteFiles({ prefix: `${id}/` });
   }
-
-  async* fileData<E>(proto: ProtoService<E>, id: string, start?: number, end?: number) {
-
-  }
-
 };
 
 export default GoogleCloudStorage;
