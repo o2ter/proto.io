@@ -25,12 +25,15 @@
 
 import _ from 'lodash';
 import { promisify } from 'util';
-import { deflate, unzip } from 'zlib';
+import { deflate as _deflate, unzip as _unzip } from 'zlib';
 import { PVK, base64ToBuffer, bufferToBase64 } from '../../../internals';
 import { TFileStorage } from '../../../server/file';
 import { ProtoService } from '../../../server/proto';
 import { TSchema } from '../../../internals/schema';
 import { streamChunk } from '../../../server/file/stream';
+
+const deflate = promisify(_deflate);
+const unzip = promisify(_unzip);
 
 export class DatabaseFileStorage implements TFileStorage {
 
@@ -82,7 +85,7 @@ export class DatabaseFileStorage implements TFileStorage {
     for await (const data of streamChunk(stream, this.chunkSize)) {
 
       const chunkSize = data.byteLength;
-      const compressed = await promisify(deflate)(data);
+      const compressed = await deflate(data);
 
       const created = await proto.Query('_FileChunk').insert({
         token,
@@ -123,7 +126,7 @@ export class DatabaseFileStorage implements TFileStorage {
       if (!_.isNumber(startBytes) || !_.isNumber(endBytes) || !_.isString(base64)) throw Error('Corrupted data');
 
       const data = base64ToBuffer(base64);
-      const uncompressed = await promisify(unzip)(data);
+      const uncompressed = await unzip(data);
 
       if (_.isNumber(start) || _.isNumber(end)) {
 
