@@ -28,7 +28,7 @@ import express, { RequestHandler } from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { ProtoService } from './server/proto';
-import { ProtoServiceOptions } from './server/proto/types';
+import { ProtoServiceKeyOptions, ProtoServiceOptions } from './server/proto/types';
 import csrfHandler from './server/csrf';
 import authHandler from './server/auth';
 import classesRoute from './server/routes/classes';
@@ -55,7 +55,7 @@ type AdapterHandler<E, Handler extends RequestHandler = RequestHandler>
 
 export const ProtoRoute = async <E>(options: {
   adapters?: AdapterHandler<E>[],
-  proto: ProtoService<E> | ProtoServiceOptions<E>;
+  proto: ProtoService<E> | (ProtoServiceOptions<E> & ProtoServiceKeyOptions);
 }) => {
 
   const {

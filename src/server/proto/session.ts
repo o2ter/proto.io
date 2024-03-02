@@ -44,16 +44,14 @@ const _session = <E>(proto: ProtoService<E>) => {
   sessionMap.set(req, { sessionId: randomUUID() });
 
   const jwtToken = proto[PVK].options.jwtToken;
-  if (!proto.req || _.isNil(jwtToken)) return;
-
   if (_.isEmpty(jwtToken)) throw Error('Invalid jwt token');
 
   let authorization = '';
-  if (proto.req.headers.authorization) {
-    const parts = proto.req.headers.authorization.split(' ');
+  if (req.headers.authorization) {
+    const parts = req.headers.authorization.split(' ');
     if (parts.length === 2 && parts[0] === 'Bearer') authorization = parts[1];
-  } else if (proto.req.cookies[AUTH_COOKIE_KEY]) {
-    authorization = proto.req.cookies[AUTH_COOKIE_KEY];
+  } else if (req.cookies[AUTH_COOKIE_KEY]) {
+    authorization = req.cookies[AUTH_COOKIE_KEY];
   }
 
   if (_.isEmpty(authorization)) return;
