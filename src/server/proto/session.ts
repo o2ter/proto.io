@@ -46,6 +46,8 @@ const _session = <E>(proto: ProtoService<E>) => {
   const jwtToken = proto[PVK].options.jwtToken;
   if (!proto.req || _.isNil(jwtToken)) return;
 
+  if (_.isEmpty(jwtToken)) throw Error('Invalid jwt token');
+
   let authorization = '';
   if (proto.req.headers.authorization) {
     const parts = proto.req.headers.authorization.split(' ');
