@@ -176,6 +176,7 @@ export class PostgresDriver extends PostgresClientDriver {
   database: Pool;
 
   constructor(config: string | PoolConfig) {
+    if (_.isEmpty(config)) throw Error('Invalid postgre config.');
     const _types = { getTypeParser: typeParser as typeof types.getTypeParser };
     const database = new Pool(_.isString(config) ? { connectionString: config, types: _types } : { ...config, types: _types });
     super(database);
