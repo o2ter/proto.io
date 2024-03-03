@@ -25,10 +25,10 @@
 
 import _ from 'lodash';
 import express from 'express';
-import { ProtoService, ProtoRoute, schema } from '../../src/index';
+import { ProtoService, ProtoRoute } from '../../../src/index';
 import { beforeAll, afterAll } from '@jest/globals';
-import DatabaseFileStorage from '../../src/adapters/file/database';
-import PostgresStorage from '../../src/adapters/storage/progres';
+import DatabaseFileStorage from '../../../src/adapters/file/database';
+import PostgresStorage from '../../../src/adapters/storage/progres';
 import { randomUUID } from '@o2ter/crypto-js';
 
 let httpServer: any;

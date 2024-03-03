@@ -28,7 +28,7 @@ import fs from 'fs';
 import { Readable } from 'node:stream';
 import { masterUser } from './server';
 import { test, expect } from '@jest/globals';
-import { ProtoClient } from '../../src/client/proto';
+import { ProtoClient } from '../../../src/client/proto';
 
 const Proto = new ProtoClient({
   endpoint: 'http://localhost:8080/proto',

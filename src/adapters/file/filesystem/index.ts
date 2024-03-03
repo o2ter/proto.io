@@ -72,10 +72,7 @@ export class FileSystemStorage extends FileStorageBase {
   async destory<E>(proto: ProtoService<E>, token: string) {
     try {
       const directory = path.resolve(this.volumn, token);
-      for (const file of await fs.readdir(directory)) {
-        await fs.unlink(path.join(directory, file));
-      }
-      await fs.rmdir(directory);
+      await fs.rm(directory, { recursive: true, force: true });
     } catch { }
   }
 };

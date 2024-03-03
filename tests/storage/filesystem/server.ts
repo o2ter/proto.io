@@ -24,12 +24,14 @@
 //
 
 import _ from 'lodash';
+import path from 'path';
+import fs from 'fs/promises';
 import express from 'express';
-import { ProtoService, ProtoRoute } from '../../src/index';
+import { ProtoService, ProtoRoute } from '../../../src/index';
 import { beforeAll, afterAll } from '@jest/globals';
-import DatabaseFileStorage from '../../src/adapters/file/database';
-import PostgresStorage from '../../src/adapters/storage/progres';
+import PostgresStorage from '../../../src/adapters/storage/progres';
 import { randomUUID } from '@o2ter/crypto-js';
+import FileSystemStorage from '../../../src/adapters/file/filesystem';
 
 let httpServer: any;
 
@@ -53,59 +55,15 @@ export const masterUser = {
   pass: randomUUID(),
 };
 
+const directory = path.resolve(__dirname, '.temp');
+
 const Proto = new ProtoService({
   endpoint: 'http://localhost:8080/proto',
   masterUsers: [masterUser],
   jwtToken: randomUUID(),
-  schema: {
-    'User': {
-      fields: {
-        name: 'string',
-      }
-    },
-  },
+  schema: {},
   storage: database,
-  fileStorage: new DatabaseFileStorage(),
-});
-
-Proto.define('echo', ({ params }) => {
-  return params;
-});
-
-Proto.define('echoMaster', ({ params }) => {
-  return params;
-}, {
-  validator: {
-    requireMaster: true,
-  },
-});
-
-Proto.define('echoUser', ({ params }) => {
-  return params;
-}, {
-  validator: {
-    requireUser: true,
-  },
-});
-
-Proto.define('sessionId', ({ sessionId }) => {
-  return sessionId;
-});
-
-Proto.define('createUser', async (proto) => {
-  const user = await proto.Query('User').insert({ name: 'test' });
-  await proto.setPassword(user, 'password123', { master: true });
-  if (!await proto.varifyPassword(user, 'password123', { master: true })) throw Error('incorrect password');
-  await proto.becomeUser(proto.req!, user);
-});
-
-Proto.define('createUserWithRole', async (proto) => {
-  const { role } = proto.params as any;
-  const _role = await proto.Query('Role').equalTo('name', role).first({ master: true }) ?? await proto.Query('Role').insert({ name: role }, { master: true });
-  const user = await proto.Query('User').insert({ name: 'test' });
-  _role.addToSet('users', [user]);
-  await _role.save({ master: true });
-  await proto.becomeUser(proto.req!, user);
+  fileStorage: new FileSystemStorage(directory),
 });
 
 beforeAll(async () => {
@@ -126,4 +84,6 @@ afterAll(() => new Promise<void>(async (res) => {
   await Proto.shutdown();
   await database.shutdown();
   httpServer.shutdown(res);
+
+  await fs.rm(directory, { recursive: true, force: true });
 }));
