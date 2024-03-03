@@ -77,9 +77,8 @@ export abstract class FileStorageBase implements TFileStorage {
 
   async* fileData<E>(proto: ProtoService<E>, id: string, start?: number, end?: number) {
 
-    for await (const chunk of this.readChunks(proto, id, start, end)) {
+    for await (const { start: startBytes, data } of this.readChunks(proto, id, start, end)) {
 
-      const { start: startBytes, data } = chunk;
       const uncompressed = await unzip(data);
 
       if (_.isNumber(start) || _.isNumber(end)) {
