@@ -39,11 +39,6 @@ export class FileSystemStorage extends FileStorageBase {
     this.volumn = volumn;
   }
 
-  get schema(): Record<string, TSchema> {
-    return {
-    }
-  }
-
   async createChunk<E>(proto: ProtoService<E>, token: string, start: number, end: number, compressed: Buffer) {
     const directory = path.resolve(this.volumn, token);
     try {

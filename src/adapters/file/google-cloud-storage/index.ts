@@ -44,11 +44,6 @@ export class GoogleCloudStorage extends FileStorageBase {
     return this._storage.bucket(this._bucket);
   }
 
-  get schema(): Record<string, TSchema> {
-    return {
-    }
-  }
-
   async createChunk<E>(proto: ProtoService<E>, token: string, start: number, end: number, compressed: Buffer) {
 
   }
