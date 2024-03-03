@@ -40,7 +40,7 @@ const scheduleOp = {
         });
         for await (const item of found) {
           const token = item.get('token');
-          if (!_.isEmpty(token)) proto.fileStorage.destory(proto, token);
+          if (!_.isEmpty(token)) await proto.fileStorage.destory(proto, token);
         }
       }
       await proto.storage.deleteMany({
