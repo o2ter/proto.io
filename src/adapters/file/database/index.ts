@@ -28,6 +28,7 @@ import { base64ToBuffer, bufferToBase64 } from '../../../internals';
 import { ProtoService } from '../../../server/proto';
 import { TSchema } from '../../../internals/schema';
 import FileStorageBase from '../base';
+import { QuerySelector } from '../../../server/query/dispatcher/parser';
 
 export class DatabaseFileStorage extends FileStorageBase {
 
@@ -102,7 +103,13 @@ export class DatabaseFileStorage extends FileStorageBase {
   }
 
   async destory<E>(proto: ProtoService<E>, token: string) {
-    await proto.Query('_FileChunk').equalTo('token', token).deleteMany({ master: true });
+    proto.storage.deleteMany({
+      className: '_FileChunk',
+      filter: QuerySelector.decode({ token: { $eq: token } }),
+      includes: ['_id'],
+      matches: {},
+      objectIdSize: 0
+    });
   }
 };
 
