@@ -24,13 +24,17 @@
 //
 
 import _ from 'lodash';
-import { TStorage } from './storage';
 import { QuerySelector } from './query/dispatcher/parser';
+import { ProtoService } from './proto';
+import { PVK } from '../internals';
 
 const scheduleOp = {
-  expireDocument: async (storage: TStorage) => {
-    for (const className of storage.classes()) {
-      await storage.deleteMany({
+  expireDocument: async (proto: ProtoService<any>) => {
+    for (const className of proto.classes()) {
+      if (className === 'File') {
+
+      }
+      await proto.storage.deleteMany({
         className,
         filter: QuerySelector.decode({ _expired_at: { $lt: new Date() } }),
         includes: ['_id', '_expired_at'],
@@ -43,22 +47,15 @@ const scheduleOp = {
 
 export type ScheduleOp = keyof typeof scheduleOp;
 
-export const storageSchedule = (storage: TStorage, operations: ScheduleOp[]) => {
-  if (_.isEmpty(operations)) {
-    return {
-      execute() { return Promise.resolve(); },
-      destory() { }
-    };
-  }
+export const schedule = (proto: ProtoService<any>) => {
   let running = false;
   const execute = async () => {
     if (running) return;
     running = true;
-    for (const op of operations) {
-      const task = scheduleOp[op];
+    for (const [op, task] of _.entries(scheduleOp)) {
       if (!_.isFunction(task)) continue;
       try {
-        await task(storage);
+        await task(proto);
       } catch (e) {
         console.error(`Errors on schedule ${op}: ${e}`);
       }

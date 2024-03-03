@@ -26,8 +26,7 @@
 import _ from 'lodash';
 import { DecodedQuery, FindOptions, FindOneOptions, InsertOptions, TStorage } from '../storage';
 import { TransactionOptions } from '../../internals/proto';
-import { TSchema, isPointer, isPrimitive, isRelation, isShapedObject, shapedObjectPaths } from '../../internals/schema';
-import { ScheduleOp, storageSchedule } from '../schedule';
+import { TSchema, isPointer, isRelation, isShapedObject, shapedObjectPaths } from '../../internals/schema';
 import { PVK, TObject, TValue, TUpdateOp, asyncStream, _TValue, TQueryRandomOptions } from '../../internals';
 import { SQL, sql } from './sql';
 import { SqlDialect } from './dialect';
@@ -35,20 +34,13 @@ import { QueryCompiler } from './compiler';
 
 export abstract class SqlStorage implements TStorage {
 
-  schedule: ReturnType<typeof storageSchedule>;
   schema: Record<string, TSchema> = {};
-
-  constructor(schedule?: ScheduleOp[]) {
-    this.schedule = storageSchedule(this, schedule ?? ['expireDocument']);
-  }
 
   async prepare(schema: Record<string, TSchema>) {
     this.schema = schema;
   }
 
-  async shutdown() {
-    this.schedule.destory();
-  }
+  async shutdown() { }
 
   classes() {
     return Object.keys(this.schema);

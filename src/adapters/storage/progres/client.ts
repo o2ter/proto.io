@@ -32,14 +32,13 @@ import { _decodeValue, _encodeValue, _encodeJsonValue } from './dialect/encode';
 import { QueryCompiler } from '../../../server/sql/compiler';
 import { DecodedQuery, FindOptions } from '../../../server/storage';
 import { TransactionOptions } from '../../../internals/proto';
-import { ScheduleOp } from '../../../server/schedule';
 
 export class PostgresStorageClient<Driver extends PostgresClientDriver> extends SqlStorage {
 
   protected _driver: Driver;
 
-  constructor(driver: Driver, schedule?: ScheduleOp[]) {
-    super(schedule);
+  constructor(driver: Driver) {
+    super();
     this._driver = driver;
   }
 
@@ -190,7 +189,7 @@ class PostgresStorageTransaction extends PostgresStorageClient<PostgresClientDri
   private _selectLock: boolean;
 
   constructor(driver: PostgresClientDriver, counter: number, selectLock: boolean) {
-    super(driver, []);
+    super(driver);
     this.counter = counter;
     this._selectLock = selectLock;
   }

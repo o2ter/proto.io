@@ -51,7 +51,6 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
       await this._rebuildColumns(className, _schema);
       await this._createIndices(className, _schema);
     }
-    this.schedule?.execute();
   }
 
   private _pgType(type: TSchema.Primitive | TSchema.Relation) {
@@ -204,7 +203,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
     callback: (connection: PostgresStorageClient<PostgresClientDriver>) => PromiseLike<T>
   ) {
     return this._driver.withClient((client) => {
-      const connection = new PostgresStorageClient(client, []);
+      const connection = new PostgresStorageClient(client);
       connection.schema = this.schema;
       return callback(connection);
     });

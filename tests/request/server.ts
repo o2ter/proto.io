@@ -412,6 +412,7 @@ beforeAll(async () => {
 });
 
 afterAll(() => new Promise<void>(async (res) => {
+  await Proto.shutdown();
   await database.shutdown();
   httpServer.shutdown(res);
 }));

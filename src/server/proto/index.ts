@@ -41,12 +41,14 @@ import { ProtoServiceOptions, ProtoServiceKeyOptions } from './types';
 import { ProtoFunction, ProtoFunctionOptions, ProtoTrigger } from '../../internals/proto/types';
 import { sessionId, sessionIsMaster, session, signUser } from './session';
 import { TransactionOptions } from '../../internals/proto';
+import { schedule } from '../schedule';
 
 export class ProtoService<Ext> extends ProtoType<Ext> {
 
   [PVK]: ProtoInternal<Ext, this>;
   req?: Request;
   private _storage?: ProtoServiceOptions<Ext>['storage'];
+  private _schedule = schedule(this);
 
   constructor(options: ProtoServiceOptions<Ext> & ProtoServiceKeyOptions) {
     super();
@@ -68,6 +70,10 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
       },
       ...options,
     });
+  }
+
+  async shutdown() {
+    this._schedule.destory();
   }
 
   classes(): string[] {
