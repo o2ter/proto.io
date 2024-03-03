@@ -59,8 +59,13 @@ export class FileSystemStorage extends FileStorageBase {
       path: path.resolve(directory, x),
       start: parseInt(x.slice(0, -6)),
     })), x => x.start);
-    for (const chunk of files) {
-
+    for (const [chunk, endBytes] of _.zip(files, _.slice(_.map(files, x => x.start), 1))) {
+      if (_.isNumber(start) && _.isNumber(endBytes) && start >= endBytes) continue;
+      if (_.isNumber(end) && end <= chunk!.start) continue;
+      yield {
+        start: chunk!.start,
+        data: await fs.readFile(chunk!.path),
+      };
     }
   }
 
