@@ -26,7 +26,6 @@
 import _ from 'lodash';
 import { QuerySelector } from './query/dispatcher/parser';
 import { ProtoService } from './proto';
-import { PVK } from '../internals';
 
 const scheduleOp = {
   expireDocument: async (proto: ProtoService<any>) => {
