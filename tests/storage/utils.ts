@@ -1,5 +1,5 @@
 //
-//  index.test.ts
+//  utils.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2024 O2ter Limited. All rights reserved.
@@ -23,37 +23,23 @@
 //  THE SOFTWARE.
 //
 
-import _ from 'lodash';
-import fs from 'fs';
-import { masterUser } from './server';
-import { test, expect } from '@jest/globals';
-import { ProtoClient } from '../../../src/client/proto';
-import { generateString, streamToBuffer } from '../utils';
+import { Readable } from 'node:stream';
 
-const Proto = new ProtoClient({
-  endpoint: 'http://localhost:8080/proto',
-  masterUser,
-});
+export const streamToBuffer = async (stream: any) => {
+  const _stream = stream instanceof Readable ? stream : Readable.fromWeb(stream);
+  let buffer = Buffer.from([]);
+  for await (const chunk of _stream) {
+    buffer = Buffer.concat([buffer, chunk]);
+  }
+  return buffer;
+};
 
-test('test files', async () => {
-  const file = Proto.File('test.txt', 'hello, world', 'text/plain');
-  await file.save();
-
-  const data = await streamToBuffer(file.fileData());
-  expect(data.toString('utf8')).toStrictEqual('hello, world');
-});
-test('test files 2', async () => {
-  const file = Proto.File('test.txt', fs.createReadStream(__filename), 'text/plain');
-  await file.save();
-
-  const data = await streamToBuffer(file.fileData());
-  expect(data.toString('utf8')).toStrictEqual(fs.readFileSync(__filename, { encoding: 'utf8' }));
-});
-test('test files 3', async () => {
-  const content = generateString(32 * 1024);
-  const file = Proto.File('test.txt', content, 'text/plain');
-  await file.save();
-
-  const data = await streamToBuffer(file.fileData());
-  expect(data.toString('utf8')).toStrictEqual(content);
-});
+const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+export const generateString = (length: number) => {
+  let result = '';
+  const charactersLength = characters.length;
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+};
