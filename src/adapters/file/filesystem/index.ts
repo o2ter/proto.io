@@ -46,15 +46,17 @@ export class FileSystemStorage extends FileStorageBase {
 
   async createChunk<E>(proto: ProtoService<E>, token: string, start: number, end: number, compressed: Buffer) {
 
+    const directory = path.resolve(this.volumn, token);
   }
 
   async* readChunks<E>(proto: ProtoService<E>, token: string, start?: number | undefined, end?: number | undefined) {
 
+    const directory = path.resolve(this.volumn, token);
   }
 
-  async destory<E>(proto: ProtoService<E>, id: string) {
+  async destory<E>(proto: ProtoService<E>, token: string) {
     try {
-      const directory = path.resolve(this.volumn, id);
+      const directory = path.resolve(this.volumn, token);
       for (const file of await fs.readdir(directory)) {
         await fs.unlink(path.join(directory, file));
       }

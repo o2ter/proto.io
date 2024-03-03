@@ -101,8 +101,8 @@ export class DatabaseFileStorage extends FileStorageBase {
     }
   }
 
-  async destory<E>(proto: ProtoService<E>, id: string) {
-    await proto.Query('_FileChunk').equalTo('token', id).deleteMany({ master: true });
+  async destory<E>(proto: ProtoService<E>, token: string) {
+    await proto.Query('_FileChunk').equalTo('token', token).deleteMany({ master: true });
   }
 };
 
