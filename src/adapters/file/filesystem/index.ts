@@ -45,13 +45,20 @@ export class FileSystemStorage extends FileStorageBase {
   }
 
   async createChunk<E>(proto: ProtoService<E>, token: string, start: number, end: number, compressed: Buffer) {
-
     const directory = path.resolve(this.volumn, token);
+    try {
+      await fs.mkdir(directory, { recursive: true });
+    } catch { }
+    await fs.writeFile(path.join(directory, `${start}.chunk`), compressed);
   }
 
   async* readChunks<E>(proto: ProtoService<E>, token: string, start?: number | undefined, end?: number | undefined) {
-
     const directory = path.resolve(this.volumn, token);
+    const _files = _.filter(await fs.readdir(directory), x => !!x.match(/^\d+\.chunk$/));
+    const files = _.map(_files, x => ({ path: path.resolve(directory, x), start: parseInt(x.slice(0, -6)) }));
+
+
+
   }
 
   async destory<E>(proto: ProtoService<E>, token: string) {
