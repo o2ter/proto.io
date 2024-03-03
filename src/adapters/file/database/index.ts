@@ -90,14 +90,12 @@ export class DatabaseFileStorage extends FileStorageBase {
     for await (const chunk of query.find({ master: true })) {
 
       const startBytes = chunk.get('start');
-      const endBytes = chunk.get('end');
       const base64 = chunk.get('base64');
 
-      if (!_.isNumber(startBytes) || !_.isNumber(endBytes) || !_.isString(base64)) throw Error('Corrupted data');
+      if (!_.isNumber(startBytes) || !_.isString(base64)) throw Error('Corrupted data');
 
       yield {
         start: startBytes,
-        end: endBytes,
         data: base64ToBuffer(base64),
       };
     }

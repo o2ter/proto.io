@@ -48,7 +48,7 @@ export abstract class FileStorageBase implements TFileStorage {
   }
 
   abstract createChunk<E>(proto: ProtoService<E>, token: string, start: number, end: number, compressed: Buffer): PromiseLike<void>;
-  abstract readChunks<E>(proto: ProtoService<E>, token: string, start?: number, end?: number): AsyncGenerator<{ start: number; end: number; data: Buffer | Uint8Array; }, void>;
+  abstract readChunks<E>(proto: ProtoService<E>, token: string, start?: number, end?: number): AsyncGenerator<{ start: number; data: Buffer | Uint8Array; }, void>;
   abstract destory<E>(proto: ProtoService<E>, id: string): PromiseLike<void>;
 
   async create<E>(
@@ -79,11 +79,12 @@ export abstract class FileStorageBase implements TFileStorage {
 
     for await (const chunk of this.readChunks(proto, id, start, end)) {
 
-      const { start: startBytes, end: endBytes, data } = chunk;
+      const { start: startBytes,  data } = chunk;
       const uncompressed = await unzip(data);
 
       if (_.isNumber(start) || _.isNumber(end)) {
 
+        const endBytes = startBytes + uncompressed.length;
         const _start = _.isNumber(start) && start > startBytes ? start - startBytes : 0;
         const _end = _.isNumber(end) && end < endBytes ? end - startBytes : undefined;
 
