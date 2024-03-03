@@ -44,10 +44,7 @@ export class GoogleCloudStorage extends FileStorageBase {
   }
 
   async createChunk<E>(proto: ProtoService<E>, token: string, start: number, end: number, compressed: Buffer) {
-    
-
-    this.bucket.create
-
+    await this.bucket.file(`${token}/${start}.chunk`).save(compressed);
   }
 
   async* readChunks<E>(proto: ProtoService<E>, token: string, start?: number | undefined, end?: number | undefined) {
