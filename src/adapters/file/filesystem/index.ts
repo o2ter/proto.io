@@ -27,7 +27,6 @@ import _ from 'lodash';
 import path from 'path';
 import fs from 'fs/promises';
 import { ProtoService } from '../../../server/proto';
-import { TSchema } from '../../../internals/schema';
 import FileStorageBase from '../base';
 
 export class FileSystemStorage extends FileStorageBase {

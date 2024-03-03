@@ -25,7 +25,6 @@
 
 import _ from 'lodash';
 import { ProtoService } from '../../../server/proto';
-import { TSchema } from '../../../internals/schema';
 import { Storage } from '@google-cloud/storage';
 import FileStorageBase from '../base';
 
