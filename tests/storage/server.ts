@@ -57,55 +57,9 @@ const Proto = new ProtoService({
   endpoint: 'http://localhost:8080/proto',
   masterUsers: [masterUser],
   jwtToken: randomUUID(),
-  schema: {
-    'User': {
-      fields: {
-        name: 'string',
-      }
-    },
-  },
+  schema: {},
   storage: database,
   fileStorage: new DatabaseFileStorage(),
-});
-
-Proto.define('echo', ({ params }) => {
-  return params;
-});
-
-Proto.define('echoMaster', ({ params }) => {
-  return params;
-}, {
-  validator: {
-    requireMaster: true,
-  },
-});
-
-Proto.define('echoUser', ({ params }) => {
-  return params;
-}, {
-  validator: {
-    requireUser: true,
-  },
-});
-
-Proto.define('sessionId', ({ sessionId }) => {
-  return sessionId;
-});
-
-Proto.define('createUser', async (proto) => {
-  const user = await proto.Query('User').insert({ name: 'test' });
-  await proto.setPassword(user, 'password123', { master: true });
-  if (!await proto.varifyPassword(user, 'password123', { master: true })) throw Error('incorrect password');
-  await proto.becomeUser(proto.req!, user);
-});
-
-Proto.define('createUserWithRole', async (proto) => {
-  const { role } = proto.params as any;
-  const _role = await proto.Query('Role').equalTo('name', role).first({ master: true }) ?? await proto.Query('Role').insert({ name: role }, { master: true });
-  const user = await proto.Query('User').insert({ name: 'test' });
-  _role.addToSet('users', [user]);
-  await _role.save({ master: true });
-  await proto.becomeUser(proto.req!, user);
 });
 
 beforeAll(async () => {
