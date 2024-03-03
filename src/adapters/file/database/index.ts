@@ -80,7 +80,6 @@ export class DatabaseFileStorage extends FileStorageBase {
   }
 
   async* readChunks<E>(proto: ProtoService<E>, token: string, start?: number | undefined, end?: number | undefined) {
-
     const query = proto.Query('_FileChunk')
       .sort({ start: 1 })
       .filter({
@@ -89,12 +88,9 @@ export class DatabaseFileStorage extends FileStorageBase {
         ...end ? { start: { $lt: end } } : {},
       });
     for await (const chunk of query.find({ master: true })) {
-
       const startBytes = chunk.get('start');
       const base64 = chunk.get('base64');
-
       if (!_.isNumber(startBytes) || !_.isString(base64)) throw Error('Corrupted data');
-
       yield {
         start: startBytes,
         data: base64ToBuffer(base64),

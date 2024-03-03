@@ -55,10 +55,13 @@ export class FileSystemStorage extends FileStorageBase {
   async* readChunks<E>(proto: ProtoService<E>, token: string, start?: number | undefined, end?: number | undefined) {
     const directory = path.resolve(this.volumn, token);
     const _files = _.filter(await fs.readdir(directory), x => !!x.match(/^\d+\.chunk$/));
-    const files = _.map(_files, x => ({ path: path.resolve(directory, x), start: parseInt(x.slice(0, -6)) }));
+    const files = _.orderBy(_.map(_files, x => ({
+      path: path.resolve(directory, x),
+      start: parseInt(x.slice(0, -6)),
+    })), x => x.start);
+    for (const chunk of files) {
 
-
-
+    }
   }
 
   async destory<E>(proto: ProtoService<E>, token: string) {

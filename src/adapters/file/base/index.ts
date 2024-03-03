@@ -44,7 +44,7 @@ export abstract class FileStorageBase implements TFileStorage {
   }
 
   get schema(): Record<string, TSchema> {
-    return { }
+    return {}
   }
 
   abstract createChunk<E>(proto: ProtoService<E>, token: string, start: number, end: number, compressed: Buffer): PromiseLike<void>;
@@ -84,6 +84,10 @@ export abstract class FileStorageBase implements TFileStorage {
       if (_.isNumber(start) || _.isNumber(end)) {
 
         const endBytes = startBytes + uncompressed.length;
+
+        if (_.isNumber(start) && start >= endBytes) continue;
+        if (_.isNumber(end) && end <= startBytes) continue;
+
         const _start = _.isNumber(start) && start > startBytes ? start - startBytes : 0;
         const _end = _.isNumber(end) && end < endBytes ? end - startBytes : undefined;
 
