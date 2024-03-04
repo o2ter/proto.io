@@ -63,11 +63,13 @@ export class GoogleCloudStorage extends FileStorageBase {
     for (const [chunk, endBytes] of _.zip(files, _.slice(_.map(files, x => x.start), 1))) {
       if (_.isNumber(start) && _.isNumber(endBytes) && start >= endBytes) continue;
       if (_.isNumber(end) && end <= chunk!.start) continue;
-      const [buffer] = await chunk?.file.download() ?? [];
-      if (!buffer) throw Error('Unable to connect cloud storage');
       yield {
         start: chunk!.start,
-        data: buffer,
+        data: (async () => {
+          const [buffer] = await chunk?.file.download() ?? [];
+          if (!buffer) throw Error('Unable to connect cloud storage');
+          return buffer;
+        })(),
       };
     }
   }

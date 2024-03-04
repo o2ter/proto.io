@@ -58,7 +58,7 @@ export class FileSystemStorage extends FileStorageBase {
       if (_.isNumber(end) && end <= chunk!.start) continue;
       yield {
         start: chunk!.start,
-        data: await fs.readFile(chunk!.path),
+        data: fs.readFile(chunk!.path),
       };
     }
   }
