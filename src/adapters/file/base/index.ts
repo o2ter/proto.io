@@ -70,16 +70,39 @@ export abstract class FileStorageBase implements TFileStorage {
 
     const maxUploadSize = _.isFunction(proto[PVK].options.maxUploadSize) ? await proto[PVK].options.maxUploadSize(proto) : proto[PVK].options.maxUploadSize;
 
+    const queue: Promise<void>[] = [];
+    let error: any;
+
     for await (const data of streamChunk(stream, this.options.chunkSize)) {
 
       const chunkSize = data.byteLength;
-      const compressed = await deflate(data);
 
-      await this.createChunk(proto, token, size, size + chunkSize, compressed);
+      if (queue.length >= this.options.parallel) {
+        try {
+          await queue.shift();
+        } catch (e) {
+          error = e;
+          break;
+        }
+      }
+
+      queue.push((async () => this.createChunk(proto, token, size, size + chunkSize, await deflate(data)))());
 
       size += chunkSize;
-      if (size > maxUploadSize) throw Error('Payload too large');
+      if (size > maxUploadSize) {
+        error = Error('Payload too large');
+        break;
+      }
     }
+
+    while (!_.isEmpty(queue)) {
+      try {
+        await queue.shift();
+      } catch (e) {
+        error = error ?? e;
+      }
+    }
+    if (error) throw error;
 
     return { _id: token, size };
   }
