@@ -74,64 +74,57 @@ export abstract class FileStorageBase implements TFileStorage {
     const maxUploadSize = _.isFunction(proto[PVK].options.maxUploadSize) ? await proto[PVK].options.maxUploadSize(proto) : proto[PVK].options.maxUploadSize;
 
     const queue: Promise<void>[] = [];
-    let error: any;
 
-    for await (const data of streamChunk(stream, this.options.chunkSize)) {
+    try {
 
-      const chunkSize = data.byteLength;
+      for await (const data of streamChunk(stream, this.options.chunkSize)) {
 
-      if (queue.length >= this.options.parallel) {
-        try {
-          await queue.shift();
-        } catch (e) {
-          error = e;
-          break;
-        }
+        const chunkSize = data.byteLength;
+
+        if (queue.length >= this.options.parallel) await queue.shift();
+        queue.push((async () => this.createChunk(proto, token, size, size + chunkSize, await deflate(data)))());
+
+        size += chunkSize;
+        if (size > maxUploadSize) throw Error('Payload too large');
       }
 
-      queue.push((async () => this.createChunk(proto, token, size, size + chunkSize, await deflate(data)))());
+      while (!_.isEmpty(queue)) await queue.shift();
 
-      size += chunkSize;
-      if (size > maxUploadSize) {
-        error = Error('Payload too large');
-        break;
-      }
+    } finally {
+      await Promise.allSettled(queue);
     }
-
-    while (!_.isEmpty(queue)) {
-      try {
-        await queue.shift();
-      } catch (e) {
-        error = error ?? e;
-      }
-    }
-    if (error) throw error;
 
     return { _id: token, size };
   }
 
   async* fileData<E>(proto: ProtoService<E>, id: string, start?: number, end?: number) {
 
-    for await (const { start: startBytes, data } of this.readChunks(proto, id, start, end)) {
+    const queue: Promise<{ start: number; data: Buffer }>[] = [];
+    const dequeue = async () => {
+      const { start: startBytes, data } = await queue.shift()!;
+      if (!_.isNumber(start) && !_.isNumber(end)) return data;
+      const endBytes = startBytes + data.length;
+      const _start = _.isNumber(start) && start > startBytes ? start - startBytes : 0;
+      const _end = _.isNumber(end) && end < endBytes ? end - startBytes : undefined;
+      return data.subarray(_start, _end);
+    };
 
-      const uncompressed = await unzip(await data);
+    try {
 
-      if (_.isNumber(start) || _.isNumber(end)) {
+      for await (const chunk of this.readChunks(proto, id, start, end)) {
 
-        const endBytes = startBytes + uncompressed.length;
+        if (queue.length >= this.options.parallel) yield await dequeue();
 
-        if (_.isNumber(start) && start >= endBytes) continue;
-        if (_.isNumber(end) && end <= startBytes) continue;
-
-        const _start = _.isNumber(start) && start > startBytes ? start - startBytes : 0;
-        const _end = _.isNumber(end) && end < endBytes ? end - startBytes : undefined;
-
-        yield uncompressed.subarray(_start, _end);
-
-      } else {
-
-        yield uncompressed;
+        queue.push((async () => ({
+          start: chunk.start,
+          data: await unzip(await chunk.data),
+        }))());
       }
+
+      while (!_.isEmpty(queue)) yield await dequeue();
+
+    } finally {
+      await Promise.allSettled(queue);
     }
   }
 };
