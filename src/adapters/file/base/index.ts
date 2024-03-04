@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { promisify } from 'util';
 import { deflate as _deflate, unzip as _unzip } from 'zlib';
-import { PVK, base64ToBuffer, bufferToBase64 } from '../../../internals';
+import { PVK } from '../../../internals';
 import { TFileStorage } from '../../../server/file';
 import { ProtoService } from '../../../server/proto';
 import { TSchema } from '../../../internals/schema';
