@@ -47,7 +47,7 @@ export abstract class FileStorageBase implements TFileStorage {
   constructor(options: FileStorageOptions) {
     this.options = {
       chunkSize: 16 * 1024,
-      parallel: 4,
+      parallel: 8,
       ..._.pickBy(options, v => !_.isNil(v)),
     };
   }
