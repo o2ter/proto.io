@@ -35,7 +35,7 @@ const scheduleOp = {
           className: 'File',
           filter: QuerySelector.decode({ _expired_at: { $lt: new Date() } }),
           matches: {},
-          includes: ['_id', 'token'],
+          includes: ['_id', '_expired_at', 'token'],
           objectIdSize: 0
         });
         for await (const item of found) {
