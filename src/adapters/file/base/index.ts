@@ -35,12 +35,21 @@ import { streamChunk } from '../../../server/file/stream';
 const deflate = promisify(_deflate);
 const unzip = promisify(_unzip);
 
+export type FileStorageOptions = {
+  chunkSize?: number;
+  parallel?: number;
+};
+
 export abstract class FileStorageBase implements TFileStorage {
 
-  chunkSize: number;
+  options: Required<FileStorageOptions>;
 
-  constructor(chunkSize: number) {
-    this.chunkSize = chunkSize;
+  constructor(options: FileStorageOptions) {
+    this.options = {
+      chunkSize: 16 * 1024,
+      parallel: 4,
+      ..._.pickBy(options, v => !_.isNil(v)),
+    };
   }
 
   get schema(): Record<string, TSchema> {
@@ -61,7 +70,7 @@ export abstract class FileStorageBase implements TFileStorage {
 
     const maxUploadSize = _.isFunction(proto[PVK].options.maxUploadSize) ? await proto[PVK].options.maxUploadSize(proto) : proto[PVK].options.maxUploadSize;
 
-    for await (const data of streamChunk(stream, this.chunkSize)) {
+    for await (const data of streamChunk(stream, this.options.chunkSize)) {
 
       const chunkSize = data.byteLength;
       const compressed = await deflate(data);

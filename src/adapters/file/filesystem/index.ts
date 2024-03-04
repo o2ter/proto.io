@@ -27,14 +27,14 @@ import _ from 'lodash';
 import path from 'path';
 import fs from 'fs/promises';
 import { ProtoService } from '../../../server/proto';
-import FileStorageBase from '../base';
+import FileStorageBase, { FileStorageOptions } from '../base';
 
 export class FileSystemStorage extends FileStorageBase {
 
   volumn: string;
 
-  constructor(volumn: string, chunkSize: number = 16 * 1024) {
-    super(chunkSize);
+  constructor(volumn: string, options: FileStorageOptions = {}) {
+      super(options);
     this.volumn = volumn;
   }
 

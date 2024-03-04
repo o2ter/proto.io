@@ -26,15 +26,15 @@
 import _ from 'lodash';
 import { ProtoService } from '../../../server/proto';
 import { Storage } from '@google-cloud/storage';
-import FileStorageBase from '../base';
+import FileStorageBase, { FileStorageOptions } from '../base';
 
 export class GoogleCloudStorage extends FileStorageBase {
 
   private _storage: Storage;
   private _bucket: string;
 
-  constructor(storage: Storage, bucket: string, chunkSize: number = 16 * 1024) {
-    super(chunkSize);
+  constructor(storage: Storage, bucket: string, options: FileStorageOptions = {}) {
+    super(options);
     this._storage = storage;
     this._bucket = bucket;
   }

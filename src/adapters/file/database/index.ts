@@ -27,13 +27,13 @@ import _ from 'lodash';
 import { base64ToBuffer, bufferToBase64 } from '../../../internals';
 import { ProtoService } from '../../../server/proto';
 import { TSchema } from '../../../internals/schema';
-import FileStorageBase from '../base';
+import FileStorageBase, { FileStorageOptions } from '../base';
 import { QuerySelector } from '../../../server/query/dispatcher/parser';
 
 export class DatabaseFileStorage extends FileStorageBase {
 
-  constructor(chunkSize: number = 16 * 1024) {
-    super(chunkSize);
+  constructor(options: FileStorageOptions = {}) {
+    super(options);
   }
 
   get schema(): Record<string, TSchema> {
