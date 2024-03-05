@@ -31,5 +31,3 @@ export type Exact<T, Shape> =
 export type ExactOneProp<T> = {
   [K in keyof T]-?: Pick<T, K> & { [P in Exclude<keyof T, K>]?: never }
 }[keyof T];
-
-export type Awaitable<T> = T | PromiseLike<T>;

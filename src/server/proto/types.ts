@@ -29,9 +29,9 @@ import { TStorage } from '../storage';
 import { TSchema } from '../../internals/schema';
 import { CookieOptions } from 'express';
 import { SignOptions, VerifyOptions } from 'jsonwebtoken';
-import { Awaitable } from '../../internals/types';
 import { ProtoService } from '.';
 import { PasswordHashOptions } from '../crypto/password';
+import { Awaitable } from '@o2ter/utils-js';
 
 export type ProtoServiceOptions<Ext> = {
   endpoint: string;

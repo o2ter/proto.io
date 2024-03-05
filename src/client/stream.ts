@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import type { Readable as _Readable } from 'node:stream';
-import { Awaitable } from '../internals/types';
+import { Awaitable } from '@o2ter/utils-js';
 
 export const streamToIterable = <T>(
   stream: ReadableStream<T> | AsyncIterable<T>

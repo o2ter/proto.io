@@ -23,7 +23,7 @@
 //  THE SOFTWARE.
 //
 
-import { Awaitable } from '../types';
+import { Awaitable } from '@o2ter/utils-js';
 import { ProtoService } from '../../server/proto';
 import { TSerializable } from '../codec';
 import { TObjectType } from '../object/types';

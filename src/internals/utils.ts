@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { Awaitable } from './types';
+import { Awaitable } from '@o2ter/utils-js';
 
 export const isObjKey = <T extends object>(key: PropertyKey, obj: T): key is keyof T => key in obj;
 

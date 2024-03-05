@@ -28,7 +28,7 @@ import { Readable } from 'node:stream';
 import { Request, Response } from 'express';
 import { TSerializable, serialize } from '../../internals';
 import busboy, { FileInfo } from 'busboy';
-import { Awaitable } from '../../internals/types';
+import { Awaitable } from '@o2ter/utils-js';
 
 export const encodeError = (error: any) => {
   if (error instanceof String) return { message: error };
