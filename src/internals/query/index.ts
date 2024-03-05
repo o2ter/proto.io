@@ -28,11 +28,11 @@ import { IncludePaths } from './types';
 import { TValue } from './value';
 import { PVK } from '../private';
 import { TObjectType } from '../object/types';
-import { asyncStream } from '../utils';
 import { TQueryBase, TQueryBaseOptions } from './base';
 import { TUpdateOp } from '../object/types';
 import { ProtoType } from '../proto';
 import { ExtraOptions } from '../options';
+import { asyncStream } from '@o2ter/utils-js';
 
 export interface TQueryOptions extends TQueryBaseOptions {
   includes?: string[];

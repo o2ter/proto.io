@@ -31,9 +31,7 @@ import {
   TObject,
   TUpdateOp,
   ExtraOptions,
-  asyncIterableToArray,
   TValue,
-  asyncStream,
   TExtended,
   TObjectType,
   TQueryOptions,
@@ -42,6 +40,7 @@ import {
 } from '../../internals';
 import { dispatcher } from './dispatcher';
 import { proxy } from '../proto/proxy';
+import { asyncIterableToArray, asyncStream } from '@o2ter/utils-js';
 
 export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T, E, M, ProtoService<E>> {
 

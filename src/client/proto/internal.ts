@@ -41,9 +41,8 @@ import {
   TObjectType,
   ProtoType,
 } from '../../internals';
-import { iterableToStream, streamToIterable } from '../stream';
 import { TSchema } from '../../internals/schema';
-import { base64ToBuffer, isBinaryData, isBlob, isReadableStream } from '@o2ter/utils-js';
+import { base64ToBuffer, isBinaryData, isBlob, isReadableStream, iterableToStream, streamToIterable } from '@o2ter/utils-js';
 
 export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements ProtoInternalType<Ext, P> {
 

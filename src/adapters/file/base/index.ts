@@ -30,7 +30,7 @@ import { PVK } from '../../../internals';
 import { TFileStorage } from '../../../server/file';
 import { ProtoService } from '../../../server/proto';
 import { TSchema } from '../../../internals/schema';
-import { parallelEach, parallelMap, streamChunk } from '../../../server/file/stream';
+import { binaryStreamChunk, parallelEach, parallelMap } from '@o2ter/utils-js';
 
 const deflate = promisify(_deflate);
 const unzip = promisify(_unzip);
@@ -80,7 +80,7 @@ export abstract class FileStorageBase implements TFileStorage {
     };
 
     await parallelEach(
-      _stream(streamChunk(stream, this.options.chunkSize)),
+      _stream(binaryStreamChunk(stream, this.options.chunkSize)),
       this.options.parallel,
       async ({ data, offset }) => {
         const chunkSize = data.byteLength;

@@ -31,12 +31,12 @@ import {
   TQuery,
   TObject,
   TValue,
-  asyncStream,
   TObjectType,
   TQueryOptions,
   TUpdateOp,
   TQueryRandomOptions,
 } from '../internals';
+import { asyncStream } from '@o2ter/utils-js';
 
 export class ProtoClientQuery<T extends string, E> extends TQuery<T, E, boolean, ProtoClient<E>> {
 

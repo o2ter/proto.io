@@ -27,10 +27,11 @@ import _ from 'lodash';
 import { DecodedQuery, FindOptions, FindOneOptions, InsertOptions, TStorage } from '../storage';
 import { TransactionOptions } from '../../internals/proto';
 import { TSchema, isPointer, isRelation, isShapedObject, shapedObjectPaths } from '../../internals/schema';
-import { PVK, TObject, TValue, TUpdateOp, asyncStream, _TValue, TQueryRandomOptions } from '../../internals';
+import { PVK, TObject, TValue, TUpdateOp, _TValue, TQueryRandomOptions } from '../../internals';
 import { SQL, sql } from './sql';
 import { SqlDialect } from './dialect';
 import { QueryCompiler } from './compiler';
+import { asyncStream } from '@o2ter/utils-js';
 
 export abstract class SqlStorage implements TStorage {
 

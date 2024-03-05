@@ -26,7 +26,8 @@
 import _ from 'lodash';
 import { Pool, PoolConfig, PoolClient, types } from 'pg';
 import QueryStream from 'pg-query-stream';
-import { Decimal, asyncStream } from '../../../internals';
+import { Decimal } from '../../../internals';
+import { asyncStream } from '@o2ter/utils-js';
 
 const typeParser = (oid: number, format?: any) => {
   format = format ?? 'text';
