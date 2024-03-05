@@ -30,7 +30,7 @@ import { PVK } from '../../../internals';
 import { TFileStorage } from '../../../server/file';
 import { ProtoService } from '../../../server/proto';
 import { TSchema } from '../../../internals/schema';
-import { streamChunk } from '../../../server/file/stream';
+import { parallelEach, parallelMap, streamChunk } from '../../../server/file/stream';
 
 const deflate = promisify(_deflate);
 const unzip = promisify(_unzip);
@@ -69,62 +69,54 @@ export abstract class FileStorageBase implements TFileStorage {
   ) {
 
     const token = proto[PVK].generateId();
-    let size = 0;
-
     const maxUploadSize = _.isFunction(proto[PVK].options.maxUploadSize) ? await proto[PVK].options.maxUploadSize(proto) : proto[PVK].options.maxUploadSize;
 
-    const queue: Promise<void>[] = [];
-
-    try {
-
-      for await (const data of streamChunk(stream, this.options.chunkSize)) {
-
-        const chunkSize = data.byteLength;
-
-        if (queue.length >= this.options.parallel) await queue.shift();
-        queue.push((async () => this.createChunk(proto, token, size, size + chunkSize, await deflate(data)))());
-
-        size += chunkSize;
-        if (size > maxUploadSize) throw Error('Payload too large');
+    let size = 0;
+    const _stream = async function* (stream: AsyncIterable<Buffer>) {
+      for await (const data of stream) {
+        yield { data, offset: size };
+        size += data.byteLength;
       }
+    };
 
-      while (!_.isEmpty(queue)) await queue.shift();
-
-    } finally {
-      await Promise.allSettled(queue);
-    }
+    await parallelEach(
+      _stream(streamChunk(stream, this.options.chunkSize)),
+      this.options.parallel,
+      async ({ data, offset }) => {
+        const chunkSize = data.byteLength;
+        await this.createChunk(proto, token, offset, offset + chunkSize, await deflate(data));
+        if (offset + chunkSize > maxUploadSize) throw Error('Payload too large');
+      }
+    );
 
     return { _id: token, size };
   }
 
   async* fileData<E>(proto: ProtoService<E>, id: string, start?: number, end?: number) {
 
-    const queue: Promise<{ start: number; data: Buffer }>[] = [];
-    const dequeue = async () => {
-      const { start: startBytes, data } = await queue.shift()!;
-      if (!_.isNumber(start) && !_.isNumber(end)) return data;
-      const endBytes = startBytes + data.length;
-      const _start = _.isNumber(start) && start > startBytes ? start - startBytes : 0;
-      const _end = _.isNumber(end) && end < endBytes ? end - startBytes : undefined;
-      return data.subarray(_start, _end);
-    };
+    const _stream = parallelMap(
+      this.readChunks(proto, id, start, end),
+      this.options.parallel,
+      async chunk => ({
+        start: chunk.start,
+        data: await unzip(await chunk.data),
+      })
+    );
 
-    try {
+    for await (const { start: startBytes, data } of _stream) {
 
-      for await (const chunk of this.readChunks(proto, id, start, end)) {
+      if (!_.isNumber(start) && !_.isNumber(end)) {
 
-        if (queue.length >= this.options.parallel) yield await dequeue();
+        yield data;
 
-        queue.push((async () => ({
-          start: chunk.start,
-          data: await unzip(await chunk.data),
-        }))());
+      } else {
+
+        const endBytes = startBytes + data.length;
+        const _start = _.isNumber(start) && start > startBytes ? start - startBytes : 0;
+        const _end = _.isNumber(end) && end < endBytes ? end - startBytes : undefined;
+
+        yield data.subarray(_start, _end);
       }
-
-      while (!_.isEmpty(queue)) yield await dequeue();
-
-    } finally {
-      await Promise.allSettled(queue);
     }
   }
 };

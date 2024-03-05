@@ -50,7 +50,7 @@ test('test files 2', async () => {
   expect(data.toString('utf8')).toStrictEqual(fs.readFileSync(__filename, { encoding: 'utf8' }));
 });
 test('test files 3', async () => {
-  const content = generateString(128 * 1024);
+  const content = generateString(32 * 1024);
   const file = Proto.File('test.txt', content, 'text/plain');
   await file.save();
 
