@@ -36,16 +36,14 @@ import {
   deserialize,
   serialize,
   FileData,
-  isFileStream,
   TUser,
-  isBlob,
   _TValue,
   TObjectType,
   ProtoType,
 } from '../../internals';
 import { iterableToStream, streamToIterable } from '../stream';
 import { TSchema } from '../../internals/schema';
-import { base64ToBuffer, isBinaryData } from '@o2ter/utils-js';
+import { base64ToBuffer, isBinaryData, isBlob, isReadableStream } from '@o2ter/utils-js';
 
 export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements ProtoInternalType<Ext, P> {
 
@@ -248,7 +246,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
 
     let buffer: FileData;
 
-    if (_.isString(data) || isBinaryData(data) || isFileStream(data) || isBlob(data)) {
+    if (_.isString(data) || isBinaryData(data) || isReadableStream(data) || isBlob(data)) {
       buffer = data;
     } else if ('base64' in data) {
       buffer = base64ToBuffer(data.base64);

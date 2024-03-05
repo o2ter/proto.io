@@ -28,13 +28,3 @@ import type { Readable } from 'node:stream';
 
 export type FileStream = ReadableStream | Readable;
 export type FileData = string | Blob | BinaryData | FileStream | { base64: string; };
-
-export const isBlob = (x: any): x is Blob => typeof Blob !== 'undefined' ?
-  x instanceof Blob :
-  x instanceof require('node:buffer').Blob;
-
-export const isFileStream = (x: any): x is FileStream => {
-  if (typeof ReadableStream !== 'undefined' && x instanceof ReadableStream) return true;
-  if (typeof window === 'undefined' && x instanceof require('node:stream').Readable) return true;
-  return false;
-};
