@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { binaryToBuffer } from '../../internals';
+import { binaryToBuffer } from '@o2ter/utils-js';
 
 export async function* streamChunk(
   stream: BinaryData | AsyncIterable<BinaryData>,

@@ -24,11 +24,11 @@
 //
 
 import _ from 'lodash';
-import { base64ToBuffer, bufferToBase64 } from '../../../internals';
 import { ProtoService } from '../../../server/proto';
 import { TSchema } from '../../../internals/schema';
 import FileStorageBase, { FileStorageOptions } from '../base';
 import { QuerySelector } from '../../../server/query/dispatcher/parser';
+import { base64ToBuffer, bufferToBase64 } from '@o2ter/utils-js';
 
 export class DatabaseFileStorage extends FileStorageBase {
 

@@ -26,13 +26,6 @@
 import _ from 'lodash';
 import type { Readable } from 'node:stream';
 
-export {
-  isBinaryData,
-  base64ToBuffer,
-  bufferToBase64,
-  binaryToBuffer,
-} from '@o2ter/crypto-js';
-
 export type FileStream = ReadableStream | Readable;
 export type FileData = string | Blob | BinaryData | FileStream | { base64: string; };
 

@@ -36,9 +36,7 @@ import {
   deserialize,
   serialize,
   FileData,
-  isBinaryData,
   isFileStream,
-  base64ToBuffer,
   TUser,
   isBlob,
   _TValue,
@@ -47,6 +45,7 @@ import {
 } from '../../internals';
 import { iterableToStream, streamToIterable } from '../stream';
 import { TSchema } from '../../internals/schema';
+import { base64ToBuffer, isBinaryData } from '@o2ter/utils-js';
 
 export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements ProtoInternalType<Ext, P> {
 

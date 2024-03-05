@@ -35,8 +35,6 @@ import {
   ExtraOptions,
   ProtoInternalType,
   FileData,
-  isBinaryData,
-  base64ToBuffer,
   TObject,
   TUser,
   _TValue,
@@ -47,6 +45,7 @@ import { QueryValidator } from '../query/dispatcher/validator';
 import { passwordHash, varifyPassword } from '../crypto/password';
 import { proxy } from './proxy';
 import { ProtoService } from '.';
+import { base64ToBuffer, isBinaryData } from '@o2ter/utils-js';
 
 const validateForeignField = (schema: Record<string, TSchema>, key: string, dataType: TSchema.RelationType) => {
   if (!dataType.foreignField) return;

@@ -1327,11 +1327,12 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
-"@o2ter/crypto-js@^0.0.5":
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/@o2ter/crypto-js/-/crypto-js-0.0.5.tgz#7bd4e87830958358779f07f80fbfffa1124c5fd7"
-  integrity sha512-fXR0/tWr7U7COPA9zQ+LuAdsqdjeGR7xeBGw/MprZOlcqhCX9nCa9KyH/LTBAoFU/zW4scBfsUnw7IOCd9RLKw==
+"@o2ter/crypto-js@^0.0.7":
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/@o2ter/crypto-js/-/crypto-js-0.0.7.tgz#65da958c73dd471d2e1cf54e1e38b09ff87df500"
+  integrity sha512-DsCGhtaRFjEmnFNMO9uhhvVkfVKpgg+y5XaYQtiLm1yPPz4v1cKsgc0prUpVJmNDHlwTKz57LndIb0RGcuiFAA==
   dependencies:
+    "@o2ter/utils-js" "^0.0.1"
     lodash ">=4.17.21"
 
 "@o2ter/utils-js@^0.0.1":
