@@ -135,18 +135,18 @@ export abstract class SqlStorage implements TStorage {
 
   find(query: DecodedQuery<FindOptions>) {
     const self = this;
-    return asyncStream(async function* () {
+    return (async function* () {
       const compiler = new QueryCompiler(self.schema, self.dialect, self.selectLock(), false);
       const objects = self.query(compiler._selectQuery(query));
       for await (const object of objects) {
         yield self._decodeObject(query.className, object);
       }
-    });
+    })();
   }
 
   random(query: DecodedQuery<FindOptions>, opts?: TQueryRandomOptions) {
     const self = this;
-    return asyncStream(async function* () {
+    return (async function* () {
       const compiler = new QueryCompiler(self.schema, self.dialect, self.selectLock(), false);
       const objects = self.query(compiler._selectQuery({ ...query, sort: {} }, {
         sort: sql`ORDER BY ${self.dialect.random(opts ?? {})}`,
@@ -154,7 +154,7 @@ export abstract class SqlStorage implements TStorage {
       for await (const object of objects) {
         yield self._decodeObject(query.className, object);
       }
-    });
+    })();
   }
 
   async insert(options: InsertOptions, attrs: Record<string, TValue>) {

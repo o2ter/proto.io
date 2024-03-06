@@ -70,8 +70,8 @@ export interface TStorage {
   explain(query: DecodedQuery<FindOptions>): PromiseLike<any>;
 
   count(query: DecodedQuery<FindOptions>): PromiseLike<number>;
-  find(query: DecodedQuery<FindOptions>): ReturnType<typeof asyncStream<TObject>>;
-  random(query: DecodedQuery<FindOptions>, opts?: TQueryRandomOptions): ReturnType<typeof asyncStream<TObject>>;
+  find(query: DecodedQuery<FindOptions>): AsyncIterable<TObject>;
+  random(query: DecodedQuery<FindOptions>, opts?: TQueryRandomOptions): AsyncIterable<TObject>;
 
   insert(options: InsertOptions, attrs: Record<string, TValue>): PromiseLike<TObject | undefined>;
 
