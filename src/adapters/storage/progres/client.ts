@@ -82,8 +82,8 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
   }
 
   async _explain(compiler: QueryCompiler, query: DecodedQuery<FindOptions>) {
-    const explains = await this.query(sql`EXPLAIN (ANALYZE, VERBOSE, BUFFERS, FORMAT JSON) ${compiler._selectQuery(query)}`);
-    return _.first(explains)['QUERY PLAN'];
+    const [explain] = await this.query(sql`EXPLAIN (ANALYZE, VERBOSE, BUFFERS, FORMAT JSON) ${compiler._selectQuery(query)}`);
+    return explain['QUERY PLAN'];
   }
 
   classes() {

@@ -64,8 +64,8 @@ export class PostgresClientDriver {
   }
 
   async version() {
-    const rows = await this.query('SELECT version()');
-    return rows[0].version as string;
+    const [{ version }] = await this.query('SELECT version()');
+    return version as string;
   }
 
   async databases() {

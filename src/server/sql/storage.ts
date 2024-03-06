@@ -126,10 +126,10 @@ export abstract class SqlStorage implements TStorage {
 
   async count(query: DecodedQuery<FindOptions>) {
     const compiler = new QueryCompiler(this.schema, this.dialect, this.selectLock(), false);
-    const result = await this.query(compiler._selectQuery(query, {
+    const [{ count: _count }] = await this.query(compiler._selectQuery(query, {
       select: sql`COUNT(*) AS count`,
     }));
-    const count = parseInt(_.first(result).count);
+    const count = parseInt(_count);
     return _.isFinite(count) ? count : 0;
   }
 
