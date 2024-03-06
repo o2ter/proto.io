@@ -71,7 +71,7 @@ export const dispatcher = <E>(proto: ProtoService<E>, options: ExtraOptions<bool
       const decoded = _validator.decodeQuery(normalize(query), 'read');
       const isGet = _validator.isGetMethod(decoded.filter);
       if (!_validator.validateCLPs(query.className, isGet ? 'get' : 'find')) throw Error('No permission');
-      return proto.storage.find(decoded);
+      return proto.storage.find(decoded).makeAsyncIterable();
     },
     async random(
       query: FindOptions,
@@ -83,7 +83,7 @@ export const dispatcher = <E>(proto: ProtoService<E>, options: ExtraOptions<bool
       const isGet = _validator.isGetMethod(decoded.filter);
       if (!_validator.validateCLPs(query.className, isGet ? 'get' : 'find')) throw Error('No permission');
       if (opts?.weight && !_validator.validateKey(query.className, opts.weight, 'read', QueryValidator.patterns.name)) throw Error('No permission');
-      return proto.storage.random(decoded, opts);
+      return proto.storage.random(decoded, opts).makeAsyncIterable();
     },
     async insert(
       options: {

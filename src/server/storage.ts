@@ -28,6 +28,7 @@ import { QuerySelector } from './query/dispatcher/parser';
 import { TSchema } from '../internals/schema';
 import { TQueryBaseOptions } from '../internals/query/base';
 import { TransactionOptions } from '../internals/proto';
+import { asyncStream } from '@o2ter/utils-js';
 
 type CommonFindOptions = { className: string; };
 export type FindOptions = CommonFindOptions & TQueryOptions;
@@ -69,8 +70,8 @@ export interface TStorage {
   explain(query: DecodedQuery<FindOptions>): PromiseLike<any>;
 
   count(query: DecodedQuery<FindOptions>): PromiseLike<number>;
-  find(query: DecodedQuery<FindOptions>): AsyncIterable<TObject>;
-  random(query: DecodedQuery<FindOptions>, opts?: TQueryRandomOptions): AsyncIterable<TObject>;
+  find(query: DecodedQuery<FindOptions>): ReturnType<typeof asyncStream<TObject>>;
+  random(query: DecodedQuery<FindOptions>, opts?: TQueryRandomOptions): ReturnType<typeof asyncStream<TObject>>;
 
   insert(options: InsertOptions, attrs: Record<string, TValue>): PromiseLike<TObject | undefined>;
 

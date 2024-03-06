@@ -38,7 +38,7 @@ export const encodeError = (error: any) => {
 
 export const response = async <T extends TSerializable>(
   res: Response,
-  callback: () => Awaitable<void | undefined | T>,
+  callback: () => Awaitable<void | T>,
 ) => {
   try {
     const data = await callback();
