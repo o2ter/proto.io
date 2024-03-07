@@ -18,7 +18,7 @@
   "dependencies": {
     "@google-cloud/storage": "^7.7.0",
     "@o2ter/crypto-js": "^0.0.7",
-    "@o2ter/utils-js": "^0.0.5",
+    "@o2ter/utils-js": "^0.0.6",
     "axios": "^1.6.0",
     "busboy": "^1.6.0",
     "cookie-parser": "^1.4.6",
