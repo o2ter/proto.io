@@ -136,8 +136,9 @@ export abstract class SqlStorage implements TStorage {
   find(query: DecodedQuery<FindOptions>) {
     const self = this;
     const compiler = new QueryCompiler(self.schema, self.dialect, self.selectLock(), false);
+    const _query = compiler._selectQuery(query);
     return (async function* () {
-      const objects = self.query(compiler._selectQuery(query));
+      const objects = self.query(_query);
       for await (const object of objects) {
         yield self._decodeObject(query.className, object);
       }
@@ -147,10 +148,11 @@ export abstract class SqlStorage implements TStorage {
   random(query: DecodedQuery<FindOptions>, opts?: TQueryRandomOptions) {
     const self = this;
     const compiler = new QueryCompiler(self.schema, self.dialect, self.selectLock(), false);
+    const _query = compiler._selectQuery({ ...query, sort: {} }, {
+      sort: sql`ORDER BY ${self.dialect.random(opts ?? {})}`,
+    });
     return (async function* () {
-      const objects = self.query(compiler._selectQuery({ ...query, sort: {} }, {
-        sort: sql`ORDER BY ${self.dialect.random(opts ?? {})}`,
-      }));
+      const objects = self.query(_query);
       for await (const object of objects) {
         yield self._decodeObject(query.className, object);
       }
