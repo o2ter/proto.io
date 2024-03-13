@@ -28,7 +28,6 @@ import { QuerySelector } from './query/dispatcher/parser';
 import { TSchema } from '../internals/schema';
 import { TQueryBaseOptions } from '../internals/query/base';
 import { TransactionOptions } from '../internals/proto';
-import { asyncStream } from '@o2ter/utils-js';
 
 type CommonFindOptions = { className: string; };
 export type FindOptions = CommonFindOptions & TQueryOptions;
