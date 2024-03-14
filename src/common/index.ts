@@ -23,9 +23,9 @@
 //  THE SOFTWARE.
 //
 
-import { TExtensions, TFile, TObject, TQuery, TRole, TUser } from '../index';
+import { TExtensions, TFile, TObject, TQuery, TRole, TUser } from '../internals/index';
 
-export * from '../codec';
+export * from '../internals/codec';
 export const classExtends = <E>(x: TExtensions<E>) => x;
 
 export const isQuery = (x: any): x is TQuery<any, any, any, any> => {

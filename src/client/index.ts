@@ -25,7 +25,7 @@
 
 import { ProtoClient } from './proto';
 
-export * from '../internals/common';
+export * from '../common';
 
 export { ProtoClient };
 

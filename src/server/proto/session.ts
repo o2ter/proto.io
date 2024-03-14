@@ -28,7 +28,7 @@ import jwt from 'jsonwebtoken';
 import { Request, Response } from 'express';
 import { ProtoService } from './index';
 import { PVK, TUser } from '../../internals';
-import { AUTH_COOKIE_KEY, MASTER_PASS_HEADER_NAME, MASTER_USER_HEADER_NAME } from '../../internals/common/const';
+import { AUTH_COOKIE_KEY, MASTER_PASS_HEADER_NAME, MASTER_USER_HEADER_NAME } from '../../internals/const';
 import { randomUUID } from '@o2ter/crypto-js';
 
 const sessionMap = new WeakMap<Request, {

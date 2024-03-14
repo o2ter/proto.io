@@ -40,7 +40,7 @@ import configRoute from './server/routes/config';
 import { PVK } from './internals';
 import { TSchema } from './internals/schema';
 
-export * from './internals/common';
+export * from './common';
 export { ProtoService } from './server/proto';
 export { ProtoClient } from './client';
 

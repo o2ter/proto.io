@@ -31,7 +31,7 @@ import {
   MASTER_USER_HEADER_NAME,
   XSRF_COOKIE_NAME,
   XSRF_HEADER_NAME,
-} from '../internals/common/const';
+} from '../internals/const';
 import { RequestOptions } from './options';
 import { ProtoClientInternal } from './proto/internal';
 import { ProtoType } from '../internals';
