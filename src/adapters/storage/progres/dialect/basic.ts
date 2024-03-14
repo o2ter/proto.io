@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { escapeIdentifier, escapeLiteral } from 'pg/lib/utils';
-import { SQL, sql } from '../../../../server/sql';
+import { SQL, sql } from '../../../../server/storage/sql';
 
 export const stringArrayAttrs = ['_rperm', '_wperm'];
 

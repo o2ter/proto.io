@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { SQL, sql } from '../../../../server/sql';
+import { SQL, sql } from '../../../../server/storage/sql';
 import { Decimal, TObject, TValue, _TValue, isPrimitiveValue } from '../../../../internals';
 import { TSchema, _typeof, isPrimitive } from '../../../../internals/schema';
 import { stringArrayAttrs } from './basic';

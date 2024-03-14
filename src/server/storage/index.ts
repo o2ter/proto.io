@@ -1,5 +1,5 @@
 //
-//  storage.ts
+//  index.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2024 O2ter Limited. All rights reserved.
@@ -23,11 +23,11 @@
 //  THE SOFTWARE.
 //
 
-import { TObject, TUpdateOp, TValue, TQueryOptions, _TValue, TQueryRandomOptions } from '../internals';
-import { QuerySelector } from './query/dispatcher/parser';
-import { TSchema } from '../internals/schema';
-import { TQueryBaseOptions } from '../internals/query/base';
-import { TransactionOptions } from '../internals/proto';
+import { TObject, TUpdateOp, TValue, TQueryOptions, _TValue, TQueryRandomOptions } from '../../internals';
+import { QuerySelector } from '../query/dispatcher/parser';
+import { TSchema } from '../../internals/schema';
+import { TQueryBaseOptions } from '../../internals/query/base';
+import { TransactionOptions } from '../../internals/proto';
 
 type CommonFindOptions = { className: string; };
 export type FindOptions = CommonFindOptions & TQueryOptions;

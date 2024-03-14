@@ -24,10 +24,10 @@
 //
 
 import _ from 'lodash';
-import { SQL, sql } from '../../../../../server/sql';
+import { SQL, sql } from '../../../../../server/storage/sql';
 import { Decimal } from '../../../../../internals';
 import { _typeof, isPrimitive } from '../../../../../internals/schema';
-import { CompileContext, QueryCompiler } from '../../../../../server/sql/compiler';
+import { CompileContext, QueryCompiler } from '../../../../../server/storage/sql/compiler';
 import { nullSafeEqual, nullSafeNotEqual } from '../basic';
 import {
   QueryArrayExpression,

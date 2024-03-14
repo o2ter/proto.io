@@ -24,14 +24,14 @@
 //
 
 import _ from 'lodash';
-import { TSchema, isPointer, isPrimitive, isRelation, isShapedObject, shapedObjectPaths } from '../../internals/schema';
-import { QueryCoditionalSelector, QueryExpressionSelector, QueryFieldSelector, QuerySelector } from '../query/dispatcher/parser';
-import { DecodedBaseQuery, DecodedQuery, FindOneOptions, FindOptions, InsertOptions } from '../storage';
+import { TSchema, isPointer, isPrimitive, isRelation, isShapedObject, shapedObjectPaths } from '../../../internals/schema';
+import { QueryCoditionalSelector, QueryExpressionSelector, QueryFieldSelector, QuerySelector } from '../../query/dispatcher/parser';
+import { DecodedBaseQuery, DecodedQuery, FindOneOptions, FindOptions, InsertOptions } from '..';
 import { SQL, sql } from './sql';
-import { TValue, TUpdateOp, decodeUpdateOp } from '../../internals';
-import { generateId } from '../crypto/random';
+import { TValue, TUpdateOp, decodeUpdateOp } from '../../../internals';
+import { generateId } from '../../crypto/random';
 import { SqlDialect } from './dialect';
-import { _resolveColumn } from '../query/dispatcher/validator';
+import { _resolveColumn } from '../../query/dispatcher/validator';
 
 export type QueryCompilerOptions = {
   className: string;

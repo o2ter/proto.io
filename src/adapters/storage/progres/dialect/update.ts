@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { SQL, sql } from '../../../../server/sql';
+import { SQL, sql } from '../../../../server/storage/sql';
 import { Decimal, TObject, TUpdateOp, decodeUpdateOp } from '../../../../internals';
 import { TSchema } from '../../../../internals/schema';
 import { _encodeValue, _encodeJsonValue } from './encode';

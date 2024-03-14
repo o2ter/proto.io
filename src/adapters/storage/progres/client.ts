@@ -26,10 +26,10 @@
 import _ from 'lodash';
 import { _TValue } from '../../../internals';
 import { PostgresClientDriver } from './driver';
-import { SqlStorage, sql } from '../../../server/sql';
+import { SqlStorage, sql } from '../../../server/storage/sql';
 import { PostgresDialect } from './dialect';
 import { _decodeValue, _encodeValue, _encodeJsonValue } from './dialect/encode';
-import { QueryCompiler } from '../../../server/sql/compiler';
+import { QueryCompiler } from '../../../server/storage/sql/compiler';
 import { DecodedQuery, FindOptions } from '../../../server/storage';
 import { TransactionOptions } from '../../../internals/proto';
 

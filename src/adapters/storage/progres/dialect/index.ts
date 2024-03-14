@@ -23,7 +23,7 @@
 //  THE SOFTWARE.
 //
 
-import { SqlDialect } from '../../../../server/sql';
+import { SqlDialect } from '../../../../server/storage/sql';
 import {
   quote,
   identifier,

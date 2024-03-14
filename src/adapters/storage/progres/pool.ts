@@ -28,7 +28,7 @@ import { PoolConfig } from 'pg';
 import { TObject } from '../../../internals';
 import { TSchema, isPointer, isRelation, isShapedObject, shapedObjectPaths } from '../../../internals/schema';
 import { PostgresDriver, PostgresClientDriver } from './driver';
-import { sql } from '../../../server/sql';
+import { sql } from '../../../server/storage/sql';
 import { PostgresStorageClient } from './client';
 
 export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {

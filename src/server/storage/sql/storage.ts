@@ -24,10 +24,10 @@
 //
 
 import _ from 'lodash';
-import { DecodedQuery, FindOptions, FindOneOptions, InsertOptions, TStorage } from '../storage';
-import { TransactionOptions } from '../../internals/proto';
-import { TSchema, isPointer, isRelation, isShapedObject, shapedObjectPaths } from '../../internals/schema';
-import { PVK, TObject, TValue, TUpdateOp, _TValue, TQueryRandomOptions } from '../../internals';
+import { DecodedQuery, FindOptions, FindOneOptions, InsertOptions, TStorage } from '..';
+import { TransactionOptions } from '../../../internals/proto';
+import { TSchema, isPointer, isRelation, isShapedObject, shapedObjectPaths } from '../../../internals/schema';
+import { PVK, TObject, TValue, TUpdateOp, _TValue, TQueryRandomOptions } from '../../../internals';
 import { SQL, sql } from './sql';
 import { SqlDialect } from './dialect';
 import { QueryCompiler } from './compiler';
