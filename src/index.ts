@@ -43,7 +43,7 @@ import { PVK } from './internals/private';
 export * from './common';
 export { ProtoService } from './server/proto';
 export { ProtoClient } from './client';
-export { ProtoScoketServer } from './server/socket';
+export { ProtoSocketServer } from './server/socket';
 
 export const schema = _.assign((x: Record<string, TSchema>) => x, {
   shape: (shape: Record<string, TSchema.DataType>) => ({ type: 'shape', shape }) as const,

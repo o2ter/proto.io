@@ -28,7 +28,7 @@ import { ProtoService } from '../proto';
 import { createServer } from 'http';
 import { Server, ServerOptions } from 'socket.io';
 
-export const ProtoScoketServer = <E>(
+export const ProtoSocketServer = <E>(
   proto: ProtoService<E>,
   server: ReturnType<typeof createServer>,
   opts?: Partial<ServerOptions>,
