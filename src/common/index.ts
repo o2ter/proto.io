@@ -23,7 +23,12 @@
 //  THE SOFTWARE.
 //
 
-import { TExtensions, TFile, TObject, TQuery, TRole, TUser } from '../internals/index';
+import { TObject } from '../internals/object';
+import { TFile } from '../internals/object/file';
+import { TRole } from '../internals/object/role';
+import { TExtensions } from '../internals/object/types';
+import { TUser } from '../internals/object/user';
+import { TQuery } from '../internals/query';
 
 export * from './codec';
 export const classExtends = <E>(x: TExtensions<E>) => x;

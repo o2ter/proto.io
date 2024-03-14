@@ -27,20 +27,17 @@ import _ from 'lodash';
 import Service from '../request';
 import { RequestOptions } from '../options';
 import { ProtoOptions } from './types';
-import {
-  PVK,
-  ProtoInternalType,
-  TFile,
-  ExtraOptions,
-  FileData,
-  TUser,
-  _TValue,
-  TObjectType,
-  ProtoType,
-} from '../../internals';
 import { TSchema } from '../../internals/schema';
 import { base64ToBuffer, isBinaryData, isBlob, isReadableStream, iterableToStream, streamToIterable } from '@o2ter/utils-js';
 import { TSerializable, deserialize, serialize } from '../../common';
+import { ProtoInternalType, ProtoType } from '../../internals/proto';
+import { TObjectType } from '../../internals/object/types';
+import { TUser } from '../../internals/object/user';
+import { _TValue } from '../../internals/query/value';
+import { TFile } from '../../internals/object/file';
+import { PVK } from '../../internals/private';
+import { FileData } from '../../internals/buffer';
+import { ExtraOptions } from '../../internals/options';
 
 export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements ProtoInternalType<Ext, P> {
 

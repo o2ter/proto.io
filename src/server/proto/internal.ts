@@ -29,16 +29,6 @@ import { Readable } from 'node:stream';
 import { defaultSchema } from './defaults';
 import { ProtoServiceOptions, ProtoServiceKeyOptions } from './types';
 import { ProtoFunction, ProtoFunctionOptions, ProtoTrigger } from '../../internals/proto/types';
-import {
-  PVK,
-  TFile,
-  ExtraOptions,
-  ProtoInternalType,
-  FileData,
-  TObject,
-  TUser,
-  _TValue,
-} from '../../internals';
 import { generateId } from '../crypto/random';
 import { TSchema, defaultObjectKeyTypes, isPointer, isPrimitive, isRelation, isShapedObject } from '../../internals/schema';
 import { QueryValidator } from '../query/dispatcher/validator';
@@ -46,6 +36,14 @@ import { passwordHash, varifyPassword } from '../crypto/password';
 import { proxy } from './proxy';
 import { ProtoService } from '.';
 import { base64ToBuffer, isBinaryData } from '@o2ter/utils-js';
+import { ProtoInternalType } from '../../internals/proto';
+import { TObject } from '../../internals/object';
+import { _TValue } from '../../internals/query/value';
+import { ExtraOptions } from '../../internals/options';
+import { TUser } from '../../internals/object/user';
+import { TFile } from '../../internals/object/file';
+import { FileData } from '../../internals/buffer';
+import { PVK } from '../../internals/private';
 
 const validateForeignField = (schema: Record<string, TSchema>, key: string, dataType: TSchema.RelationType) => {
   if (!dataType.foreignField) return;

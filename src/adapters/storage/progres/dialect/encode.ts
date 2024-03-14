@@ -25,10 +25,11 @@
 
 import _ from 'lodash';
 import { SQL, sql } from '../../../../server/storage/sql';
-import { TObject, TValue, _TValue, isPrimitiveValue } from '../../../../internals';
 import { TSchema, _typeof } from '../../../../internals/schema';
 import { stringArrayAttrs } from './basic';
 import Decimal from 'decimal.js';
+import { TValue, _TValue, isPrimitiveValue } from '../../../../internals/query/value';
+import { TObject } from '../../../../internals/object';
 
 export const _decodeValue = (value: _TValue): _TValue => {
   if (isPrimitiveValue(value)) return value;

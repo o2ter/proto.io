@@ -26,22 +26,19 @@
 import _ from 'lodash';
 import { InsecureProtoQuery, ProtoQuery } from '../query';
 import { ProtoInternal } from './internal';
-import {
-  PVK,
-  ProtoType,
-  TExtensions,
-  TQuery,
-  TUser,
-  ExtraOptions,
-  _TValue,
-} from '../../internals';
 import { Request } from 'express';
 import { ProtoServiceOptions, ProtoServiceKeyOptions } from './types';
 import { ProtoFunction, ProtoFunctionOptions, ProtoTrigger } from '../../internals/proto/types';
 import { sessionId, sessionIsMaster, session, signUser } from './session';
-import { TransactionOptions } from '../../internals/proto';
+import { ProtoType, TransactionOptions } from '../../internals/proto';
 import { schedule } from '../schedule';
 import { TSerializable } from '../../common';
+import { PVK } from '../../internals/private';
+import { TExtensions } from '../../internals/object/types';
+import { TQuery } from '../../internals/query';
+import { TUser } from '../../internals/object/user';
+import { ExtraOptions } from '../../internals/options';
+import { _TValue } from '../../internals/query/value';
 
 export class ProtoService<Ext> extends ProtoType<Ext> {
 

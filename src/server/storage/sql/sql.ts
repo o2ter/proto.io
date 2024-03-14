@@ -24,9 +24,9 @@
 //
 
 import _ from 'lodash';
-import { TValue } from '../../../internals';
 import { SqlDialect } from './dialect';
 import { PostgresDialect } from '../../../adapters/storage/progres/dialect';
+import { TValue } from '../../../internals/query/value';
 
 type SQLLiteral = SQL | SQL[] | { literal: string | SQL[], separator?: string };
 type SQLIdentifier = { identifier: string };

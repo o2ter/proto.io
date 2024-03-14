@@ -26,11 +26,11 @@
 import _ from 'lodash';
 import { promisify } from 'util';
 import { deflate as _deflate, unzip as _unzip } from 'zlib';
-import { PVK } from '../../../internals';
 import { TFileStorage } from '../../../server/file';
 import { ProtoService } from '../../../server/proto';
 import { TSchema } from '../../../internals/schema';
 import { binaryStreamChunk, parallelEach, parallelMap } from '@o2ter/utils-js';
+import { PVK } from '../../../internals/private';
 
 const deflate = promisify(_deflate);
 const unzip = promisify(_unzip);

@@ -28,10 +28,12 @@ import { TSchema, isPointer, isPrimitive, isRelation, isShapedObject, shapedObje
 import { QueryCoditionalSelector, QueryExpressionSelector, QueryFieldSelector, QuerySelector } from '../../query/dispatcher/parser';
 import { DecodedBaseQuery, DecodedQuery, FindOneOptions, FindOptions, InsertOptions } from '..';
 import { SQL, sql } from './sql';
-import { TValue, TUpdateOp, decodeUpdateOp } from '../../../internals';
 import { generateId } from '../../crypto/random';
 import { SqlDialect } from './dialect';
 import { _resolveColumn } from '../../query/dispatcher/validator';
+import { decodeUpdateOp } from '../../../internals/object';
+import { TUpdateOp } from '../../../internals/object/types';
+import { TValue } from '../../../internals/query/value';
 
 export type QueryCompilerOptions = {
   className: string;

@@ -24,17 +24,15 @@
 //
 
 import _ from 'lodash';
-import {
-  PVK,
-  TObject,
-  TQuerySelector,
-  isPrimitiveValue,
-} from '../../../internals';
 import { DecodedBaseQuery, DecodedQuery, FindOptions, FindOneOptions } from '../../storage';
 import { QueryCoditionalSelector, QueryFieldSelector, QuerySelector } from './parser';
 import { TSchema, _typeof, isPointer, isPrimitive, isRelation, isShapedObject, shapedObjectPaths } from '../../../internals/schema';
 import { ProtoService } from '../../proto';
 import { TQueryBaseOptions } from '../../../internals/query/base';
+import { isPrimitiveValue } from '../../../internals/query/value';
+import { TObject } from '../../../internals/object';
+import { PVK } from '../../../internals/private';
+import { TQuerySelector } from '../../../internals/query/types/selectors';
 
 export const recursiveCheck = (x: any, stack: any[]) => {
   if (_.indexOf(stack, x) !== -1) throw Error('Recursive data detected');

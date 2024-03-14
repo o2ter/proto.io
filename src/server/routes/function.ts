@@ -27,8 +27,9 @@ import _ from 'lodash';
 import express, { Router } from 'express';
 import { ProtoService } from '../proto';
 import { response } from './common';
-import { PVK, TObject } from '../../internals';
 import { deserialize } from '../../common';
+import { PVK } from '../../internals/private';
+import { TObject } from '../../internals/object';
 
 export default <E>(router: Router, proto: ProtoService<E>) => {
 

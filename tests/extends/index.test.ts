@@ -26,7 +26,7 @@
 import { test, expect } from '@jest/globals';
 import { ProtoClient } from '../../src/client/proto';
 import _extends from './extends';
-import { TUser } from '../../src/internals';
+import { TUser } from '../../src/internals/object/user';
 
 const proto = new ProtoClient({
   endpoint: 'http://localhost:8080',

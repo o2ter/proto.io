@@ -27,9 +27,10 @@ import _ from 'lodash';
 import jwt from 'jsonwebtoken';
 import { Request, Response } from 'express';
 import { ProtoService } from './index';
-import { PVK, TUser } from '../../internals';
 import { AUTH_COOKIE_KEY, MASTER_PASS_HEADER_NAME, MASTER_USER_HEADER_NAME } from '../../internals/const';
 import { randomUUID } from '@o2ter/crypto-js';
+import { PVK } from '../../internals/private';
+import { TUser } from '../../internals/object/user';
 
 const sessionMap = new WeakMap<Request, {
   sessionId: string;

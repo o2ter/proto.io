@@ -23,12 +23,13 @@
 //  THE SOFTWARE.
 //
 
-import { TValue, TUpdateOp } from '../../../internals';
 import { FieldSelectorExpression } from '../../query/dispatcher/parser';
 import { QueryExpression } from '../../query/dispatcher/parser/expressions';
 import { TSchema } from '../../../internals/schema';
 import { CompileContext, Populate, QueryCompiler } from './compiler';
 import { SQL } from './sql';
+import { TValue } from '../../../internals/query/value';
+import { TUpdateOp } from '../../../internals/object/types';
 
 export interface SqlDialect {
   quote(str: string): string;

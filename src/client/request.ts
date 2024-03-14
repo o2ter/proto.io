@@ -34,7 +34,7 @@ import {
 } from '../internals/const';
 import { RequestOptions } from './options';
 import { ProtoClientInternal } from './proto/internal';
-import { ProtoType } from '../internals';
+import { ProtoType } from '../internals/proto';
 
 export default class Service<Ext, P extends ProtoType<any>> {
 

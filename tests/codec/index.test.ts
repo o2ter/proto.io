@@ -23,9 +23,9 @@
 //  THE SOFTWARE.
 //
 
-import { TObject } from '../../src/internals';
 import { Decimal, deserialize, serialize } from '../../src/common';
 import { expect, test } from '@jest/globals';
+import { TObject } from '../../src/internals/object';
 
 test('test serialize', async () => {
 

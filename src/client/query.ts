@@ -26,17 +26,12 @@
 import _ from 'lodash';
 import { ProtoClient } from './proto';
 import { RequestOptions } from './options';
-import {
-  PVK,
-  TQuery,
-  TObject,
-  TValue,
-  TObjectType,
-  TQueryOptions,
-  TUpdateOp,
-  TQueryRandomOptions,
-} from '../internals';
 import { asyncStream } from '@o2ter/utils-js';
+import { PVK } from '../internals/private';
+import { TQuery, TQueryOptions, TQueryRandomOptions } from '../internals/query';
+import { TObject } from '../internals/object';
+import { TObjectType, TUpdateOp } from '../internals/object/types';
+import { TValue } from '../internals/query/value';
 
 export class ProtoClientQuery<T extends string, E> extends TQuery<T, E, boolean, ProtoClient<E>> {
 

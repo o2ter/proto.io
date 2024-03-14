@@ -26,14 +26,13 @@
 import { ProtoClientQuery } from '../query';
 import { RequestOptions } from '../options';
 import { ProtoClientInternal } from './internal';
-import {
-  PVK,
-  ProtoType, TQuery,
-  TUser,
-  _TValue
-} from '../../internals';
 import { ProtoOptions } from './types';
 import { TSerializable } from '../../common';
+import { ProtoType } from '../../internals/proto';
+import { TQuery } from '../../internals/query';
+import { PVK } from '../../internals/private';
+import { _TValue } from '../../internals/query/value';
+import { TUser } from '../../internals/object/user';
 
 export class ProtoClient<Ext> extends ProtoType<Ext> {
 

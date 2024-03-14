@@ -23,7 +23,6 @@
 //  THE SOFTWARE.
 //
 
-import { TExtensions } from '../../internals';
 import { TFileStorage } from '../file';
 import { TStorage } from '../storage';
 import { TSchema } from '../../internals/schema';
@@ -32,6 +31,7 @@ import { SignOptions, VerifyOptions } from 'jsonwebtoken';
 import { ProtoService } from '.';
 import { PasswordHashOptions } from '../crypto/password';
 import { Awaitable } from '@o2ter/utils-js';
+import { TExtensions } from '../../internals/object/types';
 
 export type ProtoServiceOptions<Ext> = {
   endpoint: string;

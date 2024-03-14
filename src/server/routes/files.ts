@@ -28,8 +28,8 @@ import { Router } from 'express';
 import { Readable } from 'node:stream';
 import { ProtoService } from '../proto';
 import { decodeFormStream, response } from './common';
-import { PVK } from '../../internals';
 import { deserialize } from '../../common';
+import { PVK } from '../../internals/private';
 
 export default <E>(router: Router, proto: ProtoService<E>) => {
 

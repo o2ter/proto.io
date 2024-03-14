@@ -24,13 +24,9 @@
 //
 
 import _ from 'lodash';
-import {
-  TValue,
-  isValue,
-  TConditionalKeys,
-  TComparisonKeys,
-} from '../../../../internals';
-import { TExpression } from '../../../../internals';
+import { TExpression } from '../../../../internals/query/types/expressions';
+import { TComparisonKeys, TConditionalKeys } from '../../../../internals/query/types/selectors';
+import { TValue, isValue } from '../../../../internals/query/value';
 
 export class QueryExpression {
 

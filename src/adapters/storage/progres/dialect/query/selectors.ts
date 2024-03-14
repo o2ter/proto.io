@@ -25,7 +25,6 @@
 
 import _ from 'lodash';
 import { SQL, sql } from '../../../../../server/storage/sql';
-import { TObject, TValue } from '../../../../../internals';
 import { _typeof, isPrimitive } from '../../../../../internals/schema';
 import { CompileContext, QueryCompiler } from '../../../../../server/storage/sql/compiler';
 import { FieldSelectorExpression, QuerySelector } from '../../../../../server/query/dispatcher/parser';
@@ -34,6 +33,8 @@ import { encodeType } from '../encode';
 import { nullSafeEqual, nullSafeNotEqual } from '../basic';
 import { fetchElement } from './utils';
 import Decimal from 'decimal.js';
+import { TObject } from '../../../../../internals/object';
+import { TValue } from '../../../../../internals/query/value';
 
 export const encodeFieldExpression = (
   compiler: QueryCompiler,

@@ -25,22 +25,16 @@
 
 import _ from 'lodash';
 import { ProtoService } from '../proto/index';
-import {
-  PVK,
-  TQuery,
-  TObject,
-  TUpdateOp,
-  ExtraOptions,
-  TValue,
-  TExtended,
-  TObjectType,
-  TQueryOptions,
-  decodeUpdateOp,
-  TQueryRandomOptions,
-} from '../../internals';
 import { dispatcher } from './dispatcher';
 import { proxy } from '../proto/proxy';
 import { asyncIterableToArray, asyncStream } from '@o2ter/utils-js';
+import { PVK } from '../../internals/private';
+import { ExtraOptions } from '../../internals/options';
+import { TQuery, TQueryOptions, TQueryRandomOptions } from '../../internals/query';
+import { TObject, decodeUpdateOp } from '../../internals/object';
+import { TExtended } from '../../internals/object/methods';
+import { TValue } from '../../internals/query/value';
+import { TObjectType, TUpdateOp } from '../../internals/object/types';
 
 export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T, E, M, ProtoService<E>> {
 

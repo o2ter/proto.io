@@ -23,11 +23,14 @@
 //  THE SOFTWARE.
 //
 
-import { TObject, TUpdateOp, TValue, TQueryOptions, _TValue, TQueryRandomOptions } from '../../internals';
 import { QuerySelector } from '../query/dispatcher/parser';
 import { TSchema } from '../../internals/schema';
 import { TQueryBaseOptions } from '../../internals/query/base';
 import { TransactionOptions } from '../../internals/proto';
+import { TQueryOptions, TQueryRandomOptions } from '../../internals/query';
+import { TValue, _TValue } from '../../internals/query/value';
+import { TObject } from '../../internals/object';
+import { TUpdateOp } from '../../internals/object/types';
 
 type CommonFindOptions = { className: string; };
 export type FindOptions = CommonFindOptions & TQueryOptions;

@@ -23,7 +23,7 @@
 //  THE SOFTWARE.
 //
 
-import { TExtensions } from '../../internals';
+import { TExtensions } from "../../internals/object/types";
 
 export type ProtoOptions<Ext> = {
   endpoint: string;

@@ -25,10 +25,14 @@
 
 import _ from 'lodash';
 import { ProtoService } from '../../proto/index';
-import { ExtraOptions, PVK, TValue, TUpdateOp, TQueryRandomOptions } from '../../../internals';
 import { QueryValidator } from './validator';
 import { FindOptions, FindOneOptions } from '../../storage';
 import { TQueryBaseOptions } from '../../../internals/query/base';
+import { ExtraOptions } from '../../../internals/options';
+import { TQueryRandomOptions } from '../../../internals/query';
+import { TValue } from '../../../internals/query/value';
+import { PVK } from '../../../internals/private';
+import { TUpdateOp } from '../../../internals/object/types';
 
 export const normalize = <T>(x: T): T => {
   if (_.isString(x)) return x.normalize('NFD') as T;
