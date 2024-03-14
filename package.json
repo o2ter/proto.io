@@ -29,7 +29,8 @@
     "lodash": ">=4.17.21",
     "pg": "^8.11.1",
     "pg-query-stream": "^4.5.1",
-    "query-types": "^0.1.4"
+    "query-types": "^0.1.4",
+    "socket.io": "^4.7.4"
   },
   "peerDependencies": {
     "express": ">=4.18.2"

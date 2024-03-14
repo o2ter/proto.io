@@ -37,6 +37,7 @@ import filesRoute from './server/routes/files';
 import userRoute from './server/routes/user';
 import schemaRoute from './server/routes/schema';
 import configRoute from './server/routes/config';
+import socketHandler from './server/socket';
 import { TSchema } from './internals/schema';
 import { PVK } from './internals/private';
 
@@ -90,6 +91,8 @@ export const ProtoRoute = async <E>(options: {
   userRoute(router, proto);
   schemaRoute(router, proto);
   configRoute(router, proto);
+
+  socketHandler(router, proto);
 
   return router;
 }
