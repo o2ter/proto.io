@@ -25,16 +25,16 @@
 
 import _ from 'lodash';
 import { ProtoService } from '../proto';
-import { createServer } from 'http';
-import { Server, ServerOptions } from 'socket.io';
+import { Server } from 'http';
+import { Server as IOServer, ServerOptions } from 'socket.io';
 
 export const ProtoSocketServer = <E>(
   proto: ProtoService<E>,
-  server: ReturnType<typeof createServer>,
+  server: Server,
   opts?: Partial<ServerOptions>,
 ) => {
 
-  const io = new Server(server, opts);
+  const io = new IOServer(server, opts);
 
 
   return io;
