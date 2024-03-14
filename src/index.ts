@@ -37,13 +37,13 @@ import filesRoute from './server/routes/files';
 import userRoute from './server/routes/user';
 import schemaRoute from './server/routes/schema';
 import configRoute from './server/routes/config';
-import socketHandler from './server/socket';
 import { TSchema } from './internals/schema';
 import { PVK } from './internals/private';
 
 export * from './common';
 export { ProtoService } from './server/proto';
 export { ProtoClient } from './client';
+export { ProtoScoketServer } from './server/socket';
 
 export const schema = _.assign((x: Record<string, TSchema>) => x, {
   shape: (shape: Record<string, TSchema.DataType>) => ({ type: 'shape', shape }) as const,
@@ -91,8 +91,6 @@ export const ProtoRoute = async <E>(options: {
   userRoute(router, proto);
   schemaRoute(router, proto);
   configRoute(router, proto);
-
-  socketHandler(router, proto);
 
   return router;
 }

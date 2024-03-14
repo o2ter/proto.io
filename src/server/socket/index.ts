@@ -24,12 +24,17 @@
 //
 
 import _ from 'lodash';
-import { Router } from 'express';
 import { ProtoService } from '../proto';
+import { createServer } from 'http';
 import { Server } from 'socket.io';
 
-const io = new Server();
+export const ProtoScoketServer = <E>(
+  server: ReturnType<typeof createServer>,
+  proto: ProtoService<E>
+) => {
 
-export default <E>(router: Router, proto: ProtoService<E>) => {
+  const io = new Server(server);
+
+
 
 };
