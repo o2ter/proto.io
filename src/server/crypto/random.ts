@@ -23,7 +23,7 @@
 //  THE SOFTWARE.
 //
 
-import { randomBytes } from "@o2ter/crypto-js";
+import { randomBytes } from '@o2ter/crypto-js';
 
 const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 
