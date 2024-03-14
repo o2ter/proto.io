@@ -37,5 +37,5 @@ export const ProtoSocketServer = <E>(
   const io = new Server(server, opts);
 
 
-
+  return io;
 };
