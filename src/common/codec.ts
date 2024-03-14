@@ -25,10 +25,10 @@
 
 import _ from 'lodash';
 import { Decimal } from 'decimal.js';
-import { TObject } from './object';
-import { TObjectTypes } from './object/types';
-import { isObjKey } from './utils';
-import { TValue } from './query/value';
+import { TObject } from '../internals/object';
+import { TObjectTypes } from '../internals/object/types';
+import { isObjKey } from '../internals/utils';
+import { TValue } from '../internals/query/value';
 
 export { Decimal };
 type TNumber = number | Decimal | BigInt;

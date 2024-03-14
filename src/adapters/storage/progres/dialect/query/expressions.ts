@@ -25,7 +25,6 @@
 
 import _ from 'lodash';
 import { SQL, sql } from '../../../../../server/storage/sql';
-import { Decimal } from '../../../../../internals';
 import { _typeof, isPrimitive } from '../../../../../internals/schema';
 import { CompileContext, QueryCompiler } from '../../../../../server/storage/sql/compiler';
 import { nullSafeEqual, nullSafeNotEqual } from '../basic';
@@ -40,6 +39,7 @@ import {
 } from '../../../../../server/query/dispatcher/parser/expressions';
 import { fetchElement } from './utils';
 import { _encodeJsonValue, _encodeValue } from '../encode';
+import Decimal from 'decimal.js';
 
 const isValueExpression = (expr: QueryExpression): boolean => {
   if (expr instanceof QueryArrayExpression) return _.every(expr.exprs, x => isValueExpression(x));

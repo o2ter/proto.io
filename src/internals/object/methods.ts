@@ -29,7 +29,7 @@ import { PVK } from '../private';
 import { ExtraOptions } from '../options';
 import { TExtensions, TObjectType, TObjectTypes } from './types';
 import { ProtoType } from '../proto';
-import { TSerializable } from '../codec';
+import { TSerializable } from '../../common/codec';
 import { TFile } from './file';
 import { isObjKey } from '../utils';
 

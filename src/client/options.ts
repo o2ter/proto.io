@@ -23,10 +23,10 @@
 //  THE SOFTWARE.
 //
 
+import { SerializeOptions } from '../common';
 import {
   ExtraOptions,
   ProtoType,
-  SerializeOptions,
 } from '../internals';
 
 export type RequestOptions<M extends boolean, P extends ProtoType<any>> = ExtraOptions<M, P> & {

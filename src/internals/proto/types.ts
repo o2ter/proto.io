@@ -25,7 +25,7 @@
 
 import { Awaitable } from '@o2ter/utils-js';
 import { ProtoService } from '../../server/proto';
-import { TSerializable } from '../codec';
+import { TSerializable } from '../../common/codec';
 import { TObjectType } from '../object/types';
 
 type Callback<T, R, E> = (request: ProtoService<E> & T) => Awaitable<R>;

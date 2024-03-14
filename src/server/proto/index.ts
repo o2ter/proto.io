@@ -31,7 +31,6 @@ import {
   ProtoType,
   TExtensions,
   TQuery,
-  TSerializable,
   TUser,
   ExtraOptions,
   _TValue,
@@ -42,6 +41,7 @@ import { ProtoFunction, ProtoFunctionOptions, ProtoTrigger } from '../../interna
 import { sessionId, sessionIsMaster, session, signUser } from './session';
 import { TransactionOptions } from '../../internals/proto';
 import { schedule } from '../schedule';
+import { TSerializable } from '../../common';
 
 export class ProtoService<Ext> extends ProtoType<Ext> {
 

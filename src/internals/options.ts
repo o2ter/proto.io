@@ -23,7 +23,7 @@
 //  THE SOFTWARE.
 //
 
-import { TSerializable } from './codec';
+import { TSerializable } from '../common/codec';
 import { ProtoType } from './proto';
 
 export type ExtraOptions<M extends boolean, P extends ProtoType<any>> = {

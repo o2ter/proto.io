@@ -29,12 +29,9 @@ import { RequestOptions } from '../options';
 import { ProtoOptions } from './types';
 import {
   PVK,
-  TSerializable,
   ProtoInternalType,
   TFile,
   ExtraOptions,
-  deserialize,
-  serialize,
   FileData,
   TUser,
   _TValue,
@@ -43,6 +40,7 @@ import {
 } from '../../internals';
 import { TSchema } from '../../internals/schema';
 import { base64ToBuffer, isBinaryData, isBlob, isReadableStream, iterableToStream, streamToIterable } from '@o2ter/utils-js';
+import { TSerializable, deserialize, serialize } from '../../common';
 
 export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements ProtoInternalType<Ext, P> {
 

@@ -28,7 +28,8 @@ import express, { Router } from 'express';
 import { ProtoService } from '../proto';
 import queryType from 'query-types';
 import { response } from './common';
-import { PVK, deserialize } from '../../internals';
+import { PVK } from '../../internals';
+import { deserialize } from '../../common';
 
 export default <E>(router: Router, proto: ProtoService<E>) => {
 

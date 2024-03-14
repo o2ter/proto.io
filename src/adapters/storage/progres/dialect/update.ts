@@ -25,12 +25,13 @@
 
 import _ from 'lodash';
 import { SQL, sql } from '../../../../server/storage/sql';
-import { Decimal, TObject, TUpdateOp, decodeUpdateOp } from '../../../../internals';
+import { TObject, TUpdateOp, decodeUpdateOp } from '../../../../internals';
 import { TSchema } from '../../../../internals/schema';
 import { _encodeValue, _encodeJsonValue } from './encode';
 import { stringArrayAttrs } from './basic';
 import { encodeType } from './encode';
 import { nullSafeEqual } from './basic';
+import Decimal from 'decimal.js';
 
 export const updateOperation = (paths: string[], dataType: TSchema.DataType, operation: TUpdateOp) => {
   const [column, ...subpath] = paths;

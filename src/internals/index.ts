@@ -30,7 +30,6 @@ export * from './object/role';
 export * from './object/user';
 export * from './object/methods';
 export * from './buffer';
-export * from './codec';
 export * from './query';
 export * from './query/types/selectors';
 export * from './query/types/expressions';

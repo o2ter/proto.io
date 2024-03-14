@@ -29,11 +29,11 @@ import { ProtoClientInternal } from './internal';
 import {
   PVK,
   ProtoType, TQuery,
-  TSerializable,
   TUser,
   _TValue
 } from '../../internals';
 import { ProtoOptions } from './types';
+import { TSerializable } from '../../common';
 
 export class ProtoClient<Ext> extends ProtoType<Ext> {
 
