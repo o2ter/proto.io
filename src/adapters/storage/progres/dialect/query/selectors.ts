@@ -44,7 +44,7 @@ export const encodeFieldExpression = (
   expr: FieldSelectorExpression
 ): SQL => {
   const [colname] = _.toPath(field);
-  const { element, dataType } = fetchElement(compiler, parent, field);
+  const { element, json, dataType, relation } = fetchElement(compiler, parent, field);
   const encodeValue = (value: TValue) => dataType ? encodeType(colname, dataType, value) : _encodeJsonValue(_encodeValue(value));
   switch (expr.type) {
     case '$eq':
@@ -290,15 +290,16 @@ export const encodeFieldExpression = (
         if (!(expr.value instanceof QuerySelector)) break;
 
         const tempName = `_expr_$${compiler.nextIdx()}`;
-        const filter = compiler._encodeFilter(context, {
-          name: tempName,
-          className: dataType && isRelation(dataType) ? dataType.target : undefined,
-        }, expr.value);
+        const filter = compiler._encodeFilter(context, { name: tempName, className: relation?.target }, expr.value);
         if (!filter) break;
 
-        if (!_.isString(dataType) && dataType?.type === 'relation') {
+        if (relation) {
           return sql`NOT EXISTS(
-            SELECT * FROM (SELECT UNNEST AS "$" FROM UNNEST(${element})) AS ${{ identifier: tempName }}
+            SELECT * FROM (
+              SELECT
+              ${json ? sql`VALUE` : sql`UNNEST`} AS "$"
+              FROM ${json ? sql`jsonb_array_elements(${element})` : sql`UNNEST(${element})`}
+              ) AS ${{ identifier: tempName }}
             WHERE NOT (${filter})
           )`;
         } else if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
@@ -318,15 +319,16 @@ export const encodeFieldExpression = (
         if (!(expr.value instanceof QuerySelector)) break;
 
         const tempName = `_expr_$${compiler.nextIdx()}`;
-        const filter = compiler._encodeFilter(context, {
-          name: tempName,
-          className: dataType && isRelation(dataType) ? dataType.target : undefined,
-        }, expr.value);
+        const filter = compiler._encodeFilter(context, { name: tempName, className: relation?.target }, expr.value);
         if (!filter) break;
 
-        if (!_.isString(dataType) && dataType?.type === 'relation') {
+        if (relation) {
           return sql`EXISTS(
-            SELECT * FROM (SELECT UNNEST AS "$" FROM UNNEST(${element})) AS ${{ identifier: tempName }}
+            SELECT * FROM (
+              SELECT
+              ${json ? sql`VALUE` : sql`UNNEST`} AS "$"
+              FROM ${json ? sql`jsonb_array_elements(${element})` : sql`UNNEST(${element})`}
+              ) AS ${{ identifier: tempName }}
             WHERE ${filter}
           )`;
         } else if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {

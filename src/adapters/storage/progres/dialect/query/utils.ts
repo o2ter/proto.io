@@ -98,9 +98,9 @@ export const fetchElement = (
     const { dataType, colname, subpath } = resolvePaths(compiler, parent.className, _.toPath(field));
     if (isPointer(dataType)) return { element: sql`${{ identifier: parent.name }}.${{ identifier: `${colname}._id` }}`, dataType };
     const { element, json } = _fetchElement(parent, colname, subpath, dataType);
-    return { element, dataType: json ? null : dataType };
+    return { element, json, dataType: json ? null : dataType, relation: isRelation(dataType) ? dataType : null };
   }
   const [colname, ...subpath] = _.toPath(field);
-  const { element } = _fetchElement(parent, colname, subpath);
-  return { element, dataType: null };
+  const { element, json } = _fetchElement(parent, colname, subpath);
+  return { element, json, dataType: null, relation: null };
 };
