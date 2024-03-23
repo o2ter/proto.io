@@ -1309,18 +1309,22 @@ test('test relation 6', async () => {
 
   expect((await q.clone().some('relation', q => q.equalTo('number', 42.5)).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().some('relation', q => q.equalTo('pointer.number', 42.5)).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().some('relation', q => q.some('relation', q => q.equalTo('number', 42.5))).first())?.objectId).toStrictEqual(inserted.objectId);
   //expect((await q.clone().some('relation', q => q.some('relation', q => q.equalTo('pointer.number', 42.5))).first())?.objectId).toStrictEqual(inserted.objectId);
 
   expect((await q.clone().some('shape.relation', q => q.equalTo('number', 42.5)).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().some('shape.relation', q => q.equalTo('pointer.number', 42.5)).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().some('shape.relation', q => q.some('relation', q => q.equalTo('number', 42.5))).first())?.objectId).toStrictEqual(inserted.objectId);
   //expect((await q.clone().some('shape.relation', q => q.some('relation', q => q.equalTo('pointer.number', 42.5))).first())?.objectId).toStrictEqual(inserted.objectId);
 
   expect((await q.clone().every('relation', q => q.equalTo('number', 42.5)).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().every('relation', q => q.equalTo('pointer.number', 42.5)).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().every('relation', q => q.every('relation', q => q.equalTo('number', 42.5))).first())?.objectId).toStrictEqual(inserted.objectId);
   //expect((await q.clone().every('relation', q => q.every('relation', q => q.equalTo('pointer.number', 42.5))).first())?.objectId).toStrictEqual(inserted.objectId);
 
   expect((await q.clone().every('shape.relation', q => q.equalTo('number', 42.5)).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().every('shape.relation', q => q.equalTo('pointer.number', 42.5)).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().every('shape.relation', q => q.every('relation', q => q.equalTo('number', 42.5))).first())?.objectId).toStrictEqual(inserted.objectId);
   //expect((await q.clone().every('shape.relation', q => q.every('relation', q => q.equalTo('pointer.number', 42.5))).first())?.objectId).toStrictEqual(inserted.objectId);
 
 })
