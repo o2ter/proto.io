@@ -38,19 +38,37 @@ const _fetchElement = (
   const element = sql`${{ identifier: parent.name }}.${{ identifier: parent.name.startsWith('_expr_$') ? '$' : colname }}`;
   if (!parent.className) {
     if (colname !== '$') {
-      return sql`jsonb_extract_path(${element}, ${_.map([colname, ...subpath], x => sql`${{ quote: x.startsWith('$') ? `$${x}` : x }}`)})`;
+      return {
+        element: sql`jsonb_extract_path(${element}, ${_.map([colname, ...subpath], x => sql`${{ quote: x.startsWith('$') ? `$${x}` : x }}`)})`,
+        json: true,
+      };
     } else if (!_.isEmpty(subpath)) {
-      return sql`jsonb_extract_path(${element}, ${_.map(subpath, x => sql`${{ quote: x.startsWith('$') ? `$${x}` : x }}`)})`;
+      return {
+        element: sql`jsonb_extract_path(${element}, ${_.map(subpath, x => sql`${{ quote: x.startsWith('$') ? `$${x}` : x }}`)})`,
+        json: true,
+      };
     }
   } else if (!_.isEmpty(subpath)) {
     const _subpath = sql`${_.map(subpath, x => sql`${{ quote: x.startsWith('$') ? `$${x}` : x }}`)}`;
     if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
-      return sql`jsonb_extract_path(to_jsonb(${element}), ${_subpath})`;
+      return {
+        element: sql`jsonb_extract_path(to_jsonb(${element}), ${_subpath})`,
+        json: true,
+      };
     } else {
-      return sql`jsonb_extract_path(${element}, ${_subpath})`;
+      return {
+        element: sql`jsonb_extract_path(${element}, ${_subpath})`,
+        json: true,
+      };
     }
   }
-  return element;
+  if (parent.name.startsWith('_expr_$') && colname !== '$') {
+    return {
+      element: sql`jsonb_extract_path(${element}, ${{ quote: colname.startsWith('$') ? `$${colname}` : colname }})`,
+      json: true,
+    };
+  }
+  return { element, json: false };
 };
 
 const resolvePaths = (
@@ -79,10 +97,10 @@ export const fetchElement = (
   if (parent.className) {
     const { dataType, colname, subpath } = resolvePaths(compiler, parent.className, _.toPath(field));
     if (isPointer(dataType)) return { element: sql`${{ identifier: parent.name }}.${{ identifier: `${colname}._id` }}`, dataType };
-    const element = _fetchElement(parent, colname, subpath, dataType);
-    return { element, dataType: _.isEmpty(subpath) ? dataType : null };
+    const { element, json } = _fetchElement(parent, colname, subpath, dataType);
+    return { element, dataType: json ? null : dataType };
   }
   const [colname, ...subpath] = _.toPath(field);
-  const element = _fetchElement(parent, colname, subpath);
+  const { element } = _fetchElement(parent, colname, subpath);
   return { element, dataType: null };
 };

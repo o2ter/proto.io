@@ -1292,6 +1292,40 @@ test('test relation 5', async () => {
   expect((await q.clone().equalTo('shape.relation.0.relation.0.pointer.number', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
 })
 
+test('test relation 6', async () => {
+  const inserted = await Proto.Query('Test').insert({
+    number: 42.5,
+  });
+  await Proto.Query('Test')
+    .equalTo('_id', inserted.objectId)
+    .updateOne({
+      number: { $set: 42.5 },
+      pointer: { $set: inserted },
+      relation: { $set: [inserted] },
+      'shape.pointer': { $set: inserted },
+      'shape.relation': { $set: [inserted] },
+    });
+
+  const q = Proto.Query('Test').equalTo('_id', inserted.objectId);
+
+  expect((await q.clone().some('relation', q => q.equalTo('number', 42.5)).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().some('relation', q => q.equalTo('pointer.number', 42.5)).first())?.objectId).toStrictEqual(inserted.objectId);
+  //expect((await q.clone().some('relation', q => q.some('relation', q => q.equalTo('pointer.number', 42.5))).first())?.objectId).toStrictEqual(inserted.objectId);
+
+  expect((await q.clone().some('shape.relation', q => q.equalTo('number', 42.5)).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().some('shape.relation', q => q.equalTo('pointer.number', 42.5)).first())?.objectId).toStrictEqual(inserted.objectId);
+  //expect((await q.clone().some('shape.relation', q => q.some('relation', q => q.equalTo('pointer.number', 42.5))).first())?.objectId).toStrictEqual(inserted.objectId);
+
+  expect((await q.clone().every('relation', q => q.equalTo('number', 42.5)).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().every('relation', q => q.equalTo('pointer.number', 42.5)).first())?.objectId).toStrictEqual(inserted.objectId);
+  //expect((await q.clone().every('relation', q => q.every('relation', q => q.equalTo('pointer.number', 42.5))).first())?.objectId).toStrictEqual(inserted.objectId);
+
+  expect((await q.clone().every('shape.relation', q => q.equalTo('number', 42.5)).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().every('shape.relation', q => q.equalTo('pointer.number', 42.5)).first())?.objectId).toStrictEqual(inserted.objectId);
+  //expect((await q.clone().every('shape.relation', q => q.every('relation', q => q.equalTo('pointer.number', 42.5))).first())?.objectId).toStrictEqual(inserted.objectId);
+
+})
+
 test('test update', async () => {
   const date = new Date;
   const inserted = await Proto.Query('Test').insert({});

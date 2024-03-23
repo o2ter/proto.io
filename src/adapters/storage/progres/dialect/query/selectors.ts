@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { SQL, sql } from '../../../../../server/storage/sql';
-import { _typeof, isPrimitive } from '../../../../../internals/schema';
+import { _typeof, isPrimitive, isRelation } from '../../../../../internals/schema';
 import { CompileContext, QueryCompiler } from '../../../../../server/storage/sql/compiler';
 import { FieldSelectorExpression, QuerySelector } from '../../../../../server/query/dispatcher/parser';
 import { _encodeValue, _encodeJsonValue } from '../encode';
@@ -44,8 +44,7 @@ export const encodeFieldExpression = (
   expr: FieldSelectorExpression
 ): SQL => {
   const [colname] = _.toPath(field);
-  const fetched = fetchElement(compiler, parent, field);
-  const { element, dataType } = fetched;
+  const { element, dataType } = fetchElement(compiler, parent, field);
   const encodeValue = (value: TValue) => dataType ? encodeType(colname, dataType, value) : _encodeJsonValue(_encodeValue(value));
   switch (expr.type) {
     case '$eq':
@@ -291,10 +290,18 @@ export const encodeFieldExpression = (
         if (!(expr.value instanceof QuerySelector)) break;
 
         const tempName = `_expr_$${compiler.nextIdx()}`;
-        const filter = compiler._encodeFilter(context, { name: tempName }, expr.value);
+        const filter = compiler._encodeFilter(context, {
+          name: tempName,
+          className: dataType && isRelation(dataType) ? dataType.target : undefined,
+        }, expr.value);
         if (!filter) break;
 
-        if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
+        if (!_.isString(dataType) && dataType?.type === 'relation') {
+          return sql`NOT EXISTS(
+            SELECT * FROM (SELECT UNNEST AS "$" FROM UNNEST(${element})) AS ${{ identifier: tempName }}
+            WHERE NOT (${filter})
+          )`;
+        } else if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
           return sql`NOT EXISTS(
             SELECT * FROM (SELECT UNNEST AS "$" FROM UNNEST(${element})) AS ${{ identifier: tempName }}
             WHERE NOT (${filter})
@@ -311,10 +318,18 @@ export const encodeFieldExpression = (
         if (!(expr.value instanceof QuerySelector)) break;
 
         const tempName = `_expr_$${compiler.nextIdx()}`;
-        const filter = compiler._encodeFilter(context, { name: tempName }, expr.value);
+        const filter = compiler._encodeFilter(context, {
+          name: tempName,
+          className: dataType && isRelation(dataType) ? dataType.target : undefined,
+        }, expr.value);
         if (!filter) break;
 
-        if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
+        if (!_.isString(dataType) && dataType?.type === 'relation') {
+          return sql`EXISTS(
+            SELECT * FROM (SELECT UNNEST AS "$" FROM UNNEST(${element})) AS ${{ identifier: tempName }}
+            WHERE ${filter}
+          )`;
+        } else if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
           return sql`EXISTS(
             SELECT * FROM (SELECT UNNEST AS "$" FROM UNNEST(${element})) AS ${{ identifier: tempName }}
             WHERE ${filter}
