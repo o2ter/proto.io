@@ -1299,7 +1299,6 @@ test('test relation 6', async () => {
   await Proto.Query('Test')
     .equalTo('_id', inserted.objectId)
     .updateOne({
-      number: { $set: 42.5 },
       pointer: { $set: inserted },
       relation: { $set: [inserted] },
       'shape.pointer': { $set: inserted },
