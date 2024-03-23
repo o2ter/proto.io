@@ -297,9 +297,9 @@ export const encodeFieldExpression = (
           return sql`NOT EXISTS(
             SELECT * FROM (
               SELECT
-              ${json ? sql`VALUE` : sql`UNNEST`} AS "$"
+                ${json ? sql`VALUE` : sql`UNNEST`} AS "$"
               FROM ${json ? sql`jsonb_array_elements(${element})` : sql`UNNEST(${element})`}
-              ) AS ${{ identifier: tempName }}
+            ) AS ${{ identifier: tempName }}
             WHERE NOT (${filter})
           )`;
         } else if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
@@ -326,9 +326,9 @@ export const encodeFieldExpression = (
           return sql`EXISTS(
             SELECT * FROM (
               SELECT
-              ${json ? sql`VALUE` : sql`UNNEST`} AS "$"
+                ${json ? sql`VALUE` : sql`UNNEST`} AS "$"
               FROM ${json ? sql`jsonb_array_elements(${element})` : sql`UNNEST(${element})`}
-              ) AS ${{ identifier: tempName }}
+            ) AS ${{ identifier: tempName }}
             WHERE ${filter}
           )`;
         } else if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
