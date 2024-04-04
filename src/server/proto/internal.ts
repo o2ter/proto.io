@@ -165,6 +165,9 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
   async config(proto: P, options?: { master?: boolean; }) {
     return this.options.storage.config(options?.master ? undefined : _.uniq(['*', ...await fetchUserPerms(proto)]));
   }
+  configAcl() {
+    return this.options.storage.configAcl();
+  }
   async setConfig(values: Record<string, _TValue>, acl?: string[]) {
     return this.options.storage.setConfig(values, acl);
   }

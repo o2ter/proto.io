@@ -117,6 +117,25 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
 
     return deserialize(res.data) as Record<string, _TValue>;
   }
+  async configAcl(options: RequestOptions<boolean, P>) {
+
+    const { serializeOpts, context, ...opts } = options ?? {};
+
+    const res = await this.service.request({
+      method: 'get',
+      baseURL: this.options.endpoint,
+      url: 'configAcl',
+      responseType: 'text',
+      ...opts,
+    });
+
+    if (res.status !== 200) {
+      const error = JSON.parse(res.data);
+      throw Error(error.message, { cause: error });
+    }
+
+    return deserialize(res.data) as Record<string, string[]>;
+  }
   async setConfig(values: Record<string, _TValue>, options: RequestOptions<boolean, P> & { acl?: string[]; }) {
 
     const { serializeOpts, context, acl, ...opts } = options ?? {};

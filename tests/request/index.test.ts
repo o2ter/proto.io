@@ -138,6 +138,9 @@ test('test config permission', async () => {
   const config = await Proto.config();
   expect(config.permission).toBeUndefined();
 
+  const acls = await Proto.configAcl({ master: true });
+  expect(acls.permission).toStrictEqual(['role:admin']);
+
   await Proto.run('createUserWithRole', { role: 'admin' });
 
   const config2 = await Proto.config();

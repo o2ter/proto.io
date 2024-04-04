@@ -40,6 +40,18 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
     }
   );
 
+  router.get(
+    '/configAcl',
+    async (req: any, res) => {
+      res.setHeader('Cache-Control', ['no-cache', 'no-store']);
+      const payload = proto.connect(req);
+      await response(res, () => {
+        if (!payload.isMaster) throw Error('No permission');
+        return payload.configAcl({ master: true });
+      });
+    }
+  );
+
   router.post(
     '/config',
     express.text({ type: '*/*' }),

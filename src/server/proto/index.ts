@@ -151,6 +151,10 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
   async config(options?: { master?: boolean; }) {
     return this[PVK].config(this, options);
   }
+  configAcl(options: { master: true; }) {
+    if (options.master !== true) throw Error('No permission');
+    return this[PVK].configAcl();
+  }
   async setConfig(values: Record<string, _TValue>, options: { master: true; acl?: string[]; }) {
     if (options.master !== true) throw Error('No permission');
     await this[PVK].setConfig(values, options.acl);

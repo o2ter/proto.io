@@ -60,6 +60,14 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
     }
     return config;
   }
+  async configAcl() {
+    const config: Record<string, string[]> = {};
+    const query = sql`SELECT * FROM ${{ identifier: '_Config' }}`;
+    for await (const record of this.query(query)) {
+      config[record._id] = record._rperm;
+    }
+    return config;
+  }
   async setConfig(values: Record<string, _TValue>, acl?: string[]) {
     const _values = _.pickBy(values, v => !_.isNil(v));
     const nilKeys = _.keys(_.pickBy(values, v => _.isNil(v)));
