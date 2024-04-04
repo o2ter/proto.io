@@ -117,15 +117,15 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
 
     return deserialize(res.data) as Record<string, _TValue>;
   }
-  async setConfig(values: Record<string, _TValue>, options: RequestOptions<boolean, P>) {
+  async setConfig(values: Record<string, _TValue>, options: RequestOptions<boolean, P> & { acl?: string[]; }) {
 
-    const { serializeOpts, context, ...opts } = options ?? {};
+    const { serializeOpts, context, acl, ...opts } = options ?? {};
 
     const res = await this.service.request({
       method: 'post',
       baseURL: this.options.endpoint,
       url: 'config',
-      data: serialize(values, serializeOpts),
+      data: serialize({ values, acl }, serializeOpts),
       responseType: 'text',
       ...opts,
     });

@@ -36,7 +36,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
     async (req: any, res) => {
       res.setHeader('Cache-Control', ['no-cache', 'no-store']);
       const payload = proto.connect(req);
-      await response(res, () => payload.config());
+      await response(res, () => payload.config({ master: payload.isMaster }));
     }
   );
 
@@ -47,11 +47,11 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       res.setHeader('Cache-Control', ['no-cache', 'no-store']);
 
       const payload = proto.connect(req);
-      const { ...values } = deserialize(req.body) as any;
+      const { values, acl } = deserialize(req.body) as any;
 
       await response(res, () => {
         if (!payload.isMaster) throw Error('No permission');
-        return payload.setConfig(values, { master: true });
+        return payload.setConfig(values, { master: true, acl });
       });
     }
   );

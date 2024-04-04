@@ -66,8 +66,8 @@ export interface TStorage {
 
   classes(): string[];
 
-  config(): PromiseLike<Record<string, _TValue>>;
-  setConfig(values: Record<string, _TValue>): PromiseLike<void>;
+  config(acl?: string[]): PromiseLike<Record<string, _TValue>>;
+  setConfig(values: Record<string, _TValue>, acl?: string[]): PromiseLike<void>;
 
   explain(query: DecodedQuery<FindOptions>): PromiseLike<any>;
 

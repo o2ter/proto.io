@@ -63,8 +63,8 @@ export abstract class ProtoType<Ext> {
 
   abstract [PVK]: ProtoInternalType<Ext, this>;
 
-  abstract config(): Promise<Record<string, _TValue>>;
-  abstract setConfig(values: Record<string, _TValue>, options: { master: true; }): Promise<void>;
+  abstract config(options?: { master?: boolean; }): Promise<Record<string, _TValue>>;
+  abstract setConfig(values: Record<string, _TValue>, options: { master: true; acl?: string[]; }): Promise<void>;
 
   abstract run(name: string, data?: TSerializable, options?: ExtraOptions<boolean, this>): Promise<void | TSerializable>
   abstract Query<T extends string>(className: T): TQuery<T, Ext, boolean, this>;

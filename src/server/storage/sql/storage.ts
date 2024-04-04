@@ -53,8 +53,8 @@ export abstract class SqlStorage implements TStorage {
 
   abstract selectLock(): boolean;
 
-  abstract config(): PromiseLike<Record<string, _TValue>>;
-  abstract setConfig(values: Record<string, _TValue>): PromiseLike<void>;
+  abstract config(acl?: string[]): PromiseLike<Record<string, _TValue>>;
+  abstract setConfig(values: Record<string, _TValue>, acl?: string[]): PromiseLike<void>;
   abstract lockTable(className: string | string[], update: boolean): Promise<void>;
   abstract withConnection<T>(callback: (connection: TStorage) => PromiseLike<T>): PromiseLike<T>;
   abstract withTransaction<T>(

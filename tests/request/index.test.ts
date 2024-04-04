@@ -127,3 +127,21 @@ test('test config', async () => {
   expect(config3.number).toBeUndefined();
   expect(config3.decimal).toBeUndefined();
 });
+
+test('test config permission', async () => {
+  const values = {
+    permission: true,
+  };
+
+  await Proto.setConfig(values, { master: true, acl: ['role:admin'] });
+
+  const config = await Proto.config();
+  expect(config.permission).toBeUndefined();
+
+  await Proto.run('createUserWithRole', { role: 'admin' });
+
+  const config2 = await Proto.config();
+  expect(config2.permission).toStrictEqual(true);
+  
+  await Proto.logout();
+});

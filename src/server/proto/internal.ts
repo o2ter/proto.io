@@ -44,6 +44,7 @@ import { TUser } from '../../internals/object/user';
 import { TFile } from '../../internals/object/file';
 import { FileData } from '../../internals/buffer';
 import { PVK } from '../../internals/private';
+import { fetchUserPerms } from '../query/dispatcher';
 
 const validateForeignField = (schema: Record<string, TSchema>, key: string, dataType: TSchema.RelationType) => {
   if (!dataType.foreignField) return;
@@ -161,11 +162,11 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     return generateId(this.options.objectIdSize);
   }
 
-  async config() {
-    return this.options.storage.config();
+  async config(proto: P, options?: { master?: boolean; }) {
+    return this.options.storage.config(options?.master ? undefined : _.uniq(['*', ...await fetchUserPerms(proto)]));
   }
-  async setConfig(values: Record<string, _TValue>) {
-    return this.options.storage.setConfig(values);
+  async setConfig(values: Record<string, _TValue>, acl?: string[]) {
+    return this.options.storage.setConfig(values, acl);
   }
 
   async run(proto: P, name: string, payload: any, options?: ExtraOptions<boolean, P>) {

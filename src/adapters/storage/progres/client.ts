@@ -50,22 +50,27 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
     return false;
   }
 
-  async config() {
+  async config(acl?: string[]) {
     const config: Record<string, _TValue> = {};
-    const query = sql`SELECT * FROM ${{ identifier: '_Config' }}`;
+    const query = _.isNil(acl)
+      ? sql`SELECT * FROM ${{ identifier: '_Config' }}`
+      : sql`SELECT * FROM ${{ identifier: '_Config' }} WHERE _rperm && ${{ value: acl }}`;
     for await (const record of this.query(query)) {
       config[record._id] = _decodeValue(record.value);
     }
     return config;
   }
-  async setConfig(values: Record<string, _TValue>) {
+  async setConfig(values: Record<string, _TValue>, acl?: string[]) {
     const _values = _.pickBy(values, v => !_.isNil(v));
     const nilKeys = _.keys(_.pickBy(values, v => _.isNil(v)));
     if (!_.isEmpty(_values)) {
       await this.query(sql`
-        INSERT INTO ${{ identifier: '_Config' }} (_id, value)
+        INSERT INTO ${{ identifier: '_Config' }}
+        ${_.isNil(acl) ? sql`(_id, value)` : sql`(_id, _rperm, value)`}
         VALUES
-        ${_.map(_values, (v, k) => sql`(${{ value: k }}, ${_encodeJsonValue(_encodeValue(v))})`)}
+        ${_.map(_values, (v, k) => _.isNil(acl)
+          ? sql`(${{ value: k }}, ${_encodeJsonValue(_encodeValue(v))})`
+          : sql`(${{ value: k }}, ${{ value: acl }}, ${_encodeJsonValue(_encodeValue(v))})`) }
         ON CONFLICT (_id) DO UPDATE SET value = EXCLUDED.value;
       `);
     }

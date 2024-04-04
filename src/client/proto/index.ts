@@ -50,7 +50,7 @@ export class ProtoClient<Ext> extends ProtoType<Ext> {
   config(options?: RequestOptions<boolean, this>): Promise<Record<string, _TValue>> {
     return this[PVK].config(options);
   }
-  async setConfig(values: Record<string, _TValue>, options: RequestOptions<true, this>) {
+  async setConfig(values: Record<string, _TValue>, options: RequestOptions<true, this> & { acl?: string[]; }) {
     if (options.master !== true) throw Error('No permission');
     await this[PVK].setConfig(values, options);
   }

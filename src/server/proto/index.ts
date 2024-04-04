@@ -148,12 +148,12 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     return this[PVK].options.fileStorage;
   }
 
-  async config() {
-    return this[PVK].config();
+  async config(options?: { master?: boolean; }) {
+    return this[PVK].config(this, options);
   }
-  async setConfig(values: Record<string, _TValue>, options: { master: true; }) {
+  async setConfig(values: Record<string, _TValue>, options: { master: true; acl?: string[]; }) {
     if (options.master !== true) throw Error('No permission');
-    await this[PVK].setConfig(values);
+    await this[PVK].setConfig(values, options.acl);
   }
 
   run(name: string, params?: TSerializable, options?: ExtraOptions<boolean, this>) {
