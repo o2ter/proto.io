@@ -74,6 +74,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
       IF NOT EXISTS ${{ identifier: '_Config' }}
       (
         _id TEXT PRIMARY KEY,
+        _rperm TEXT[] NOT NULL DEFAULT ARRAY['*']::TEXT[],
         value JSONB
       )
     `);
