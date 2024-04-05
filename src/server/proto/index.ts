@@ -58,8 +58,8 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
       cookieOptions: { maxAge: 365 * 24 * 60 * 60 * 1000, httpOnly: true },
       jwtSignOptions: { expiresIn: '30d' },
       jwtVerifyOptions: {},
-      jwtUploadSignOptions: options?.jwtSignOptions ?? { expiresIn: '30d' },
-      jwtUploadVerifyOptions: options?.jwtUploadVerifyOptions ?? {},
+      jwtUploadSignOptions: { expiresIn: '1d' },
+      jwtUploadVerifyOptions: {},
       passwordHashOptions: {
         alg: 'scrypt',
         log2n: 14,
