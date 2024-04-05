@@ -24,6 +24,7 @@
 //
 
 import _ from 'lodash';
+import jwt from 'jsonwebtoken';
 import { InsecureProtoQuery, ProtoQuery } from '../query';
 import { ProtoInternal } from './internal';
 import { Request } from 'express';
@@ -39,6 +40,7 @@ import { TQuery } from '../../internals/query';
 import { TUser } from '../../internals/object/user';
 import { ExtraOptions } from '../../internals/options';
 import { _TValue } from '../../internals/query/value';
+import { randomUUID } from '@o2ter/crypto-js';
 
 export class ProtoService<Ext> extends ProtoType<Ext> {
 
@@ -211,5 +213,9 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     options?: TransactionOptions,
   ) {
     return this.storage.withTransaction((storage) => callback(_.create(this, { _storage: storage })), options);
+  }
+
+  generateUploadToken() {
+    return this[PVK].jwtSign({ nonce: randomUUID() });
   }
 }

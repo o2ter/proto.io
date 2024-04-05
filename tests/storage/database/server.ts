@@ -62,6 +62,10 @@ const Proto = new ProtoService({
   fileStorage: new DatabaseFileStorage(),
 });
 
+Proto.define('generateUploadToken', async (proto) => {
+  return proto.generateUploadToken();
+});
+
 beforeAll(async () => {
 
   const app = express();

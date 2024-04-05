@@ -33,6 +33,10 @@ import { ProtoType } from '../proto';
 export interface TFile {
   url: string | undefined;
   fileData(options?: ExtraOptions<boolean, ProtoType<any>>): FileStream;
+  save(options?: ExtraOptions<boolean, ProtoType<any>> & {
+    cascadeSave?: boolean;
+    uploadToken?: string;
+  }): PromiseLike<this>;
 }
 
 export class TFile extends TObject {

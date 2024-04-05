@@ -134,4 +134,6 @@ export interface ProtoType<Ext> {
     callback: (connection: ProtoType<Ext>) => PromiseLike<T>,
     options?: TransactionOptions,
   ): void;
+
+  generateUploadToken(): string;
 };

@@ -43,7 +43,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
 
   options: ProtoOptions<Ext>;
 
-  service = new Service(this);
+  service = new Service<Ext, P>(this);
 
   constructor(options: ProtoOptions<Ext>) {
     this.options = options;
@@ -251,9 +251,9 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
     return object;
   }
 
-  async createFile(proto: P, object: TFile, options?: RequestOptions<boolean, P>) {
+  async createFile(proto: P, object: TFile, options?: RequestOptions<boolean, P> & { uploadToken?: string; }) {
 
-    const { serializeOpts, context, ...opts } = options ?? {};
+    const { serializeOpts, context, uploadToken, ...opts } = options ?? {};
     const { data } = object[PVK].extra;
     if (_.isNil(data)) throw Error('Invalid file object');
 
@@ -274,6 +274,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
       responseType: 'text',
       data: {
         attributes: serialize(_.fromPairs([...object.entries()]), serializeOpts),
+        uploadToken,
         file: buffer,
       },
       headers: {

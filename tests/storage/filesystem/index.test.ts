@@ -37,14 +37,14 @@ const Proto = new ProtoClient({
 
 test('test files', async () => {
   const file = Proto.File('test.txt', 'hello, world', 'text/plain');
-  await file.save();
+  await file.save({ uploadToken: await Proto.run('generateUploadToken') as string });
 
   const data = await streamToBuffer(file.fileData());
   expect(data.toString('utf8')).toStrictEqual('hello, world');
 });
 test('test files 2', async () => {
   const file = Proto.File('test.txt', fs.createReadStream(__filename), 'text/plain');
-  await file.save();
+  await file.save({ uploadToken: await Proto.run('generateUploadToken') as string });
 
   const data = await streamToBuffer(file.fileData());
   expect(data.toString('utf8')).toStrictEqual(fs.readFileSync(__filename, { encoding: 'utf8' }));
@@ -52,8 +52,13 @@ test('test files 2', async () => {
 test('test files 3', async () => {
   const content = generateString(128 * 1024);
   const file = Proto.File('test.txt', content, 'text/plain');
-  await file.save();
+  await file.save({ uploadToken: await Proto.run('generateUploadToken') as string });
 
   const data = await streamToBuffer(file.fileData());
   expect(data.toString('utf8')).toStrictEqual(content);
+});
+
+test('test uploadToken', async () => {
+  const file = Proto.File('test.txt', 'hello, world', 'text/plain');
+  await expect(() => file.save()).rejects.toThrow('Upload token is required');
 });

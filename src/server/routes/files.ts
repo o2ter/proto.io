@@ -41,7 +41,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
 
       await response(res, async () => {
 
-        const { attributes, file } = await decodeFormStream(req, (file, info) => proto.fileStorage.create(proto, file, info));
+        const { attributes, uploadToken, file } = await decodeFormStream(req, (file, info) => proto.fileStorage.create(proto, file, info));
 
         try {
 
@@ -50,7 +50,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
           obj[PVK].mutated = _.mapValues(deserialize(attributes) as any, v => ({ $set: v })) as any;
           obj[PVK].extra.data = file;
 
-          return obj.save({ master: payload.isMaster });
+          return obj.save({ master: payload.isMaster, uploadToken });
 
         } catch (e) {
 

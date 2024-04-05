@@ -24,6 +24,7 @@
 //
 
 import _ from 'lodash';
+import jwt from 'jsonwebtoken';
 import { Blob } from 'node:buffer';
 import { Readable } from 'node:stream';
 import { defaultSchema } from './defaults';
@@ -244,10 +245,19 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     return object;
   }
 
-  async createFile(proto: P, object: TFile, options?: ExtraOptions<boolean, P>) {
+  async createFile(proto: P, object: TFile, options?: ExtraOptions<boolean, P> & { uploadToken?: string; }) {
 
     const data = object[PVK].extra.data as FileData | { _id: string; size: number; };
     if (_.isNil(data)) throw Error('Invalid file object');
+
+    const uploadToken = options?.uploadToken;
+    const { nonce } = (_.isString(uploadToken) ? this.jwtVarify(uploadToken) ?? {} : {}) as { nonce?: string; };
+    if (!options?.master && !nonce) throw Error('Upload token is required');
+
+    if (nonce) {
+      const found = await proto.Query('File').equalTo('nonce', nonce).first({ master: true });
+      if (found) throw Error('Invalid upload token');
+    }
 
     let file: { _id: string; size: number; } | undefined;
 
@@ -279,8 +289,9 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
 
       object.set('token', file._id);
       object.set('size', file.size);
+      if (nonce) object.set('nonce', nonce);
 
-      const created = await proto.Query(object.className)
+      const created = await proto.Query('File')
         .includes(...object.keys())
         .insert(_.fromPairs([...object.entries()]), options);
 
@@ -334,7 +345,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
       await beforeDelete(proxy(Object.setPrototypeOf({ object, context }, proto)));
     }
 
-    const deleted = await proto.Query(object.className)
+    const deleted = await proto.Query('File')
       .equalTo('_id', object.objectId)
       .deleteOne(options);
 
@@ -372,5 +383,19 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
         console.error(e);
       }
     })();
+  }
+
+  jwtSign(payload: any) {
+    return jwt.sign(payload, this.options.jwtToken, this.options.jwtSignOptions);
+  }
+
+  jwtVarify(token: string) {
+    try {
+      const payload = jwt.verify(token, this.options.jwtToken, { ...this.options.jwtVerifyOptions, complete: false });
+      if (!_.isObject(payload)) return;
+      return payload;
+    } catch {
+      return;
+    }
   }
 }
