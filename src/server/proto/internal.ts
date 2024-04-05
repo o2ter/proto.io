@@ -251,7 +251,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     if (_.isNil(data)) throw Error('Invalid file object');
 
     const uploadToken = options?.uploadToken;
-    const { nonce } = (_.isString(uploadToken) ? this.jwtVarify(uploadToken) ?? {} : {}) as { nonce?: string; };
+    const { nonce } = (_.isString(uploadToken) ? this.jwtVarify(uploadToken, 'upload') ?? {} : {}) as { nonce?: string; };
     if (!options?.master && !nonce) throw Error('Upload token is required');
 
     if (nonce) {
@@ -385,13 +385,29 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     })();
   }
 
-  jwtSign(payload: any) {
-    return jwt.sign(payload, this.options.jwtToken, this.options.jwtSignOptions);
+  jwtSign(payload: any, type: 'login' | 'upload') {
+    const jwtTokenMap = {
+      'login': this.options.jwtToken,
+      'upload': this.options.jwtUploadToken ?? this.options.jwtToken,
+    } as const;
+    const jwtOptionMap = {
+      'login': this.options.jwtSignOptions,
+      'upload': this.options.jwtUploadSignOptions,
+    } as const;
+    return jwt.sign(payload, jwtTokenMap[type], jwtOptionMap[type]);
   }
 
-  jwtVarify(token: string) {
+  jwtVarify(token: string, type: 'login' | 'upload') {
     try {
-      const payload = jwt.verify(token, this.options.jwtToken, { ...this.options.jwtVerifyOptions, complete: false });
+      const jwtTokenMap = {
+        'login': this.options.jwtToken,
+        'upload': this.options.jwtUploadToken ?? this.options.jwtToken,
+      } as const;
+      const jwtOptionMap = {
+        'login': this.options.jwtVerifyOptions,
+        'upload': this.options.jwtUploadVerifyOptions,
+      } as const;
+      const payload = jwt.verify(token, jwtTokenMap[type], { ...jwtOptionMap[type], complete: false });
       if (!_.isObject(payload)) return;
       return payload;
     } catch {

@@ -45,11 +45,14 @@ export type ProtoServiceOptions<Ext> = {
   cookieOptions?: CookieOptions;
   jwtSignOptions?: SignOptions;
   jwtVerifyOptions?: VerifyOptions;
+  jwtUploadSignOptions?: SignOptions;
+  jwtUploadVerifyOptions?: VerifyOptions;
   passwordHashOptions?: PasswordHashOptions;
 };
 
 export type ProtoServiceKeyOptions = {
   jwtToken: string;
+  jwtUploadToken?: string;
   csrfToken?: string;
   masterUsers?: { user: string; pass: string; }[];
 };

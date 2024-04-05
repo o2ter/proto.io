@@ -57,7 +57,7 @@ const _session = <E>(proto: ProtoService<E>) => {
 
   if (_.isEmpty(authorization)) return;
 
-  const payload = proto[PVK].jwtVarify(authorization);
+  const payload = proto[PVK].jwtVarify(authorization, 'login');
   if (!_.isObject(payload)) return;
 
   sessionMap.set(req, {
@@ -115,7 +115,7 @@ export const sessionIsMaster = <E>(proto: ProtoService<E>) => {
 export const signUser = async <E>(proto: ProtoService<E>, res: Response, user?: TUser) => {
   if (_.isNil(proto[PVK].options.jwtToken)) return;
   const sessionId = proto.sessionId ?? randomUUID();
-  const token = proto[PVK].jwtSign({ sessionId, user: user?.objectId });
+  const token = proto[PVK].jwtSign({ sessionId, user: user?.objectId }, 'login');
   res.cookie(AUTH_COOKIE_KEY, token, proto[PVK].options.cookieOptions);
   sessionInfoMap.set(res.req, user ? await fetchSessionInfo(proto, user.objectId) : {});
 }

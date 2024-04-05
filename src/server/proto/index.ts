@@ -24,7 +24,6 @@
 //
 
 import _ from 'lodash';
-import jwt from 'jsonwebtoken';
 import { InsecureProtoQuery, ProtoQuery } from '../query';
 import { ProtoInternal } from './internal';
 import { Request } from 'express';
@@ -59,6 +58,8 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
       cookieOptions: { maxAge: 365 * 24 * 60 * 60 * 1000, httpOnly: true },
       jwtSignOptions: { expiresIn: '30d' },
       jwtVerifyOptions: {},
+      jwtUploadSignOptions: options?.jwtSignOptions ?? { expiresIn: '30d' },
+      jwtUploadVerifyOptions: options?.jwtUploadVerifyOptions ?? {},
       passwordHashOptions: {
         alg: 'scrypt',
         log2n: 14,
@@ -216,6 +217,6 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
   }
 
   generateUploadToken() {
-    return this[PVK].jwtSign({ nonce: randomUUID() });
+    return this[PVK].jwtSign({ nonce: randomUUID() }, 'upload');
   }
 }
