@@ -68,6 +68,7 @@ export const defaultSchema: Record<string, TSchema> = {
       size: 'number',
       type: 'string',
       token: 'string',
+      nonce: 'string',
     },
     classLevelPermissions: {
       find: [],
@@ -79,7 +80,18 @@ export const defaultSchema: Record<string, TSchema> = {
       size: { update: [] },
       type: { update: [] },
       token: { update: [] },
+      nonce: { update: [] },
       _expired_at: { create: [], update: [] },
     },
+    indexes: [
+      {
+        keys: { token: 1 },
+        unique: true,
+      },
+      {
+        keys: { nonce: 1 },
+        unique: true,
+      },
+    ],
   },
 }
