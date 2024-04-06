@@ -216,7 +216,11 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     return this.storage.withTransaction((storage) => callback(_.create(this, { _storage: storage })), options);
   }
 
-  generateUploadToken() {
-    return this[PVK].jwtSign({ nonce: randomUUID() }, 'upload');
+  generateUploadToken(
+    options: {
+      maxUploadSize?: number;
+    } = {}
+  ) {
+    return this[PVK].jwtSign({ nonce: randomUUID(), ...options }, 'upload');
   }
 }

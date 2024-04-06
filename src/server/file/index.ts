@@ -27,7 +27,7 @@ import _ from 'lodash';
 import { ProtoService } from '../proto/index';
 import { TSchema } from '../../internals/schema';
 
-type TFileInfo = {
+export type TFileInfo = {
   mimeType?: string;
   filename?: string;
 };
@@ -40,6 +40,7 @@ export interface TFileStorage {
     proto: ProtoService<E>,
     stream: BinaryData | AsyncIterable<BinaryData>,
     info: TFileInfo,
+    maxUploadSize: number,
   ): PromiseLike<{ _id: string; size: number; }>;
 
   destory<E>(proto: ProtoService<E>, id: string): PromiseLike<void>;

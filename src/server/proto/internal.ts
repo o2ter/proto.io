@@ -251,7 +251,13 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     if (_.isNil(data)) throw Error('Invalid file object');
 
     const uploadToken = options?.uploadToken;
-    const { nonce } = (_.isString(uploadToken) ? this.jwtVarify(uploadToken, 'upload') ?? {} : {}) as { nonce?: string; };
+    const {
+      nonce,
+      maxUploadSize
+    } = (_.isString(uploadToken) ? this.jwtVarify(uploadToken, 'upload') ?? {} : {}) as {
+        nonce?: string;
+        maxUploadSize?: number;
+    };
     if (!options?.master && !nonce) throw Error('Upload token is required');
 
     if (nonce) {
@@ -270,15 +276,18 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
       throw Error('Invalid filename');
     }
 
+    const _maxUploadSize = maxUploadSize ?? proto[PVK].options.maxUploadSize;
+    const _max = _.isFunction(_maxUploadSize) ? await _maxUploadSize(proto) : _maxUploadSize;
+
     if (_.isString(data)) {
-      file = await proto.fileStorage.create(proto, Buffer.from(data), info);
+      file = await proto.fileStorage.create(proto, Buffer.from(data), info, _max);
     } else if (isBinaryData(data) || data instanceof Readable) {
-      file = await proto.fileStorage.create(proto, data, info);
+      file = await proto.fileStorage.create(proto, data, info, _max);
     } else if (data instanceof Blob) {
-      file = await proto.fileStorage.create(proto, await data.arrayBuffer(), info);
+      file = await proto.fileStorage.create(proto, await data.arrayBuffer(), info, _max);
     } else if ('base64' in data) {
       const buffer = base64ToBuffer(data.base64);
-      file = await proto.fileStorage.create(proto, buffer, info);
+      file = await proto.fileStorage.create(proto, buffer, info, _max);
     } else if ('_id' in data && 'size' in data) {
       file = data;
     } else {

@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { promisify } from 'util';
 import { deflate as _deflate, unzip as _unzip } from 'zlib';
-import { TFileStorage } from '../../../server/file';
+import { TFileInfo, TFileStorage } from '../../../server/file';
 import { ProtoService } from '../../../server/proto';
 import { TSchema } from '../../../internals/schema';
 import { binaryStreamChunk, parallelEach, parallelMap } from '@o2ter/utils-js';
@@ -66,10 +66,11 @@ export abstract class FileStorageBase implements TFileStorage {
   async create<E>(
     proto: ProtoService<E>,
     stream: BinaryData | AsyncIterable<BinaryData>,
+    info: TFileInfo,
+    maxUploadSize: number,
   ) {
 
     const token = proto[PVK].generateId();
-    const maxUploadSize = _.isFunction(proto[PVK].options.maxUploadSize) ? await proto[PVK].options.maxUploadSize(proto) : proto[PVK].options.maxUploadSize;
 
     let size = 0;
     const _stream = async function* (stream: AsyncIterable<Buffer>) {
