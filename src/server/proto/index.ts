@@ -217,9 +217,7 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
   }
 
   generateUploadToken(
-    options: {
-      maxUploadSize?: number;
-    } = {}
+    options: { maxUploadSize?: number; } = {}
   ) {
     return this[PVK].jwtSign({ nonce: randomUUID(), ...options }, 'upload');
   }

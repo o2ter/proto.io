@@ -135,5 +135,7 @@ export interface ProtoType<Ext> {
     options?: TransactionOptions,
   ): void;
 
-  generateUploadToken(): string;
+  generateUploadToken(
+    options?: { maxUploadSize?: number; }
+  ): string;
 };
