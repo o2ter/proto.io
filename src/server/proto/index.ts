@@ -27,7 +27,7 @@ import _ from 'lodash';
 import jwt from 'jsonwebtoken';
 import { InsecureProtoQuery, ProtoQuery } from '../query';
 import { ProtoInternal } from './internal';
-import { Request } from 'express';
+import { CookieOptions, Request } from 'express';
 import { ProtoServiceOptions, ProtoServiceKeyOptions } from './types';
 import { ProtoFunction, ProtoFunctionOptions, ProtoTrigger } from '../../internals/proto/types';
 import { sessionId, sessionIsMaster, session, signUser } from './session';
@@ -119,13 +119,26 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     return _.assign(payload, _.isFunction(attrs) ? attrs(payload) : attrs)
   }
 
-  async becomeUser(req: Request, user: TUser) {
+  async becomeUser(
+    req: Request,
+    user: TUser,
+    options?: {
+      cookieOptions?: CookieOptions | undefined;
+      jwtSignOptions?: jwt.SignOptions | undefined;
+    }
+  ) {
     if (!user.objectId) throw Error('Invalid user object');
-    if (req.res) await signUser(this, req.res, user);
+    if (req.res) await signUser(this, req.res, user, options);
   }
 
-  async logoutUser(req: Request) {
-    if (req.res) await signUser(this, req.res, undefined);
+  async logoutUser(
+    req: Request,
+    options?: {
+      cookieOptions?: CookieOptions | undefined;
+      jwtSignOptions?: jwt.SignOptions | undefined;
+    }
+  ) {
+    if (req.res) await signUser(this, req.res, undefined, options);
   }
 
   varifyPassword(user: TUser, password: string, options: ExtraOptions<true, this>) {

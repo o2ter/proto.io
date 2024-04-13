@@ -41,6 +41,7 @@ import { TSchema } from './internals/schema';
 import { PVK } from './internals/private';
 
 export * from './common';
+export { TFileStorage } from './server/file/index';
 export { ProtoService } from './server/proto';
 export { ProtoClient } from './client';
 

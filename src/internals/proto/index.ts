@@ -25,7 +25,8 @@
 
 import _ from 'lodash';
 import { PVK } from '../private';
-import type { Request } from 'express';
+import type { CookieOptions, Request } from 'express';
+import type { SignOptions } from 'jsonwebtoken';
 import { ExtraOptions } from '../options';
 import { TQuery } from '../query';
 import { TExtensions, TObjectType, TObjectTypes } from '../object/types';
@@ -112,6 +113,26 @@ export interface ProtoType<Ext> {
     req: R,
     attrs?: T | ((x: this & { req: R; }) => T)
   ): this & { req: R; } & T;
+
+  becomeUser(
+    req: Request,
+    user: TUser,
+    options?: {
+      cookieOptions?: CookieOptions | undefined;
+      jwtSignOptions?: SignOptions | undefined;
+    }
+  ): Promise<void>;
+  logoutUser(
+    req: Request,
+    options?: {
+      cookieOptions?: CookieOptions | undefined;
+      jwtSignOptions?: SignOptions | undefined;
+    }
+  ): Promise<void>;
+
+  varifyPassword(user: TUser, password: string, options: ExtraOptions<true, this>): Promise<boolean>;
+  setPassword(user: TUser, password: string, options: ExtraOptions<true, this>): Promise<void>;
+  unsetPassword(user: TUser, options: ExtraOptions<true, this>): Promise<void>;
 
   define(
     name: string,
