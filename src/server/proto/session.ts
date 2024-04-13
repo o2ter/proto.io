@@ -37,22 +37,22 @@ const sessionMap = new WeakMap<Request, {
   payload?: jwt.JwtPayload;
 }>();
 
-const _session = <E>(proto: ProtoService<E>) => {
+const _session = <E>(proto: ProtoService<E>, request: Request) => {
 
-  const req = proto.req;
-  if (!req) return;
+  const cached = sessionMap.get(request);
+  if (cached) return cached?.payload;
 
-  sessionMap.set(req, { sessionId: randomUUID() });
+  sessionMap.set(request, { sessionId: randomUUID() });
 
   const jwtToken = proto[PVK].options.jwtToken;
   if (_.isEmpty(jwtToken)) throw Error('Invalid jwt token');
 
   let authorization = '';
-  if (req.headers.authorization) {
-    const parts = req.headers.authorization.split(' ');
+  if (request.headers.authorization) {
+    const parts = request.headers.authorization.split(' ');
     if (parts.length === 2 && parts[0] === 'Bearer') authorization = parts[1];
-  } else if (req.cookies[AUTH_COOKIE_KEY]) {
-    authorization = req.cookies[AUTH_COOKIE_KEY];
+  } else if (request.cookies[AUTH_COOKIE_KEY]) {
+    authorization = request.cookies[AUTH_COOKIE_KEY];
   }
 
   if (_.isEmpty(authorization)) return;
@@ -60,7 +60,7 @@ const _session = <E>(proto: ProtoService<E>) => {
   const payload = proto[PVK].jwtVarify('login', authorization);
   if (!_.isObject(payload)) return;
 
-  sessionMap.set(req, {
+  sessionMap.set(request, {
     sessionId: payload.sessionId ?? randomUUID(),
     payload,
   });
@@ -68,11 +68,9 @@ const _session = <E>(proto: ProtoService<E>) => {
   return payload;
 }
 
-export const sessionId = <E>(proto: ProtoService<E>): string | undefined => {
-  const req = proto.req;
-  if (!req) return;
-  const session = _session(proto);
-  return sessionMap.get(req)?.sessionId ?? session?.sessionId;
+export const sessionId = <E>(proto: ProtoService<E>, request: Request): string | undefined => {
+  const session = _session(proto, request);
+  return sessionMap.get(request)?.sessionId ?? session?.sessionId;
 }
 
 type SessionInfo<E> = Partial<Awaited<ReturnType<typeof fetchSessionInfo<E>>>>;
@@ -87,27 +85,23 @@ const fetchSessionInfo = async <E>(proto: ProtoService<E>, userId?: string) => {
   };
 }
 
-export const session = async <E>(proto: ProtoService<E>) => {
+export const session = async <E>(proto: ProtoService<E>, request: Request) => {
 
-  const req = proto.req;
-  if (!req) return;
+  const session = _session(proto, request);
+  const sessionId: string | undefined = sessionMap.get(request)?.sessionId ?? session?.sessionId;
 
-  const session = _session(proto);
-  const sessionId: string | undefined = sessionMap.get(req)?.sessionId ?? session?.sessionId;
-
-  const cached = sessionInfoMap.get(req) as SessionInfo<E>;
+  const cached = sessionInfoMap.get(request) as SessionInfo<E>;
   if (cached) return { sessionId, ...cached };
 
   const info = await fetchSessionInfo(proto, session?.user);
-  sessionInfoMap.set(req, info);
+  sessionInfoMap.set(request, info);
 
   return { sessionId, ...info };
 }
 
-export const sessionIsMaster = <E>(proto: ProtoService<E>) => {
-  if (!proto.req) return false;
-  const user = proto.req.header(MASTER_USER_HEADER_NAME);
-  const pass = proto.req.header(MASTER_PASS_HEADER_NAME);
+export const sessionIsMaster = <E>(proto: ProtoService<E>, request: Request) => {
+  const user = request.header(MASTER_USER_HEADER_NAME);
+  const pass = request.header(MASTER_PASS_HEADER_NAME);
   if (_.isEmpty(user) || _.isEmpty(pass)) return false;
   return _.some(proto[PVK].options.masterUsers, x => x.user === user && x.pass === pass) ? 'valid' : 'invalid';
 }
@@ -122,8 +116,10 @@ export const signUser = async <E>(
   }
 ) => {
   if (_.isNil(proto[PVK].options.jwtToken)) return;
-  const sessionId = proto.sessionId ?? randomUUID();
-  const token = proto[PVK].jwtSign('login', { sessionId, user: user?.objectId }, options?.jwtSignOptions);
-  res.cookie(AUTH_COOKIE_KEY, token, options?.cookieOptions ?? proto[PVK].options.cookieOptions);
+  const session = _session(proto, res.req);
+  const sessionId = sessionMap.get(res.req)?.sessionId ?? session?.sessionId ?? randomUUID();
+  const cookieOptions = options?.cookieOptions ?? session?.cookieOptions ?? proto[PVK].options.cookieOptions;
+  const token = proto[PVK].jwtSign('login', { sessionId, user: user?.objectId, cookieOptions }, options?.jwtSignOptions);
+  res.cookie(AUTH_COOKIE_KEY, token, cookieOptions);
   sessionInfoMap.set(res.req, user ? await fetchSessionInfo(proto, user.objectId) : {});
 }

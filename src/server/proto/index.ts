@@ -90,25 +90,25 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
   }
 
   get sessionId(): string | undefined {
-    return sessionId(this);
+    return this.req ? sessionId(this, this.req) : undefined;
   }
 
   async currentUser() {
-    const _session = await session(this);
+    const _session = this.req ? await session(this, this.req) : undefined;
     return _session?.user;
   }
 
   async currentRoles() {
-    const _session = await session(this);
+    const _session = this.req ? await session(this, this.req) : undefined;
     return _session?.roles ?? [];
   }
 
   get isMaster(): boolean {
-    return sessionIsMaster(this) === 'valid';
+    return this.req ? sessionIsMaster(this, this.req) === 'valid' : false;
   }
 
   get isInvalidMasterToken(): boolean {
-    return sessionIsMaster(this) === 'invalid';
+    return this.req ? sessionIsMaster(this, this.req) === 'invalid' : false;
   }
 
   connect<R extends Request, T extends object>(
