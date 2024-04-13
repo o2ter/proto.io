@@ -70,14 +70,14 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
           case 'count': return query.count(opts);
           case 'find':
             {
-              const maxFetchLimit = _.isFunction(payload[PVK].options.maxFetchLimit) ? await payload[PVK].options.maxFetchLimit(payload) : payload[PVK].options.maxFetchLimit;
+              const maxFetchLimit = payload[PVK].options.maxFetchLimit;
               query[PVK].options.limit = query[PVK].options.limit ?? maxFetchLimit;
               if (query[PVK].options.limit > maxFetchLimit) throw Error('Query over limit');
               return await query.find(opts);
             }
           case 'random':
             {
-              const maxFetchLimit = _.isFunction(payload[PVK].options.maxFetchLimit) ? await payload[PVK].options.maxFetchLimit(payload) : payload[PVK].options.maxFetchLimit;
+              const maxFetchLimit = payload[PVK].options.maxFetchLimit;
               query[PVK].options.limit = query[PVK].options.limit ?? maxFetchLimit;
               if (query[PVK].options.limit > maxFetchLimit) throw Error('Query over limit');
               return await query.random(random, opts);
@@ -120,7 +120,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
           limit,
         } = req.query;
 
-        const maxFetchLimit = _.isFunction(payload[PVK].options.maxFetchLimit) ? await payload[PVK].options.maxFetchLimit(payload) : payload[PVK].options.maxFetchLimit;
+        const maxFetchLimit = payload[PVK].options.maxFetchLimit;
 
         query[PVK].options.filter = !_.isEmpty(filter) && _.isString(filter) ? _.castArray(deserialize(filter)) as any : [];
         query[PVK].options.sort = _.isPlainObject(sort) && _.every(_.values(sort), _.isNumber) ? sort as any : undefined;

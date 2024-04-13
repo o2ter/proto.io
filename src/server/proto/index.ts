@@ -24,6 +24,7 @@
 //
 
 import _ from 'lodash';
+import jwt from 'jsonwebtoken';
 import { InsecureProtoQuery, ProtoQuery } from '../query';
 import { ProtoInternal } from './internal';
 import { Request } from 'express';
@@ -217,8 +218,14 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
   }
 
   generateUploadToken(
-    options: { maxUploadSize?: number; } = {}
+    options: {
+      maxUploadSize?: number;
+      jwtSignOptions?: jwt.SignOptions;
+    } = {}
   ) {
-    return this[PVK].jwtSign({ nonce: randomUUID(), ...options }, 'upload');
+    return this[PVK].jwtSign('upload', {
+      nonce: randomUUID(),
+      maxUploadSize: options.maxUploadSize,
+    }, options?.jwtSignOptions);
   }
 }

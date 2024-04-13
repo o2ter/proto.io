@@ -38,6 +38,7 @@ import { TFile } from '../../internals/object/file';
 import { PVK } from '../../internals/private';
 import { FileData } from '../../internals/buffer';
 import { ExtraOptions } from '../../internals/options';
+import { UPLOAD_TOKEN_HEADER_NAME } from '../../internals/const';
 
 export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements ProtoInternalType<Ext, P> {
 
@@ -274,11 +275,11 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
       responseType: 'text',
       data: {
         attributes: serialize(_.fromPairs([...object.entries()]), serializeOpts),
-        uploadToken,
         file: buffer,
       },
       headers: {
         'Content-Type': 'multipart/form-data',
+        [UPLOAD_TOKEN_HEADER_NAME]: uploadToken,
       },
       ...opts,
     });

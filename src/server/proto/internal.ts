@@ -245,20 +245,29 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     return object;
   }
 
+  varifyUploadToken(proto: P, token?: string, isMaster?: boolean) {
+
+    const {
+      nonce,
+      maxUploadSize
+    } = (_.isString(token) ? this.jwtVarify('upload', token) ?? {} : {}) as {
+      nonce?: string;
+      maxUploadSize?: number;
+    };
+    if (!isMaster && !nonce) throw Error('Upload token is required');
+
+    return {
+      nonce,
+      maxUploadSize: maxUploadSize ?? proto[PVK].options.maxUploadSize,
+    };
+  }
+
   async createFile(proto: P, object: TFile, options?: ExtraOptions<boolean, P> & { uploadToken?: string; }) {
 
     const data = object[PVK].extra.data as FileData | { _id: string; size: number; };
     if (_.isNil(data)) throw Error('Invalid file object');
 
-    const uploadToken = options?.uploadToken;
-    const {
-      nonce,
-      maxUploadSize
-    } = (_.isString(uploadToken) ? this.jwtVarify(uploadToken, 'upload') ?? {} : {}) as {
-        nonce?: string;
-        maxUploadSize?: number;
-    };
-    if (!options?.master && !nonce) throw Error('Upload token is required');
+    const { nonce, maxUploadSize } = this.varifyUploadToken(proto, options?.uploadToken, options?.master);
 
     if (nonce) {
       const found = await proto.Query('File').equalTo('nonce', nonce).first({ master: true });
@@ -276,18 +285,15 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
       throw Error('Invalid filename');
     }
 
-    const _maxUploadSize = maxUploadSize ?? proto[PVK].options.maxUploadSize;
-    const _max = _.isFunction(_maxUploadSize) ? await _maxUploadSize(proto) : _maxUploadSize;
-
     if (_.isString(data)) {
-      file = await proto.fileStorage.create(proto, Buffer.from(data), info, _max);
+      file = await proto.fileStorage.create(proto, Buffer.from(data), info, maxUploadSize);
     } else if (isBinaryData(data) || data instanceof Readable) {
-      file = await proto.fileStorage.create(proto, data, info, _max);
+      file = await proto.fileStorage.create(proto, data, info, maxUploadSize);
     } else if (data instanceof Blob) {
-      file = await proto.fileStorage.create(proto, await data.arrayBuffer(), info, _max);
+      file = await proto.fileStorage.create(proto, await data.arrayBuffer(), info, maxUploadSize);
     } else if ('base64' in data) {
       const buffer = base64ToBuffer(data.base64);
-      file = await proto.fileStorage.create(proto, buffer, info, _max);
+      file = await proto.fileStorage.create(proto, buffer, info, maxUploadSize);
     } else if ('_id' in data && 'size' in data) {
       file = data;
     } else {
@@ -394,7 +400,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     })();
   }
 
-  jwtSign(payload: any, type: 'login' | 'upload') {
+  jwtSign(type: 'login' | 'upload', payload: any, options?: jwt.SignOptions) {
     const jwtTokenMap = {
       'login': this.options.jwtToken,
       'upload': this.options.jwtUploadToken ?? this.options.jwtToken,
@@ -403,10 +409,10 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
       'login': this.options.jwtSignOptions,
       'upload': this.options.jwtUploadSignOptions,
     } as const;
-    return jwt.sign(payload, jwtTokenMap[type], jwtOptionMap[type]);
+    return jwt.sign(payload, jwtTokenMap[type], options ?? jwtOptionMap[type]);
   }
 
-  jwtVarify(token: string, type: 'login' | 'upload') {
+  jwtVarify(type: 'login' | 'upload', token: string) {
     try {
       const jwtTokenMap = {
         'login': this.options.jwtToken,

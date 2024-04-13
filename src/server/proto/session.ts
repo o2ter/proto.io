@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import jwt from 'jsonwebtoken';
-import { Request, Response } from 'express';
+import { CookieOptions, Request, Response } from 'express';
 import { ProtoService } from './index';
 import { AUTH_COOKIE_KEY, MASTER_PASS_HEADER_NAME, MASTER_USER_HEADER_NAME } from '../../internals/const';
 import { randomUUID } from '@o2ter/crypto-js';
@@ -57,7 +57,7 @@ const _session = <E>(proto: ProtoService<E>) => {
 
   if (_.isEmpty(authorization)) return;
 
-  const payload = proto[PVK].jwtVarify(authorization, 'login');
+  const payload = proto[PVK].jwtVarify('login', authorization);
   if (!_.isObject(payload)) return;
 
   sessionMap.set(req, {
@@ -112,10 +112,18 @@ export const sessionIsMaster = <E>(proto: ProtoService<E>) => {
   return _.some(proto[PVK].options.masterUsers, x => x.user === user && x.pass === pass) ? 'valid' : 'invalid';
 }
 
-export const signUser = async <E>(proto: ProtoService<E>, res: Response, user?: TUser) => {
+export const signUser = async <E>(
+  proto: ProtoService<E>,
+  res: Response,
+  user?: TUser,
+  options?: {
+    cookieOptions?: CookieOptions;
+    jwtSignOptions?: jwt.SignOptions;
+  }
+) => {
   if (_.isNil(proto[PVK].options.jwtToken)) return;
   const sessionId = proto.sessionId ?? randomUUID();
-  const token = proto[PVK].jwtSign({ sessionId, user: user?.objectId }, 'login');
-  res.cookie(AUTH_COOKIE_KEY, token, proto[PVK].options.cookieOptions);
+  const token = proto[PVK].jwtSign('login', { sessionId, user: user?.objectId }, options?.jwtSignOptions);
+  res.cookie(AUTH_COOKIE_KEY, token, options?.cookieOptions ?? proto[PVK].options.cookieOptions);
   sessionInfoMap.set(res.req, user ? await fetchSessionInfo(proto, user.objectId) : {});
 }

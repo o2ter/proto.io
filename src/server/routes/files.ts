@@ -30,6 +30,7 @@ import { ProtoService } from '../proto';
 import { decodeFormStream, response } from './common';
 import { deserialize } from '../../common';
 import { PVK } from '../../internals/private';
+import { UPLOAD_TOKEN_HEADER_NAME } from '../../internals/const';
 
 export default <E>(router: Router, proto: ProtoService<E>) => {
 
@@ -41,11 +42,14 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
 
       await response(res, async () => {
 
-        const { attributes, uploadToken, file } = await decodeFormStream(req, (file, info) => proto.fileStorage.create(proto, file, info));
+        const payload = proto.connect(req);
+        const uploadToken = req.header(UPLOAD_TOKEN_HEADER_NAME);
+
+        const { maxUploadSize } = payload[PVK].varifyUploadToken(payload, uploadToken, payload.isMaster);
+        const { attributes, file } = await decodeFormStream(req, (file, info) => proto.fileStorage.create(proto, file, info, maxUploadSize));
 
         try {
 
-          const payload = proto.connect(req);
           const obj = payload.Object('File');
           obj[PVK].mutated = _.mapValues(deserialize(attributes) as any, v => ({ $set: v })) as any;
           obj[PVK].extra.data = file;
