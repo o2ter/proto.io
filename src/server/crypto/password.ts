@@ -38,7 +38,9 @@ type _PasswordHashOptions = {
   };
 };
 
-export type PasswordHashOptions = { alg: keyof _PasswordHashOptions } & _PasswordHashOptions[keyof _PasswordHashOptions];
+export type PasswordHashOptions = {
+  [K in keyof _PasswordHashOptions]: { alg: K } & _PasswordHashOptions[K];
+}[keyof _PasswordHashOptions];
 
 const _passwordHash = async <T extends keyof _PasswordHashOptions>(
   alg: T,
