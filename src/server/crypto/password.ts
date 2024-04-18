@@ -28,6 +28,8 @@ import { scrypt, BinaryLike, ScryptOptions } from 'node:crypto';
 import { promisify } from 'util';
 import { randomBytes } from '@o2ter/crypto-js';
 
+const _scrypt = promisify<BinaryLike, BinaryLike, number, ScryptOptions, Buffer>(scrypt);
+
 type _PasswordHashOptions = {
   'scrypt': {
     log2n: number;
@@ -63,7 +65,7 @@ const _passwordHash = async <T extends keyof _PasswordHashOptions>(
         parallelization: options.parallel,
       };
 
-      const derivedKey = await promisify<BinaryLike, BinaryLike, number, ScryptOptions>(scrypt)(password, salt, options.keySize, _opts) as unknown as Buffer;
+      const derivedKey = await _scrypt(password, salt, options.keySize, _opts);
 
       return derivedKey.toString('base64');
 
