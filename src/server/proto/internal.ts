@@ -401,28 +401,20 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
   }
 
   jwtSign(type: 'login' | 'upload', payload: any, options?: jwt.SignOptions) {
-    const jwtTokenMap = {
-      'login': this.options.jwtToken,
-      'upload': this.options.jwtUploadToken ?? this.options.jwtToken,
-    } as const;
     const jwtOptionMap = {
       'login': this.options.jwtSignOptions,
       'upload': this.options.jwtUploadSignOptions,
     } as const;
-    return jwt.sign(payload, jwtTokenMap[type], options ?? jwtOptionMap[type]);
+    return jwt.sign(payload, this.options.jwtToken, options ?? jwtOptionMap[type]);
   }
 
   jwtVarify(type: 'login' | 'upload', token: string) {
     try {
-      const jwtTokenMap = {
-        'login': this.options.jwtToken,
-        'upload': this.options.jwtUploadToken ?? this.options.jwtToken,
-      } as const;
       const jwtOptionMap = {
         'login': this.options.jwtVerifyOptions,
         'upload': this.options.jwtUploadVerifyOptions,
       } as const;
-      const payload = jwt.verify(token, jwtTokenMap[type], { ...jwtOptionMap[type], complete: false });
+      const payload = jwt.verify(token, this.options.jwtToken, { ...jwtOptionMap[type], complete: false });
       if (!_.isObject(payload)) return;
       return payload;
     } catch {
