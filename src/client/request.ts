@@ -78,6 +78,15 @@ export default class Service<Ext, P extends ProtoType<any>> {
       return await this.service.request(config);
     }
 
+    if (res.status !== 200) {
+      try {
+        const error = JSON.parse(res.data);
+        throw Error(error.message, { cause: error });
+      } catch {
+        throw Error(res.data);
+      }
+    }
+
     return res;
   }
 };

@@ -65,11 +65,6 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
       ...opts,
     });
 
-    if (res.status !== 200) {
-      const error = JSON.parse(res.data);
-      throw Error(error.message, { cause: error });
-    }
-
     return proto.rebind(deserialize(res.data));
   }
 
@@ -87,11 +82,6 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
       responseType: 'text',
       ...opts,
     });
-
-    if (res.status !== 200) {
-      const error = JSON.parse(res.data);
-      throw Error(error.message, { cause: error });
-    }
 
     const user = proto.rebind(deserialize(res.data)) as TObjectType<'User', Ext>;
     if (!_.isNil(user) && !(user instanceof TUser)) throw Error('Unknown error');
@@ -111,11 +101,6 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
       ...opts,
     });
 
-    if (res.status !== 200) {
-      const error = JSON.parse(res.data);
-      throw Error(error.message, { cause: error });
-    }
-
     return deserialize(res.data) as Record<string, _TValue>;
   }
   async configAcl(options: RequestOptions<boolean, P>) {
@@ -129,11 +114,6 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
       responseType: 'text',
       ...opts,
     });
-
-    if (res.status !== 200) {
-      const error = JSON.parse(res.data);
-      throw Error(error.message, { cause: error });
-    }
 
     return deserialize(res.data) as Record<string, string[]>;
   }
@@ -149,11 +129,6 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
       responseType: 'text',
       ...opts,
     });
-
-    if (res.status !== 200) {
-      const error = JSON.parse(res.data);
-      throw Error(error.message, { cause: error });
-    }
   }
 
   async logout(options?: RequestOptions<boolean, P>) {
@@ -167,11 +142,6 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
       responseType: 'text',
       ...opts,
     });
-
-    if (res.status !== 200) {
-      const error = JSON.parse(res.data);
-      throw Error(error.message, { cause: error });
-    }
   }
 
   async setPassword(user: TUser, password: string, options: RequestOptions<true, P>) {
@@ -189,11 +159,6 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
       responseType: 'text',
       ...opts,
     });
-
-    if (res.status !== 200) {
-      const error = JSON.parse(res.data);
-      throw Error(error.message, { cause: error });
-    }
   }
 
   async unsetPassword(user: TUser, options: RequestOptions<true, P>) {
@@ -209,11 +174,6 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
       responseType: 'text',
       ...opts,
     });
-
-    if (res.status !== 200) {
-      const error = JSON.parse(res.data);
-      throw Error(error.message, { cause: error });
-    }
   }
 
   async schema(options: RequestOptions<true, P>): Promise<Record<string, TSchema>> {
@@ -227,11 +187,6 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
       responseType: 'text',
       ...opts,
     });
-
-    if (res.status !== 200) {
-      const error = JSON.parse(res.data);
-      throw Error(error.message, { cause: error });
-    }
 
     return deserialize(res.data) as any;
   }
@@ -284,11 +239,6 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
       ...opts,
     });
 
-    if (res.status !== 200) {
-      const error = JSON.parse(res.data);
-      throw Error(error.message, { cause: error });
-    }
-
     const created = deserialize(res.data);
     if (!_.isNil(created) && !(created instanceof TFile)) throw Error('Unknown error');
 
@@ -336,10 +286,6 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
         ...opts,
       });
 
-      if (res.status !== 200) {
-        const error = JSON.parse(res.data);
-        throw Error(error.message, { cause: error });
-      }
       if (Symbol.asyncIterator in res.data || res.data instanceof ReadableStream) {
         return streamToIterable(res.data);
       } else {
