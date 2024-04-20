@@ -25,6 +25,7 @@
 
 import _ from 'lodash';
 import { PVK } from '../private';
+import type jwt from 'jsonwebtoken';
 import type { CookieOptions, Request } from 'express';
 import type { SignOptions } from 'jsonwebtoken';
 import { ExtraOptions } from '../options';
@@ -159,4 +160,7 @@ export interface ProtoType<Ext> {
   generateUploadToken(
     options?: { maxUploadSize?: number; }
   ): string;
+
+  jwtSign(payload: any, options: jwt.SignOptions): string;
+  jwtVarify(token: string, options?: jwt.VerifyOptions): jwt.JwtPayload | undefined;
 };

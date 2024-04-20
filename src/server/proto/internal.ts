@@ -400,25 +400,31 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     })();
   }
 
-  jwtSign(type: 'login' | 'upload', payload: any, options?: jwt.SignOptions) {
-    const jwtOptionMap = {
-      'login': this.options.jwtSignOptions,
-      'upload': this.options.jwtUploadSignOptions,
-    } as const;
-    return jwt.sign(payload, this.options.jwtToken, options ?? jwtOptionMap[type]);
+  _jwtSign(payload: any, options: jwt.SignOptions) {
+    return jwt.sign(payload, this.options.jwtToken, options);
   }
 
-  jwtVarify(type: 'login' | 'upload', token: string) {
+  _jwtVarify(token: string, options: jwt.VerifyOptions = {}) {
     try {
-      const jwtOptionMap = {
-        'login': this.options.jwtVerifyOptions,
-        'upload': this.options.jwtUploadVerifyOptions,
-      } as const;
-      const payload = jwt.verify(token, this.options.jwtToken, { ...jwtOptionMap[type], complete: false });
+      const payload = jwt.verify(token, this.options.jwtToken, { ...options, complete: false });
       if (!_.isObject(payload)) return;
       return payload;
     } catch {
       return;
     }
+  }
+
+  jwtSign(type: 'login' | 'upload', payload: any, options?: jwt.SignOptions) {
+    return this._jwtSign(payload, options ?? {
+      'login': this.options.jwtSignOptions,
+      'upload': this.options.jwtUploadSignOptions,
+    }[type]);
+  }
+
+  jwtVarify(type: 'login' | 'upload', token: string) {
+    return this._jwtVarify(token, {
+      'login': this.options.jwtVerifyOptions,
+      'upload': this.options.jwtUploadVerifyOptions,
+    }[type]);
   }
 }

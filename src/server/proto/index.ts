@@ -241,4 +241,12 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
       maxUploadSize: options.maxUploadSize,
     }, options?.jwtSignOptions);
   }
+
+  jwtSign(payload: any, options: jwt.SignOptions) {
+    return this[PVK]._jwtSign(payload, options);
+  }
+
+  jwtVarify(token: string, options: jwt.VerifyOptions = {}) {
+    return this[PVK]._jwtVarify(token, options);
+  }
 }
