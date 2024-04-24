@@ -79,12 +79,14 @@ export default class Service<Ext, P extends ProtoType<any>> {
     }
 
     if (res.status !== 200) {
+      let error: Error
       try {
-        const error = JSON.parse(res.data);
-        throw Error(error.message, { cause: error });
+        const _error = JSON.parse(res.data);
+        error = new Error(_error.message, { cause: _error });
       } catch {
-        throw Error(res.data);
+        error = new Error(res.data);
       }
+      throw error;
     }
 
     return res;
