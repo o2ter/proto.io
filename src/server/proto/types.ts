@@ -26,7 +26,7 @@
 import { TFileStorage } from '../file';
 import { TStorage } from '../storage';
 import { TSchema } from '../../internals/schema';
-import { CookieOptions } from 'express';
+import { CookieOptions } from '@o2ter/server-js';
 import { SignOptions, VerifyOptions } from 'jsonwebtoken';
 import { PasswordHashOptions } from '../crypto/password';
 import { TExtensions } from '../../internals/object/types';

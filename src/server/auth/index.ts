@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { ProtoService } from '../proto/index';
-import { RequestHandler } from 'express';
+import { RequestHandler } from '@o2ter/server-js';
 import { signUser } from '../proto/session';
 
 export default <E>(proto: ProtoService<E>): RequestHandler => async (req: any, res, next) => {

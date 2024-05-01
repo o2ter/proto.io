@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { PVK } from '../private';
 import type jwt from 'jsonwebtoken';
-import type { CookieOptions, Request } from 'express';
+import type { CookieOptions, Request } from '@o2ter/server-js';
 import type { SignOptions } from 'jsonwebtoken';
 import { ExtraOptions } from '../options';
 import { TQuery } from '../query';

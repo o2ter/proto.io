@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { Router } from 'express';
+import { Router } from '@o2ter/server-js';
 import { ProtoService } from '../proto';
 import { response } from './common';
 

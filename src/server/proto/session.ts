@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import jwt from 'jsonwebtoken';
-import { CookieOptions, Request, Response } from 'express';
+import { CookieOptions, Request, Response } from '@o2ter/server-js';
 import { ProtoService } from './index';
 import { AUTH_COOKIE_KEY, MASTER_PASS_HEADER_NAME, MASTER_USER_HEADER_NAME } from '../../internals/const';
 import { randomUUID } from '@o2ter/crypto-js';

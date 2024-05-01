@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { Readable } from 'node:stream';
-import { Request, Response } from 'express';
+import { Request, Response } from '@o2ter/server-js';
 import busboy, { FileInfo } from 'busboy';
 import { Awaitable } from '@o2ter/utils-js';
 import { TSerializable, serialize } from '../../common';

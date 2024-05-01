@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import express, { Router } from 'express';
+import { Server, Router } from '@o2ter/server-js';
 import { ProtoService } from '../proto';
 import { response } from './common';
 import { deserialize } from '../../common';
@@ -55,7 +55,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
 
   router.post(
     '/functions/:name',
-    express.text({ type: '*/*' }),
+    Server.text({ type: '*/*' }),
     async (req, res) => {
 
       res.setHeader('Cache-Control', ['no-cache', 'no-store']);

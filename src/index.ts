@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import express, { RequestHandler } from 'express';
+import { Server, RequestHandler } from '@o2ter/server-js';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { ProtoService } from './server/proto';
@@ -72,7 +72,7 @@ export const ProtoRoute = async <E>(options: {
     origin: true,
   };
 
-  const router = express.Router().use(
+  const router = Server.Router().use(
     cors(corsOpts),
     cookieParser() as any,
     csrfHandler(proto[PVK].options.csrfToken),

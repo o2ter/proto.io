@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import express, { Router } from 'express';
+import { Server, Router } from '@o2ter/server-js';
 import { ProtoService } from '../proto';
 import queryType from 'query-types';
 import { response } from './common';
@@ -35,7 +35,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
 
   router.post(
     '/classes/:name',
-    express.text({ type: '*/*' }),
+    Server.text({ type: '*/*' }),
     async (req, res) => {
 
       res.setHeader('Cache-Control', ['no-cache', 'no-store']);
@@ -153,7 +153,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
 
   router.patch(
     '/classes/:name/:id',
-    express.text({ type: '*/*' }),
+    Server.text({ type: '*/*' }),
     async (req, res) => {
 
       res.setHeader('Cache-Control', ['no-cache', 'no-store']);
@@ -173,7 +173,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
 
   router.delete(
     '/classes/:name/:id',
-    express.text({ type: '*/*' }),
+    Server.text({ type: '*/*' }),
     async (req, res) => {
 
       res.setHeader('Cache-Control', ['no-cache', 'no-store']);

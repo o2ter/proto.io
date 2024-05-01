@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { Router } from 'express';
+import { Router } from '@o2ter/server-js';
 import { Readable } from 'node:stream';
 import { ProtoService } from '../proto';
 import { decodeFormStream, response } from './common';

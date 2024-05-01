@@ -24,14 +24,14 @@
 //
 
 import _ from 'lodash';
-import express from 'express';
+import { Server } from '@o2ter/server-js';
 import { ProtoService, ProtoRoute } from '../../src/index';
 import { beforeAll, afterAll } from '@jest/globals';
 import DatabaseFileStorage from '../../src/adapters/file/database';
 import PostgresStorage from '../../src/adapters/storage/progres';
 import { randomUUID } from '@o2ter/crypto-js';
 
-let httpServer: any;
+const app = new Server;
 
 const db_host = process.env['POSTGRES_HOST'] ?? "localhost";
 const db_user = process.env['POSTGRES_USERNAME'];
@@ -110,20 +110,17 @@ Proto.define('createUserWithRole', async (proto) => {
 
 beforeAll(async () => {
 
-  const app = express();
-
   app.use('/proto', await ProtoRoute({
     proto: Proto,
   }));
 
   console.log('version: ', await database.version());
 
-  httpServer = require('http-shutdown')(require('http').createServer(app));
-  httpServer.listen(8080, () => console.log('listening on port 8080'));
+  app.listen(8080, () => console.log('listening on port 8080'));
 });
 
 afterAll(() => new Promise<void>(async (res) => {
   await Proto.shutdown();
   await database.shutdown();
-  httpServer.shutdown(res);
+  app.close();
 }));

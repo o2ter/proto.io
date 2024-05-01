@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { RequestHandler } from 'express';
+import { RequestHandler } from '@o2ter/server-js';
 import csrf from 'csrf';
 
 import { XSRF_COOKIE_NAME, XSRF_HEADER_NAME } from '../../internals/const';
