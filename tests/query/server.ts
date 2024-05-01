@@ -372,8 +372,8 @@ beforeAll(async () => {
   app.listen(8080, () => console.log('listening on port 8080'));
 });
 
-afterAll(() => new Promise<void>(async (res) => {
+afterAll(async () => { 
   await Proto.shutdown();
   await database.shutdown();
-  app.close();
-}));
+  await app.close();
+});
