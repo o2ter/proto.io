@@ -1327,15 +1327,14 @@
     "@o2ter/utils-js" "^0.0.1"
     lodash ">=4.17.21"
 
-"@o2ter/server-js@^0.0.6":
-  version "0.0.6"
-  resolved "https://registry.yarnpkg.com/@o2ter/server-js/-/server-js-0.0.6.tgz#8423193e99c29e972619769a270acc2e540b51ca"
-  integrity sha512-mQGdXhInYvIE0RxZYYSEBkzIEZqB+Ykglz2cwyGqv8VbJFitIr/+jB5PK8YbonAUGAfBkqQ8/vXq5lLgjf2jAQ==
+"@o2ter/server-js@^0.0.7":
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/@o2ter/server-js/-/server-js-0.0.7.tgz#3e32c599a4a40f30397ce7b0acfc4cf6960068e2"
+  integrity sha512-dpW1/lCG1xZmPdXfrEc+JA0wtLo3SAfq9caAbzfaw++zMI8Fmw8SRPOc1ScaRygkL8OCFGVszCPBKSoH0FJhFw==
   dependencies:
     "@types/compression" "^1.7.5"
     "@types/cookie-parser" "^1.4.7"
     "@types/express" "^4.17.21"
-    chalk "^5.3.0"
     compression "^1.7.4"
     cookie-parser "^1.4.6"
     express "^4.19.2"
@@ -2111,11 +2110,6 @@ chalk@^4.0.0:
   dependencies:
     ansi-styles "^4.1.0"
     supports-color "^7.1.0"
-
-chalk@^5.3.0:
-  version "5.3.0"
-  resolved "https://registry.yarnpkg.com/chalk/-/chalk-5.3.0.tgz#67c20a7ebef70e7f3970a01f90fa210cb6860385"
-  integrity sha512-dLitG79d+GV1Nb/VYcCDFivJeK1hiukt9QjRNVOsUtTy1rR1YJsmpGGTZ3qJos+uw7WmWF4wUwBd9jxjocFC2w==
 
 char-regex@^1.0.2:
   version "1.0.2"
