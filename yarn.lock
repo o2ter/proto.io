@@ -1327,11 +1327,12 @@
     "@o2ter/utils-js" "^0.0.1"
     lodash ">=4.17.21"
 
-"@o2ter/server-js@^0.0.7":
-  version "0.0.7"
-  resolved "https://registry.yarnpkg.com/@o2ter/server-js/-/server-js-0.0.7.tgz#3e32c599a4a40f30397ce7b0acfc4cf6960068e2"
-  integrity sha512-dpW1/lCG1xZmPdXfrEc+JA0wtLo3SAfq9caAbzfaw++zMI8Fmw8SRPOc1ScaRygkL8OCFGVszCPBKSoH0FJhFw==
+"@o2ter/server-js@^0.0.8":
+  version "0.0.8"
+  resolved "https://registry.yarnpkg.com/@o2ter/server-js/-/server-js-0.0.8.tgz#c93fcc394bb74ca9da998c2b1999fbd9740d2e05"
+  integrity sha512-knQe+A3v+HggsytrHuNcAtNAmC6vHdQSzVJngGQHkxVd/YCBN1tFaor6h8tx2W0jUUqJt9YAvb2a6OW71aqwvA==
   dependencies:
+    "@o2ter/styler.js" "^0.0.1"
     "@types/compression" "^1.7.5"
     "@types/cookie-parser" "^1.4.7"
     "@types/express" "^4.17.21"
@@ -1341,6 +1342,13 @@
     lodash "^4.17.21"
     morgan "^1.10.0"
     socket.io "^4.7.5"
+
+"@o2ter/styler.js@^0.0.1":
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/@o2ter/styler.js/-/styler.js-0.0.1.tgz#bed4ac01bc605cfc8f7092fcc6a7b0c02b9872b7"
+  integrity sha512-EiwmCiR4n3tcTVQbd7sGh5+O4u48xgAn50rE/f39jPYFiBh5L0ic2JvCdHXcKLWfvMPJxKfoAQFMCLiBu+NYJA==
+  dependencies:
+    lodash "^4.17.21"
 
 "@o2ter/utils-js@^0.0.1":
   version "0.0.1"
