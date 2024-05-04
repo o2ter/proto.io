@@ -102,16 +102,24 @@ export class TObject {
     this.set('_expired_at', value);
   }
 
-  get acl(): TSchema.ACLs {
+  acl(): TSchema.ACLs {
     return {
       read: this.get('_rperm') ?? ['*'],
       update: this.get('_wperm') ?? ['*'],
     };
   }
 
-  set acl(value: Partial<TSchema.ACLs>) {
+  setAcl(value: Partial<TSchema.ACLs>) {
     this.set('_rperm', value.read ?? ['*']);
     this.set('_wperm', value.update ?? ['*']);
+  }
+
+  setReadAcl(value: TSchema.ACL) {
+    this.set('_rperm', value);
+  }
+
+  setWriteAcl(value: TSchema.ACL) {
+    this.set('_wperm', value);
   }
 
   keys(): string[] {
