@@ -28,7 +28,7 @@ import Service from '../request';
 import { RequestOptions } from '../options';
 import { ProtoOptions } from './types';
 import { TSchema } from '../../internals/schema';
-import { base64ToBuffer, isBinaryData, isBlob, isReadableStream, iterableToStream, streamToIterable } from '@o2ter/utils-js';
+import { base64ToBuffer, isBinaryData, isBlob, isReadableStream, iterableToStream } from '@o2ter/utils-js';
 import { TSerializable, deserialize, serialize } from '../../common';
 import { ProtoInternalType, ProtoType } from '../../internals/proto';
 import { TObjectType } from '../../internals/object/types';
@@ -286,8 +286,8 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
         ...opts,
       });
 
-      if (Symbol.asyncIterator in res.data || res.data instanceof ReadableStream) {
-        return streamToIterable(res.data);
+      if (Symbol.asyncIterator in res.data) {
+        return res.data;
       } else {
         throw Error('Unknown stream type');
       }
