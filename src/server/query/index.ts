@@ -116,7 +116,9 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
       object[PVK].mutated[key] = { $set: value };
     }
 
-    if (_.isFunction(beforeSave)) await beforeSave(proxy(Object.setPrototypeOf({ object, context }, this._proto)));
+    if (_.isFunction(beforeSave)) await beforeSave(
+      proxy(Object.setPrototypeOf({ object, context }, options?.session ?? this._proto))
+    );
 
     const result = this._objectMethods(
       await this._dispatcher(options).insert({
@@ -126,7 +128,11 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
       }, _.fromPairs([...object.entries()]))
     );
     if (!result) throw Error('Unable to insert document');
-    if (_.isFunction(afterSave)) await afterSave(proxy(Object.setPrototypeOf({ object: result, context }, this._proto)));
+    if (_.isFunction(afterSave)) {
+      await afterSave(
+        proxy(Object.setPrototypeOf({ object: result, context }, options?.session ?? this._proto))
+      );
+    }
     return result;
   }
 
@@ -147,7 +153,9 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
       if (!object) return undefined;
 
       object[PVK].mutated = update;
-      await beforeSave(proxy(Object.setPrototypeOf({ object, context }, this._proto)));
+      await beforeSave(
+        proxy(Object.setPrototypeOf({ object, context }, options?.session ?? this._proto))
+      );
 
       update = object[PVK].mutated;
     }
@@ -155,7 +163,11 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
     const result = this._objectMethods(
       await this._dispatcher(options).updateOne(this._queryOptions, update)
     );
-    if (result && _.isFunction(afterSave)) await afterSave(proxy(Object.setPrototypeOf({ object: result, context }, this._proto)));
+    if (result && _.isFunction(afterSave)) {
+      await afterSave(
+        proxy(Object.setPrototypeOf({ object: result, context }, options?.session ?? this._proto))
+      );
+    }
     return result;
   }
 
@@ -184,7 +196,9 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
         }
       }
 
-      await beforeSave(proxy(Object.setPrototypeOf({ object, context }, this._proto)));
+      await beforeSave(
+        proxy(Object.setPrototypeOf({ object, context }, options?.session ?? this._proto))
+      );
 
       if (object.objectId) {
         update = object[PVK].mutated;
@@ -203,7 +217,11 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
       await this._dispatcher(options).upsertOne(this._queryOptions, update, setOnInsert)
     );
     if (!result) throw Error('Unable to upsert document');
-    if (_.isFunction(afterSave)) await afterSave(proxy(Object.setPrototypeOf({ object: result, context }, this._proto)));
+    if (_.isFunction(afterSave)) {
+      await afterSave(
+        proxy(Object.setPrototypeOf({ object: result, context }, options?.session ?? this._proto))
+      );
+    }
     return result;
   }
 
@@ -221,7 +239,9 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
       );
       if (!object) return undefined;
 
-      await beforeDelete(proxy(Object.setPrototypeOf({ object, context }, this._proto)));
+      await beforeDelete(
+        proxy(Object.setPrototypeOf({ object, context }, options?.session ?? this._proto))
+      );
 
       result = this._objectMethods(
         await this._dispatcher(options).deleteOne({
@@ -236,7 +256,11 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
       );
     }
 
-    if (result && _.isFunction(afterDelete)) await afterDelete(proxy(Object.setPrototypeOf({ object: result, context }, this._proto)));
+    if (result && _.isFunction(afterDelete)) {
+      await afterDelete(
+        proxy(Object.setPrototypeOf({ object: result, context }, options?.session ?? this._proto))
+      );
+    }
     return result;
   }
 
@@ -252,7 +276,9 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
       if (_.isEmpty(objects)) return 0;
 
       if (_.isFunction(beforeDelete)) {
-        await Promise.all(_.map(objects, object => beforeDelete(proxy(Object.setPrototypeOf({ object, context }, this._proto)))));
+        await Promise.all(_.map(objects, object => beforeDelete(
+          proxy(Object.setPrototypeOf({ object, context }, options?.session ?? this._proto))))
+        );
       }
 
       await this._dispatcher(options).deleteMany({
@@ -261,7 +287,9 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
       });
 
       if (_.isFunction(afterDelete)) {
-        await Promise.all(_.map(objects, object => afterDelete(proxy(Object.setPrototypeOf({ object, context }, this._proto)))));
+        await Promise.all(_.map(objects, object => afterDelete(
+          proxy(Object.setPrototypeOf({ object, context }, options?.session ?? this._proto))))
+        );
       }
 
       return objects.length;
