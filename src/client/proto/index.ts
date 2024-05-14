@@ -66,7 +66,7 @@ export class ProtoClient<Ext> extends ProtoType<Ext> {
   ): Promise<void | TSerializable> {
     return this[PVK].request(this, data, {
       method: 'post',
-      url: `functions/${name}`,
+      url: `functions/${encodeURIComponent(name)}`,
       ...(options ?? {})
     });
   }

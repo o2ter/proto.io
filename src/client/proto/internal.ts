@@ -274,11 +274,14 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
 
     const { serializeOpts, context, ...opts } = options ?? {};
 
+    const filename = object.filename;
+    if (_.isNil(filename)) throw Error('Invalid filename');
+
     return iterableToStream(async () => {
       const res = await this.service.request({
         method: 'get',
         baseURL: this.options.endpoint,
-        url: `files/${object.objectId}/${object.filename}`,
+        url: `files/${object.objectId}/${encodeURIComponent(filename)}`,
         responseType: 'stream',
         headers: {
           'Content-Type': 'multipart/form-data',

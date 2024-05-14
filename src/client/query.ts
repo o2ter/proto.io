@@ -53,7 +53,7 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E, boolean,
     const { context, ...opts } = options ?? {};
     return {
       method: 'post',
-      url: `classes/${this.className}`,
+      url: `classes/${encodeURIComponent(this.className)}`,
       serializeOpts: {
         objAttrs: TObject.defaultReadonlyKeys,
       },
