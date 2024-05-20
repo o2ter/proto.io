@@ -134,6 +134,10 @@ export const encodeFieldExpression = (
               if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
               return sql`${element} IN (${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)})`;
             }
+            if (_.some(expr.value, x => _.isNil(x))) {
+              const values = _.filter(expr.value, x => !_.isNil(x));
+              return sql`${element} IS NULL OR ${element} IN (${_.map(values, x => encodeValue(x))})`;
+            }
             return sql`${element} IN (${_.map(expr.value, x => encodeValue(x))})`;
         }
       }
@@ -155,6 +159,10 @@ export const encodeFieldExpression = (
             if (!_.isString(dataType) && dataType?.type === 'pointer') {
               if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
               return sql`${element} NOT IN (${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)})`;
+            }
+            if (_.some(expr.value, x => _.isNil(x))) {
+              const values = _.filter(expr.value, x => !_.isNil(x));
+              return sql`${element} IS NOT NULL AND ${element} NOT IN (${_.map(values, x => encodeValue(x))})`;
             }
             return sql`${element} NOT IN (${_.map(expr.value, x => encodeValue(x))})`;
         }

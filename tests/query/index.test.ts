@@ -592,6 +592,36 @@ test('test types 7', async () => {
 
 })
 
+test('test types 8', async () => {
+
+  const inserted1 = await Proto.Query('Test').insert({
+    string: '',
+  });
+
+  const q1 = Proto.Query('Test').equalTo('_id', inserted1.objectId);
+
+  expect((await q1.clone().containsIn('string', ['', null]).first())?.objectId).toStrictEqual(inserted1.objectId);
+  expect((await q1.clone().notContainsIn('string', ['', null]).first())?.objectId).toBeUndefined();
+
+  const inserted2 = await Proto.Query('Test').insert({
+    string: null,
+  });
+
+  const q2 = Proto.Query('Test').equalTo('_id', inserted2.objectId);
+
+  expect((await q2.clone().containsIn('string', ['', null]).first())?.objectId).toStrictEqual(inserted2.objectId);
+  expect((await q2.clone().notContainsIn('string', ['', null]).first())?.objectId).toBeUndefined();
+
+  const inserted3 = await Proto.Query('Test').insert({
+    string: 'test',
+  });
+
+  const q3 = Proto.Query('Test').equalTo('_id', inserted3.objectId);
+
+  expect((await q3.clone().containsIn('string', ['', null]).first())?.objectId).toBeUndefined();
+  expect((await q3.clone().notContainsIn('string', ['', null]).first())?.objectId).toStrictEqual(inserted3.objectId);
+})
+
 test('test update types', async () => {
   const date = new Date;
   const date2 = new Date;
