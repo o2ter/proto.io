@@ -124,21 +124,26 @@ export const encodeFieldExpression = (
             {
               const value = expr.value[0];
               if (!_.isString(dataType) && dataType?.type === 'pointer') {
+                if (_.isNil(value)) return sql`${element} IS NULL`;
                 if (!(value instanceof TObject) || !value.objectId) break;
                 return sql`${element} ${nullSafeEqual()} ${{ value: value.objectId }}`;
               }
               return sql`${element} ${nullSafeEqual()} ${encodeValue(value)}`;
             }
           default:
+            const containsNil = _.some(expr.value, x => _.isNil(x));
+            const values = _.filter(expr.value, x => !_.isNil(x));
             if (!_.isString(dataType) && dataType?.type === 'pointer') {
-              if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
-              return sql`${element} IN (${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)})`;
+              if (!_.every(values, x => x instanceof TObject && x.objectId)) break;
+              if (containsNil) {
+                return sql`${element} IS NULL OR ${element} IN (${_.map(values, (x: any) => sql`${{ value: x.objectId }}`)})`;
+              }
+              return sql`${element} IN (${_.map(values, (x: any) => sql`${{ value: x.objectId }}`)})`;
             }
-            if (_.some(expr.value, x => _.isNil(x))) {
-              const values = _.filter(expr.value, x => !_.isNil(x));
+            if (containsNil) {
               return sql`${element} IS NULL OR ${element} IN (${_.map(values, x => encodeValue(x))})`;
             }
-            return sql`${element} IN (${_.map(expr.value, x => encodeValue(x))})`;
+            return sql`${element} IN (${_.map(values, x => encodeValue(x))})`;
         }
       }
     case '$nin':
@@ -150,21 +155,26 @@ export const encodeFieldExpression = (
             {
               const value = expr.value[0];
               if (!_.isString(dataType) && dataType?.type === 'pointer') {
+                if (_.isNil(value)) return sql`${element} IS NOT NULL`;
                 if (!(value instanceof TObject) || !value.objectId) break;
                 return sql`${element} ${nullSafeNotEqual()} ${{ value: value.objectId }}`;
               }
               return sql`${element} ${nullSafeNotEqual()} ${encodeValue(value)}`;
             }
           default:
+            const containsNil = _.some(expr.value, x => _.isNil(x));
+            const values = _.filter(expr.value, x => !_.isNil(x));
             if (!_.isString(dataType) && dataType?.type === 'pointer') {
-              if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
-              return sql`${element} NOT IN (${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)})`;
+              if (!_.every(values, x => x instanceof TObject && x.objectId)) break;
+              if (containsNil) {
+                return sql`${element} IS NOT NULL AND ${element} NOT IN (${_.map(values, (x: any) => sql`${{ value: x.objectId }}`)})`;
+              }
+              return sql`${element} NOT IN (${_.map(values, (x: any) => sql`${{ value: x.objectId }}`)})`;
             }
-            if (_.some(expr.value, x => _.isNil(x))) {
-              const values = _.filter(expr.value, x => !_.isNil(x));
+            if (containsNil) {
               return sql`${element} IS NOT NULL AND ${element} NOT IN (${_.map(values, x => encodeValue(x))})`;
             }
-            return sql`${element} NOT IN (${_.map(expr.value, x => encodeValue(x))})`;
+            return sql`${element} NOT IN (${_.map(values, x => encodeValue(x))})`;
         }
       }
     case '$subset':
