@@ -2076,10 +2076,10 @@ test('test long atomic', async () => {
 //       await new Promise<void>(res => setTimeout(res, 100));
 
 //       const updated = await Proto.Query('Test')
-//         .equalTo('__v', doc!.__v)
-//         .equalTo('_id', doc!.objectId)
+//         .equalTo('__v', doc.__v)
+//         .equalTo('_id', doc.objectId)
 //         .updateOne({
-//           number: { $set: doc!.get('number') + 1 },
+//           number: { $set: doc.get('number') + 1 },
 //         });
 
 //       if (updated) return updated.get('number');
