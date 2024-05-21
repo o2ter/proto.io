@@ -2037,7 +2037,9 @@ test('test long atomic', async () => {
 
   const updateWithAtomic = async () => {
     while (true) {
-      const doc = await inserted.fetchWithInclude(['number']);
+      const doc = await inserted.clone().fetchWithInclude(['number']);
+
+      await new Promise<void>(res => setTimeout(res, 100));
 
       const updated = await Proto.Query('Test')
         .equalTo('__v', doc.__v)
@@ -2045,8 +2047,6 @@ test('test long atomic', async () => {
         .updateOne({
           number: { $inc: 1 },
         });
-
-      await new Promise<void>(res => setTimeout(res, 100));
 
       if (updated) return updated.get('number');
     }
@@ -2071,16 +2071,16 @@ test('test long atomic', async () => {
 
 //   const updateWithAtomic = async () => {
 //     while (true) {
-//       const doc = await inserted.fetchWithInclude(['number']);
-
-//       const updated = await Proto.Query('Test')
-//         .equalTo('__v', doc.__v)
-//         .equalTo('_id', doc.objectId)
-//         .updateOne({
-//           number: { $set: doc.get('number') + 1 },
-//         });
+//       const doc = await inserted.clone().fetchWithInclude(['number']);
 
 //       await new Promise<void>(res => setTimeout(res, 100));
+
+//       const updated = await Proto.Query('Test')
+//         .equalTo('__v', doc!.__v)
+//         .equalTo('_id', doc!.objectId)
+//         .updateOne({
+//           number: { $set: doc!.get('number') + 1 },
+//         });
 
 //       if (updated) return updated.get('number');
 //     }
