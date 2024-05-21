@@ -2029,6 +2029,74 @@ test('test long transaction session 3', async () => {
   expect(results.sort((a, b) => a - b)).toStrictEqual([1, 2, 3, 4, 5]);
 })
 
+test('test long atomic', async () => {
+
+  const inserted = await Proto.Query('Test').insert({
+    number: 0,
+  });
+
+  const updateWithAtomic = async () => {
+    while (true) {
+      const doc = await inserted.fetchWithInclude(['number']);
+
+      const updated = await Proto.Query('Test')
+        .equalTo('__v', doc.__v)
+        .equalTo('_id', doc.objectId)
+        .updateOne({
+          number: { $inc: 1 },
+        });
+
+      await new Promise<void>(res => setTimeout(res, 100));
+
+      if (updated) return updated.get('number');
+    }
+  }
+
+  const results = await Promise.all([
+    updateWithAtomic(),
+    updateWithAtomic(),
+    updateWithAtomic(),
+    updateWithAtomic(),
+    updateWithAtomic(),
+  ]) as number[];
+
+  expect(results.sort((a, b) => a - b)).toStrictEqual([1, 2, 3, 4, 5]);
+})
+
+// test('test long atomic 2', async () => {
+
+//   const inserted = await Proto.Query('Test').insert({
+//     number: 0,
+//   });
+
+//   const updateWithAtomic = async () => {
+//     while (true) {
+//       const doc = await inserted.fetchWithInclude(['number']);
+
+//       const updated = await Proto.Query('Test')
+//         .equalTo('__v', doc.__v)
+//         .equalTo('_id', doc.objectId)
+//         .updateOne({
+//           number: { $set: doc.get('number') + 1 },
+//         });
+
+//       await new Promise<void>(res => setTimeout(res, 100));
+
+//       if (updated) return updated.get('number');
+//     }
+//   }
+
+//   const results = await Promise.all([
+//     updateWithAtomic(),
+//     updateWithAtomic(),
+//     updateWithAtomic(),
+//     updateWithAtomic(),
+//     updateWithAtomic(),
+//   ]) as number[];
+
+//   expect(results.sort((a, b) => a - b)).toStrictEqual([1, 2, 3, 4, 5]);
+// })
+
 test('test random', async () => {
 
   for (const i of _.range(1, 10)) {
