@@ -361,6 +361,52 @@ Proto.define('updateWithLongTransactionSession3', async (proto) => {
   }, { mode: 'repeatable', retry: true });
 });
 
+Proto.define('updateWithAtomic', async (proto) => {
+
+  const { inserted } = proto.params as any;
+
+  while (true) {
+    const doc = await inserted.clone().fetchWithInclude(['number']);
+
+    await new Promise<void>(res => setTimeout(res, 100));
+
+    const updated = await proto.withTransaction(
+      (proto) => proto.Query('Test')
+        .equalTo('__v', doc.__v)
+        .equalTo('_id', doc.objectId)
+        .updateOne({
+          number: { $inc: 1 },
+        }),
+      { mode: 'repeatable', retry: true }
+    );
+
+    if (updated) return updated.get('number');
+  }
+});
+
+Proto.define('updateWithAtomic2', async (proto) => {
+
+  const { inserted } = proto.params as any;
+
+  while (true) {
+    const doc = await inserted.clone().fetchWithInclude(['number']);
+
+    await new Promise<void>(res => setTimeout(res, 100));
+
+    const updated = await proto.withTransaction(
+      (proto) => proto.Query('Test')
+        .equalTo('__v', doc.__v)
+        .equalTo('_id', doc.objectId)
+        .updateOne({
+          number: { $set: doc.get('number') + 1 },
+        }),
+      { mode: 'repeatable', retry: true }
+    );
+
+    if (updated) return updated.get('number');
+  }
+});
+
 beforeAll(async () => {
 
   app.use('/proto', await ProtoRoute({

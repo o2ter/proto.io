@@ -2035,67 +2035,33 @@ test('test long atomic', async () => {
     number: 0,
   });
 
-  const updateWithAtomic = async () => {
-    while (true) {
-      const doc = await inserted.clone().fetchWithInclude(['number']);
-
-      await new Promise<void>(res => setTimeout(res, 100));
-
-      const updated = await Proto.Query('Test')
-        .equalTo('__v', doc.__v)
-        .equalTo('_id', doc.objectId)
-        .updateOne({
-          number: { $inc: 1 },
-        });
-
-      if (updated) return updated.get('number');
-    }
-  }
-
   const results = await Promise.all([
-    updateWithAtomic(),
-    updateWithAtomic(),
-    updateWithAtomic(),
-    updateWithAtomic(),
-    updateWithAtomic(),
+    Proto.run('updateWithAtomic', { inserted }),
+    Proto.run('updateWithAtomic', { inserted }),
+    Proto.run('updateWithAtomic', { inserted }),
+    Proto.run('updateWithAtomic', { inserted }),
+    Proto.run('updateWithAtomic', { inserted }),
   ]) as number[];
 
   expect(results.sort((a, b) => a - b)).toStrictEqual([1, 2, 3, 4, 5]);
 })
 
-// test('test long atomic 2', async () => {
+test('test long atomic 2', async () => {
 
-//   const inserted = await Proto.Query('Test').insert({
-//     number: 0,
-//   });
+  const inserted = await Proto.Query('Test').insert({
+    number: 0,
+  });
 
-//   const updateWithAtomic = async () => {
-//     while (true) {
-//       const doc = await inserted.clone().fetchWithInclude(['number']);
+  const results = await Promise.all([
+    Proto.run('updateWithAtomic2', { inserted }),
+    Proto.run('updateWithAtomic2', { inserted }),
+    Proto.run('updateWithAtomic2', { inserted }),
+    Proto.run('updateWithAtomic2', { inserted }),
+    Proto.run('updateWithAtomic2', { inserted }),
+  ]) as number[];
 
-//       await new Promise<void>(res => setTimeout(res, 100));
-
-//       const updated = await Proto.Query('Test')
-//         .equalTo('__v', doc.__v)
-//         .equalTo('_id', doc.objectId)
-//         .updateOne({
-//           number: { $set: doc.get('number') + 1 },
-//         });
-
-//       if (updated) return updated.get('number');
-//     }
-//   }
-
-//   const results = await Promise.all([
-//     updateWithAtomic(),
-//     updateWithAtomic(),
-//     updateWithAtomic(),
-//     updateWithAtomic(),
-//     updateWithAtomic(),
-//   ]) as number[];
-
-//   expect(results.sort((a, b) => a - b)).toStrictEqual([1, 2, 3, 4, 5]);
-// })
+  expect(results.sort((a, b) => a - b)).toStrictEqual([1, 2, 3, 4, 5]);
+})
 
 test('test random', async () => {
 
