@@ -43,11 +43,11 @@ import { UPLOAD_TOKEN_HEADER_NAME } from '../../internals/const';
 export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements ProtoInternalType<Ext, P> {
 
   options: ProtoOptions<Ext>;
-
-  service = new Service<Ext, P>(this);
+  service: Service<Ext, P>;
 
   constructor(options: ProtoOptions<Ext>) {
     this.options = options;
+    this.service = new Service(this, options.axiosOptions);
   }
 
   async request(

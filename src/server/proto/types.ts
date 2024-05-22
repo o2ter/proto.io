@@ -50,6 +50,5 @@ export type ProtoServiceOptions<Ext> = {
 
 export type ProtoServiceKeyOptions = {
   jwtToken: string;
-  csrfToken?: string;
   masterUsers?: { user: string; pass: string; }[];
 };

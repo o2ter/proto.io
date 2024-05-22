@@ -24,31 +24,32 @@
 //
 
 import _ from 'lodash';
-import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import {
   AUTH_COOKIE_KEY,
   MASTER_PASS_HEADER_NAME,
   MASTER_USER_HEADER_NAME,
-  XSRF_COOKIE_NAME,
-  XSRF_HEADER_NAME,
 } from '../internals/const';
 import { RequestOptions } from './options';
 import { ProtoClientInternal } from './proto/internal';
 import { ProtoType } from '../internals/proto';
+import { AxiosOptions } from './proto/types';
+import { XSRF_COOKIE_NAME, XSRF_HEADER_NAME } from '@o2ter/server-js/dist/const';
 
 export default class Service<Ext, P extends ProtoType<any>> {
 
-  service = axios.create({
-    xsrfCookieName: XSRF_COOKIE_NAME,
-    xsrfHeaderName: XSRF_HEADER_NAME,
-    validateStatus: status => status >= 200 && status < 500,
-    withCredentials: true,
-  });
-
   proto: ProtoClientInternal<Ext, P>;
+  service: AxiosInstance;
 
-  constructor(proto: ProtoClientInternal<Ext, P>) {
+  constructor(proto: ProtoClientInternal<Ext, P>, options: AxiosOptions = {}) {
     this.proto = proto;
+    this.service = axios.create({
+      xsrfCookieName: XSRF_COOKIE_NAME,
+      xsrfHeaderName: XSRF_HEADER_NAME,
+      withCredentials: true,
+      validateStatus: status => status >= 200 && status < 500,
+      ...options,
+    });
   }
 
   async request<T = any, D = any>(config: RequestOptions<boolean, P> & AxiosRequestConfig<D>): Promise<AxiosResponse<T, D>> {

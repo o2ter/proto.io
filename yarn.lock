@@ -1300,10 +1300,10 @@
     "@o2ter/utils-js" "^0.0.1"
     lodash ">=4.17.21"
 
-"@o2ter/server-js@^0.0.10":
-  version "0.0.10"
-  resolved "https://registry.yarnpkg.com/@o2ter/server-js/-/server-js-0.0.10.tgz#b7bf2f846a7035727ac68020f79de68044cbe763"
-  integrity sha512-/EaCz+QcbGxglrvEPxo6YXpobMbai9Ui5duQXgWwC4rMe6pN82uSwoxB7+TXqnbNt4m4mozZeg5eYWBXcMQOgg==
+"@o2ter/server-js@^0.0.12":
+  version "0.0.12"
+  resolved "https://registry.yarnpkg.com/@o2ter/server-js/-/server-js-0.0.12.tgz#7fb4613f0eb8a0251a4089bb07f2c9cfb87d3d11"
+  integrity sha512-GuVe5aUeP53b2ACM+SqiTlA0ey8yhiz154yFLxKMmGSFEm4kXKnMo+8zX+TjYt30XDM9Eltx0vCGLTiD7b+5uw==
   dependencies:
     "@o2ter/styler.js" "^0.0.1"
     "@types/compression" "^1.7.5"
@@ -1312,11 +1312,14 @@
     bufferutil "^4.0.8"
     compression "^1.7.4"
     cookie-parser "^1.4.6"
+    cors "^2.8.5"
+    csrf "^3.1.0"
     express "^4.19.2"
     lodash "^4.17.21"
     morgan "^1.10.0"
+    path-to-regexp "^6.2.2"
     socket.io "^4.7.5"
-    utf-8-validate "^6.0.3"
+    utf-8-validate "^6.0.4"
 
 "@o2ter/styler.js@^0.0.1":
   version "0.0.1"
@@ -3862,6 +3865,11 @@ path-to-regexp@0.1.7:
   resolved "https://registry.yarnpkg.com/path-to-regexp/-/path-to-regexp-0.1.7.tgz#df604178005f522f15eb4490e7247a1bfaa67f8c"
   integrity sha512-5DFkuoqlv1uYQKxy8omFBeJPQcdoE07Kv2sferDCrAq1ohOU+MSDswDIbnx3YAM60qIOnYa53wBhXW0EbMonrQ==
 
+path-to-regexp@^6.2.2:
+  version "6.2.2"
+  resolved "https://registry.yarnpkg.com/path-to-regexp/-/path-to-regexp-6.2.2.tgz#324377a83e5049cbecadc5554d6a63a9a4866b36"
+  integrity sha512-GQX3SSMokngb36+whdpRXE+3f9V8UzyAorlYvOGx87ufGHehNTn5lCxrKtLyZ4Yl/wEKnNnr98ZzOwwDZV5ogw==
+
 pg-cloudflare@^1.1.1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/pg-cloudflare/-/pg-cloudflare-1.1.1.tgz#e6d5833015b170e23ae819e8c5d7eaedb472ca98"
@@ -4659,7 +4667,7 @@ update-browserslist-db@^1.0.13:
     escalade "^3.1.2"
     picocolors "^1.0.1"
 
-utf-8-validate@^6.0.3:
+utf-8-validate@^6.0.4:
   version "6.0.4"
   resolved "https://registry.yarnpkg.com/utf-8-validate/-/utf-8-validate-6.0.4.tgz#1305a1bfd94cecb5a866e6fc74fd07f3ed7292e5"
   integrity sha512-xu9GQDeFp+eZ6LnCywXN/zBancWvOpUMzgjLPSjy4BRHSmTelvn2E0DG0o1sTiw5hkCKBHo8rwSKncfRfv2EEQ==

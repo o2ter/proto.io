@@ -25,11 +25,8 @@
 
 import _ from 'lodash';
 import { Server, RequestHandler } from '@o2ter/server-js';
-import cors from 'cors';
-import cookieParser from 'cookie-parser';
 import { ProtoService } from './server/proto';
 import { ProtoServiceKeyOptions, ProtoServiceOptions } from './server/proto/types';
-import csrfHandler from './server/csrf';
 import authHandler from './server/auth';
 import classesRoute from './server/routes/classes';
 import functionRoute from './server/routes/function';
@@ -67,15 +64,7 @@ export const ProtoRoute = async <E>(options: {
   const proto = _proto instanceof ProtoService ? _proto : new ProtoService(_proto);
   await proto[PVK].prepare();
 
-  const corsOpts = {
-    credentials: true,
-    origin: true,
-  };
-
   const router = Server.Router().use(
-    cors(corsOpts),
-    cookieParser() as any,
-    csrfHandler(proto[PVK].options.csrfToken),
     authHandler(proto),
     ..._.map(adapters, x => ((req, res, next) => x(proto.connect(req), res, next)) as RequestHandler),
     (req, res, next) => {

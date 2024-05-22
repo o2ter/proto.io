@@ -25,8 +25,14 @@
 
 import { TExtensions } from '../../internals/object/types';
 
+export type AxiosOptions = {
+  xsrfCookieName?: string,
+  xsrfHeaderName?: string,
+};
+
 export type ProtoOptions<Ext> = {
   endpoint: string;
   masterUser?: { user: string; pass: string; };
   classExtends?: TExtensions<Ext>;
+  axiosOptions?: AxiosOptions;
 };
