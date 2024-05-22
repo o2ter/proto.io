@@ -410,21 +410,21 @@ export class QueryCompiler {
     const joins = _.compact(_.map(_populates, ({ join }) => join));
 
     return sql`
-    WITH ${{ identifier: name }} AS (
-      INSERT INTO ${{ identifier: options.className }}
-      (${_.map(_attrs, x => sql`${{ identifier: x[0] }}`)})
-      VALUES (${_.map(_attrs, x => sql`${x[1]}`)})
-      RETURNING *
-    )${!_.isEmpty(stages) ? sql`, ${_.map(stages, (q, n) => sql`${{ identifier: n }} AS (${q})`)}` : sql``}
-    SELECT ${{
-        literal: [
-          ...this._selectIncludes(name, context.includes),
-          ..._.flatMap(_populates, ({ columns }) => columns),
-        ], separator: ',\n'
-      }}
-    FROM ${{ identifier: name }}
-    ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
-  `;
+      WITH ${{ identifier: name }} AS (
+        INSERT INTO ${{ identifier: options.className }}
+        (${_.map(_attrs, x => sql`${{ identifier: x[0] }}`)})
+        VALUES (${_.map(_attrs, x => sql`${x[1]}`)})
+        RETURNING *
+      )${!_.isEmpty(stages) ? sql`, ${_.map(stages, (q, n) => sql`${{ identifier: n }} AS (${q})`)}` : sql``}
+      SELECT ${{
+          literal: [
+            ...this._selectIncludes(name, context.includes),
+            ..._.flatMap(_populates, ({ columns }) => columns),
+          ], separator: ',\n'
+        }}
+      FROM ${{ identifier: name }}
+      ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
+    `;
   }
 
   updateOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>) {
