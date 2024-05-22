@@ -87,6 +87,8 @@ export interface TStorage {
   lockTable(className: string | string[], update: boolean): Promise<void>;
 
   withConnection<T>(callback: (connection: TStorage) => PromiseLike<T>): PromiseLike<T>;
+
+  atomic<T>(callback: (connection: TStorage) => PromiseLike<T>): PromiseLike<T>;
   withTransaction<T>(
     callback: (connection: TStorage) => PromiseLike<T>,
     options?: TransactionOptions,
