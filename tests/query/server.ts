@@ -370,15 +370,12 @@ Proto.define('updateWithAtomic', async (proto) => {
 
     await new Promise<void>(res => setTimeout(res, 100));
 
-    const updated = await proto.withTransaction(
-      (proto) => proto.Query('Test')
-        .equalTo('__v', doc.__v)
-        .equalTo('_id', doc.objectId)
-        .updateOne({
-          number: { $inc: 1 },
-        }),
-      { mode: 'repeatable', retry: true }
-    );
+    const updated = await proto.Query('Test')
+      .equalTo('__v', doc.__v)
+      .equalTo('_id', doc.objectId)
+      .updateOne({
+        number: { $inc: 1 },
+      });
 
     if (updated) return updated.get('number');
   }
@@ -393,15 +390,12 @@ Proto.define('updateWithAtomic2', async (proto) => {
 
     await new Promise<void>(res => setTimeout(res, 100));
 
-    const updated = await proto.withTransaction(
-      (proto) => proto.Query('Test')
-        .equalTo('__v', doc.__v)
-        .equalTo('_id', doc.objectId)
-        .updateOne({
-          number: { $set: doc.get('number') + 1 },
-        }),
-      { mode: 'repeatable', retry: true }
-    );
+    const updated = await proto.Query('Test')
+      .equalTo('__v', doc.__v)
+      .equalTo('_id', doc.objectId)
+      .updateOne({
+        number: { $set: doc.get('number') + 1 },
+      });
 
     if (updated) return updated.get('number');
   }
