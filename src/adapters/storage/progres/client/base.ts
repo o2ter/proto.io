@@ -1,5 +1,5 @@
 //
-//  client.ts
+//  base.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2024 O2ter Limited. All rights reserved.
@@ -24,14 +24,15 @@
 //
 
 import _ from 'lodash';
-import { PostgresClientDriver } from './driver';
-import { SqlStorage, sql } from '../../../server/storage/sql';
-import { PostgresDialect } from './dialect';
-import { _decodeValue, _encodeValue, _encodeJsonValue } from './dialect/encode';
-import { QueryCompiler } from '../../../server/storage/sql/compiler';
-import { DecodedQuery, FindOptions } from '../../../server/storage';
-import { TransactionOptions } from '../../../internals/proto';
-import { _TValue } from '../../../internals/query/value';
+import { PostgresClientDriver } from '../driver';
+import { SqlStorage, sql } from '../../../../server/storage/sql';
+import { PostgresDialect } from '../dialect';
+import { _decodeValue, _encodeValue, _encodeJsonValue } from '../dialect/encode';
+import { QueryCompiler } from '../../../../server/storage/sql/compiler';
+import { DecodedQuery, FindOptions } from '../../../../server/storage';
+import { TransactionOptions } from '../../../../internals/proto';
+import { _TValue } from '../../../../internals/query/value';
+import { PostgresStorageTransaction } from './transaction';
 
 export class PostgresStorageClient<Driver extends PostgresClientDriver> extends SqlStorage {
 
@@ -77,8 +78,8 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
         ${_.isNil(acl) ? sql`(_id, value)` : sql`(_id, _rperm, value)`}
         VALUES
         ${_.map(_values, (v, k) => _.isNil(acl)
-          ? sql`(${{ value: k }}, ${_encodeJsonValue(_encodeValue(v))})`
-          : sql`(${{ value: k }}, ${{ value: acl }}, ${_encodeJsonValue(_encodeValue(v))})`) }
+        ? sql`(${{ value: k }}, ${_encodeJsonValue(_encodeValue(v))})`
+        : sql`(${{ value: k }}, ${{ value: acl }}, ${_encodeJsonValue(_encodeValue(v))})`)}
         ON CONFLICT (_id) DO UPDATE SET value = EXCLUDED.value;
       `);
     }
@@ -191,43 +192,6 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
         });
       }
 
-      throw e;
-    }
-  }
-}
-
-class PostgresStorageTransaction extends PostgresStorageClient<PostgresClientDriver> {
-
-  counter: number;
-  private _selectLock: boolean;
-
-  constructor(driver: PostgresClientDriver, counter: number, selectLock: boolean) {
-    super(driver);
-    this.counter = counter;
-    this._selectLock = selectLock;
-  }
-
-  selectLock() {
-    return this._selectLock;
-  }
-
-  override async withTransaction<T>(
-    callback: (connection: PostgresStorageTransaction) => PromiseLike<T>,
-  ) {
-
-    const transaction = new PostgresStorageTransaction(this._driver, this.counter + 1, this._selectLock);
-    transaction.schema = this.schema;
-
-    try {
-
-      await transaction.query(sql`SAVEPOINT ${{ identifier: `savepoint_${this.counter}` }}`);
-      const result = await callback(transaction);
-      await transaction.query(sql`RELEASE SAVEPOINT ${{ identifier: `savepoint_${this.counter}` }}`);
-
-      return result
-
-    } catch (e) {
-      await transaction.query(sql`ROLLBACK TO SAVEPOINT ${{ identifier: `savepoint_${this.counter}` }}`);
       throw e;
     }
   }

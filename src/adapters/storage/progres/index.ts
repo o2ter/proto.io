@@ -23,7 +23,7 @@
 //  THE SOFTWARE.
 //
 
-import { PostgresStorage } from './pool';
+import { PostgresStorage } from './client/pool';
 
 export { PostgresStorage };
 export default PostgresStorage;
