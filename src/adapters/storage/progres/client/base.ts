@@ -147,7 +147,7 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
 
   atomic<T>(
     callback: (connection: PostgresStorageTransaction) => PromiseLike<T>
-  ) {
+  ): PromiseLike<T> {
     return this.withTransaction(callback, { mode: 'repeatable', retry: true });
   }
 
@@ -217,7 +217,7 @@ class PostgresStorageTransaction extends PostgresStorageClient<PostgresClientDri
     return this._selectLock;
   }
 
-  override async atomic<T>(
+  override atomic<T>(
     callback: (connection: PostgresStorageTransaction) => PromiseLike<T>
   ) {
     return callback(this);
