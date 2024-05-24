@@ -74,6 +74,8 @@ export const ProtoRoute = async <E>(options: {
     },
   );
 
+  router.get('/health', (req, res) => { res.sendStatus(200); });
+
   classesRoute(router, proto);
   functionRoute(router, proto);
   filesRoute(router, proto);
