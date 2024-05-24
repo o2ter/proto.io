@@ -1300,12 +1300,13 @@
     "@o2ter/utils-js" "^0.0.1"
     lodash ">=4.17.21"
 
-"@o2ter/server-js@^0.0.12":
-  version "0.0.12"
-  resolved "https://registry.yarnpkg.com/@o2ter/server-js/-/server-js-0.0.12.tgz#7fb4613f0eb8a0251a4089bb07f2c9cfb87d3d11"
-  integrity sha512-GuVe5aUeP53b2ACM+SqiTlA0ey8yhiz154yFLxKMmGSFEm4kXKnMo+8zX+TjYt30XDM9Eltx0vCGLTiD7b+5uw==
+"@o2ter/server-js@^0.0.13":
+  version "0.0.13"
+  resolved "https://registry.yarnpkg.com/@o2ter/server-js/-/server-js-0.0.13.tgz#a8afe3a23b33fb742e787d0d033e29142a883807"
+  integrity sha512-rn7MLCT0i+AhRqqE6sLpn5/kIfZcoLamHrBaABWSDL8aNQejBh7PcnS+OPxlpI0lhdIXy4BGBHxVhgV8Mh5XfA==
   dependencies:
     "@o2ter/styler.js" "^0.0.1"
+    "@o2ter/utils-js" "^0.0.9"
     "@types/compression" "^1.7.5"
     "@types/cookie-parser" "^1.4.7"
     "@types/express" "^4.17.21"
