@@ -32,7 +32,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
 
   router.get(
     '/schema',
-    async (req: any, res) => {
+    async (req, res) => {
       res.setHeader('Cache-Control', ['no-cache', 'no-store']);
       const payload = proto.connect(req);
       await response(res, () => {
@@ -44,7 +44,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
 
   router.get(
     '/schema/:name',
-    async (req: any, res) => {
+    async (req, res) => {
       res.setHeader('Cache-Control', ['no-cache', 'no-store']);
 
       const { name } = req.params;

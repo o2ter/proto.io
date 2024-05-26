@@ -33,7 +33,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
 
   router.get(
     '/user/me',
-    async (req: any, res) => {
+    async (req, res) => {
       res.setHeader('Cache-Control', ['no-cache', 'no-store']);
       const payload = proto.connect(req);
       await response(res, () => payload.currentUser());
@@ -43,7 +43,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
   router.post(
     '/user/:id/password',
     Server.text({ type: '*/*' }),
-    async (req: any, res) => {
+    async (req, res) => {
 
       res.setHeader('Cache-Control', ['no-cache', 'no-store']);
 
@@ -69,7 +69,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
 
   router.post(
     '/user/logout',
-    async (req: any, res) => {
+    async (req, res) => {
       res.setHeader('Cache-Control', ['no-cache', 'no-store']);
       const payload = proto.connect(req);
       await response(res, () => payload.logoutUser(req));

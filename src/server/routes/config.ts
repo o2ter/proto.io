@@ -33,7 +33,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
 
   router.get(
     '/config',
-    async (req: any, res) => {
+    async (req, res) => {
       res.setHeader('Cache-Control', ['no-cache', 'no-store']);
       const payload = proto.connect(req);
       await response(res, () => payload.config({ master: payload.isMaster }));
@@ -42,7 +42,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
 
   router.get(
     '/configAcl',
-    async (req: any, res) => {
+    async (req, res) => {
       res.setHeader('Cache-Control', ['no-cache', 'no-store']);
       const payload = proto.connect(req);
       await response(res, () => {
@@ -55,7 +55,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
   router.post(
     '/config',
     Server.text({ type: '*/*' }),
-    async (req: any, res) => {
+    async (req, res) => {
       res.setHeader('Cache-Control', ['no-cache', 'no-store']);
 
       const payload = proto.connect(req);
