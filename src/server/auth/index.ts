@@ -28,7 +28,7 @@ import { ProtoService } from '../proto/index';
 import { RequestHandler } from '@o2ter/server-js';
 import { signUser } from '../proto/session';
 
-export default <E>(proto: ProtoService<E>): RequestHandler => async (req: any, res, next) => {
+export default <E>(proto: ProtoService<E>): RequestHandler => async (req, res, next) => {
   try {
     const connected = proto.connect(req);
     await signUser(connected, res, await connected.currentUser());
