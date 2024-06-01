@@ -24,6 +24,7 @@
 //
 
 import _ from 'lodash';
+import axios from 'axios';
 import { PVK } from '../private';
 import type jwt from 'jsonwebtoken';
 import type { CookieOptions, Request } from '@o2ter/server-js';
@@ -71,6 +72,19 @@ export abstract class ProtoType<Ext> {
 
   abstract run(name: string, data?: TSerializable, options?: ExtraOptions<boolean, this>): Promise<void | TSerializable>
   abstract Query<T extends string>(className: T): TQuery<T, Ext, boolean, this>;
+
+  async online() {
+    try {
+      const res = await axios({
+        method: 'get',
+        baseURL: this[PVK].options.endpoint,
+        url: 'health',
+      });
+      return res.status === 200;
+    } catch {
+      return false;
+    }
+  }
 
   rebind<T extends TSerializable | undefined>(object: T): T {
     return applyObjectMethods(object, this);

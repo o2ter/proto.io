@@ -68,6 +68,10 @@ const Proto = new ProtoService({
   fileStorage: new DatabaseFileStorage(),
 });
 
+Proto.define('checkHealth', (proto) => {
+  return proto.online();
+});
+
 Proto.define('echo', ({ params }) => {
   return params;
 });

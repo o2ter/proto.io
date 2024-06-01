@@ -34,6 +34,14 @@ const Proto = new ProtoClient({
   masterUser,
 });
 
+test('test health', async () => {
+  const result = await Proto.online();
+  expect(result).toStrictEqual(true);
+
+  const result2 = await Proto.run('checkHealth');
+  expect(result2).toStrictEqual(true);
+})
+
 test('echo', async () => {
   const result = await Proto.run('echo', 'hello, world');
   expect(result).toStrictEqual('hello, world');
