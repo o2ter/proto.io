@@ -431,8 +431,10 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
 
   async notify<T>(
     type: 'create' | 'update' | 'delete',
-    object: TObjectType<T, Ext> | TObjectType<T, Ext>[],
+    objects: TObjectType<T, Ext> | TObjectType<T, Ext>[],
   ) {
+
+    const objs = _.map(_.castArray(objects), x => _.pick(x.attributes, TObject.defaultKeys));
 
   }
 }
