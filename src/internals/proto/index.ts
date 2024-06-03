@@ -49,6 +49,11 @@ export type TransactionOptions = {
   retry?: number | boolean;
 };
 
+export type EventCallback = (
+  type: 'create' | 'update' | 'delete',
+  objects: TObject[],
+) => void;
+
 export interface ProtoInternalType<Ext, P extends ProtoType<any>> {
 
   options: {

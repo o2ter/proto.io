@@ -37,7 +37,7 @@ import { passwordHash, varifyPassword } from '../crypto/password';
 import { proxy } from './proxy';
 import { ProtoService } from '.';
 import { base64ToBuffer, isBinaryData } from '@o2ter/utils-js';
-import { ProtoInternalType } from '../../internals/proto';
+import { EventCallback, ProtoInternalType } from '../../internals/proto';
 import { TObject } from '../../internals/object';
 import { _TValue } from '../../internals/query/value';
 import { ExtraOptions } from '../../internals/options';
@@ -429,11 +429,21 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     }[type]);
   }
 
-  async notify<T>(
+  async notify(
     type: 'create' | 'update' | 'delete',
-    objects: TObjectType<T, Ext> | TObjectType<T, Ext>[],
+    objects: TObject | TObject[],
   ) {
     const objs = _.map(_.castArray(objects), x => _.pick(x.attributes as Record<string, _TValue>, TObject.defaultKeys));
     return this.options.pubsub.publish({ type, objects: objs });
+  }
+
+  listen(proto: P, callback: EventCallback) {
+    const roles = proto.currentRoles();
+    return this.options.pubsub.subscribe(payload => {
+      (async () => {
+        const _roles = await roles;
+        const { type, objects } = payload as any;
+      })();
+    });
   }
 }
