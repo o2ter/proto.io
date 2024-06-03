@@ -28,6 +28,8 @@ import { Pool, PoolConfig, PoolClient, types } from 'pg';
 import QueryStream from 'pg-query-stream';
 import { asyncStream } from '@o2ter/utils-js';
 import Decimal from 'decimal.js';
+import { _TValue } from '../../../../internals/query/value';
+import { PROTO_POSTGRES_MSG } from '../const';
 
 const typeParser = (oid: number, format?: any) => {
   format = format ?? 'text';
@@ -43,9 +45,17 @@ const typeParser = (oid: number, format?: any) => {
 export class PostgresClientDriver {
 
   db: Pool | PoolClient;
+  private pubsub?: PoolClient;
+  private subscribers: ((payload: _TValue) => void)[] = [];
 
   constructor(db: Pool | PoolClient) {
     this.db = db;
+  }
+
+  async shutdown() {
+    if (this.db !== this.pubsub) {
+      this.pubsub?.release();
+    }
   }
 
   query(text: string, values: any[] = [], batchSize?: number) {
@@ -170,6 +180,33 @@ export class PostgresClientDriver {
     }));
   }
 
+  subscribe(callback: (payload: _TValue) => void) {
+    (async () => {
+      if (this.pubsub) return;
+      try {
+        this.pubsub = this.db instanceof Pool ? await this.db.connect() : this.db;
+        this.pubsub?.on('notification', ({ channel, payload }) => {
+          if (channel !== PROTO_POSTGRES_MSG || !payload) return;
+          try {
+            const _payload = JSON.parse(payload);
+            for (const subscriber of this.subscribers) {
+              subscriber(_payload);
+            }
+          } catch (e) {
+            console.error(`Unknown payload: ${e}`);
+          }
+        });
+        await this.pubsub?.query(`LISTEN ${PROTO_POSTGRES_MSG}`);
+      } catch (e) {
+        console.error(e);
+      }
+    })();
+    this.subscribers.push(callback);
+    return () => this.subscribers = this.subscribers.filter(x => x !== callback);
+  }
+  async publish(payload: _TValue) {
+    await this.pubsub?.query(`NOTIFY ${PROTO_POSTGRES_MSG}, $1`, [JSON.stringify(payload)]);
+  }
 }
 
 export class PostgresDriver extends PostgresClientDriver {
@@ -185,6 +222,7 @@ export class PostgresDriver extends PostgresClientDriver {
   }
 
   async shutdown() {
+    await super.shutdown();
     await this.database.end();
   }
 

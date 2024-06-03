@@ -1,5 +1,5 @@
 //
-//  types.ts
+//  index.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2024 O2ter Limited. All rights reserved.
@@ -23,34 +23,13 @@
 //  THE SOFTWARE.
 //
 
-import { TFileStorage } from '../file';
-import { TStorage } from '../storage';
-import { TSchema } from '../../internals/schema';
-import { CookieOptions } from '@o2ter/server-js';
-import { SignOptions, VerifyOptions } from 'jsonwebtoken';
-import { PasswordHashOptions } from '../crypto/password';
-import { TExtensions } from '../../internals/object/types';
-import { TPubSub } from '../pubsub';
+import { _TValue } from "../../internals/query/value"
 
-export type ProtoServiceOptions<Ext> = {
-  endpoint: string;
-  schema: Record<string, TSchema>;
-  storage: TStorage;
-  fileStorage: TFileStorage;
-  pubsub?: TPubSub;
-  classExtends?: TExtensions<Ext>;
-  objectIdSize?: number;
-  maxFetchLimit?: number;
-  maxUploadSize?: number;
-  cookieOptions?: CookieOptions;
-  jwtSignOptions?: SignOptions;
-  jwtVerifyOptions?: VerifyOptions;
-  jwtUploadSignOptions?: SignOptions;
-  jwtUploadVerifyOptions?: VerifyOptions;
-  passwordHashOptions?: PasswordHashOptions;
-};
+export interface TPubSub {
 
-export type ProtoServiceKeyOptions = {
-  jwtToken: string;
-  masterUsers?: { user: string; pass: string; }[];
-};
+  subscribe(
+    callback: (payload: _TValue) => void
+  ): VoidFunction
+
+  publish(payload: _TValue): PromiseLike<void>
+}

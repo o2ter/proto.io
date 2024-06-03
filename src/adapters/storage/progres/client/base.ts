@@ -32,8 +32,9 @@ import { QueryCompiler } from '../../../../server/storage/sql/compiler';
 import { DecodedQuery, FindOptions } from '../../../../server/storage';
 import { TransactionOptions } from '../../../../internals/proto';
 import { _TValue } from '../../../../internals/query/value';
+import { TPubSub } from '../../../../server/pubsub';
 
-export class PostgresStorageClient<Driver extends PostgresClientDriver> extends SqlStorage {
+export class PostgresStorageClient<Driver extends PostgresClientDriver> extends SqlStorage implements TPubSub {
 
   protected _driver: Driver;
 
@@ -199,6 +200,13 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
 
       throw e;
     }
+  }
+
+  subscribe(callback: (payload: _TValue) => void) {
+    return this._driver.subscribe(callback);
+  }
+  publish(payload: _TValue) {
+    return this._driver.publish(payload);
   }
 }
 
