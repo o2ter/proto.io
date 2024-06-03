@@ -204,7 +204,7 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
 
   subscribe(callback: (payload: _TValue) => void) {
     const db = this._driver;
-    if (!(db instanceof PostgresDriver)) throw Error();
+    if (!(db instanceof PostgresDriver)) throw Error('Invalid pubsub instance');
     return db.subscribe(callback);
   }
 
