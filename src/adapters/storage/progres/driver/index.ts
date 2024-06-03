@@ -45,17 +45,9 @@ const typeParser = (oid: number, format?: any) => {
 export class PostgresClientDriver {
 
   db: Pool | PoolClient;
-  private pubsub?: PoolClient;
-  private subscribers: ((payload: _TValue) => void)[] = [];
 
   constructor(db: Pool | PoolClient) {
     this.db = db;
-  }
-
-  async shutdown() {
-    if (this.db !== this.pubsub) {
-      this.pubsub?.release();
-    }
   }
 
   query(text: string, values: any[] = [], batchSize?: number) {
@@ -180,11 +172,47 @@ export class PostgresClientDriver {
     }));
   }
 
+  async withClient<T>(callback: (client: PostgresClientDriver) => PromiseLike<T>) {
+    const client = this.db instanceof Pool ? await this.db.connect() : this.db;
+    try {
+      return await callback(new PostgresClientDriver(client));
+    } finally {
+      if (this.db instanceof Pool) client.release();
+    }
+  }
+
+  async publish(payload: _TValue) {
+    await this.withClient(async (db) => {
+      await db.query(`NOTIFY ${PROTO_POSTGRES_MSG}, $1`, [JSON.stringify(payload)]);
+    })
+  }
+}
+
+export class PostgresDriver extends PostgresClientDriver {
+
+  database: Pool;
+
+  private pubsub?: PoolClient;
+  private subscribers: ((payload: _TValue) => void)[] = [];
+
+  constructor(config: string | PoolConfig) {
+    if (_.isEmpty(config)) throw Error('Invalid postgre config.');
+    const _types = { getTypeParser: typeParser as typeof types.getTypeParser };
+    const database = new Pool(_.isString(config) ? { connectionString: config, types: _types } : { ...config, types: _types });
+    super(database);
+    this.database = database;
+  }
+
+  async shutdown() {
+    await this.pubsub?.release();
+    await this.database.end();
+  }
+
   subscribe(callback: (payload: _TValue) => void) {
     (async () => {
       if (this.pubsub) return;
       try {
-        this.pubsub = this.db instanceof Pool ? await this.db.connect() : this.db;
+        this.pubsub = await this.database.connect();
         this.pubsub?.on('notification', ({ channel, payload }) => {
           if (channel !== PROTO_POSTGRES_MSG || !payload) return;
           try {
@@ -203,35 +231,5 @@ export class PostgresClientDriver {
     })();
     this.subscribers.push(callback);
     return () => this.subscribers = this.subscribers.filter(x => x !== callback);
-  }
-  async publish(payload: _TValue) {
-    await this.pubsub?.query(`NOTIFY ${PROTO_POSTGRES_MSG}, $1`, [JSON.stringify(payload)]);
-  }
-}
-
-export class PostgresDriver extends PostgresClientDriver {
-
-  database: Pool;
-
-  constructor(config: string | PoolConfig) {
-    if (_.isEmpty(config)) throw Error('Invalid postgre config.');
-    const _types = { getTypeParser: typeParser as typeof types.getTypeParser };
-    const database = new Pool(_.isString(config) ? { connectionString: config, types: _types } : { ...config, types: _types });
-    super(database);
-    this.database = database;
-  }
-
-  async shutdown() {
-    await super.shutdown();
-    await this.database.end();
-  }
-
-  async withClient<T>(callback: (client: PostgresClientDriver) => PromiseLike<T>) {
-    const client = await this.database.connect();
-    try {
-      return await callback(new PostgresClientDriver(client));
-    } finally {
-      client.release();
-    }
   }
 }

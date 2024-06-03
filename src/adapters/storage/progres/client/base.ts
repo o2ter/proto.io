@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { PostgresClientDriver } from '../driver';
+import { PostgresClientDriver, PostgresDriver } from '../driver';
 import { SqlStorage, sql } from '../../../../server/storage/sql';
 import { PostgresDialect } from '../dialect';
 import { _decodeValue, _encodeValue, _encodeJsonValue } from '../dialect/encode';
@@ -203,8 +203,11 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
   }
 
   subscribe(callback: (payload: _TValue) => void) {
-    return this._driver.subscribe(callback);
+    const db = this._driver;
+    if (!(db instanceof PostgresDriver)) throw Error();
+    return db.subscribe(callback);
   }
+
   publish(payload: _TValue) {
     return this._driver.publish(payload);
   }
