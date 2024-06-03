@@ -55,6 +55,10 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
       objectIdSize: 10,
       maxFetchLimit: 1000,
       maxUploadSize: 20 * 1024 * 1024,
+      pubsub: {
+        publish: () => void 0,
+        subscribe: () => () => void 0,
+      },
       classExtends: {} as TExtensions<Ext>,
       cookieOptions: { maxAge: 365 * 24 * 60 * 60 * 1000, httpOnly: true },
       jwtSignOptions: { expiresIn: '30d' },

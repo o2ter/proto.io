@@ -23,6 +23,7 @@
 //  THE SOFTWARE.
 //
 
+import { Awaitable } from "@o2ter/utils-js"
 import { _TValue } from "../../internals/query/value"
 
 export interface TPubSub {
@@ -31,5 +32,5 @@ export interface TPubSub {
     callback: (payload: _TValue) => void
   ): VoidFunction
 
-  publish(payload: _TValue): PromiseLike<void>
+  publish(payload: _TValue): Awaitable<void>
 }
