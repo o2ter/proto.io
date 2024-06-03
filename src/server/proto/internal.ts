@@ -433,8 +433,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     type: 'create' | 'update' | 'delete',
     objects: TObjectType<T, Ext> | TObjectType<T, Ext>[],
   ) {
-
-    const objs = _.map(_.castArray(objects), x => _.pick(x.attributes, TObject.defaultKeys));
-
+    const objs = _.map(_.castArray(objects), x => _.pick(x.attributes as Record<string, _TValue>, TObject.defaultKeys));
+    return this.options.pubsub.publish({ type, objects: objs });
   }
 }
