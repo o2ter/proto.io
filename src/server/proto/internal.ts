@@ -46,6 +46,7 @@ import { TFile } from '../../internals/object/file';
 import { FileData } from '../../internals/buffer';
 import { PVK } from '../../internals/private';
 import { fetchUserPerms } from '../query/dispatcher';
+import { TObjectType } from '../../internals/object/types';
 
 const validateForeignField = (schema: Record<string, TSchema>, key: string, dataType: TSchema.RelationType) => {
   if (!dataType.foreignField) return;
@@ -426,5 +427,12 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
       'login': this.options.jwtVerifyOptions,
       'upload': this.options.jwtUploadVerifyOptions,
     }[type]);
+  }
+
+  async notify<T>(
+    type: 'create' | 'update' | 'delete',
+    object: TObjectType<T, Ext> | TObjectType<T, Ext>[],
+  ) {
+
   }
 }

@@ -74,6 +74,7 @@ export interface TSchema {
   fieldLevelPermissions?: Record<string, TSchema.FLPs>;
   secureFields?: string[];
   indexes?: TSchema.Indexes[];
+  event?: boolean;
 }
 
 export const defaultObjectKeyTypes: Record<string, TSchema.DataType> = {
