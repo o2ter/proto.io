@@ -433,16 +433,23 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     type: 'create' | 'update' | 'delete',
     objects: TObject | TObject[],
   ) {
-    const objs = _.map(_.castArray(objects), x => _.pick(x.attributes as Record<string, _TValue>, TObject.defaultKeys));
+    const objs = _.map(_.castArray(objects), x => ({
+      className: x.className,
+      attributes: _.pick(x.attributes as Record<string, _TValue>, TObject.defaultKeys)
+    }));
     return this.options.pubsub.publish({ type, objects: objs });
   }
 
   listen(proto: P, callback: EventCallback) {
-    const roles = proto.currentRoles();
+    const isMaster = proto.isMaster;
+    const roles = isMaster ? [] : proto.currentRoles();
     return this.options.pubsub.subscribe(payload => {
+      const { type, objects } = payload as any;
       (async () => {
         const _roles = await roles;
-        const { type, objects } = payload as any;
+        const objs = isMaster ? objects : _.filter(objects, x => _.some(x.attributes._wperm, x => _.includes(_roles, x)));
+        if (_.isEmpty(objs)) return;
+        callback(type, _.map(objs, x => new TObject(x.className, x.attributes)));
       })();
     });
   }
