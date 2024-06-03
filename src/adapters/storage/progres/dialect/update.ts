@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { SQL, sql } from '../../../../server/storage/sql';
+import { SQL, sql } from '../../../../server/storage/sql/sql';
 import { TSchema } from '../../../../internals/schema';
 import { _encodeValue, _encodeJsonValue } from './encode';
 import { stringArrayAttrs } from './basic';
