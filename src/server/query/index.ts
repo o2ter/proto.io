@@ -148,7 +148,7 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
     if (_.isFunction(beforeSave)) {
 
       const object = this._objectMethods(
-        _.first(await asyncIterableToArray(await this._dispatcher(options).find({ ...this._queryOptions, limit: 1 })))
+        _.first(await asyncIterableToArray(this._dispatcher(options).find({ ...this._queryOptions, limit: 1 })))
       );
       if (!object) return undefined;
 
@@ -184,7 +184,7 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
     if (_.isFunction(beforeSave)) {
 
       let object = this._objectMethods(
-        _.first(await asyncIterableToArray(await this._dispatcher(options).find({ ...this._queryOptions, limit: 1 })))
+        _.first(await asyncIterableToArray(this._dispatcher(options).find({ ...this._queryOptions, limit: 1 })))
       );
 
       if (object) {
@@ -235,7 +235,7 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
     if (_.isFunction(beforeDelete)) {
 
       const object = this._objectMethods(
-        _.first(await asyncIterableToArray(await this._dispatcher(options).find({ ...this._queryOptions, limit: 1 })))
+        _.first(await asyncIterableToArray(this._dispatcher(options).find({ ...this._queryOptions, limit: 1 })))
       );
       if (!object) return undefined;
 
@@ -272,7 +272,7 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
 
     if (_.isFunction(beforeDelete) || _.isFunction(afterDelete)) {
 
-      const objects = this._objectMethods(await asyncIterableToArray(await this._dispatcher(options).find(this._queryOptions)));
+      const objects = this._objectMethods(await asyncIterableToArray(this._dispatcher(options).find(this._queryOptions)));
       if (_.isEmpty(objects)) return 0;
 
       if (_.isFunction(beforeDelete)) {
