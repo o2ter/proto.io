@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { PVK } from '../private';
 import { ExtraOptions } from '../options';
-import { TValue, cloneValue, isPrimitiveValue } from '../query/value';
+import { TValue, _TValue, cloneValue, isPrimitiveValue } from '../query/value';
 import { TSchema, defaultObjectKeys, defaultObjectReadonlyKeys } from '../schema';
 import { PathName } from '../query/types';
 import { TUpdateOp, TUpdateOpKeys } from './types';
@@ -133,7 +133,7 @@ export class TObject {
   }
 
   toObject() {
-    const toObject = (value: TValue): TValue => {
+    const toObject = (value: TValue): _TValue => {
       if (isPrimitiveValue(value)) return value;
       if (value instanceof TObject) return value.toObject();
       if (_.isArray(value)) return _.map(value, toObject);
