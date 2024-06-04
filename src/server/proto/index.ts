@@ -45,9 +45,10 @@ import { randomUUID } from '@o2ter/crypto-js';
 export class ProtoService<Ext> extends ProtoType<Ext> {
 
   [PVK]: ProtoInternal<Ext, this>;
-  req?: Request;
   private _storage?: ProtoServiceOptions<Ext>['storage'];
   private _schedule = schedule(this);
+
+  req?: Request;
 
   constructor(options: ProtoServiceOptions<Ext> & ProtoServiceKeyOptions) {
     super();

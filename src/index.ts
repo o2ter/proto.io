@@ -86,4 +86,15 @@ export const ProtoRoute = async <E>(options: {
   return router;
 }
 
+export const registerProtoSocket = (
+  server: Server,
+  endpoint?: string,
+) => {
+  const io = endpoint ? server.socket().of(endpoint) : server.socket();
+  io.on('connection', (socket) => {
+    const { token } = socket.handshake.auth;
+
+  });
+}
+
 export default ProtoRoute;
