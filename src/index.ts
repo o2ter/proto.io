@@ -95,8 +95,7 @@ export const registerProtoSocket = <E>(
   const io = endpoint ? server.socket().of(endpoint) : server.socket();
   io.on('connection', async (socket) => {
     const { token } = socket.handshake.auth;
-    const session = _.isString(token) ? await sessionWithToken(proto, token) : undefined;
-    const payload = session ? proto.connectWithSession(session) : proto;
+    const payload = proto.connectWithSessionToken(token);
   });
 }
 

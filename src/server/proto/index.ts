@@ -30,7 +30,7 @@ import { ProtoInternal } from './internal';
 import { CookieOptions, Request } from '@o2ter/server-js';
 import { ProtoServiceOptions, ProtoServiceKeyOptions } from './types';
 import { ProtoFunction, ProtoFunctionOptions, ProtoTrigger } from '../../internals/proto/types';
-import { sessionId, sessionIsMaster, session, signUser, Session } from './session';
+import { sessionId, sessionIsMaster, session, signUser, Session, sessionWithToken } from './session';
 import { EventCallback, ProtoType, TransactionOptions } from '../../internals/proto';
 import { schedule } from '../schedule';
 import { TSerializable } from '../../common';
@@ -128,10 +128,11 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     return _.assign(payload, _.isFunction(attrs) ? attrs(payload) : attrs)
   }
 
-  connectWithSession<T extends object>(
-    session: Session,
-    attrs?: T | ((x: this & { session: Session; }) => T)
-  ): this & { session: Session; } & T {
+  async connectWithSessionToken<T extends object>(
+    token: string,
+    attrs?: T | ((x: this & { session?: Session; }) => T)
+  ): Promise<this & { session?: Session; } & T> {
+    const session = _.isString(token) ? await sessionWithToken(this, token) : undefined;
     const payload = _.create(this, { session });
     return _.assign(payload, _.isFunction(attrs) ? attrs(payload) : attrs)
   }
