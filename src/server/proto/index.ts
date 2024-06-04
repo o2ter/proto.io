@@ -41,7 +41,6 @@ import { TUser } from '../../internals/object/user';
 import { ExtraOptions } from '../../internals/options';
 import { _TValue } from '../../internals/query/value';
 import { randomUUID } from '@o2ter/crypto-js';
-import { TObject } from '../../internals/object';
 
 export class ProtoService<Ext> extends ProtoType<Ext> {
 
