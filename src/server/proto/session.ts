@@ -37,6 +37,13 @@ const sessionMap = new WeakMap<Request, {
   payload?: jwt.JwtPayload;
 }>();
 
+const _sessionWithToken = <E>(proto: ProtoService<E>, token: string) => {
+  if (_.isEmpty(token)) return;
+  const payload = proto[PVK].jwtVarify('login', token);
+  if (!_.isObject(payload)) return;
+  return payload;
+}
+
 const _session = <E>(proto: ProtoService<E>, request: Request) => {
 
   const cached = sessionMap.get(request);
@@ -85,6 +92,13 @@ const fetchSessionInfo = async <E>(proto: ProtoService<E>, userId?: string) => {
   };
 }
 
+export const sessionWithToken = async <E>(proto: ProtoService<E>, token: string) => {
+  const session = _sessionWithToken(proto, token);
+  const sessionId: string | undefined = session?.sessionId;
+  const info = await fetchSessionInfo(proto, session?.user);
+  return { sessionId, ...info };
+}
+
 export const session = async <E>(proto: ProtoService<E>, request: Request) => {
 
   const session = _session(proto, request);
@@ -98,6 +112,8 @@ export const session = async <E>(proto: ProtoService<E>, request: Request) => {
 
   return { sessionId, ...info };
 }
+
+export type Session = Awaited<ReturnType<typeof session>>;
 
 export const sessionIsMaster = <E>(proto: ProtoService<E>, request: Request) => {
   const user = request.header(MASTER_USER_HEADER_NAME);

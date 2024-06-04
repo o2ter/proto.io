@@ -30,7 +30,7 @@ import { ProtoInternal } from './internal';
 import { CookieOptions, Request } from '@o2ter/server-js';
 import { ProtoServiceOptions, ProtoServiceKeyOptions } from './types';
 import { ProtoFunction, ProtoFunctionOptions, ProtoTrigger } from '../../internals/proto/types';
-import { sessionId, sessionIsMaster, session, signUser } from './session';
+import { sessionId, sessionIsMaster, session, signUser, Session } from './session';
 import { EventCallback, ProtoType, TransactionOptions } from '../../internals/proto';
 import { schedule } from '../schedule';
 import { TSerializable } from '../../common';
@@ -49,6 +49,7 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
   private _schedule = schedule(this);
 
   req?: Request;
+  _session?: Session;
 
   constructor(options: ProtoServiceOptions<Ext> & ProtoServiceKeyOptions) {
     super();
@@ -95,15 +96,18 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
   }
 
   get sessionId(): string | undefined {
+    if (this._session) return this._session.sessionId;
     return this.req ? sessionId(this, this.req) : undefined;
   }
 
   async currentUser() {
+    if (this._session) return this._session.user;
     const _session = this.req ? await session(this, this.req) : undefined;
     return _session?.user;
   }
 
   async currentRoles() {
+    if (this._session) return this._session.roles ?? [];
     const _session = this.req ? await session(this, this.req) : undefined;
     return _session?.roles ?? [];
   }
@@ -121,6 +125,14 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     attrs?: T | ((x: this & { req: R; }) => T)
   ): this & { req: R; } & T {
     const payload = _.create(this, { req });
+    return _.assign(payload, _.isFunction(attrs) ? attrs(payload) : attrs)
+  }
+
+  connectWithSession<T extends object>(
+    session: Session,
+    attrs?: T | ((x: this & { _session: Session; }) => T)
+  ): this & { _session: Session; } & T {
+    const payload = _.create(this, { _session: session });
     return _.assign(payload, _.isFunction(attrs) ? attrs(payload) : attrs)
   }
 

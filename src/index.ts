@@ -36,6 +36,7 @@ import schemaRoute from './server/routes/schema';
 import configRoute from './server/routes/config';
 import { TSchema } from './internals/schema';
 import { PVK } from './internals/private';
+import { sessionWithToken } from './server/proto/session';
 
 export * from './common';
 export { TFileStorage } from './server/file/index';
@@ -86,14 +87,16 @@ export const ProtoRoute = async <E>(options: {
   return router;
 }
 
-export const registerProtoSocket = (
+export const registerProtoSocket = <E>(
+  proto: ProtoService<E>,
   server: Server,
   endpoint?: string,
 ) => {
   const io = endpoint ? server.socket().of(endpoint) : server.socket();
-  io.on('connection', (socket) => {
+  io.on('connection', async (socket) => {
     const { token } = socket.handshake.auth;
-
+    const session = _.isString(token) ? await sessionWithToken(proto, token) : undefined;
+    const payload = session ? proto.connectWithSession(session) : proto;
   });
 }
 
