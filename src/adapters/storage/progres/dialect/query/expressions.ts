@@ -38,8 +38,9 @@ import {
   QueryValueExpression
 } from '../../../../../server/query/dispatcher/parser/expressions';
 import { fetchElement } from './utils';
-import { _encodeJsonValue, _encodeValue } from '../encode';
+import { _encodeJsonValue } from '../encode';
 import Decimal from 'decimal.js';
+import { _encodeValue } from '../../../../../internals/query/value';
 
 const isValueExpression = (expr: QueryExpression): boolean => {
   if (expr instanceof QueryArrayExpression) return _.every(expr.exprs, x => isValueExpression(x));

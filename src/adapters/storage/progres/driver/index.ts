@@ -28,9 +28,8 @@ import { Pool, PoolConfig, PoolClient, types } from 'pg';
 import QueryStream from 'pg-query-stream';
 import { asyncStream } from '@o2ter/utils-js';
 import Decimal from 'decimal.js';
-import { _TValue } from '../../../../internals/query/value';
+import { _TValue, _decodeValue, _encodeValue } from '../../../../internals/query/value';
 import { PROTO_POSTGRES_MSG } from '../const';
-import { _decodeValue, _encodeValue } from '../dialect/encode';
 
 const typeParser = (oid: number, format?: any) => {
   format = format ?? 'text';

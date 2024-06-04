@@ -27,11 +27,11 @@ import _ from 'lodash';
 import { PostgresClientDriver, PostgresDriver } from '../driver';
 import { SqlStorage, sql } from '../../../../server/storage/sql';
 import { PostgresDialect } from '../dialect';
-import { _decodeValue, _encodeValue, _encodeJsonValue } from '../dialect/encode';
+import { _encodeJsonValue } from '../dialect/encode';
 import { QueryCompiler } from '../../../../server/storage/sql/compiler';
 import { DecodedQuery, FindOptions } from '../../../../server/storage';
 import { TransactionOptions } from '../../../../internals/proto';
-import { _TValue } from '../../../../internals/query/value';
+import { _TValue, _decodeValue, _encodeValue } from '../../../../internals/query/value';
 import { TPubSub } from '../../../../server/pubsub';
 
 export class PostgresStorageClient<Driver extends PostgresClientDriver> extends SqlStorage implements TPubSub {

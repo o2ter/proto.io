@@ -28,29 +28,8 @@ import { SQL, sql } from '../../../../server/storage/sql';
 import { TSchema, _typeof } from '../../../../internals/schema';
 import { stringArrayAttrs } from './basic';
 import Decimal from 'decimal.js';
-import { TValue, _TValue, isPrimitiveValue } from '../../../../internals/query/value';
+import { TValue, _decodeValue, _encodeValue } from '../../../../internals/query/value';
 import { TObject } from '../../../../internals/object';
-
-export const _decodeValue = (value: _TValue): _TValue => {
-  if (isPrimitiveValue(value)) return value;
-  if (_.isArray(value)) return _.map(value, x => _decodeValue(x));
-  if (_.isString(value.$date)) return new Date(value.$date);
-  if (_.isString(value.$decimal)) return new Decimal(value.$decimal);
-  return _.transform(value, (r, v, k) => {
-    r[k.startsWith('$') ? k.substring(1) : k] = _decodeValue(v);
-  }, {} as any);
-};
-
-export const _encodeValue = (value: TValue): any => {
-  if (value instanceof TObject) throw Error('Invalid data type');
-  if (_.isDate(value)) return { $date: value.toISOString() };
-  if (value instanceof Decimal) return { $decimal: value.toString() };
-  if (isPrimitiveValue(value)) return value;
-  if (_.isArray(value)) return _.map(value, x => _encodeValue(x));
-  return _.transform(value, (r, v, k) => {
-    r[k.startsWith('$') ? `$${k}` : k] = _encodeValue(v);
-  }, {} as any);
-};
 
 export const _encodeJsonValue = (value: any): SQL => {
   if (_.isArray(value)) return sql`jsonb_build_array(${_.map(value, x => _encodeJsonValue(x))})`;
