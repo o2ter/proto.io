@@ -36,7 +36,6 @@ import schemaRoute from './server/routes/schema';
 import configRoute from './server/routes/config';
 import { TSchema } from './internals/schema';
 import { PVK } from './internals/private';
-import { sessionWithToken } from './server/proto/session';
 
 export * from './common';
 export { TFileStorage } from './server/file/index';
