@@ -35,7 +35,7 @@ import { ProtoClientInternal } from './proto/internal';
 import { ProtoType } from '../internals/proto';
 import { AxiosOptions } from './proto/types';
 import { XSRF_COOKIE_NAME, XSRF_HEADER_NAME } from '@o2ter/server-js/dist/const';
-import { io } from 'socket.io-client';
+import { io, Socket } from 'socket.io-client';
 
 export default class Service<Ext, P extends ProtoType<any>> {
 
@@ -43,7 +43,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
   service: AxiosInstance;
 
   private token?: string;
-  private sockets: ReturnType<typeof io>[] = [];
+  private sockets: Socket[] = [];
 
   constructor(proto: ProtoClientInternal<Ext, P>, options: AxiosOptions = {}) {
     this.proto = proto;
