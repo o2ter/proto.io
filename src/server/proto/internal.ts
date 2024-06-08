@@ -447,14 +447,16 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
   listen(proto: P, callback: EventCallback) {
     const isMaster = proto.isMaster;
     const roles = isMaster ? [] : this._perms(proto);
-    return this.options.pubsub.subscribe(payload => {
-      const { type, objects } = payload as any;
-      (async () => {
-        const _roles = await roles;
-        const objs = isMaster ? objects : _.filter(objects, x => _.some(x.attributes._rperm, x => _.includes(_roles, x)));
-        if (_.isEmpty(objs)) return;
-        callback(type, _.map(objs, x => new TObject(x.className, x.attributes)));
-      })();
-    });
+    return {
+      remove: this.options.pubsub.subscribe(payload => {
+        const { type, objects } = payload as any;
+        (async () => {
+          const _roles = await roles;
+          const objs = isMaster ? objects : _.filter(objects, x => _.some(x.attributes._rperm, x => _.includes(_roles, x)));
+          if (_.isEmpty(objs)) return;
+          callback(type, _.map(objs, x => new TObject(x.className, x.attributes)));
+        })();
+      }),
+    };
   }
 }

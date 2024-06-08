@@ -269,7 +269,7 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
   }
 
   listen(callback: EventCallback) {
-    return this[PVK].listen(this, (type, objects) => { 
+    return this[PVK].listen(this, (type, objects) => {
       callback(type, this.rebind(objects));
     });
   }
