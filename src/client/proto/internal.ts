@@ -39,11 +39,15 @@ import { PVK } from '../../internals/private';
 import { FileData } from '../../internals/buffer';
 import { ExtraOptions } from '../../internals/options';
 import { UPLOAD_TOKEN_HEADER_NAME } from '../../internals/const';
+import { Socket } from 'socket.io-client';
 
 export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements ProtoInternalType<Ext, P> {
 
   options: ProtoOptions<Ext>;
   service: Service<Ext, P>;
+
+  socket?: ReturnType<Service<Ext, P>['socket']>;
+  listeners: EventCallback[] = [];
 
   constructor(options: ProtoOptions<Ext>) {
     this.options = options;
@@ -298,8 +302,17 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
   }
 
   listen(callback: EventCallback) {
+    const { socket, disconnect } = this.socket ?? this.service.socket();
+    this.listeners.push(callback);
     return {
-      remove: () => { }
+      socket,
+      remove: () => {
+        this.listeners = this.listeners.filter(x => x !== callback);
+        if (_.isEmpty(this.listeners)) {
+          this.socket = undefined;
+          disconnect();
+        }
+      },
     };
   }
 }
