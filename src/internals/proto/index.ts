@@ -42,6 +42,7 @@ import { TSerializable } from '../../common/codec';
 import { TUser } from '../object/user';
 import { ProtoFunction, ProtoFunctionOptions, ProtoTrigger } from './types';
 import { Socket } from 'socket.io-client';
+import { Session } from '../../server/proto/session';
 
 export type TransactionMode = 'default' | 'committed' | 'repeatable' | 'serializable';
 
@@ -139,6 +140,13 @@ export interface ProtoType<Ext> {
     req: R,
     attrs?: T | ((x: this & { req: R; }) => T)
   ): this & { req: R; } & T;
+
+  connectWithSessionToken<T extends object>(
+    token: string,
+    attrs?: T | ((x: this & { session?: Session; }) => T)
+  ): Promise<this & { session?: Session; } & T>
+
+  setSessionToken(token?: string): void
 
   becomeUser(
     req: Request,

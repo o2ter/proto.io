@@ -56,6 +56,13 @@ export default class Service<Ext, P extends ProtoType<any>> {
     });
   }
 
+  setSessionToken(token?: string) {
+    this.token = token;
+    for (const socket of this.sockets) {
+      socket.emit('auth', this.token);
+    }
+  }
+
   async request<T = any, D = any>(config: RequestOptions<boolean, P> & AxiosRequestConfig<D>): Promise<AxiosResponse<T, D>> {
 
     const { master, abortSignal, serializeOpts, context, headers, ...opts } = config ?? {};
@@ -75,10 +82,8 @@ export default class Service<Ext, P extends ProtoType<any>> {
 
     if (res.headers['set-cookie']) {
       const cookies = res.headers['set-cookie'];
-      this.token = _.findLast(_.flatMap(cookies, x => x.split(';')), x => _.startsWith(x, `${AUTH_COOKIE_KEY}=`));
-      for (const socket of this.sockets) {
-        socket.emit('auth', this.token);
-      }
+      const token = _.findLast(_.flatMap(cookies, x => x.split(';')), x => _.startsWith(x, `${AUTH_COOKIE_KEY}=`));
+      this.setSessionToken(token);
     }
 
     if (typeof window === 'undefined') {
