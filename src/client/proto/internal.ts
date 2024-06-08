@@ -306,10 +306,12 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
 
   listen(proto: P, callback: EventCallback) {
     const { socket, listen } = this.socket ?? this.service.socket();
-    const remove = listen((payload) => {
-      const { type, objects } = _decodeValue(payload) as any;
-      callback(type, proto.rebind(_.map(objects, x => new TObject(x.className, x.attributes))));
-    });
-    return { socket, remove };
+    return {
+      socket,
+      remove: listen((payload) => {
+        const { type, objects } = _decodeValue(payload) as any;
+        callback(type, proto.rebind(_.map(objects, x => new TObject(x.className, x.attributes))));
+      }),
+     };
   }
 }
