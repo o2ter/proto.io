@@ -29,8 +29,10 @@ import { TSerializable } from '../../common/codec';
 import { TObjectType } from '../object/types';
 
 type Callback<T, R, E> = (request: ProtoService<E> & T) => Awaitable<R>;
+
 export type ProtoFunction<E> = Callback<{ params: TSerializable; }, void | TSerializable, E>;
 export type ProtoTrigger<T, E> = Callback<{ object: TObjectType<T, E>; context: TSerializable; }, void, E>;
+
 type Validator = {
   requireUser?: boolean;
   requireMaster?: boolean;

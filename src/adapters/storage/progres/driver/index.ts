@@ -210,28 +210,36 @@ export class PostgresDriver extends PostgresClientDriver {
     await this.database.end();
   }
 
-  subscribe(callback: (payload: _TValue) => void) {
-    (async () => {
-      if (this.pubsub) return;
-      try {
-        this.pubsub = await this.database.connect();
-        this.pubsub?.on('notification', ({ channel, payload }) => {
-          if (_.toUpper(channel) !== PROTO_POSTGRES_MSG || !payload) return;
-          try {
-            const _payload = _decodeValue(JSON.parse(payload));
-            for (const subscriber of this.subscribers) {
-              subscriber(_payload);
-            }
-          } catch (e) {
-            console.error(`Unknown payload: ${e}`);
+  private async _init_pubsub() {
+    if (this.pubsub) return;
+    try {
+      this.pubsub = await this.database.connect();
+      this.pubsub?.on('notification', ({ channel, payload }) => {
+        if (_.toUpper(channel) !== PROTO_POSTGRES_MSG || !payload) return;
+        try {
+          const _payload = _decodeValue(JSON.parse(payload));
+          for (const subscriber of this.subscribers) {
+            subscriber(_payload);
           }
-        });
-        await this.pubsub?.query(`LISTEN ${PROTO_POSTGRES_MSG}`);
-      } catch (e) {
-        console.error(e);
-      }
-    })();
+        } catch (e) {
+          console.error(`Unknown payload: ${e}`);
+        }
+      });
+      await this.pubsub?.query(`LISTEN ${PROTO_POSTGRES_MSG}`);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  subscribe(callback: (payload: _TValue) => void) {
+    this._init_pubsub();
     this.subscribers.push(callback);
-    return () => this.subscribers = this.subscribers.filter(x => x !== callback);
+    return () => { 
+      this.subscribers = this.subscribers.filter(x => x !== callback);
+      if (_.isEmpty(this.subscribers)) {
+        this.pubsub?.release();
+        this.pubsub = undefined;
+      }
+    };
   }
 }
