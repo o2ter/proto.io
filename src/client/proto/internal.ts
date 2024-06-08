@@ -304,10 +304,15 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
   listen(proto: P, callback: EventCallback) {
     const { socket, disconnect } = this.socket ?? this.service.socket();
     this.listeners.push(callback);
-    socket.on('data', (payload) => {
-      const { type, objects } = _decodeValue(payload) as any;
-      callback(type, proto.rebind(_.map(objects, x => new TObject(x.className, x.attributes))));
-    });
+    if (!this.socket) {
+      socket.on('data', (payload) => {
+        const { type, objects } = _decodeValue(payload) as any;
+        for (const callback of this.listeners) {
+          callback(type, proto.rebind(_.map(objects, x => new TObject(x.className, x.attributes))));
+        }
+      });
+      this.socket = { socket, disconnect };
+    }
     return {
       socket,
       remove: () => {
