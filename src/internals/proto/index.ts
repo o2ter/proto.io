@@ -41,6 +41,7 @@ import { TObject } from '../object';
 import { TSerializable } from '../../common/codec';
 import { TUser } from '../object/user';
 import { ProtoFunction, ProtoFunctionOptions, ProtoTrigger } from './types';
+import { Socket } from 'socket.io-client';
 
 export type TransactionMode = 'default' | 'committed' | 'repeatable' | 'serializable';
 
@@ -124,6 +125,11 @@ export abstract class ProtoType<Ext> {
       roles = _.uniqBy([...roles, ...queue], x => x.objectId);
     }
     return roles;
+  }
+
+  abstract listen(callback: EventCallback): {
+    remove: VoidFunction;
+    socket?: Socket;
   }
 };
 

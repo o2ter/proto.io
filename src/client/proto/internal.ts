@@ -30,7 +30,7 @@ import { ProtoOptions } from './types';
 import { TSchema } from '../../internals/schema';
 import { base64ToBuffer, isBinaryData, isBlob, isReadableStream, iterableToStream } from '@o2ter/utils-js';
 import { TSerializable, deserialize, serialize } from '../../common';
-import { ProtoInternalType, ProtoType } from '../../internals/proto';
+import { EventCallback, ProtoInternalType, ProtoType } from '../../internals/proto';
 import { TObjectType } from '../../internals/object/types';
 import { TUser } from '../../internals/object/user';
 import { _TValue } from '../../internals/types';
@@ -295,5 +295,11 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
         throw Error('Unknown stream type');
       }
     });
+  }
+
+  listen(callback: EventCallback) {
+    return {
+      remove: () => { }
+    };
   }
 }

@@ -35,11 +35,15 @@ import { ProtoClientInternal } from './proto/internal';
 import { ProtoType } from '../internals/proto';
 import { AxiosOptions } from './proto/types';
 import { XSRF_COOKIE_NAME, XSRF_HEADER_NAME } from '@o2ter/server-js/dist/const';
+import { io } from 'socket.io-client';
 
 export default class Service<Ext, P extends ProtoType<any>> {
 
   proto: ProtoClientInternal<Ext, P>;
   service: AxiosInstance;
+
+  private token?: string;
+  private sockets: ReturnType<typeof io>[] = [];
 
   constructor(proto: ProtoClientInternal<Ext, P>, options: AxiosOptions = {}) {
     this.proto = proto;
@@ -69,10 +73,13 @@ export default class Service<Ext, P extends ProtoType<any>> {
       ...opts,
     });
 
-    if (typeof window === 'undefined' && res.headers['set-cookie']) {
+    if (res.headers['set-cookie']) {
       const cookies = res.headers['set-cookie'];
-      const token = _.findLast(_.flatMap(cookies, x => x.split(';')), x => _.startsWith(x, `${AUTH_COOKIE_KEY}=`))
-      if (token) this.service.defaults.headers.Cookie = token;
+      this.token = _.findLast(_.flatMap(cookies, x => x.split(';')), x => _.startsWith(x, `${AUTH_COOKIE_KEY}=`))
+    }
+
+    if (typeof window === 'undefined') {
+      this.service.defaults.headers.Cookie = this.token ?? null;
     }
 
     if (res.status === 412) {
@@ -91,5 +98,30 @@ export default class Service<Ext, P extends ProtoType<any>> {
     }
 
     return res;
+  }
+
+  socket() {
+    const endpoint = this.proto.options.socketEndpoint;
+    const options = { auth: { token: this.token } };
+    const socket = endpoint ? io(endpoint, options) : io(options);
+
+    this.sockets.push(socket);
+
+    let disconnect = false;
+    socket.on('connect_error', () => {
+      if (!disconnect && !socket.active) socket.connect();
+    });
+    socket.on('disconnect', () => {
+      if (!disconnect && !socket.active) socket.connect();
+    });
+
+    return {
+      socket,
+      disconnect: () => {
+        disconnect = true;
+        this.sockets = this.sockets.filter(x => x !== socket);
+        socket.disconnect();
+      },
+    };
   }
 };

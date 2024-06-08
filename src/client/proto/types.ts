@@ -32,6 +32,7 @@ export type AxiosOptions = {
 
 export type ProtoOptions<Ext> = {
   endpoint: string;
+  socketEndpoint?: string;
   masterUser?: { user: string; pass: string; };
   classExtends?: TExtensions<Ext>;
   axiosOptions?: AxiosOptions;
