@@ -164,8 +164,12 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     return generateId(this.options.objectIdSize);
   }
 
+  private async _perms(proto: P) {
+    return _.uniq(['*', ...await fetchUserPerms(proto)]);
+  }
+
   async config(proto: P, options?: { master?: boolean; }) {
-    return this.options.storage.config(options?.master ? undefined : _.uniq(['*', ...await fetchUserPerms(proto)]));
+    return this.options.storage.config(options?.master ? undefined : await this._perms(proto));
   }
   configAcl() {
     return this.options.storage.configAcl();
@@ -442,7 +446,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
 
   listen(proto: P, callback: EventCallback) {
     const isMaster = proto.isMaster;
-    const roles = isMaster ? [] : proto.currentRoles();
+    const roles = isMaster ? [] : this._perms(proto);
     return this.options.pubsub.subscribe(payload => {
       const { type, objects } = payload as any;
       (async () => {
