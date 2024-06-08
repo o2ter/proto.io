@@ -29,7 +29,7 @@ import { QueryCoditionalSelector, QueryFieldSelector, QuerySelector } from './pa
 import { TSchema, _typeof, isPointer, isPrimitive, isRelation, isShapedObject, shapedObjectPaths } from '../../../internals/schema';
 import { ProtoService } from '../../proto';
 import { TQueryBaseOptions } from '../../../internals/query/base';
-import { isPrimitiveValue } from '../../../internals/query/value';
+import { isPrimitiveValue } from '../../../internals/object';
 import { TObject } from '../../../internals/object';
 import { PVK } from '../../../internals/private';
 import { TQuerySelector } from '../../../internals/query/types/selectors';

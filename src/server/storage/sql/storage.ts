@@ -31,7 +31,7 @@ import { SQL, sql } from './sql';
 import { SqlDialect } from './dialect';
 import { QueryCompiler } from './compiler';
 import { asyncStream } from '@o2ter/utils-js';
-import { TValue, _TValue } from '../../../internals/query/value';
+import { TValue, _TValue } from '../../../internals/types';
 import { TObject } from '../../../internals/object';
 import { PVK } from '../../../internals/private';
 import { TQueryRandomOptions } from '../../../internals/query';

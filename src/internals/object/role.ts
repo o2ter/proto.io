@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { TObject } from './index';
-import { TValue } from '../query/value';
+import { TValue } from '../types';
 import { TUser } from './user';
 
 export class TRole extends TObject {

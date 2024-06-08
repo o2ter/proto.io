@@ -33,7 +33,7 @@ import { nullSafeEqual } from './basic';
 import Decimal from 'decimal.js';
 import { TObject, decodeUpdateOp } from '../../../../internals/object';
 import { TUpdateOp } from '../../../../internals/object/types';
-import { _encodeValue } from '../../../../internals/query/value';
+import { _encodeValue } from '../../../../internals/object';
 
 export const updateOperation = (paths: string[], dataType: TSchema.DataType, operation: TUpdateOp) => {
   const [column, ...subpath] = paths;

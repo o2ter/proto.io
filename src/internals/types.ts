@@ -23,6 +23,13 @@
 //  THE SOFTWARE.
 //
 
+import Decimal from 'decimal.js';
+import { TObject } from './object';
+
+export type TPrimitiveValue = boolean | number | Decimal | string | Date | null;
+export type _TValue = { [x: string]: _TValue; } | _TValue[] | TPrimitiveValue;
+export type TValue = { [x: string]: TValue; } | TValue[] | TPrimitiveValue | TObject;
+
 export type Exact<T, Shape> =
   T extends Shape ?
   Exclude<keyof T, keyof Shape> extends never ?

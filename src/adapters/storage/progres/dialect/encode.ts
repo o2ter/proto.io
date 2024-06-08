@@ -28,7 +28,8 @@ import { SQL, sql } from '../../../../server/storage/sql';
 import { TSchema, _typeof } from '../../../../internals/schema';
 import { stringArrayAttrs } from './basic';
 import Decimal from 'decimal.js';
-import { TValue, _decodeValue, _encodeValue } from '../../../../internals/query/value';
+import { _decodeValue, _encodeValue } from '../../../../internals/object';
+import { TValue } from '../../../../internals/types';
 import { TObject } from '../../../../internals/object';
 
 export const _encodeJsonValue = (value: any): SQL => {

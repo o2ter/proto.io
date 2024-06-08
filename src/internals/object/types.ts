@@ -27,7 +27,7 @@ import { TObject } from './index';
 import { TUser } from './user';
 import { TRole } from './role';
 import { TFile } from './file';
-import { TValue } from '../query/value';
+import { TValue } from '../types';
 import { ExactOneProp } from '../types';
 
 export const TObjectTypes = {

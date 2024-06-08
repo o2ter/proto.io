@@ -40,7 +40,7 @@ import {
 import { fetchElement } from './utils';
 import { _encodeJsonValue } from '../encode';
 import Decimal from 'decimal.js';
-import { _encodeValue } from '../../../../../internals/query/value';
+import { _encodeValue } from '../../../../../internals/object';
 
 const isValueExpression = (expr: QueryExpression): boolean => {
   if (expr instanceof QueryArrayExpression) return _.every(expr.exprs, x => isValueExpression(x));

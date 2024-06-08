@@ -31,7 +31,7 @@ import { TSerializable } from '../../common';
 import { ProtoType } from '../../internals/proto';
 import { TQuery } from '../../internals/query';
 import { PVK } from '../../internals/private';
-import { _TValue } from '../../internals/query/value';
+import { _TValue } from '../../internals/types';
 import { TUser } from '../../internals/object/user';
 
 export class ProtoClient<Ext> extends ProtoType<Ext> {

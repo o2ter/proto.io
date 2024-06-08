@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { IncludePaths } from './types';
-import { TValue } from './value';
+import { TValue } from '../types';
 import { PVK } from '../private';
 import { TObjectType } from '../object/types';
 import { TQueryBase, TQueryBaseOptions } from './base';

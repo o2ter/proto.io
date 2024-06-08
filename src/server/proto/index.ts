@@ -39,7 +39,7 @@ import { TExtensions } from '../../internals/object/types';
 import { TQuery } from '../../internals/query';
 import { TUser } from '../../internals/object/user';
 import { ExtraOptions } from '../../internals/options';
-import { _TValue } from '../../internals/query/value';
+import { _TValue } from '../../internals/types';
 import { randomUUID } from '@o2ter/crypto-js';
 
 export class ProtoService<Ext> extends ProtoType<Ext> {

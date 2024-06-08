@@ -31,7 +31,7 @@ import { PVK } from '../internals/private';
 import { TQuery, TQueryOptions, TQueryRandomOptions } from '../internals/query';
 import { TObject } from '../internals/object';
 import { TObjectType, TUpdateOp } from '../internals/object/types';
-import { TValue } from '../internals/query/value';
+import { TValue } from '../internals/types';
 
 export class ProtoClientQuery<T extends string, E> extends TQuery<T, E, boolean, ProtoClient<E>> {
 

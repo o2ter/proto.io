@@ -23,7 +23,7 @@
 //  THE SOFTWARE.
 //
 
-import { TValue } from '../value';
+import { TValue } from '../../types';
 import { TComparisonKeys, TConditionalKeys } from './selectors';
 
 export type TBooleanExpression = {

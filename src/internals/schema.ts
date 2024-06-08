@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { _TValue } from './query/value';
+import { _TValue } from './types';
 
 export namespace TSchema {
   export type ACL = string[];

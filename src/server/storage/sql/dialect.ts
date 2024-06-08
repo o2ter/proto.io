@@ -28,7 +28,7 @@ import { QueryExpression } from '../../query/dispatcher/parser/expressions';
 import { TSchema } from '../../../internals/schema';
 import { CompileContext, Populate, QueryCompiler } from './compiler';
 import { SQL } from './sql';
-import { TValue } from '../../../internals/query/value';
+import { TValue } from '../../../internals/types';
 import { TUpdateOp } from '../../../internals/object/types';
 
 export interface SqlDialect {

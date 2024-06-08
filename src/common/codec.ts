@@ -28,7 +28,7 @@ import { Decimal } from 'decimal.js';
 import { TObject } from '../internals/object';
 import { TObjectTypes } from '../internals/object/types';
 import { isObjKey } from '../internals/utils';
-import { TValue } from '../internals/query/value';
+import { TValue } from '../internals/types';
 
 export { Decimal };
 type TNumber = number | Decimal | BigInt;

@@ -24,7 +24,7 @@
 //
 
 import { Awaitable } from "@o2ter/utils-js"
-import { _TValue } from "../../internals/query/value"
+import { _TValue } from '../../internals/types'
 
 export interface TPubSub {
 

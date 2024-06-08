@@ -26,11 +26,52 @@
 import _ from 'lodash';
 import { PVK } from '../private';
 import { ExtraOptions } from '../options';
-import { TValue, _TValue, cloneValue, isPrimitiveValue } from '../query/value';
+import { Decimal } from 'decimal.js';
+import { TPrimitiveValue, TValue, _TValue } from '../types';
 import { TSchema, defaultObjectKeys, defaultObjectReadonlyKeys } from '../schema';
 import { PathName } from '../query/types';
 import { TUpdateOp, TUpdateOpKeys } from './types';
 import { ProtoType } from '../proto';
+
+export const isPrimitiveValue = (x: any): x is TPrimitiveValue => {
+  if (_.isNil(x) || _.isNumber(x) || _.isBoolean(x) || _.isString(x) || _.isDate(x)) return true;
+  if (x instanceof Decimal) return true;
+  return false;
+}
+
+export const isValue = (x: any): x is TValue => {
+  if (isPrimitiveValue(x) || x instanceof TObject) return true;
+  if (_.isArray(x)) return _.every(x, v => isValue(v));
+  if (_.isPlainObject(x)) return _.every(x, v => isValue(v));
+  return false;
+}
+
+export const cloneValue = <T extends TValue>(x: T): T => {
+  if (isPrimitiveValue(x) || x instanceof TObject) return x;
+  if (_.isArray(x)) return x.map(v => cloneValue(v)) as T;
+  return _.mapValues(x, v => cloneValue(v)) as T;
+}
+
+export const _decodeValue = (value: _TValue): _TValue => {
+  if (isPrimitiveValue(value)) return value;
+  if (_.isArray(value)) return _.map(value, x => _decodeValue(x));
+  if (_.isString(value.$date)) return new Date(value.$date);
+  if (_.isString(value.$decimal)) return new Decimal(value.$decimal);
+  return _.transform(value, (r, v, k) => {
+    r[k.startsWith('$') ? k.substring(1) : k] = _decodeValue(v);
+  }, {} as any);
+};
+
+export const _encodeValue = (value: TValue): _TValue => {
+  if (value instanceof TObject) throw Error('Invalid data type');
+  if (_.isDate(value)) return { $date: value.toISOString() };
+  if (value instanceof Decimal) return { $decimal: value.toString() };
+  if (isPrimitiveValue(value)) return value;
+  if (_.isArray(value)) return _.map(value, x => _encodeValue(x));
+  return _.transform(value, (r, v, k) => {
+    r[k.startsWith('$') ? `$${k}` : k] = _encodeValue(v);
+  }, {} as any);
+};
 
 export const decodeUpdateOp = (update: TUpdateOp) => {
   const pairs = _.toPairs(update);

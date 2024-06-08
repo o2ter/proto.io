@@ -39,7 +39,7 @@ import { ProtoService } from '.';
 import { base64ToBuffer, isBinaryData } from '@o2ter/utils-js';
 import { EventCallback, ProtoInternalType } from '../../internals/proto';
 import { TObject } from '../../internals/object';
-import { _TValue } from '../../internals/query/value';
+import { _TValue } from '../../internals/types';
 import { ExtraOptions } from '../../internals/options';
 import { TUser } from '../../internals/object/user';
 import { TFile } from '../../internals/object/file';

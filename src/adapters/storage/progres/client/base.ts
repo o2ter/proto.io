@@ -31,7 +31,8 @@ import { _encodeJsonValue } from '../dialect/encode';
 import { QueryCompiler } from '../../../../server/storage/sql/compiler';
 import { DecodedQuery, FindOptions } from '../../../../server/storage';
 import { TransactionOptions } from '../../../../internals/proto';
-import { _TValue, _decodeValue, _encodeValue } from '../../../../internals/query/value';
+import { _decodeValue, _encodeValue } from '../../../../internals/object';
+import { _TValue } from '../../../../internals/types';
 import { TPubSub } from '../../../../server/pubsub';
 
 export class PostgresStorageClient<Driver extends PostgresClientDriver> extends SqlStorage implements TPubSub {

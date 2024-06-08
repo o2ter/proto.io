@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { SqlDialect } from './dialect';
-import { TValue } from '../../../internals/query/value';
+import { TValue } from '../../../internals/types';
 
 type SQLLiteral = SQL | SQL[] | { literal: string | SQL[], separator?: string };
 type SQLIdentifier = { identifier: string };

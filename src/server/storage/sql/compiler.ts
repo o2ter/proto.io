@@ -33,7 +33,7 @@ import { SqlDialect } from './dialect';
 import { _resolveColumn } from '../../query/dispatcher/validator';
 import { decodeUpdateOp } from '../../../internals/object';
 import { TUpdateOp } from '../../../internals/object/types';
-import { TValue } from '../../../internals/query/value';
+import { TValue } from '../../../internals/types';
 
 export type QueryCompilerOptions = {
   className: string;

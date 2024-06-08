@@ -30,7 +30,7 @@ import { FindOptions, FindOneOptions } from '../../storage';
 import { TQueryBaseOptions } from '../../../internals/query/base';
 import { ExtraOptions } from '../../../internals/options';
 import { TQueryRandomOptions } from '../../../internals/query';
-import { TValue } from '../../../internals/query/value';
+import { TValue } from '../../../internals/types';
 import { PVK } from '../../../internals/private';
 import { TUpdateOp } from '../../../internals/object/types';
 

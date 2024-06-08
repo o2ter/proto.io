@@ -33,7 +33,7 @@ import { TSerializable, deserialize, serialize } from '../../common';
 import { ProtoInternalType, ProtoType } from '../../internals/proto';
 import { TObjectType } from '../../internals/object/types';
 import { TUser } from '../../internals/object/user';
-import { _TValue } from '../../internals/query/value';
+import { _TValue } from '../../internals/types';
 import { TFile } from '../../internals/object/file';
 import { PVK } from '../../internals/private';
 import { FileData } from '../../internals/buffer';

@@ -34,7 +34,8 @@ import { nullSafeEqual, nullSafeNotEqual } from '../basic';
 import { fetchElement } from './utils';
 import Decimal from 'decimal.js';
 import { TObject } from '../../../../../internals/object';
-import { TValue, _encodeValue } from '../../../../../internals/query/value';
+import { _encodeValue } from '../../../../../internals/object';
+import { TValue } from '../../../../../internals/types';
 
 export const encodeFieldExpression = (
   compiler: QueryCompiler,

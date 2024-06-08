@@ -36,7 +36,7 @@ import { TFile } from '../object/file';
 import { FileData, FileStream } from '../buffer';
 import { isObjKey } from '../utils';
 import { applyObjectMethods } from '../object/methods';
-import { TValue, _TValue } from '../query/value';
+import { TValue, _TValue } from '../types';
 import { TObject } from '../object';
 import { TSerializable } from '../../common/codec';
 import { TUser } from '../object/user';

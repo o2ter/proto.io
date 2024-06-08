@@ -34,7 +34,7 @@ import { ExtraOptions } from '../../internals/options';
 import { TQuery, TQueryOptions, TQueryRandomOptions } from '../../internals/query';
 import { TObject, decodeUpdateOp } from '../../internals/object';
 import { TExtended } from '../../internals/object/methods';
-import { TValue } from '../../internals/query/value';
+import { TValue } from '../../internals/types';
 import { TObjectType, TUpdateOp } from '../../internals/object/types';
 
 export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T, E, M, ProtoService<E>> {

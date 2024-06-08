@@ -28,7 +28,7 @@ import { TSchema } from '../../internals/schema';
 import { TQueryBaseOptions } from '../../internals/query/base';
 import { TransactionOptions } from '../../internals/proto';
 import { TQueryOptions, TQueryRandomOptions } from '../../internals/query';
-import { TValue, _TValue } from '../../internals/query/value';
+import { TValue, _TValue } from '../../internals/types';
 import { TObject } from '../../internals/object';
 import { TUpdateOp } from '../../internals/object/types';
 

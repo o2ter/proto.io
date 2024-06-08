@@ -27,7 +27,7 @@ import _ from 'lodash';
 import { TObject } from './index';
 import { ExtraOptions } from '../options';
 import { FileStream } from '../buffer';
-import { TValue } from '../query/value';
+import { TValue } from '../types';
 import { ProtoType } from '../proto';
 
 export interface TFile {
