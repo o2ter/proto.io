@@ -25,7 +25,6 @@
 
 import _ from 'lodash';
 import { SqlDialect } from './dialect';
-import { PostgresDialect } from '../../../adapters/storage/progres/dialect';
 import { TValue } from '../../../internals/query/value';
 
 type SQLLiteral = SQL | SQL[] | { literal: string | SQL[], separator?: string };
@@ -99,10 +98,6 @@ export class SQL {
   compile(dialect: SqlDialect) {
     let idx = 1;
     return this._compile(dialect, () => idx++);
-  }
-
-  toString() {
-    return this.compile(PostgresDialect);
   }
 }
 
