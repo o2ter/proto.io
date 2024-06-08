@@ -131,17 +131,19 @@ export default class Service<Ext, P extends ProtoType<any>> {
       }
     });
 
+    const destory = () => {
+      disconnect = true;
+      this.sockets = this.sockets.filter(x => x !== socket);
+      socket.disconnect();
+    }
+
     return {
       socket,
       listen: (callback: (payload: any) => void) => {
         listeners.push(callback);
         return () => {
           listeners = listeners.filter(x => x !== callback);
-          if (_.isEmpty(listeners)) {
-            disconnect = true;
-            this.sockets = this.sockets.filter(x => x !== socket);
-            socket.disconnect();
-          }
+          if (_.isEmpty(listeners)) destory();
         };
       },
     };
