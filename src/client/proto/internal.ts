@@ -47,7 +47,6 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
   service: Service<Ext, P>;
 
   socket?: ReturnType<Service<Ext, P>['socket']>;
-  listeners: EventCallback[] = [];
 
   constructor(options: ProtoOptions<Ext>) {
     this.options = options;
@@ -306,26 +305,11 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
   }
 
   listen(proto: P, callback: EventCallback) {
-    const { socket, disconnect } = this.socket ?? this.service.socket();
-    this.listeners.push(callback);
-    if (!this.socket) {
-      socket.on('data', (payload) => {
-        const { type, objects } = _decodeValue(payload) as any;
-        for (const callback of this.listeners) {
-          callback(type, proto.rebind(_.map(objects, x => new TObject(x.className, x.attributes))));
-        }
-      });
-      this.socket = { socket, disconnect };
-    }
-    return {
-      socket,
-      remove: () => {
-        this.listeners = this.listeners.filter(x => x !== callback);
-        if (_.isEmpty(this.listeners)) {
-          this.socket = undefined;
-          disconnect();
-        }
-      },
-    };
+    const { socket, listen } = this.socket ?? this.service.socket();
+    const remove = listen((payload) => {
+      const { type, objects } = _decodeValue(payload) as any;
+      callback(type, proto.rebind(_.map(objects, x => new TObject(x.className, x.attributes))));
+    });
+    return { socket, remove };
   }
 }

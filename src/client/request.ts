@@ -116,6 +116,8 @@ export default class Service<Ext, P extends ProtoType<any>> {
     this.sockets.push(socket);
 
     let disconnect = false;
+    let listeners: ((payload: any) => void)[] = [];
+
     socket.on('connect_error', () => {
       if (!disconnect && !socket.active) socket.connect();
     });
@@ -123,12 +125,24 @@ export default class Service<Ext, P extends ProtoType<any>> {
       if (!disconnect && !socket.active) socket.connect();
     });
 
+    socket.on('data', (payload) => {
+      for (const callback of listeners) {
+        callback(payload);
+      }
+    });
+
     return {
       socket,
-      disconnect: () => {
-        disconnect = true;
-        this.sockets = this.sockets.filter(x => x !== socket);
-        socket.disconnect();
+      listen: (callback: (payload: any) => void) => {
+        listeners.push(callback);
+        return () => {
+          listeners = listeners.filter(x => x !== callback);
+          if (_.isEmpty(listeners)) {
+            disconnect = true;
+            this.sockets = this.sockets.filter(x => x !== socket);
+            socket.disconnect();
+          }
+        };
       },
     };
   }
