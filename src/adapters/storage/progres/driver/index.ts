@@ -30,6 +30,7 @@ import { asyncStream } from '@o2ter/utils-js';
 import Decimal from 'decimal.js';
 import { _TValue, _decodeValue, _encodeValue } from '../../../../internals/query/value';
 import { PROTO_POSTGRES_MSG } from '../const';
+import { quote } from '../dialect/basic';
 
 const typeParser = (oid: number, format?: any) => {
   format = format ?? 'text';
@@ -183,7 +184,7 @@ export class PostgresClientDriver {
 
   async publish(payload: _TValue) {
     await this.withClient(async (db) => {
-      await db.query(`NOTIFY ${PROTO_POSTGRES_MSG}, $1`, [JSON.stringify(_encodeValue(payload))]);
+      await db.query(`NOTIFY ${PROTO_POSTGRES_MSG}, ${quote(JSON.stringify(_encodeValue(payload)))}`);
     })
   }
 }
