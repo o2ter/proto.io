@@ -39,7 +39,7 @@ import { PVK } from '../../internals/private';
 import { FileData } from '../../internals/buffer';
 import { ExtraOptions } from '../../internals/options';
 import { UPLOAD_TOKEN_HEADER_NAME } from '../../internals/const';
-import { Socket } from 'socket.io-client';
+import { _decodeValue, TObject } from '../../internals/object';
 
 export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements ProtoInternalType<Ext, P> {
 
@@ -301,9 +301,13 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
     });
   }
 
-  listen(callback: EventCallback) {
+  listen(proto: P, callback: EventCallback) {
     const { socket, disconnect } = this.socket ?? this.service.socket();
     this.listeners.push(callback);
+    socket.on('data', (payload) => {
+      const { type, objects } = _decodeValue(payload) as any;
+      callback(type, proto.rebind(_.map(objects, x => new TObject(x.className, x.attributes))));
+    });
     return {
       socket,
       remove: () => {

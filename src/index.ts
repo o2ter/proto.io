@@ -36,6 +36,8 @@ import schemaRoute from './server/routes/schema';
 import configRoute from './server/routes/config';
 import { TSchema } from './internals/schema';
 import { PVK } from './internals/private';
+import { _encodeValue, TObject } from './internals/object';
+import { _TValue } from './internals/types';
 
 export * from './common';
 export { TFileStorage } from './server/file/index';
@@ -92,9 +94,27 @@ export const registerProtoSocket = <E>(
   endpoint?: string,
 ) => {
   const io = endpoint ? server.socket().of(endpoint) : server.socket();
+
   io.on('connection', async (socket) => {
+
+    const connect = async (token: string) => {
+      const payload = await proto.connectWithSessionToken(token);
+      return payload.listen((type, objects) => {
+        const objs = _.map(_.castArray(objects), x => ({
+          className: x.className,
+          attributes: _.pick(x.attributes as Record<string, _TValue>, TObject.defaultKeys)
+        }));
+        socket.emit('data', _encodeValue({ type, objects: objs }));
+      });
+    };
+
     const { token } = socket.handshake.auth;
-    const payload = proto.connectWithSessionToken(token);
+    let { remove } = await connect(token);
+
+    socket.on('auth', async (token) => {
+      remove();
+      remove = (await connect(token)).remove;
+    });
   });
 }
 

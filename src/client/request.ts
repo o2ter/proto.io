@@ -75,7 +75,10 @@ export default class Service<Ext, P extends ProtoType<any>> {
 
     if (res.headers['set-cookie']) {
       const cookies = res.headers['set-cookie'];
-      this.token = _.findLast(_.flatMap(cookies, x => x.split(';')), x => _.startsWith(x, `${AUTH_COOKIE_KEY}=`))
+      this.token = _.findLast(_.flatMap(cookies, x => x.split(';')), x => _.startsWith(x, `${AUTH_COOKIE_KEY}=`));
+      for (const socket of this.sockets) {
+        socket.emit('auth', this.token);
+      }
     }
 
     if (typeof window === 'undefined') {

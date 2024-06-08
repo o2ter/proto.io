@@ -92,6 +92,6 @@ export class ProtoClient<Ext> extends ProtoType<Ext> {
   }
 
   listen(callback: EventCallback) {
-    return this[PVK].listen(callback);
+    return this[PVK].listen(this, callback);
   }
 }
