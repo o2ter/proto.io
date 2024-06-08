@@ -215,7 +215,7 @@ export class PostgresDriver extends PostgresClientDriver {
       try {
         this.pubsub = await this.database.connect();
         this.pubsub?.on('notification', ({ channel, payload }) => {
-          if (channel !== PROTO_POSTGRES_MSG || !payload) return;
+          if (_.toUpper(channel) !== PROTO_POSTGRES_MSG || !payload) return;
           try {
             const _payload = _decodeValue(JSON.parse(payload));
             for (const subscriber of this.subscribers) {
