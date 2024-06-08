@@ -46,7 +46,6 @@ import { TFile } from '../../internals/object/file';
 import { FileData } from '../../internals/buffer';
 import { PVK } from '../../internals/private';
 import { fetchUserPerms } from '../query/dispatcher';
-import { TObjectType } from '../../internals/object/types';
 
 const validateForeignField = (schema: Record<string, TSchema>, key: string, dataType: TSchema.RelationType) => {
   if (!dataType.foreignField) return;
@@ -129,6 +128,7 @@ const mergeSchema = (...schemas: Record<string, TSchema>[]) => _.reduce(schemas,
       ]),
       ...(s.indexes ?? []),
     ],
+    event: acc[className]?.event ?? s.event,
   })),
 }), {} as Record<string, TSchema>);
 
