@@ -116,6 +116,8 @@ export const registerProtoSocket = <E>(
       remove = (await connect(token)).remove;
     });
   });
+
+  return io;
 }
 
 export default ProtoRoute;
