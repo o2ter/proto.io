@@ -135,7 +135,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
       disconnect = true;
       this.sockets = this.sockets.filter(x => x !== socket);
       socket.disconnect();
-    }
+    };
 
     return {
       socket,
