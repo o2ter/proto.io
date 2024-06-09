@@ -30,12 +30,30 @@ import { ProtoClient } from '../../src/client/proto';
 
 const Proto = new ProtoClient({
   endpoint: 'http://localhost:8080/proto',
+  socketEndpoint: 'http://localhost:8080/proto',
   masterUser,
 });
 
 test('test event', async () => {
 
   const { type, objects } = await Proto.run('testEvent') as any;
+
+  expect(type).toStrictEqual('create');
+  expect(objects).toHaveLength(1);
+})
+
+test('test event 2', async () => {
+
+  const promise = new Promise<{}>(res => {
+    const { remove } = Proto.listen((type, objects) => {
+      res({ type, objects });
+      remove();
+    });
+  });
+
+  await Proto.Query('Test').insert({ string: 'test' });
+
+  const { type, objects } = await promise as any;
 
   expect(type).toStrictEqual('create');
   expect(objects).toHaveLength(1);

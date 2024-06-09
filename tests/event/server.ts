@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { Server } from '@o2ter/server-js';
-import { ProtoService, ProtoRoute } from '../../src/index';
+import { ProtoService, ProtoRoute, registerProtoSocket } from '../../src/index';
 import { beforeAll, afterAll } from '@jest/globals';
 import DatabaseFileStorage from '../../src/adapters/file/database';
 import PostgresStorage from '../../src/adapters/storage/progres';
@@ -73,8 +73,9 @@ const Proto = new ProtoService({
 Proto.define('testEvent', async (proto) => {
 
   const promise = new Promise<{}>(res => {
-    proto.listen((type, objects) => {
-      res({ type, objects })
+    const { remove } = proto.listen((type, objects) => {
+      res({ type, objects });
+      remove();
     });
   });
 
@@ -88,6 +89,8 @@ beforeAll(async () => {
   app.use('/proto', await ProtoRoute({
     proto: Proto,
   }));
+
+  registerProtoSocket(Proto, app, '/proto');
 
   console.log('version: ', await database.version());
 
