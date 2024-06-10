@@ -82,12 +82,13 @@ export default class Service<Ext, P extends ProtoType<any>> {
 
     if (res.headers['set-cookie']) {
       const cookies = res.headers['set-cookie'];
-      const token = _.findLast(_.flatMap(cookies, x => x.split(';')), x => _.startsWith(x, `${AUTH_COOKIE_KEY}=`));
-      this.setSessionToken(token);
+      const pattern = `${AUTH_COOKIE_KEY}=`;
+      const token = _.findLast(_.flatMap(cookies, x => x.split(';')), x => _.startsWith(x.trim(), pattern));
+      this.setSessionToken(token?.trim().slice(pattern.length));
     }
 
     if (typeof window === 'undefined') {
-      this.service.defaults.headers.Cookie = this.token ?? null;
+      this.service.defaults.headers.Cookie = this.token ? `${AUTH_COOKIE_KEY}=${this.token}` : null;
     }
 
     if (res.status === 412) {
