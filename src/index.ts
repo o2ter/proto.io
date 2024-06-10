@@ -99,21 +99,26 @@ export const registerProtoSocket = <E>(
 
     const connect = async (token: string) => {
       const payload = await proto.connectWithSessionToken(token);
-      return payload.listen((type, objects) => {
+      const { remove } = payload.listen((type, objects) => {
         const objs = _.map(_.castArray(objects), x => ({
           className: x.className,
           attributes: _.pick(x.attributes as Record<string, _TValue>, TObject.defaultKeys)
         }));
         socket.emit('data', _encodeValue({ type, objects: objs }));
       });
+      return remove;
     };
 
     const { token } = socket.handshake.auth;
-    let { remove } = await connect(token);
+    let remove = connect(token);
 
-    socket.on('auth', async (token) => {
-      remove();
-      remove = (await connect(token)).remove;
+    socket.on('auth', (token) => {
+      remove.then(rm => rm());
+      remove = connect(token);
+    });
+
+    socket.on('disconnect', () => {
+      remove.then(rm => rm());
     });
   });
 
