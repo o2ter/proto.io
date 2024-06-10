@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { Pool, PoolConfig, PoolClient, types } from 'pg';
 import QueryStream from 'pg-query-stream';
-import { asyncStream } from '@o2ter/utils-js';
+import { asyncStream, Awaitable } from '@o2ter/utils-js';
 import Decimal from 'decimal.js';
 import { _decodeValue, _encodeValue } from '../../../../internals/object';
 import { _TValue } from '../../../../internals/types';
@@ -194,7 +194,7 @@ export class PostgresDriver extends PostgresClientDriver {
 
   database: Pool;
 
-  private pubsub?: PoolClient;
+  private pubsub?: Awaitable<PoolClient>;
   private subscribers: ((payload: _TValue) => void)[] = [];
 
   constructor(config: string | PoolConfig) {
@@ -206,14 +206,15 @@ export class PostgresDriver extends PostgresClientDriver {
   }
 
   async shutdown() {
-    await this.pubsub?.release();
+    await this._release_pubsub();
     await this.database.end();
   }
 
   private async _init_pubsub() {
     if (this.pubsub) return;
     try {
-      this.pubsub = await this.database.connect();
+      this.pubsub = this.database.connect();
+      this.pubsub = await this.pubsub;
       this.pubsub?.on('notification', ({ channel, payload }) => {
         if (_.toUpper(channel) !== PROTO_POSTGRES_MSG || !payload) return;
         try {
@@ -231,14 +232,19 @@ export class PostgresDriver extends PostgresClientDriver {
     }
   }
 
+  private async _release_pubsub() {
+    const pubsub = this.pubsub;
+    this.pubsub = undefined;
+    await (await pubsub)?.release();
+  }
+
   subscribe(callback: (payload: _TValue) => void) {
     this._init_pubsub();
     this.subscribers.push(callback);
     return () => { 
       this.subscribers = this.subscribers.filter(x => x !== callback);
       if (_.isEmpty(this.subscribers)) {
-        this.pubsub?.release();
-        this.pubsub = undefined;
+        this._release_pubsub();
       }
     };
   }
