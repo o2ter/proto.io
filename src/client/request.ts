@@ -58,8 +58,11 @@ export default class Service<Ext, P extends ProtoType<any>> {
 
   setSessionToken(token?: string) {
     this.token = token;
+    if (typeof window === 'undefined') {
+      this.service.defaults.headers.Cookie = token ? `${AUTH_COOKIE_KEY}=${token}` : null;
+    }
     for (const socket of this.sockets) {
-      socket.emit('auth', this.token);
+      socket.emit('auth', token);
     }
   }
 
@@ -85,10 +88,6 @@ export default class Service<Ext, P extends ProtoType<any>> {
       const pattern = `${AUTH_COOKIE_KEY}=`;
       const token = _.findLast(_.flatMap(cookies, x => x.split(';')), x => _.startsWith(x.trim(), pattern));
       this.setSessionToken(token?.trim().slice(pattern.length));
-    }
-
-    if (typeof window === 'undefined') {
-      this.service.defaults.headers.Cookie = this.token ? `${AUTH_COOKIE_KEY}=${this.token}` : null;
     }
 
     if (res.status === 412) {
