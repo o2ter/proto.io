@@ -50,6 +50,8 @@ test('test event 2', async () => {
     });
   });
 
+  await new Promise(res => setTimeout(res, 100));
+
   await Proto.notify({ string: 'test' });
 
   const { string } = await promise as any;
