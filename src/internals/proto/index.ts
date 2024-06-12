@@ -51,10 +51,11 @@ export type TransactionOptions = {
   retry?: number | boolean;
 };
 
-export type EventCallback = (
-  type: 'create' | 'update' | 'delete',
-  objects: TObject[],
-) => void;
+export type EventData = Record<string, _TValue> & {
+  _id: string,
+  _created_at: Date,
+  _rperm: string[],
+};
 
 export interface ProtoInternalType<Ext, P extends ProtoType<any>> {
 
@@ -128,7 +129,12 @@ export abstract class ProtoType<Ext> {
     return roles;
   }
 
-  abstract listen(callback: EventCallback): {
+  abstract notify(
+    data: Record<string, _TValue> & { _rperm?: string[]; },
+    options?: ExtraOptions<boolean, this>
+  ): Promise<void>
+
+  abstract listen(callback: (data: EventData) => void): {
     remove: VoidFunction;
     socket?: Socket;
   }

@@ -32,6 +32,7 @@ import { _decodeValue, _encodeValue } from '../../../../internals/object';
 import { _TValue } from '../../../../internals/types';
 import { PROTO_POSTGRES_MSG } from '../const';
 import { quote } from '../dialect/basic';
+import { EventData } from '../../../../internals/proto';
 
 const typeParser = (oid: number, format?: any) => {
   format = format ?? 'text';
@@ -195,7 +196,7 @@ export class PostgresDriver extends PostgresClientDriver {
   database: Pool;
 
   private pubsub?: Awaitable<PoolClient>;
-  private subscribers: ((payload: _TValue) => void)[] = [];
+  private subscribers: ((payload: EventData) => void)[] = [];
 
   constructor(config: string | PoolConfig) {
     if (_.isEmpty(config)) throw Error('Invalid postgre config.');
@@ -214,19 +215,19 @@ export class PostgresDriver extends PostgresClientDriver {
     if (this.pubsub) return;
     try {
       this.pubsub = this.database.connect();
-      this.pubsub = await this.pubsub;
-      this.pubsub?.on('notification', ({ channel, payload }) => {
+      const pubsub = await this.pubsub;
+      pubsub.on('notification', ({ channel, payload }) => {
         if (_.toUpper(channel) !== PROTO_POSTGRES_MSG || !payload) return;
         try {
           const _payload = _decodeValue(JSON.parse(payload));
           for (const subscriber of this.subscribers) {
-            subscriber(_payload);
+            subscriber(_payload as EventData);
           }
         } catch (e) {
           console.error(`Unknown payload: ${e}`);
         }
       });
-      await this.pubsub?.query(`LISTEN ${PROTO_POSTGRES_MSG}`);
+      await pubsub.query(`LISTEN ${PROTO_POSTGRES_MSG}`);
     } catch (e) {
       console.error(e);
     }
@@ -238,7 +239,7 @@ export class PostgresDriver extends PostgresClientDriver {
     await (await pubsub)?.release();
   }
 
-  subscribe(callback: (payload: _TValue) => void) {
+  subscribe(callback: (payload: EventData) => void) {
     this._init_pubsub();
     this.subscribers.push(callback);
     return () => { 

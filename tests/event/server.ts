@@ -62,7 +62,6 @@ const Proto = new ProtoService({
       fields: {
         string: 'string',
       },
-      event: true,
     },
   },
   storage: database,
@@ -73,13 +72,13 @@ const Proto = new ProtoService({
 Proto.define('testEvent', async (proto) => {
 
   const promise = new Promise<{}>(res => {
-    const { remove } = proto.listen((type, objects) => {
-      res({ type, objects });
+    const { remove } = proto.listen(data => {
+      res(data);
       remove();
     });
   });
 
-  await proto.Query('Test').insert({ string: 'test' });
+  await proto.notify({ string: 'test' });
 
   return promise;
 });

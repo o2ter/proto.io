@@ -130,10 +130,6 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
     );
     if (!result) throw Error('Unable to insert document');
 
-    if (this._proto.schema?.[this.className]?.event) {
-      await this._proto[PVK].notify('create', result);
-    }
-
     if (_.isFunction(afterSave)) {
       await afterSave(
         proxy(Object.setPrototypeOf({ object: result, context }, options?.session ?? this._proto))
@@ -169,10 +165,6 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
     const result = this._objectMethods(
       await this._dispatcher(options).updateOne(this._queryOptions, update)
     );
-
-    if (this._proto.schema?.[this.className]?.event && result) {
-      await this._proto[PVK].notify('update', result);
-    }
 
     if (result && _.isFunction(afterSave)) {
       await afterSave(
@@ -230,10 +222,6 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
     );
     if (!result) throw Error('Unable to upsert document');
 
-    if (this._proto.schema?.[this.className]?.event) {
-      await this._proto[PVK].notify(result.__v ? 'update' : 'create', result);
-    }
-
     if (_.isFunction(afterSave)) {
       await afterSave(
         proxy(Object.setPrototypeOf({ object: result, context }, options?.session ?? this._proto))
@@ -273,10 +261,6 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
       );
     }
 
-    if (this._proto.schema?.[this.className]?.event && result) {
-      await this._proto[PVK].notify('delete', result);
-    }
-
     if (result && _.isFunction(afterDelete)) {
       await afterDelete(
         proxy(Object.setPrototypeOf({ object: result, context }, options?.session ?? this._proto))
@@ -291,7 +275,7 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
 
     const context = options?.context ?? {};
 
-    if (this._proto.schema?.[this.className]?.event || _.isFunction(beforeDelete) || _.isFunction(afterDelete)) {
+    if (_.isFunction(beforeDelete) || _.isFunction(afterDelete)) {
 
       const objects = this._objectMethods(await asyncIterableToArray(this._dispatcher(options).find(this._queryOptions)));
       if (_.isEmpty(objects)) return 0;
@@ -306,10 +290,6 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
         ...this._queryOptions,
         filter: { _id: { $in: _.map(objects, x => x.objectId!) } },
       });
-
-      if (!_.isEmpty(objects)) {
-        await this._proto[PVK].notify('delete', objects);
-      }
 
       if (_.isFunction(afterDelete)) {
         await Promise.all(_.map(objects, object => afterDelete(

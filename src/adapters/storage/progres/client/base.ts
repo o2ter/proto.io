@@ -30,7 +30,7 @@ import { PostgresDialect } from '../dialect';
 import { _encodeJsonValue } from '../dialect/encode';
 import { QueryCompiler } from '../../../../server/storage/sql/compiler';
 import { DecodedQuery, FindOptions } from '../../../../server/storage';
-import { TransactionOptions } from '../../../../internals/proto';
+import { EventData, TransactionOptions } from '../../../../internals/proto';
 import { _decodeValue, _encodeValue } from '../../../../internals/object';
 import { _TValue } from '../../../../internals/types';
 import { TPubSub } from '../../../../server/pubsub';
@@ -203,13 +203,13 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
     }
   }
 
-  subscribe(callback: (payload: _TValue) => void) {
+  subscribe(callback: (payload: EventData) => void) {
     const db = this._driver;
     if (!(db instanceof PostgresDriver)) throw Error('Invalid pubsub instance');
     return db.subscribe(callback);
   }
 
-  publish(payload: _TValue) {
+  publish(payload: EventData) {
     return this._driver.publish(payload);
   }
 }

@@ -23,14 +23,14 @@
 //  THE SOFTWARE.
 //
 
-import { Awaitable } from "@o2ter/utils-js"
-import { _TValue } from '../../internals/types'
+import { Awaitable } from '@o2ter/utils-js';
+import { EventData } from '../../internals/proto';
 
 export interface TPubSub {
 
   subscribe(
-    callback: (payload: _TValue) => void
+    callback: (payload: EventData) => void
   ): VoidFunction
 
-  publish(payload: _TValue): Awaitable<void>
+  publish(payload: EventData): Awaitable<void>
 }

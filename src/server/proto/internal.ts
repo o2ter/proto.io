@@ -37,7 +37,7 @@ import { passwordHash, varifyPassword } from '../crypto/password';
 import { proxy } from './proxy';
 import { ProtoService } from '.';
 import { base64ToBuffer, isBinaryData } from '@o2ter/utils-js';
-import { EventCallback, ProtoInternalType } from '../../internals/proto';
+import { ProtoInternalType } from '../../internals/proto';
 import { TObject } from '../../internals/object';
 import { _TValue } from '../../internals/types';
 import { ExtraOptions } from '../../internals/options';
@@ -46,6 +46,7 @@ import { TFile } from '../../internals/object/file';
 import { FileData } from '../../internals/buffer';
 import { PVK } from '../../internals/private';
 import { fetchUserPerms } from '../query/dispatcher';
+import { EventData } from '../../internals/proto';
 
 const validateForeignField = (schema: Record<string, TSchema>, key: string, dataType: TSchema.RelationType) => {
   if (!dataType.foreignField) return;
@@ -128,7 +129,6 @@ const mergeSchema = (...schemas: Record<string, TSchema>[]) => _.reduce(schemas,
       ]),
       ...(s.indexes ?? []),
     ],
-    event: acc[className]?.event ?? s.event,
   })),
 }), {} as Record<string, TSchema>);
 
@@ -433,28 +433,28 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     }[type]);
   }
 
-  async notify(
-    type: 'create' | 'update' | 'delete',
-    objects: TObject | TObject[],
-  ) {
-    const objs = _.map(_.castArray(objects), x => ({
-      className: x.className,
-      attributes: _.pick(x.attributes as Record<string, _TValue>, TObject.defaultKeys)
-    }));
-    return this.options.pubsub.publish({ type, objects: objs });
+  async notify(proto: P, data: Record<string, _TValue> & { _rperm?: string[]; }) {
+    if (data._rperm && (!_.isArray(data._rperm) || !_.every(data._rperm, _.isString))) {
+      throw Error('Invalid data type');
+    }
+    return this.options.pubsub.publish({
+      ...data,
+      _id: proto[PVK].generateId(),
+      _created_at: new Date(),
+      _rperm: data._rperm || ['*'],
+    });
   }
 
-  listen(proto: P, callback: EventCallback) {
+  listen(proto: P, callback: (data: EventData) => void) {
     const isMaster = proto.isMaster;
     const roles = isMaster ? [] : this._perms(proto);
     return {
       remove: this.options.pubsub.subscribe(payload => {
-        const { type, objects } = payload as any;
+        const { _rperm } = payload;
         (async () => {
-          const _roles = await roles;
-          const objs = isMaster ? objects : _.filter(objects, x => _.some(x.attributes._rperm, x => _.includes(_roles, x)));
-          if (_.isEmpty(objs)) return;
-          callback(type, _.map(objs, x => new TObject(x.className, x.attributes)));
+          if (isMaster || _.some(await roles, x => _.includes(_rperm, x))) {
+            callback(payload);
+          }
         })();
       }),
     };

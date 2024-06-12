@@ -32,6 +32,7 @@ import classesRoute from './server/routes/classes';
 import functionRoute from './server/routes/function';
 import filesRoute from './server/routes/files';
 import userRoute from './server/routes/user';
+import notifyRoute from './server/routes/notify';
 import schemaRoute from './server/routes/schema';
 import configRoute from './server/routes/config';
 import { TSchema } from './internals/schema';
@@ -82,6 +83,7 @@ export const ProtoRoute = async <E>(options: {
   functionRoute(router, proto);
   filesRoute(router, proto);
   userRoute(router, proto);
+  notifyRoute(router, proto);
   schemaRoute(router, proto);
   configRoute(router, proto);
 
@@ -99,12 +101,8 @@ export const registerProtoSocket = <E>(
 
     const connect = async (token: string) => {
       const payload = await proto.connectWithSessionToken(token);
-      const { remove } = payload.listen((type, objects) => {
-        const objs = _.map(_.castArray(objects), x => ({
-          className: x.className,
-          attributes: _.pick(x.attributes as Record<string, _TValue>, TObject.defaultKeys)
-        }));
-        socket.emit('data', _encodeValue({ type, objects: objs }));
+      const { remove } = payload.listen(data => {
+        socket.emit('data', data);
       });
       return remove;
     };

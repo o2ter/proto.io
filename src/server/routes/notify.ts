@@ -1,5 +1,5 @@
 //
-//  index.test.ts
+//  user.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2024 O2ter Limited. All rights reserved.
@@ -24,35 +24,22 @@
 //
 
 import _ from 'lodash';
-import { masterUser } from './server';
-import { test, expect } from '@jest/globals';
-import { ProtoClient } from '../../src/client/proto';
+import { Server, Router } from '@o2ter/server-js';
+import { ProtoService } from '../proto';
+import { response } from './common';
+import { deserialize } from '../../common';
 
-const Proto = new ProtoClient({
-  endpoint: 'http://localhost:8080/proto',
-  socketEndpoint: 'http://localhost:8080/proto',
-  masterUser,
-});
+export default <E>(router: Router, proto: ProtoService<E>) => {
 
-test('test event', async () => {
+  router.post(
+    '/notify',
+    Server.text({ type: '*/*' }),
+    async (req, res) => {
+      res.setHeader('Cache-Control', ['no-cache', 'no-store']);
+      const payload = proto.connect(req);
+      await response(res, () => payload.notify(deserialize(req.body) as any));
+    }
+  );
 
-  const { string } = await Proto.run('testEvent') as any;
-
-  expect(string).toStrictEqual('test');
-})
-
-test('test event 2', async () => {
-
-  const promise = new Promise<{}>(res => {
-    const { remove } = Proto.listen(data => {
-      res(data);
-      remove();
-    });
-  });
-
-  await Proto.notify({ string: 'test' });
-
-  const { string } = await promise as any;
-
-  expect(string).toStrictEqual('test');
-})
+  return router;
+}

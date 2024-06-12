@@ -31,7 +31,7 @@ import { CookieOptions, Request } from '@o2ter/server-js';
 import { ProtoServiceOptions, ProtoServiceKeyOptions } from './types';
 import { ProtoFunction, ProtoFunctionOptions, ProtoTrigger } from '../../internals/proto/types';
 import { sessionId, sessionIsMaster, session, signUser, Session, sessionWithToken } from './session';
-import { EventCallback, ProtoType, TransactionOptions } from '../../internals/proto';
+import { EventData, ProtoType, TransactionOptions } from '../../internals/proto';
 import { schedule } from '../schedule';
 import { TSerializable } from '../../common';
 import { PVK } from '../../internals/private';
@@ -268,9 +268,13 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     return this[PVK]._jwtVarify(token, options);
   }
 
-  listen(callback: EventCallback) {
-    return this[PVK].listen(this, (type, objects) => {
-      callback(type, this.rebind(objects));
+  notify(data: Record<string, _TValue> & { _rperm?: string[]; }) {
+    return this[PVK].notify(this, data);
+  }
+
+  listen(callback: (data: EventData) => void) {
+    return this[PVK].listen(this, data => {
+      callback(data);
     });
   }
 }

@@ -30,7 +30,7 @@ import { ProtoOptions } from './types';
 import { TSchema } from '../../internals/schema';
 import { base64ToBuffer, isBinaryData, isBlob, isReadableStream, iterableToStream } from '@o2ter/utils-js';
 import { TSerializable, deserialize, serialize } from '../../common';
-import { EventCallback, ProtoInternalType, ProtoType } from '../../internals/proto';
+import { EventData, ProtoInternalType, ProtoType } from '../../internals/proto';
 import { TObjectType } from '../../internals/object/types';
 import { TUser } from '../../internals/object/user';
 import { _TValue } from '../../internals/types';
@@ -128,7 +128,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
 
     const { serializeOpts, context, acl, ...opts } = options ?? {};
 
-    const res = await this.service.request({
+    await this.service.request({
       method: 'post',
       baseURL: this.options.endpoint,
       url: 'config',
@@ -142,7 +142,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
 
     const { serializeOpts, context, ...opts } = options ?? {};
 
-    const res = await this.service.request({
+    await this.service.request({
       method: 'post',
       baseURL: this.options.endpoint,
       url: 'user/logout',
@@ -158,7 +158,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
 
     const { serializeOpts, context, ...opts } = options ?? {};
 
-    const res = await this.service.request({
+    await this.service.request({
       method: 'post',
       baseURL: this.options.endpoint,
       url: `user/${user.objectId}/password`,
@@ -174,7 +174,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
 
     const { serializeOpts, context, ...opts } = options ?? {};
 
-    const res = await this.service.request({
+    await this.service.request({
       method: 'post',
       baseURL: this.options.endpoint,
       url: `user/${user.objectId}/password`,
@@ -304,7 +304,25 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
     });
   }
 
-  listen(proto: P, callback: EventCallback) {
+  async notify(
+    proto: P,
+    data: Record<string, _TValue> & { _rperm?: string[]; },
+    options?: RequestOptions<boolean, P>
+  ) {
+
+    const { serializeOpts, context, ...opts } = options ?? {};
+
+    await this.service.request({
+      method: 'post',
+      baseURL: this.options.endpoint,
+      url: 'notify',
+      data: serialize(data, serializeOpts),
+      responseType: 'text',
+      ...opts,
+    });
+  }
+
+  listen(proto: P, callback: (data: EventData) => void) {
     const { socket, listen, onDestory } = this.socket ?? this.service.socket();
     if (_.isNil(this.socket)) {
       this.socket = { socket, listen, onDestory };
@@ -313,9 +331,8 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
     return {
       socket,
       remove: listen((payload) => {
-        const { type, objects } = _decodeValue(payload) as any;
-        callback(type, proto.rebind(_.map(objects, x => new TObject(x.className, x.attributes))));
+        callback(payload);
       }),
-     };
+    };
   }
 }

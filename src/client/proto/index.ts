@@ -28,7 +28,7 @@ import { RequestOptions } from '../options';
 import { ProtoClientInternal } from './internal';
 import { ProtoOptions } from './types';
 import { TSerializable } from '../../common';
-import { EventCallback, ProtoType } from '../../internals/proto';
+import { EventData, ProtoType } from '../../internals/proto';
 import { TQuery } from '../../internals/query';
 import { PVK } from '../../internals/private';
 import { _TValue } from '../../internals/types';
@@ -95,7 +95,11 @@ export class ProtoClient<Ext> extends ProtoType<Ext> {
     return this[PVK].schema(options);
   }
 
-  listen(callback: EventCallback) {
+  notify(data: Record<string, _TValue> & { _rperm?: string[]; }, options?: RequestOptions<boolean, this>) {
+    return this[PVK].notify(this, data, options);
+  }
+
+  listen(callback: (data: EventData) => void) {
     return this[PVK].listen(this, callback);
   }
 }
