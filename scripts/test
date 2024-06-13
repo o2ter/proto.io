@@ -17,7 +17,7 @@ docker run -d --rm --name postgres_test_db_${RAND} \
   -e "POSTGRES_USER=${POSTGRES_USERNAME}" \
   -e "POSTGRES_PASSWORD=${POSTGRES_PASSWORD}" \
   -e "POSTGRES_DB=${POSTGRES_DATABASE}" \
-  postgres
+  pgvector/pgvector:pg16
 
 function cleanup {
   docker stop postgres_test_db_${RAND}
