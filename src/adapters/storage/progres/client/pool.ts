@@ -44,6 +44,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
 
   async prepare(schema: Record<string, TSchema>) {
     await super.prepare(schema);
+    await this._enableExtensions();
     await this._createSystemTable();
     for (const [className, _schema] of _.toPairs(schema)) {
       await this._createTable(className, _schema);
@@ -66,6 +67,10 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
       case 'relation': return 'TEXT[]';
       default: throw Error('Unknown data type');
     }
+  }
+
+  private async _enableExtensions() {
+    await this.query(sql`CREATE EXTENSION IF NOT EXISTS vector`);
   }
 
   private async _createSystemTable() {
