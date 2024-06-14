@@ -214,7 +214,12 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
                 CREATE INDEX CONCURRENTLY
                 IF NOT EXISTS ${{ identifier: name }}
                 ON ${{ identifier: className }}
-                USING hnsw(CAST(ARRAY[${_.map(index.keys, k => sql`${{ identifier: k }}`)}] AS VECTOR(${{ literal: `${index.keys.length}` }})) ${{ literal: op }})
+                USING hnsw (
+                  CAST(
+                    ARRAY[${_.map(index.keys, k => sql`COALESCE(${{ identifier: k }}, 0)`)}]
+                    AS VECTOR(${{ literal: `${index.keys.length}` }})
+                  ) ${{ literal: op }}
+                )
               `);
             }
           }
