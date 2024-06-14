@@ -69,6 +69,11 @@ const Proto = new ProtoService({
         date: 'date',
         object: 'object',
         array: 'array',
+        vector: schema.shape({
+          x: 'number',
+          y: 'number',
+          z: 'number',
+        }),
         null_boolean: 'boolean',
         null_number: 'number',
         null_decimal: 'decimal',
@@ -151,6 +156,7 @@ const Proto = new ProtoService({
         { keys: { 'shape.pointer2': 1 } },
         { keys: { 'shape.relation': 1 } },
         { keys: { 'shape.test_field-name': 1 } },
+        { type: 'vector', keys: ['vector.x', 'vector.y', 'vector.z'] },
       ],
     }
   },

@@ -50,8 +50,12 @@ export namespace TSchema {
     update?: TSchema.ACL;
   };
   export type Indexes = {
+    type?: 'basic';
     keys: Record<string, 1 | -1>;
     unique?: boolean;
+  } | {
+    type: 'vector';
+    keys: string[];
   };
 }
 

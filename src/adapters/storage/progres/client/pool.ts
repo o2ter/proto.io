@@ -141,12 +141,21 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
     };
   }
 
+  private _indexName(className: string, index: TSchema.Indexes) {
+    switch (index.type) {
+      case 'vector':
+        return `${className}$v$${index.keys.join('$')}`;
+      default:
+        return `${className}$b$${_.map(index.keys, (v, k) => `${k}:${v}`).join('$')}`;
+    }
+  }
+
   private async _dropIndices(className: string, schema: TSchema) {
     const { indexes } = this._indicesOf(schema);
     const names: string[] = [];
     for (const index of indexes) {
       if (_.isEmpty(index.keys)) continue;
-      names.push(`${className}$${index.unique ? 'u' : ''}$${_.map(index.keys, (v, k) => `${k}:${v}`).join('$')}`);
+      names.push(this._indexName(className, index));
     }
     for (const [name, { is_primary }] of _.toPairs(await this.indices(className))) {
       if (is_primary || names.includes(name)) continue;
@@ -190,18 +199,42 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
     const { relations, indexes } = this._indicesOf(schema);
     for (const index of indexes) {
       if (_.isEmpty(index.keys)) continue;
-      const name = `${className}$${_.map(index.keys, (v, k) => `${k}:${v}`).join('$')}`;
-      const isAcl = _.isEqual(index.keys, { _rperm: 1 }) || _.isEqual(index.keys, { _wperm: 1 });
-      const isRelation = _.has(relations, _.last(_.keys(index.keys))!);
-      await this.query(sql`
-        CREATE ${{ literal: index.unique ? 'UNIQUE' : '' }} INDEX CONCURRENTLY
-        IF NOT EXISTS ${{ identifier: name }}
-        ON ${{ identifier: className }}
-        ${{ literal: isAcl || isRelation ? 'USING GIN' : '' }}
-        (${_.map(index.keys, (v, k) => sql`
-          ${{ identifier: k }} ${{ literal: isAcl || isRelation ? '' : v === 1 ? 'ASC' : 'DESC' }}
-        `)})
-      `);
+      const name = this._indexName(className, index);
+      switch (index.type) {
+        case 'vector':
+          {
+            const ops = [
+              'vector_l2_ops',
+              'vector_ip_ops',
+              'vector_cosine_ops',
+              'vector_l1_ops',
+            ];
+            for (const op of ops) {
+              await this.query(sql`
+                CREATE INDEX CONCURRENTLY
+                IF NOT EXISTS ${{ identifier: name }}
+                ON ${{ identifier: className }}
+                USING hnsw(CAST(ARRAY[${_.map(index.keys, k => sql`${{ identifier: k }}`)}] AS VECTOR(${{ literal: `${index.keys.length}` }})) ${{ literal: op }})
+              `);
+            }
+          }
+          break;
+        default:
+          {
+            const isAcl = _.isEqual(index.keys, { _rperm: 1 }) || _.isEqual(index.keys, { _wperm: 1 });
+            const isRelation = _.has(relations, _.last(_.keys(index.keys))!);
+            await this.query(sql`
+              CREATE ${{ literal: index.unique ? 'UNIQUE' : '' }} INDEX CONCURRENTLY
+              IF NOT EXISTS ${{ identifier: name }}
+              ON ${{ identifier: className }}
+              ${{ literal: isAcl || isRelation ? 'USING GIN' : '' }}
+              (${_.map(index.keys, (v, k) => sql`
+                ${{ identifier: k }} ${{ literal: isAcl || isRelation ? '' : v === 1 ? 'ASC' : 'DESC' }}
+              `)})
+            `);
+          }
+          break;
+      }
     }
   }
 
