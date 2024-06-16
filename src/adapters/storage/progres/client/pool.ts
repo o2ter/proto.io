@@ -70,7 +70,10 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
   }
 
   private async _enableExtensions() {
-    await this.query(sql`CREATE EXTENSION IF NOT EXISTS vector`);
+    const found = await this.query(sql`SELECT * FROM pg_available_extensions WHERE name = 'vector'`);
+    if (!_.isEmpty(found)) {
+      await this.query(sql`CREATE EXTENSION IF NOT EXISTS vector`);
+    }
   }
 
   private async _createSystemTable() {
