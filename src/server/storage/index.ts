@@ -31,6 +31,7 @@ import { TQueryOptions, TQueryRandomOptions } from '../../internals/query';
 import { TValue, _TValue } from '../../internals/types';
 import { TObject } from '../../internals/object';
 import { TUpdateOp } from '../../internals/object/types';
+import { TQuerySelector } from '../../internals/query/types/selectors';
 
 type CommonFindOptions = { className: string; };
 export type FindOptions = CommonFindOptions & TQueryOptions;
@@ -93,4 +94,7 @@ export interface TStorage {
     callback: (connection: TStorage) => PromiseLike<T>,
     options?: TransactionOptions,
   ): PromiseLike<T>;
+
+  refs(object: TObject, filter: TQuerySelector | TQuerySelector[]): AsyncIterable<TObject>;
+  nonrefs(className: string, filter: TQuerySelector | TQuerySelector[]): AsyncIterable<TObject>;
 }

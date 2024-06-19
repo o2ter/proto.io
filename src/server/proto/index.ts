@@ -35,12 +35,14 @@ import { EventData, ProtoType, TransactionOptions } from '../../internals/proto'
 import { schedule } from '../schedule';
 import { TSerializable } from '../../common';
 import { PVK } from '../../internals/private';
-import { TExtensions } from '../../internals/object/types';
+import { TExtensions, TObjectType } from '../../internals/object/types';
 import { TQuery } from '../../internals/query';
 import { TUser } from '../../internals/object/user';
 import { ExtraOptions } from '../../internals/options';
 import { _TValue } from '../../internals/types';
 import { randomUUID } from '@o2ter/crypto-js';
+import { TObject } from '../../internals/object';
+import { asyncStream } from '@o2ter/utils-js';
 
 export class ProtoService<Ext> extends ProtoType<Ext> {
 
@@ -275,6 +277,21 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
   listen(callback: (data: EventData) => void) {
     return this[PVK].listen(this, data => {
       callback(data);
+    });
+  }
+
+  refs(object: TObject, options?: ExtraOptions<boolean, this>) {
+    const self = this;
+    return asyncStream(async function* () {
+      const objects = await self[PVK].refs(self, object, options);
+      for await (const object of objects) yield self.rebind(object) as TObjectType<string, Ext>;
+    });
+  }
+  nonrefs<T extends string>(className: T, options?: ExtraOptions<boolean, this>) {
+    const self = this;
+    return asyncStream(async function* () {
+      const objects = await self[PVK].nonrefs(self, className, options);
+      for await (const object of objects) yield self.rebind(object) as TObjectType<T, Ext>;
     });
   }
 }

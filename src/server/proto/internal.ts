@@ -263,7 +263,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
 
     return {
       nonce,
-      maxUploadSize: maxUploadSize ?? proto[PVK].options.maxUploadSize,
+      maxUploadSize: maxUploadSize ?? this.options.maxUploadSize,
     };
   }
 
@@ -439,7 +439,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     }
     return this.options.pubsub.publish({
       ...data,
-      _id: proto[PVK].generateId(),
+      _id: this.generateId(),
       _created_at: new Date(),
       _rperm: data._rperm || ['*'],
     });
@@ -458,5 +458,14 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
         })();
       }),
     };
+  }
+
+  async refs(proto: P, object: TObject, options?: ExtraOptions<boolean, P>) {
+    const filter = options?.master ? [] : [{ _rperm: { $intersect: await this._perms(proto) } }];
+    return this.options.storage.refs(object, filter);
+  }
+  async nonrefs<T extends string>(proto: P, className: T, options?: ExtraOptions<boolean, P>) {
+    const filter = options?.master ? [] : [{ _rperm: { $intersect: await this._perms(proto) } }];
+    return this.options.storage.nonrefs(className, filter);
   }
 }
