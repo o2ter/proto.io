@@ -31,9 +31,10 @@ import { _encodeJsonValue } from '../dialect/encode';
 import { QueryCompiler } from '../../../../server/storage/sql/compiler';
 import { DecodedQuery, FindOptions } from '../../../../server/storage';
 import { EventData, TransactionOptions } from '../../../../internals/proto';
-import { _decodeValue, _encodeValue } from '../../../../internals/object';
+import { TObject, _decodeValue, _encodeValue } from '../../../../internals/object';
 import { _TValue } from '../../../../internals/types';
 import { TPubSub } from '../../../../server/pubsub';
+import { QuerySelector } from '../../../../server/query/dispatcher/parser';
 
 export class PostgresStorageClient<Driver extends PostgresClientDriver> extends SqlStorage implements TPubSub {
 
@@ -211,6 +212,13 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
 
   publish(payload: EventData) {
     return this._driver.publish(payload);
+  }
+
+  refs(object: TObject, classNames: string[], filter: QuerySelector): AsyncIterable<TObject> {
+    throw Error('unimplemented')
+  }
+  nonrefs(className: string, filter: QuerySelector): AsyncIterable<TObject> {
+    throw Error('unimplemented')
   }
 }
 
