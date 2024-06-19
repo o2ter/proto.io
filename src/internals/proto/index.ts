@@ -43,6 +43,7 @@ import { TUser } from '../object/user';
 import { ProtoFunction, ProtoFunctionOptions, ProtoTrigger } from './types';
 import { Socket } from 'socket.io-client';
 import { Session } from '../../server/proto/session';
+import { asyncStream } from '@o2ter/utils-js';
 
 export type TransactionMode = 'default' | 'committed' | 'repeatable' | 'serializable';
 
@@ -80,6 +81,9 @@ export abstract class ProtoType<Ext> {
 
   abstract run(name: string, data?: TSerializable, options?: ExtraOptions<boolean, this>): Promise<void | TSerializable>
   abstract Query<T extends string>(className: T): TQuery<T, Ext, boolean, this>;
+
+  abstract refs(object: TObject): ReturnType<typeof asyncStream<TObjectType<string, Ext>>>;
+  abstract nonrefs<T extends string>(className: T): ReturnType<typeof asyncStream<TObjectType<T, Ext>>>;
 
   async online() {
     try {
