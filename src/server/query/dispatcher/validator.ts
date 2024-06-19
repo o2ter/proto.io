@@ -117,12 +117,7 @@ export class QueryValidator<E> {
     ...keys: (keyof TSchema.CLPs)[]
   ) {
     if (!_.has(this.schema, className)) throw Error('No permission');
-    if (this.master) return true;
-    const perms = this.schema[className].classLevelPermissions ?? {};
-    for (const key of keys) {
-      if (_.every(perms[key] ?? ['*'], x => !_.includes(this.acls, x))) return false;
-    }
-    return true;
+    return this.master || this.proto[PVK].validateCLPs(className, this.acls, keys);
   }
 
   validateForeignField(dataType: TSchema.RelationType, type: keyof TSchema.FLPs, errorMeg: string) {
