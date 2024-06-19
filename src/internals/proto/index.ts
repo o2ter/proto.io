@@ -82,9 +82,6 @@ export abstract class ProtoType<Ext> {
   abstract run(name: string, data?: TSerializable, options?: ExtraOptions<boolean, this>): Promise<void | TSerializable>
   abstract Query<T extends string>(className: T): TQuery<T, Ext, boolean, this>;
 
-  abstract refs(object: TObject, options?: ExtraOptions<boolean, this>): ReturnType<typeof asyncStream<TObjectType<string, Ext>>>;
-  abstract nonrefs<T extends string>(className: T, options?: ExtraOptions<boolean, this>): ReturnType<typeof asyncStream<TObjectType<T, Ext>>>;
-
   async online() {
     try {
       const res = await axios({
@@ -206,4 +203,7 @@ export interface ProtoType<Ext> {
 
   jwtSign(payload: any, options: jwt.SignOptions): string;
   jwtVarify(token: string, options?: jwt.VerifyOptions): jwt.JwtPayload | undefined;
+
+  refs(object: TObject, options?: ExtraOptions<boolean, this>): ReturnType<typeof asyncStream<TObjectType<string, Ext>>>;
+  nonrefs<T extends string>(className: T, options?: ExtraOptions<boolean, this>): ReturnType<typeof asyncStream<TObjectType<T, Ext>>>;
 };
