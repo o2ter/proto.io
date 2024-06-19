@@ -466,7 +466,8 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     acls: string[],
     keys: (keyof TSchema.CLPs)[],
   ) {
-    const perms = this.options.schema[className]?.classLevelPermissions ?? {};
+    if (!_.has(this.options.schema, className)) throw Error('No permission');
+    const perms = this.options.schema[className].classLevelPermissions ?? {};
     for (const key of keys) {
       if (_.every(perms[key] ?? ['*'], x => !_.includes(acls, x))) return false;
     }
@@ -482,7 +483,6 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
   }
   async nonrefs<T extends string>(proto: P, className: T, options?: ExtraOptions<boolean, P>) {
     const roles = options?.master ? [] : await this._perms(proto);
-    if (!_.has(this.options.schema, className)) throw Error('No permission');
     if (!options?.master && !proto[PVK].validateCLPs(className, roles, ['find'])) throw Error('No permission');
     const storage = options?.session?.storage ?? this.options.storage;
     const filter = options?.master ? [] : [{ _rperm: { $intersect: roles } }];
