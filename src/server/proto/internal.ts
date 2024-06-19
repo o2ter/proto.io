@@ -463,10 +463,12 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
 
   async refs(proto: P, object: TObject, options?: ExtraOptions<boolean, P>) {
     const filter = options?.master ? [] : [{ _rperm: { $intersect: await this._perms(proto) } }];
-    return this.options.storage.refs(object, QuerySelector.decode(filter));
+    const storage = options?.session?.storage ?? this.options.storage;
+    return storage.refs(object, QuerySelector.decode(filter));
   }
   async nonrefs<T extends string>(proto: P, className: T, options?: ExtraOptions<boolean, P>) {
     const filter = options?.master ? [] : [{ _rperm: { $intersect: await this._perms(proto) } }];
-    return this.options.storage.nonrefs(className, QuerySelector.decode(filter));
+    const storage = options?.session?.storage ?? this.options.storage;
+    return storage.nonrefs(className, QuerySelector.decode(filter));
   }
 }
