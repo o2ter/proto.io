@@ -68,8 +68,8 @@ export abstract class SqlStorage implements TStorage {
   abstract get dialect(): SqlDialect;
   protected abstract _query(text: string, values: any[]): ReturnType<typeof asyncStream<any>>;
 
-  abstract refs(object: TObject, filter: TQuerySelector | TQuerySelector[]): AsyncIterable<TObject>;
-  abstract nonrefs(className: string, filter: TQuerySelector | TQuerySelector[]): AsyncIterable<TObject>;
+  abstract refs(object: TObject, filter: TQuerySelector[]): AsyncIterable<TObject>;
+  abstract nonrefs(className: string, filter: TQuerySelector[]): AsyncIterable<TObject>;
 
   query(sql: SQL) {
     const { query, values } = sql.compile(this.dialect);
