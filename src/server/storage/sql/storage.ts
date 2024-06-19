@@ -101,7 +101,7 @@ export abstract class SqlStorage implements TStorage {
     return result;
   }
 
-  private _decodeObject(className: string, attrs: Record<string, any>): TObject {
+  protected _decodeObject(className: string, attrs: Record<string, any>): TObject {
     const fields = this.schema[className].fields;
     const obj = new TObject(className);
     const _attrs: Record<string, any> = {};

@@ -215,10 +215,22 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
   }
 
   refs(object: TObject, classNames: string[], filter: QuerySelector): AsyncIterable<TObject> {
-    throw Error('unimplemented')
+    const self = this;
+    return (async function* () {
+      const objects = self.query(sql``);
+      for await (const object of objects) {
+        yield self._decodeObject('', object);
+      }
+    })();
   }
   nonrefs(className: string, filter: QuerySelector): AsyncIterable<TObject> {
-    throw Error('unimplemented')
+    const self = this;
+    return (async function* () {
+      const objects = self.query(sql``);
+      for await (const object of objects) {
+        yield self._decodeObject(className, object);
+      }
+    })();
   }
 }
 
