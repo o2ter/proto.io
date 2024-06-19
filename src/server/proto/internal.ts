@@ -47,6 +47,7 @@ import { FileData } from '../../internals/buffer';
 import { PVK } from '../../internals/private';
 import { fetchUserPerms } from '../query/dispatcher';
 import { EventData } from '../../internals/proto';
+import { QuerySelector } from '../query/dispatcher/parser';
 
 const validateForeignField = (schema: Record<string, TSchema>, key: string, dataType: TSchema.RelationType) => {
   if (!dataType.foreignField) return;
@@ -462,10 +463,10 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
 
   async refs(proto: P, object: TObject, options?: ExtraOptions<boolean, P>) {
     const filter = options?.master ? [] : [{ _rperm: { $intersect: await this._perms(proto) } }];
-    return this.options.storage.refs(object, filter);
+    return this.options.storage.refs(object, QuerySelector.decode(filter));
   }
   async nonrefs<T extends string>(proto: P, className: T, options?: ExtraOptions<boolean, P>) {
     const filter = options?.master ? [] : [{ _rperm: { $intersect: await this._perms(proto) } }];
-    return this.options.storage.nonrefs(className, filter);
+    return this.options.storage.nonrefs(className, QuerySelector.decode(filter));
   }
 }

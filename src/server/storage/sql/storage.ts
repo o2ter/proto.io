@@ -36,7 +36,7 @@ import { TObject } from '../../../internals/object';
 import { PVK } from '../../../internals/private';
 import { TQueryRandomOptions } from '../../../internals/query';
 import { TUpdateOp } from '../../../internals/object/types';
-import { TQuerySelector } from '../../../internals/query/types/selectors';
+import { QuerySelector } from '../../query/dispatcher/parser';
 
 export abstract class SqlStorage implements TStorage {
 
@@ -68,8 +68,8 @@ export abstract class SqlStorage implements TStorage {
   abstract get dialect(): SqlDialect;
   protected abstract _query(text: string, values: any[]): ReturnType<typeof asyncStream<any>>;
 
-  abstract refs(object: TObject, filter: TQuerySelector[]): AsyncIterable<TObject>;
-  abstract nonrefs(className: string, filter: TQuerySelector[]): AsyncIterable<TObject>;
+  abstract refs(object: TObject, filter: QuerySelector): AsyncIterable<TObject>;
+  abstract nonrefs(className: string, filter: QuerySelector): AsyncIterable<TObject>;
 
   query(sql: SQL) {
     const { query, values } = sql.compile(this.dialect);
