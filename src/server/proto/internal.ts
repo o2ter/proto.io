@@ -466,7 +466,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     acls: string[],
     keys: (keyof TSchema.CLPs)[],
   ) {
-    const perms = this.options.schema[className].classLevelPermissions ?? {};
+    const perms = this.options.schema[className]?.classLevelPermissions ?? {};
     for (const key of keys) {
       if (_.every(perms[key] ?? ['*'], x => !_.includes(acls, x))) return false;
     }
