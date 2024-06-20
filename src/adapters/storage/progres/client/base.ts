@@ -215,7 +215,7 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
     return this._driver.publish(payload);
   }
 
-  _refs(
+  private _refs(
     schema: Record<string, TSchema>,
     className: string,
     keys: string[],
