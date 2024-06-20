@@ -173,9 +173,9 @@ export abstract class SqlStorage implements TStorage {
     const query = sql`
       SELECT *
       FROM (${this._refs(
-      _.pick(this.schema, classNames), object.className, TObject.defaultKeys,
-      sql`${{ value: `${object.className}$${object.objectId}` }}`,
-    )}) AS "$"
+        _.pick(this.schema, classNames), object.className, TObject.defaultKeys,
+        sql`${{ value: `${object.className}$${object.objectId}` }}`,
+      )}) AS "$"
       ${_.isNil(roles) ? sql`` : sql`WHERE ${{ identifier: '$' }}.${{ identifier: '_rperm' }} && ${{ value: roles }}`}
     `;
     return (async function* () {
