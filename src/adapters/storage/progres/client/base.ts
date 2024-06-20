@@ -234,7 +234,7 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
         WHERE ${{
           literal: _.map(fields, (f, key) => isPointer(f)
             ? sql`${item} = ${{ identifier: className }}.${{ identifier: key }}`
-            : sql`${item} = ANY(${{ identifier: className }}.${{ identifier: key }}`),
+            : sql`${item} = ANY(${{ identifier: className }}.${{ identifier: key }})`),
           separator: ' OR ',
         }}
       `),
