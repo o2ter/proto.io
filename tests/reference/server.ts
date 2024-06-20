@@ -62,6 +62,18 @@ const Proto = new ProtoService({
       fields: {
         pointer: { type: 'pointer', target: 'Refs' },
         relation: { type: 'relation', target: 'Refs' },
+      },
+    },
+    'Refs2': {
+      fields: {
+        pointer: { type: 'pointer', target: 'Refs' },
+        relation: { type: 'relation', target: 'Refs' },
+      },
+    },
+    'Refs3': {
+      fields: {
+        pointer: { type: 'pointer', target: 'Refs' },
+        relation: { type: 'relation', target: 'Refs' },
       }
     },
   },
@@ -99,7 +111,7 @@ beforeAll(async () => {
   app.listen(8080, () => console.log('listening on port 8080'));
 });
 
-afterAll(async () => { 
+afterAll(async () => {
   await Proto.shutdown();
   await database.shutdown();
   await app.close();
