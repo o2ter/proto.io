@@ -1,5 +1,5 @@
 //
-//  expressions.ts
+//  keys.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2024 O2ter Limited. All rights reserved.
@@ -23,19 +23,29 @@
 //  THE SOFTWARE.
 //
 
-import { TValue } from '../../types';
-import { TComparisonKeys, TConditionalKeys } from './keys';
+export const TComparisonKeys = [
+  '$eq',
+  '$gt',
+  '$gte',
+  '$lt',
+  '$lte',
+  '$ne',
+] as const;
 
-export type TBooleanExpression = {
-  $not?: TBooleanExpression;
-} & {
-    [x in (typeof TComparisonKeys)[number]]?: [TExpression, TExpression];
-  } & {
-    [x in (typeof TConditionalKeys)[number]]?: TBooleanExpression[];
-  };
+export const TValueListKeys = [
+  '$in',
+  '$nin',
+] as const;
 
-export type TExpression = {
-  $array?: TExpression[];
-  $key?: string;
-  $value?: TValue;
-} & TBooleanExpression;
+export const TValueSetKeys = [
+  '$subset',
+  '$superset',
+  '$disjoint',
+  '$intersect',
+] as const;
+
+export const TConditionalKeys = [
+  '$and',
+  '$nor',
+  '$or',
+] as const;

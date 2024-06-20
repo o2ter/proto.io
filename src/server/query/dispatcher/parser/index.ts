@@ -25,7 +25,8 @@
 
 import _ from 'lodash';
 import { QueryExpression } from './expressions';
-import { TComparisonKeys, TConditionalKeys, TFieldQuerySelector, TQuerySelector, TValueListKeys, TValueSetKeys, allFieldQueryKeys } from '../../../../internals/query/types/selectors';
+import { TFieldQuerySelector, TQuerySelector, allFieldQueryKeys } from '../../../../internals/query/types/selectors';
+import { TComparisonKeys, TConditionalKeys, TValueListKeys, TValueSetKeys } from '../../../../internals/query/types/keys';
 import { isValue } from '../../../../internals/object';
 import { TValue } from '../../../../internals/types';
 

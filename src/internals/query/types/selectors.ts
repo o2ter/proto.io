@@ -25,33 +25,7 @@
 
 import { TValue } from '../../types';
 import { TBooleanExpression } from './expressions';
-
-export const TComparisonKeys = [
-  '$eq',
-  '$gt',
-  '$gte',
-  '$lt',
-  '$lte',
-  '$ne',
-] as const;
-
-export const TValueListKeys = [
-  '$in',
-  '$nin',
-] as const;
-
-export const TValueSetKeys = [
-  '$subset',
-  '$superset',
-  '$disjoint',
-  '$intersect',
-] as const;
-
-export const TConditionalKeys = [
-  '$and',
-  '$nor',
-  '$or',
-] as const;
+import { TConditionalKeys, TValueListKeys, TValueSetKeys, TComparisonKeys } from './keys';
 
 export const allFieldQueryKeys = [
   '$not', '$pattern', '$starts', '$ends', '$size', '$empty', '$every', '$some',
