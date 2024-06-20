@@ -40,7 +40,10 @@ test('test refs', async () => {
     result,
   } = await Proto.run('testRefs') as any;
 
-  expect(check.objectId).toStrictEqual(result.objectId);
-  expect(check2.objectId).toStrictEqual(result.objectId);
+  expect(check.length).toStrictEqual(1);
+  expect(check2.length).toStrictEqual(1);
+
+  expect(check?.[0]?.objectId).toStrictEqual(result.objectId);
+  expect(check2?.[0]?.objectId).toStrictEqual(result.objectId);
 
 })
