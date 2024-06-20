@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { PostgresClientDriver, PostgresDriver } from '../driver';
-import { SqlStorage, sql } from '../../../../server/storage/sql';
+import { SQL, SqlStorage, sql } from '../../../../server/storage/sql';
 import { PostgresDialect } from '../dialect';
 import { _encodeJsonValue } from '../dialect/encode';
 import { QueryCompiler } from '../../../../server/storage/sql/compiler';
@@ -35,6 +35,7 @@ import { TObject, _decodeValue, _encodeValue } from '../../../../internals/objec
 import { _TValue } from '../../../../internals/types';
 import { TPubSub } from '../../../../server/pubsub';
 import { QuerySelector } from '../../../../server/query/dispatcher/parser';
+import { TSchema, isPointer, isRelation } from '../../../../internals/schema';
 
 export class PostgresStorageClient<Driver extends PostgresClientDriver> extends SqlStorage implements TPubSub {
 
@@ -214,19 +215,64 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
     return this._driver.publish(payload);
   }
 
-  refs(object: TObject, classNames: string[], filter: QuerySelector): AsyncIterable<TObject> {
+  _refs(
+    schema: Record<string, TSchema>,
+    className: string,
+    keys: string[],
+    item: SQL,
+  ) {
+    const _schema = _.pickBy(_.mapValues(schema, s => _.pickBy(
+      s.fields,
+      f => (isPointer(f) || (isRelation(f) && _.isNil(f.foreignField))) && f.target === className
+    )) as Record<string, Record<string, TSchema.PointerType | TSchema.RelationType>>, s => !_.isEmpty(s));
+    return sql`${{
+      literal: _.map(_schema, (fields, className) => sql`
+        SELECT
+        ${{ quote: className }} AS ${{ identifier: '_class' }},
+        ${_.map(keys, k => sql`${{ identifier: className }}.${{ identifier: k }}`)}
+        FROM ${{ identifier: className }}
+        WHERE ${{
+          literal: _.map(fields, (f, key) => isPointer(f)
+            ? sql`${item} = ${{ identifier: className }}.${{ identifier: key }})`
+            : sql`${item} = ANY(${{ identifier: className }}.${{ identifier: key }})`),
+          separator: ' OR ',
+        }}
+      `),
+      separator: ' UNION '
+    }}`;
+  }
+
+  refs(object: TObject, classNames: string[], roles?: string[]): AsyncIterable<TObject> {
     const self = this;
+    const query = sql`
+      SELECT *
+      FROM (${this._refs(
+        _.pick(this.schema, classNames), object.className, TObject.defaultKeys,
+        sql`${{ value: `${object.className}$${object.objectId}` }}`,
+      )}) AS "$"
+      ${_.isNil(roles) ? sql`` : sql`WHERE ${{ identifier: '$' }}.${{ identifier: '_rperm' }} && ${{ value: _encodeValue(roles) }}`}
+    `;
     return (async function* () {
-      const objects = self.query(sql``);
-      for await (const object of objects) {
-        yield self._decodeObject('', object);
+      const objects = self.query(query);
+      for await (const { _class, ...object } of objects) {
+        yield self._decodeObject(_class, object);
       }
     })();
   }
-  nonrefs(className: string, filter: QuerySelector): AsyncIterable<TObject> {
+  nonrefs(className: string, roles?: string[]): AsyncIterable<TObject> {
     const self = this;
+    const query = sql`
+      SELECT
+        ${_.map(TObject.defaultKeys, k => sql`${{ identifier: className }}.${{ identifier: k }}`)}
+      FROM ${{ identifier: className }} AS "$"
+      WHERE NOT EXISTS (${this._refs(
+        this.schema, className, ['_id'],
+        sql`(${{ quote: className + '$' }} || ${{ identifier: '$' }}.${{ identifier: '_id' }})`,
+      )})
+      ${_.isNil(roles) ? sql`` : sql`WHERE ${{ identifier: '$' }}.${{ identifier: '_rperm' }} && ${{ value: _encodeValue(roles) }}`}
+    `;
     return (async function* () {
-      const objects = self.query(sql``);
+      const objects = self.query(query);
       for await (const object of objects) {
         yield self._decodeObject(className, object);
       }

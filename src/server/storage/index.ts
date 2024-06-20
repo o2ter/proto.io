@@ -94,6 +94,6 @@ export interface TStorage {
     options?: TransactionOptions,
   ): PromiseLike<T>;
 
-  refs(object: TObject, classNames: string[], filter: QuerySelector): AsyncIterable<TObject>;
-  nonrefs(className: string, filter: QuerySelector): AsyncIterable<TObject>;
+  refs(object: TObject, classNames: string[], roles?: string[]): AsyncIterable<TObject>;
+  nonrefs(className: string, roles?: string[]): AsyncIterable<TObject>;
 }
