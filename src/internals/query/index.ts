@@ -73,6 +73,7 @@ export abstract class TQuery<
     opts?: TQueryRandomOptions,
     options?: ExtraOptions<M, P>
   ): ReturnType<typeof asyncStream<TObjectType<T, Ext>>>;
+  abstract nonrefs(options?: ExtraOptions<M, P>): ReturnType<typeof asyncStream<TObjectType<T, Ext>>>;
   abstract insert(
     attrs: Record<string, TValue>,
     options?: ExtraOptions<M, P>
@@ -112,13 +113,4 @@ export abstract class TQuery<
     return !_.isNil(await query.limit(1).find(options));
   }
 
-};
-
-export interface TQuery<
-  T extends string, Ext,
-  M extends boolean,
-  P extends ProtoType<any>
-> {
-
-  nonrefs(options?: ExtraOptions<M, P>): ReturnType<typeof asyncStream<TObjectType<T, Ext>>>;
 };

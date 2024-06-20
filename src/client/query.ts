@@ -105,6 +105,15 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E, boolean,
     return asyncStream(request);
   }
 
+  nonrefs(options?: RequestOptions<boolean, ProtoClient<E>>) {
+    const request = () => this._proto[PVK].request(this._proto, {
+      operation: 'nonrefs',
+      context: options?.context ?? {},
+      ...this._queryOptions,
+    }, this._requestOpt(options)) as Promise<TObjectType<T, E>[]>;
+    return asyncStream(request);
+  }
+
   insert(
     attrs: Record<string, TValue>,
     options?: RequestOptions<boolean, ProtoClient<E>>
