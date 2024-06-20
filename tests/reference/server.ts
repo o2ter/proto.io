@@ -90,7 +90,7 @@ Proto.define('testRefs', async (proto) => {
   result.set('pointer', obj);
   await result.save();
 
-  const check = await proto.nonrefs('Refs');
+  const check = await proto.Query('Refs').nonrefs();
   const check2 = await proto.refs(obj);
 
   return {

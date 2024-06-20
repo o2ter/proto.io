@@ -205,5 +205,4 @@ export interface ProtoType<Ext> {
   jwtVarify(token: string, options?: jwt.VerifyOptions): jwt.JwtPayload | undefined;
 
   refs(object: TObject, options?: ExtraOptions<boolean, this>): ReturnType<typeof asyncStream<TObjectType<string, Ext>>>;
-  nonrefs<T extends string>(className: T, options?: ExtraOptions<boolean, this>): ReturnType<typeof asyncStream<TObjectType<T, Ext>>>;
 };

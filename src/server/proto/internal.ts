@@ -480,11 +480,4 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     const storage = options?.session?.storage ?? this.options.storage;
     return storage.refs(object, classNames, options?.master ? undefined : roles);
   }
-  async nonrefs<T extends string>(proto: P, className: T, options?: ExtraOptions<boolean, P>) {
-    const roles = options?.master ? [] : await this._perms(proto);
-    if (!options?.master && !proto[PVK].validateCLPs(className, roles, ['find'])) throw Error('No permission');
-    const storage = options?.session?.storage ?? this.options.storage;
-    const filter = options?.master ? [] : [{ _rperm: { $intersect: roles } }];
-    return storage.nonrefs(className, options?.master ? undefined : roles);
-  }
 }

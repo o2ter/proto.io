@@ -77,6 +77,16 @@ export const dispatcher = <E>(proto: ProtoService<E>, options: ExtraOptions<bool
       if (!_validator.validateCLPs(query.className, isGet ? 'get' : 'find')) throw Error('No permission');
       return proto.storage.find(decoded);
     },
+    async nonrefs(
+      query: FindOptions
+    ) {
+      QueryValidator.recursiveCheck(query);
+      const _validator = await validator();
+      const decoded = _validator.decodeQuery(normalize(query), 'read');
+      const isGet = _validator.isGetMethod(decoded.filter);
+      if (!_validator.validateCLPs(query.className, isGet ? 'get' : 'find')) throw Error('No permission');
+      return proto.storage.nonrefs(decoded);
+    },
     async random(
       query: FindOptions,
       opts?: TQueryRandomOptions

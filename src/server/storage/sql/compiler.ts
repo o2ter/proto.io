@@ -111,6 +111,12 @@ const _defaultInsertOpts = (options: InsertOptions) => {
   };
 }
 
+type _SelectOptions = {
+  select?: SQL,
+  sort?: SQL,
+  extraFilter?: SQL,
+};
+
 export class QueryCompiler {
 
   schema: Record<string, TSchema>;
@@ -189,10 +195,7 @@ export class QueryCompiler {
 
   private _baseSelectQuery(
     query: DecodedQuery<FindOptions>,
-    options?: {
-      select?: SQL,
-      sort?: SQL,
-    },
+    options?: _SelectOptions | ((x: { fetchName: string; }) => _SelectOptions),
   ) {
 
     const context = this._makeContext(query);
@@ -213,19 +216,24 @@ export class QueryCompiler {
       separator: ',\n',
     };
 
+    const _options = _.isFunction(options) ? options({ fetchName }) : options;
+
     return {
       stages,
       fetchName,
       context: context,
       query: sql`
-        SELECT ${options?.select ? options?.select : sql`*`} FROM (
+        SELECT ${_options?.select ? _options?.select : sql`*`} FROM (
           SELECT ${_includes}
           FROM ${{ identifier: query.className }} AS ${{ identifier: fetchName }}
           ${!_.isEmpty(_joins) ? { literal: _joins, separator: '\n' } : sql``}
           ${this.selectLock ? this.isUpdate ? sql`FOR UPDATE NOWAIT` : sql`FOR SHARE NOWAIT` : sql``}
         ) AS ${{ identifier: fetchName }}
-        ${_filter ? sql`WHERE ${_filter}` : sql``}
-        ${options?.sort ? options?.sort : sql``}
+        ${_filter || _options?.extraFilter ? sql`WHERE ${{
+        literal: _.map(_.compact([_filter, _options?.extraFilter]), x => sql`(${x})`),
+          separator: ' AND '
+        }}` : sql``}
+        ${_options?.sort ? _options?.sort : sql``}
         ${!_.isEmpty(query.sort) ? sql`ORDER BY ${this._encodeSort(fetchName, query.sort)}` : sql``}
         ${query.limit ? sql`LIMIT ${{ literal: `${query.limit}` }}` : sql``}
         ${query.skip ? sql`OFFSET ${{ literal: `${query.skip}` }}` : sql``}
@@ -265,10 +273,7 @@ export class QueryCompiler {
 
   _selectQuery(
     query: DecodedQuery<FindOptions>,
-    options?: {
-      select?: SQL,
-      sort?: SQL,
-    },
+    options?: _SelectOptions | ((x: { fetchName: string; }) => _SelectOptions),
   ) {
     const { stages, query: _query } = this._baseSelectQuery(query, options);
     return sql`
@@ -417,11 +422,11 @@ export class QueryCompiler {
         RETURNING *
       )${!_.isEmpty(stages) ? sql`, ${_.map(stages, (q, n) => sql`${{ identifier: n }} AS (${q})`)}` : sql``}
       SELECT ${{
-          literal: [
-            ...this._selectIncludes(name, context.includes),
-            ..._.flatMap(_populates, ({ columns }) => columns),
-          ], separator: ',\n'
-        }}
+        literal: [
+          ...this._selectIncludes(name, context.includes),
+          ..._.flatMap(_populates, ({ columns }) => columns),
+        ], separator: ',\n'
+      }}
       FROM ${{ identifier: name }}
       ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
     `;

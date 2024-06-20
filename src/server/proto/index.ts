@@ -287,11 +287,4 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
       for await (const object of objects) yield self.rebind(object) as TObjectType<string, Ext>;
     });
   }
-  nonrefs<T extends string>(className: T, options?: ExtraOptions<boolean, this>) {
-    const self = this;
-    return asyncStream(async function* () {
-      const objects = await self[PVK].nonrefs(self, className, options);
-      for await (const object of objects) yield self.rebind(object) as TObjectType<T, Ext>;
-    });
-  }
 }

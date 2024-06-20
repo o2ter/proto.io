@@ -76,6 +76,9 @@ export interface TStorage {
   find(query: DecodedQuery<FindOptions>): AsyncIterable<TObject>;
   random(query: DecodedQuery<FindOptions>, opts?: TQueryRandomOptions): AsyncIterable<TObject>;
 
+  refs(object: TObject, classNames: string[], roles?: string[]): AsyncIterable<TObject>;
+  nonrefs(query: DecodedQuery<FindOptions>): AsyncIterable<TObject>;
+
   insert(options: InsertOptions, attrs: Record<string, TValue>): PromiseLike<TObject | undefined>;
 
   updateOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>): PromiseLike<TObject | undefined>;
@@ -93,7 +96,4 @@ export interface TStorage {
     callback: (connection: TStorage) => PromiseLike<T>,
     options?: TransactionOptions,
   ): PromiseLike<T>;
-
-  refs(object: TObject, classNames: string[], roles?: string[]): AsyncIterable<TObject>;
-  nonrefs(className: string, roles?: string[]): AsyncIterable<TObject>;
 }

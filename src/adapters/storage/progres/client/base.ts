@@ -31,10 +31,9 @@ import { _encodeJsonValue } from '../dialect/encode';
 import { QueryCompiler } from '../../../../server/storage/sql/compiler';
 import { DecodedQuery, FindOptions } from '../../../../server/storage';
 import { EventData, TransactionOptions } from '../../../../internals/proto';
-import { TObject, _decodeValue, _encodeValue } from '../../../../internals/object';
+import { _decodeValue, _encodeValue } from '../../../../internals/object';
 import { _TValue } from '../../../../internals/types';
 import { TPubSub } from '../../../../server/pubsub';
-import { QuerySelector } from '../../../../server/query/dispatcher/parser';
 import { TSchema, isPointer, isRelation } from '../../../../internals/schema';
 
 export class PostgresStorageClient<Driver extends PostgresClientDriver> extends SqlStorage implements TPubSub {
@@ -215,7 +214,7 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
     return this._driver.publish(payload);
   }
 
-  private _refs(
+  _refs(
     schema: Record<string, TSchema>,
     className: string,
     keys: string[],
@@ -240,43 +239,6 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
       `),
       separator: ' UNION '
     }}`;
-  }
-
-  refs(object: TObject, classNames: string[], roles?: string[]): AsyncIterable<TObject> {
-    const self = this;
-    const query = sql`
-      SELECT *
-      FROM (${this._refs(
-        _.pick(this.schema, classNames), object.className, TObject.defaultKeys,
-        sql`${{ value: `${object.className}$${object.objectId}` }}`,
-      )}) AS "$"
-      ${_.isNil(roles) ? sql`` : sql`WHERE ${{ identifier: '$' }}.${{ identifier: '_rperm' }} && ${{ value: _encodeValue(roles) }}`}
-    `;
-    return (async function* () {
-      const objects = self.query(query);
-      for await (const { _class, ...object } of objects) {
-        yield self._decodeObject(_class, object);
-      }
-    })();
-  }
-  nonrefs(className: string, roles?: string[]): AsyncIterable<TObject> {
-    const self = this;
-    const query = sql`
-      SELECT
-        ${_.map(TObject.defaultKeys, k => sql`${{ identifier: '$' }}.${{ identifier: k }}`)}
-      FROM ${{ identifier: className }} AS "$"
-      WHERE NOT EXISTS (${this._refs(
-        this.schema, className, ['_id'],
-        sql`(${{ quote: className + '$' }} || ${{ identifier: '$' }}.${{ identifier: '_id' }})`,
-      )})
-      ${_.isNil(roles) ? sql`` : sql`AND ${{ identifier: '$' }}.${{ identifier: '_rperm' }} && ${{ value: _encodeValue(roles) }}`}
-    `;
-    return (async function* () {
-      const objects = self.query(query);
-      for await (const object of objects) {
-        yield self._decodeObject(className, object);
-      }
-    })();
   }
 }
 

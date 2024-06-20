@@ -68,8 +68,7 @@ export abstract class SqlStorage implements TStorage {
   abstract get dialect(): SqlDialect;
   protected abstract _query(text: string, values: any[]): ReturnType<typeof asyncStream<any>>;
 
-  abstract refs(object: TObject, classNames: string[], roles?: string[]): AsyncIterable<TObject>;
-  abstract nonrefs(className: string, roles?: string[]): AsyncIterable<TObject>;
+  abstract _refs(schema: Record<string, TSchema>, className: string, keys: string[], item: SQL): SQL;
 
   query(sql: SQL) {
     const { query, values } = sql.compile(this.dialect);
@@ -169,6 +168,43 @@ export abstract class SqlStorage implements TStorage {
     })();
   }
 
+  refs(object: TObject, classNames: string[], roles?: string[]) {
+    const self = this;
+    const query = sql`
+      SELECT *
+      FROM (${this._refs(
+      _.pick(this.schema, classNames), object.className, TObject.defaultKeys,
+      sql`${{ value: `${object.className}$${object.objectId}` }}`,
+    )}) AS "$"
+      ${_.isNil(roles) ? sql`` : sql`WHERE ${{ identifier: '$' }}.${{ identifier: '_rperm' }} && ${{ value: roles }}`}
+    `;
+    return (async function* () {
+      const objects = self.query(query);
+      for await (const { _class, ...object } of objects) {
+        yield self._decodeObject(_class, object);
+      }
+    })();
+  }
+
+  nonrefs(query: DecodedQuery<FindOptions>) {
+    const self = this;
+    const compiler = new QueryCompiler(self.schema, self.dialect, self.selectLock(), false);
+    const _query = compiler._selectQuery(query, ({ fetchName }) => ({
+      extraFilter: sql`
+        NOT EXISTS (${this._refs(
+          this.schema, query.className, ['_id'],
+          sql`(${{ quote: query.className + '$' }} || ${{ identifier: fetchName }}.${{ identifier: '_id' }})`,
+        )})
+      `
+    }));
+    return (async function* () {
+      const objects = self.query(_query);
+      for await (const object of objects) {
+        yield self._decodeObject(query.className, object);
+      }
+    })();
+  }
+
   async insert(options: InsertOptions, attrs: Record<string, TValue>) {
     const compiler = new QueryCompiler(this.schema, this.dialect, this.selectLock(), true);
     const result = _.first(await this.query(compiler.insert(options, attrs)));
@@ -198,5 +234,4 @@ export abstract class SqlStorage implements TStorage {
     const deleted = await this.query(compiler.deleteMany(query));
     return deleted.length;
   }
-
 }

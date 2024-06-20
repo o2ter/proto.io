@@ -92,6 +92,14 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
     });
   }
 
+  nonrefs(options?: ExtraOptions<M, ProtoService<E>>) {
+    const self = this;
+    return asyncStream(async function* () {
+      const objects = await self._dispatcher(options).nonrefs(self._queryOptions);
+      for await (const object of objects) yield self._objectMethods(object);
+    });
+  }
+
   random(
     opts?: TQueryRandomOptions,
     options?: ExtraOptions<M, ProtoService<E>>
