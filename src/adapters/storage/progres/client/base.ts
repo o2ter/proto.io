@@ -263,7 +263,7 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
     const self = this;
     const query = sql`
       SELECT
-        ${_.map(TObject.defaultKeys, k => sql`${{ identifier: className }}.${{ identifier: k }}`)}
+        ${_.map(TObject.defaultKeys, k => sql`${{ identifier: '$' }}.${{ identifier: k }}`)}
       FROM ${{ identifier: className }} AS "$"
       WHERE NOT EXISTS (${this._refs(
         this.schema, className, ['_id'],
