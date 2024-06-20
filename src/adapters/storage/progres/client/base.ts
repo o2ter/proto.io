@@ -269,7 +269,7 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
         this.schema, className, ['_id'],
         sql`(${{ quote: className + '$' }} || ${{ identifier: '$' }}.${{ identifier: '_id' }})`,
       )})
-      ${_.isNil(roles) ? sql`` : sql`WHERE ${{ identifier: '$' }}.${{ identifier: '_rperm' }} && ${{ value: _encodeValue(roles) }}`}
+      ${_.isNil(roles) ? sql`` : sql`AND ${{ identifier: '$' }}.${{ identifier: '_rperm' }} && ${{ value: _encodeValue(roles) }}`}
     `;
     return (async function* () {
       const objects = self.query(query);
