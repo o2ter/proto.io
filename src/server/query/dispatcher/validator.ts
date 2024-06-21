@@ -33,6 +33,7 @@ import { isPrimitiveValue } from '../../../internals/object';
 import { TObject } from '../../../internals/object';
 import { PVK } from '../../../internals/private';
 import { TQuerySelector } from '../../../internals/query/types/selectors';
+import { QueryExpression } from './parser/expressions';
 
 export const recursiveCheck = (x: any, stack: any[]) => {
   if (_.indexOf(stack, x) !== -1) throw Error('Recursive data detected');
@@ -253,12 +254,10 @@ export class QueryValidator<E> {
     return _.uniq(_includes);
   }
 
-  decodeSort(className: string, sort: Record<string, 1 | -1> | TSortOption[]): Record<string, 1 | -1> | SortOption[] {
-
+  decodeSort(sort: Record<string, 1 | -1> | TSortOption[]): Record<string, 1 | -1> | SortOption[] {
     if (_.isArray(sort)) {
-
+      return _.map(sort, s => ({ expr: QueryExpression.decode(s.expr, false), order: s.order }))
     }
-
     return sort;
   }
 
@@ -306,7 +305,7 @@ export class QueryValidator<E> {
             dataType.target, match.matches ?? {},
             includes.filter(x => x.startsWith(`${_colname}.`)).map(x => x.slice(_colname.length + 1)),
           ),
-          sort: match.sort && this.decodeSort(dataType.target, match.sort),
+          sort: match.sort && this.decodeSort(match.sort),
         };
       } else {
         throw Error(`Invalid match: ${colname}`);
@@ -332,7 +331,7 @@ export class QueryValidator<E> {
       ...matcheKeyPaths(match.matches ?? {}),
     ].map(x => `${key}.${x}`));
 
-    const sort = query.sort && this.decodeSort(query.className, query.sort);
+    const sort = query.sort && this.decodeSort(query.sort);
 
     const keyPaths = _.uniq([
       ...query.includes ?? ['*'],
