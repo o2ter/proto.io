@@ -32,6 +32,7 @@ import {
   QueryArrayExpression,
   QueryCoditionalExpression,
   QueryComparisonExpression,
+  QueryDistanceExpression,
   QueryExpression,
   QueryKeyExpression,
   QueryNotExpression,
@@ -135,6 +136,37 @@ const encodeJsonQueryExpression = (
   return sql`to_jsonb(${value})`;
 };
 
+const encodeDistanceQueryExpression = (
+  compiler: QueryCompiler,
+  parent: { className?: string; name: string; },
+  expr: QueryDistanceExpression
+): SQL => {
+
+  const left = _.map(expr.left, x => _.find(encodeTypedQueryExpression(compiler, parent, x), e => e.type === 'number')?.sql);
+  const right = _.map(expr.right, x => _.find(encodeTypedQueryExpression(compiler, parent, x), e => e.type === 'number')?.sql);
+  if (_.some(left, x => _.isNil(x)) || _.some(right, x => _.isNil(x))) throw Error('Invalid expression');
+
+  const operatorMap = {
+    '$distance': sql`<->`,
+    '$innerProduct': sql`<#>`,
+    '$cosineDistance': sql`<=>`,
+  } as const;
+
+  const _expr = sql`
+    CAST(
+      ARRAY[${_.map(left, x => sql`COALESCE(${x!}, 0)`)}]
+      AS VECTOR(${{ literal: `${left.length}` }})
+    )
+    ${operatorMap[expr.type]} 
+    CAST(
+      ARRAY[${_.map(right, x => sql`COALESCE(${x!}, 0)`)}]
+      AS VECTOR(${{ literal: `${right.length}` }})
+    )
+  `;
+
+  return expr.type === '$innerProduct' ? sql`-1 * (${_expr})` : _expr;
+};
+
 const matchType = (
   first: { type: PrimitiveValue; sql: SQL }[] | undefined,
   second: { type: PrimitiveValue; sql: SQL }[] | undefined,
@@ -207,6 +239,10 @@ export const encodeQueryExpression = (
   parent: { className?: string; name: string; },
   expr: QueryExpression
 ): SQL | undefined => {
+
+  if (expr instanceof QueryDistanceExpression) {
+    return encodeDistanceQueryExpression(compiler, parent, expr);
+  }
 
   return encodeBooleanExpression(compiler, parent, expr);
 }
