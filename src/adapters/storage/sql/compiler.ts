@@ -34,7 +34,6 @@ import { _resolveColumn } from '../../../server/query/dispatcher/validator';
 import { decodeUpdateOp } from '../../../internals/object';
 import { TUpdateOp } from '../../../internals/object/types';
 import { TValue } from '../../../internals/types';
-import { QueryExpression } from '../../../server/query/dispatcher/parser/expressions';
 
 export type QueryCompilerOptions = {
   className: string;
@@ -80,6 +79,8 @@ const _resolveSortingName = (
       resolved = populates[name].name;
       includes = populates[name].includes;
       populates = populates[name].populates;
+    } else if (_.some(_.keys(includes), x => _.startsWith(x, `${name}.`))) {
+      resolved = name;
     } else {
       throw Error(`Invalid path: ${key}`);
     }
