@@ -206,3 +206,12 @@ export const encodeBooleanExpression = (
   }
   throw Error('Invalid expression');
 };
+
+export const encodeQueryExpression = (
+  compiler: QueryCompiler,
+  parent: { className?: string; name: string; },
+  expr: QueryExpression
+): SQL | undefined => {
+
+  return encodeBooleanExpression(compiler, parent, expr);
+}
