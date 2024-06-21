@@ -33,6 +33,44 @@ const Proto = new ProtoClient({
   masterUser,
 });
 
-test('test vector', async () => {
-  
+test('test distance', async () => {
+
+  const inserted = await Proto.Query('Vector').insert({
+    vector: {
+      x: 0,
+      y: 1,
+      z: 2,
+    },
+  });
+
+  const q = Proto.Query('Test').equalTo('_id', inserted.objectId);
+
+  expect((await q.clone().filter({
+    $expr: {
+      $lt: [
+        {
+          $distance: [
+            [{ $key: 'vector.x' }, { $key: 'vector.y' }, { $key: 'vector.z' }],
+            [{ $value: 0 }, { $value: 0 }, { $value: 0 }],
+          ]
+        },
+        { $value: 2.3 },
+      ],
+    },
+  }).first())?.objectId).toStrictEqual(inserted.objectId);
+
+  expect((await q.clone().filter({
+    $expr: {
+      $lt: [
+        {
+          $distance: [
+            [{ $key: 'vector.x' }, { $key: 'vector.y' }, { $key: 'vector.z' }],
+            [{ $value: 0 }, { $value: 0 }, { $value: 0 }],
+          ]
+        },
+        { $value: 2.2 },
+      ],
+    },
+  }).first())?.objectId).toBeUndefined();
+
 })

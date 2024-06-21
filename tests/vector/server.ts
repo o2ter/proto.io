@@ -58,7 +58,7 @@ const Proto = new ProtoService({
   masterUsers: [masterUser],
   jwtToken: randomUUID(),
   schema: {
-    'Test': {
+    'Vector': {
       fields: {
         vector: schema.shape({
           x: 'number',
