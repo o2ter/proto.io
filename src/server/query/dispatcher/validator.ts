@@ -332,16 +332,17 @@ export class QueryValidator<E> {
       ...matcheKeyPaths(match.matches ?? {}),
     ].map(x => `${key}.${x}`));
 
+    const sort = query.sort && this.decodeSort(query.className, query.sort);
+
     const keyPaths = _.uniq([
       ...query.includes ?? ['*'],
-      ..._.keys(query.sort),
+      ..._.isArray(sort) ? _.flatMap(sort, s => s.expr.keyPaths()) : _.keys(sort),
       ...filter.keyPaths(),
       ...matcheKeyPaths(query.matches ?? {}),
     ]);
 
     const includes = this.decodeIncludes(query.className, keyPaths);
     const matches = this.decodeMatches(query.className, query.matches ?? {}, includes);
-    const sort = query.sort && this.decodeSort(query.className, query.sort);
 
     return {
       ...query,
