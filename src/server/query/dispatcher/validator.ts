@@ -256,7 +256,10 @@ export class QueryValidator<E> {
 
   decodeSort(sort: Record<string, 1 | -1> | TSortOption[]): Record<string, 1 | -1> | DecodedSortOption[] {
     if (_.isArray(sort)) {
-      return _.map(sort, s => ({ expr: QueryExpression.decode(s.expr, false), order: s.order }))
+      return _.map(sort, s => ({
+        order: s.order,
+        expr: QueryExpression.decode(s.expr, false).simplify(),
+      }))
     }
     return sort;
   }
