@@ -129,15 +129,10 @@ const encodeJsonQueryExpression = (
   if (expr instanceof QueryArrayExpression) {
     return sql`jsonb_build_array(${_.map(expr.exprs, x => encodeJsonQueryExpression(compiler, parent, x))})`;
   }
-  if (
-    expr instanceof QueryCoditionalExpression ||
-    expr instanceof QueryComparisonExpression ||
-    expr instanceof QueryNotExpression
-  ) {
-    const value = encodeBooleanExpression(compiler, parent, expr);
-    if (value) return sql`to_jsonb(${value})`;
-  }
-  throw Error('Invalid expression');
+
+  const value = encodeQueryExpression(compiler, parent, expr);
+  if (!value) throw Error('Invalid expression');
+  return sql`to_jsonb(${value})`;
 };
 
 const matchType = (
