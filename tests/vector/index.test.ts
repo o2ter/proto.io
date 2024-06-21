@@ -43,7 +43,7 @@ test('test distance', async () => {
     },
   });
 
-  const q = Proto.Query('Test').equalTo('_id', inserted.objectId);
+  const q = Proto.Query('Vector').equalTo('_id', inserted.objectId);
 
   expect((await q.clone().filter({
     $expr: {
