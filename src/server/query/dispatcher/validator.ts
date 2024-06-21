@@ -24,11 +24,11 @@
 //
 
 import _ from 'lodash';
-import { DecodedBaseQuery, DecodedQuery, FindOptions, FindOneOptions } from '../../storage';
+import { DecodedBaseQuery, DecodedQuery, FindOptions, FindOneOptions, SortOption } from '../../storage';
 import { QueryCoditionalSelector, QueryFieldSelector, QuerySelector } from './parser';
 import { TSchema, _typeof, isPointer, isPrimitive, isRelation, isShapedObject, shapedObjectPaths } from '../../../internals/schema';
 import { ProtoService } from '../../proto';
-import { TQueryBaseOptions } from '../../../internals/query/base';
+import { TQueryBaseOptions, TSortOption } from '../../../internals/query/base';
 import { isPrimitiveValue } from '../../../internals/object';
 import { TObject } from '../../../internals/object';
 import { PVK } from '../../../internals/private';
@@ -253,6 +253,10 @@ export class QueryValidator<E> {
     return _.uniq(_includes);
   }
 
+  decodeSort(className: string, sort: Record<string, 1 | -1> | TSortOption[]): Record<string, 1 | -1> | SortOption[] {
+
+  }
+
   decodeMatches(className: string, matches: Record<string, TQueryBaseOptions>, includes: string[]): Record<string, DecodedBaseQuery> {
 
     const schema = this.schema[className] ?? {};
@@ -297,6 +301,7 @@ export class QueryValidator<E> {
             dataType.target, match.matches ?? {},
             includes.filter(x => x.startsWith(`${_colname}.`)).map(x => x.slice(_colname.length + 1)),
           ),
+          sort: match.sort && this.decodeSort(dataType.target, match.sort),
         };
       } else {
         throw Error(`Invalid match: ${colname}`);
@@ -331,12 +336,14 @@ export class QueryValidator<E> {
 
     const includes = this.decodeIncludes(query.className, keyPaths);
     const matches = this.decodeMatches(query.className, query.matches ?? {}, includes);
+    const sort = query.sort && this.decodeSort(query.className, query.sort);
 
     return {
       ...query,
       filter,
       matches,
       includes,
+      sort,
       objectIdSize: this.objectIdSize,
     };
   }
