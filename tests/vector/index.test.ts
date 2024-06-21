@@ -73,4 +73,36 @@ test('test distance', async () => {
     },
   }).first())?.objectId).toBeUndefined();
 
-})
+});
+
+test('test distance sort', async () => {
+
+  for (const x of _.range(0, 5)) {
+    await Proto.Query('Vector').insert({
+      string: 'distance sort',
+      vector: {
+        x: x,
+        y: 1,
+        z: 2,
+      },
+    });
+  }
+
+  const result = await Proto.Query('Vector').equalTo('string', 'distance sort').sort([{
+    order: -1,
+    expr: {
+      $distance: [
+        [{ $key: 'vector.x' }, { $key: 'vector.y' }, { $key: 'vector.z' }],
+        [{ $value: 0 }, { $value: 0 }, { $value: 0 }],
+      ]
+    },
+  }]).find();
+
+  expect(result.length).toStrictEqual(5);
+  expect(result[0].get('vector.x')).toStrictEqual(4);
+  expect(result[1].get('vector.x')).toStrictEqual(3);
+  expect(result[2].get('vector.x')).toStrictEqual(2);
+  expect(result[3].get('vector.x')).toStrictEqual(1);
+  expect(result[4].get('vector.x')).toStrictEqual(0);
+
+});

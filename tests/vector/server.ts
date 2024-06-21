@@ -60,6 +60,7 @@ const Proto = new ProtoService({
   schema: {
     'Vector': {
       fields: {
+        string: 'string',
         vector: schema.shape({
           x: 'number',
           y: 'number',
