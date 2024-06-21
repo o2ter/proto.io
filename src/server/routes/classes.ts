@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { Server, Router } from '@o2ter/server-js';
+import { Server, Router, Request } from '@o2ter/server-js';
 import { ProtoService } from '../proto';
 import queryType from 'query-types';
 import { response } from './common';
@@ -100,6 +100,36 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
     }
   );
 
+  const createQuery = <E>(payload: ProtoService<E>, req: Request<{ name: string; }>, checkLimit: boolean) => {
+
+    const { name } = req.params;
+    const query = payload.Query(name);
+
+    const {
+      filter,
+      sort,
+      includes,
+      skip,
+      limit,
+    } = req.query;
+
+
+    query[PVK].options.filter = !_.isEmpty(filter) && _.isString(filter) ? _.castArray(deserialize(filter)) as any : [];
+    query[PVK].options.sort = _.isPlainObject(sort) && _.every(_.values(sort), _.isNumber) ? sort as any : undefined;
+    query[PVK].options.includes = _.isArray(includes) && _.every(includes, _.isString) ? includes as any : undefined;
+    query[PVK].options.skip = _.isNumber(skip) ? skip : undefined;
+
+    if (checkLimit) {
+      const maxFetchLimit = payload[PVK].options.maxFetchLimit;
+      query[PVK].options.limit = _.isNumber(limit) ? limit : maxFetchLimit;
+      if (query[PVK].options.limit > maxFetchLimit) throw Error('Query over limit');
+    } else {
+      query[PVK].options.limit = _.isNumber(limit) ? limit : undefined;
+    }
+
+    return query;
+  };
+
   router.get(
     '/classes/:name',
     queryType.middleware(),
@@ -113,31 +143,8 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       if (!_.includes(classes, name)) return res.sendStatus(404);
 
       const payload = proto.connect(req);
-      const query = payload.Query(name);
 
-      const opts = { master: payload.isMaster };
-
-      await response(res, async () => {
-
-        const {
-          filter,
-          sort,
-          includes,
-          skip,
-          limit,
-        } = req.query;
-
-        const maxFetchLimit = payload[PVK].options.maxFetchLimit;
-
-        query[PVK].options.filter = !_.isEmpty(filter) && _.isString(filter) ? _.castArray(deserialize(filter)) as any : [];
-        query[PVK].options.sort = _.isPlainObject(sort) && _.every(_.values(sort), _.isNumber) ? sort as any : undefined;
-        query[PVK].options.includes = _.isArray(includes) && _.every(includes, _.isString) ? includes as any : undefined;
-        query[PVK].options.skip = _.isNumber(skip) ? skip : undefined;
-        query[PVK].options.limit = _.isNumber(limit) ? limit : maxFetchLimit;
-
-        if (query[PVK].options.limit > maxFetchLimit) throw Error('Query over limit');
-        return await query.find(opts);
-      });
+      await response(res, async () => createQuery(payload, req, true).find({ master: payload.isMaster }));
     }
   );
 
@@ -175,6 +182,26 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
 
       const update = _.mapValues(deserialize(req.body) as any, v => ({ $set: v }));
       await response(res, () => query.updateOne(update as any, { master: payload.isMaster }));
+    }
+  );
+
+  router.delete(
+    '/classes/:name',
+    Server.text({ type: '*/*' }),
+    async (req, res) => {
+
+      res.setHeader('Cache-Control', ['no-cache', 'no-store']);
+
+      if (!_.isEmpty(req.body)) return res.sendStatus(400);
+
+      const { name } = req.params;
+      const classes = proto.classes();
+
+      if (!_.includes(classes, name)) return res.sendStatus(404);
+
+      const payload = proto.connect(req);
+
+      await response(res, () => createQuery(payload, req, false).deleteMany({ master: payload.isMaster }));
     }
   );
 
