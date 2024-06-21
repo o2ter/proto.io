@@ -28,13 +28,19 @@ import { PathName, PathNameMap } from './types';
 import { TQuerySelector } from './types/selectors';
 import { TValue } from '../types';
 import { PVK } from '../private';
+import { TExpression } from './types/expressions';
 
 interface TQueryFilterBaseOptions {
   filter?: TQuerySelector | TQuerySelector[];
 };
 
+export type TSortOption = {
+  expr: TExpression;
+  order: 1 | -1;
+};
+
 export interface TQueryBaseOptions extends TQueryFilterBaseOptions {
-  sort?: Record<string, 1 | -1>;
+  sort?: Record<string, 1 | -1> | TSortOption[];
   skip?: number;
   limit?: number;
   matches?: Record<string, TQueryBaseOptions>;
@@ -193,7 +199,7 @@ export class TQueryBase extends TQueryFilterBase {
 
   [PVK]: { options: TQueryBaseOptions; } = { options: {} };
 
-  sort<T extends Record<string, 1 | -1>>(sort: PathNameMap<T>) {
+  sort<T extends Record<string, 1 | -1>>(sort: PathNameMap<T> | TSortOption[]) {
     this[PVK].options.sort = sort;
     return this;
   }

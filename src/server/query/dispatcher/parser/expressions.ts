@@ -70,6 +70,10 @@ export class QueryExpression {
   keyPaths(): string[] {
     return [];
   }
+
+  mapKey(callback: (key: string) => string): QueryExpression {
+    return this;
+  }
 }
 
 export class QueryCoditionalExpression extends QueryExpression {
@@ -102,6 +106,10 @@ export class QueryCoditionalExpression extends QueryExpression {
   keyPaths(): string[] {
     return _.uniq(_.flatMap(this.exprs, x => x.keyPaths()));
   }
+
+  mapKey(callback: (key: string) => string): QueryExpression {
+    return new QueryCoditionalExpression(this.type, _.map(this.exprs, x => x.mapKey(callback)));
+  }
 }
 
 export class QueryComparisonExpression extends QueryExpression {
@@ -127,6 +135,10 @@ export class QueryComparisonExpression extends QueryExpression {
       ...this.right.keyPaths(),
     ]);
   }
+
+  mapKey(callback: (key: string) => string): QueryExpression {
+    return new QueryComparisonExpression(this.type, this.left.mapKey(callback), this.right.mapKey(callback));
+  }
 }
 
 export class QueryNotExpression extends QueryExpression {
@@ -144,6 +156,10 @@ export class QueryNotExpression extends QueryExpression {
 
   keyPaths(): string[] {
     return this.expr.keyPaths();
+  }
+
+  mapKey(callback: (key: string) => string): QueryExpression {
+    return new QueryNotExpression(this.expr.mapKey(callback));
   }
 }
 
@@ -163,6 +179,10 @@ export class QueryArrayExpression extends QueryExpression {
   keyPaths(): string[] {
     return _.uniq(_.flatMap(this.exprs, x => x.keyPaths()));
   }
+
+  mapKey(callback: (key: string) => string): QueryExpression {
+    return new QueryArrayExpression(_.map(this.exprs, x => x.mapKey(callback)));
+  }
 }
 
 export class QueryKeyExpression extends QueryExpression {
@@ -176,6 +196,10 @@ export class QueryKeyExpression extends QueryExpression {
 
   keyPaths(): string[] {
     return this.key === '$' ? [] : [this.key];
+  }
+
+  mapKey(callback: (key: string) => string): QueryExpression {
+    return new QueryKeyExpression(callback(this.key));
   }
 }
 

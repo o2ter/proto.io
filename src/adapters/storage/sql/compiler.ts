@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { TSchema, isPointer, isPrimitive, isRelation, isShapedObject, shapedObjectPaths } from '../../../internals/schema';
 import { QueryCoditionalSelector, QueryExpressionSelector, QueryFieldSelector, QuerySelector } from '../../../server/query/dispatcher/parser';
-import { DecodedBaseQuery, DecodedQuery, FindOneOptions, FindOptions, InsertOptions } from '../../../server/storage';
+import { DecodedBaseQuery, DecodedQuery, FindOneOptions, FindOptions, InsertOptions, SortOption } from '../../../server/storage';
 import { SQL, sql } from './sql';
 import { generateId } from '../../../server/crypto/random';
 import { SqlDialect } from './dialect';
@@ -34,11 +34,12 @@ import { _resolveColumn } from '../../../server/query/dispatcher/validator';
 import { decodeUpdateOp } from '../../../internals/object';
 import { TUpdateOp } from '../../../internals/object/types';
 import { TValue } from '../../../internals/types';
+import { QueryExpression } from '../../../server/query/dispatcher/parser/expressions';
 
 export type QueryCompilerOptions = {
   className: string;
   filter?: QuerySelector;
-  sort?: Record<string, 1 | -1>;
+  sort?: Record<string, 1 | -1> | SortOption[];
   includes: string[];
   matches: Record<string, DecodedBaseQuery>;
 }
@@ -52,7 +53,7 @@ export type Populate = {
   filter: QuerySelector;
   includes: Record<string, TSchema.DataType>;
   populates: Record<string, Populate>;
-  sort?: Record<string, 1 | -1>;
+  sort?: Record<string, 1 | -1> | SortOption[];
   skip?: number;
   limit?: number;
 }
@@ -60,7 +61,7 @@ export type Populate = {
 export type CompileContext = {
   includes: Record<string, TSchema.DataType>;
   populates: Record<string, Populate>;
-  sorting?: Record<string, 1 | -1>;
+  sorting?: Record<string, 1 | -1> | SortOption[];
 }
 
 const _resolveSortingName = (
@@ -89,8 +90,18 @@ const _resolveSortingName = (
 const _encodeSorting = (
   includes: Record<string, TSchema.DataType>,
   populates: Record<string, Populate>,
-  sort?: Record<string, 1 | -1>,
+  sort?: Record<string, 1 | -1> | SortOption[],
 ) => {
+  if (_.isArray(sort)) {
+    return _.map(sort, x => ({
+      order: x.order,
+      expr: x.expr.mapKey(key => {
+        const resolved = _resolveSortingName(key, includes, populates);
+        if (!resolved) throw Error(`Invalid path: ${key}`);
+        return resolved;
+      }),
+    }));
+  }
   const sorting: Record<string, 1 | -1> = {};
   for (const [key, order] of _.toPairs(sort)) {
     const resolved = _resolveSortingName(key, includes, populates);
@@ -137,7 +148,7 @@ export class QueryCompiler {
     return this.idx++;
   }
 
-  private _makeContext(query: InsertOptions & { sort?: Record<string, 1 | -1> }) {
+  private _makeContext(query: InsertOptions & { sort?: Record<string, 1 | -1> | SortOption[] }) {
     const context = this._encodeIncludes(query.className, query.includes, query.matches);
     return {
       ...context,
@@ -234,7 +245,7 @@ export class QueryCompiler {
           separator: ' AND '
         }}` : sql``}
         ${_options?.sort ? _options?.sort : sql``}
-        ${!_.isEmpty(query.sort) ? sql`ORDER BY ${this._encodeSort(fetchName, query.sort)}` : sql``}
+        ${!_.isEmpty(query.sort) ? sql`ORDER BY ${this._encodeSort(query.sort, { className: query.className, name: fetchName })}` : sql``}
         ${query.limit ? sql`LIMIT ${{ literal: `${query.limit}` }}` : sql``}
         ${query.skip ? sql`OFFSET ${{ literal: `${query.skip}` }}` : sql``}
       `,
@@ -362,7 +373,7 @@ export class QueryCompiler {
       return this.dialect.encodeFieldExpression(this, context, parent, filter.field, filter.expr);
     }
     if (filter instanceof QueryExpressionSelector) {
-      return this.dialect.encodeQueryExpression(this, context, parent, filter.expr);
+      return this.dialect.encodeQueryExpression(this, parent, filter.expr);
     }
   }
 
@@ -379,9 +390,19 @@ export class QueryCompiler {
     });
   }
 
-  _encodeSort(className: string, sort: Record<string, 1 | -1>): SQL {
+  _encodeSort(
+    sort: Record<string, 1 | -1> | SortOption[],
+    parent: { className?: string; name: string; },
+  ): SQL {
+    if (_.isArray(sort)) {
+      return sql`${_.map(sort, ({ expr, order }) => {
+        const _expr = this.dialect.encodeQueryExpression(this, parent, expr);
+        if (!_expr) throw Error('Invalid expression');
+        return sql`${_expr} ${{ literal: order === 1 ? 'ASC' : 'DESC' }}`;
+      })}`;
+    }
     return sql`${_.map(sort, (order, key) => sql`
-      ${this.dialect.encodeSortKey(className, key)} ${{ literal: order === 1 ? 'ASC' : 'DESC' }}
+      ${this.dialect.encodeSortKey(parent.name, key)} ${{ literal: order === 1 ? 'ASC' : 'DESC' }}
     `)}`;
   }
 

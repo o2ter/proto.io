@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { SQL, sql } from '../../../sql';
 import { _typeof, isPrimitive } from '../../../../../internals/schema';
-import { CompileContext, QueryCompiler } from '../../../sql/compiler';
+import { QueryCompiler } from '../../../sql/compiler';
 import { nullSafeEqual, nullSafeNotEqual } from '../basic';
 import {
   QueryArrayExpression,
@@ -67,7 +67,6 @@ type PrimitiveValue = typeof _PrimitiveValue[number];
 
 const encodeTypedQueryExpression = (
   compiler: QueryCompiler,
-  context: CompileContext,
   parent: { className?: string; name: string; },
   expr: QueryExpression
 ): { type: PrimitiveValue; sql: SQL }[] | undefined => {
@@ -97,14 +96,13 @@ const encodeTypedQueryExpression = (
     expr instanceof QueryComparisonExpression ||
     expr instanceof QueryNotExpression
   ) {
-    const value = encodeBooleanExpression(compiler, context, parent, expr);
+    const value = encodeBooleanExpression(compiler, parent, expr);
     if (value) return [{ type: 'boolean', sql: value }];
   }
 };
 
 const encodeJsonQueryExpression = (
   compiler: QueryCompiler,
-  context: CompileContext,
   parent: { className?: string; name: string; },
   expr: QueryExpression
 ): SQL => {
@@ -129,14 +127,14 @@ const encodeJsonQueryExpression = (
     return _encodeJsonValue(_encodeValue(expr.value));
   }
   if (expr instanceof QueryArrayExpression) {
-    return sql`jsonb_build_array(${_.map(expr.exprs, x => encodeJsonQueryExpression(compiler, context, parent, x))})`;
+    return sql`jsonb_build_array(${_.map(expr.exprs, x => encodeJsonQueryExpression(compiler, parent, x))})`;
   }
   if (
     expr instanceof QueryCoditionalExpression ||
     expr instanceof QueryComparisonExpression ||
     expr instanceof QueryNotExpression
   ) {
-    const value = encodeBooleanExpression(compiler, context, parent, expr);
+    const value = encodeBooleanExpression(compiler, parent, expr);
     if (value) return sql`to_jsonb(${value})`;
   }
   throw Error('Invalid expression');
@@ -152,13 +150,12 @@ const matchType = (
 
 export const encodeBooleanExpression = (
   compiler: QueryCompiler,
-  context: CompileContext,
   parent: { className?: string; name: string; },
   expr: QueryExpression
 ): SQL | undefined => {
 
   if (expr instanceof QueryCoditionalExpression) {
-    const queries = _.compact(_.map(expr.exprs, x => encodeBooleanExpression(compiler, context, parent, x)));
+    const queries = _.compact(_.map(expr.exprs, x => encodeBooleanExpression(compiler, parent, x)));
     if (_.isEmpty(queries)) return;
     switch (expr.type) {
       case '$and': return sql`(${{ literal: _.map(queries, x => sql`(${x})`), separator: ' AND ' }})`;
@@ -183,8 +180,8 @@ export const encodeBooleanExpression = (
       isArrayExpression(expr.right) &&
       arrayLength(expr.left) === arrayLength(expr.right)
     ) {
-      const _left = mapExpression(expr.left, x => encodeTypedQueryExpression(compiler, context, parent, x));
-      const _right = mapExpression(expr.right, x => encodeTypedQueryExpression(compiler, context, parent, x));
+      const _left = mapExpression(expr.left, x => encodeTypedQueryExpression(compiler, parent, x));
+      const _right = mapExpression(expr.right, x => encodeTypedQueryExpression(compiler, parent, x));
       const mapped = _.compact(_.map(_.zip(_left, _right), ([l, r]) => matchType(l, r)));
       if (mapped.length === _left.length) {
         const [l, r] = _.unzip(mapped);
@@ -192,19 +189,19 @@ export const encodeBooleanExpression = (
       }
     }
 
-    const _left = encodeTypedQueryExpression(compiler, context, parent, expr.left);
-    const _right = encodeTypedQueryExpression(compiler, context, parent, expr.right);
+    const _left = encodeTypedQueryExpression(compiler, parent, expr.left);
+    const _right = encodeTypedQueryExpression(compiler, parent, expr.right);
     if (_left && _right) {
       const matched = matchType(_left, _right);
       if (matched) return sql`${matched[0].sql} ${operatorMap[expr.type]} ${matched[1].sql}`;
     }
 
-    const _left2 = encodeJsonQueryExpression(compiler, context, parent, expr.left);
-    const _right2 = encodeJsonQueryExpression(compiler, context, parent, expr.right);
+    const _left2 = encodeJsonQueryExpression(compiler, parent, expr.left);
+    const _right2 = encodeJsonQueryExpression(compiler, parent, expr.right);
     return sql`${_left2} ${operatorMap[expr.type]} ${_right2}`;
   }
   if (expr instanceof QueryNotExpression) {
-    const _expr = encodeBooleanExpression(compiler, context, parent, expr.expr);
+    const _expr = encodeBooleanExpression(compiler, parent, expr.expr);
     return _expr ? sql`NOT (${_expr})` : undefined;
   }
   throw Error('Invalid expression');

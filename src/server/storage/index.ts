@@ -31,6 +31,7 @@ import { TQueryOptions, TQueryRandomOptions } from '../../internals/query';
 import { TValue, _TValue } from '../../internals/types';
 import { TObject } from '../../internals/object';
 import { TUpdateOp } from '../../internals/object/types';
+import { QueryExpression } from '../query/dispatcher/parser/expressions';
 
 type CommonFindOptions = { className: string; };
 export type FindOptions = CommonFindOptions & TQueryOptions;
@@ -38,9 +39,15 @@ export type FindOneOptions = CommonFindOptions & Omit<TQueryOptions, 'skip' | 'l
 
 type Decoded<T, R> = Omit<T, keyof R> & R;
 
+export type SortOption = {
+  expr: QueryExpression;
+  order: 1 | -1;
+};
+
 export type DecodedBaseQuery = Decoded<TQueryBaseOptions, {
   filter: QuerySelector;
   matches: Record<string, DecodedBaseQuery>;
+  sort?: Record<string, 1 | -1> | SortOption[];
 }>;
 
 export type DecodedQuery<T> = Decoded<T, {
@@ -48,6 +55,7 @@ export type DecodedQuery<T> = Decoded<T, {
   matches: Record<string, DecodedBaseQuery>;
   includes: string[];
   objectIdSize: number;
+  sort?: Record<string, 1 | -1> | SortOption[];
 }>;
 
 export type InsertOptions = {

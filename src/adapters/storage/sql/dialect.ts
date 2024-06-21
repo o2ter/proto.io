@@ -57,7 +57,6 @@ export interface SqlDialect {
 
   encodeQueryExpression(
     compiler: QueryCompiler,
-    context: CompileContext,
     parent: { className?: string; name: string; },
     expr: QueryExpression,
   ): SQL | undefined
