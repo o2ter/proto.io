@@ -24,9 +24,9 @@
 //
 
 import _ from 'lodash';
-import { SQL, sql } from '../../../../../server/storage/sql';
+import { SQL, sql } from '../../../sql';
 import { _typeof, isPrimitive } from '../../../../../internals/schema';
-import { CompileContext, QueryCompiler } from '../../../../../server/storage/sql/compiler';
+import { CompileContext, QueryCompiler } from '../../../sql/compiler';
 import { nullSafeEqual, nullSafeNotEqual } from '../basic';
 import {
   QueryArrayExpression,

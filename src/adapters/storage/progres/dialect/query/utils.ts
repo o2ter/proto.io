@@ -24,8 +24,8 @@
 //
 
 import _ from 'lodash';
-import { sql } from '../../../../../server/storage/sql';
-import { QueryCompiler } from '../../../../../server/storage/sql/compiler';
+import { sql } from '../../../sql';
+import { QueryCompiler } from '../../../sql/compiler';
 import { TSchema, isPointer, isRelation } from '../../../../../internals/schema';
 import { QueryValidator, _resolveColumn } from '../../../../../server/query/dispatcher/validator';
 

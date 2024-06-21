@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { SQL, sql } from '../../../../server/storage/sql';
+import { SQL, sql } from '../../sql';
 import { TSchema, _typeof } from '../../../../internals/schema';
 import { stringArrayAttrs } from './basic';
 import Decimal from 'decimal.js';

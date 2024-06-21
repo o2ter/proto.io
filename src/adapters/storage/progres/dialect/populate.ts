@@ -24,9 +24,9 @@
 //
 
 import _ from 'lodash';
-import { SQL, sql } from '../../../../server/storage/sql';
+import { SQL, sql } from '../../sql';
 import { TSchema, isPointer, isPrimitive } from '../../../../internals/schema';
-import { CompileContext, Populate, QueryCompiler } from '../../../../server/storage/sql/compiler';
+import { CompileContext, Populate, QueryCompiler } from '../../sql/compiler';
 import { _encodePopulateInclude } from './encode';
 
 const resolveSubpaths = (

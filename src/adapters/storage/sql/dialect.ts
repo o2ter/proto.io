@@ -23,8 +23,8 @@
 //  THE SOFTWARE.
 //
 
-import { FieldSelectorExpression } from '../../query/dispatcher/parser';
-import { QueryExpression } from '../../query/dispatcher/parser/expressions';
+import { FieldSelectorExpression } from '../../../server/query/dispatcher/parser';
+import { QueryExpression } from '../../../server/query/dispatcher/parser/expressions';
 import { TSchema } from '../../../internals/schema';
 import { CompileContext, Populate, QueryCompiler } from './compiler';
 import { SQL } from './sql';

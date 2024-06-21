@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { DecodedQuery, FindOptions, FindOneOptions, InsertOptions, TStorage } from '..';
+import { DecodedQuery, FindOptions, FindOneOptions, InsertOptions, TStorage } from '../../../server/storage';
 import { TransactionOptions } from '../../../internals/proto';
 import { TSchema, isPointer, isRelation, isShapedObject, shapedObjectPaths } from '../../../internals/schema';
 import { SQL, sql } from './sql';
@@ -36,7 +36,6 @@ import { TObject } from '../../../internals/object';
 import { PVK } from '../../../internals/private';
 import { TQueryRandomOptions } from '../../../internals/query';
 import { TUpdateOp } from '../../../internals/object/types';
-import { QuerySelector } from '../../query/dispatcher/parser';
 
 export abstract class SqlStorage implements TStorage {
 
@@ -173,9 +172,9 @@ export abstract class SqlStorage implements TStorage {
     const query = sql`
       SELECT *
       FROM (${this._refs(
-        _.pick(this.schema, classNames), object.className, TObject.defaultKeys,
-        sql`${{ value: `${object.className}$${object.objectId}` }}`,
-      )}) AS "$"
+      _.pick(this.schema, classNames), object.className, TObject.defaultKeys,
+      sql`${{ value: `${object.className}$${object.objectId}` }}`,
+    )}) AS "$"
       ${_.isNil(roles) ? sql`` : sql`WHERE ${{ identifier: '$' }}.${{ identifier: '_rperm' }} && ${{ value: roles }}`}
     `;
     return (async function* () {
@@ -192,9 +191,9 @@ export abstract class SqlStorage implements TStorage {
     const _query = compiler._selectQuery(query, ({ fetchName }) => ({
       extraFilter: sql`
         NOT EXISTS (${this._refs(
-          this.schema, query.className, ['_id'],
-          sql`(${{ quote: query.className + '$' }} || ${{ identifier: fetchName }}.${{ identifier: '_id' }})`,
-        )})
+        this.schema, query.className, ['_id'],
+        sql`(${{ quote: query.className + '$' }} || ${{ identifier: fetchName }}.${{ identifier: '_id' }})`,
+      )})
       `
     }));
     return (async function* () {

@@ -25,12 +25,12 @@
 
 import _ from 'lodash';
 import { TSchema, isPointer, isPrimitive, isRelation, isShapedObject, shapedObjectPaths } from '../../../internals/schema';
-import { QueryCoditionalSelector, QueryExpressionSelector, QueryFieldSelector, QuerySelector } from '../../query/dispatcher/parser';
-import { DecodedBaseQuery, DecodedQuery, FindOneOptions, FindOptions, InsertOptions } from '..';
+import { QueryCoditionalSelector, QueryExpressionSelector, QueryFieldSelector, QuerySelector } from '../../../server/query/dispatcher/parser';
+import { DecodedBaseQuery, DecodedQuery, FindOneOptions, FindOptions, InsertOptions } from '../../../server/storage';
 import { SQL, sql } from './sql';
-import { generateId } from '../../crypto/random';
+import { generateId } from '../../../server/crypto/random';
 import { SqlDialect } from './dialect';
-import { _resolveColumn } from '../../query/dispatcher/validator';
+import { _resolveColumn } from '../../../server/query/dispatcher/validator';
 import { decodeUpdateOp } from '../../../internals/object';
 import { TUpdateOp } from '../../../internals/object/types';
 import { TValue } from '../../../internals/types';
@@ -230,7 +230,7 @@ export class QueryCompiler {
           ${this.selectLock ? this.isUpdate ? sql`FOR UPDATE NOWAIT` : sql`FOR SHARE NOWAIT` : sql``}
         ) AS ${{ identifier: fetchName }}
         ${_filter || _options?.extraFilter ? sql`WHERE ${{
-        literal: _.map(_.compact([_filter, _options?.extraFilter]), x => sql`(${x})`),
+          literal: _.map(_.compact([_filter, _options?.extraFilter]), x => sql`(${x})`),
           separator: ' AND '
         }}` : sql``}
         ${_options?.sort ? _options?.sort : sql``}
