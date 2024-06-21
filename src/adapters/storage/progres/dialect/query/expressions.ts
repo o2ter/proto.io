@@ -100,6 +100,11 @@ const encodeTypedQueryExpression = (
     const value = encodeBooleanExpression(compiler, parent, expr);
     if (value) return [{ type: 'boolean', sql: value }];
   }
+
+  if (expr instanceof QueryDistanceExpression) {
+    const value = encodeDistanceQueryExpression(compiler, parent, expr);
+    return [{ type: 'number', sql: value }];
+  }
 };
 
 const encodeJsonQueryExpression = (
