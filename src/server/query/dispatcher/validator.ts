@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { DecodedBaseQuery, DecodedQuery, FindOptions, FindOneOptions, SortOption } from '../../storage';
+import { DecodedBaseQuery, DecodedQuery, FindOptions, FindOneOptions, DecodedSortOption } from '../../storage';
 import { QueryCoditionalSelector, QueryFieldSelector, QuerySelector } from './parser';
 import { TSchema, _typeof, isPointer, isPrimitive, isRelation, isShapedObject, shapedObjectPaths } from '../../../internals/schema';
 import { ProtoService } from '../../proto';
@@ -254,7 +254,7 @@ export class QueryValidator<E> {
     return _.uniq(_includes);
   }
 
-  decodeSort(sort: Record<string, 1 | -1> | TSortOption[]): Record<string, 1 | -1> | SortOption[] {
+  decodeSort(sort: Record<string, 1 | -1> | TSortOption[]): Record<string, 1 | -1> | DecodedSortOption[] {
     if (_.isArray(sort)) {
       return _.map(sort, s => ({ expr: QueryExpression.decode(s.expr, false), order: s.order }))
     }

@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { TSchema, isPointer, isPrimitive, isRelation, isShapedObject, shapedObjectPaths } from '../../../internals/schema';
 import { QueryCoditionalSelector, QueryExpressionSelector, QueryFieldSelector, QuerySelector } from '../../../server/query/dispatcher/parser';
-import { DecodedBaseQuery, DecodedQuery, FindOneOptions, FindOptions, InsertOptions, SortOption } from '../../../server/storage';
+import { DecodedBaseQuery, DecodedQuery, FindOneOptions, FindOptions, InsertOptions, DecodedSortOption } from '../../../server/storage';
 import { SQL, sql } from './sql';
 import { generateId } from '../../../server/crypto/random';
 import { SqlDialect } from './dialect';
@@ -39,7 +39,7 @@ import { QueryExpression } from '../../../server/query/dispatcher/parser/express
 export type QueryCompilerOptions = {
   className: string;
   filter?: QuerySelector;
-  sort?: Record<string, 1 | -1> | SortOption[];
+  sort?: Record<string, 1 | -1> | DecodedSortOption[];
   includes: string[];
   matches: Record<string, DecodedBaseQuery>;
 }
@@ -53,7 +53,7 @@ export type Populate = {
   filter: QuerySelector;
   includes: Record<string, TSchema.DataType>;
   populates: Record<string, Populate>;
-  sort?: Record<string, 1 | -1> | SortOption[];
+  sort?: Record<string, 1 | -1> | DecodedSortOption[];
   skip?: number;
   limit?: number;
 }
@@ -61,7 +61,7 @@ export type Populate = {
 export type CompileContext = {
   includes: Record<string, TSchema.DataType>;
   populates: Record<string, Populate>;
-  sorting?: Record<string, 1 | -1> | SortOption[];
+  sorting?: Record<string, 1 | -1> | DecodedSortOption[];
 }
 
 const _resolveSortingName = (
@@ -90,7 +90,7 @@ const _resolveSortingName = (
 const _encodeSorting = (
   includes: Record<string, TSchema.DataType>,
   populates: Record<string, Populate>,
-  sort?: Record<string, 1 | -1> | SortOption[],
+  sort?: Record<string, 1 | -1> | DecodedSortOption[],
 ) => {
   if (_.isArray(sort)) {
     return _.map(sort, x => ({
@@ -148,7 +148,7 @@ export class QueryCompiler {
     return this.idx++;
   }
 
-  private _makeContext(query: InsertOptions & { sort?: Record<string, 1 | -1> | SortOption[] }) {
+  private _makeContext(query: InsertOptions & { sort?: Record<string, 1 | -1> | DecodedSortOption[] }) {
     const context = this._encodeIncludes(query.className, query.includes, query.matches);
     return {
       ...context,
@@ -391,7 +391,7 @@ export class QueryCompiler {
   }
 
   _encodeSort(
-    sort: Record<string, 1 | -1> | SortOption[],
+    sort: Record<string, 1 | -1> | DecodedSortOption[],
     parent: { className?: string; name: string; },
   ): SQL {
     if (_.isArray(sort)) {

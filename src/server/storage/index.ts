@@ -39,7 +39,7 @@ export type FindOneOptions = CommonFindOptions & Omit<TQueryOptions, 'skip' | 'l
 
 type Decoded<T, R> = Omit<T, keyof R> & R;
 
-export type SortOption = {
+export type DecodedSortOption = {
   expr: QueryExpression;
   order: 1 | -1;
 };
@@ -47,7 +47,7 @@ export type SortOption = {
 export type DecodedBaseQuery = Decoded<TQueryBaseOptions, {
   filter: QuerySelector;
   matches: Record<string, DecodedBaseQuery>;
-  sort?: Record<string, 1 | -1> | SortOption[];
+  sort?: Record<string, 1 | -1> | DecodedSortOption[];
 }>;
 
 export type DecodedQuery<T> = Decoded<T, {
@@ -55,7 +55,7 @@ export type DecodedQuery<T> = Decoded<T, {
   matches: Record<string, DecodedBaseQuery>;
   includes: string[];
   objectIdSize: number;
-  sort?: Record<string, 1 | -1> | SortOption[];
+  sort?: Record<string, 1 | -1> | DecodedSortOption[];
 }>;
 
 export type InsertOptions = {
