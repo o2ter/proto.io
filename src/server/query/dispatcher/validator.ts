@@ -255,6 +255,11 @@ export class QueryValidator<E> {
 
   decodeSort(className: string, sort: Record<string, 1 | -1> | TSortOption[]): Record<string, 1 | -1> | SortOption[] {
 
+    if (_.isArray(sort)) {
+
+    }
+
+    return sort;
   }
 
   decodeMatches(className: string, matches: Record<string, TQueryBaseOptions>, includes: string[]): Record<string, DecodedBaseQuery> {
