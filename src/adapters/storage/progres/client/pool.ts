@@ -144,13 +144,17 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
     };
   }
 
-  private _indexName(className: string, index: TSchema.Indexes) {
-    switch (index.type) {
-      case 'vector':
-        return `${className}$v$${index.keys.join('$')}`;
-      default:
-        return `${className}$b$${_.map(index.keys, (v, k) => `${k}:${v}`).join('$')}`;
-    }
+  private _indexBasicName(className: string, keys: Record<string, 1 | -1>) {
+    return `${className}$b$${_.map(keys, (v, k) => `${k}:${v}`).join('$')}`;
+  }
+
+  private _indexVectorName(className: string, keys: string[]) {
+    return {
+      'vector_l1_ops': `${className}$v1$${keys.join('$')}`,
+      'vector_l2_ops': `${className}$v2$${keys.join('$')}`,
+      'vector_ip_ops': `${className}$vi$${keys.join('$')}`,
+      'vector_cosine_ops': `${className}$vc$${keys.join('$')}`,
+    };
   }
 
   private async _dropIndices(className: string, schema: TSchema) {
@@ -158,7 +162,14 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
     const names: string[] = [];
     for (const index of indexes) {
       if (_.isEmpty(index.keys)) continue;
-      names.push(this._indexName(className, index));
+      switch (index.type) {
+        case 'vector':
+          names.push(..._.values(this._indexVectorName(className, index.keys)));
+          break;
+        default:
+          names.push(this._indexBasicName(className, index.keys));
+          break;
+      }
     }
     for (const [name, { is_primary }] of _.toPairs(await this.indices(className))) {
       if (is_primary || names.includes(name)) continue;
@@ -202,20 +213,20 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
     const { relations, indexes } = this._indicesOf(schema);
     for (const index of indexes) {
       if (_.isEmpty(index.keys)) continue;
-      const name = this._indexName(className, index);
       switch (index.type) {
         case 'vector':
           {
+            const name = this._indexVectorName(className, index.keys);
             const ops = [
+              'vector_l1_ops',
               'vector_l2_ops',
               'vector_ip_ops',
               'vector_cosine_ops',
-              'vector_l1_ops',
-            ];
+            ] as const;
             for (const op of ops) {
               await this.query(sql`
                 CREATE INDEX CONCURRENTLY
-                IF NOT EXISTS ${{ identifier: name }}
+                IF NOT EXISTS ${{ identifier: name[op] }}
                 ON ${{ identifier: className }}
                 USING hnsw (
                   CAST(
@@ -229,6 +240,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
           break;
         default:
           {
+            const name = this._indexBasicName(className, index.keys);
             const isAcl = _.isEqual(index.keys, { _rperm: 1 }) || _.isEqual(index.keys, { _wperm: 1 });
             const isRelation = _.has(relations, _.last(_.keys(index.keys))!);
             await this.query(sql`
