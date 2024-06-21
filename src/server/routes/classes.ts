@@ -113,7 +113,6 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       limit,
     } = req.query;
 
-
     query[PVK].options.filter = !_.isEmpty(filter) && _.isString(filter) ? _.castArray(deserialize(filter)) as any : [];
     query[PVK].options.sort = _.isPlainObject(sort) && _.every(_.values(sort), _.isNumber) ? sort as any : undefined;
     query[PVK].options.includes = _.isArray(includes) && _.every(includes, _.isString) ? includes as any : undefined;
@@ -149,6 +148,45 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
   );
 
   router.get(
+    '/classes/:name/random',
+    queryType.middleware(),
+    async (req, res) => {
+
+      res.setHeader('Cache-Control', ['no-cache', 'no-store']);
+
+      const { name } = req.params;
+      const classes = proto.classes();
+
+      if (!_.includes(classes, name)) return res.sendStatus(404);
+
+      const payload = proto.connect(req);
+      const { weight } = req.query;
+
+      if (_.isEmpty(weight) || !_.isString(weight)) throw Error('Invalid operation');
+
+      await response(res, async () => createQuery(payload, req, true).random({ weight }, { master: payload.isMaster }));
+    }
+  );
+
+  router.get(
+    '/classes/:name/nonrefs',
+    queryType.middleware(),
+    async (req, res) => {
+
+      res.setHeader('Cache-Control', ['no-cache', 'no-store']);
+
+      const { name } = req.params;
+      const classes = proto.classes();
+
+      if (!_.includes(classes, name)) return res.sendStatus(404);
+
+      const payload = proto.connect(req);
+
+      await response(res, async () => createQuery(payload, req, true).nonrefs({ master: payload.isMaster }));
+    }
+  );
+
+  router.get(
     '/classes/:name/:id',
     async (req, res) => {
 
@@ -162,6 +200,23 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       const payload = proto.connect(req);
 
       await response(res, () => payload.Query(name).get(id, { master: payload.isMaster }));
+    }
+  );
+
+  router.get(
+    '/classes/:name/:id/refs',
+    async (req, res) => {
+
+      res.setHeader('Cache-Control', ['no-cache', 'no-store']);
+
+      const { name, id } = req.params;
+      const classes = proto.classes();
+
+      if (!_.includes(classes, name)) return res.sendStatus(404);
+
+      const payload = proto.connect(req);
+
+      await response(res, async () => payload.refs(payload.Object(name, id), { master: payload.isMaster }));
     }
   );
 

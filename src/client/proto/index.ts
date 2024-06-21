@@ -33,6 +33,7 @@ import { TQuery } from '../../internals/query';
 import { PVK } from '../../internals/private';
 import { _TValue } from '../../internals/types';
 import { TUser } from '../../internals/object/user';
+import { TObject } from '../../internals/object';
 
 export class ProtoClient<Ext> extends ProtoType<Ext> {
 
@@ -101,5 +102,9 @@ export class ProtoClient<Ext> extends ProtoType<Ext> {
 
   listen(callback: (data: EventData) => void) {
     return this[PVK].listen(this, callback);
+  }
+
+  refs(object: TObject, options?: RequestOptions<boolean, this>) {
+    return this[PVK].refs(this, object, options);
   }
 }

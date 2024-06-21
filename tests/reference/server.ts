@@ -81,25 +81,6 @@ const Proto = new ProtoService({
   fileStorage: new DatabaseFileStorage(),
 });
 
-Proto.define('testRefs', async (proto) => {
-
-  const obj = proto.Object('Refs');
-  await obj.save();
-
-  const result = proto.Object('Refs');
-  result.set('pointer', obj);
-  await result.save();
-
-  const check = await proto.Query('Refs').nonrefs();
-  const check2 = await proto.refs(obj);
-
-  return {
-    check,
-    check2,
-    result,
-  };
-});
-
 beforeAll(async () => {
 
   app.use('/proto', await ProtoRoute({

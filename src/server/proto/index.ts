@@ -281,6 +281,7 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
   }
 
   refs(object: TObject, options?: ExtraOptions<boolean, this>) {
+    if (!object.objectId) throw Error('Invalid object');
     const self = this;
     return asyncStream(async function* () {
       const objects = await self[PVK].refs(self, object, options);

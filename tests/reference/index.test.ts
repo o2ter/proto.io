@@ -34,11 +34,16 @@ const Proto = new ProtoClient({
 });
 
 test('test refs', async () => {
-  const {
-    check,
-    check2,
-    result,
-  } = await Proto.run('testRefs') as any;
+
+  const obj = Proto.Object('Refs');
+  await obj.save();
+
+  const result = Proto.Object('Refs');
+  result.set('pointer', obj);
+  await result.save();
+
+  const check = await Proto.Query('Refs').nonrefs();
+  const check2 = await Proto.refs(obj);
 
   expect(check.length).toStrictEqual(1);
   expect(check2.length).toStrictEqual(1);

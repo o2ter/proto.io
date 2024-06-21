@@ -28,7 +28,7 @@ import Service from '../request';
 import { RequestOptions } from '../options';
 import { ProtoOptions } from './types';
 import { TSchema } from '../../internals/schema';
-import { base64ToBuffer, isBinaryData, isBlob, isReadableStream, iterableToStream } from '@o2ter/utils-js';
+import { asyncStream, base64ToBuffer, isBinaryData, isBlob, isReadableStream, iterableToStream } from '@o2ter/utils-js';
 import { TSerializable, deserialize, serialize } from '../../common';
 import { EventData, ProtoInternalType, ProtoType } from '../../internals/proto';
 import { TObjectType } from '../../internals/object/types';
@@ -334,5 +334,24 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
         callback(payload);
       }),
     };
+  }
+
+  refs(proto: P, object: TObject, options?: RequestOptions<boolean, P>) {
+    if (!object.objectId) throw Error('Invalid object');
+    const request = async () => {
+      const { serializeOpts, context, ...opts } = options ?? {};
+      const res = await this.service.request({
+        method: 'get',
+        baseURL: this.options.endpoint,
+        url: `classes/${encodeURIComponent(object.className)}/${object.objectId}/refs`,
+        serializeOpts: {
+          objAttrs: TObject.defaultReadonlyKeys,
+        },
+        responseType: 'text',
+        ...opts,
+      });
+      return proto.rebind(deserialize(res.data)) as TObjectType<string, Ext>[];
+    }
+    return asyncStream(request);
   }
 }
