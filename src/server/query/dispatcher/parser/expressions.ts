@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { TExpression } from '../../../../internals/query/types/expressions';
-import { TComparisonKeys, TConditionalKeys } from '../../../../internals/query/types/keys';
+import { TComparisonKeys, TConditionalKeys, TDistanceKeys } from '../../../../internals/query/types/keys';
 import { isValue } from '../../../../internals/object';
 import { TValue } from '../../../../internals/types';
 
@@ -40,6 +40,12 @@ export class QueryExpression {
         } else if (_.includes(TComparisonKeys, key) && _.isArray(query) && query.length === 2) {
           const [left, right] = query;
           exprs.push(new QueryComparisonExpression(key as any, QueryExpression.decode(left as any, dollerSign), QueryExpression.decode(right as any, dollerSign)));
+        } else if (_.includes(TDistanceKeys, key) && _.isArray(query) && query.length === 2) {
+          const [left, right] = query;
+          if (!_.isArray(left) || !_.isArray(right) || left.length !== right.length) throw Error('Invalid expression');
+          const _left = _.map(left, x => QueryExpression.decode(x as any, dollerSign));
+          const _right = _.map(right, x => QueryExpression.decode(x as any, dollerSign));
+          exprs.push(new QueryDistanceExpression(key as any, _left, _right));
         } else if (key === '$not') {
           exprs.push(new QueryNotExpression(QueryExpression.decode(query as any, dollerSign)));
         } else if (key === '$array' && _.isArray(query)) {
@@ -182,6 +188,35 @@ export class QueryArrayExpression extends QueryExpression {
 
   mapKey(callback: (key: string) => string): QueryExpression {
     return new QueryArrayExpression(_.map(this.exprs, x => x.mapKey(callback)));
+  }
+}
+
+export class QueryDistanceExpression extends QueryExpression {
+
+  type: typeof TDistanceKeys[number];
+  left: QueryExpression[];
+  right: QueryExpression[];
+
+  constructor(type: typeof TDistanceKeys[number], left: QueryExpression[], right: QueryExpression[]) {
+    super();
+    this.type = type;
+    this.left = left;
+    this.right = right;
+  }
+
+  simplify() {
+    return new QueryDistanceExpression(this.type, _.map(this.left, x => x.simplify()), _.map(this.right, x => x.simplify()));
+  }
+
+  keyPaths(): string[] {
+    return _.uniq([
+      ..._.flatMap(this.left, x => x.keyPaths()),
+      ..._.flatMap(this.right, x => x.keyPaths()),
+    ]);
+  }
+
+  mapKey(callback: (key: string) => string): QueryExpression {
+    return new QueryDistanceExpression(this.type, _.map(this.left, x => x.mapKey(callback)), _.map(this.right, x => x.mapKey(callback)));
   }
 }
 

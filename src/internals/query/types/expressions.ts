@@ -24,7 +24,7 @@
 //
 
 import { TValue } from '../../types';
-import { TComparisonKeys, TConditionalKeys } from './keys';
+import { TComparisonKeys, TConditionalKeys, TDistanceKeys } from './keys';
 
 export type TBooleanExpression = {
   $not?: TBooleanExpression;
@@ -34,8 +34,12 @@ export type TBooleanExpression = {
     [x in (typeof TConditionalKeys)[number]]?: TBooleanExpression[];
   };
 
+export type TDistanceExpression = {
+  [x in (typeof TDistanceKeys)[number]]?: [TExpression[], TExpression[]];
+};
+
 export type TExpression = {
   $array?: TExpression[];
   $key?: string;
   $value?: TValue;
-} & TBooleanExpression;
+} & TBooleanExpression & TDistanceExpression;

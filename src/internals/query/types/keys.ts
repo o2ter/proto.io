@@ -49,3 +49,9 @@ export const TConditionalKeys = [
   '$nor',
   '$or',
 ] as const;
+
+export const TDistanceKeys = [
+  '$distance',
+  '$innerProduct',
+  '$cosineDistance',
+] as const;
