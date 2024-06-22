@@ -154,7 +154,9 @@ const encodeDistanceQueryExpression = (
   const operatorMap = {
     '$distance': sql`<->`,
     '$innerProduct': sql`<#>`,
+    '$negInnerProduct': sql`<#>`,
     '$cosineDistance': sql`<=>`,
+    '$rectilinearDistance': sql`<+>`,
   } as const;
 
   const _expr = sql`
