@@ -52,6 +52,19 @@ test('test insert', async () => {
   expect(inserted.get('string')).toStrictEqual('hello');
 })
 
+test('test insert many', async () => {
+  const count = await Proto.Query('Test').insertMany([
+    { string: 'insertMany' },
+    { string: 'insertMany' },
+    { string: 'insertMany' },
+    { string: 'insertMany' },
+  ]);
+  expect(count).toStrictEqual(4);
+
+  const result = await Proto.Query('Test').equalTo('string', 'insertMany').find();
+  expect(result.length).toStrictEqual(4);
+})
+
 test('test types', async () => {
   const date = new Date;
   const inserted = await Proto.Query('Test').insert({
