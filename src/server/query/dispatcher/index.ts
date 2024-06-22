@@ -119,6 +119,26 @@ export const dispatcher = <E>(proto: ProtoService<E>, options: ExtraOptions<bool
         objectIdSize: proto[PVK].options.objectIdSize
       }, normalize(_validator.validateFields(options.className, attrs, 'create', QueryValidator.patterns.name))));
     },
+    async insertMany(
+      options: {
+        className: string;
+        includes?: string[];
+        matches?: Record<string, TQueryBaseOptions>;
+      },
+      values: Record<string, TValue>[],
+    ) {
+      QueryValidator.recursiveCheck(values);
+      const _validator = await validator();
+      const _includes = _validator.decodeIncludes(options.className, options.includes ?? ['*']);
+      const _matches = _validator.decodeMatches(options.className, options.matches ?? {}, _includes);
+      if (!_validator.validateCLPs(options.className, 'create')) throw Error('No permission');
+      return proto.storage.atomic((storage) => storage.insertMany({
+        className: options.className,
+        includes: _includes,
+        matches: _matches,
+        objectIdSize: proto[PVK].options.objectIdSize
+      }, normalize(_.map(values, attr => _validator.validateFields(options.className, attr, 'create', QueryValidator.patterns.name)))));
+    },
     async updateOne(
       query: FindOneOptions,
       update: Record<string, TUpdateOp>

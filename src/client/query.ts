@@ -126,6 +126,18 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E, boolean,
     }, this._requestOpt(options)) as any;
   }
 
+  insertMany(
+    values: Record<string, TValue>[],
+    options?: RequestOptions<boolean, ProtoClient<E>>
+  ) {
+    return this._proto[PVK].request(this._proto, {
+      operation: 'insertMany',
+      context: options?.context ?? {},
+      attributes: values,
+      ...this._queryOptions,
+    }, this._requestOpt(options)) as any;
+  }
+
   updateOne(
     update: Record<string, TUpdateOp>,
     options?: RequestOptions<boolean, ProtoClient<E>>

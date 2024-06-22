@@ -329,8 +329,7 @@ export class QueryCompiler {
     return updates;
   }
 
-  private _encodeObjectAttrs(className: string, attrs: Record<string, TValue>
-  ): Record<string, SQL> {
+  private _encodeObjectAttrs(className: string, attrs: Record<string, TValue>): Record<string, SQL> {
     const result: Record<string, SQL> = {};
     for (const [key, value] of _.toPairs(attrs)) {
       const { paths: [column, ...subpath], dataType } = _resolveColumn(this.schema, className, key);
@@ -451,6 +450,23 @@ export class QueryCompiler {
       }}
       FROM ${{ identifier: name }}
       ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
+    `;
+  }
+
+  insertMany(options: InsertOptions, values: Record<string, TValue>[]) {
+
+    const _values: Record<string, SQL>[] = _.map(values, attr => ({
+      ..._defaultInsertOpts(options),
+      ...this._encodeObjectAttrs(options.className, attr),
+    }));
+
+    const keys = _.uniq(_.flatMap(_values, x => _.keys(x)));
+
+    return sql`
+      INSERT INTO ${{ identifier: options.className }}
+      (${_.map(keys, x => sql`${{ identifier: x }}`)})
+      VALUES ${_.map(_values, v => sql`(${_.map(keys, k => sql`${v[k]}`)})`)}
+      RETURNING 0
     `;
   }
 

@@ -146,6 +146,54 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
     return result;
   }
 
+  async insertMany(
+    values: Record<string, TValue>[],
+    options?: ExtraOptions<M, ProtoService<E>>
+  ) {
+    const beforeSave = this._proto[PVK].triggers?.beforeSave?.[this.className];
+    const afterSave = this._proto[PVK].triggers?.afterSave?.[this.className];
+
+    const context = options?.context ?? {};
+
+    if (_.isFunction(beforeSave) || _.isFunction(afterSave)) {
+
+      const objects = _.map(values, attr => {
+        const object = this._proto.Object(this.className);
+        for (const [key, value] of _.toPairs(attr)) {
+          object[PVK].mutated[key] = { $set: value };
+        }
+        return object;
+      });
+      if (_.isEmpty(objects)) return 0;
+
+      if (_.isFunction(beforeSave)) {
+        await Promise.all(_.map(objects, object => beforeSave(
+          proxy(Object.setPrototypeOf({ object, context }, options?.session ?? this._proto))))
+        );
+      }
+
+      await this._dispatcher(options).insertMany({
+        className: this.className,
+        includes: this[PVK].options.includes,
+        matches: this[PVK].options.matches,
+      }, _.map(objects, x => _.fromPairs([...x.entries()])));
+
+      if (_.isFunction(afterSave)) {
+        await Promise.all(_.map(objects, object => afterSave(
+          proxy(Object.setPrototypeOf({ object, context }, options?.session ?? this._proto))))
+        );
+      }
+
+      return objects.length;
+    }
+
+    return this._dispatcher(options).insertMany({
+      className: this.className,
+      includes: this[PVK].options.includes,
+      matches: this[PVK].options.matches,
+    }, values);
+  }
+
   async updateOne(
     update: Record<string, TUpdateOp>,
     options?: ExtraOptions<M, ProtoService<E>>

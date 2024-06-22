@@ -90,6 +90,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
               return await query.nonrefs(opts);
             }
           case 'insert': return query.insert(attributes, opts);
+          case 'insertMany': return query.insertMany(attributes, opts);
           case 'updateOne': return query.updateOne(update, opts);
           case 'upsertOne': return query.upsertOne(update, setOnInsert, opts);
           case 'deleteOne': return query.deleteOne(opts);

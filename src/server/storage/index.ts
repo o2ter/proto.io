@@ -88,6 +88,7 @@ export interface TStorage {
   nonrefs(query: DecodedQuery<FindOptions>): AsyncIterable<TObject>;
 
   insert(options: InsertOptions, attrs: Record<string, TValue>): PromiseLike<TObject | undefined>;
+  insertMany(options: InsertOptions, values: Record<string, TValue>[]): PromiseLike<number>;
 
   updateOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>): PromiseLike<TObject | undefined>;
   upsertOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValue>): PromiseLike<TObject | undefined>;

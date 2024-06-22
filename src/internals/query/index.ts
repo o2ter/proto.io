@@ -78,6 +78,10 @@ export abstract class TQuery<
     attrs: Record<string, TValue>,
     options?: ExtraOptions<M, P>
   ): PromiseLike<TObjectType<T, Ext>>;
+  abstract insertMany(
+    values: Record<string, TValue>[],
+    options?: ExtraOptions<M, P>
+  ): PromiseLike<number>;
   abstract updateOne(
     update: Record<string, TUpdateOp>,
     options?: ExtraOptions<M, P>

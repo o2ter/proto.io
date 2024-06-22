@@ -210,6 +210,12 @@ export abstract class SqlStorage implements TStorage {
     return _.isNil(result) ? undefined : this._decodeObject(options.className, result);
   }
 
+  async insertMany(options: InsertOptions, values: Record<string, TValue>[]) {
+    const compiler = new QueryCompiler(this.schema, this.dialect, this.selectLock(), true);
+    const result = await this.query(compiler.insertMany(options, values));
+    return result.length;
+  }
+
   async updateOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>) {
     const compiler = new QueryCompiler(this.schema, this.dialect, this.selectLock(), true);
     const updated = _.first(await this.query(compiler.updateOne(query, update)));
