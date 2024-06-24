@@ -155,7 +155,7 @@ const encodeVectorExpression = (
     }
     if (expr instanceof QueryValueExpression) {
       if (!_.isArray(expr.value) || !_.every(expr.value, x => _.isFinite(x))) throw Error('Invalid expression');
-      return { sql: sql`${{ value: expr.value }}`, dimension: expr.value.length };
+      return { sql: sql`${{ value: expr.value }}::DOUBLE PRECISION[]`, dimension: expr.value.length };
     }
   }
   const result = _.map(exprs, x => _.find(encodeTypedQueryExpression(compiler, parent, x), e => e.type === 'number')?.sql);
