@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { SQL, sql } from '../../sql';
-import { TSchema, _typeof } from '../../../../internals/schema';
+import { TSchema, _typeof, dimensionOf } from '../../../../internals/schema';
 import { stringArrayAttrs } from './basic';
 import Decimal from 'decimal.js';
 import { _decodeValue, _encodeValue } from '../../../../internals/object';
@@ -80,6 +80,10 @@ export const encodeType = (colname: string, dataType: TSchema.DataType, value: T
     case 'object':
       if (_.isPlainObject(value)) return sql`${{ value: _encodeValue(value) }}`;
       break;
+    case 'vector':
+      if (!_.isArray(value) || value.length !== dimensionOf(dataType)) break;
+      if (!_.every(value, x => _.isFinite(x))) break;
+      return sql`${{ value }}::DOUBLE PRECISION[]`;
     case 'array':
       if (!_.isArray(value)) break;
       if (_.includes(stringArrayAttrs, colname)) {

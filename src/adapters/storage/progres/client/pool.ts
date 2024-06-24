@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { PoolConfig } from 'pg';
-import { TSchema, isPointer, isRelation, isShape, shapedObjectPaths } from '../../../../internals/schema';
+import { TSchema, isPointer, isRelation, isShape, shapePaths } from '../../../../internals/schema';
 import { PostgresDriver, PostgresClientDriver } from '../driver';
 import { sql } from '../../sql';
 import { PostgresStorageClient } from './base';
@@ -54,7 +54,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
     }
   }
 
-  private _pgType(type: TSchema.Primitive | TSchema.Relation) {
+  private _pgType(type: TSchema.Primitive | TSchema.Relation | 'vector') {
     switch (type) {
       case 'boolean': return 'BOOLEAN';
       case 'number': return 'DOUBLE PRECISION';
@@ -63,6 +63,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
       case 'date': return 'TIMESTAMP WITH TIME ZONE';
       case 'object': return 'JSONB';
       case 'array': return 'JSONB[]';
+      case 'vector': return 'DOUBLE PRECISION[]';
       case 'pointer': return 'TEXT';
       case 'relation': return 'TEXT[]';
       default: throw Error('Unknown data type');
@@ -92,7 +93,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
     const fields: Record<string, Exclude<TSchema.DataType, TSchema.ShapeType>> = {};
     for (const [key, dataType] of _.entries(schema.fields)) {
       if (isShape(dataType)) {
-        for (const { path, type } of shapedObjectPaths(dataType)) {
+        for (const { path, type } of shapePaths(dataType)) {
           fields[`${key}.${path}`] = type;
         }
       } else {

@@ -39,6 +39,7 @@ import { TSchema } from './internals/schema';
 import { PVK } from './internals/private';
 import { _encodeValue, TObject } from './internals/object';
 import { _TValue } from './internals/types';
+import Decimal from 'decimal.js';
 
 export * from './common';
 export { TFileStorage } from './server/file/index';
@@ -46,7 +47,17 @@ export { ProtoService } from './server/proto';
 export { ProtoClient } from './client';
 
 export const schema = _.assign((x: Record<string, TSchema>) => x, {
+  boolean: (defaultValue?: boolean) => ({ type: 'boolean', default: defaultValue }) as const,
+  number: (defaultValue?: number) => ({ type: 'number', default: defaultValue }) as const,
+  decimal: (defaultValue?: Decimal) => ({ type: 'decimal', default: defaultValue }) as const,
+  string: (defaultValue?: string) => ({ type: 'string', default: defaultValue }) as const,
+  date: (defaultValue?: Date) => ({ type: 'date', default: defaultValue }) as const,
+  object: (defaultValue?: object) => ({ type: 'object', default: defaultValue }) as const,
+  array: (defaultValue?: any[]) => ({ type: 'array', default: defaultValue }) as const,
+  vector: (dimension: number, defaultValue?: number[]) => ({ type: 'vector', dimension, default: defaultValue }) as const,
   shape: (shape: Record<string, TSchema.DataType>) => ({ type: 'shape', shape }) as const,
+  pointer: (target: string) => ({ type: 'pointer', target }) as const,
+  relation: (target: string, foreignField?: string) => ({ type: 'relation', target, foreignField }) as const,
 });
 
 type AdapterHandler<E, Handler extends RequestHandler = RequestHandler>

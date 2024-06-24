@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { DecodedBaseQuery, DecodedQuery, FindOptions, FindOneOptions, DecodedSortOption } from '../../storage';
 import { QueryCoditionalSelector, QueryFieldSelector, QuerySelector } from './parser';
-import { TSchema, _typeof, isPointer, isPrimitive, isRelation, isShape, shapedObjectPaths } from '../../../internals/schema';
+import { TSchema, _typeof, isPointer, isPrimitive, isRelation, isShape, shapePaths } from '../../../internals/schema';
 import { ProtoService } from '../../proto';
 import { TQueryBaseOptions, TSortOption } from '../../../internals/query/base';
 import { isPrimitiveValue } from '../../../internals/object';
@@ -158,7 +158,7 @@ export class QueryValidator<E> {
     const relations: (TSchema.PointerType | TSchema.RelationType)[] = [];
 
     if (isShape(dataType)) {
-      for (const { type } of shapedObjectPaths(dataType)) {
+      for (const { type } of shapePaths(dataType)) {
         if (!isPrimitive(type)) relations.push(type);
       }
     } else {
@@ -206,7 +206,7 @@ export class QueryValidator<E> {
         const shapedObject = _.pickBy(schema.fields, (v, k) => isShape(v) && this.validateKeyPerm(k, 'read', schema));
         _includes.push(
           ..._.keys(primitive),
-          ..._.flatMap(shapedObject, (v, k) => _.flatMap(shapedObjectPaths(v as any), x => isPrimitive(x.type) ? [`${k}.${x.path}`] : [])),
+          ..._.flatMap(shapedObject, (v, k) => _.flatMap(shapePaths(v as any), x => isPrimitive(x.type) ? [`${k}.${x.path}`] : [])),
         );
       } else {
         const { paths: [colname, ...subpath], dataType } = _resolveColumn(this.schema, className, include);
@@ -224,7 +224,7 @@ export class QueryValidator<E> {
 
         } else if (_.isEmpty(subpath) && isShape(dataType)) {
 
-          for (const { path, type } of shapedObjectPaths(dataType)) {
+          for (const { path, type } of shapePaths(dataType)) {
             if (isPrimitive(type)) {
               _includes.push(`${colname}.${path}`);
             } else {

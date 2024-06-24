@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { TSchema, isPointer, isPrimitive, isRelation, isShape, shapedObjectPaths } from '../../../internals/schema';
+import { TSchema, isPointer, isPrimitive, isRelation, isShape, shapePaths } from '../../../internals/schema';
 import { QueryCoditionalSelector, QueryExpressionSelector, QueryFieldSelector, QuerySelector } from '../../../server/query/dispatcher/parser';
 import { DecodedBaseQuery, DecodedQuery, FindOneOptions, FindOptions, InsertOptions, DecodedSortOption } from '../../../server/storage';
 import { SQL, sql } from './sql';
@@ -313,7 +313,7 @@ export class QueryCompiler {
       if (isShape(dataType)) {
         const [_op, value] = decodeUpdateOp(op);
         if (_op !== '$set') throw Error('Invalid update operation');
-        for (const { path, type } of shapedObjectPaths(dataType)) {
+        for (const { path, type } of shapePaths(dataType)) {
           if (!isRelation(type) || _.isNil(type.foreignField)) {
             updates.push(sql`${{ identifier: `${column}.${path}` }} = ${this.dialect.updateOperation(
               [`${column}.${path}`], type, { $set: _.get(value, path) ?? null }
@@ -335,7 +335,7 @@ export class QueryCompiler {
       const { paths: [column, ...subpath], dataType } = _resolveColumn(this.schema, className, key);
       if (!_.isEmpty(subpath)) throw Error(`Invalid insert key: ${key}`);
       if (isShape(dataType)) {
-        for (const { path, type } of shapedObjectPaths(dataType)) {
+        for (const { path, type } of shapePaths(dataType)) {
           if (!isRelation(type) || _.isNil(type.foreignField)) {
             result[`${column}.${path}`] = this.dialect.encodeType(`${column}.${path}`, type, _.get(value, path) ?? null);
           }

@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { DecodedQuery, FindOptions, FindOneOptions, InsertOptions, TStorage } from '../../../server/storage';
 import { TransactionOptions } from '../../../internals/proto';
-import { TSchema, isPointer, isRelation, isShape, shapedObjectPaths } from '../../../internals/schema';
+import { TSchema, isPointer, isRelation, isShape, shapePaths } from '../../../internals/schema';
 import { SQL, sql } from './sql';
 import { SqlDialect } from './dialect';
 import { QueryCompiler } from './compiler';
@@ -78,7 +78,7 @@ export abstract class SqlStorage implements TStorage {
 
   private _decodeShapedObject(dataType: TSchema.ShapeType, value: any) {
     const result = {};
-    for (const { path, type } of shapedObjectPaths(dataType)) {
+    for (const { path, type } of shapePaths(dataType)) {
       if (_.isString(type)) {
         const _value = this.dialect.decodeType(type, _.get(value, path));
         if (!_.isNil(_value)) _.set(result, path, _value);
