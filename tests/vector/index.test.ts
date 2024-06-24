@@ -165,10 +165,10 @@ test('test distance sort 2', async () => {
   }]).find();
 
   expect(result.length).toStrictEqual(5);
-  expect(result[0].get('vector.0')).toStrictEqual(4);
-  expect(result[1].get('vector.0')).toStrictEqual(3);
-  expect(result[2].get('vector.0')).toStrictEqual(2);
-  expect(result[3].get('vector.0')).toStrictEqual(1);
-  expect(result[4].get('vector.0')).toStrictEqual(0);
+  expect(result[0].get('vector2.0')).toStrictEqual(4);
+  expect(result[1].get('vector2.0')).toStrictEqual(3);
+  expect(result[2].get('vector2.0')).toStrictEqual(2);
+  expect(result[3].get('vector2.0')).toStrictEqual(1);
+  expect(result[4].get('vector2.0')).toStrictEqual(0);
 
 });
