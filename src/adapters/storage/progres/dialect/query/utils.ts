@@ -77,6 +77,15 @@ const resolvePaths = (
   paths: string[],
 ): { dataType: TSchema.DataType; colname: string; subpath: string[]; } => {
   const { paths: [colname, ...subpath], dataType } = _resolveColumn(compiler.schema, className, paths.join('.'));
+  if (!_.isEmpty(subpath) && isVector(dataType)) {
+    if (subpath.length !== 1) throw Error(`Invalid key: ${paths.join('.')}`);
+    const idx = parseInt(subpath[0]);
+    if (_.isSafeInteger(idx) && idx >= 0 && idx < dataType.dimension) {
+      return { dataType: 'number', colname: `${colname}[${idx}]`, subpath: [] };
+    } else {
+      throw Error(`Invalid key: ${paths.join('.')}`);
+    }
+  }
   if (!_.isEmpty(subpath) && isPointer(dataType)) {
     const resolved = resolvePaths(compiler, dataType.target, subpath);
     return { ...resolved, colname: `${colname}.${resolved.colname}` };
