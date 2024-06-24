@@ -37,7 +37,7 @@ export interface SqlDialect {
   placeholder(idx: number): string;
   boolean(value: boolean): string;
   encodeType(colname: string, type: TSchema.DataType, value: TValue): SQL;
-  decodeType(type: TSchema.Primitive, value: any): TValue;
+  decodeType(type: TSchema.Primitive | 'vector', value: any): TValue;
   updateOperation(paths: string[], dataType: TSchema.DataType, operation: TUpdateOp): SQL;
 
   selectPopulate(

@@ -105,7 +105,7 @@ export const encodeType = (colname: string, dataType: TSchema.DataType, value: T
   throw Error('Invalid data type');
 };
 
-export const decodeType = (type: TSchema.Primitive, value: any): TValue => {
+export const decodeType = (type: TSchema.Primitive | 'vector', value: any): TValue => {
   switch (type) {
     case 'boolean':
       if (_.isBoolean(value)) return value;
@@ -140,6 +140,12 @@ export const decodeType = (type: TSchema.Primitive, value: any): TValue => {
       break;
     case 'array':
       if (_.isArray(value)) return _decodeValue(value);
+      break;
+    case 'vector':
+      if (!_.isArray(value)) break;
+      if (_.every(value, x => _.isNumber(x))) {
+        return value;
+      }
       break;
     default: break;
   }

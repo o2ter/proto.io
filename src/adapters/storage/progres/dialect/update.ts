@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { SQL, sql } from '../../sql/sql';
-import { TSchema } from '../../../../internals/schema';
+import { TSchema, isVector } from '../../../../internals/schema';
 import { _encodeJsonValue } from './encode';
 import { stringArrayAttrs } from './basic';
 import { encodeType } from './encode';
@@ -38,6 +38,30 @@ import { _encodeValue } from '../../../../internals/object';
 export const updateOperation = (paths: string[], dataType: TSchema.DataType, operation: TUpdateOp) => {
   const [column, ...subpath] = paths;
   const [op, value] = decodeUpdateOp(operation);
+  if (isVector(dataType)) {
+    if (_.isEmpty(subpath)) {
+      if (!_.isArray(value) || value.length !== dataType.dimension) throw Error('Invalid update operation');
+      if (!_.every(value, x => _.isFinite(x))) throw Error('Invalid update operation');
+      if (op === '$set') {
+        return sql`${encodeType(column, dataType, value)}`;
+      }
+    } else if (subpath.length === 1) {
+      const idx = parseInt(subpath[0]);
+      if (_.isFinite(value) && _.isSafeInteger(idx) && idx >= 0 && idx < dataType.dimension) {
+        switch (op) {
+          case '$set': return sql`${{ value }}`;
+          case '$inc': return sql`${{ identifier: column }}[${{ literal: `${idx + 1}` }}] + ${{ value }}`;
+          case '$dec': return sql`${{ identifier: column }}[${{ literal: `${idx + 1}` }}] - ${{ value }}`;
+          case '$mul': return sql`${{ identifier: column }}[${{ literal: `${idx + 1}` }}] * ${{ value }}`;
+          case '$div': return sql`${{ identifier: column }}[${{ literal: `${idx + 1}` }}] / ${{ value }}`;
+          case '$max': return sql`GREATEST(${{ identifier: column }}[${{ literal: `${idx + 1}` }}], ${{ value }})`;
+          case '$min': return sql`LEAST(${{ identifier: column }}[${{ literal: `${idx + 1}` }}], ${{ value }})`;
+          default: break;
+        }
+      }
+    }
+    throw Error('Invalid update operation');
+  }
   if (_.isEmpty(subpath)) {
     switch (op) {
       case '$set': return sql`${encodeType(column, dataType, value)}`;
