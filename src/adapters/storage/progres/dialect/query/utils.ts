@@ -49,9 +49,6 @@ const _fetchElement = (
       };
     }
   } else if (!_.isEmpty(subpath)) {
-    if (dataType && isVector(dataType)) {
-
-    }
     const _subpath = sql`${_.map(subpath, x => sql`${{ quote: x.startsWith('$') ? `$${x}` : x }}`)}`;
     if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
       return {
