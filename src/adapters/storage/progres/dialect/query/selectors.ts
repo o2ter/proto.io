@@ -275,7 +275,7 @@ export const encodeFieldExpression = (
         if (!_.isNumber(expr.value) || !_.isSafeInteger(expr.value)) break;
         if (dataType === 'string' || (!_.isString(dataType) && dataType?.type === 'string')) {
           return sql`COALESCE(length(${element}), 0) = ${{ value: expr.value }}`;
-        } else if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
+        } else if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'vector' || dataType?.type === 'relation'))) {
           return sql`COALESCE(array_length(${element}, 1), 0) = ${{ value: expr.value }}`;
         } else if (!dataType) {
           return sql`(
@@ -292,7 +292,7 @@ export const encodeFieldExpression = (
         if (!_.isBoolean(expr.value)) break;
         if (dataType === 'string' || (!_.isString(dataType) && dataType?.type === 'string')) {
           return sql`COALESCE(length(${element}), 0) ${{ literal: expr.value ? '=' : '<>' }} 0`;
-        } else if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
+        } else if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'vector' || dataType?.type === 'relation'))) {
           return sql`COALESCE(array_length(${element}, 1), 0) ${{ literal: expr.value ? '=' : '<>' }} 0`;
         } else if (!dataType) {
           return sql`(
@@ -321,7 +321,7 @@ export const encodeFieldExpression = (
             ) AS ${{ identifier: tempName }}
             WHERE NOT (${filter})
           )`;
-        } else if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
+        } else if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'vector'))) {
           return sql`NOT EXISTS(
             SELECT * FROM (SELECT UNNEST AS "$" FROM UNNEST(${element})) AS ${{ identifier: tempName }}
             WHERE NOT (${filter})
@@ -350,7 +350,7 @@ export const encodeFieldExpression = (
             ) AS ${{ identifier: tempName }}
             WHERE ${filter}
           )`;
-        } else if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
+        } else if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'vector'))) {
           return sql`EXISTS(
             SELECT * FROM (SELECT UNNEST AS "$" FROM UNNEST(${element})) AS ${{ identifier: tempName }}
             WHERE ${filter}
