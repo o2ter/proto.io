@@ -56,7 +56,7 @@ export namespace TSchema {
     unique?: boolean;
   } | {
     type: 'vector';
-    keys: string[];
+    keys: string | string[];
   };
 }
 

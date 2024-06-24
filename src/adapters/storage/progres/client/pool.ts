@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { PoolConfig } from 'pg';
-import { TSchema, isPointer, isRelation, isShape, shapePaths } from '../../../../internals/schema';
+import { TSchema, isPointer, isRelation, isShape, isVector, shapePaths } from '../../../../internals/schema';
 import { PostgresDriver, PostgresClientDriver } from '../driver';
 import { sql } from '../../sql';
 import { PostgresStorageClient } from './base';
@@ -165,7 +165,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
       if (_.isEmpty(index.keys)) continue;
       switch (index.type) {
         case 'vector':
-          names.push(..._.values(this._indexVectorName(className, index.keys)));
+          names.push(..._.values(this._indexVectorName(className, _.castArray(index.keys))));
           break;
         default:
           names.push(this._indexBasicName(className, index.keys));
@@ -217,15 +217,16 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
       switch (index.type) {
         case 'vector':
           {
-            const name = this._indexVectorName(className, index.keys);
+            const name = this._indexVectorName(className, _.castArray(index.keys));
             const ops = [
               'vector_l1_ops',
               'vector_l2_ops',
               'vector_ip_ops',
               'vector_cosine_ops',
             ] as const;
-            for (const op of ops) {
-              await this.query(sql`
+            if (_.isArray(index.keys)) {
+              for (const op of ops) {
+                await this.query(sql`
                 CREATE INDEX CONCURRENTLY
                 IF NOT EXISTS ${{ identifier: name[op] }}
                 ON ${{ identifier: className }}
@@ -236,6 +237,23 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
                   ) ${{ literal: op }}
                 )
               `);
+              }
+            } else {
+              const column = index.keys;
+              const dataType = schema.fields[column];
+              if (!isVector(dataType)) throw Error('Invalid index type');
+              for (const op of ops) {
+                await this.query(sql`
+                CREATE INDEX CONCURRENTLY
+                IF NOT EXISTS ${{ identifier: name[op] }}
+                ON ${{ identifier: className }}
+                USING hnsw (
+                  CAST(
+                    ${{ identifier: column }} AS VECTOR(${{ literal: `${dataType.dimension}` }})
+                  ) ${{ literal: op }}
+                )
+              `);
+              }
             }
           }
           break;
