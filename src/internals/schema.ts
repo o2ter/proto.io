@@ -57,6 +57,7 @@ export namespace TSchema {
   } | {
     type: 'vector';
     keys: string | string[];
+    method?: 'hnsw' | 'ivfflat';
   };
 }
 

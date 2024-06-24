@@ -224,13 +224,14 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
               'vector_ip_ops',
               'vector_cosine_ops',
             ] as const;
+            const method = index.method ?? 'hnsw';
             if (_.isArray(index.keys)) {
               for (const op of ops) {
                 await this.query(sql`
                 CREATE INDEX CONCURRENTLY
                 IF NOT EXISTS ${{ identifier: name[op] }}
                 ON ${{ identifier: className }}
-                USING hnsw (
+                USING ${{ literal: method }} (
                   CAST(
                     ARRAY[${_.map(index.keys, k => sql`COALESCE(${{ identifier: k }}, 0)`)}]
                     AS VECTOR(${{ literal: `${index.keys.length}` }})
@@ -247,7 +248,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
                 CREATE INDEX CONCURRENTLY
                 IF NOT EXISTS ${{ identifier: name[op] }}
                 ON ${{ identifier: className }}
-                USING hnsw (
+                USING ${{ literal: method }} (
                   CAST(
                     ${{ identifier: column }} AS VECTOR(${{ literal: `${dataType.dimension}` }})
                   ) ${{ literal: op }}
