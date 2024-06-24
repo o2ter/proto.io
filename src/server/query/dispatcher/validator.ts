@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { DecodedBaseQuery, DecodedQuery, FindOptions, FindOneOptions, DecodedSortOption } from '../../storage';
 import { QueryCoditionalSelector, QueryFieldSelector, QuerySelector } from './parser';
-import { TSchema, _typeof, isPointer, isPrimitive, isRelation, isShape, shapePaths } from '../../../internals/schema';
+import { TSchema, _typeof, isPointer, isPrimitive, isRelation, isShape, isVector, shapePaths } from '../../../internals/schema';
 import { ProtoService } from '../../proto';
 import { TQueryBaseOptions, TSortOption } from '../../../internals/query/base';
 import { isPrimitiveValue } from '../../../internals/object';
@@ -154,12 +154,13 @@ export class QueryValidator<E> {
     }
 
     if (isPrimitive(dataType)) return true;
+    if (isVector(dataType)) return true;
 
     const relations: (TSchema.PointerType | TSchema.RelationType)[] = [];
 
     if (isShape(dataType)) {
       for (const { type } of shapePaths(dataType)) {
-        if (!isPrimitive(type)) relations.push(type);
+        if (!isPrimitive(type) && !isVector(type)) relations.push(type);
       }
     } else {
       relations.push(dataType);
@@ -225,7 +226,7 @@ export class QueryValidator<E> {
         } else if (_.isEmpty(subpath) && isShape(dataType)) {
 
           for (const { path, type } of shapePaths(dataType)) {
-            if (isPrimitive(type)) {
+            if (isPrimitive(type) || isVector(type)) {
               _includes.push(`${colname}.${path}`);
             } else {
 
@@ -271,7 +272,7 @@ export class QueryValidator<E> {
 
     for (const { paths: [colname], dataType } of _.map(includes, x => _resolveColumn(this.schema, className, x))) {
       if (!this.validateKeyPerm(colname, 'read', schema)) continue;
-      if (isPrimitive(dataType) || isShape(dataType)) continue;
+      if (isPrimitive(dataType) || isVector(dataType) || isShape(dataType)) continue;
       _matches[colname] = {
         filter: QuerySelector.decode([...this._rperm, this._expiredAt]).simplify(),
         matches: this.decodeMatches(
