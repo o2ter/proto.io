@@ -31,7 +31,7 @@ import { defaultSchema } from './defaults';
 import { ProtoServiceOptions, ProtoServiceKeyOptions } from './types';
 import { ProtoFunction, ProtoFunctionOptions, ProtoTrigger } from '../../internals/proto/types';
 import { generateId } from '../crypto/random';
-import { TSchema, defaultObjectKeyTypes, isPointer, isPrimitive, isRelation, isShapedObject } from '../../internals/schema';
+import { TSchema, defaultObjectKeyTypes, isPointer, isPrimitive, isRelation, isShape } from '../../internals/schema';
 import { QueryValidator } from '../query/dispatcher/validator';
 import { passwordHash, varifyPassword } from '../crypto/password';
 import { proxy } from './proxy';
@@ -58,10 +58,10 @@ const validateForeignField = (schema: Record<string, TSchema>, key: string, data
   if (foreignField.type === 'relation' && !_.isNil(foreignField.foreignField)) throw Error(`Invalid foreign field: ${key}`);
 }
 
-const validateShapedObject = (schema: Record<string, TSchema>, dataType: TSchema.ShapedObject) => { 
+const validateShapedObject = (schema: Record<string, TSchema>, dataType: TSchema.ShapeType) => { 
   for (const [key, type] of _.entries(dataType.shape)) {
     if (!key.match(QueryValidator.patterns.name)) throw Error(`Invalid field name: ${key}`);
-    if (isShapedObject(type)) {
+    if (isShape(type)) {
       validateShapedObject(schema, type);
     } else if (isRelation(type)) {
       validateForeignField(schema, key, type);
@@ -80,7 +80,7 @@ const validateSchema = (schema: Record<string, TSchema>) => {
     for (const [key, dataType] of _.toPairs(_schema.fields)) {
       if (_.includes(TObject.defaultKeys, key)) throw Error(`Reserved field name: ${key}`);
       if (!key.match(QueryValidator.patterns.name)) throw Error(`Invalid field name: ${key}`);
-      if (isShapedObject(dataType)) {
+      if (isShape(dataType)) {
         validateShapedObject(schema, dataType);
       } else if (isPointer(dataType)) {
         if (_.isNil(defaultSchema[dataType.target] ?? schema[dataType.target])) throw Error(`Invalid target: ${key}`);

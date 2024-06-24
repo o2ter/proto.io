@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { DecodedBaseQuery, DecodedQuery, FindOptions, FindOneOptions, DecodedSortOption } from '../../storage';
 import { QueryCoditionalSelector, QueryFieldSelector, QuerySelector } from './parser';
-import { TSchema, _typeof, isPointer, isPrimitive, isRelation, isShapedObject, shapedObjectPaths } from '../../../internals/schema';
+import { TSchema, _typeof, isPointer, isPrimitive, isRelation, isShape, shapedObjectPaths } from '../../../internals/schema';
 import { ProtoService } from '../../proto';
 import { TQueryBaseOptions, TSortOption } from '../../../internals/query/base';
 import { isPrimitiveValue } from '../../../internals/object';
@@ -46,7 +46,7 @@ export const _resolveColumn = (schema: Record<string, TSchema>, className: strin
   const _schema = schema[className] ?? {};
   let [colname, ...subpath] = path.split('.');
   let dataType = _schema.fields[colname];
-  while (dataType && !_.isEmpty(subpath) && isShapedObject(dataType)) {
+  while (dataType && !_.isEmpty(subpath) && isShape(dataType)) {
     const [key, ...remain] = subpath;
     if (!dataType.shape[key]) break;
     dataType = dataType.shape[key];
@@ -157,7 +157,7 @@ export class QueryValidator<E> {
 
     const relations: (TSchema.PointerType | TSchema.RelationType)[] = [];
 
-    if (isShapedObject(dataType)) {
+    if (isShape(dataType)) {
       for (const { type } of shapedObjectPaths(dataType)) {
         if (!isPrimitive(type)) relations.push(type);
       }
@@ -171,7 +171,7 @@ export class QueryValidator<E> {
       if (relation.type === 'relation') this.validateForeignField(relation, type, `Invalid key: ${_key}`);
     }
 
-    if (isShapedObject(dataType)) {
+    if (isShape(dataType)) {
       if (!_.isEmpty(subpath)) throw Error(`Invalid key: ${_key}`);
       return true;
     }
@@ -203,7 +203,7 @@ export class QueryValidator<E> {
     for (const include of includes) {
       if (include === '*') {
         const primitive = _.pickBy(schema.fields, (v, k) => isPrimitive(v) && this.validateKeyPerm(k, 'read', schema));
-        const shapedObject = _.pickBy(schema.fields, (v, k) => isShapedObject(v) && this.validateKeyPerm(k, 'read', schema));
+        const shapedObject = _.pickBy(schema.fields, (v, k) => isShape(v) && this.validateKeyPerm(k, 'read', schema));
         _includes.push(
           ..._.keys(primitive),
           ..._.flatMap(shapedObject, (v, k) => _.flatMap(shapedObjectPaths(v as any), x => isPrimitive(x.type) ? [`${k}.${x.path}`] : [])),
@@ -222,7 +222,7 @@ export class QueryValidator<E> {
           populates[colname] = populates[colname] ?? { className: dataType.target, subpaths: [] };
           populates[colname].subpaths.push(_.isEmpty(_subpath) ? '*' : _subpath.join('.'));
 
-        } else if (_.isEmpty(subpath) && isShapedObject(dataType)) {
+        } else if (_.isEmpty(subpath) && isShape(dataType)) {
 
           for (const { path, type } of shapedObjectPaths(dataType)) {
             if (isPrimitive(type)) {
@@ -271,7 +271,7 @@ export class QueryValidator<E> {
 
     for (const { paths: [colname], dataType } of _.map(includes, x => _resolveColumn(this.schema, className, x))) {
       if (!this.validateKeyPerm(colname, 'read', schema)) continue;
-      if (isPrimitive(dataType) || isShapedObject(dataType)) continue;
+      if (isPrimitive(dataType) || isShape(dataType)) continue;
       _matches[colname] = {
         filter: QuerySelector.decode([...this._rperm, this._expiredAt]).simplify(),
         matches: this.decodeMatches(

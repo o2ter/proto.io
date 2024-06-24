@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { PoolConfig } from 'pg';
-import { TSchema, isPointer, isRelation, isShapedObject, shapedObjectPaths } from '../../../../internals/schema';
+import { TSchema, isPointer, isRelation, isShape, shapedObjectPaths } from '../../../../internals/schema';
 import { PostgresDriver, PostgresClientDriver } from '../driver';
 import { sql } from '../../sql';
 import { PostgresStorageClient } from './base';
@@ -89,9 +89,9 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
   }
 
   private _fields(schema: TSchema) {
-    const fields: Record<string, Exclude<TSchema.DataType, TSchema.ShapedObject>> = {};
+    const fields: Record<string, Exclude<TSchema.DataType, TSchema.ShapeType>> = {};
     for (const [key, dataType] of _.entries(schema.fields)) {
-      if (isShapedObject(dataType)) {
+      if (isShape(dataType)) {
         for (const { path, type } of shapedObjectPaths(dataType)) {
           fields[`${key}.${path}`] = type;
         }

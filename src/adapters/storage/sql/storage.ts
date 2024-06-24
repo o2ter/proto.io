@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { DecodedQuery, FindOptions, FindOneOptions, InsertOptions, TStorage } from '../../../server/storage';
 import { TransactionOptions } from '../../../internals/proto';
-import { TSchema, isPointer, isRelation, isShapedObject, shapedObjectPaths } from '../../../internals/schema';
+import { TSchema, isPointer, isRelation, isShape, shapedObjectPaths } from '../../../internals/schema';
 import { SQL, sql } from './sql';
 import { SqlDialect } from './dialect';
 import { QueryCompiler } from './compiler';
@@ -76,7 +76,7 @@ export abstract class SqlStorage implements TStorage {
 
   abstract _explain(compiler: QueryCompiler, query: DecodedQuery<FindOptions>): PromiseLike<any>
 
-  private _decodeShapedObject(dataType: TSchema.ShapedObject, value: any) {
+  private _decodeShapedObject(dataType: TSchema.ShapeType, value: any) {
     const result = {};
     for (const { path, type } of shapedObjectPaths(dataType)) {
       if (_.isString(type)) {
@@ -111,7 +111,7 @@ export abstract class SqlStorage implements TStorage {
       if (!dataType) continue;
       if (_.isString(dataType)) {
         obj[PVK].attributes[key] = this.dialect.decodeType(dataType, value);
-      } else if (isShapedObject(dataType)) {
+      } else if (isShape(dataType)) {
         obj[PVK].attributes[key] = this._decodeShapedObject(dataType, value);
       } else if (isPointer(dataType)) {
         if (_.isPlainObject(value)) {
