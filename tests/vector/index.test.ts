@@ -51,7 +51,7 @@ test('test distance', async () => {
         {
           $distance: [
             [{ $key: 'vector.x' }, { $key: 'vector.y' }, { $key: 'vector.z' }],
-            [{ $value: 0 }, { $value: 0 }, { $value: 0 }],
+            { $value: [0, 0, 0] },
           ]
         },
         { $value: 2.3 },
@@ -65,7 +65,45 @@ test('test distance', async () => {
         {
           $distance: [
             [{ $key: 'vector.x' }, { $key: 'vector.y' }, { $key: 'vector.z' }],
-            [{ $value: 0 }, { $value: 0 }, { $value: 0 }],
+            { $value: [0, 0, 0] },
+          ]
+        },
+        { $value: 2.2 },
+      ],
+    },
+  }).first())?.objectId).toBeUndefined();
+
+});
+
+test('test distance 2', async () => {
+
+  const inserted = await Proto.Query('Vector').insert({
+    vector2: [0, 1, 2],
+  });
+
+  const q = Proto.Query('Vector').equalTo('_id', inserted.objectId);
+
+  expect((await q.clone().filter({
+    $expr: {
+      $lt: [
+        {
+          $distance: [
+            { $key: 'vector2' },
+            { $value: [0, 0, 0] },
+          ]
+        },
+        { $value: 2.3 },
+      ],
+    },
+  }).first())?.objectId).toStrictEqual(inserted.objectId);
+
+  expect((await q.clone().filter({
+    $expr: {
+      $lt: [
+        {
+          $distance: [
+            { $key: 'vector2' },
+            { $value: [0, 0, 0] },
           ]
         },
         { $value: 2.2 },
@@ -93,7 +131,7 @@ test('test distance sort', async () => {
     expr: {
       $distance: [
         [{ $key: 'vector.x' }, { $key: 'vector.y' }, { $key: 'vector.z' }],
-        [{ $value: 0 }, { $value: 0 }, { $value: 0 }],
+        { $value: [0, 0, 0] },
       ]
     },
   }]).find();
@@ -104,5 +142,33 @@ test('test distance sort', async () => {
   expect(result[2].get('vector.x')).toStrictEqual(2);
   expect(result[3].get('vector.x')).toStrictEqual(1);
   expect(result[4].get('vector.x')).toStrictEqual(0);
+
+});
+
+test('test distance sort 2', async () => {
+
+  for (const x of _.range(0, 5)) {
+    await Proto.Query('Vector').insert({
+      string: 'distance sort 2',
+      vector2: [x, 1, 2],
+    });
+  }
+
+  const result = await Proto.Query('Vector').equalTo('string', 'distance sort 2').sort([{
+    order: -1,
+    expr: {
+      $distance: [
+        { $key: 'vector2' },
+        { $value: [0, 0, 0] },
+      ]
+    },
+  }]).find();
+
+  expect(result.length).toStrictEqual(5);
+  expect(result[0].get('vector.0')).toStrictEqual(4);
+  expect(result[1].get('vector.0')).toStrictEqual(3);
+  expect(result[2].get('vector.0')).toStrictEqual(2);
+  expect(result[3].get('vector.0')).toStrictEqual(1);
+  expect(result[4].get('vector.0')).toStrictEqual(0);
 
 });

@@ -66,9 +66,11 @@ const Proto = new ProtoService({
           y: 'number',
           z: 'number',
         }),
+        vector2: schema.vector(3),
       },
       indexes: [
         { type: 'vector', keys: ['vector.x', 'vector.y', 'vector.z'] },
+        { type: 'vector', keys: 'vector2' },
       ],
     }
   },
