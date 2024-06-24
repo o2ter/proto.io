@@ -42,10 +42,9 @@ export class QueryExpression {
           exprs.push(new QueryComparisonExpression(key as any, QueryExpression.decode(left as any, dollerSign), QueryExpression.decode(right as any, dollerSign)));
         } else if (_.includes(TDistanceKeys, key) && _.isArray(query) && query.length === 2) {
           const [left, right] = query;
-          if (!_.isArray(left) || !_.isArray(right) || left.length !== right.length) throw Error('Invalid expression');
-          const _left = _.map(left, x => QueryExpression.decode(x as any, dollerSign));
-          const _right = _.map(right, x => QueryExpression.decode(x as any, dollerSign));
-          exprs.push(new QueryDistanceExpression(key as any, _left, _right));
+          const _left = _.isArray(left) ? _.map(left, x => QueryExpression.decode(x as any, dollerSign)) : QueryExpression.decode(left as any, dollerSign);
+          const _right = _.isArray(right) ? _.map(right, x => QueryExpression.decode(x as any, dollerSign)) : QueryExpression.decode(right as any, dollerSign);
+          exprs.push(new QueryDistanceExpression(key as any, _.castArray(_left), _.castArray(_right)));
         } else if (key === '$not') {
           exprs.push(new QueryNotExpression(QueryExpression.decode(query as any, dollerSign)));
         } else if (key === '$array' && _.isArray(query)) {

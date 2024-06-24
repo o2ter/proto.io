@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { SQL, sql } from '../../../sql';
-import { _typeof, isPrimitive } from '../../../../../internals/schema';
+import { _typeof, isPrimitive, isVector } from '../../../../../internals/schema';
 import { QueryCompiler } from '../../../sql/compiler';
 import { nullSafeEqual, nullSafeNotEqual } from '../basic';
 import {
@@ -141,15 +141,37 @@ const encodeJsonQueryExpression = (
   return sql`to_jsonb(${value})`;
 };
 
+const encodeVectorExpression = (
+  compiler: QueryCompiler,
+  parent: { className?: string; name: string; },
+  exprs: QueryExpression[]
+) => {
+  if (exprs.length === 1) {
+    const [expr] = exprs;
+    if (expr instanceof QueryKeyExpression) {
+      const { element, dataType } = fetchElement(compiler, parent, expr.key);
+      if (!dataType || !isVector(dataType)) throw Error('Invalid expression');
+      return { sql: element, dimension: dataType.dimension };
+    }
+    if (expr instanceof QueryValueExpression) {
+      if (!_.isArray(expr.value) || !_.every(expr.value, x => _.isFinite(x))) throw Error('Invalid expression');
+      return { sql: sql`${{ value: expr.value }}`, dimension: expr.value.length };
+    }
+  }
+  const result = _.map(exprs, x => _.find(encodeTypedQueryExpression(compiler, parent, x), e => e.type === 'number')?.sql);
+  if (_.some(result, x => _.isNil(x))) throw Error('Invalid expression');
+  return { sql: sql`ARRAY[${_.map(result, x => sql`COALESCE(${x!}, 0)`)}]`, dimension: result.length };
+}
+
 const encodeDistanceQueryExpression = (
   compiler: QueryCompiler,
   parent: { className?: string; name: string; },
   expr: QueryDistanceExpression
 ): SQL => {
 
-  const left = _.map(expr.left, x => _.find(encodeTypedQueryExpression(compiler, parent, x), e => e.type === 'number')?.sql);
-  const right = _.map(expr.right, x => _.find(encodeTypedQueryExpression(compiler, parent, x), e => e.type === 'number')?.sql);
-  if (_.some(left, x => _.isNil(x)) || _.some(right, x => _.isNil(x))) throw Error('Invalid expression');
+  const { sql: left, dimension: d1 } = encodeVectorExpression(compiler, parent, expr.left);
+  const { sql: right, dimension: d2 } = encodeVectorExpression(compiler, parent, expr.right);
+  if (d1 !== d2) throw Error('Invalid expression');
 
   const operatorMap = {
     '$distance': sql`<->`,
@@ -161,13 +183,11 @@ const encodeDistanceQueryExpression = (
 
   const _expr = sql`
     CAST(
-      ARRAY[${_.map(left, x => sql`COALESCE(${x!}, 0)`)}]
-      AS VECTOR(${{ literal: `${left.length}` }})
+      ${left} AS VECTOR(${{ literal: `${d1}` }})
     )
     ${operatorMap[expr.type]} 
     CAST(
-      ARRAY[${_.map(right, x => sql`COALESCE(${x!}, 0)`)}]
-      AS VECTOR(${{ literal: `${right.length}` }})
+      ${right} AS VECTOR(${{ literal: `${d2}` }})
     )
   `;
 

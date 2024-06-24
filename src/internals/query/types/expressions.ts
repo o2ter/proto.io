@@ -35,7 +35,10 @@ export type TBooleanExpression = {
   };
 
 export type TDistanceExpression = {
-  [x in (typeof TDistanceKeys)[number]]?: [TExpression[], TExpression[]];
+  [x in (typeof TDistanceKeys)[number]]?: [
+    TExpression[] | { $key: string; } | { $value: number[]; },
+    TExpression[] | { $key: string; } | { $value: number[]; },
+  ];
 };
 
 export type TExpression = {

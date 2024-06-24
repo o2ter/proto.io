@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { sql } from '../../../sql';
 import { QueryCompiler } from '../../../sql/compiler';
-import { TSchema, isPointer, isRelation } from '../../../../../internals/schema';
+import { TSchema, isPointer, isRelation, isVector } from '../../../../../internals/schema';
 import { QueryValidator, _resolveColumn } from '../../../../../server/query/dispatcher/validator';
 
 const _fetchElement = (
@@ -49,6 +49,9 @@ const _fetchElement = (
       };
     }
   } else if (!_.isEmpty(subpath)) {
+    if (dataType && isVector(dataType)) {
+
+    }
     const _subpath = sql`${_.map(subpath, x => sql`${{ quote: x.startsWith('$') ? `$${x}` : x }}`)}`;
     if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
       return {
