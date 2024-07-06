@@ -31,7 +31,7 @@ import { TUser } from '../internals/object/user';
 import { TQuery } from '../internals/query';
 
 export * from './codec';
-export const classExtends = <E>(x: TExtensions<E>) => x;
+export const classExtends = <E = {}>(x: TExtensions<E>) => x;
 
 export const isQuery = (x: any): x is TQuery<any, any, any, any> => {
   return x instanceof TQuery;
