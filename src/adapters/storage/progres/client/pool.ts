@@ -173,9 +173,9 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
           break;
       }
     }
-    for (const [name, { is_primary, is_unique, keys }] of _.toPairs(await this.indices(className))) {
+    for (const [name, { is_primary }] of _.toPairs(await this.indices(className))) {
       if (is_primary || names.includes(name)) continue;
-      if (keys.length === 1 && keys[0] === '__i' && is_unique) continue;
+      if (name.endsWith('__i_key')) continue;
       await this.query(sql`DROP INDEX CONCURRENTLY IF EXISTS ${{ identifier: name }}`);
     }
   }
