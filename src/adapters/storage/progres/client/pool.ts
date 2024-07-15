@@ -113,7 +113,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
       (
         _id TEXT PRIMARY KEY,
         __v INTEGER NOT NULL DEFAULT 0,
-        __i SERIAL NOT NULL UNIQUE,
+        __i BIGSERIAL NOT NULL UNIQUE,
         _created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
         _updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
         _expired_at TIMESTAMP WITH TIME ZONE,
