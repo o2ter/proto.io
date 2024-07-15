@@ -87,6 +87,7 @@ export interface TSchema {
 export const defaultObjectKeyTypes: Record<string, TSchema.DataType> = {
   _id: 'string',
   __v: 'number',
+  __i: 'number',
   _created_at: 'date',
   _updated_at: 'date',
   _expired_at: 'date',
@@ -94,5 +95,5 @@ export const defaultObjectKeyTypes: Record<string, TSchema.DataType> = {
   _wperm: 'array',
 };
 
-export const defaultObjectReadonlyKeys = ['_id', '__v', '_created_at', '_updated_at'];
+export const defaultObjectReadonlyKeys = ['_id', '__v', '__i', '_created_at', '_updated_at'];
 export const defaultObjectKeys = [...defaultObjectReadonlyKeys, '_expired_at', '_rperm', '_wperm'];

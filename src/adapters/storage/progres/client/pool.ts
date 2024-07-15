@@ -113,6 +113,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
       (
         _id TEXT PRIMARY KEY,
         __v INTEGER NOT NULL DEFAULT 0,
+        __i SERIAL NOT NULL UNIQUE,
         _created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
         _updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
         _expired_at TIMESTAMP WITH TIME ZONE,
@@ -172,8 +173,9 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
           break;
       }
     }
-    for (const [name, { is_primary }] of _.toPairs(await this.indices(className))) {
+    for (const [name, { is_primary, is_unique, keys }] of _.toPairs(await this.indices(className))) {
       if (is_primary || names.includes(name)) continue;
+      if (keys.length === 1 && keys[0] === '__i' && is_unique) continue;
       await this.query(sql`DROP INDEX CONCURRENTLY IF EXISTS ${{ identifier: name }}`);
     }
   }
