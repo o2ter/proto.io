@@ -33,13 +33,7 @@ import { TQueryRandomOptions } from '../../../internals/query';
 import { TValue } from '../../../internals/types';
 import { PVK } from '../../../internals/private';
 import { TUpdateOp } from '../../../internals/object/types';
-
-export const normalize = <T>(x: T): T => {
-  if (_.isString(x)) return x.normalize('NFD') as T;
-  if (_.isArray(x)) return _.map(x, x => normalize(x)) as T;
-  if (_.isPlainObject(x)) return _.fromPairs(_.map(_.toPairs(x as object), ([k, v]) => [normalize(k), normalize(v)])) as T;
-  return x;
-};
+import { normalize } from '../../utils';
 
 export const fetchUserPerms = async <E>(proto: ProtoService<E>) => _.uniq(_.compact([..._.map(await proto.currentRoles(), x => `role:${x}`), (await proto.currentUser())?.objectId]));
 

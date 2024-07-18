@@ -35,7 +35,7 @@ import { TSchema, defaultObjectKeyTypes, isPointer, isPrimitive, isRelation, isS
 import { QueryValidator } from '../query/dispatcher/validator';
 import { passwordHash, varifyPassword } from '../crypto/password';
 import { proxy } from './proxy';
-import { ProtoService } from '.';
+import type { ProtoService } from '.';
 import { base64ToBuffer, isBinaryData } from '@o2ter/utils-js';
 import { ProtoInternalType } from '../../internals/proto';
 import { TObject } from '../../internals/object';
@@ -47,7 +47,7 @@ import { FileData } from '../../internals/buffer';
 import { PVK } from '../../internals/private';
 import { fetchUserPerms } from '../query/dispatcher';
 import { EventData } from '../../internals/proto';
-import { QuerySelector } from '../query/dispatcher/parser';
+import { normalize } from '../utils';
 
 const validateForeignField = (schema: Record<string, TSchema>, key: string, dataType: TSchema.RelationType) => {
   if (!dataType.foreignField) return;
@@ -176,7 +176,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     return this.options.storage.configAcl();
   }
   async setConfig(values: Record<string, _TValue>, acl?: string[]) {
-    return this.options.storage.setConfig(values, acl);
+    return this.options.storage.setConfig(normalize(values), normalize(acl));
   }
 
   async run(proto: P, name: string, payload: any, options?: ExtraOptions<boolean, P>) {
