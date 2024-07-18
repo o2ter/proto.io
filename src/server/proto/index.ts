@@ -256,18 +256,18 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
       jwtSignOptions?: jwt.SignOptions;
     } = {}
   ) {
-    return this[PVK].jwtSign('upload', {
+    return this[PVK].jwtSign({
       nonce: randomUUID(),
       maxUploadSize: options.maxUploadSize,
-    }, options?.jwtSignOptions);
+    }, options?.jwtSignOptions ?? 'upload');
   }
 
   jwtSign(payload: any, options: jwt.SignOptions) {
-    return this[PVK]._jwtSign(payload, options);
+    return this[PVK].jwtSign(payload, options);
   }
 
   jwtVarify(token: string, options: jwt.VerifyOptions = {}) {
-    return this[PVK]._jwtVarify(token, options);
+    return this[PVK].jwtVarify(token, options);
   }
 
   notify(data: Record<string, _TValue> & { _rperm?: string[]; }) {

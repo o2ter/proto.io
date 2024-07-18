@@ -39,7 +39,7 @@ const sessionMap = new WeakMap<Request, {
 
 const _sessionWithToken = <E>(proto: ProtoService<E>, token: string) => {
   if (_.isEmpty(token)) return;
-  const payload = proto[PVK].jwtVarify('login', token);
+  const payload = proto[PVK].jwtVarify(token, 'login');
   if (!_.isObject(payload)) return;
   return payload;
 }
@@ -64,7 +64,7 @@ const _session = <E>(proto: ProtoService<E>, request: Request) => {
 
   if (_.isEmpty(authorization)) return;
 
-  const payload = proto[PVK].jwtVarify('login', authorization);
+  const payload = proto[PVK].jwtVarify(authorization, 'login');
   if (!_.isObject(payload)) return;
 
   sessionMap.set(request, {
@@ -135,7 +135,7 @@ export const signUser = async <E>(
   const session = _session(proto, res.req);
   const sessionId = sessionMap.get(res.req)?.sessionId ?? session?.sessionId ?? randomUUID();
   const cookieOptions = options?.cookieOptions ?? session?.cookieOptions ?? proto[PVK].options.cookieOptions;
-  const token = proto[PVK].jwtSign('login', { sessionId, user: user?.objectId, cookieOptions }, options?.jwtSignOptions);
+  const token = proto[PVK].jwtSign({ sessionId, user: user?.objectId, cookieOptions }, options?.jwtSignOptions ?? 'login');
   res.cookie(AUTH_COOKIE_KEY, token, cookieOptions);
   sessionInfoMap.set(res.req, user ? await fetchSessionInfo(proto, user.objectId) : {});
 }

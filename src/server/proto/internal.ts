@@ -256,7 +256,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     const {
       nonce,
       maxUploadSize
-    } = (_.isString(token) ? this.jwtVarify('upload', token) ?? {} : {}) as {
+    } = (_.isString(token) ? this.jwtVarify(token, 'upload') ?? {} : {}) as {
       nonce?: string;
       maxUploadSize?: number;
     };
@@ -406,32 +406,32 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     })();
   }
 
-  _jwtSign(payload: any, options: jwt.SignOptions) {
-    return jwt.sign(payload, this.options.jwtToken, options);
+  jwtSign(payload: any, options: 'login' | 'upload' | jwt.SignOptions) {
+    const opts = (() => {
+      switch (options) {
+        case 'login': return this.options.jwtSignOptions;
+        case 'upload': return this.options.jwtUploadSignOptions;
+        default: return options;
+      }
+    })();
+    return jwt.sign(payload, this.options.jwtToken, opts);
   }
 
-  _jwtVarify(token: string, options: jwt.VerifyOptions = {}) {
+  jwtVarify(token: string, options: 'login' | 'upload' | jwt.VerifyOptions = {}) {
     try {
-      const payload = jwt.verify(token, this.options.jwtToken, { ...options, complete: false });
+      const opts = (() => {
+        switch (options) {
+          case 'login': return this.options.jwtVerifyOptions;
+          case 'upload': return this.options.jwtUploadVerifyOptions;
+          default: return options;
+        }
+      })();
+      const payload = jwt.verify(token, this.options.jwtToken, { ...opts, complete: false });
       if (!_.isObject(payload)) return;
       return payload;
     } catch {
       return;
     }
-  }
-
-  jwtSign(type: 'login' | 'upload', payload: any, options?: jwt.SignOptions) {
-    return this._jwtSign(payload, options ?? {
-      'login': this.options.jwtSignOptions,
-      'upload': this.options.jwtUploadSignOptions,
-    }[type]);
-  }
-
-  jwtVarify(type: 'login' | 'upload', token: string) {
-    return this._jwtVarify(token, {
-      'login': this.options.jwtVerifyOptions,
-      'upload': this.options.jwtUploadVerifyOptions,
-    }[type]);
   }
 
   async notify(proto: P, data: Record<string, _TValue> & { _rperm?: string[]; }) {
