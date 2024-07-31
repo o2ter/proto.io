@@ -90,8 +90,8 @@ export default class Service<Ext, P extends ProtoType<any>> {
       this.setSessionToken(token?.trim().slice(pattern.length));
     }
 
-    if (res.status === 412) {
-      return await this.service.request(config);
+    if (_.includes([412, 429], res.status)) {
+      return this.request(config);
     }
 
     if (res.status !== 200) {
