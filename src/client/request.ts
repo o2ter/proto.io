@@ -45,7 +45,9 @@ export default class Service<Ext, P extends ProtoType<any>> {
   private token?: string;
   private sockets: Socket[] = [];
 
-  constructor(proto: ProtoClientInternal<Ext, P>, options: AxiosOptions = {}) {
+  private retryLimit?: number;
+
+  constructor(proto: ProtoClientInternal<Ext, P>, { retryLimit, ...options }: AxiosOptions = {}) {
     this.proto = proto;
     this.service = axios.create({
       xsrfCookieName: XSRF_COOKIE_NAME,
@@ -54,6 +56,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
       validateStatus: status => status >= 200 && status < 500,
       ...options,
     });
+    this.retryLimit = retryLimit;
   }
 
   setSessionToken(token?: string) {
@@ -66,7 +69,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
     }
   }
 
-  async request<T = any, D = any>(config: RequestOptions<boolean, P> & AxiosRequestConfig<D>): Promise<AxiosResponse<T, D>> {
+  async _request<T = any, D = any>(config: RequestOptions<boolean, P> & AxiosRequestConfig<D>, retry = 0): Promise<AxiosResponse<T, D>> {
 
     const { master, abortSignal, serializeOpts, context, headers, ...opts } = config ?? {};
 
@@ -90,8 +93,11 @@ export default class Service<Ext, P extends ProtoType<any>> {
       this.setSessionToken(token?.trim().slice(pattern.length));
     }
 
-    if (_.includes([412, 429], res.status)) {
-      return this.request(config);
+    if (
+      (this.retryLimit ? retry < this.retryLimit : true) &&
+      _.includes([412, 429], res.status)
+    ) {
+      return this._request(config, retry + 1);
     }
 
     if (res.status !== 200) {
@@ -106,6 +112,10 @@ export default class Service<Ext, P extends ProtoType<any>> {
     }
 
     return res;
+  }
+
+  async request<T = any, D = any>(config: RequestOptions<boolean, P> & AxiosRequestConfig<D>) {
+    return this._request<T, D>(config);
   }
 
   socket() {

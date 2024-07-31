@@ -26,8 +26,9 @@
 import { TExtensions } from '../../internals/object/types';
 
 export type AxiosOptions = {
-  xsrfCookieName?: string,
-  xsrfHeaderName?: string,
+  xsrfCookieName?: string;
+  xsrfHeaderName?: string;
+  retryLimit?: number;
 };
 
 export type ProtoOptions<Ext> = {
