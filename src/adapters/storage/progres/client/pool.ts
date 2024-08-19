@@ -230,16 +230,16 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
             if (_.isArray(index.keys)) {
               for (const op of ops) {
                 await this.query(sql`
-                CREATE INDEX CONCURRENTLY
-                IF NOT EXISTS ${{ identifier: name[op] }}
-                ON ${{ identifier: className }}
-                USING ${{ literal: method }} (
-                  CAST(
-                    ARRAY[${_.map(index.keys, k => sql`COALESCE(${{ identifier: k }}, 0)`)}]
-                    AS VECTOR(${{ literal: `${index.keys.length}` }})
-                  ) ${{ literal: op }}
-                )
-              `);
+                  CREATE INDEX CONCURRENTLY
+                  IF NOT EXISTS ${{ identifier: name[op] }}
+                  ON ${{ identifier: className }}
+                  USING ${{ literal: method }} (
+                    CAST(
+                      ARRAY[${_.map(index.keys, k => sql`COALESCE(${{ identifier: k }}, 0)`)}]
+                      AS VECTOR(${{ literal: `${index.keys.length}` }})
+                    ) ${{ literal: op }}
+                  )
+                `);
               }
             } else {
               const column = index.keys;
@@ -247,15 +247,15 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
               if (!isVector(dataType)) throw Error('Invalid index type');
               for (const op of ops) {
                 await this.query(sql`
-                CREATE INDEX CONCURRENTLY
-                IF NOT EXISTS ${{ identifier: name[op] }}
-                ON ${{ identifier: className }}
-                USING ${{ literal: method }} (
-                  CAST(
-                    ${{ identifier: column }} AS VECTOR(${{ literal: `${dataType.dimension}` }})
-                  ) ${{ literal: op }}
-                )
-              `);
+                  CREATE INDEX CONCURRENTLY
+                  IF NOT EXISTS ${{ identifier: name[op] }}
+                  ON ${{ identifier: className }}
+                  USING ${{ literal: method }} (
+                    CAST(
+                      ${{ identifier: column }} AS VECTOR(${{ literal: `${dataType.dimension}` }})
+                    ) ${{ literal: op }}
+                  )
+                `);
               }
             }
           }
