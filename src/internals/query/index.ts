@@ -133,6 +133,7 @@ export abstract class TQuery<
     let lastItem: TObjectType<T, Ext> | undefined;
     while (true) {
       const q = _.isNil(lastItem) ? query : query.clone().filter(keys.length > 1 ? {
+        _id: { $ne: lastItem.objectId },
         $expr: {
           [is_asc ? '$gt' : '$lt']: [
             { $array: _.map(keys, k => ({ $key: k })) },
@@ -140,7 +141,8 @@ export abstract class TQuery<
           ],
         },
       } : {
-          [keys[0]]: { [is_asc ? '$gt' : '$lt']: lastItem!.get(keys[0]) },
+        _id: { $ne: lastItem.objectId },
+        [keys[0]]: { [is_asc ? '$gt' : '$lt']: lastItem!.get(keys[0]) },
       });
       const batch = await q.find(options);
       if (_.isEmpty(batch)) return;
