@@ -100,7 +100,11 @@ export interface TStorage {
 
   withConnection<T>(callback: (connection: TStorage) => PromiseLike<T>): PromiseLike<T>;
 
-  atomic<T>(callback: (connection: TStorage) => PromiseLike<T>): PromiseLike<T>;
+  atomic<T>(
+    callback: (connection: TStorage) => PromiseLike<T>,
+    options?: { lockTable?: string; },
+  ): PromiseLike<T>;
+
   withTransaction<T>(
     callback: (connection: TStorage) => PromiseLike<T>,
     options?: TransactionOptions,
