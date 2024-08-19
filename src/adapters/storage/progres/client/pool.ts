@@ -220,12 +220,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
         case 'vector':
           {
             const name = this._indexVectorName(className, _.castArray(index.keys));
-            const ops = [
-              'vector_l1_ops',
-              'vector_l2_ops',
-              'vector_ip_ops',
-              'vector_cosine_ops',
-            ] as const;
+            const ops = _.keys(name) as (keyof typeof name)[];
             const method = index.method ?? 'hnsw';
             if (_.isArray(index.keys)) {
               for (const op of ops) {
