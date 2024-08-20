@@ -130,24 +130,22 @@ export abstract class TQuery<
     if (_.isNil(sorting._id)) sorting._id = is_asc ? 1 : -1;
     const query = this.clone().sort(sorting).limit(batchSize);
     const keys = _.keys(sorting);
-    let lastItem: TObjectType<T, Ext> | undefined;
+    let batch: TObjectType<T, Ext>[] = [];
     while (true) {
-      const q = _.isNil(lastItem) ? query : query.clone().filter(keys.length > 1 ? {
-        _id: { $ne: lastItem.objectId },
-        $expr: {
-          [is_asc ? '$gt' : '$lt']: [
-            { $array: _.map(keys, k => ({ $key: k })) },
-            { $array: _.map(keys, k => ({ $value: lastItem!.get(k) })) },
-          ],
-        },
-      } : {
-        _id: { $ne: lastItem.objectId },
-        [keys[0]]: { [is_asc ? '$gt' : '$lt']: lastItem!.get(keys[0]) },
-      });
-      const batch = await q.find(options);
+      const q = _.isEmpty(batch) ? query : query.clone()
+        .filter(keys.length > 1 ? {
+          $expr: {
+            [is_asc ? '$gt' : '$lt']: [
+              { $array: _.map(keys, k => ({ $key: k })) },
+              { $array: _.map(keys, k => ({ $value: _.last(batch)!.get(k) })) },
+            ],
+          },
+        } : {
+          [keys[0]]: { [is_asc ? '$gt' : '$lt']: _.last(batch)!.get(keys[0]) },
+        });
+      batch = await q.find(options);
       if (_.isEmpty(batch)) return;
       await callback(batch);
-      lastItem = _.last(batch);
     }
   }
 };
