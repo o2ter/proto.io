@@ -110,6 +110,29 @@ test('test each batch 2', async () => {
   expect(counter).toStrictEqual(3);
 })
 
+test('test each batch 3', async () => {
+  const count = await Proto.Query('Test').insertMany([
+    { string: 'eachBatch3', number: 1 },
+    { string: 'eachBatch3', number: 2 },
+    { string: 'eachBatch3', number: 3 },
+    { string: 'eachBatch3', number: 4 },
+    { string: 'eachBatch3', number: 5 },
+  ]);
+  expect(count).toStrictEqual(5);
+
+  const result: any[] = [];
+  let counter = 0;
+  await Proto.Query('Test').equalTo('string', 'eachBatch3').sort({ _created_at: 1 }).eachBatch((batch) => {
+    result.push(...batch);
+    counter += 1;
+  }, { batchSize: 2 });
+
+  expect(result.length).toStrictEqual(5);
+  expect(_.uniqBy(result, x => x.objectId).length).toStrictEqual(5);
+  expect(_.map(result, x => x.get('number')).sort((a, b) => a - b)).toStrictEqual([1, 2, 3, 4, 5]);
+  expect(counter).toStrictEqual(3);
+})
+
 test('test types', async () => {
   const date = new Date;
   const inserted = await Proto.Query('Test').insert({

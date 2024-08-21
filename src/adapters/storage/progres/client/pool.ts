@@ -60,7 +60,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
       case 'number': return 'DOUBLE PRECISION';
       case 'decimal': return 'DECIMAL';
       case 'string': return 'TEXT';
-      case 'date': return 'TIMESTAMP WITH TIME ZONE';
+      case 'date': return 'TIMESTAMP(3) WITH TIME ZONE';
       case 'object': return 'JSONB';
       case 'array': return 'JSONB[]';
       case 'vector': return 'DOUBLE PRECISION[]';
@@ -114,9 +114,9 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
         _id TEXT PRIMARY KEY,
         __v INTEGER NOT NULL DEFAULT 0,
         __i BIGSERIAL NOT NULL UNIQUE,
-        _created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-        _updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-        _expired_at TIMESTAMP WITH TIME ZONE,
+        _created_at TIMESTAMP(3) WITH TIME ZONE NOT NULL DEFAULT NOW(),
+        _updated_at TIMESTAMP(3) WITH TIME ZONE NOT NULL DEFAULT NOW(),
+        _expired_at TIMESTAMP(3) WITH TIME ZONE,
         _rperm TEXT[] NOT NULL DEFAULT ARRAY['*']::TEXT[],
         _wperm TEXT[] NOT NULL DEFAULT ARRAY['*']::TEXT[]
         ${_.isEmpty(fields) ? sql`` : sql`, ${_.map(fields, (dataType, col) => sql`
@@ -183,7 +183,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
   private async _rebuildColumns(className: string, schema: TSchema) {
     const columns = await this.columns(className);
     const typeMap: Record<string, string> = {
-      'timestamp without time zone': 'timestamp',
+      'timestamp': 'timestamp(3) without time zone',
       'numeric': 'decimal',
     };
     const fields = this._fields(schema);
