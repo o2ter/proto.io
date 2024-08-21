@@ -30,4 +30,5 @@ export type ExtraOptions<M extends boolean, P extends ProtoType<any>> = {
   master?: M;
   context?: TSerializable;
   session?: P;
+  abortSignal?: AbortSignal;
 };
