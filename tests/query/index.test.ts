@@ -65,6 +65,15 @@ test('test insert many', async () => {
   expect(result.length).toStrictEqual(4);
 })
 
+test('test destory', async () => {
+  const inserted = await Proto.Query('Test').insert({ string: 'destory' });
+  expect(inserted.objectId).toBeTruthy();
+  expect(inserted.get('string')).toStrictEqual('destory');
+  await inserted.destory();
+  const result = await Proto.Query('Test').equalTo('string', 'destory').find();
+  expect(result).toStrictEqual([]);
+})
+
 test('test each batch', async () => {
   const count = await Proto.Query('Test').insertMany([
     { string: 'eachBatch' },
