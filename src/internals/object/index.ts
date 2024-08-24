@@ -81,7 +81,6 @@ export const decodeUpdateOp = (update: TUpdateOp) => {
 
 export interface TObject {
   clone(): TObject;
-  cloneAsNew(): TObject;
   fetchWithInclude(keys: string[], options?: ExtraOptions<boolean, ProtoType<any>>): PromiseLike<this>;
   save(options?: ExtraOptions<boolean, ProtoType<any>> & { cascadeSave?: boolean }): PromiseLike<this>;
   destory(options?: ExtraOptions<boolean, ProtoType<any>>): PromiseLike<this>;
