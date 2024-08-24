@@ -102,6 +102,15 @@ export const applyObjectMethods = <T extends TSerializable, E>(
         return clone;
       }
     },
+    cloneAsNew: {
+      value() {
+        const clone = proto.Object(this.className);
+        clone[PVK].attributes = _.omit(this[PVK].attributes, ...TObject.defaultReadonlyKeys);
+        clone[PVK].mutated = {};
+        clone[PVK].extra = { ...this[PVK].extra };
+        return clone;
+      }
+    },
     fetchWithInclude: {
       async value(keys: string[], options?: ExtraOptions<boolean, ProtoType<E>>) {
         const fetched = await query().equalTo('_id', this.objectId).includes(...keys).first(options);
