@@ -102,16 +102,19 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     return this.req ? sessionId(this, this.req) : undefined;
   }
 
+  async sessionInfo() {
+    if (this.session) return this.session;
+    return this.req ? session(this, this.req) : undefined;
+  }
+
   async currentUser() {
-    if (this.session) return this.session.user;
-    const _session = this.req ? await session(this, this.req) : undefined;
-    return _session?.user;
+    const session = await this.sessionInfo();
+    return session?.user;
   }
 
   async currentRoles() {
-    if (this.session) return this.session.roles ?? [];
-    const _session = this.req ? await session(this, this.req) : undefined;
-    return _session?.roles ?? [];
+    const session = await this.sessionInfo();
+    return session?.roles ?? [];
   }
 
   get isMaster(): boolean {

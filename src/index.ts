@@ -40,6 +40,7 @@ import { PVK } from './internals/private';
 import { _encodeValue, TObject } from './internals/object';
 import { _TValue } from './internals/types';
 import Decimal from 'decimal.js';
+import { response } from './server/routes/common';
 
 export * from './common';
 export { TFileStorage } from './server/file/index';
@@ -89,6 +90,9 @@ export const ProtoRoute = async <E>(options: {
   );
 
   router.get('/health', (req, res) => { res.sendStatus(200); });
+  router.get('/sessionInfo', async (req, res) => {
+    await response(res, () => proto.connect(req).sessionInfo());
+  });
 
   classesRoute(router, proto);
   functionRoute(router, proto);

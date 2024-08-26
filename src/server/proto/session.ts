@@ -32,9 +32,8 @@ import { randomUUID } from '@o2ter/crypto-js';
 import { PVK } from '../../internals/private';
 import { TUser } from '../../internals/object/user';
 
-const sessionMap = new WeakMap<Request, {
+const sessionMap = new WeakMap<Request, jwt.JwtPayload & {
   sessionId: string;
-  payload?: jwt.JwtPayload;
 }>();
 
 const _sessionWithToken = <E>(proto: ProtoService<E>, token: string) => {
@@ -47,7 +46,7 @@ const _sessionWithToken = <E>(proto: ProtoService<E>, token: string) => {
 const _session = <E>(proto: ProtoService<E>, request: Request) => {
 
   const cached = sessionMap.get(request);
-  if (cached) return cached?.payload;
+  if (cached) return cached;
 
   sessionMap.set(request, { sessionId: randomUUID() });
 
@@ -67,12 +66,13 @@ const _session = <E>(proto: ProtoService<E>, request: Request) => {
   const payload = proto[PVK].jwtVarify(authorization, 'login');
   if (!_.isObject(payload)) return;
 
-  sessionMap.set(request, {
+  const session = {
     sessionId: payload.sessionId ?? randomUUID(),
-    payload,
-  });
+    ...payload,
+  };
 
-  return payload;
+  sessionMap.set(request, session);
+  return session;
 }
 
 export const sessionId = <E>(proto: ProtoService<E>, request: Request): string | undefined => {
@@ -102,15 +102,13 @@ export const sessionWithToken = async <E>(proto: ProtoService<E>, token: string)
 export const session = async <E>(proto: ProtoService<E>, request: Request) => {
 
   const session = _session(proto, request);
-  const sessionId: string | undefined = sessionMap.get(request)?.sessionId ?? session?.sessionId;
-
   const cached = sessionInfoMap.get(request) as SessionInfo<E>;
-  if (cached) return { sessionId, ...cached };
+  if (cached) return { ...session ?? {}, ...cached };
 
   const info = await fetchSessionInfo(proto, session?.user);
   sessionInfoMap.set(request, info);
 
-  return { sessionId, ...info };
+  return { ...session ?? {}, ...info };
 }
 
 export type Session = Awaited<ReturnType<typeof session>>;

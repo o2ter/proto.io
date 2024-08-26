@@ -75,6 +75,24 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
     this.service.setSessionToken(token);
   }
 
+  async sessionInfo(
+    proto: P,
+    options?: RequestOptions<boolean, P>
+  ) {
+
+    const { serializeOpts, context, ...opts } = options ?? {};
+
+    const res = await this.service.request({
+      method: 'get',
+      baseURL: this.options.endpoint,
+      url: 'sessionInfo',
+      responseType: 'text',
+      ...opts,
+    });
+
+    return proto.rebind(deserialize(res.data));
+  }
+
   async currentUser(
     proto: P,
     options?: RequestOptions<boolean, P>
