@@ -32,9 +32,11 @@ import { randomUUID } from '@o2ter/crypto-js';
 import { PVK } from '../../internals/private';
 import { TUser } from '../../internals/object/user';
 
-const sessionMap = new WeakMap<Request, jwt.JwtPayload & {
+export type Session = jwt.JwtPayload & {
   sessionId: string;
-}>();
+};
+
+const sessionMap = new WeakMap<Request, Session>();
 
 const _sessionWithToken = <E>(proto: ProtoService<E>, token: string) => {
   if (_.isEmpty(token)) return;
@@ -66,7 +68,7 @@ const _session = <E>(proto: ProtoService<E>, request: Request) => {
   const payload = proto[PVK].jwtVarify(authorization, 'login');
   if (!_.isObject(payload)) return;
 
-  const session = {
+  const session: Session = {
     sessionId: payload.sessionId ?? randomUUID(),
     ...payload,
   };
@@ -110,8 +112,6 @@ export const session = async <E>(proto: ProtoService<E>, request: Request) => {
 
   return { ...session ?? {}, ...info };
 }
-
-export type Session = Awaited<ReturnType<typeof session>>;
 
 export const sessionIsMaster = <E>(proto: ProtoService<E>, request: Request) => {
   const user = request.header(MASTER_USER_HEADER_NAME);
