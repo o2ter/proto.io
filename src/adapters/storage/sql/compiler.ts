@@ -402,7 +402,7 @@ export class QueryCompiler {
       })}`;
     }
     return sql`${_.map(sort, (order, key) => sql`
-      ${this.dialect.encodeSortKey(parent.name, key)} ${{ literal: order === 1 ? 'ASC' : 'DESC' }}
+      ${this.dialect.encodeSortKey(this, parent, key)} ${{ literal: order === 1 ? 'ASC' : 'DESC' }}
     `)}`;
   }
 

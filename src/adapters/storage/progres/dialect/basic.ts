@@ -26,6 +26,8 @@
 import _ from 'lodash';
 import { escapeIdentifier, escapeLiteral } from 'pg/lib/utils';
 import { SQL, sql } from '../../sql/sql';
+import { CompileContext, QueryCompiler } from '../../sql/compiler';
+import { fetchElement } from './query/utils';
 
 export const stringArrayAttrs = ['_rperm', '_wperm'];
 
@@ -37,13 +39,13 @@ export const identifier = (name: string) => escapeIdentifier(name);
 export const placeholder = (idx: number) => `$${idx}`;
 export const boolean = (value: boolean) => value ? 'true' : 'false';
 
-export const encodeSortKey = (className: string, key: string): SQL => {
-  const [colname, ...subpath] = _.toPath(key);
-  if (_.isEmpty(subpath)) return sql`${{ identifier: className }}.${{ identifier: colname }}`;
-  return sql`jsonb_extract_path(
-    ${{ identifier: className }}.${{ identifier: colname }},
-    ${_.map(subpath, x => sql`${{ quote: x }}`)}
-  )`;
+export const encodeSortKey = (
+  compiler: QueryCompiler,
+  parent: { className?: string; name: string; },
+  key: string,
+): SQL => {
+  const { element } = fetchElement(compiler, parent, key);
+  return element;
 };
 
 export const random = (opts: { weight?: string; }): SQL => {
