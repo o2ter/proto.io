@@ -69,16 +69,30 @@ const validateShapedObject = (schema: Record<string, TSchema>, dataType: TSchema
   }
 }
 
-const validateSchema = (schema: Record<string, TSchema>) => {
+const validateSchemaPermission = (schema: Record<string, TSchema>) => {
 
   if (!_.isNil(schema['_Schema']) || !_.isNil(schema['_Config'])) throw Error('Reserved name of class');
 
+  for (const [, _schema] of _.toPairs(schema)) {
+    for (const [key] of _.toPairs(_schema.fields)) {
+      if (_.includes(TObject.defaultKeys, key)) throw Error(`Reserved field name: ${key}`);
+    }
+    const fields = _.keys(_schema.fields);
+    for (const key of _.keys(_schema.fieldLevelPermissions)) {
+      if (!fields.includes(key)) throw Error(`Invalid field permission: ${key}`);
+    }
+    for (const key of _schema.secureFields ?? []) {
+      if (!fields.includes(key)) throw Error(`Invalid field permission: ${key}`);
+    }
+  }
+}
+
+const validateSchema = (schema: Record<string, TSchema>) => {
   for (const [className, _schema] of _.toPairs(schema)) {
 
     if (!className.match(QueryValidator.patterns.name)) throw Error(`Invalid class name: ${className}`);
 
     for (const [key, dataType] of _.toPairs(_schema.fields)) {
-      if (_.includes(TObject.defaultKeys, key)) throw Error(`Reserved field name: ${key}`);
       if (!key.match(QueryValidator.patterns.name)) throw Error(`Invalid field name: ${key}`);
       if (isShape(dataType)) {
         validateShapedObject(schema, dataType);
@@ -88,14 +102,6 @@ const validateSchema = (schema: Record<string, TSchema>) => {
         if (_.isNil(defaultSchema[dataType.target] ?? schema[dataType.target])) throw Error(`Invalid target: ${key}`);
         validateForeignField(schema, key, dataType);
       }
-    }
-
-    const fields = _.keys(_schema.fields);
-    for (const key of _.keys(_schema.fieldLevelPermissions)) {
-      if (!fields.includes(key)) throw Error(`Invalid field permission: ${key}`);
-    }
-    for (const key of _schema.secureFields ?? []) {
-      if (!fields.includes(key)) throw Error(`Invalid field permission: ${key}`);
     }
   }
 }
@@ -150,10 +156,12 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
   } = {};
 
   constructor(options: Required<ProtoServiceOptions<Ext>> & ProtoServiceKeyOptions) {
-    validateSchema(options.schema);
+    validateSchemaPermission(options.schema);
+    const schema = mergeSchema(defaultSchema, options.fileStorage.schema, options.schema);
+    validateSchema(schema);
     this.options = {
       ...options,
-      schema: mergeSchema(defaultSchema, options.fileStorage.schema, options.schema),
+      schema,
     };
   }
 
