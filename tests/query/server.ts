@@ -31,7 +31,15 @@ import DatabaseFileStorage from '../../src/adapters/file/database';
 import PostgresStorage from '../../src/adapters/storage/progres';
 import { randomUUID } from '@o2ter/crypto-js';
 
-const app = new Server;
+const app = new Server({
+  http: 'v1',
+  express: {
+    rateLimit: {
+      windowMs: 1000,
+      limit: 1000,
+    },
+  },
+});
 
 const db_host = process.env['POSTGRES_HOST'] ?? "localhost";
 const db_user = process.env['POSTGRES_USERNAME'];

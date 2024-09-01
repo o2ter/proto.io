@@ -69,7 +69,8 @@ export interface SqlDialect {
   ): Record<string, SQL>
 
   encodeSortKey(
-    className: string,
+    compiler: QueryCompiler,
+    parent: { className?: string; name: string; },
     key: string
   ): SQL
 

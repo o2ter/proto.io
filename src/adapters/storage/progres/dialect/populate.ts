@@ -88,7 +88,7 @@ export const selectPopulate = (
         SELECT to_jsonb(${{ identifier: populate.name }}) FROM (
           SELECT ${_.map(subpaths, ({ path, type }) => _encodePopulateInclude(populate.name, path, type))}
           FROM ${{ identifier: populate.name }} WHERE ${cond}
-          ${!_.isEmpty(populate.sort) ? sql`ORDER BY ${compiler._encodeSort(populate.sort, { className: populate.name, name: populate.name })}` : sql``}
+          ${!_.isEmpty(populate.sort) ? sql`ORDER BY ${compiler._encodeSort(populate.sort, { className: populate.className, name: populate.name })}` : sql``}
           ${populate.limit ? sql`LIMIT ${{ literal: `${populate.limit}` }}` : sql``}
           ${populate.skip ? sql`OFFSET ${{ literal: `${populate.skip}` }}` : sql``}
           ${compiler.selectLock ? compiler.isUpdate ? sql`FOR UPDATE NOWAIT` : sql`FOR SHARE NOWAIT` : sql``}

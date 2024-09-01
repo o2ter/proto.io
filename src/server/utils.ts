@@ -1,5 +1,5 @@
 //
-//  basic.ts
+//  utils.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2024 O2ter Limited. All rights reserved.
@@ -24,30 +24,10 @@
 //
 
 import _ from 'lodash';
-import { escapeIdentifier, escapeLiteral } from 'pg/lib/utils';
-import { SQL, sql } from '../../sql/sql';
-import { CompileContext, QueryCompiler } from '../../sql/compiler';
-import { fetchElement } from './query/utils';
 
-export const stringArrayAttrs = ['_rperm', '_wperm'];
-
-export const nullSafeEqual = () => sql`IS NOT DISTINCT FROM`;
-export const nullSafeNotEqual = () => sql`IS DISTINCT FROM`;
-
-export const quote = (str: string) => escapeLiteral(str);
-export const identifier = (name: string) => escapeIdentifier(name);
-export const placeholder = (idx: number) => `$${idx}`;
-export const boolean = (value: boolean) => value ? 'true' : 'false';
-
-export const encodeSortKey = (
-  compiler: QueryCompiler,
-  parent: { className?: string; name: string; },
-  key: string,
-): SQL => {
-  const { element } = fetchElement(compiler, parent, key);
-  return element;
-};
-
-export const random = (opts: { weight?: string; }): SQL => {
-  return opts.weight ? sql`-ln(random()) / ${{ identifier: opts.weight }}` : sql`random()`;
+export const normalize = <T>(x: T): T => {
+  if (_.isString(x)) return x.normalize('NFD') as T;
+  if (_.isArray(x)) return _.map(x, x => normalize(x)) as T;
+  if (_.isPlainObject(x)) return _.fromPairs(_.map(_.toPairs(x as object), ([k, v]) => [normalize(k), normalize(v)])) as T;
+  return x;
 };

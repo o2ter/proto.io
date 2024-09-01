@@ -76,6 +76,10 @@ export class ProtoClient<Ext> extends ProtoType<Ext> {
     this[PVK].setSessionToken(this, token);
   }
 
+  sessionInfo(options?: RequestOptions<boolean, this>) {
+    return this[PVK].sessionInfo(this, options);
+  }
+
   currentUser(options?: RequestOptions<boolean, this>) {
     return this[PVK].currentUser(this, options);
   }

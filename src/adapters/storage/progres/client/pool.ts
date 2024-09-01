@@ -60,7 +60,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
       case 'number': return 'DOUBLE PRECISION';
       case 'decimal': return 'DECIMAL';
       case 'string': return 'TEXT';
-      case 'date': return 'TIMESTAMP WITH TIME ZONE';
+      case 'date': return 'TIMESTAMP(3) WITH TIME ZONE';
       case 'object': return 'JSONB';
       case 'array': return 'JSONB[]';
       case 'vector': return 'DOUBLE PRECISION[]';
@@ -113,9 +113,10 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
       (
         _id TEXT PRIMARY KEY,
         __v INTEGER NOT NULL DEFAULT 0,
-        _created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-        _updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-        _expired_at TIMESTAMP WITH TIME ZONE,
+        __i BIGSERIAL NOT NULL UNIQUE,
+        _created_at TIMESTAMP(3) WITH TIME ZONE NOT NULL DEFAULT NOW(),
+        _updated_at TIMESTAMP(3) WITH TIME ZONE NOT NULL DEFAULT NOW(),
+        _expired_at TIMESTAMP(3) WITH TIME ZONE,
         _rperm TEXT[] NOT NULL DEFAULT ARRAY['*']::TEXT[],
         _wperm TEXT[] NOT NULL DEFAULT ARRAY['*']::TEXT[]
         ${_.isEmpty(fields) ? sql`` : sql`, ${_.map(fields, (dataType, col) => sql`
@@ -174,6 +175,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
     }
     for (const [name, { is_primary }] of _.toPairs(await this.indices(className))) {
       if (is_primary || names.includes(name)) continue;
+      if (name.endsWith('__i_key')) continue;
       await this.query(sql`DROP INDEX CONCURRENTLY IF EXISTS ${{ identifier: name }}`);
     }
   }
@@ -181,7 +183,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
   private async _rebuildColumns(className: string, schema: TSchema) {
     const columns = await this.columns(className);
     const typeMap: Record<string, string> = {
-      'timestamp without time zone': 'timestamp',
+      'timestamp': 'timestamp(3) without time zone',
       'numeric': 'decimal',
     };
     const fields = this._fields(schema);
@@ -218,26 +220,21 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
         case 'vector':
           {
             const name = this._indexVectorName(className, _.castArray(index.keys));
-            const ops = [
-              'vector_l1_ops',
-              'vector_l2_ops',
-              'vector_ip_ops',
-              'vector_cosine_ops',
-            ] as const;
+            const ops = _.keys(name) as (keyof typeof name)[];
             const method = index.method ?? 'hnsw';
             if (_.isArray(index.keys)) {
               for (const op of ops) {
                 await this.query(sql`
-                CREATE INDEX CONCURRENTLY
-                IF NOT EXISTS ${{ identifier: name[op] }}
-                ON ${{ identifier: className }}
-                USING ${{ literal: method }} (
-                  CAST(
-                    ARRAY[${_.map(index.keys, k => sql`COALESCE(${{ identifier: k }}, 0)`)}]
-                    AS VECTOR(${{ literal: `${index.keys.length}` }})
-                  ) ${{ literal: op }}
-                )
-              `);
+                  CREATE INDEX CONCURRENTLY
+                  IF NOT EXISTS ${{ identifier: name[op] }}
+                  ON ${{ identifier: className }}
+                  USING ${{ literal: method }} (
+                    CAST(
+                      ARRAY[${_.map(index.keys, k => sql`COALESCE(${{ identifier: k }}, 0)`)}]
+                      AS VECTOR(${{ literal: `${index.keys.length}` }})
+                    ) ${{ literal: op }}
+                  )
+                `);
               }
             } else {
               const column = index.keys;
@@ -245,15 +242,15 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
               if (!isVector(dataType)) throw Error('Invalid index type');
               for (const op of ops) {
                 await this.query(sql`
-                CREATE INDEX CONCURRENTLY
-                IF NOT EXISTS ${{ identifier: name[op] }}
-                ON ${{ identifier: className }}
-                USING ${{ literal: method }} (
-                  CAST(
-                    ${{ identifier: column }} AS VECTOR(${{ literal: `${dataType.dimension}` }})
-                  ) ${{ literal: op }}
-                )
-              `);
+                  CREATE INDEX CONCURRENTLY
+                  IF NOT EXISTS ${{ identifier: name[op] }}
+                  ON ${{ identifier: className }}
+                  USING ${{ literal: method }} (
+                    CAST(
+                      ${{ identifier: column }} AS VECTOR(${{ literal: `${dataType.dimension}` }})
+                    ) ${{ literal: op }}
+                  )
+                `);
               }
             }
           }

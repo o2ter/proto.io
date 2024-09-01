@@ -32,14 +32,15 @@ import { randomUUID } from '@o2ter/crypto-js';
 import { PVK } from '../../internals/private';
 import { TUser } from '../../internals/object/user';
 
-const sessionMap = new WeakMap<Request, {
+export type Session = jwt.JwtPayload & {
   sessionId: string;
-  payload?: jwt.JwtPayload;
-}>();
+};
+
+const sessionMap = new WeakMap<Request, Session>();
 
 const _sessionWithToken = <E>(proto: ProtoService<E>, token: string) => {
   if (_.isEmpty(token)) return;
-  const payload = proto[PVK].jwtVarify('login', token);
+  const payload = proto[PVK].jwtVarify(token, 'login');
   if (!_.isObject(payload)) return;
   return payload;
 }
@@ -47,7 +48,7 @@ const _sessionWithToken = <E>(proto: ProtoService<E>, token: string) => {
 const _session = <E>(proto: ProtoService<E>, request: Request) => {
 
   const cached = sessionMap.get(request);
-  if (cached) return cached?.payload;
+  if (cached) return cached;
 
   sessionMap.set(request, { sessionId: randomUUID() });
 
@@ -64,15 +65,16 @@ const _session = <E>(proto: ProtoService<E>, request: Request) => {
 
   if (_.isEmpty(authorization)) return;
 
-  const payload = proto[PVK].jwtVarify('login', authorization);
+  const payload = proto[PVK].jwtVarify(authorization, 'login');
   if (!_.isObject(payload)) return;
 
-  sessionMap.set(request, {
+  const session: Session = {
     sessionId: payload.sessionId ?? randomUUID(),
-    payload,
-  });
+    ...payload,
+  };
 
-  return payload;
+  sessionMap.set(request, session);
+  return session;
 }
 
 export const sessionId = <E>(proto: ProtoService<E>, request: Request): string | undefined => {
@@ -102,18 +104,14 @@ export const sessionWithToken = async <E>(proto: ProtoService<E>, token: string)
 export const session = async <E>(proto: ProtoService<E>, request: Request) => {
 
   const session = _session(proto, request);
-  const sessionId: string | undefined = sessionMap.get(request)?.sessionId ?? session?.sessionId;
-
   const cached = sessionInfoMap.get(request) as SessionInfo<E>;
-  if (cached) return { sessionId, ...cached };
+  if (cached) return { ...session ?? {}, ...cached };
 
   const info = await fetchSessionInfo(proto, session?.user);
   sessionInfoMap.set(request, info);
 
-  return { sessionId, ...info };
+  return { ...session ?? {}, ...info };
 }
-
-export type Session = Awaited<ReturnType<typeof session>>;
 
 export const sessionIsMaster = <E>(proto: ProtoService<E>, request: Request) => {
   const user = request.header(MASTER_USER_HEADER_NAME);
@@ -135,7 +133,7 @@ export const signUser = async <E>(
   const session = _session(proto, res.req);
   const sessionId = sessionMap.get(res.req)?.sessionId ?? session?.sessionId ?? randomUUID();
   const cookieOptions = options?.cookieOptions ?? session?.cookieOptions ?? proto[PVK].options.cookieOptions;
-  const token = proto[PVK].jwtSign('login', { sessionId, user: user?.objectId, cookieOptions }, options?.jwtSignOptions);
+  const token = proto[PVK].jwtSign({ sessionId, user: user?.objectId, cookieOptions }, options?.jwtSignOptions ?? 'login');
   res.cookie(AUTH_COOKIE_KEY, token, cookieOptions);
   sessionInfoMap.set(res.req, user ? await fetchSessionInfo(proto, user.objectId) : {});
 }

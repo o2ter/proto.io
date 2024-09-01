@@ -1,4 +1,3 @@
-import { schema } from './../../index';
 //
 //  methods.ts
 //

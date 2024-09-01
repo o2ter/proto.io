@@ -35,7 +35,7 @@ import { TSchema, defaultObjectKeyTypes, isPointer, isPrimitive, isRelation, isS
 import { QueryValidator } from '../query/dispatcher/validator';
 import { passwordHash, varifyPassword } from '../crypto/password';
 import { proxy } from './proxy';
-import { ProtoService } from '.';
+import type { ProtoService } from '.';
 import { base64ToBuffer, isBinaryData } from '@o2ter/utils-js';
 import { ProtoInternalType } from '../../internals/proto';
 import { TObject } from '../../internals/object';
@@ -47,7 +47,7 @@ import { FileData } from '../../internals/buffer';
 import { PVK } from '../../internals/private';
 import { fetchUserPerms } from '../query/dispatcher';
 import { EventData } from '../../internals/proto';
-import { QuerySelector } from '../query/dispatcher/parser';
+import { normalize } from '../utils';
 
 const validateForeignField = (schema: Record<string, TSchema>, key: string, dataType: TSchema.RelationType) => {
   if (!dataType.foreignField) return;
@@ -69,16 +69,23 @@ const validateShapedObject = (schema: Record<string, TSchema>, dataType: TSchema
   }
 }
 
-const validateSchema = (schema: Record<string, TSchema>) => {
+const validateSchemaName = (schema: Record<string, TSchema>) => {
 
   if (!_.isNil(schema['_Schema']) || !_.isNil(schema['_Config'])) throw Error('Reserved name of class');
 
+  for (const [, _schema] of _.toPairs(schema)) {
+    for (const [key] of _.toPairs(_schema.fields)) {
+      if (_.includes(TObject.defaultKeys, key)) throw Error(`Reserved field name: ${key}`);
+    }
+  }
+}
+
+const validateSchema = (schema: Record<string, TSchema>) => {
   for (const [className, _schema] of _.toPairs(schema)) {
 
     if (!className.match(QueryValidator.patterns.name)) throw Error(`Invalid class name: ${className}`);
 
     for (const [key, dataType] of _.toPairs(_schema.fields)) {
-      if (_.includes(TObject.defaultKeys, key)) throw Error(`Reserved field name: ${key}`);
       if (!key.match(QueryValidator.patterns.name)) throw Error(`Invalid field name: ${key}`);
       if (isShape(dataType)) {
         validateShapedObject(schema, dataType);
@@ -88,14 +95,13 @@ const validateSchema = (schema: Record<string, TSchema>) => {
         if (_.isNil(defaultSchema[dataType.target] ?? schema[dataType.target])) throw Error(`Invalid target: ${key}`);
         validateForeignField(schema, key, dataType);
       }
-    }
-
-    const fields = _.keys(_schema.fields);
-    for (const key of _.keys(_schema.fieldLevelPermissions)) {
-      if (!fields.includes(key)) throw Error(`Invalid field permission: ${key}`);
-    }
-    for (const key of _schema.secureFields ?? []) {
-      if (!fields.includes(key)) throw Error(`Invalid field permission: ${key}`);
+      const fields = _.keys(_schema.fields);
+      for (const key of _.keys(_schema.fieldLevelPermissions)) {
+        if (!fields.includes(key)) throw Error(`Invalid field permission: ${key}`);
+      }
+      for (const key of _schema.secureFields ?? []) {
+        if (!fields.includes(key)) throw Error(`Invalid field permission: ${key}`);
+      }
     }
   }
 }
@@ -150,10 +156,12 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
   } = {};
 
   constructor(options: Required<ProtoServiceOptions<Ext>> & ProtoServiceKeyOptions) {
-    validateSchema(options.schema);
+    validateSchemaName(options.schema);
+    const schema = mergeSchema(defaultSchema, options.fileStorage.schema, options.schema);
+    validateSchema(schema);
     this.options = {
       ...options,
-      schema: mergeSchema(defaultSchema, options.fileStorage.schema, options.schema),
+      schema,
     };
   }
 
@@ -176,7 +184,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     return this.options.storage.configAcl();
   }
   async setConfig(values: Record<string, _TValue>, acl?: string[]) {
-    return this.options.storage.setConfig(values, acl);
+    return this.options.storage.setConfig(normalize(values), normalize(acl));
   }
 
   async run(proto: P, name: string, payload: any, options?: ExtraOptions<boolean, P>) {
@@ -256,7 +264,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     const {
       nonce,
       maxUploadSize
-    } = (_.isString(token) ? this.jwtVarify('upload', token) ?? {} : {}) as {
+    } = (_.isString(token) ? this.jwtVarify(token, 'upload') ?? {} : {}) as {
       nonce?: string;
       maxUploadSize?: number;
     };
@@ -406,32 +414,32 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     })();
   }
 
-  _jwtSign(payload: any, options: jwt.SignOptions) {
-    return jwt.sign(payload, this.options.jwtToken, options);
+  jwtSign(payload: any, options: 'login' | 'upload' | jwt.SignOptions) {
+    const opts = (() => {
+      switch (options) {
+        case 'login': return this.options.jwtSignOptions;
+        case 'upload': return this.options.jwtUploadSignOptions;
+        default: return options;
+      }
+    })();
+    return jwt.sign(payload, this.options.jwtToken, opts);
   }
 
-  _jwtVarify(token: string, options: jwt.VerifyOptions = {}) {
+  jwtVarify(token: string, options: 'login' | 'upload' | jwt.VerifyOptions = {}) {
     try {
-      const payload = jwt.verify(token, this.options.jwtToken, { ...options, complete: false });
+      const opts = (() => {
+        switch (options) {
+          case 'login': return this.options.jwtVerifyOptions;
+          case 'upload': return this.options.jwtUploadVerifyOptions;
+          default: return options;
+        }
+      })();
+      const payload = jwt.verify(token, this.options.jwtToken, { ...opts, complete: false });
       if (!_.isObject(payload)) return;
       return payload;
     } catch {
       return;
     }
-  }
-
-  jwtSign(type: 'login' | 'upload', payload: any, options?: jwt.SignOptions) {
-    return this._jwtSign(payload, options ?? {
-      'login': this.options.jwtSignOptions,
-      'upload': this.options.jwtUploadSignOptions,
-    }[type]);
-  }
-
-  jwtVarify(type: 'login' | 'upload', token: string) {
-    return this._jwtVarify(token, {
-      'login': this.options.jwtVerifyOptions,
-      'upload': this.options.jwtUploadVerifyOptions,
-    }[type]);
   }
 
   async notify(proto: P, data: Record<string, _TValue> & { _rperm?: string[]; }) {

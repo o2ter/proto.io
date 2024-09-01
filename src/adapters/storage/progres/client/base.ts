@@ -149,9 +149,13 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
   }
 
   atomic<T>(
-    callback: (connection: PostgresStorageTransaction) => PromiseLike<T>
+    callback: (connection: PostgresStorageTransaction) => PromiseLike<T>,
+    options?: { lockTable?: string; },
   ): PromiseLike<T> {
-    return this.withTransaction(callback, { mode: 'repeatable', retry: true });
+    return this.withTransaction(async conn => {
+      if (options?.lockTable) await conn.lockTable(options.lockTable, true);
+      return callback(conn);
+    }, { mode: 'repeatable', retry: true });
   }
 
   async withTransaction<T>(
@@ -258,7 +262,8 @@ class PostgresStorageTransaction extends PostgresStorageClient<PostgresClientDri
   }
 
   override atomic<T>(
-    callback: (connection: PostgresStorageTransaction) => PromiseLike<T>
+    callback: (connection: PostgresStorageTransaction) => PromiseLike<T>,
+    options?: { lockTable?: string; },
   ) {
     return callback(this);
   }

@@ -135,6 +135,10 @@ export class TObject {
     return this[PVK].attributes.__v as number;
   }
 
+  get __i(): number {
+    return this[PVK].attributes.__i as number;
+  }
+
   get expiredAt(): Date | undefined {
     return this.get('_expired_at');
   }

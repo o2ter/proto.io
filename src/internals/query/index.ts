@@ -32,7 +32,7 @@ import { TQueryBase, TQueryBaseOptions } from './base';
 import { TUpdateOp } from '../object/types';
 import { ProtoType } from '../proto';
 import { ExtraOptions } from '../options';
-import { asyncStream } from '@o2ter/utils-js';
+import { asyncStream, Awaitable } from '@o2ter/utils-js';
 
 export interface TQueryOptions extends TQueryBaseOptions {
   includes?: string[];
@@ -117,4 +117,35 @@ export abstract class TQuery<
     return !_.isNil(await query.limit(1).find(options));
   }
 
+  async eachBatch(
+    callback: (batch: TObjectType<T, Ext>[]) => Awaitable<void>,
+    options?: ExtraOptions<M, P> & { batchSize?: number; },
+  ) {
+    const sorting = this[PVK].options.sort as Record<string, 1 | -1> ?? {};
+    const batchSize = options?.batchSize ?? 100;
+    if (!_.isPlainObject(sorting)) throw Error('Unsupported sort method');
+    const is_asc = _.every(sorting, v => v === 1);
+    const is_desc = _.every(sorting, v => v === -1);
+    if (!is_asc && !is_desc) throw Error('Unsupported sort method');
+    if (_.isNil(sorting._id)) sorting._id = is_asc ? 1 : -1;
+    const query = this.clone().sort(sorting).limit(batchSize);
+    const keys = _.keys(sorting);
+    let batch: TObjectType<T, Ext>[] = [];
+    while (true) {
+      const q = _.isEmpty(batch) ? query : query.clone()
+        .filter(keys.length > 1 ? {
+          $expr: {
+            [is_asc ? '$gt' : '$lt']: [
+              { $array: _.map(keys, k => ({ $key: k })) },
+              { $array: _.map(keys, k => ({ $value: _.last(batch)!.get(k) })) },
+            ],
+          },
+        } : {
+          [keys[0]]: { [is_asc ? '$gt' : '$lt']: _.last(batch)!.get(keys[0]) },
+        });
+      batch = await q.find(options);
+      if (_.isEmpty(batch)) return;
+      await callback(batch);
+    }
+  }
 };

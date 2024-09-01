@@ -33,13 +33,7 @@ import { TQueryRandomOptions } from '../../../internals/query';
 import { TValue } from '../../../internals/types';
 import { PVK } from '../../../internals/private';
 import { TUpdateOp } from '../../../internals/object/types';
-
-export const normalize = <T>(x: T): T => {
-  if (_.isString(x)) return x.normalize('NFD') as T;
-  if (_.isArray(x)) return _.map(x, x => normalize(x)) as T;
-  if (_.isPlainObject(x)) return _.fromPairs(_.map(_.toPairs(x as object), ([k, v]) => [normalize(k), normalize(v)])) as T;
-  return x;
-};
+import { normalize } from '../../utils';
 
 export const fetchUserPerms = async <E>(proto: ProtoService<E>) => _.uniq(_.compact([..._.map(await proto.currentRoles(), x => `role:${x}`), (await proto.currentUser())?.objectId]));
 
@@ -112,12 +106,15 @@ export const dispatcher = <E>(proto: ProtoService<E>, options: ExtraOptions<bool
       const _includes = _validator.decodeIncludes(options.className, options.includes ?? ['*']);
       const _matches = _validator.decodeMatches(options.className, options.matches ?? {}, _includes);
       if (!_validator.validateCLPs(options.className, 'create')) throw Error('No permission');
-      return proto.storage.atomic((storage) => storage.insert({
-        className: options.className,
-        includes: _includes,
-        matches: _matches,
-        objectIdSize: proto[PVK].options.objectIdSize
-      }, normalize(_validator.validateFields(options.className, attrs, 'create', QueryValidator.patterns.name))));
+      return proto.storage.atomic(
+        (storage) => storage.insert({
+          className: options.className,
+          includes: _includes,
+          matches: _matches,
+          objectIdSize: proto[PVK].options.objectIdSize
+        }, normalize(_validator.validateFields(options.className, attrs, 'create', QueryValidator.patterns.name))),
+        { lockTable: options.className },
+      );
     },
     async insertMany(
       options: {
@@ -132,12 +129,15 @@ export const dispatcher = <E>(proto: ProtoService<E>, options: ExtraOptions<bool
       const _includes = _validator.decodeIncludes(options.className, options.includes ?? ['*']);
       const _matches = _validator.decodeMatches(options.className, options.matches ?? {}, _includes);
       if (!_validator.validateCLPs(options.className, 'create')) throw Error('No permission');
-      return proto.storage.atomic((storage) => storage.insertMany({
-        className: options.className,
-        includes: _includes,
-        matches: _matches,
-        objectIdSize: proto[PVK].options.objectIdSize
-      }, normalize(_.map(values, attr => _validator.validateFields(options.className, attr, 'create', QueryValidator.patterns.name)))));
+      return proto.storage.atomic(
+        (storage) => storage.insertMany({
+          className: options.className,
+          includes: _includes,
+          matches: _matches,
+          objectIdSize: proto[PVK].options.objectIdSize
+        }, normalize(_.map(values, attr => _validator.validateFields(options.className, attr, 'create', QueryValidator.patterns.name)))),
+        { lockTable: options.className },
+      );
     },
     async updateOne(
       query: FindOneOptions,
@@ -179,7 +179,7 @@ export const dispatcher = <E>(proto: ProtoService<E>, options: ExtraOptions<bool
       QueryValidator.recursiveCheck(query);
       const _validator = await validator();
       if (!_validator.validateCLPs(query.className, 'delete')) throw Error('No permission');
-      return proto.storage.deleteMany(_validator.decodeQuery(normalize(query), 'update'));
+      return proto.storage.atomic((storage) => storage.deleteMany(_validator.decodeQuery(normalize(query), 'update')));
     },
   };
 };

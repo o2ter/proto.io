@@ -40,6 +40,7 @@ import { PVK } from './internals/private';
 import { _encodeValue, TObject } from './internals/object';
 import { _TValue } from './internals/types';
 import Decimal from 'decimal.js';
+import { response } from './server/routes/common';
 
 export * from './common';
 export { TFileStorage } from './server/file/index';
@@ -52,8 +53,8 @@ export const schema = _.assign((x: Record<string, TSchema>) => x, {
   decimal: (defaultValue?: Decimal) => ({ type: 'decimal', default: defaultValue }) as const,
   string: (defaultValue?: string) => ({ type: 'string', default: defaultValue }) as const,
   date: (defaultValue?: Date) => ({ type: 'date', default: defaultValue }) as const,
-  object: (defaultValue?: object) => ({ type: 'object', default: defaultValue }) as const,
-  array: (defaultValue?: any[]) => ({ type: 'array', default: defaultValue }) as const,
+  object: <T extends Record<string, _TValue>>(defaultValue?: T) => ({ type: 'object', default: defaultValue }) as const,
+  array: <T extends _TValue[]>(defaultValue?: T) => ({ type: 'array', default: defaultValue }) as const,
   vector: (dimension: number, defaultValue?: number[]) => ({ type: 'vector', dimension, default: defaultValue }) as const,
   shape: (shape: Record<string, TSchema.DataType>) => ({ type: 'shape', shape }) as const,
   pointer: (target: string) => ({ type: 'pointer', target }) as const,
@@ -89,6 +90,9 @@ export const ProtoRoute = async <E>(options: {
   );
 
   router.get('/health', (req, res) => { res.sendStatus(200); });
+  router.get('/sessionInfo', async (req, res) => {
+    await response(res, () => proto.connect(req).sessionInfo());
+  });
 
   classesRoute(router, proto);
   functionRoute(router, proto);

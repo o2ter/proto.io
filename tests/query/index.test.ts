@@ -65,6 +65,83 @@ test('test insert many', async () => {
   expect(result.length).toStrictEqual(4);
 })
 
+test('test destory', async () => {
+  const inserted = await Proto.Query('Test').insert({ string: 'destory' });
+  expect(inserted.objectId).toBeTruthy();
+  expect(inserted.get('string')).toStrictEqual('destory');
+  await inserted.destory();
+  const result = await Proto.Query('Test').equalTo('string', 'destory').find();
+  expect(result).toStrictEqual([]);
+})
+
+test('test each batch', async () => {
+  const count = await Proto.Query('Test').insertMany([
+    { string: 'eachBatch' },
+    { string: 'eachBatch' },
+    { string: 'eachBatch' },
+    { string: 'eachBatch' },
+    { string: 'eachBatch' },
+  ]);
+  expect(count).toStrictEqual(5);
+
+  const result: any[] = [];
+  let counter = 0;
+  await Proto.Query('Test').equalTo('string', 'eachBatch').eachBatch((batch) => {
+    result.push(...batch);
+    counter += 1;
+  }, { batchSize: 2 });
+
+  expect(result.length).toStrictEqual(5);
+  expect(_.uniqBy(result, x => x.objectId).length).toStrictEqual(5);
+  expect(counter).toStrictEqual(3);
+})
+
+test('test each batch 2', async () => {
+  const count = await Proto.Query('Test').insertMany([
+    { string: 'eachBatch2', number: 1 },
+    { string: 'eachBatch2', number: 2 },
+    { string: 'eachBatch2', number: 3 },
+    { string: 'eachBatch2', number: 4 },
+    { string: 'eachBatch2', number: 5 },
+  ]);
+  expect(count).toStrictEqual(5);
+
+  const result: any[] = [];
+  let counter = 0;
+  await Proto.Query('Test').equalTo('string', 'eachBatch2').sort({ number: 1 }).eachBatch((batch) => {
+    result.push(...batch);
+    counter += 1;
+  }, { batchSize: 2 });
+
+  expect(result.length).toStrictEqual(5);
+  expect(_.uniqBy(result, x => x.objectId).length).toStrictEqual(5);
+  expect(_.map(result, x => x.get('number'))).toStrictEqual([1, 2, 3, 4, 5]);
+  expect(counter).toStrictEqual(3);
+})
+
+test('test each batch 3', async () => {
+  const count = await Proto.Query('Test').insertMany([
+    { string: 'eachBatch3', number: 1 },
+    { string: 'eachBatch3', number: 2 },
+    { string: 'eachBatch3', number: 3 },
+    { string: 'eachBatch3', number: 4 },
+    { string: 'eachBatch3', number: 5 },
+  ]);
+  expect(count).toStrictEqual(5);
+
+  const result: any[] = [];
+  let counter = 0;
+  await Proto.Query('Test').equalTo('string', 'eachBatch3').sort({ _created_at: 1 }).eachBatch((batch) => {
+    result.push(...batch);
+    counter += 1;
+  }, { batchSize: 2 });
+
+  expect(result.length).toStrictEqual(5);
+  expect(_.uniqBy(result, x => x.objectId).length).toStrictEqual(5);
+  expect(_.map(result, x => x.get('number')).sort((a, b) => a - b)).toStrictEqual([1, 2, 3, 4, 5]);
+  expect(counter).toStrictEqual(3);
+})
+
 test('test types', async () => {
   const date = new Date;
   const inserted = await Proto.Query('Test').insert({
@@ -1800,6 +1877,38 @@ test('test comparable', async () => {
   expect((await q.clone().greaterThanOrEqualTo('shape.object.number', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().greaterThanOrEqualTo('shape.object.decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
 
+})
+
+test('test sort', async () => {
+  await Proto.Query('Test').insertMany([
+    { string: 'sort', number: 5 },
+    { string: 'sort', number: 2 },
+    { string: 'sort', number: 3 },
+    { string: 'sort', number: 4 },
+    { string: 'sort', number: 1 },
+  ]);
+
+  const result = await Proto.Query('Test').equalTo('string', 'sort').sort({ number: 1 }).find();
+  const result2 = await Proto.Query('Test').equalTo('string', 'sort').sort({ number: -1 }).find();
+
+  expect(_.map(result, x => x.get('number'))).toStrictEqual([1, 2, 3, 4, 5]);
+  expect(_.map(result2, x => x.get('number'))).toStrictEqual([5, 4, 3, 2, 1]);
+})
+
+test('test sort 2', async () => {
+  await Proto.Query('Test').insertMany([
+    { string: 'sort2', shape: { number: 5 } },
+    { string: 'sort2', shape: { number: 2 } },
+    { string: 'sort2', shape: { number: 3 } },
+    { string: 'sort2', shape: { number: 4 } },
+    { string: 'sort2', shape: { number: 1 } },
+  ]);
+
+  const result = await Proto.Query('Test').equalTo('string', 'sort2').sort({ 'shape.number': 1 }).find();
+  const result2 = await Proto.Query('Test').equalTo('string', 'sort2').sort({ 'shape.number': -1 }).find();
+
+  expect(_.map(result, x => x.get('shape.number'))).toStrictEqual([1, 2, 3, 4, 5]);
+  expect(_.map(result2, x => x.get('shape.number'))).toStrictEqual([5, 4, 3, 2, 1]);
 })
 
 test('test permission', async () => {
