@@ -72,8 +72,18 @@ export class QueryValidator<E> {
     digits: /^\d+$/g,
   }
 
-  get _rperm() { return this.master ? [] : [{ _rperm: { $intersect: this.acls } }]; }
-  get _wperm() { return this.master ? [] : [{ _wperm: { $intersect: this.acls } }]; }
+  _rperm(className: string) {
+    if (this.master) return [];
+    const check = _.intersection(this.schema[className]?.additionalObjectPermissions?.read, this.acls);
+    if (!_.isEmpty(check)) return [];
+    return [{ _rperm: { $intersect: this.acls } }];
+  }
+  _wperm(className: string) {
+    if (this.master) return [];
+    const check = _.intersection(this.schema[className]?.additionalObjectPermissions?.update, this.acls);
+    if (!_.isEmpty(check)) return [];
+    return [{ _wperm: { $intersect: this.acls } }];
+  }
   _expiredAt = { $or: [{ _expired_at: { $eq: null } }, { _expired_at: { $gt: new Date() } }] };
 
   constructor(
@@ -274,7 +284,7 @@ export class QueryValidator<E> {
       if (!this.validateKeyPerm(colname, 'read', schema)) continue;
       if (isPrimitive(dataType) || isVector(dataType) || isShape(dataType)) continue;
       _matches[colname] = {
-        filter: QuerySelector.decode([...this._rperm, this._expiredAt]).simplify(),
+        filter: QuerySelector.decode([...this._rperm(dataType.target), this._expiredAt]).simplify(),
         matches: this.decodeMatches(
           dataType.target, {},
           includes.filter(x => x.startsWith(`${colname}.`)).map(x => x.slice(colname.length + 1)),
@@ -289,7 +299,7 @@ export class QueryValidator<E> {
 
       if (isPointer(dataType) && !_.isEmpty(subpath)) {
         _matches[_colname] = {
-          filter: QuerySelector.decode([...this._rperm, this._expiredAt]).simplify(),
+          filter: QuerySelector.decode([...this._rperm(dataType.target), this._expiredAt]).simplify(),
           matches: this.decodeMatches(
             dataType.target, { [subpath.join('.')]: match },
             includes.filter(x => x.startsWith(`${_colname}.`)).map(x => x.slice(_colname.length + 1)),
@@ -301,7 +311,7 @@ export class QueryValidator<E> {
         _matches[_colname] = {
           ...match,
           filter: QuerySelector.decode([
-            ...this._rperm,
+            ...this._rperm(dataType.target),
             this._expiredAt,
             ..._.castArray<TQuerySelector>(match.filter),
           ]).simplify(),
@@ -323,7 +333,7 @@ export class QueryValidator<E> {
 
     const filter = QuerySelector.decode([
       ..._.castArray<TQuerySelector>(query.filter),
-      ...action === 'read' ? this._rperm : this._wperm,
+      ...action === 'read' ? this._rperm(query.className) : this._wperm(query.className),
       this._expiredAt,
     ]).simplify();
 

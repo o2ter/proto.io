@@ -115,6 +115,10 @@ const Proto = new ProtoService({
           'test_field-name': 'string',
         }),
       },
+      additionalObjectPermissions: {
+        read: ['role:system'],
+        update: ['role:system'],
+      },
       fieldLevelPermissions: {
         no_permission: { read: ['role:admin'], create: ['role:admin'], update: ['role:admin'] }
       },

@@ -79,6 +79,7 @@ export const shapePaths = (x: TSchema.ShapeType): {
 export interface TSchema {
   fields: Record<string, TSchema.DataType>;
   classLevelPermissions?: TSchema.CLPs;
+  additionalObjectPermissions?: TSchema.ACLs;
   fieldLevelPermissions?: Record<string, TSchema.FLPs>;
   secureFields?: string[];
   indexes?: TSchema.Indexes[];

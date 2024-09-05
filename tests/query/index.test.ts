@@ -1941,6 +1941,14 @@ test('test permission 4', async () => {
   await Proto.logout();
 })
 
+test('test permission 5', async () => {
+  const object = await Proto.Query('Test').insert({ _rperm: ['role:admin'] });
+  expect(await Proto.Query('Test').get(object.objectId!)).toBeUndefined();
+  await Proto.run('createUserWithRole', { role: 'system' });
+  expect(await Proto.Query('Test').get(object.objectId!)).toBeTruthy();
+  await Proto.logout();
+})
+
 test('test transaction', async () => {
 
   const object = await Proto.Query('Test').insert({});
