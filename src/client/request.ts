@@ -91,11 +91,6 @@ export default class Service<Ext, P extends ProtoType<any>> {
       const pattern = `${AUTH_COOKIE_KEY}=`;
       const token = _.findLast(_.flatMap(cookies, x => x.split(';')), x => _.startsWith(x.trim(), pattern));
       this.setSessionToken(token?.trim().slice(pattern.length));
-      if (typeof window !== 'undefined') {
-        for (const cookie of cookies) {
-          window.document.cookie = cookie;
-        }
-      }
     }
 
     if (
