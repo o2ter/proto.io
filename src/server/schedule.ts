@@ -40,7 +40,7 @@ const scheduleOp = {
         });
         for await (const item of found) {
           const token = item.get('token');
-          if (!_.isEmpty(token)) await proto.fileStorage.destory(proto, token);
+          if (!_.isEmpty(token)) await proto.fileStorage.destroy(proto, token);
         }
       }
       await proto.storage.deleteMany({
@@ -74,6 +74,6 @@ export const schedule = (proto: ProtoService<any>) => {
   const schedule = setInterval(execute, 60 * 1000);
   return {
     execute,
-    destory() { clearInterval(schedule); }
+    destroy() { clearInterval(schedule); }
   }
 }

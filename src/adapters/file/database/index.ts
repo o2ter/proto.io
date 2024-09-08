@@ -98,7 +98,7 @@ export class DatabaseFileStorage extends FileStorageBase {
     }
   }
 
-  async destory<E>(proto: ProtoService<E>, token: string) {
+  async destroy<E>(proto: ProtoService<E>, token: string) {
     proto.storage.deleteMany({
       className: '_FileChunk',
       filter: QuerySelector.decode({ token: { $eq: token } }),

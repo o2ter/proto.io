@@ -74,7 +74,7 @@ export class GoogleCloudStorage extends FileStorageBase {
     }
   }
 
-  async destory<E>(proto: ProtoService<E>, token: string) {
+  async destroy<E>(proto: ProtoService<E>, token: string) {
     await this.bucket.deleteFiles({ prefix: `${token}/` });
   }
 };

@@ -341,10 +341,10 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
   }
 
   listen(proto: P, callback: (data: EventData) => void) {
-    const { socket, listen, onDestory } = this.socket ?? this.service.socket();
+    const { socket, listen, onDestroy } = this.socket ?? this.service.socket();
     if (_.isNil(this.socket)) {
-      this.socket = { socket, listen, onDestory };
-      onDestory(() => { this.socket = undefined; });
+      this.socket = { socket, listen, onDestroy };
+      onDestroy(() => { this.socket = undefined; });
     }
     return {
       socket,

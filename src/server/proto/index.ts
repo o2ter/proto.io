@@ -82,7 +82,7 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
   }
 
   async shutdown() {
-    this._schedule.destory();
+    this._schedule.destroy();
   }
 
   classes(): string[] {

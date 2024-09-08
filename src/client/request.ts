@@ -127,7 +127,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
 
     let disconnect = false;
     let listeners: ((payload: any) => void)[] = [];
-    let destoryCallbacks: VoidFunction[] = [];
+    let destroyCallbacks: VoidFunction[] = [];
 
     socket.on('connect_error', () => {
       if (!disconnect && !socket.active) socket.connect();
@@ -142,11 +142,11 @@ export default class Service<Ext, P extends ProtoType<any>> {
       }
     });
 
-    const destory = () => {
+    const destroy = () => {
       disconnect = true;
       this.sockets = this.sockets.filter(x => x !== socket);
       socket.disconnect();
-      for (const callback of destoryCallbacks) {
+      for (const callback of destroyCallbacks) {
         callback();
       }
     };
@@ -157,11 +157,11 @@ export default class Service<Ext, P extends ProtoType<any>> {
         listeners.push(callback);
         return () => {
           listeners = listeners.filter(x => x !== callback);
-          if (_.isEmpty(listeners)) destory();
+          if (_.isEmpty(listeners)) destroy();
         };
       },
-      onDestory: (callback: VoidFunction) => {
-        destoryCallbacks.push(callback);
+      onDestroy: (callback: VoidFunction) => {
+        destroyCallbacks.push(callback);
       },
     };
   }

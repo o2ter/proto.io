@@ -61,7 +61,7 @@ export abstract class FileStorageBase implements TFileStorage {
     start: number;
     data: Buffer | Uint8Array | PromiseLike<Buffer | Uint8Array>;
   }, void>;
-  abstract destory<E>(proto: ProtoService<E>, id: string): PromiseLike<void>;
+  abstract destroy<E>(proto: ProtoService<E>, id: string): PromiseLike<void>;
 
   async create<E>(
     proto: ProtoService<E>,

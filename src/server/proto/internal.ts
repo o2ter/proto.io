@@ -338,7 +338,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
       return object;
 
     } catch (e) {
-      this.destoryFileData(proto, file._id);
+      this.destroyFileData(proto, file._id);
       throw e;
     }
   }
@@ -389,7 +389,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
       object[PVK].extra = {};
     }
 
-    this.destoryFileData(proto, object.token!);
+    this.destroyFileData(proto, object.token!);
 
     if (_.isFunction(afterDelete)) {
       await afterDelete(proxy(Object.setPrototypeOf({ object, context }, proto)));
@@ -409,10 +409,10 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     });
   }
 
-  destoryFileData(proto: P, id: string) {
+  destroyFileData(proto: P, id: string) {
     (async () => {
       try {
-        await proto.fileStorage.destory(proto, id);
+        await proto.fileStorage.destroy(proto, id);
       } catch (e) {
         console.error(e);
       }

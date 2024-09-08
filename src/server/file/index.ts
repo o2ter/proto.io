@@ -43,7 +43,7 @@ export interface TFileStorage {
     maxUploadSize: number,
   ): PromiseLike<{ _id: string; size: number; }>;
 
-  destory<E>(proto: ProtoService<E>, id: string): PromiseLike<void>;
+  destroy<E>(proto: ProtoService<E>, id: string): PromiseLike<void>;
 
   fileData<E>(proto: ProtoService<E>, id: string, start?: number, end?: number): AsyncIterable<BinaryData>;
 

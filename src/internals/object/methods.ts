@@ -70,7 +70,7 @@ export const applyObjectMethods = <T extends TSerializable, E>(
           return proto[PVK].saveFile(proto, this as TFile, options);
         },
       },
-      destory: {
+      destroy: {
         value(options?: ExtraOptions<boolean, ProtoType<E>>) {
           return proto[PVK].deleteFile(proto, this as TFile, options);
         },
@@ -137,13 +137,13 @@ export const applyObjectMethods = <T extends TSerializable, E>(
         return this;
       },
     },
-    destory: {
+    destroy: {
       async value(options?: ExtraOptions<boolean, ProtoType<E>>) {
         const deleted = await query()
           .equalTo('_id', this.objectId)
           .includes(...this.keys())
           .deleteOne(options);
-        if (!deleted) throw Error('Unable to destory document');
+        if (!deleted) throw Error('Unable to destroy document');
         this[PVK].attributes = deleted.attributes;
         this[PVK].mutated = {};
         return this;

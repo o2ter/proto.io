@@ -63,7 +63,7 @@ export class FileSystemStorage extends FileStorageBase {
     }
   }
 
-  async destory<E>(proto: ProtoService<E>, token: string) {
+  async destroy<E>(proto: ProtoService<E>, token: string) {
     try {
       const directory = path.resolve(this.volumn, token);
       await fs.rm(directory, { recursive: true, force: true });
