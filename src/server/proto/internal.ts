@@ -203,10 +203,12 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
 
     const roles = await proto.currentRoles();
 
-    if (!!validator?.requireUser && !(await proto.currentUser())) throw Error('No permission');
-    if (!!validator?.requireMaster && !options?.master) throw Error('No permission');
-    if (_.isArray(validator?.requireAnyUserRoles) && !_.some(validator?.requireAnyUserRoles, x => _.includes(roles, x))) throw Error('No permission');
-    if (_.isArray(validator?.requireAllUserRoles) && _.some(validator?.requireAllUserRoles, x => !_.includes(roles, x))) throw Error('No permission');
+    if (!options?.master) {
+      if (!!validator?.requireUser && !(await proto.currentUser())) throw Error('No permission');
+      if (!!validator?.requireMaster) throw Error('No permission');
+      if (_.isArray(validator?.requireAnyUserRoles) && !_.some(validator?.requireAnyUserRoles, x => _.includes(roles, x))) throw Error('No permission');
+      if (_.isArray(validator?.requireAllUserRoles) && _.some(validator?.requireAllUserRoles, x => !_.includes(roles, x))) throw Error('No permission');
+    }
 
     return callback(proxy(payload ?? proto));
   }
