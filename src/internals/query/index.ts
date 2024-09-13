@@ -148,4 +148,15 @@ export abstract class TQuery<
       await callback(batch);
     }
   }
+
+  async each(
+    callback: (object: TObjectType<T, Ext>) => Awaitable<void>,
+    options?: ExtraOptions<M, P> & { batchSize?: number; },
+  ) {
+    await this.eachBatch(async (batch) => {
+      for (const object of batch) {
+        await callback(object);
+      }
+    }, options);
+  }
 };
