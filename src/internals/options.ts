@@ -26,9 +26,12 @@
 import { TSerializable } from '../common/codec';
 import { ProtoType } from './proto';
 
+type TriggerType = 'beforeSave' | 'afterSave' | 'beforeDelete' | 'afterDelete';
+
 export type ExtraOptions<M extends boolean, P extends ProtoType<any>> = {
   master?: M;
   context?: TSerializable;
+  silent?: TriggerType | TriggerType[];
   session?: P;
   abortSignal?: AbortSignal;
 };

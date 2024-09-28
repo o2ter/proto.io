@@ -50,6 +50,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
         const {
           operation,
           context,
+          silent,
           random,
           attributes,
           update,
@@ -61,7 +62,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
         const query = payload.Query(name);
         query[PVK].options = options;
 
-        const opts = { master: payload.isMaster, context };
+        const opts = { master: payload.isMaster, context, silent };
 
         switch (operation) {
           case 'explain':

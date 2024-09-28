@@ -114,10 +114,11 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
     attrs: Record<string, TValue>,
     options?: ExtraOptions<M, ProtoService<E>>
   ) {
-    const beforeSave = this._proto[PVK].triggers?.beforeSave?.[this.className];
-    const afterSave = this._proto[PVK].triggers?.afterSave?.[this.className];
-
     const context = options?.context ?? {};
+    const silent = _.castArray(options?.silent ?? []);
+
+    const beforeSave = _.includes(silent, 'beforeSave') ? null : this._proto[PVK].triggers?.beforeSave?.[this.className];
+    const afterSave = _.includes(silent, 'afterSave') ? null : this._proto[PVK].triggers?.afterSave?.[this.className];
 
     const object = this._proto.Object(this.className);
     for (const [key, value] of _.toPairs(attrs)) {
@@ -149,10 +150,11 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
     values: Record<string, TValue>[],
     options?: ExtraOptions<M, ProtoService<E>>
   ) {
-    const beforeSave = this._proto[PVK].triggers?.beforeSave?.[this.className];
-    const afterSave = this._proto[PVK].triggers?.afterSave?.[this.className];
-
     const context = options?.context ?? {};
+    const silent = _.castArray(options?.silent ?? []);
+
+    const beforeSave = _.includes(silent, 'beforeSave') ? null : this._proto[PVK].triggers?.beforeSave?.[this.className];
+    const afterSave = _.includes(silent, 'afterSave') ? null : this._proto[PVK].triggers?.afterSave?.[this.className];
 
     if (_.isFunction(beforeSave) || _.isFunction(afterSave)) {
 
@@ -197,10 +199,11 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
     update: Record<string, TUpdateOp>,
     options?: ExtraOptions<M, ProtoService<E>>
   ) {
-    const beforeSave = this._proto[PVK].triggers?.beforeSave?.[this.className];
-    const afterSave = this._proto[PVK].triggers?.afterSave?.[this.className];
-
     const context = options?.context ?? {};
+    const silent = _.castArray(options?.silent ?? []);
+
+    const beforeSave = _.includes(silent, 'beforeSave') ? null : this._proto[PVK].triggers?.beforeSave?.[this.className];
+    const afterSave = _.includes(silent, 'afterSave') ? null : this._proto[PVK].triggers?.afterSave?.[this.className];
 
     if (_.isFunction(beforeSave)) {
 
@@ -235,10 +238,11 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
     setOnInsert: Record<string, TValue>,
     options?: ExtraOptions<M, ProtoService<E>>
   ) {
-    const beforeSave = this._proto[PVK].triggers?.beforeSave?.[this.className];
-    const afterSave = this._proto[PVK].triggers?.afterSave?.[this.className];
-
     const context = options?.context ?? {};
+    const silent = _.castArray(options?.silent ?? []);
+
+    const beforeSave = _.includes(silent, 'beforeSave') ? null : this._proto[PVK].triggers?.beforeSave?.[this.className];
+    const afterSave = _.includes(silent, 'afterSave') ? null : this._proto[PVK].triggers?.afterSave?.[this.className];
 
     if (_.isFunction(beforeSave)) {
 
@@ -286,10 +290,12 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
   }
 
   async deleteOne(options?: ExtraOptions<M, ProtoService<E>>) {
-    const beforeDelete = this._proto[PVK].triggers?.beforeDelete?.[this.className];
-    const afterDelete = this._proto[PVK].triggers?.afterDelete?.[this.className];
-
     const context = options?.context ?? {};
+    const silent = _.castArray(options?.silent ?? []);
+
+    const beforeDelete = _.includes(silent, 'beforeDelete') ? null : this._proto[PVK].triggers?.beforeDelete?.[this.className];
+    const afterDelete = _.includes(silent, 'afterDelete') ? null : this._proto[PVK].triggers?.afterDelete?.[this.className];
+
     let result: TObjectType<T, E> | undefined;
 
     if (_.isFunction(beforeDelete)) {
@@ -325,10 +331,11 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
   }
 
   async deleteMany(options?: ExtraOptions<M, ProtoService<E>>) {
-    const beforeDelete = this._proto[PVK].triggers?.beforeDelete?.[this.className];
-    const afterDelete = this._proto[PVK].triggers?.afterDelete?.[this.className];
-
     const context = options?.context ?? {};
+    const silent = _.castArray(options?.silent ?? []);
+
+    const beforeDelete = _.includes(silent, 'beforeDelete') ? null : this._proto[PVK].triggers?.beforeDelete?.[this.className];
+    const afterDelete = _.includes(silent, 'afterDelete') ? null : this._proto[PVK].triggers?.afterDelete?.[this.className];
 
     if (_.isFunction(beforeDelete) || _.isFunction(afterDelete)) {
 
