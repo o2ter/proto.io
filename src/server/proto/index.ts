@@ -229,18 +229,6 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     if (!this[PVK].triggers.afterDelete) this[PVK].triggers.afterDelete = {};
     this[PVK].triggers.afterDelete[name] = callback as ProtoTrigger<string, Ext>;
   }
-  beforeSaveFile(callback: ProtoTrigger<'File', Ext>) {
-    this[PVK].triggers.beforeSaveFile = callback;
-  }
-  afterSaveFile(callback: ProtoTrigger<'File', Ext>) {
-    this[PVK].triggers.afterSaveFile = callback;
-  }
-  beforeDeleteFile(callback: ProtoTrigger<'File', Ext>) {
-    this[PVK].triggers.beforeDeleteFile = callback;
-  }
-  afterDeleteFile(callback: ProtoTrigger<'File', Ext>) {
-    this[PVK].triggers.afterDeleteFile = callback;
-  }
 
   lockTable(className: string | string[], update: boolean) {
     return this.storage.lockTable(className, update);

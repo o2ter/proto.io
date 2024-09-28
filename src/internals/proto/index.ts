@@ -187,10 +187,6 @@ export interface ProtoType<Ext> {
   afterSave<T extends string>(name: T, callback: ProtoTrigger<T, Ext>): void;
   beforeDelete<T extends string>(name: T, callback: ProtoTrigger<T, Ext>): void;
   afterDelete<T extends string>(name: T, callback: ProtoTrigger<T, Ext>): void;
-  beforeSaveFile(callback: ProtoTrigger<'File', Ext>): void;
-  afterSaveFile(callback: ProtoTrigger<'File', Ext>): void;
-  beforeDeleteFile(callback: ProtoTrigger<'File', Ext>): void;
-  afterDeleteFile(callback: ProtoTrigger<'File', Ext>): void;
 
   lockTable(className: string | string[], update: boolean): void;
 

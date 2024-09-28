@@ -154,10 +154,6 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     afterSave?: Record<string, ProtoTrigger<string, Ext>>;
     beforeDelete?: Record<string, ProtoTrigger<string, Ext>>;
     afterDelete?: Record<string, ProtoTrigger<string, Ext>>;
-    beforeSaveFile?: ProtoTrigger<'File', Ext>;
-    afterSaveFile?: ProtoTrigger<'File', Ext>;
-    beforeDeleteFile?: ProtoTrigger<'File', Ext>;
-    afterDeleteFile?: ProtoTrigger<'File', Ext>;
   } = {};
 
   constructor(options: Required<ProtoServiceOptions<Ext>> & ProtoServiceKeyOptions) {
@@ -346,40 +342,17 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
   }
 
   async saveFile(proto: P, object: TFile, options?: ExtraOptions<boolean, P>) {
-
-    const beforeSave = this.triggers?.beforeSaveFile;
-    const afterSave = this.triggers?.afterSaveFile;
-
-    const context = options?.context ?? {};
-
-    if (_.isFunction(beforeSave)) {
-      await beforeSave(proxy(Object.setPrototypeOf({ object, context }, proto)));
-    }
-
     if (object.objectId) {
       object = await this.updateFile(proto, object, options);
     } else {
       object = await this.createFile(proto, object, options);
     }
-
-    if (_.isFunction(afterSave)) {
-      await afterSave(proxy(Object.setPrototypeOf({ object, context }, proto)));
-    }
-
     return object;
   }
 
   async deleteFile(proto: P, object: TFile, options?: ExtraOptions<boolean, P>) {
 
-    const beforeDelete = this.triggers?.beforeDeleteFile;
-    const afterDelete = this.triggers?.afterDeleteFile;
-
     object = await object.fetchIfNeeded(['token'], options);
-    const context = options?.context ?? {};
-
-    if (_.isFunction(beforeDelete)) {
-      await beforeDelete(proxy(Object.setPrototypeOf({ object, context }, proto)));
-    }
 
     const deleted = await proto.Query('File')
       .equalTo('_id', object.objectId)
@@ -392,10 +365,6 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     }
 
     this.destroyFileData(proto, object.token!);
-
-    if (_.isFunction(afterDelete)) {
-      await afterDelete(proxy(Object.setPrototypeOf({ object, context }, proto)));
-    }
 
     return object;
   }
