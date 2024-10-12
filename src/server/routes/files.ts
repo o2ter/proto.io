@@ -31,6 +31,7 @@ import { decodeFormStream, response } from './common';
 import { deserialize } from '../../common';
 import { PVK } from '../../internals/private';
 import { UPLOAD_TOKEN_HEADER_NAME } from '../../internals/const';
+import { BinaryData } from '@o2ter/utils-js';
 
 export default <E>(router: Router, proto: ProtoService<E>) => {
 

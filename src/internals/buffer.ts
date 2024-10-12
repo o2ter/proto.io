@@ -25,6 +25,7 @@
 
 import _ from 'lodash';
 import type { Readable } from 'node:stream';
+import { BinaryData } from '@o2ter/utils-js';
 
 export type FileStream = ReadableStream | Readable;
 export type FileData = string | Blob | BinaryData | FileStream | { base64: string; };

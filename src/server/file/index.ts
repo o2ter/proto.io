@@ -26,6 +26,7 @@
 import _ from 'lodash';
 import { ProtoService } from '../proto/index';
 import { TSchema } from '../../internals/schema';
+import { BinaryData } from '@o2ter/utils-js';
 
 export type TFileInfo = {
   mimeType?: string;

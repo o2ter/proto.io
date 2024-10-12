@@ -1333,6 +1333,13 @@
   dependencies:
     lodash ">=4.17.21"
 
+"@o2ter/utils-js@^0.0.11":
+  version "0.0.11"
+  resolved "https://registry.yarnpkg.com/@o2ter/utils-js/-/utils-js-0.0.11.tgz#fe4defb91400dbda66f25183331a807a28c90e4c"
+  integrity sha512-jVX7M97VyUNyAiPeZzLrAi0Fd3p8MRldnU0pttRszIN10GYeAperItnFbQ0F3DMtNaVpsF9i+aZeveQtq44oNQ==
+  dependencies:
+    lodash ">=4.17.21"
+
 "@rollup/plugin-babel@^6.0.4":
   version "6.0.4"
   resolved "https://registry.yarnpkg.com/@rollup/plugin-babel/-/plugin-babel-6.0.4.tgz#bd698e351fa9aa9619fcae780aea2a603d98e4c4"
