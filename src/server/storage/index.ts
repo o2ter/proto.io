@@ -104,7 +104,7 @@ export interface TStorage {
 
   atomic<T>(
     callback: (connection: TStorage) => PromiseLike<T>,
-    options?: { lockTable?: string; },
+    options?: { lockTable?: string; retry?: boolean; },
   ): PromiseLike<T>;
 
   withTransaction<T>(

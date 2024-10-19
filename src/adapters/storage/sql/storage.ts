@@ -61,7 +61,7 @@ export abstract class SqlStorage implements TStorage {
   abstract isDuplicateIdError(error: any): boolean;
   abstract atomic<T>(
     callback: (connection: TStorage) => PromiseLike<T>,
-    options?: { lockTable?: string; },
+    options?: { lockTable?: string; retry?: boolean; },
   ): PromiseLike<T>;
   abstract withTransaction<T>(
     callback: (connection: TStorage) => PromiseLike<T>,

@@ -116,7 +116,7 @@ export const dispatcher = <E>(proto: ProtoService<E>, options: ExtraOptions<bool
               matches: _matches,
               objectIdSize: proto[PVK].options.objectIdSize
             }, _attrs),
-            { lockTable: options.className },
+            { lockTable: options.className, retry: true },
           );
         } catch (e) {
           if (proto.storage.isDuplicateIdError(e)) continue;
@@ -147,7 +147,7 @@ export const dispatcher = <E>(proto: ProtoService<E>, options: ExtraOptions<bool
               matches: _matches,
               objectIdSize: proto[PVK].options.objectIdSize
             }, _attrs),
-            { lockTable: options.className },
+            { lockTable: options.className, retry: true },
           );
         } catch (e) {
           if (proto.storage.isDuplicateIdError(e)) continue;
@@ -180,7 +180,10 @@ export const dispatcher = <E>(proto: ProtoService<E>, options: ExtraOptions<bool
       const _setOnInsert = normalize(_validator.validateFields(query.className, setOnInsert, 'create', QueryValidator.patterns.name));
       while (true) {
         try {
-          return await proto.storage.atomic((storage) => storage.upsertOne(_query, _update, _setOnInsert));
+          return await proto.storage.atomic(
+            (storage) => storage.upsertOne(_query, _update, _setOnInsert),
+            { lockTable: query.className, retry: true },
+          );
         } catch (e) {
           if (proto.storage.isDuplicateIdError(e)) continue;
           throw e;
