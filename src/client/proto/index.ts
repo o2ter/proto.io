@@ -37,6 +37,7 @@ import { TObject } from '../../internals/object';
 
 export class ProtoClient<Ext> extends ProtoType<Ext> {
 
+  /** @internal */
   [PVK]: ProtoClientInternal<Ext, this>;
 
   constructor(options: ProtoOptions<Ext>) {

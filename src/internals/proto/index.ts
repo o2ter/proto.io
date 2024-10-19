@@ -73,6 +73,7 @@ export interface ProtoInternalType<Ext, P extends ProtoType<any>> {
 
 export abstract class ProtoType<Ext> {
 
+  /** @internal */
   abstract [PVK]: ProtoInternalType<Ext, this>;
 
   abstract config(options?: { master?: boolean; }): Promise<Record<string, _TValue>>;

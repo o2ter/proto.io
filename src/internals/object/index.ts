@@ -91,6 +91,7 @@ export class TObject {
   static defaultReadonlyKeys = defaultObjectReadonlyKeys;
   static defaultKeys = defaultObjectKeys;
 
+  /** @internal */
   [PVK]: {
     className: string;
     attributes: Record<string, TValue>;
@@ -174,6 +175,15 @@ export class TObject {
   *entries() {
     for (const key of this.keys()) {
       yield [key, this.get(key)] as [string, any];
+    }
+  }
+
+  /** @internal */
+  *_set_entries() {
+    for (const [key, op] of _.entries(this[PVK].mutated)) {
+      for (const [_op, value] of _.entries(op)) {
+        if (_op === '$set') yield [key, value] as [string, any];
+      }
     }
   }
 

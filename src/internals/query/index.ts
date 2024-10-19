@@ -48,6 +48,7 @@ export abstract class TQuery<
   P extends ProtoType<any>
 > extends TQueryBase {
 
+  /** @internal */
   [PVK]: {
     className: T;
     options: TQueryOptions;

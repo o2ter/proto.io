@@ -63,6 +63,7 @@ const mergeOpts = (lhs: TQueryBaseOptions, rhs: TQueryBaseOptions): TQueryBaseOp
 
 class TQueryFilterBase {
 
+  /** @internal */
   [PVK]: { options: TQueryFilterBaseOptions; } = { options: {} };
 
   filter(filter: TQuerySelector) {
@@ -197,6 +198,7 @@ class TQueryFilterBase {
 
 export class TQueryBase extends TQueryFilterBase {
 
+  /** @internal */
   [PVK]: { options: TQueryBaseOptions; } = { options: {} };
 
   sort<T extends Record<string, 1 | -1>>(sort: PathNameMap<T> | TSortOption[]) {

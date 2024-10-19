@@ -134,7 +134,7 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
         className: this.className,
         includes: this[PVK].options.includes,
         matches: this[PVK].options.matches,
-      }, _.fromPairs([...object.entries()]))
+      }, _.fromPairs([...object._set_entries()]))
     );
     if (!result) throw Error('Unable to insert document');
 
@@ -177,7 +177,7 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
         className: this.className,
         includes: this[PVK].options.includes,
         matches: this[PVK].options.matches,
-      }, _.map(objects, x => _.fromPairs([...x.entries()])));
+      }, _.map(objects, x => _.fromPairs([...x._set_entries()])));
 
       if (_.isFunction(afterSave)) {
         await Promise.all(_.map(objects, object => afterSave(

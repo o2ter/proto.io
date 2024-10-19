@@ -112,7 +112,7 @@ export const dispatcher = <E>(proto: ProtoService<E>, options: ExtraOptions<bool
           includes: _includes,
           matches: _matches,
           objectIdSize: proto[PVK].options.objectIdSize
-        }, normalize(_validator.validateFields(options.className, attrs, 'create', QueryValidator.patterns.name))),
+        }, normalize(_validator.validateFields(options.className, attrs, 'create', QueryValidator.patterns.path))),
         { lockTable: options.className },
       );
     },
@@ -135,7 +135,7 @@ export const dispatcher = <E>(proto: ProtoService<E>, options: ExtraOptions<bool
           includes: _includes,
           matches: _matches,
           objectIdSize: proto[PVK].options.objectIdSize
-        }, normalize(_.map(values, attr => _validator.validateFields(options.className, attr, 'create', QueryValidator.patterns.name)))),
+        }, normalize(_.map(values, attr => _validator.validateFields(options.className, attr, 'create', QueryValidator.patterns.path)))),
         { lockTable: options.className },
       );
     },

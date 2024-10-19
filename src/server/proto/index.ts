@@ -46,6 +46,7 @@ import { asyncStream } from '@o2ter/utils-js';
 
 export class ProtoService<Ext> extends ProtoType<Ext> {
 
+  /** @internal */
   [PVK]: ProtoInternal<Ext, this>;
   private _storage?: ProtoServiceOptions<Ext>['storage'];
   private _schedule = schedule(this);

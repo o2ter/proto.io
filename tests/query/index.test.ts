@@ -47,9 +47,22 @@ test('test field name', async () => {
 })
 
 test('test insert', async () => {
-  const inserted = await Proto.Query('Test').insert({ string: 'hello' });
+  const inserted = await Proto.Query('Test').insert({ string: 'hello', 'shape.string': 'hello' });
   expect(inserted.objectId).toBeTruthy();
   expect(inserted.get('string')).toStrictEqual('hello');
+  expect(inserted.get('shape.string')).toStrictEqual('hello');
+})
+
+test('test insert 2', async () => {
+  const obj = Proto.Object('Test');
+  obj.set('string', 'hello');
+  obj.set('shape.string', 'hello');
+
+  await obj.save();
+
+  expect(obj.objectId).toBeTruthy();
+  expect(obj.get('string')).toStrictEqual('hello');
+  expect(obj.get('shape.string')).toStrictEqual('hello');
 })
 
 test('test insert many', async () => {

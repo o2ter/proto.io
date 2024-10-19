@@ -130,7 +130,7 @@ export const applyObjectMethods = <T extends TSerializable, E>(
         } else {
           const created = await query()
             .includes(...this.keys())
-            .insert(_.fromPairs([...this.entries()]), options);
+            .insert(_.fromPairs([...this._set_entries()]), options);
           this[PVK].attributes = created.attributes;
           this[PVK].mutated = {};
         }
