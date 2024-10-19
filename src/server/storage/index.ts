@@ -100,6 +100,8 @@ export interface TStorage {
 
   withConnection<T>(callback: (connection: TStorage) => PromiseLike<T>): PromiseLike<T>;
 
+  isDuplicateIdError(error: any): boolean;
+
   atomic<T>(
     callback: (connection: TStorage) => PromiseLike<T>,
     options?: { lockTable?: string; },

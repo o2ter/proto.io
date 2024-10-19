@@ -148,6 +148,10 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
     return callback(this);
   }
 
+  isDuplicateIdError(error: any) {
+    return error.code === '23505' && error.table && error.constraint === `${error.table}_pkey`;
+  }
+
   atomic<T>(
     callback: (connection: PostgresStorageTransaction) => PromiseLike<T>,
     options?: { lockTable?: string; },

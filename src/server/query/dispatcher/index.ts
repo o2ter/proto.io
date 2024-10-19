@@ -106,15 +106,23 @@ export const dispatcher = <E>(proto: ProtoService<E>, options: ExtraOptions<bool
       const _includes = _validator.decodeIncludes(options.className, options.includes ?? ['*']);
       const _matches = _validator.decodeMatches(options.className, options.matches ?? {}, _includes);
       if (!_validator.validateCLPs(options.className, 'create')) throw Error('No permission');
-      return proto.storage.atomic(
-        (storage) => storage.insert({
-          className: options.className,
-          includes: _includes,
-          matches: _matches,
-          objectIdSize: proto[PVK].options.objectIdSize
-        }, normalize(_validator.validateFields(options.className, attrs, 'create', QueryValidator.patterns.path))),
-        { lockTable: options.className },
-      );
+      const _attrs = normalize(_validator.validateFields(options.className, attrs, 'create', QueryValidator.patterns.path));
+      while (true) {
+        try {
+          return await proto.storage.atomic(
+            (storage) => storage.insert({
+              className: options.className,
+              includes: _includes,
+              matches: _matches,
+              objectIdSize: proto[PVK].options.objectIdSize
+            }, _attrs),
+            { lockTable: options.className },
+          );
+        } catch (e) {
+          if (proto.storage.isDuplicateIdError(e)) continue;
+          throw e;
+        }
+      }
     },
     async insertMany(
       options: {
@@ -129,15 +137,23 @@ export const dispatcher = <E>(proto: ProtoService<E>, options: ExtraOptions<bool
       const _includes = _validator.decodeIncludes(options.className, options.includes ?? ['*']);
       const _matches = _validator.decodeMatches(options.className, options.matches ?? {}, _includes);
       if (!_validator.validateCLPs(options.className, 'create')) throw Error('No permission');
-      return proto.storage.atomic(
-        (storage) => storage.insertMany({
-          className: options.className,
-          includes: _includes,
-          matches: _matches,
-          objectIdSize: proto[PVK].options.objectIdSize
-        }, normalize(_.map(values, attr => _validator.validateFields(options.className, attr, 'create', QueryValidator.patterns.path)))),
-        { lockTable: options.className },
-      );
+      const _attrs = normalize(_.map(values, attr => _validator.validateFields(options.className, attr, 'create', QueryValidator.patterns.path)));
+      while (true) {
+        try {
+          return await proto.storage.atomic(
+            (storage) => storage.insertMany({
+              className: options.className,
+              includes: _includes,
+              matches: _matches,
+              objectIdSize: proto[PVK].options.objectIdSize
+            }, _attrs),
+            { lockTable: options.className },
+          );
+        } catch (e) {
+          if (proto.storage.isDuplicateIdError(e)) continue;
+          throw e;
+        }
+      }
     },
     async updateOne(
       query: FindOneOptions,
@@ -159,11 +175,17 @@ export const dispatcher = <E>(proto: ProtoService<E>, options: ExtraOptions<bool
       QueryValidator.recursiveCheck(query, update, setOnInsert);
       const _validator = await validator();
       if (!_validator.validateCLPs(query.className, 'create', 'update')) throw Error('No permission');
-      return proto.storage.atomic((storage) => storage.upsertOne(
-        _validator.decodeQuery(normalize(query), 'update'),
-        normalize(_validator.validateFields(query.className, update, 'update', QueryValidator.patterns.path)),
-        normalize(_validator.validateFields(query.className, setOnInsert, 'create', QueryValidator.patterns.name)),
-      ));
+      const _query = _validator.decodeQuery(normalize(query), 'update');
+      const _update = normalize(_validator.validateFields(query.className, update, 'update', QueryValidator.patterns.path));
+      const _setOnInsert = normalize(_validator.validateFields(query.className, setOnInsert, 'create', QueryValidator.patterns.name));
+      while (true) {
+        try {
+          return await proto.storage.atomic((storage) => storage.upsertOne(_query, _update, _setOnInsert));
+        } catch (e) {
+          if (proto.storage.isDuplicateIdError(e)) continue;
+          throw e;
+        }
+      }
     },
     async deleteOne(
       query: FindOneOptions
