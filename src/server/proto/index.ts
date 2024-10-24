@@ -43,6 +43,7 @@ import { _TValue } from '../../internals/types';
 import { randomUUID } from '@o2ter/crypto-js';
 import { TObject } from '../../internals/object';
 import { asyncStream } from '@o2ter/utils-js';
+import { TRole } from '../../internals/object/role';
 
 export class ProtoService<Ext> extends ProtoType<Ext> {
 
@@ -108,14 +109,19 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     return this.req ? session(this, this.req) : undefined;
   }
 
-  async currentUser() {
+  async currentUser(): Promise<TUser | undefined> {
     const session = await this.sessionInfo();
     return session?.user;
   }
 
-  async currentRoles() {
+  async _currentRoles(): Promise<TRole[]> {
     const session = await this.sessionInfo();
-    return session?.roles ?? [];
+    return session?._roles ?? [];
+  }
+
+  async currentRoles(): Promise<string[]> {
+    const roles = await this._currentRoles();
+    return _.compact(_.map(roles, x => x.name));
   }
 
   get isMaster(): boolean {

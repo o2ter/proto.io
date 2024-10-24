@@ -31,6 +31,7 @@ import { AUTH_COOKIE_KEY, MASTER_PASS_HEADER_NAME, MASTER_USER_HEADER_NAME } fro
 import { randomUUID } from '@o2ter/crypto-js';
 import { PVK } from '../../internals/private';
 import { TUser } from '../../internals/object/user';
+import { TRole } from '../../internals/object/role';
 
 export type Session = jwt.JwtPayload & {
   sessionId: string;
@@ -87,9 +88,9 @@ const sessionInfoMap = new WeakMap<Request, SessionInfo<any>>();
 
 const fetchSessionInfo = async <E>(proto: ProtoService<E>, userId?: string) => {
   const user = _.isString(userId) ? await proto.Query('User').get(userId, { master: true }) : undefined;
-  const roles = user instanceof TUser ? _.compact(_.map(await proto.userRoles(user), x => x.name)) : [];
+  const roles = user instanceof TUser ? _.filter(await proto.userRoles(user), x => !_.isEmpty(x.name)) as TRole[] : [];
   return {
-    roles: roles,
+    _roles: roles,
     user: user instanceof TUser ? user : undefined,
   };
 }
