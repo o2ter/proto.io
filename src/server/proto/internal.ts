@@ -291,7 +291,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
       if (found) throw Error('Invalid upload token');
     }
 
-    let file: { _id: string; size: number; } | undefined;
+    let file: { _id: string; size: number; };
 
     const info = {
       mimeType: object.get('type'),
