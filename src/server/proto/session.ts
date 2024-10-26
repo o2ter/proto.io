@@ -76,7 +76,7 @@ const _session = <E>(proto: ProtoService<E>, request: Request) => {
   const session: Session = {
     ...payload,
     sessionId: payload.sessionId ?? randomUUID(),
-    createdAt: new Date(payload.createdAt),
+    createdAt: payload.createdAt && _.isSafeInteger(payload.createdAt) ? new Date(payload.createdAt) : new Date,
   };
 
   sessionMap.set(request, session);
