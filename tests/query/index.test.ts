@@ -1536,6 +1536,50 @@ test('test relation query 2', async () => {
   expect(_.map(result2, x => x.get('number')).sort()).toStrictEqual([1, 2, 3, 4]);
 })
 
+test('test relation query 3', async () => {
+
+  const inserted = await Proto.Query('Test').insert({});
+
+  await Proto.Query('Test').insertMany([
+    { number: 1, pointer: inserted },
+    { number: 2, pointer: inserted },
+    { number: 3, pointer: inserted },
+    { number: 4, pointer: inserted },
+  ]);
+
+  const objs = await Proto.Query('Test').equalTo('pointer', inserted).find();
+
+  const result = await Proto.Relation('Test', objs[0], 'relation2').find();
+  expect(result.length).toStrictEqual(0);
+
+  const result2 = await Proto.Relation('Test', inserted, 'relation2').find();
+
+  expect(result2.length).toStrictEqual(4);
+  expect(_.map(result2, x => x.get('number')).sort()).toStrictEqual([1, 2, 3, 4]);
+})
+
+test('test relation query 4', async () => {
+
+  const inserted = await Proto.Query('Test').insert({});
+
+  await Proto.Query('Test').insertMany([
+    { number: 1, relation: [inserted] },
+    { number: 2, relation: [inserted] },
+    { number: 3, relation: [inserted] },
+    { number: 4, relation: [inserted] },
+  ]);
+
+  const objs = await Proto.Query('Test').isSuperset('relation', [inserted]).find();
+
+  const result = await Proto.Relation('Test', objs[0], 'relation3').find();
+  expect(result.length).toStrictEqual(0);
+
+  const result2 = await Proto.Relation('Test', inserted, 'relation3').find();
+
+  expect(result2.length).toStrictEqual(4);
+  expect(_.map(result2, x => x.get('number')).sort()).toStrictEqual([1, 2, 3, 4]);
+})
+
 test('test update', async () => {
   const date = new Date;
   const inserted = await Proto.Query('Test').insert({});
