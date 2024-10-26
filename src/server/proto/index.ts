@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import jwt from 'jsonwebtoken';
-import { InsecureProtoQuery, ProtoQuery } from '../query';
+import { ProtoQuery } from '../query';
 import { ProtoInternal } from './internal';
 import { CookieOptions, Request } from '@o2ter/server-js';
 import { ProtoServiceOptions, ProtoServiceKeyOptions } from './types';
@@ -92,11 +92,11 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
   }
 
   Query<T extends string>(className: T): TQuery<T, Ext, boolean, this> {
-    return new ProtoQuery<T, Ext, boolean>(className, this);
+    return new ProtoQuery<T, Ext, boolean>(className, this, {});
   }
 
   InsecureQuery<T extends string>(className: T): TQuery<T, Ext, true, this> {
-    return new InsecureProtoQuery<T, Ext>(className, this);
+    return new ProtoQuery<T, Ext, true>(className, this, { insecure: true });
   }
 
   get sessionId(): string | undefined {

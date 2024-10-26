@@ -36,13 +36,19 @@ import { TExtended } from '../../internals/object/methods';
 import { TValue } from '../../internals/types';
 import { TObjectType, TUpdateOp } from '../../internals/object/types';
 
+type _QueryOptions = {
+  insecure?: boolean;
+};
+
 export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T, E, M, ProtoService<E>> {
 
   protected _proto: ProtoService<E>;
+  protected _opts: _QueryOptions;
 
-  constructor(className: T, proto: ProtoService<E>) {
+  constructor(className: T, proto: ProtoService<E>, opts: _QueryOptions) {
     super(className);
     this._proto = proto;
+    this._opts = opts;
   }
 
   private get _queryOptions() {
@@ -55,13 +61,13 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
   private _dispatcher(
     options?: ExtraOptions<M, ProtoService<E>>
   ): ReturnType<typeof dispatcher<E>> {
-    if (this instanceof InsecureProtoQuery) {
+    if (this._opts.insecure) {
       if (options?.master !== true) throw Error('No permission');
     }
     return dispatcher(
       options?.session ?? this._proto,
       options ?? {},
-      this instanceof InsecureProtoQuery
+      !!this._opts.insecure,
     );
   }
 
@@ -74,7 +80,7 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
   }
 
   clone(options?: TQueryOptions) {
-    const clone = new ProtoQuery(this.className, this._proto);
+    const clone = new ProtoQuery(this.className, this._proto, this._opts);
     clone[PVK].options = options ?? { ...this[PVK].options };
     return clone;
   }
@@ -365,13 +371,4 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
     return this._dispatcher(options).deleteMany(this._queryOptions);
   }
 
-}
-
-export class InsecureProtoQuery<T extends string, E> extends ProtoQuery<T, E, true> {
-
-  clone(options?: TQueryOptions) {
-    const clone = new InsecureProtoQuery(this.className, this._proto);
-    clone[PVK].options = options ?? { ...this[PVK].options };
-    return clone;
-  }
 }
