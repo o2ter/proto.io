@@ -35,6 +35,7 @@ import { TRole } from '../../internals/object/role';
 
 export type Session = jwt.JwtPayload & {
   sessionId: string;
+  createdAt: Date;
 };
 
 const sessionMap = new WeakMap<Request, Session>();
@@ -51,7 +52,10 @@ const _session = <E>(proto: ProtoService<E>, request: Request) => {
   const cached = sessionMap.get(request);
   if (cached) return cached;
 
-  sessionMap.set(request, { sessionId: randomUUID() });
+  sessionMap.set(request, {
+    sessionId: randomUUID(),
+    createdAt: new Date,
+  });
 
   const jwtToken = proto[PVK].options.jwtToken;
   if (_.isEmpty(jwtToken)) throw Error('Invalid jwt token');
@@ -70,8 +74,9 @@ const _session = <E>(proto: ProtoService<E>, request: Request) => {
   if (!_.isObject(payload)) return;
 
   const session: Session = {
-    sessionId: payload.sessionId ?? randomUUID(),
     ...payload,
+    sessionId: payload.sessionId ?? randomUUID(),
+    createdAt: new Date(payload.createdAt),
   };
 
   sessionMap.set(request, session);
@@ -132,9 +137,13 @@ export const signUser = async <E>(
 ) => {
   if (_.isNil(proto[PVK].options.jwtToken)) return;
   const session = _session(proto, res.req);
-  const sessionId = sessionMap.get(res.req)?.sessionId ?? session?.sessionId ?? randomUUID();
   const cookieOptions = options?.cookieOptions ?? session?.cookieOptions ?? proto[PVK].options.cookieOptions;
-  const token = proto[PVK].jwtSign({ sessionId, user: user?.objectId, cookieOptions }, options?.jwtSignOptions ?? 'login');
+  const token = proto[PVK].jwtSign({
+    sessionId: session?.sessionId ?? randomUUID(),
+    createdAt: session?.createdAt?.getTime() ?? Date.now(),
+    user: user?.objectId,
+    cookieOptions,
+  }, options?.jwtSignOptions ?? 'login');
   res.cookie(AUTH_COOKIE_KEY, token, cookieOptions);
   sessionInfoMap.set(res.req, user ? await fetchSessionInfo(proto, user.objectId) : {});
 }
