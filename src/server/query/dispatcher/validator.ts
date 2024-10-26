@@ -331,9 +331,28 @@ export class QueryValidator<E> {
 
   decodeQuery<Q extends (FindOptions & RelationOptions) | FindOneOptions>(query: Q, action: keyof TSchema.ACLs): DecodedQuery<Q> {
 
+    let relation: TQuerySelector | undefined;
+
+    if ('relatedBy' in query && query.relatedBy) {
+      const { relatedBy } = query;
+      if (relatedBy && !this.validateCLPs(relatedBy.className, 'get')) throw Error('No permission');
+      if (relatedBy && !this.validateKey(relatedBy.className, relatedBy.key, 'read', QueryValidator.patterns.path)) throw Error('No permission');
+      const { dataType } = _resolveColumn(this.schema, relatedBy.className, relatedBy.key);
+      if (!isRelation(dataType) || dataType.target !== query.className) throw Error(`Invalid relation key: ${relatedBy.key}`);
+      this.validateForeignField(dataType, 'read', `Invalid relation key: ${relatedBy.key}`);
+      if (dataType.foreignField) {
+        relation = {
+          [dataType.foreignField]: {
+            $eq: query.relatedBy.objectId,
+          },
+        };
+      }
+    }
+
     const filter = QuerySelector.decode([
-      ..._.castArray<TQuerySelector>(query.filter),
       ...action === 'read' ? this._rperm(query.className) : this._wperm(query.className),
+      ..._.castArray<TQuerySelector>(query.filter),
+      ...relation ? [relation] : [],
       this._expiredAt,
     ]).simplify();
 
@@ -356,14 +375,6 @@ export class QueryValidator<E> {
 
     const includes = this.decodeIncludes(query.className, keyPaths);
     const matches = this.decodeMatches(query.className, query.matches ?? {}, includes);
-
-    if ('relatedBy' in query && query.relatedBy) {
-      const { relatedBy } = query;
-      if (relatedBy && !this.validateCLPs(relatedBy.className, 'get')) throw Error('No permission');
-      if (relatedBy && !this.validateKey(relatedBy.className, relatedBy.key, 'read', QueryValidator.patterns.path)) throw Error('No permission');
-      const { dataType } = _resolveColumn(this.schema, relatedBy.className, relatedBy.key);
-      if (!isRelation(dataType) || dataType.target !== query.className) throw Error(`Invalid relation key: ${relatedBy.key}`);
-    }
 
     return {
       ...query,
