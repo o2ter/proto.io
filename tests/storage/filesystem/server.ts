@@ -28,7 +28,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import { Server } from '@o2ter/server-js';
 import { ProtoService, ProtoRoute } from '../../../src/index';
-import { beforeAll, afterAll } from '@jest/globals';
+import { beforeAll, afterAll, beforeEach } from '@jest/globals';
 import PostgresStorage from '../../../src/adapters/storage/progres';
 import { randomUUID } from '@o2ter/crypto-js';
 import FileSystemStorage from '../../../src/adapters/file/filesystem';
@@ -87,6 +87,12 @@ beforeAll(async () => {
   console.log('version: ', await database.version());
 
   app.listen(8080, () => console.log('listening on port 8080'));
+});
+
+beforeEach(async () => {
+  for (const className of Proto.classes()) {
+    await Proto.Query(className).deleteMany({ master: true });
+  }
 });
 
 afterAll(async () => { 

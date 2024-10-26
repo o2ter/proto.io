@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { Server } from '@o2ter/server-js';
 import { ProtoService, ProtoRoute, registerProtoSocket } from '../../src/index';
-import { beforeAll, afterAll } from '@jest/globals';
+import { beforeAll, afterAll, beforeEach } from '@jest/globals';
 import DatabaseFileStorage from '../../src/adapters/file/database';
 import PostgresStorage from '../../src/adapters/storage/progres';
 import { randomUUID } from '@o2ter/crypto-js';
@@ -102,6 +102,12 @@ beforeAll(async () => {
   console.log('version: ', await database.version());
 
   app.listen(8080, () => console.log('listening on port 8080'));
+});
+
+beforeEach(async () => {
+  for (const className of Proto.classes()) {
+    await Proto.Query(className).deleteMany({ master: true });
+  }
 });
 
 afterAll(async () => { 

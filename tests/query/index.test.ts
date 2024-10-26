@@ -1491,16 +1491,15 @@ test('test relation 7', async () => {
 test('test relation query', async () => {
 
   await Proto.Query('Test').insertMany([
-    { string: 'relation query', number: 1 },
-    { string: 'relation query', number: 2 },
-    { string: 'relation query', number: 3 },
-    { string: 'relation query', number: 4 },
+    { number: 1 },
+    { number: 2 },
+    { number: 3 },
+    { number: 4 },
   ]);
 
-  const objs = await Proto.Query('Test').equalTo('string', 'relation query').find();
+  const objs = await Proto.Query('Test').find();
 
   const inserted = await Proto.Query('Test').insert({
-    string: 'relation query',
     relation: objs,
   });
 
@@ -1516,16 +1515,15 @@ test('test relation query', async () => {
 test('test relation query 2', async () => {
 
   await Proto.Query('Test').insertMany([
-    { string: 'relation query 2', number: 1 },
-    { string: 'relation query 2', number: 2 },
-    { string: 'relation query 2', number: 3 },
-    { string: 'relation query 2', number: 4 },
+    { number: 1 },
+    { number: 2 },
+    { number: 3 },
+    { number: 4 },
   ]);
 
-  const objs = await Proto.Query('Test').equalTo('string', 'relation query 2').find();
+  const objs = await Proto.Query('Test').find();
 
   const inserted = await Proto.Query('Test').insert({
-    string: 'relation query 2',
     'shape.relation': objs,
   });
 
