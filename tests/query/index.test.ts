@@ -1488,6 +1488,56 @@ test('test relation 7', async () => {
 
 }, 60000)
 
+test('test relation query', async () => {
+
+  await Proto.Query('Test').insertMany([
+    { string: 'relation query', number: 1 },
+    { string: 'relation query', number: 2 },
+    { string: 'relation query', number: 3 },
+    { string: 'relation query', number: 4 },
+  ]);
+
+  const objs = await Proto.Query('Test').equalTo('string', 'relation query').find();
+
+  const inserted = await Proto.Query('Test').insert({
+    string: 'relation query',
+    relation: objs,
+  });
+
+  const result = await Proto.Relation('Test', objs[0], 'relation').find();
+  expect(result.length).toStrictEqual(0);
+
+  const result2 = await Proto.Relation('Test', inserted, 'relation').find();
+
+  expect(result2.length).toStrictEqual(4);
+  expect(_.map(result2, x => x.get('number')).sort()).toStrictEqual([1, 2, 3, 4]);
+})
+
+test('test relation query 2', async () => {
+
+  await Proto.Query('Test').insertMany([
+    { string: 'relation query 2', number: 1 },
+    { string: 'relation query 2', number: 2 },
+    { string: 'relation query 2', number: 3 },
+    { string: 'relation query 2', number: 4 },
+  ]);
+
+  const objs = await Proto.Query('Test').equalTo('string', 'relation query 2').find();
+
+  const inserted = await Proto.Query('Test').insert({
+    string: 'relation query 2',
+    'shape.relation': objs,
+  });
+
+  const result = await Proto.Relation('Test', objs[0], 'shape.relation').find();
+  expect(result.length).toStrictEqual(0);
+
+  const result2 = await Proto.Relation('Test', inserted, 'shape.relation').find();
+
+  expect(result2.length).toStrictEqual(4);
+  expect(_.map(result2, x => x.get('number')).sort()).toStrictEqual([1, 2, 3, 4]);
+})
+
 test('test update', async () => {
   const date = new Date;
   const inserted = await Proto.Query('Test').insert({});

@@ -38,12 +38,17 @@ import { TObjectType, TUpdateOp } from '../../internals/object/types';
 
 type _QueryOptions = {
   insecure?: boolean;
+  relatedBy?: {
+    className: string;
+    objectId: string;
+    key: string;
+  };
 };
 
 export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T, E, M, ProtoService<E>> {
 
-  protected _proto: ProtoService<E>;
-  protected _opts: _QueryOptions;
+  private _proto: ProtoService<E>;
+  private _opts: _QueryOptions;
 
   constructor(className: T, proto: ProtoService<E>, opts: _QueryOptions) {
     super(className);
@@ -54,6 +59,7 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
   private get _queryOptions() {
     return {
       className: this.className,
+      relatedBy: this._opts.relatedBy,
       ...this[PVK].options,
     };
   }

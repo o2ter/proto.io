@@ -95,6 +95,18 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     return new ProtoQuery<T, Ext, boolean>(className, this, {});
   }
 
+  Relation<T extends string>(className: T, object: TObject, key: string): TQuery<T, Ext, boolean, this> {
+    const objectId = object.objectId;
+    if (!objectId) throw Error('Invalid object');
+    return new ProtoQuery<T, Ext, boolean>(className, this, {
+      relatedBy: {
+        className: object.className,
+        objectId,
+        key,
+      },
+    });
+  }
+
   InsecureQuery<T extends string>(className: T): TQuery<T, Ext, true, this> {
     return new ProtoQuery<T, Ext, true>(className, this, { insecure: true });
   }

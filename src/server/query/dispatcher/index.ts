@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { ProtoService } from '../../proto/index';
 import { QueryValidator } from './validator';
-import { FindOptions, FindOneOptions } from '../../storage';
+import { FindOptions, FindOneOptions, RelationOptions } from '../../storage';
 import { TQueryBaseOptions } from '../../../internals/query/base';
 import { ExtraOptions } from '../../../internals/options';
 import { TQueryRandomOptions } from '../../../internals/query';
@@ -44,7 +44,7 @@ export const dispatcher = <E>(proto: ProtoService<E>, options: ExtraOptions<bool
 
   return {
     async explain(
-      query: FindOptions
+      query: FindOptions & RelationOptions
     ) {
       QueryValidator.recursiveCheck(query);
       const _validator = await validator();
@@ -54,7 +54,7 @@ export const dispatcher = <E>(proto: ProtoService<E>, options: ExtraOptions<bool
       return proto.storage.explain(decoded);
     },
     async count(
-      query: FindOptions
+      query: FindOptions & RelationOptions
     ) {
       QueryValidator.recursiveCheck(query);
       const _validator = await validator();
@@ -62,7 +62,7 @@ export const dispatcher = <E>(proto: ProtoService<E>, options: ExtraOptions<bool
       return proto.storage.count(_validator.decodeQuery(normalize(query), 'read'));
     },
     async find(
-      query: FindOptions
+      query: FindOptions & RelationOptions
     ) {
       QueryValidator.recursiveCheck(query);
       const _validator = await validator();
@@ -82,7 +82,7 @@ export const dispatcher = <E>(proto: ProtoService<E>, options: ExtraOptions<bool
       return proto.storage.nonrefs(decoded);
     },
     async random(
-      query: FindOptions,
+      query: FindOptions & RelationOptions,
       opts?: TQueryRandomOptions
     ) {
       QueryValidator.recursiveCheck(query);

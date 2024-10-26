@@ -30,6 +30,7 @@ import { CompileContext, Populate, QueryCompiler } from './compiler';
 import { SQL } from './sql';
 import { TValue } from '../../../internals/types';
 import { TUpdateOp } from '../../../internals/object/types';
+import { RelationOptions } from '../../../server/storage';
 
 export interface SqlDialect {
   quote(str: string): string;
@@ -67,6 +68,13 @@ export interface SqlDialect {
     parent: Populate,
     remix?: { className: string; name: string; }
   ): Record<string, SQL>
+
+  encodeRelation(
+    compiler: QueryCompiler,
+    context: CompileContext,
+    parent: { className: string; name: string; },
+    relatedBy: NonNullable<RelationOptions['relatedBy']>
+  ): SQL
 
   encodeSortKey(
     compiler: QueryCompiler,

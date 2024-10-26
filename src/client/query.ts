@@ -33,18 +33,29 @@ import { TObject } from '../internals/object';
 import { TObjectType, TUpdateOp } from '../internals/object/types';
 import { TValue } from '../internals/types';
 
+type _QueryOptions = {
+  relatedBy?: {
+    className: string;
+    objectId: string;
+    key: string;
+  };
+};
+
 export class ProtoClientQuery<T extends string, E> extends TQuery<T, E, boolean, ProtoClient<E>> {
 
   private _proto: ProtoClient<E>;
+  private _opts: _QueryOptions;
 
-  constructor(className: T, proto: ProtoClient<E>) {
+  constructor(className: T, proto: ProtoClient<E>, opts: _QueryOptions) {
     super(className);
     this._proto = proto;
+    this._opts = opts;
   }
 
   private get _queryOptions() {
     return {
       className: this[PVK].className,
+      relatedBy: this._opts.relatedBy,
       ...this[PVK].options,
     } as any;
   }
@@ -62,7 +73,7 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E, boolean,
   }
 
   clone(options?: TQueryOptions) {
-    const clone = new ProtoClientQuery(this.className, this._proto);
+    const clone = new ProtoClientQuery(this.className, this._proto, this._opts);
     clone[PVK].options = options ?? { ...this[PVK].options };
     return clone;
   }

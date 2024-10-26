@@ -46,7 +46,19 @@ export class ProtoClient<Ext> extends ProtoType<Ext> {
   }
 
   Query<T extends string>(className: T): TQuery<T, Ext, boolean, this> {
-    return new ProtoClientQuery<T, Ext>(className, this);
+    return new ProtoClientQuery<T, Ext>(className, this, {});
+  }
+
+  Relation<T extends string>(className: T, object: TObject, key: string): TQuery<T, Ext, boolean, this> {
+    const objectId = object.objectId;
+    if (!objectId) throw Error('Invalid object');
+    return new ProtoClientQuery<T, Ext>(className, this, {
+      relatedBy: {
+        className: object.className,
+        objectId,
+        key,
+      },
+    });
   }
 
   config(options?: RequestOptions<boolean, this>): Promise<Record<string, _TValue>> {

@@ -31,6 +31,13 @@ import { response } from './common';
 import { deserialize } from '../../common';
 import { PVK } from '../../internals/private';
 
+const verifyRelatedBy = (relatedBy: any) => {
+  if (!_.isPlainObject(relatedBy)) return;
+  if (!_.isString(relatedBy.className) || _.isEmpty(relatedBy.className)) throw Error('Invalid option');
+  if (!_.isString(relatedBy.objectId) || _.isEmpty(relatedBy.objectId)) throw Error('Invalid option');
+  if (!_.isString(relatedBy.key) || _.isEmpty(relatedBy.key)) throw Error('Invalid option');
+}
+
 export default <E>(router: Router, proto: ProtoService<E>) => {
 
   router.post(
@@ -55,11 +62,18 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
           attributes,
           update,
           setOnInsert,
+          relatedBy,
           ...options
         } = deserialize(req.body) as any;
 
+        verifyRelatedBy(relatedBy);
+
         const payload = proto.connect(req);
-        const query = payload.Query(name);
+        const query = relatedBy ? payload.Relation(
+          name,
+          payload.Object(relatedBy.className, relatedBy.objectId),
+          relatedBy.key,
+        ) : payload.Query(name);
         query[PVK].options = options;
 
         const opts = { master: payload.isMaster, context, silent };
@@ -105,7 +119,6 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
   const createQuery = <E>(payload: ProtoService<E>, req: Request<{ name: string; }>, checkLimit: boolean) => {
 
     const { name } = req.params;
-    const query = payload.Query(name);
 
     const {
       filter,
@@ -113,7 +126,16 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       includes,
       skip,
       limit,
-    } = req.query;
+      relatedBy,
+    } = req.query as any;
+
+    verifyRelatedBy(relatedBy);
+
+    const query = relatedBy ? payload.Relation(
+      name,
+      payload.Object(relatedBy.className, relatedBy.objectId),
+      relatedBy.key,
+    ) : payload.Query(name);
 
     query[PVK].options.filter = !_.isEmpty(filter) && _.isString(filter) ? _.castArray(deserialize(filter)) as any : [];
     query[PVK].options.sort = _.isPlainObject(sort) && _.every(_.values(sort), _.isNumber) ? sort as any : undefined;

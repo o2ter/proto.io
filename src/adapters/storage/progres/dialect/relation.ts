@@ -1,5 +1,5 @@
 //
-//  index.ts
+//  relation.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2024 O2ter Limited. All rights reserved.
@@ -23,40 +23,25 @@
 //  THE SOFTWARE.
 //
 
-import { SqlDialect } from '../../sql';
-import {
-  quote,
-  identifier,
-  placeholder,
-  boolean,
-  encodeSortKey,
-  random, 
-} from './basic';
-import { updateOperation } from './update';
-import {
-  encodeQueryExpression
-} from './query';
-import { encodeFieldExpression } from './query/selectors';
-import { selectPopulate, encodePopulate } from './populate';
-import { encodeRelation } from './relation';
-import {
-  encodeType,
-  decodeType
-} from './encode';
+import _ from 'lodash';
+import { CompileContext, QueryCompiler } from '../../sql/compiler';
+import { RelationOptions } from '../../../../server/storage';
+import { sql, SQL } from '../../sql';
 
-export const PostgresDialect: SqlDialect = {
-  quote,
-  identifier,
-  placeholder,
-  boolean,
-  encodeType,
-  decodeType,
-  updateOperation,
-  selectPopulate,
-  encodeFieldExpression,
-  encodeQueryExpression,
-  encodePopulate,
-  encodeRelation,
-  encodeSortKey,
-  random,
-};
+export const encodeRelation = (
+  compiler: QueryCompiler,
+  context: CompileContext,
+  parent: { className: string; name: string; },
+  relatedBy: NonNullable<RelationOptions['relatedBy']>
+): SQL => {
+  const name = `_relation_$${relatedBy.className.toLowerCase()}`;
+  const _local = (field: string) => sql`${{ identifier: parent.name }}.${{ identifier: field }}`;
+  const _foreign = (field: string) => sql`${{ identifier: name }}.${{ identifier: field }}`;
+  return sql`
+  EXISTS (
+    SELECT 1
+    FROM ${{ identifier: relatedBy.className }} AS ${{ identifier: name }}
+    WHERE ${_foreign('_id')} = ${{ value: relatedBy.objectId }} AND ${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ANY(${_foreign(relatedBy.key)})
+  )
+  `;
+}

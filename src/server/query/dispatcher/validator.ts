@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { DecodedBaseQuery, DecodedQuery, FindOptions, FindOneOptions, DecodedSortOption } from '../../storage';
+import { DecodedBaseQuery, DecodedQuery, FindOptions, FindOneOptions, DecodedSortOption, RelationOptions } from '../../storage';
 import { QueryCoditionalSelector, QueryFieldSelector, QuerySelector } from './parser';
 import { TSchema, _typeof, isPointer, isPrimitive, isRelation, isShape, isVector, shapePaths } from '../../../internals/schema';
 import { ProtoService } from '../../proto';
@@ -329,7 +329,7 @@ export class QueryValidator<E> {
     return _matches;
   }
 
-  decodeQuery<Q extends FindOptions | FindOptions | FindOneOptions>(query: Q, action: keyof TSchema.ACLs): DecodedQuery<Q> {
+  decodeQuery<Q extends (FindOptions & RelationOptions) | FindOneOptions>(query: Q, action: keyof TSchema.ACLs): DecodedQuery<Q> {
 
     const filter = QuerySelector.decode([
       ..._.castArray<TQuerySelector>(query.filter),
@@ -356,6 +356,14 @@ export class QueryValidator<E> {
 
     const includes = this.decodeIncludes(query.className, keyPaths);
     const matches = this.decodeMatches(query.className, query.matches ?? {}, includes);
+
+    if ('relatedBy' in query && query.relatedBy) {
+      const { relatedBy } = query;
+      if (relatedBy && !this.validateCLPs(relatedBy.className, 'get')) throw Error('No permission');
+      if (relatedBy && !this.validateKey(relatedBy.className, relatedBy.key, 'read', QueryValidator.patterns.path)) throw Error('No permission');
+      const { dataType } = _resolveColumn(this.schema, relatedBy.className, relatedBy.key);
+      if (!isRelation(dataType) || dataType.target !== query.className) throw Error(`Invalid relation key: ${relatedBy.key}`);
+    }
 
     return {
       ...query,

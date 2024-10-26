@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { TSchema, isPointer, isPrimitive, isRelation, isShape, shapePaths } from '../../../internals/schema';
 import { QueryCoditionalSelector, QueryExpressionSelector, QueryFieldSelector, QuerySelector } from '../../../server/query/dispatcher/parser';
-import { DecodedBaseQuery, DecodedQuery, FindOneOptions, FindOptions, InsertOptions, DecodedSortOption } from '../../../server/storage';
+import { DecodedBaseQuery, DecodedQuery, FindOneOptions, FindOptions, InsertOptions, DecodedSortOption, RelationOptions } from '../../../server/storage';
 import { SQL, sql } from './sql';
 import { generateId } from '../../../server/crypto/random';
 import { SqlDialect } from './dialect';
@@ -206,29 +206,35 @@ export class QueryCompiler {
   }
 
   private _baseSelectQuery(
-    query: DecodedQuery<FindOptions>,
+    query: DecodedQuery<FindOptions & RelationOptions>,
     options?: _SelectOptions | ((x: { fetchName: string; }) => _SelectOptions),
   ) {
 
     const context = this._makeContext(query);
-    const populates = _.mapValues(context.populates, (populate) => this.dialect.encodePopulate(this, context, populate));
-    const stages = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
+    const _stages = _.mapValues(context.populates, (populate) => this.dialect.encodePopulate(this, context, populate));
+    const stages = _.fromPairs(_.flatMap(_.values(_stages), (p) => _.toPairs(p)));
 
     const fetchName = `_fetch_$${query.className.toLowerCase()}`;
+    const parent = { className: query.className, name: fetchName };
 
-    const _filter = this._encodeFilter(context, { className: query.className, name: fetchName }, query.filter);
-    const _populates = this._selectPopulateMap(context, query.className, fetchName);
-    const _joins = _.compact(_.map(_populates, ({ join }) => join));
+    const baseFilter = this._encodeFilter(context, parent, query.filter);
+    const populates = this._selectPopulateMap(context, query.className, fetchName);
+    const joins = _.compact(_.map(populates, ({ join }) => join));
 
-    const _includes = {
+    const includes = {
       literal: [
         ...this._selectIncludes(fetchName, context.includes),
-        ..._.flatMap(_populates, ({ columns }) => columns),
+        ..._.flatMap(populates, ({ columns }) => columns),
       ],
       separator: ',\n',
     };
 
     const _options = _.isFunction(options) ? options({ fetchName }) : options;
+    const filter = _.compact([
+      baseFilter,
+      _options?.extraFilter,
+      query.relatedBy && this.dialect.encodeRelation(this, context, parent, query.relatedBy),
+    ]);
 
     return {
       stages,
@@ -236,15 +242,12 @@ export class QueryCompiler {
       context: context,
       query: sql`
         SELECT ${_options?.select ? _options?.select : sql`*`} FROM (
-          SELECT ${_includes}
+          SELECT ${includes}
           FROM ${{ identifier: query.className }} AS ${{ identifier: fetchName }}
-          ${!_.isEmpty(_joins) ? { literal: _joins, separator: '\n' } : sql``}
+          ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
           ${this.selectLock ? this.isUpdate ? sql`FOR UPDATE NOWAIT` : sql`FOR SHARE NOWAIT` : sql``}
         ) AS ${{ identifier: fetchName }}
-        ${_filter || _options?.extraFilter ? sql`WHERE ${{
-          literal: _.map(_.compact([_filter, _options?.extraFilter]), x => sql`(${x})`),
-          separator: ' AND '
-        }}` : sql``}
+        ${!_.isEmpty(filter) ? sql`WHERE ${{ literal: _.map(filter, x => sql`(${x})`), separator: ' AND ' }}` : sql``}
         ${_options?.sort ? _options?.sort : sql``}
         ${!_.isEmpty(query.sort) ? sql`ORDER BY ${this._encodeSort(query.sort, { className: query.className, name: fetchName })}` : sql``}
         ${query.limit ? sql`LIMIT ${{ literal: `${query.limit}` }}` : sql``}
@@ -284,7 +287,7 @@ export class QueryCompiler {
   }
 
   _selectQuery(
-    query: DecodedQuery<FindOptions>,
+    query: DecodedQuery<FindOptions & RelationOptions>,
     options?: _SelectOptions | ((x: { fetchName: string; }) => _SelectOptions),
   ) {
     const { stages, query: _query } = this._baseSelectQuery(query, options);

@@ -37,6 +37,14 @@ type CommonFindOptions = { className: string; };
 export type FindOptions = CommonFindOptions & TQueryOptions;
 export type FindOneOptions = CommonFindOptions & Omit<TQueryOptions, 'skip' | 'limit'>;
 
+export type RelationOptions = {
+  relatedBy?: {
+    className: string;
+    objectId: string;
+    key: string;
+  };
+};
+
 type Decoded<T, R> = Omit<T, keyof R> & R;
 
 export type DecodedSortOption = {
@@ -78,11 +86,11 @@ export interface TStorage {
   configAcl(): PromiseLike<Record<string, string[]>>;
   setConfig(values: Record<string, _TValue>, acl?: string[]): PromiseLike<void>;
 
-  explain(query: DecodedQuery<FindOptions>): PromiseLike<any>;
+  explain(query: DecodedQuery<FindOptions & RelationOptions>): PromiseLike<any>;
 
-  count(query: DecodedQuery<FindOptions>): PromiseLike<number>;
-  find(query: DecodedQuery<FindOptions>): AsyncIterable<TObject>;
-  random(query: DecodedQuery<FindOptions>, opts?: TQueryRandomOptions): AsyncIterable<TObject>;
+  count(query: DecodedQuery<FindOptions & RelationOptions>): PromiseLike<number>;
+  find(query: DecodedQuery<FindOptions & RelationOptions>): AsyncIterable<TObject>;
+  random(query: DecodedQuery<FindOptions & RelationOptions>, opts?: TQueryRandomOptions): AsyncIterable<TObject>;
 
   refs(object: TObject, classNames: string[], roles?: string[]): AsyncIterable<TObject>;
   nonrefs(query: DecodedQuery<FindOptions>): AsyncIterable<TObject>;

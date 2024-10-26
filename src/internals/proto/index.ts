@@ -80,8 +80,9 @@ export abstract class ProtoType<Ext> {
   abstract configAcl(options: { master: true; }): PromiseLike<Record<string, string[]>>;
   abstract setConfig(values: Record<string, _TValue>, options: { master: true; acl?: string[]; }): Promise<void>;
 
-  abstract run(name: string, data?: TSerializable, options?: ExtraOptions<boolean, this>): Promise<void | TSerializable>
+  abstract run(name: string, data?: TSerializable, options?: ExtraOptions<boolean, this>): Promise<void | TSerializable>;
   abstract Query<T extends string>(className: T): TQuery<T, Ext, boolean, this>;
+  abstract Relation<T extends string>(className: T, object: TObject, key: string): TQuery<T, Ext, boolean, this>;
 
   abstract refs(object: TObject, options?: ExtraOptions<boolean, this>): ReturnType<typeof asyncStream<TObjectType<string, Ext>>>;
 

@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { DecodedQuery, FindOptions, FindOneOptions, InsertOptions, TStorage } from '../../../server/storage';
+import { DecodedQuery, FindOptions, FindOneOptions, InsertOptions, TStorage, RelationOptions } from '../../../server/storage';
 import { TransactionOptions } from '../../../internals/proto';
 import { TSchema, isPointer, isRelation, isShape, shapePaths } from '../../../internals/schema';
 import { SQL, sql } from './sql';
@@ -78,7 +78,7 @@ export abstract class SqlStorage implements TStorage {
     return this._query(query, values);
   }
 
-  abstract _explain(compiler: QueryCompiler, query: DecodedQuery<FindOptions>): PromiseLike<any>
+  abstract _explain(compiler: QueryCompiler, query: DecodedQuery<FindOptions & RelationOptions>): PromiseLike<any>
 
   private _decodeShapedObject(dataType: TSchema.ShapeType, value: any) {
     const result = {};
@@ -131,12 +131,12 @@ export abstract class SqlStorage implements TStorage {
     return obj;
   }
 
-  async explain(query: DecodedQuery<FindOptions>) {
+  async explain(query: DecodedQuery<FindOptions & RelationOptions>) {
     const compiler = new QueryCompiler(this.schema, this.dialect, this.selectLock(), false);
     return this._explain(compiler, query);
   }
 
-  async count(query: DecodedQuery<FindOptions>) {
+  async count(query: DecodedQuery<FindOptions & RelationOptions>) {
     const compiler = new QueryCompiler(this.schema, this.dialect, this.selectLock(), false);
     const [{ count: _count }] = await this.query(compiler._selectQuery(query, {
       select: sql`COUNT(*) AS count`,
@@ -145,7 +145,7 @@ export abstract class SqlStorage implements TStorage {
     return _.isFinite(count) ? count : 0;
   }
 
-  find(query: DecodedQuery<FindOptions>) {
+  find(query: DecodedQuery<FindOptions & RelationOptions>) {
     const self = this;
     const compiler = new QueryCompiler(self.schema, self.dialect, self.selectLock(), false);
     const _query = compiler._selectQuery(query);
@@ -157,7 +157,7 @@ export abstract class SqlStorage implements TStorage {
     })();
   }
 
-  random(query: DecodedQuery<FindOptions>, opts?: TQueryRandomOptions) {
+  random(query: DecodedQuery<FindOptions & RelationOptions>, opts?: TQueryRandomOptions) {
     const self = this;
     const compiler = new QueryCompiler(self.schema, self.dialect, self.selectLock(), false);
     const _query = compiler._selectQuery({ ...query, sort: {} }, {
