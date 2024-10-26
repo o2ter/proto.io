@@ -339,12 +339,13 @@ export class QueryValidator<E> {
       if (relatedBy && !this.validateKey(relatedBy.className, relatedBy.key, 'read', QueryValidator.patterns.path)) throw Error('No permission');
       const { dataType } = _resolveColumn(this.schema, relatedBy.className, relatedBy.key);
       if (!isRelation(dataType) || dataType.target !== query.className) throw Error(`Invalid relation key: ${relatedBy.key}`);
-      this.validateForeignField(dataType, 'read', `Invalid relation key: ${relatedBy.key}`);
       if (dataType.foreignField) {
+        const foreignField = this.schema[dataType.target]?.fields[dataType.foreignField];
+        if (!isPointer(foreignField) && !isRelation(foreignField)) throw Error(`Invalid relation key: ${relatedBy.key}`);
+        this.validateForeignField(dataType, 'read', `Invalid relation key: ${relatedBy.key}`);
+        const obj = this.proto.Object(query.relatedBy.className, query.relatedBy.objectId);
         relation = {
-          [dataType.foreignField]: {
-            $eq: query.relatedBy.objectId,
-          },
+          [dataType.foreignField]: foreignField.type === 'pointer' ? { $eq: obj } : { $intersect: [obj] },
         };
       }
     }
