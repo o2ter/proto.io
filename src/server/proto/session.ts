@@ -36,6 +36,7 @@ import { TRole } from '../../internals/object/role';
 export type Session = jwt.JwtPayload & {
   sessionId: string;
   createdAt: Date;
+  loginedAt: Date;
 };
 
 const sessionMap = new WeakMap<Request, Session>();
@@ -44,7 +45,12 @@ const _sessionWithToken = <E>(proto: ProtoService<E>, token: string) => {
   if (_.isEmpty(token)) return;
   const payload = proto[PVK].jwtVarify(token, 'login');
   if (!_.isObject(payload)) return;
-  return payload;
+  return {
+    ...payload,
+    sessionId: payload.sessionId ?? randomUUID(),
+    createdAt: payload.createdAt && _.isSafeInteger(payload.createdAt) ? new Date(payload.createdAt) : new Date,
+    loginedAt: payload.loginedAt && _.isSafeInteger(payload.loginedAt) ? new Date(payload.loginedAt) : new Date,
+  } as Session;
 }
 
 const _session = <E>(proto: ProtoService<E>, request: Request) => {
@@ -55,6 +61,7 @@ const _session = <E>(proto: ProtoService<E>, request: Request) => {
   sessionMap.set(request, {
     sessionId: randomUUID(),
     createdAt: new Date,
+    loginedAt: new Date,
   });
 
   const jwtToken = proto[PVK].options.jwtToken;
@@ -70,14 +77,8 @@ const _session = <E>(proto: ProtoService<E>, request: Request) => {
 
   if (_.isEmpty(authorization)) return;
 
-  const payload = proto[PVK].jwtVarify(authorization, 'login');
-  if (!_.isObject(payload)) return;
-
-  const session: Session = {
-    ...payload,
-    sessionId: payload.sessionId ?? randomUUID(),
-    createdAt: payload.createdAt && _.isSafeInteger(payload.createdAt) ? new Date(payload.createdAt) : new Date,
-  };
+  const session = _sessionWithToken(proto, authorization);
+  if (!_.isObject(session)) return;
 
   sessionMap.set(request, session);
   return session;
@@ -102,21 +103,32 @@ const fetchSessionInfo = async <E>(proto: ProtoService<E>, userId?: string) => {
 
 export const sessionWithToken = async <E>(proto: ProtoService<E>, token: string) => {
   const session = _sessionWithToken(proto, token);
-  const sessionId: string | undefined = session?.sessionId;
   const info = await fetchSessionInfo(proto, session?.user);
-  return { sessionId, ...info };
+  return {
+    ...session ?? {},
+    ...info,
+    loginedAt: info?.user ? session?.loginedAt : undefined,
+  };
 }
 
 export const session = async <E>(proto: ProtoService<E>, request: Request) => {
 
   const session = _session(proto, request);
   const cached = sessionInfoMap.get(request) as SessionInfo<E>;
-  if (cached) return { ...session ?? {}, ...cached };
+  if (cached) return {
+    ...session ?? {},
+    ...cached,
+    loginedAt: cached?.user ? session?.loginedAt : undefined,
+  };
 
   const info = await fetchSessionInfo(proto, session?.user);
   sessionInfoMap.set(request, info);
 
-  return { ...session ?? {}, ...info };
+  return {
+    ...session ?? {},
+    ...info,
+    loginedAt: info?.user ? session?.loginedAt : undefined,
+  };
 }
 
 export const sessionIsMaster = <E>(proto: ProtoService<E>, request: Request) => {
@@ -141,6 +153,7 @@ export const signUser = async <E>(
   const token = proto[PVK].jwtSign({
     sessionId: session?.sessionId ?? randomUUID(),
     createdAt: session?.createdAt?.getTime() ?? Date.now(),
+    loginedAt: user ? session?.loginedAt?.getTime() ?? Date.now() : undefined,
     user: user?.objectId,
     cookieOptions,
   }, options?.jwtSignOptions ?? 'login');
