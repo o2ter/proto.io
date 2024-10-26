@@ -377,7 +377,7 @@ export class QueryValidator<E> {
     const matches = this.decodeMatches(query.className, query.matches ?? {}, includes);
 
     return {
-      ...query,
+      ...relation ? _.omit(query, 'relatedBy') : query,
       filter,
       matches,
       includes,
