@@ -50,9 +50,9 @@ type PropertyDescriptor<T> = {
 type ReadOnlyProperty<T> = Pick<PropertyDescriptor<T>, 'get'>;
 type ReadWriteProperty<T> = Required<Pick<PropertyDescriptor<T>, 'get' | 'set'>>;
 
-type PropertyMapToMethods<T> = PickBy<T, Function> &
-  { [P in keyof PickBy<T, ReadWriteProperty<any>>]: T[P] extends PropertyDescriptor<infer V> ? V : never; } &
-  { readonly [P in keyof PickBy<T, ReadOnlyProperty<any>>]: T[P] extends PropertyDescriptor<infer V> ? V : never; }
+type PropertyMapToMethods<T> = PickBy<T, Function>
+  & { [P in keyof PickBy<T, ReadWriteProperty<any>>]: T[P] extends PropertyDescriptor<infer V> ? V : never; }
+  & { readonly [P in keyof PickBy<T, ReadOnlyProperty<any>>]: T[P] extends PropertyDescriptor<infer V> ? V : never; }
 type Property<T> = T extends Function ? T | PropertyDescriptor<T> : PropertyDescriptor<T>;
 type PropertyMap<T, O, A> = {
   [K in keyof T]: T[K] extends Property<any> ? T[K] : never;
@@ -62,9 +62,13 @@ export type TExtensions<E> = {
   [K in keyof E]: PropertyMap<E[K], _TObjectType<K>, '*' extends keyof E ? Omit<E['*'], keyof E[K]> : {}>;
 };
 
-type TMethods<K, E> = K extends keyof E
+type _TMethods<K, E> = K extends keyof E
   ? '*' extends keyof E ? PropertyMapToMethods<Omit<E['*'], keyof E[K]> & E[K]> : PropertyMapToMethods<E[K]>
   : {};
+
+type IfAny<T, Y, N> = 0 extends (1 & T) ? Y : N;
+type TMethods<K, E> = IfAny<E, {}, _TMethods<K, E>>;
+
 export type TObjectType<K, E> = _TObjectType<K> & TMethods<K, E>;
 
 export const TUpdateOpKeys = [
