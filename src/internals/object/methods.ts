@@ -66,12 +66,12 @@ export const applyObjectMethods = <T extends TSerializable, E>(
   const typedMethods: Record<string, PropertyDescriptorMap & ThisType<TObject>> = {
     'File': {
       save: {
-        value(options?: ExtraOptions<boolean, ProtoType<E>>) {
+        value(options?: ExtraOptions<boolean>) {
           return proto[PVK].saveFile(proto, this as TFile, options);
         },
       },
       destroy: {
-        value(options?: ExtraOptions<boolean, ProtoType<E>>) {
+        value(options?: ExtraOptions<boolean>) {
           return proto[PVK].deleteFile(proto, this as TFile, options);
         },
       },
@@ -85,7 +85,7 @@ export const applyObjectMethods = <T extends TSerializable, E>(
         }
       },
       fileData: {
-        value(options?: ExtraOptions<boolean, ProtoType<E>>) {
+        value(options?: ExtraOptions<boolean>) {
           return proto[PVK].fileData(proto, this as TFile, options);
         },
       },
@@ -103,7 +103,7 @@ export const applyObjectMethods = <T extends TSerializable, E>(
       }
     },
     fetchWithInclude: {
-      async value(keys: string[], options?: ExtraOptions<boolean, ProtoType<E>>) {
+      async value(keys: string[], options?: ExtraOptions<boolean>) {
         const fetched = await query().equalTo('_id', this.objectId).includes(...keys).first(options);
         if (!fetched) throw Error('Unable to fetch document');
         this[PVK].attributes = fetched.attributes;
@@ -111,7 +111,7 @@ export const applyObjectMethods = <T extends TSerializable, E>(
       },
     },
     save: {
-      async value(options?: ExtraOptions<boolean, ProtoType<E>> & { cascadeSave?: boolean }) {
+      async value(options?: ExtraOptions<boolean> & { cascadeSave?: boolean }) {
         const mutated = _.values(this[PVK].mutated);
         if (options?.cascadeSave !== false) {
           for (const update of _.values(mutated)) {
@@ -138,7 +138,7 @@ export const applyObjectMethods = <T extends TSerializable, E>(
       },
     },
     destroy: {
-      async value(options?: ExtraOptions<boolean, ProtoType<E>>) {
+      async value(options?: ExtraOptions<boolean>) {
         const deleted = await query()
           .equalTo('_id', this.objectId)
           .includes(...this.keys())

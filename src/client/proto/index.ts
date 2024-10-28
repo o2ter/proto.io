@@ -35,7 +35,7 @@ import { _TValue } from '../../internals/types';
 import { TUser } from '../../internals/object/user';
 import { TObject } from '../../internals/object';
 
-export class ProtoClient<Ext> extends ProtoType<Ext> {
+export class ProtoClient<Ext = any> extends ProtoType<Ext> {
 
   /** @internal */
   [PVK]: ProtoClientInternal<Ext, this>;
@@ -45,11 +45,11 @@ export class ProtoClient<Ext> extends ProtoType<Ext> {
     this[PVK] = new ProtoClientInternal({ ...options });
   }
 
-  Query<T extends string>(className: T): TQuery<T, Ext, boolean, this> {
+  Query<T extends string>(className: T): TQuery<T, Ext, boolean> {
     return new ProtoClientQuery<T, Ext>(className, this, {});
   }
 
-  Relation<T extends string>(className: T, object: TObject, key: string): TQuery<T, Ext, boolean, this> {
+  Relation<T extends string>(className: T, object: TObject, key: string): TQuery<T, Ext, boolean> {
     const objectId = object.objectId;
     if (!objectId) throw Error('Invalid object');
     return new ProtoClientQuery<T, Ext>(className, this, {
@@ -61,14 +61,14 @@ export class ProtoClient<Ext> extends ProtoType<Ext> {
     });
   }
 
-  config(options?: RequestOptions<boolean, this>): Promise<Record<string, _TValue>> {
+  config(options?: RequestOptions<boolean>): Promise<Record<string, _TValue>> {
     return this[PVK].config(options);
   }
-  configAcl(options: RequestOptions<true, this>) {
+  configAcl(options: RequestOptions<true>) {
     if (options.master !== true) throw Error('No permission');
     return this[PVK].configAcl(options);
   }
-  async setConfig(values: Record<string, _TValue>, options: RequestOptions<true, this> & { acl?: string[]; }) {
+  async setConfig(values: Record<string, _TValue>, options: RequestOptions<true> & { acl?: string[]; }) {
     if (options.master !== true) throw Error('No permission');
     await this[PVK].setConfig(values, options);
   }
@@ -76,7 +76,7 @@ export class ProtoClient<Ext> extends ProtoType<Ext> {
   run(
     name: string,
     data?: TSerializable,
-    options?: RequestOptions<boolean, this>
+    options?: RequestOptions<boolean>
   ): Promise<void | TSerializable> {
     return this[PVK].request(this, data, {
       method: 'post',
@@ -89,31 +89,31 @@ export class ProtoClient<Ext> extends ProtoType<Ext> {
     this[PVK].setSessionToken(this, token);
   }
 
-  sessionInfo(options?: RequestOptions<boolean, this>) {
+  sessionInfo(options?: RequestOptions<boolean>) {
     return this[PVK].sessionInfo(this, options);
   }
 
-  currentUser(options?: RequestOptions<boolean, this>) {
+  currentUser(options?: RequestOptions<boolean>) {
     return this[PVK].currentUser(this, options);
   }
 
-  logout(options?: RequestOptions<boolean, this>) {
+  logout(options?: RequestOptions<boolean>) {
     return this[PVK].logout(options);
   }
 
-  setPassword(user: TUser, password: string, options: RequestOptions<true, this>) {
+  setPassword(user: TUser, password: string, options: RequestOptions<true>) {
     return this[PVK].setPassword(user, password, options);
   }
 
-  unsetPassword(user: TUser, options: RequestOptions<true, this>) {
+  unsetPassword(user: TUser, options: RequestOptions<true>) {
     return this[PVK].unsetPassword(user, options);
   }
 
-  schema(options: RequestOptions<true, this>) {
+  schema(options: RequestOptions<true>) {
     return this[PVK].schema(options);
   }
 
-  notify(data: Record<string, _TValue> & { _rperm?: string[]; }, options?: RequestOptions<boolean, this>) {
+  notify(data: Record<string, _TValue> & { _rperm?: string[]; }, options?: RequestOptions<boolean>) {
     return this[PVK].notify(this, data, options);
   }
 
@@ -121,7 +121,7 @@ export class ProtoClient<Ext> extends ProtoType<Ext> {
     return this[PVK].listen(this, callback);
   }
 
-  refs(object: TObject, options?: RequestOptions<boolean, this>) {
+  refs(object: TObject, options?: RequestOptions<boolean>) {
     return this[PVK].refs(this, object, options);
   }
 }

@@ -81,9 +81,9 @@ export const decodeUpdateOp = (update: TUpdateOp) => {
 
 export interface TObject {
   clone(): TObject;
-  fetchWithInclude(keys: string[], options?: ExtraOptions<boolean, ProtoType<any>>): PromiseLike<this>;
-  save(options?: ExtraOptions<boolean, ProtoType<any>> & { cascadeSave?: boolean }): PromiseLike<this>;
-  destroy(options?: ExtraOptions<boolean, ProtoType<any>>): PromiseLike<this>;
+  fetchWithInclude(keys: string[], options?: ExtraOptions<boolean>): PromiseLike<this>;
+  save(options?: ExtraOptions<boolean> & { cascadeSave?: boolean }): PromiseLike<this>;
+  destroy(options?: ExtraOptions<boolean>): PromiseLike<this>;
 }
 
 export class TObject {
@@ -293,11 +293,11 @@ export class TObject {
     this[PVK].mutated[key] = { $popLast: count };
   }
 
-  async fetch(options?: ExtraOptions<boolean, any>) {
+  async fetch(options?: ExtraOptions<boolean>) {
     return this.fetchWithInclude(_.keys(this[PVK].attributes), options);
   }
 
-  async fetchIfNeeded(keys: string[], options?: ExtraOptions<boolean, any>) {
+  async fetchIfNeeded(keys: string[], options?: ExtraOptions<boolean>) {
     const current = _.keys(this[PVK].attributes);
     if (_.every(keys, k => _.includes(current, k))) return this;
     return this.fetchWithInclude(_.uniq([...current, ...keys]), options);

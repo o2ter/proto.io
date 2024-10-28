@@ -41,7 +41,7 @@ type _QueryOptions = {
   };
 };
 
-export class ProtoClientQuery<T extends string, E> extends TQuery<T, E, boolean, ProtoClient<E>> {
+export class ProtoClientQuery<T extends string, E> extends TQuery<T, E, boolean> {
 
   private _proto: ProtoClient<E>;
   private _opts: _QueryOptions;
@@ -60,7 +60,7 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E, boolean,
     } as any;
   }
 
-  private _requestOpt(options?: RequestOptions<boolean, ProtoClient<E>>) {
+  private _requestOpt(options?: RequestOptions<boolean>) {
     const { context, ...opts } = options ?? {};
     return {
       method: 'post',
@@ -78,7 +78,7 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E, boolean,
     return clone;
   }
 
-  explain(options?: RequestOptions<boolean, ProtoClient<E>>) {
+  explain(options?: RequestOptions<boolean>) {
     return this._proto[PVK].request(this._proto, {
       operation: 'explain',
       context: options?.context ?? {},
@@ -87,7 +87,7 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E, boolean,
     }, this._requestOpt(options));
   }
 
-  count(options?: RequestOptions<boolean, ProtoClient<E>>) {
+  count(options?: RequestOptions<boolean>) {
     return this._proto[PVK].request(this._proto, {
       operation: 'count',
       context: options?.context ?? {},
@@ -96,7 +96,7 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E, boolean,
     }, this._requestOpt(options)) as any;
   }
 
-  find(options?: RequestOptions<boolean, ProtoClient<E>>) {
+  find(options?: RequestOptions<boolean>) {
     const request = () => this._proto[PVK].request(this._proto, {
       operation: 'find',
       context: options?.context ?? {},
@@ -108,7 +108,7 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E, boolean,
 
   random(
     opts?: TQueryRandomOptions,
-    options?: RequestOptions<boolean, ProtoClient<E>>
+    options?: RequestOptions<boolean>
   ) {
     const request = () => this._proto[PVK].request(this._proto, {
       operation: 'random',
@@ -120,7 +120,7 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E, boolean,
     return asyncStream(request);
   }
 
-  nonrefs(options?: RequestOptions<boolean, ProtoClient<E>>) {
+  nonrefs(options?: RequestOptions<boolean>) {
     const request = () => this._proto[PVK].request(this._proto, {
       operation: 'nonrefs',
       context: options?.context ?? {},
@@ -132,7 +132,7 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E, boolean,
 
   insert(
     attrs: Record<string, TValue>,
-    options?: RequestOptions<boolean, ProtoClient<E>>
+    options?: RequestOptions<boolean>
   ) {
     return this._proto[PVK].request(this._proto, {
       operation: 'insert',
@@ -145,7 +145,7 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E, boolean,
 
   insertMany(
     values: Record<string, TValue>[],
-    options?: RequestOptions<boolean, ProtoClient<E>>
+    options?: RequestOptions<boolean>
   ) {
     return this._proto[PVK].request(this._proto, {
       operation: 'insertMany',
@@ -158,7 +158,7 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E, boolean,
 
   updateOne(
     update: Record<string, TUpdateOp>,
-    options?: RequestOptions<boolean, ProtoClient<E>>
+    options?: RequestOptions<boolean>
   ) {
     return this._proto[PVK].request(this._proto, {
       operation: 'updateOne',
@@ -172,7 +172,7 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E, boolean,
   upsertOne(
     update: Record<string, TUpdateOp>,
     setOnInsert: Record<string, TValue>,
-    options?: RequestOptions<boolean, ProtoClient<E>>
+    options?: RequestOptions<boolean>
   ) {
     return this._proto[PVK].request(this._proto, {
       operation: 'upsertOne',
@@ -184,7 +184,7 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E, boolean,
     }, this._requestOpt(options)) as any;
   }
 
-  deleteOne(options?: RequestOptions<boolean, ProtoClient<E>>) {
+  deleteOne(options?: RequestOptions<boolean>) {
     return this._proto[PVK].request(this._proto, {
       operation: 'deleteOne',
       context: options?.context ?? {},
@@ -193,7 +193,7 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E, boolean,
     }, this._requestOpt(options)) as any;
   }
 
-  deleteMany(options?: RequestOptions<boolean, ProtoClient<E>>) {
+  deleteMany(options?: RequestOptions<boolean>) {
     return this._proto[PVK].request(this._proto, {
       operation: 'deleteMany',
       context: options?.context ?? {},

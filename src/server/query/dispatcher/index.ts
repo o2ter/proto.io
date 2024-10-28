@@ -37,7 +37,7 @@ import { normalize } from '../../utils';
 
 export const fetchUserPerms = async <E>(proto: ProtoService<E>) => _.uniq(_.compact([..._.map(await proto.currentRoles(), x => `role:${x}`), (await proto.currentUser())?.objectId]));
 
-export const dispatcher = <E>(proto: ProtoService<E>, options: ExtraOptions<boolean, any>, disableSecurity: boolean) => {
+export const dispatcher = <E>(proto: ProtoService<E>, options: ExtraOptions<boolean>, disableSecurity: boolean) => {
 
   const acls = async () => options.master ? [] : await fetchUserPerms(proto);
   const validator = async () => new QueryValidator(proto, await acls(), options.master ?? false, disableSecurity);

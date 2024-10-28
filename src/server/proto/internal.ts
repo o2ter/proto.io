@@ -35,12 +35,12 @@ import { TSchema, defaultObjectKeyTypes, isPointer, isPrimitive, isRelation, isS
 import { QueryValidator } from '../query/dispatcher/validator';
 import { passwordHash, varifyPassword } from '../crypto/password';
 import { proxy } from './proxy';
-import type { ProtoService } from '.';
+import { ProtoService } from '.';
 import { base64ToBuffer, isBinaryData } from '@o2ter/utils-js';
 import { ProtoInternalType } from '../../internals/proto';
 import { TObject } from '../../internals/object';
 import { _TValue } from '../../internals/types';
-import { ExtraOptions } from '../../internals/options';
+import { _serviceOf, ExtraOptions } from '../../internals/options';
 import { TUser } from '../../internals/object/user';
 import { TFile } from '../../internals/object/file';
 import { FileData } from '../../internals/buffer';
@@ -188,7 +188,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     return this.options.storage.setConfig(normalize(values), normalize(acl));
   }
 
-  async run(proto: P, name: string, payload: any, options?: ExtraOptions<boolean, P>) {
+  async run(proto: P, name: string, payload: any, options?: ExtraOptions<boolean>) {
 
     const func = this.functions?.[name];
 
@@ -209,7 +209,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     return callback(proxy(payload ?? proto));
   }
 
-  async varifyPassword(proto: P, user: TUser, password: string, options: ExtraOptions<true, P>) {
+  async varifyPassword(proto: P, user: TUser, password: string, options: ExtraOptions<true>) {
     if (!user.objectId) throw Error('Invalid user object');
     const _user = await proto.InsecureQuery('User')
       .equalTo('_id', user.objectId)
@@ -219,7 +219,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     return varifyPassword(alg, password, opts);
   }
 
-  async setPassword(proto: P, user: TUser, password: string, options: ExtraOptions<true, P>) {
+  async setPassword(proto: P, user: TUser, password: string, options: ExtraOptions<true>) {
     if (!user.objectId) throw Error('Invalid user object');
     if (_.isEmpty(password)) throw Error('Invalid password');
     const { alg, ...opts } = this.options.passwordHashOptions;
@@ -232,7 +232,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
       }, options);
   }
 
-  async unsetPassword(proto: P, user: TUser, options: ExtraOptions<true, P>) {
+  async unsetPassword(proto: P, user: TUser, options: ExtraOptions<true>) {
     if (!user.objectId) throw Error('Invalid user object');
     await proto.InsecureQuery('User')
       .equalTo('_id', user.objectId)
@@ -242,7 +242,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
       }, options);
   }
 
-  async updateFile(proto: P, object: TFile, options?: ExtraOptions<boolean, P>) {
+  async updateFile(proto: P, object: TFile, options?: ExtraOptions<boolean>) {
 
     if ('filename' in object[PVK].mutated && _.isEmpty(object.get('filename'))) {
       throw Error('Invalid filename');
@@ -279,7 +279,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     };
   }
 
-  async createFile(proto: P, object: TFile, options?: ExtraOptions<boolean, P> & { uploadToken?: string; }) {
+  async createFile(proto: P, object: TFile, options?: ExtraOptions<boolean> & { uploadToken?: string; }) {
 
     const data = object[PVK].extra.data as FileData | { _id: string; size: number; };
     if (_.isNil(data)) throw Error('Invalid file object');
@@ -341,7 +341,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     }
   }
 
-  async saveFile(proto: P, object: TFile, options?: ExtraOptions<boolean, P>) {
+  async saveFile(proto: P, object: TFile, options?: ExtraOptions<boolean>) {
     if (object.objectId) {
       object = await this.updateFile(proto, object, options);
     } else {
@@ -350,7 +350,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     return object;
   }
 
-  async deleteFile(proto: P, object: TFile, options?: ExtraOptions<boolean, P>) {
+  async deleteFile(proto: P, object: TFile, options?: ExtraOptions<boolean>) {
 
     object = await object.fetchIfNeeded(['token'], options);
 
@@ -369,7 +369,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     return object;
   }
 
-  fileData(proto: P, object: TFile, options?: ExtraOptions<boolean, P>) {
+  fileData(proto: P, object: TFile, options?: ExtraOptions<boolean>) {
     const self = this;
     return Readable.from({
       [Symbol.asyncIterator]: async function* () {
@@ -458,10 +458,10 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     return true;
   }
 
-  async refs(proto: P, object: TObject, options?: ExtraOptions<boolean, P>) {
+  async refs(proto: P, object: TObject, options?: ExtraOptions<boolean>) {
     const roles = options?.master ? [] : await this._perms(proto);
     const classNames = options?.master ? _.keys(this.options.schema) : _.filter(_.keys(this.options.schema), x => proto[PVK].validateCLPs(x, roles, ['find']));
-    const storage = options?.session?.storage ?? this.options.storage;
+    const storage = _serviceOf(options)?.storage ?? this.options.storage;
     return storage.refs(object, classNames, options?.master ? undefined : roles);
   }
 }

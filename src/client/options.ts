@@ -25,8 +25,7 @@
 
 import { SerializeOptions } from '../common';
 import { ExtraOptions } from '../internals/options';
-import { ProtoType } from '../internals/proto';
 
-export type RequestOptions<M extends boolean, P extends ProtoType<any>> = ExtraOptions<M, P> & {
+export type RequestOptions<M extends boolean> = ExtraOptions<M> & {
   serializeOpts?: SerializeOptions;
 };

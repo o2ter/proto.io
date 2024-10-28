@@ -30,7 +30,6 @@ import { PVK } from '../private';
 import { TObjectType } from '../object/types';
 import { TQueryBase, TQueryBaseOptions } from './base';
 import { TUpdateOp } from '../object/types';
-import { ProtoType } from '../proto';
 import { ExtraOptions } from '../options';
 import { asyncStream, Awaitable } from '@o2ter/utils-js';
 
@@ -42,11 +41,7 @@ export interface TQueryRandomOptions {
   weight?: string;
 };
 
-export abstract class TQuery<
-  T extends string, Ext,
-  M extends boolean,
-  P extends ProtoType<any>
-> extends TQueryBase {
+export abstract class TQuery<T extends string, Ext, M extends boolean> extends TQueryBase {
 
   /** @internal */
   [PVK]: {
@@ -66,53 +61,53 @@ export abstract class TQuery<
     return this[PVK].className;
   }
 
-  abstract clone(options?: TQueryOptions): TQuery<T, Ext, M, P>;
-  abstract explain(options?: ExtraOptions<M, P>): PromiseLike<any>;
-  abstract count(options?: ExtraOptions<M, P>): PromiseLike<number>;
-  abstract find(options?: ExtraOptions<M, P>): ReturnType<typeof asyncStream<TObjectType<T, Ext>>>;
+  abstract clone(options?: TQueryOptions): TQuery<T, Ext, M>;
+  abstract explain(options?: ExtraOptions<M>): PromiseLike<any>;
+  abstract count(options?: ExtraOptions<M>): PromiseLike<number>;
+  abstract find(options?: ExtraOptions<M>): ReturnType<typeof asyncStream<TObjectType<T, Ext>>>;
   abstract random(
     opts?: TQueryRandomOptions,
-    options?: ExtraOptions<M, P>
+    options?: ExtraOptions<M>
   ): ReturnType<typeof asyncStream<TObjectType<T, Ext>>>;
-  abstract nonrefs(options?: ExtraOptions<M, P>): ReturnType<typeof asyncStream<TObjectType<T, Ext>>>;
+  abstract nonrefs(options?: ExtraOptions<M>): ReturnType<typeof asyncStream<TObjectType<T, Ext>>>;
   abstract insert(
     attrs: Record<string, TValue>,
-    options?: ExtraOptions<M, P>
+    options?: ExtraOptions<M>
   ): PromiseLike<TObjectType<T, Ext>>;
   abstract insertMany(
     values: Record<string, TValue>[],
-    options?: ExtraOptions<M, P>
+    options?: ExtraOptions<M>
   ): PromiseLike<number>;
   abstract updateOne(
     update: Record<string, TUpdateOp>,
-    options?: ExtraOptions<M, P>
+    options?: ExtraOptions<M>
   ): PromiseLike<TObjectType<T, Ext> | undefined>;
   abstract upsertOne(
     update: Record<string, TUpdateOp>,
     setOnInsert: Record<string, TValue>,
-    options?: ExtraOptions<M, P>
+    options?: ExtraOptions<M>
   ): PromiseLike<TObjectType<T, Ext>>;
-  abstract deleteOne(options?: ExtraOptions<M, P>): PromiseLike<TObjectType<T, Ext> | undefined>;
-  abstract deleteMany(options?: ExtraOptions<M, P>): PromiseLike<number>;
+  abstract deleteOne(options?: ExtraOptions<M>): PromiseLike<TObjectType<T, Ext> | undefined>;
+  abstract deleteMany(options?: ExtraOptions<M>): PromiseLike<number>;
 
   includes<T extends string[]>(...includes: IncludePaths<T>) {
     this[PVK].options.includes = this[PVK].options.includes ? [...this[PVK].options.includes, ...includes] : includes;
     return this;
   }
 
-  async get(id: string, options?: ExtraOptions<M, P>) {
+  async get(id: string, options?: ExtraOptions<M>) {
     return _.first(await this.clone().equalTo('_id', id).limit(1).find(options));
   }
 
-  async first(options?: ExtraOptions<M, P>) {
+  async first(options?: ExtraOptions<M>) {
     return _.first(await this.clone().limit(1).find(options));
   }
 
-  async randomOne(opts?: TQueryRandomOptions, options?: ExtraOptions<M, P>) {
+  async randomOne(opts?: TQueryRandomOptions, options?: ExtraOptions<M>) {
     return _.first(await this.clone().limit(1).random(opts, options));
   }
 
-  async exists(options?: ExtraOptions<M, P>) {
+  async exists(options?: ExtraOptions<M>) {
     const query = this.clone();
     this[PVK].options.includes = [];
     return !_.isNil(await query.limit(1).find(options));
@@ -120,7 +115,7 @@ export abstract class TQuery<
 
   async eachBatch(
     callback: (batch: TObjectType<T, Ext>[]) => Awaitable<void>,
-    options?: ExtraOptions<M, P> & { batchSize?: number; },
+    options?: ExtraOptions<M> & { batchSize?: number; },
   ) {
     const sorting = this[PVK].options.sort as Record<string, 1 | -1> ?? {};
     const batchSize = options?.batchSize ?? 100;
@@ -152,7 +147,7 @@ export abstract class TQuery<
 
   async each(
     callback: (object: TObjectType<T, Ext>) => Awaitable<void>,
-    options?: ExtraOptions<M, P> & { batchSize?: number; },
+    options?: ExtraOptions<M> & { batchSize?: number; },
   ) {
     await this.eachBatch(async (batch) => {
       for (const object of batch) {

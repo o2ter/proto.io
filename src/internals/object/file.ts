@@ -28,12 +28,11 @@ import { TObject } from './index';
 import { ExtraOptions } from '../options';
 import { FileStream } from '../buffer';
 import { TValue } from '../types';
-import { ProtoType } from '../proto';
 
 export interface TFile {
   url: string | undefined;
-  fileData(options?: ExtraOptions<boolean, ProtoType<any>>): FileStream;
-  save(options?: ExtraOptions<boolean, ProtoType<any>> & {
+  fileData(options?: ExtraOptions<boolean>): FileStream;
+  save(options?: ExtraOptions<boolean> & {
     cascadeSave?: boolean;
     uploadToken?: string;
   }): PromiseLike<this>;

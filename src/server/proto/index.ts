@@ -45,7 +45,7 @@ import { TObject } from '../../internals/object';
 import { asyncStream } from '@o2ter/utils-js';
 import { TRole } from '../../internals/object/role';
 
-export class ProtoService<Ext> extends ProtoType<Ext> {
+export class ProtoService<Ext = any> extends ProtoType<Ext> {
 
   /** @internal */
   [PVK]: ProtoInternal<Ext, this>;
@@ -91,11 +91,11 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     return _.keys(this[PVK].options.schema);
   }
 
-  Query<T extends string>(className: T): TQuery<T, Ext, boolean, this> {
+  Query<T extends string>(className: T): TQuery<T, Ext, boolean> {
     return new ProtoQuery<T, Ext, boolean>(className, this, {});
   }
 
-  Relation<T extends string>(className: T, object: TObject, key: string): TQuery<T, Ext, boolean, this> {
+  Relation<T extends string>(className: T, object: TObject, key: string): TQuery<T, Ext, boolean> {
     const objectId = object.objectId;
     if (!objectId) throw Error('Invalid object');
     return new ProtoQuery<T, Ext, boolean>(className, this, {
@@ -107,7 +107,7 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     });
   }
 
-  InsecureQuery<T extends string>(className: T): TQuery<T, Ext, true, this> {
+  InsecureQuery<T extends string>(className: T): TQuery<T, Ext, true> {
     return new ProtoQuery<T, Ext, true>(className, this, { insecure: true });
   }
 
@@ -183,15 +183,15 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     if (req.res) await signUser(this, req.res, undefined, options);
   }
 
-  varifyPassword(user: TUser, password: string, options: ExtraOptions<true, this>) {
+  varifyPassword(user: TUser, password: string, options: ExtraOptions<true>) {
     return this[PVK].varifyPassword(this, user, password, options);
   }
 
-  setPassword(user: TUser, password: string, options: ExtraOptions<true, this>) {
+  setPassword(user: TUser, password: string, options: ExtraOptions<true>) {
     return this[PVK].setPassword(this, user, password, options);
   }
 
-  unsetPassword(user: TUser, options: ExtraOptions<true, this>) {
+  unsetPassword(user: TUser, options: ExtraOptions<true>) {
     return this[PVK].unsetPassword(this, user, options);
   }
 
@@ -219,7 +219,7 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     await this[PVK].setConfig(values, options.acl);
   }
 
-  run(name: string, params?: TSerializable, options?: ExtraOptions<boolean, this>) {
+  run(name: string, params?: TSerializable, options?: ExtraOptions<boolean>) {
     const payload = Object.setPrototypeOf({ params }, this);
     return this[PVK].run(this, name, payload, options);
   }
@@ -290,7 +290,7 @@ export class ProtoService<Ext> extends ProtoType<Ext> {
     });
   }
 
-  refs(object: TObject, options?: ExtraOptions<boolean, this>) {
+  refs(object: TObject, options?: ExtraOptions<boolean>) {
     if (!object.objectId) throw Error('Invalid object');
     const self = this;
     return asyncStream(async function* () {

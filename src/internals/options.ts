@@ -24,14 +24,17 @@
 //
 
 import { TSerializable } from '../common/codec';
+import { ProtoService } from '../server/proto';
 import { ProtoType } from './proto';
 
 type TriggerType = 'beforeSave' | 'afterSave' | 'beforeDelete' | 'afterDelete';
 
-export type ExtraOptions<M extends boolean, P extends ProtoType<any>> = {
+export type ExtraOptions<M extends boolean> = {
   master?: M;
   context?: TSerializable;
   silent?: TriggerType | TriggerType[];
-  session?: P;
+  session?: ProtoType<any>;
   abortSignal?: AbortSignal;
 };
+
+export const _serviceOf = (options?: ExtraOptions<any>) => options?.session instanceof ProtoService ? options?.session : undefined;

@@ -29,7 +29,7 @@ import { dispatcher } from './dispatcher';
 import { proxy } from '../proto/proxy';
 import { asyncIterableToArray, asyncStream } from '@o2ter/utils-js';
 import { PVK } from '../../internals/private';
-import { ExtraOptions } from '../../internals/options';
+import { _serviceOf, ExtraOptions } from '../../internals/options';
 import { TQuery, TQueryOptions, TQueryRandomOptions } from '../../internals/query';
 import { TObject, decodeUpdateOp } from '../../internals/object';
 import { TExtended } from '../../internals/object/methods';
@@ -45,7 +45,7 @@ type _QueryOptions = {
   };
 };
 
-export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T, E, M, ProtoService<E>> {
+export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T, E, M> {
 
   private _proto: ProtoService<E>;
   private _opts: _QueryOptions;
@@ -65,23 +65,23 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
   }
 
   private _dispatcher(
-    options?: ExtraOptions<M, ProtoService<E>>
+    options?: ExtraOptions<M>
   ): ReturnType<typeof dispatcher<E>> {
     if (this._opts.insecure) {
       if (options?.master !== true) throw Error('No permission');
     }
     return dispatcher(
-      options?.session ?? this._proto,
+      _serviceOf(options) ?? this._proto,
       options ?? {},
       !!this._opts.insecure,
     );
   }
 
-  explain(options?: ExtraOptions<M, ProtoService<E>>) {
+  explain(options?: ExtraOptions<M>) {
     return this._dispatcher(options).explain(this._queryOptions);
   }
 
-  count(options?: ExtraOptions<M, ProtoService<E>>) {
+  count(options?: ExtraOptions<M>) {
     return this._dispatcher(options).count(this._queryOptions);
   }
 
@@ -95,7 +95,7 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
     return this._proto.rebind(object) as TExtended<U, T, E>;
   }
 
-  find(options?: ExtraOptions<M, ProtoService<E>>) {
+  find(options?: ExtraOptions<M>) {
     const self = this;
     return asyncStream(async function* () {
       const objects = await self._dispatcher(options).find(self._queryOptions);
@@ -103,7 +103,7 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
     });
   }
 
-  nonrefs(options?: ExtraOptions<M, ProtoService<E>>) {
+  nonrefs(options?: ExtraOptions<M>) {
     const self = this;
     return asyncStream(async function* () {
       const objects = await self._dispatcher(options).nonrefs(self._queryOptions);
@@ -113,7 +113,7 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
 
   random(
     opts?: TQueryRandomOptions,
-    options?: ExtraOptions<M, ProtoService<E>>
+    options?: ExtraOptions<M>
   ) {
     const self = this;
     return asyncStream(async function* () {
@@ -124,7 +124,7 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
 
   async insert(
     attrs: Record<string, TValue>,
-    options?: ExtraOptions<M, ProtoService<E>>
+    options?: ExtraOptions<M>
   ) {
     const context = options?.context ?? {};
     const silent = _.castArray(options?.silent ?? []);
@@ -160,7 +160,7 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
 
   async insertMany(
     values: Record<string, TValue>[],
-    options?: ExtraOptions<M, ProtoService<E>>
+    options?: ExtraOptions<M>
   ) {
     const context = options?.context ?? {};
     const silent = _.castArray(options?.silent ?? []);
@@ -209,7 +209,7 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
 
   async updateOne(
     update: Record<string, TUpdateOp>,
-    options?: ExtraOptions<M, ProtoService<E>>
+    options?: ExtraOptions<M>
   ) {
     const context = options?.context ?? {};
     const silent = _.castArray(options?.silent ?? []);
@@ -248,7 +248,7 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
   async upsertOne(
     update: Record<string, TUpdateOp>,
     setOnInsert: Record<string, TValue>,
-    options?: ExtraOptions<M, ProtoService<E>>
+    options?: ExtraOptions<M>
   ) {
     const context = options?.context ?? {};
     const silent = _.castArray(options?.silent ?? []);
@@ -301,7 +301,7 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
     return result;
   }
 
-  async deleteOne(options?: ExtraOptions<M, ProtoService<E>>) {
+  async deleteOne(options?: ExtraOptions<M>) {
     const context = options?.context ?? {};
     const silent = _.castArray(options?.silent ?? []);
 
@@ -342,7 +342,7 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
     return result;
   }
 
-  async deleteMany(options?: ExtraOptions<M, ProtoService<E>>) {
+  async deleteMany(options?: ExtraOptions<M>) {
     const context = options?.context ?? {};
     const silent = _.castArray(options?.silent ?? []);
 

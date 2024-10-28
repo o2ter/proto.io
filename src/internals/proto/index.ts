@@ -65,10 +65,10 @@ export interface ProtoInternalType<Ext, P extends ProtoType<any>> {
     classExtends?: TExtensions<Ext>;
   };
 
-  saveFile(proto: P, object: TFile, options?: ExtraOptions<boolean, P>): Promise<TFile>;
-  deleteFile(proto: P, object: TFile, options?: ExtraOptions<boolean, P>): Promise<TFile>;
+  saveFile(proto: P, object: TFile, options?: ExtraOptions<boolean>): Promise<TFile>;
+  deleteFile(proto: P, object: TFile, options?: ExtraOptions<boolean>): Promise<TFile>;
 
-  fileData(proto: P, object: TFile, options?: ExtraOptions<boolean, P>): FileStream;
+  fileData(proto: P, object: TFile, options?: ExtraOptions<boolean>): FileStream;
 }
 
 export abstract class ProtoType<Ext> {
@@ -80,11 +80,11 @@ export abstract class ProtoType<Ext> {
   abstract configAcl(options: { master: true; }): PromiseLike<Record<string, string[]>>;
   abstract setConfig(values: Record<string, _TValue>, options: { master: true; acl?: string[]; }): Promise<void>;
 
-  abstract run(name: string, data?: TSerializable, options?: ExtraOptions<boolean, this>): Promise<void | TSerializable>;
-  abstract Query<T extends string>(className: T): TQuery<T, Ext, boolean, this>;
-  abstract Relation<T extends string>(className: T, object: TObject, key: string): TQuery<T, Ext, boolean, this>;
+  abstract run(name: string, data?: TSerializable, options?: ExtraOptions<boolean>): Promise<void | TSerializable>;
+  abstract Query<T extends string>(className: T): TQuery<T, Ext, boolean>;
+  abstract Relation<T extends string>(className: T, object: TObject, key: string): TQuery<T, Ext, boolean>;
 
-  abstract refs(object: TObject, options?: ExtraOptions<boolean, this>): ReturnType<typeof asyncStream<TObjectType<string, Ext>>>;
+  abstract refs(object: TObject, options?: ExtraOptions<boolean>): ReturnType<typeof asyncStream<TObjectType<string, Ext>>>;
 
   async online() {
     try {
@@ -136,7 +136,7 @@ export abstract class ProtoType<Ext> {
 
   abstract notify(
     data: Record<string, _TValue> & { _rperm?: string[]; },
-    options?: ExtraOptions<boolean, this>
+    options?: ExtraOptions<boolean>
   ): Promise<void>
 
   abstract listen(callback: (data: EventData) => void): {
@@ -175,9 +175,9 @@ export interface ProtoType<Ext> {
     }
   ): Promise<void>;
 
-  varifyPassword(user: TUser, password: string, options: ExtraOptions<true, this>): Promise<boolean>;
-  setPassword(user: TUser, password: string, options: ExtraOptions<true, this>): Promise<void>;
-  unsetPassword(user: TUser, options: ExtraOptions<true, this>): Promise<void>;
+  varifyPassword(user: TUser, password: string, options: ExtraOptions<true>): Promise<boolean>;
+  setPassword(user: TUser, password: string, options: ExtraOptions<true>): Promise<void>;
+  unsetPassword(user: TUser, options: ExtraOptions<true>): Promise<void>;
 
   define(
     name: string,
