@@ -42,6 +42,28 @@ export const recursiveCheck = (x: any, stack: any[]) => {
   children.forEach(v => recursiveCheck(v, [...stack, x]));
 }
 
+export const resolveDataType = (
+  schema: Record<string, TSchema>,
+  classname: string,
+  path: string,
+) => {
+  let fields = schema[classname].fields;
+  let last;
+  for (const key of _.toPath(path)) {
+    const dataType = fields[key];
+    if (_.isNil(dataType)) throw Error(`Invalid path: ${path}`);
+    if (isPrimitive(dataType) || isVector(dataType)) return dataType;
+    if (isShape(dataType)) {
+      fields = dataType.shape;
+      continue;
+    }
+    if (_.isNil(schema[dataType.target])) throw Error(`Invalid path: ${path}`);
+    fields = schema[dataType.target].fields;
+    last = dataType;
+  }
+  return last;
+}
+
 export const _resolveColumn = (schema: Record<string, TSchema>, className: string, path: string) => {
   const _schema = schema[className] ?? {};
   let [colname, ...subpath] = path.split('.');
@@ -133,7 +155,7 @@ export class QueryValidator<E> {
 
   validateForeignField(dataType: TSchema.RelationType, type: keyof TSchema.FLPs, errorMeg: string) {
     if (_.isNil(dataType.foreignField)) return;
-    const foreignField = this.schema[dataType.target]?.fields[dataType.foreignField];
+    const foreignField = resolveDataType(this.schema, dataType.target, dataType.foreignField);
     if (_.isNil(foreignField) || _.isString(foreignField)) throw Error(errorMeg);
     if (isPrimitive(foreignField)) throw Error(errorMeg);
     if (foreignField.type === 'relation' && !_.isNil(foreignField.foreignField)) throw Error(errorMeg);

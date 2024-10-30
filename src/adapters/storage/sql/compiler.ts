@@ -30,7 +30,7 @@ import { DecodedBaseQuery, DecodedQuery, FindOneOptions, FindOptions, InsertOpti
 import { SQL, sql } from './sql';
 import { generateId } from '../../../server/crypto/random';
 import { SqlDialect } from './dialect';
-import { _resolveColumn } from '../../../server/query/dispatcher/validator';
+import { _resolveColumn, resolveDataType } from '../../../server/query/dispatcher/validator';
 import { decodeUpdateOp } from '../../../internals/object';
 import { TUpdateOp } from '../../../internals/object/types';
 import { TValue } from '../../../internals/types';
@@ -47,7 +47,7 @@ export type Populate = {
   name: string;
   className: string;
   type: TSchema.Relation;
-  foreignField?: { colname: string; type: TSchema.Relation; };
+  foreignField?: string;
   subpaths: string[];
   filter: QuerySelector;
   includes: Record<string, TSchema.DataType>;
@@ -181,12 +181,10 @@ export class QueryCompiler {
           colname,
         };
         if (isRelation(dataType) && dataType.foreignField) {
-          const targetType = this.schema[dataType.target].fields[dataType.foreignField];
+          const targetType = resolveDataType(this.schema, dataType.target, dataType.foreignField);
+          if (_.isNil(targetType)) throw Error(`Invalid path: ${include}`);
           if (!isPointer(targetType) && !isRelation(targetType)) throw Error(`Invalid path: ${include}`);
-          populates[colname].foreignField = {
-            colname: dataType.foreignField,
-            type: targetType.type,
-          };
+          populates[colname].foreignField = dataType.foreignField;
         }
         populates[colname].subpaths.push(subpath.join('.'));
       } else if (!_.isEmpty(subpath)) {
