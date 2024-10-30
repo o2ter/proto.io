@@ -160,7 +160,7 @@ const encodeForeignField = (
         ON ${sql`(${{ quote: dataType.target + '$' }} || ${_foreign('_id')})`} = ${_local(colname)}
       `, ...joins],
       field,
-      array: false,
+      array,
       rows,
     };
   }
