@@ -23,7 +23,7 @@
 //  THE SOFTWARE.
 //
 
-import _, { sortBy } from 'lodash';
+import _ from 'lodash';
 import { masterUser } from './server';
 import { test, expect } from '@jest/globals';
 import Decimal from 'decimal.js';
