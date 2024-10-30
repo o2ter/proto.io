@@ -1626,15 +1626,18 @@ test('test relation 11', async () => {
     relation: [inserted3],
   });
   const inserted5 = await Proto.Query('Test').insert({
-    pointer: inserted4,
+    relation: [inserted4],
   });
   const inserted6 = await Proto.Query('Test').insert({
     pointer: inserted5,
   });
+  const inserted7 = await Proto.Query('Test').insert({
+    pointer: inserted6,
+  });
 
   const q = Proto.Query('Test').equalTo('_id', inserted.objectId);
 
-  expect(_.map((await q.clone().includes('relation7').first())?.get('relation7'), x => x.objectId).sort()).toStrictEqual([inserted6.objectId].sort());
+  expect(_.map((await q.clone().includes('relation7').first())?.get('relation7'), x => x.objectId).sort()).toStrictEqual([inserted7.objectId].sort());
 
 }, 60000)
 

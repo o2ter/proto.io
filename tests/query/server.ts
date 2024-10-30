@@ -93,7 +93,7 @@ const Proto = new ProtoService({
         relation4: { type: 'relation', target: 'Test', foreignField: 'pointer.pointer' },
         relation5: { type: 'relation', target: 'Test', foreignField: 'pointer.pointer.relation' },
         relation6: { type: 'relation', target: 'Test', foreignField: 'pointer.pointer.relation.relation' },
-        relation7: { type: 'relation', target: 'Test', foreignField: 'pointer.pointer.relation.relation.relation' },
+        relation7: { type: 'relation', target: 'Test', foreignField: 'pointer.pointer.relation.relation.relation.relation' },
         relation8: { type: 'relation', target: 'Test', foreignField: 'pointer.pointer.relation2.relation' },
         'test_field-name': 'string',
         shape: schema.shape({
