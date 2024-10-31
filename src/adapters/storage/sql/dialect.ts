@@ -74,7 +74,7 @@ export interface SqlDialect {
     context: CompileContext,
     parent: { className: string; name: string; },
     relatedBy: NonNullable<RelationOptions['relatedBy']>
-  ): { join: SQL; filter: SQL; }
+  ): SQL
 
   encodeSortKey(
     compiler: QueryCompiler,
