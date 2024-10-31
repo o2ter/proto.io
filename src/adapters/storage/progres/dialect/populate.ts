@@ -129,7 +129,7 @@ const encodeRemix = (
   (SELECT * FROM ${{ identifier: remix.name }} UNION SELECT * FROM ${{ identifier: parent.className }})
 ` : { identifier: parent.className }}`;
 
-const encodeForeignField = (
+export const encodeForeignField = (
   compiler: QueryCompiler,
   context: CompileContext,
   parent: { className: string; name: string; },

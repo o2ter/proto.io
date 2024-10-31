@@ -27,6 +27,7 @@ import _ from 'lodash';
 import { CompileContext, QueryCompiler } from '../../sql/compiler';
 import { RelationOptions } from '../../../../server/storage';
 import { sql, SQL } from '../../sql';
+import { encodeForeignField } from './populate';
 
 export const encodeRelation = (
   compiler: QueryCompiler,
@@ -37,9 +38,11 @@ export const encodeRelation = (
   const name = `_relation_$${relatedBy.className.toLowerCase()}`;
   const _local = (field: string) => sql`${{ identifier: parent.name }}.${{ identifier: field }}`;
   const _foreign = (field: string) => sql`${{ identifier: name }}.${{ identifier: field }}`;
+  const { joins, field } = encodeForeignField(compiler, context, { className: relatedBy.className, name }, relatedBy.key);
   return sql`EXISTS (
     SELECT 1
     FROM ${{ identifier: relatedBy.className }} AS ${{ identifier: name }}
-    WHERE ${_foreign('_id')} = ${{ value: relatedBy.objectId }} AND ${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ANY(${_foreign(relatedBy.key)})
+    ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
+    WHERE ${_foreign('_id')} = ${{ value: relatedBy.objectId }} AND ${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ANY(${field})
   )`;
 }
