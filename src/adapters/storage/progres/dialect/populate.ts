@@ -195,7 +195,11 @@ export const encodePopulate = (
   const _populates = _.map(parent.populates, (populate, field) => selectPopulate(compiler, parent, populate, field));
   const _joins = _.compact(_.map(_populates, ({ join }) => join));
   const _includes = _.pickBy(parent.includes, v => isPrimitive(v));
-  const { joins: _joins2 = [], field: _foreignField, rows } = parent.foreignField ? encodeForeignField(compiler, context, {
+  const {
+    joins: _joins2 = [],
+    field: _foreignField = undefined,
+    rows = false,
+  } = parent.foreignField ? encodeForeignField(compiler, context, {
     className: parent.className,
     name: parent.name,
   }, parent.foreignField, remix) : {};
