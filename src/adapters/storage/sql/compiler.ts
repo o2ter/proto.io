@@ -227,11 +227,12 @@ export class QueryCompiler {
       separator: ',\n',
     };
 
+    const { join: join2, filter: relatedFilter } = query.relatedBy ? this.dialect.encodeRelation(this, context, parent, query.relatedBy) : {};
+
     const _options = _.isFunction(options) ? options({ fetchName }) : options;
     const filter = _.compact([
       baseFilter,
       _options?.extraFilter,
-      query.relatedBy && this.dialect.encodeRelation(this, context, parent, query.relatedBy),
     ]);
 
     return {
@@ -242,7 +243,8 @@ export class QueryCompiler {
         SELECT ${_options?.select ? _options?.select : sql`*`} FROM (
           SELECT ${includes}
           FROM ${{ identifier: query.className }} AS ${{ identifier: fetchName }}
-          ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
+          ${!_.isEmpty(joins) || !_.isNil(join2) ? { literal: _.compact([...joins, join2]), separator: '\n' } : sql``}
+          ${relatedFilter ? sql`WHERE ${relatedFilter}` : sql``}
           ${this.selectLock ? this.isUpdate ? sql`FOR UPDATE NOWAIT` : sql`FOR SHARE NOWAIT` : sql``}
         ) AS ${{ identifier: fetchName }}
         ${!_.isEmpty(filter) ? sql`WHERE ${{ literal: _.map(filter, x => sql`(${x})`), separator: ' AND ' }}` : sql``}

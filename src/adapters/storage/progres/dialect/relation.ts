@@ -34,15 +34,22 @@ export const encodeRelation = (
   context: CompileContext,
   parent: { className: string; name: string; },
   relatedBy: NonNullable<RelationOptions['relatedBy']>
-): SQL => {
+): { join: SQL; filter: SQL; } => {
   const name = `_relation_$${relatedBy.className.toLowerCase()}`;
   const _local = (field: string) => sql`${{ identifier: parent.name }}.${{ identifier: field }}`;
   const _foreign = (field: string) => sql`${{ identifier: name }}.${{ identifier: field }}`;
-  const { joins, field } = encodeForeignField(compiler, context, { className: relatedBy.className, name }, relatedBy.key);
-  return sql`EXISTS (
-    SELECT 1
-    FROM ${{ identifier: relatedBy.className }} AS ${{ identifier: name }}
-    ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
-    WHERE ${_foreign('_id')} = ${{ value: relatedBy.objectId }} AND ${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ANY(${field})
-  )`;
+  const { joins, field, rows } = encodeForeignField(compiler, context, { className: relatedBy.className, name }, relatedBy.key);
+  return {
+    join: sql`EXISTS (
+      SELECT 1
+      FROM ${{ identifier: name }}
+      WHERE ${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ANY(SELECT * FROM ${{ identifier: name }})
+    )`,
+    filter: sql`LEFT JOIN (
+      SELECT ${rows ? sql`ARRAY(${field})` : field} AS ${{ identifier: relatedBy.key }}
+      FROM ${{ identifier: relatedBy.className }} AS ${{ identifier: name }}
+      ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
+      WHERE ${_foreign('_id')} = ${{ value: relatedBy.objectId }}
+    ) AS ${{ identifier: name }}`,
+  };
 }
