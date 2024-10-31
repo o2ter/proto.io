@@ -1757,13 +1757,33 @@ test('test relation query 4', async () => {
 })
 
 test('test relation query 5', async () => {
+  const inserted = await Proto.Query('Test').insert({
+    number: 42.5,
+  });
+  const inserted2 = await Proto.Query('Test').insert({
+    pointer: inserted,
+  });
+  const inserted3 = await Proto.Query('Test').insert({
+    pointer: inserted2,
+  });
+
+  const result = await Proto.Relation('Test', inserted, 'relation4').find();
+
+  expect(_.map(result, x => x.objectId).sort()).toStrictEqual([inserted3.objectId].sort());
+
+}, 60000)
+
+test('test relation query 6', async () => {
 
   const inserted = await Proto.Query('Test').insert({
     number: 42.5,
   });
+  const inserted_b = await Proto.Query('Test').insert({
+    number: 42.5,
+  });
 
   const inserted2 = await Proto.Query('Test').insert({
-    relation: [inserted],
+    relation: [inserted, inserted_b],
   });
 
   const inserted3 = await Proto.Query('Test').insert({
@@ -1775,6 +1795,32 @@ test('test relation query 5', async () => {
 
   const result = await Proto.Relation('Test', inserted, 'relation5').find();
   expect(_.map(result, x => x.objectId).sort()).toStrictEqual([inserted4.objectId].sort());
+}, 60000)
+
+test('test relation query 6b', async () => {
+  const inserted = await Proto.Query('Test').insert({
+    number: 42.5,
+  });
+  const inserted2 = await Proto.Query('Test').insert({
+    relation: [inserted],
+  });
+  const inserted3 = await Proto.Query('Test').insert({
+    pointer: inserted2,
+  });
+  const inserted3_b = await Proto.Query('Test').insert({
+    pointer: inserted2,
+  });
+  const inserted4 = await Proto.Query('Test').insert({
+    pointer: inserted3,
+  });
+  const inserted4_b = await Proto.Query('Test').insert({
+    pointer: inserted3_b,
+  });
+
+  const result = await Proto.Relation('Test', inserted, 'relation5').find();
+
+  expect(_.map(result, x => x.objectId).sort()).toStrictEqual([inserted4.objectId, inserted4_b.objectId].sort());
+
 }, 60000)
 
 test('test update', async () => {
