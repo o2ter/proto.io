@@ -363,7 +363,8 @@ export class QueryValidator<E> {
       if (!_.isEmpty(subpath)) throw Error('*** unimplement ***');
       if (!isRelation(dataType) || dataType.target !== query.className) throw Error(`Invalid relation key: ${relatedBy.key}`);
       if (dataType.foreignField) {
-        const foreignField = this.schema[dataType.target]?.fields[dataType.foreignField];
+        const foreignField = resolveDataType(this.schema, dataType.target, dataType.foreignField);
+        if (!foreignField) throw Error(`Invalid relation key: ${relatedBy.key}`);
         if (!isPointer(foreignField) && !isRelation(foreignField)) throw Error(`Invalid relation key: ${relatedBy.key}`);
         this.validateForeignField(dataType, 'read', `Invalid relation key: ${relatedBy.key}`);
         const obj = this.proto.Object(query.relatedBy.className, query.relatedBy.objectId);

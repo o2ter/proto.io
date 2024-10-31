@@ -1756,6 +1756,27 @@ test('test relation query 4', async () => {
   expect(_.map(result2, x => x.get('number')).sort()).toStrictEqual([1, 2, 3, 4]);
 })
 
+test('test relation query 5', async () => {
+
+  const inserted = await Proto.Query('Test').insert({
+    number: 42.5,
+  });
+
+  const inserted2 = await Proto.Query('Test').insert({
+    relation: [inserted],
+  });
+
+  const inserted3 = await Proto.Query('Test').insert({
+    pointer: inserted2,
+  });
+  const inserted4 = await Proto.Query('Test').insert({
+    pointer: inserted3,
+  });
+
+  const result = await Proto.Relation('Test', inserted, 'relation5').find();
+  expect(_.map(result, x => x.objectId).sort()).toStrictEqual([inserted4.objectId].sort());
+}, 60000)
+
 test('test update', async () => {
   const date = new Date;
   const inserted = await Proto.Query('Test').insert({});
