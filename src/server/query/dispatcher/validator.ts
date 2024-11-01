@@ -358,7 +358,9 @@ export class QueryValidator<E> {
 
     if (relatedBy && !this.validateCLPs(relatedBy.className, 'get')) throw Error('No permission');
     if (relatedBy && !this.validateKey(relatedBy.className, relatedBy.key, 'read', QueryValidator.patterns.path)) throw Error('No permission');
-    const { dataType } = _resolveColumn(this.schema, relatedBy.className, relatedBy.key);
+
+    const { paths, dataType } = _resolveColumn(this.schema, relatedBy.className, relatedBy.key);
+    if (paths.length !== 1) throw Error(`Invalid relation key: ${relatedBy.key}`);
 
     if (!isRelation(dataType) || dataType.target !== className) throw Error(`Invalid relation key: ${relatedBy.key}`);
     if (!dataType.foreignField) return;
