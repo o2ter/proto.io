@@ -351,27 +351,32 @@ export class QueryValidator<E> {
     return _matches;
   }
 
+  decodeRelatedBy<Q extends FindOptions & RelationOptions>(query: Q) {
+
+    const { className, relatedBy } = query;
+    if (!relatedBy) return;
+
+    if (relatedBy && !this.validateCLPs(relatedBy.className, 'get')) throw Error('No permission');
+    if (relatedBy && !this.validateKey(relatedBy.className, relatedBy.key, 'read', QueryValidator.patterns.path)) throw Error('No permission');
+    const { dataType } = _resolveColumn(this.schema, relatedBy.className, relatedBy.key);
+
+    if (!isRelation(dataType) || dataType.target !== className) throw Error(`Invalid relation key: ${relatedBy.key}`);
+    if (!dataType.foreignField) return;
+
+    const foreignField = resolveDataType(this.schema, dataType.target, dataType.foreignField);
+    if (!foreignField) throw Error(`Invalid relation key: ${relatedBy.key}`);
+    if (!isPointer(foreignField) && !isRelation(foreignField)) throw Error(`Invalid relation key: ${relatedBy.key}`);
+    this.validateForeignField(dataType, 'read', `Invalid relation key: ${relatedBy.key}`);
+    const obj = this.proto.Object(relatedBy.className, relatedBy.objectId);
+
+    return {
+      [dataType.foreignField]: foreignField.type === 'pointer' ? { $eq: obj } : { $intersect: [obj] },
+    };
+  }
+
   decodeQuery<Q extends (FindOptions & RelationOptions) | FindOneOptions>(query: Q, action: keyof TSchema.ACLs): DecodedQuery<Q> {
 
-    let relation: TQuerySelector | undefined;
-
-    if ('relatedBy' in query && query.relatedBy) {
-      const { relatedBy } = query;
-      if (relatedBy && !this.validateCLPs(relatedBy.className, 'get')) throw Error('No permission');
-      if (relatedBy && !this.validateKey(relatedBy.className, relatedBy.key, 'read', QueryValidator.patterns.path)) throw Error('No permission');
-      const { dataType } = _resolveColumn(this.schema, relatedBy.className, relatedBy.key);
-      if (!isRelation(dataType) || dataType.target !== query.className) throw Error(`Invalid relation key: ${relatedBy.key}`);
-      if (dataType.foreignField) {
-        const foreignField = resolveDataType(this.schema, dataType.target, dataType.foreignField);
-        if (!foreignField) throw Error(`Invalid relation key: ${relatedBy.key}`);
-        if (!isPointer(foreignField) && !isRelation(foreignField)) throw Error(`Invalid relation key: ${relatedBy.key}`);
-        this.validateForeignField(dataType, 'read', `Invalid relation key: ${relatedBy.key}`);
-        const obj = this.proto.Object(query.relatedBy.className, query.relatedBy.objectId);
-        relation = {
-          [dataType.foreignField]: foreignField.type === 'pointer' ? { $eq: obj } : { $intersect: [obj] },
-        };
-      }
-    }
+    const relation = 'relatedBy' in query ? this.decodeRelatedBy(query) : undefined;
 
     const filter = QuerySelector.decode([
       ...action === 'read' ? this._rperm(query.className) : this._wperm(query.className),
