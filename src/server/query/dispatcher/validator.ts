@@ -302,7 +302,9 @@ export class QueryValidator<E> {
     const schema = this.schema[className] ?? {};
     const _matches: Record<string, DecodedBaseQuery> = {};
 
-    for (const { paths: [colname], dataType } of _.map(includes, x => _resolveColumn(this.schema, className, x))) {
+    const _includes = _.groupBy(_.map(includes, x => _resolveColumn(this.schema, className, x)), ({ paths: [colname] }) => colname);
+
+    for (const [colname, [{ dataType }]] of _.entries(_includes)) {
       if (!this.validateKeyPerm(colname, 'read', schema)) continue;
       if (isPrimitive(dataType) || isVector(dataType) || isShape(dataType)) continue;
       _matches[colname] = {
