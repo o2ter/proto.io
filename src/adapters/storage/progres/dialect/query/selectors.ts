@@ -183,7 +183,7 @@ export const encodeFieldExpression = (
         if (!_.isArray(expr.value)) break;
         if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
           return sql`${element} <@ ${{ value: _encodeValue(expr.value) }}`;
-        } else if (!_.isString(dataType) && dataType?.type === 'relation') {
+        } else if (relation) {
           if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
           return sql`ARRAY(SELECT (UNNEST ->> '_id') FROM UNNEST(${element})) <@ ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
         } else if (!dataType) {
@@ -196,7 +196,7 @@ export const encodeFieldExpression = (
         if (_.isEmpty(expr.value)) return sql`true`;
         if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
           return sql`${element} @> ${{ value: _encodeValue(expr.value) }}`;
-        } else if (!_.isString(dataType) && dataType?.type === 'relation') {
+        } else if (relation) {
           if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
           return sql`ARRAY(SELECT (UNNEST ->> '_id') FROM UNNEST(${element})) @> ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
         } else if (!dataType) {
@@ -209,7 +209,7 @@ export const encodeFieldExpression = (
         if (_.isEmpty(expr.value)) return sql`true`;
         if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
           return sql`NOT ${element} && ${{ value: _encodeValue(expr.value) }}`;
-        } else if (!_.isString(dataType) && dataType?.type === 'relation') {
+        } else if (relation) {
           if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
           return sql`NOT ARRAY(SELECT (UNNEST ->> '_id') FROM UNNEST(${element})) && ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
         } else if (!dataType) {
@@ -222,7 +222,7 @@ export const encodeFieldExpression = (
         if (_.isEmpty(expr.value)) return sql`false`;
         if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
           return sql`${element} && ${{ value: _encodeValue(expr.value) }}`;
-        } else if (!_.isString(dataType) && dataType?.type === 'relation') {
+        } else if (relation) {
           if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
           return sql`ARRAY(SELECT (UNNEST ->> '_id') FROM UNNEST(${element})) && ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
         } else if (!dataType) {
