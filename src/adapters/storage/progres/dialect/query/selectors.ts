@@ -185,7 +185,11 @@ export const encodeFieldExpression = (
           return sql`${element} <@ ${{ value: _encodeValue(expr.value) }}`;
         } else if (relation) {
           if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
-          return sql`ARRAY(SELECT (UNNEST ->> '_id') FROM UNNEST(${element})) <@ ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
+          return sql`ARRAY(
+            SELECT 
+              (${json ? sql`VALUE` : sql`UNNEST`} ->> '_id')
+            FROM ${json ? sql`jsonb_array_elements(${element})` : sql`UNNEST(${element})`}
+          ) <@ ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
         } else if (!dataType) {
           return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'array' AND ${element} <@ ${_encodeJsonValue(_encodeValue(expr.value))}`;
         }
@@ -198,7 +202,11 @@ export const encodeFieldExpression = (
           return sql`${element} @> ${{ value: _encodeValue(expr.value) }}`;
         } else if (relation) {
           if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
-          return sql`ARRAY(SELECT (UNNEST ->> '_id') FROM UNNEST(${element})) @> ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
+          return sql`ARRAY(
+            SELECT 
+              (${json ? sql`VALUE` : sql`UNNEST`} ->> '_id')
+            FROM ${json ? sql`jsonb_array_elements(${element})` : sql`UNNEST(${element})`}
+          ) @> ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
         } else if (!dataType) {
           return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'array' AND ${element} @> ${_encodeJsonValue(_encodeValue(expr.value))}`;
         }
@@ -211,7 +219,11 @@ export const encodeFieldExpression = (
           return sql`NOT ${element} && ${{ value: _encodeValue(expr.value) }}`;
         } else if (relation) {
           if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
-          return sql`NOT ARRAY(SELECT (UNNEST ->> '_id') FROM UNNEST(${element})) && ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
+          return sql`NOT ARRAY(
+            SELECT 
+              (${json ? sql`VALUE` : sql`UNNEST`} ->> '_id')
+            FROM ${json ? sql`jsonb_array_elements(${element})` : sql`UNNEST(${element})`}
+          ) && ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
         } else if (!dataType) {
           return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'array' AND NOT ${element} && ${_encodeJsonValue(_encodeValue(expr.value))}`;
         }
@@ -224,7 +236,11 @@ export const encodeFieldExpression = (
           return sql`${element} && ${{ value: _encodeValue(expr.value) }}`;
         } else if (relation) {
           if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
-          return sql`ARRAY(SELECT (UNNEST ->> '_id') FROM UNNEST(${element})) && ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
+          return sql`ARRAY(
+            SELECT 
+              (${json ? sql`VALUE` : sql`UNNEST`} ->> '_id')
+            FROM ${json ? sql`jsonb_array_elements(${element})` : sql`UNNEST(${element})`}
+          ) && ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
         } else if (!dataType) {
           return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'array' AND ${element} && ${_encodeJsonValue(_encodeValue(expr.value))}`;
         }
