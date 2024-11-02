@@ -85,6 +85,34 @@ export const resolveColumn = (
   };
 }
 
+export const foreignFieldType = (
+  schema: Record<string, TSchema>,
+  className: string,
+  path: string,
+) => {
+  let fields = schema[className].fields;
+  let last;
+  let result = false;
+  for (const key of _.toPath(path)) {
+    const dataType = fields[key];
+    if (_.isNil(dataType)) return;
+    if (isPrimitive(dataType) || isVector(dataType)) return;
+    if (isShape(dataType)) {
+      fields = dataType.shape;
+      continue;
+    }
+    if (_.isNil(schema[dataType.target])) return;
+    if (dataType.type === 'relation') result = true;
+    fields = schema[dataType.target].fields;
+    last = dataType;
+  }
+  if (!last) return;
+  return {
+    target: last.target,
+    type: result ? 'relation' : last.type,
+  };
+}
+
 export class QueryValidator<E> {
 
   proto: ProtoService<E>
@@ -371,9 +399,8 @@ export class QueryValidator<E> {
     if (!isRelation(dataType) || dataType.target !== className) throw Error(`Invalid relation key: ${relatedBy.key}`);
     if (!dataType.foreignField) return;
 
-    const foreignField = resolveDataType(this.schema, dataType.target, dataType.foreignField);
+    const foreignField = foreignFieldType(this.schema, dataType.target, dataType.foreignField);
     if (!foreignField) throw Error(`Invalid relation key: ${relatedBy.key}`);
-    if (!isPointer(foreignField) && !isRelation(foreignField)) throw Error(`Invalid relation key: ${relatedBy.key}`);
     this.validateForeignField(dataType, 'read', `Invalid relation key: ${relatedBy.key}`);
     const obj = this.proto.Object(relatedBy.className, relatedBy.objectId);
 

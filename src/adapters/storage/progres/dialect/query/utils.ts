@@ -27,7 +27,7 @@ import _ from 'lodash';
 import { SQL, sql } from '../../../sql';
 import { QueryCompiler } from '../../../sql/compiler';
 import { TSchema, isPointer, isPrimitive, isRelation, isShape, isVector } from '../../../../../internals/schema';
-import { QueryValidator, resolveColumn } from '../../../../../server/query/dispatcher/validator';
+import { foreignFieldType, QueryValidator, resolveColumn } from '../../../../../server/query/dispatcher/validator';
 
 const _fetchElement = (
   parent: { className?: string; name: string; },
@@ -71,30 +71,6 @@ const _fetchElement = (
   return { element, json: false };
 };
 
-const _isRelation = (
-  schema: Record<string, TSchema>,
-  className: string,
-  path: string,
-) => {
-  let fields = schema[className].fields;
-  let last;
-  let result = false;
-  for (const key of _.toPath(path)) {
-    const dataType = fields[key];
-    if (_.isNil(dataType)) return;
-    if (isPrimitive(dataType) || isVector(dataType)) return;
-    if (isShape(dataType)) {
-      fields = dataType.shape;
-      continue;
-    }
-    if (_.isNil(schema[dataType.target])) return;
-    if (dataType.type === 'relation') result = true;
-    fields = schema[dataType.target].fields;
-    last = dataType;
-  }
-  return result || last?.type === 'relation' ? last?.target : undefined;
-}
-
 const resolvePaths = (
   compiler: QueryCompiler,
   className: string,
@@ -130,14 +106,14 @@ export const fetchElement = (
   if (parent.className) {
     const { dataType, colname, subpath } = resolvePaths(compiler, parent.className, _.toPath(field));
     if (!_.isEmpty(subpath)) {
-      const relationTarget = _isRelation(compiler.schema, parent.className, field);
-      if (relationTarget) {
+      const foreignField = foreignFieldType(compiler.schema, parent.className, field);
+      if (foreignField) {
         const { element } = _fetchElement(parent, colname, subpath, dataType);
         return {
           element,
-          dataType: { type: 'relation', target: relationTarget } as const,
+          dataType: foreignField,
           relation: {
-            target: relationTarget,
+            target: foreignField.target,
             sql: (callback: (value: SQL) => SQL) => sql`SELECT 
               ${callback(sql`UNNEST`)} 
             FROM UNNEST(${{ identifier: parent.name }}.${{ identifier: colname }})`,
