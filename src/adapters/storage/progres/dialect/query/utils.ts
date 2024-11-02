@@ -105,10 +105,10 @@ export const fetchElement = (
 ) => {
   if (parent.className) {
     const { dataType, colname, subpath } = resolvePaths(compiler, parent.className, _.toPath(field));
+    const { element, json } = _fetchElement(parent, colname, subpath, dataType);
     if (!_.isEmpty(subpath)) {
       const foreignField = foreignFieldType(compiler.schema, parent.className, field);
       if (foreignField) {
-        const { element } = _fetchElement(parent, colname, subpath, dataType);
         return {
           element,
           dataType: foreignField,
@@ -122,7 +122,6 @@ export const fetchElement = (
       }
     }
     if (isPointer(dataType)) return { element: sql`${{ identifier: parent.name }}.${{ identifier: `${colname}._id` }}`, dataType };
-    const { element, json } = _fetchElement(parent, colname, subpath, dataType);
     return {
       element,
       dataType: json ? null : dataType,
