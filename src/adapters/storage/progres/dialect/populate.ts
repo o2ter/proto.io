@@ -56,10 +56,10 @@ const resolveSubpaths = (
 
 const _isPointer = (
   schema: Record<string, TSchema>,
-  classname: string,
+  className: string,
   path: string,
 ) => {
-  let fields = schema[classname].fields;
+  let fields = schema[className].fields;
   let last;
   for (const key of _.toPath(path)) {
     const dataType = fields[key];
