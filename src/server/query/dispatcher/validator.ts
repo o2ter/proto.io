@@ -374,7 +374,7 @@ export class QueryValidator<E> {
     const obj = this.proto.Object(relatedBy.className, relatedBy.objectId);
 
     return {
-      [dataType.foreignField]: foreignField.type === 'pointer' ? { $eq: obj } : { $intersect: [obj] },
+      [relatedBy.key]: { $intersect: [obj] },
     };
   }
 

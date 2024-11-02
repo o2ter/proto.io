@@ -46,6 +46,7 @@ export type QueryCompilerOptions = {
 export type Populate = {
   name: string;
   className: string;
+  colname: string;
   type: TSchema.Relation;
   foreignField?: string;
   subpaths: string[];

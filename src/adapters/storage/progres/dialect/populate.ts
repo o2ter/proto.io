@@ -102,9 +102,9 @@ export const selectPopulate = (
   if (_.isNil(populate.foreignField)) {
     cond = sql`${sql`(${{ quote: populate.className + '$' }} || ${_foreign('_id')})`} = ANY(${_local(field)})`;
   } else if (_isPointer(compiler.schema, populate.className, populate.foreignField)) {
-    cond = sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ${_foreign(populate.foreignField)}`;
+    cond = sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ${_foreign(populate.colname)}`;
   } else {
-    cond = sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ANY(${_foreign(populate.foreignField)})`;
+    cond = sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ANY(${_foreign(populate.colname)})`;
   }
   return {
     columns: [sql`
@@ -214,7 +214,7 @@ export const encodePopulate = (
         literal: [
           ..._.map(_.keys(_includes), colname => sql`${{ identifier: parent.name }}.${{ identifier: colname }}`),
           ..._.flatMap(_populates, ({ columns: column }) => column),
-          ..._foreignField ? [sql`${rows ? sql`ARRAY(${_foreignField})` : _foreignField} AS ${{ identifier: parent.foreignField! }}`] : [],
+          ..._foreignField ? [sql`${rows ? sql`ARRAY(${_foreignField})` : _foreignField} AS ${{ identifier: parent.colname }}`] : [],
         ], separator: ',\n'
       }}
         FROM ${encodeRemix(parent, remix)} AS ${{ identifier: parent.name }}
