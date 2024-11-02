@@ -27,7 +27,7 @@ import _ from 'lodash';
 import { SQL, sql } from '../../../sql';
 import { QueryCompiler } from '../../../sql/compiler';
 import { TSchema, isPointer, isRelation, isVector } from '../../../../../internals/schema';
-import { QueryValidator, _resolveColumn } from '../../../../../server/query/dispatcher/validator';
+import { QueryValidator, resolveColumn } from '../../../../../server/query/dispatcher/validator';
 
 const _fetchElement = (
   parent: { className?: string; name: string; },
@@ -76,7 +76,7 @@ const resolvePaths = (
   className: string,
   paths: string[],
 ): { dataType: TSchema.DataType; colname: string; subpath: string[]; } => {
-  const { paths: [colname, ...subpath], dataType } = _resolveColumn(compiler.schema, className, paths.join('.'));
+  const { paths: [colname, ...subpath], dataType } = resolveColumn(compiler.schema, className, paths.join('.'));
   if (!_.isEmpty(subpath) && isVector(dataType)) {
     if (subpath.length !== 1) throw Error(`Invalid key: ${paths.join('.')}`);
     const idx = parseInt(subpath[0]);

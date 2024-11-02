@@ -64,7 +64,11 @@ export const resolveDataType = (
   return last;
 }
 
-export const _resolveColumn = (schema: Record<string, TSchema>, className: string, path: string) => {
+export const resolveColumn = (
+  schema: Record<string, TSchema>,
+  className: string,
+  path: string,
+) => {
   const _schema = schema[className] ?? {};
   let [colname, ...subpath] = path.split('.');
   let dataType = _schema.fields[colname];
@@ -178,7 +182,7 @@ export class QueryValidator<E> {
     if (_.isEmpty(_subpath) && TObject.defaultKeys.includes(colname)) return true;
     if (_.isEmpty(_subpath)) return true;
 
-    const { paths: [_colname, ...subpath], dataType } = _resolveColumn(this.schema, className, _key);
+    const { paths: [_colname, ...subpath], dataType } = resolveColumn(this.schema, className, _key);
     const isElem = _.first(subpath)?.match(QueryValidator.patterns.digits);
     if (isElem) {
       if (dataType === 'array') return true;
@@ -242,7 +246,7 @@ export class QueryValidator<E> {
           ..._.flatMap(shapedObject, (v, k) => _.flatMap(shapePaths(v as any), x => isPrimitive(x.type) ? [`${k}.${x.path}`] : [])),
         );
       } else {
-        const { paths: [colname, ...subpath], dataType } = _resolveColumn(this.schema, className, include);
+        const { paths: [colname, ...subpath], dataType } = resolveColumn(this.schema, className, include);
         if (!this.validateKeyPerm(colname, 'read', schema)) throw Error('No permission');
 
         if (isPointer(dataType) || isRelation(dataType)) {
@@ -302,7 +306,7 @@ export class QueryValidator<E> {
     const schema = this.schema[className] ?? {};
     const _matches: Record<string, DecodedBaseQuery> = {};
 
-    const _includes = _.groupBy(_.map(includes, x => _resolveColumn(this.schema, className, x)), ({ paths: [colname] }) => colname);
+    const _includes = _.groupBy(_.map(includes, x => resolveColumn(this.schema, className, x)), ({ paths: [colname] }) => colname);
 
     for (const [colname, [{ dataType }]] of _.entries(_includes)) {
       if (!this.validateKeyPerm(colname, 'read', schema)) continue;
@@ -319,7 +323,7 @@ export class QueryValidator<E> {
     for (const [colname, match] of _.toPairs(matches)) {
       if (!this.validateKeyPerm(colname, 'read', schema)) throw Error('No permission');
 
-      const { paths: [_colname, ...subpath], dataType } = _resolveColumn(this.schema, className, colname);
+      const { paths: [_colname, ...subpath], dataType } = resolveColumn(this.schema, className, colname);
 
       if (isPointer(dataType) && !_.isEmpty(subpath)) {
         _matches[_colname] = {
@@ -361,7 +365,7 @@ export class QueryValidator<E> {
     if (relatedBy && !this.validateCLPs(relatedBy.className, 'get')) throw Error('No permission');
     if (relatedBy && !this.validateKey(relatedBy.className, relatedBy.key, 'read', QueryValidator.patterns.path)) throw Error('No permission');
 
-    const { paths, dataType } = _resolveColumn(this.schema, relatedBy.className, relatedBy.key);
+    const { paths, dataType } = resolveColumn(this.schema, relatedBy.className, relatedBy.key);
     if (paths.length !== 1) throw Error(`Invalid relation key: ${relatedBy.key}`);
 
     if (!isRelation(dataType) || dataType.target !== className) throw Error(`Invalid relation key: ${relatedBy.key}`);

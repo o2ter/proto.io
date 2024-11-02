@@ -30,7 +30,7 @@ import { DecodedBaseQuery, DecodedQuery, FindOneOptions, FindOptions, InsertOpti
 import { SQL, sql } from './sql';
 import { generateId } from '../../../server/crypto/random';
 import { SqlDialect } from './dialect';
-import { _resolveColumn, resolveDataType } from '../../../server/query/dispatcher/validator';
+import { resolveColumn, resolveDataType } from '../../../server/query/dispatcher/validator';
 import { decodeUpdateOp } from '../../../internals/object';
 import { TUpdateOp } from '../../../internals/object/types';
 import { TValue } from '../../../internals/types';
@@ -164,7 +164,7 @@ export class QueryCompiler {
     const populates: Record<string, Populate> = {};
 
     for (const include of includes) {
-      const { paths: [colname, ...subpath], dataType } = _resolveColumn(this.schema, className, include);
+      const { paths: [colname, ...subpath], dataType } = resolveColumn(this.schema, className, include);
 
       names[colname] = dataType;
 
@@ -311,7 +311,7 @@ export class QueryCompiler {
   private _encodeUpdateAttrs(className: string, attrs: Record<string, TUpdateOp>): SQL[] {
     const updates: SQL[] = [];
     for (const [path, op] of _.toPairs(attrs)) {
-      const { paths: [column, ...subpath], dataType } = _resolveColumn(this.schema, className, path);
+      const { paths: [column, ...subpath], dataType } = resolveColumn(this.schema, className, path);
       if (isShape(dataType)) {
         const [_op, value] = decodeUpdateOp(op);
         if (_op !== '$set') throw Error('Invalid update operation');
@@ -334,7 +334,7 @@ export class QueryCompiler {
   private _encodeObjectAttrs(className: string, attrs: Record<string, TValue>): Record<string, SQL> {
     const result: Record<string, SQL> = {};
     for (const [key, value] of _.toPairs(attrs)) {
-      const { paths: [column, ...subpath], dataType } = _resolveColumn(this.schema, className, key);
+      const { paths: [column, ...subpath], dataType } = resolveColumn(this.schema, className, key);
       if (!_.isEmpty(subpath)) throw Error(`Invalid insert key: ${key}`);
       if (isShape(dataType)) {
         for (const { path, type } of shapePaths(dataType)) {

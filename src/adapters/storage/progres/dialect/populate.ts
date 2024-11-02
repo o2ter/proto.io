@@ -28,7 +28,7 @@ import { SQL, sql } from '../../sql';
 import { TSchema, isPointer, isPrimitive, isRelation, isShape, isVector } from '../../../../internals/schema';
 import { CompileContext, Populate, QueryCompiler } from '../../sql/compiler';
 import { _encodePopulateInclude } from './encode';
-import { _resolveColumn } from '../../../../server/query/dispatcher/validator';
+import { resolveColumn } from '../../../../server/query/dispatcher/validator';
 
 const resolveSubpaths = (
   compiler: QueryCompiler,
@@ -137,7 +137,7 @@ export const encodeForeignField = (
   remix?: { className: string; name: string; }
 ): { joins: SQL[]; field: SQL; rows: boolean; array: boolean; } => {
 
-  const { paths: [colname, ...subpath], dataType } = _resolveColumn(compiler.schema, parent.className, foreignField);
+  const { paths: [colname, ...subpath], dataType } = resolveColumn(compiler.schema, parent.className, foreignField);
   if (_.isEmpty(subpath)) return {
     joins: [],
     field: sql`${{ identifier: parent.name }}.${{ identifier: foreignField }}`,
