@@ -1962,6 +1962,35 @@ test('test relation query 9', async () => {
 
 }, 60000)
 
+test('test relation query 10', async () => {
+  const inserted = await Proto.Query('Test').insert({
+    number: 42.5,
+  });
+  const inserted2 = await Proto.Query('Test').insert({
+    pointer: inserted,
+  });
+  const inserted3 = await Proto.Query('Test').insert({
+    pointer: inserted2,
+  });
+  const inserted5 = await Proto.Query('Test').insert({
+  });
+  const inserted4 = await Proto.Query('Test').insert({
+    relation: [inserted3],
+    pointer: inserted5,
+  });
+  const inserted6 = await Proto.Query('Test').insert({
+    pointer: inserted5,
+  });
+  const inserted7 = await Proto.Query('Test').insert({
+    pointer: inserted6,
+  });
+
+  const result = await Proto.Relation('Test', inserted, 'relation9').find();
+
+  expect(_.map(result, x => x.objectId).sort()).toStrictEqual([inserted7.objectId].sort());
+
+}, 60000)
+
 test('test update', async () => {
   const date = new Date;
   const inserted = await Proto.Query('Test').insert({});
