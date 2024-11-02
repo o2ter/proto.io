@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { sql } from '../../../sql';
+import { SQL, sql } from '../../../sql';
 import { QueryCompiler } from '../../../sql/compiler';
 import { TSchema, isPointer, isRelation, isVector } from '../../../../../internals/schema';
 import { QueryValidator, _resolveColumn } from '../../../../../server/query/dispatcher/validator';
@@ -107,9 +107,18 @@ export const fetchElement = (
     const { dataType, colname, subpath } = resolvePaths(compiler, parent.className, _.toPath(field));
     if (isPointer(dataType)) return { element: sql`${{ identifier: parent.name }}.${{ identifier: `${colname}._id` }}`, dataType };
     const { element, json } = _fetchElement(parent, colname, subpath, dataType);
-    return { element, json, dataType: json ? null : dataType, relation: isRelation(dataType) ? dataType : null };
+    return {
+      element,
+      dataType: json ? null : dataType,
+      relation: isRelation(dataType) ? {
+        target: dataType.target,
+        sql: (callback: (value: SQL) => SQL) => sql`SELECT
+          ${callback(sql`${json ? sql`VALUE` : sql`UNNEST`}`)}
+        FROM ${json ? sql`jsonb_array_elements(${element})` : sql`UNNEST(${element})`}`,
+      } : null,
+    };
   }
   const [colname, ...subpath] = _.toPath(field);
-  const { element, json } = _fetchElement(parent, colname, subpath);
-  return { element, json, dataType: null, relation: null };
+  const { element } = _fetchElement(parent, colname, subpath);
+  return { element, dataType: null, relation: null };
 };
