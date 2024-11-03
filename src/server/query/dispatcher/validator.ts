@@ -95,13 +95,13 @@ export const foreignFieldType = (
   let result = false;
   for (const key of _.toPath(path)) {
     const dataType = fields[key];
-    if (_.isNil(dataType)) throw Error(`Invalid path: ${path}`);
+    if (_.isNil(dataType)) return;
     if (isPrimitive(dataType) || isVector(dataType)) return;
     if (isShape(dataType)) {
       fields = dataType.shape;
       continue;
     }
-    if (_.isNil(schema[dataType.target])) throw Error(`Invalid path: ${path}`);
+    if (_.isNil(schema[dataType.target])) return;
     if (dataType.type === 'relation') result = true;
     fields = schema[dataType.target].fields;
     last = dataType;
