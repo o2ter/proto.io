@@ -173,8 +173,7 @@ const Proto = new ProtoService({
     },
     'Relation': {
       fields: {
-        number: 'number',
-        pointer: { type: 'pointer', target: 'Relation2' },
+        relation: { type: 'relation', target: 'Relation3', foreignField: 'pointer.pointer' },
       },
       additionalObjectPermissions: {
         read: ['role:system'],
@@ -183,7 +182,7 @@ const Proto = new ProtoService({
     },
     'Relation2': {
       fields: {
-        pointer: { type: 'pointer', target: 'Relation3' },
+        pointer: { type: 'pointer', target: 'Relation' },
       },
       additionalObjectPermissions: {
         read: ['role:system'],
@@ -192,7 +191,7 @@ const Proto = new ProtoService({
     },
     'Relation3': {
       fields: {
-        relation: { type: 'relation', target: 'Relation', foreignField: 'pointer.pointer' },
+        pointer: { type: 'pointer', target: 'Relation2' },
       },
       additionalObjectPermissions: {
         read: ['role:system'],
