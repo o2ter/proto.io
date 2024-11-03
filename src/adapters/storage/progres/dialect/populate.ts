@@ -123,7 +123,7 @@ export const selectPopulate = (
 };
 
 const encodeRemix = (
-  parent: { className: string; name: string; },
+  parent: { className: string; },
   remix?: { className: string; name: string; },
 ) => sql`${remix?.className === parent.className ? sql`
   (SELECT * FROM ${{ identifier: remix.name }} UNION SELECT * FROM ${{ identifier: parent.className }})
@@ -186,7 +186,7 @@ export const encodeForeignField = (
   if (isPointer(dataType)) {
     return {
       joins: [sql`
-        LEFT JOIN ${encodeRemix(parent, remix)} AS ${{ identifier: tempName }}
+        LEFT JOIN ${encodeRemix({ className: dataType.target }, remix)} AS ${{ identifier: tempName }}
         ON ${sql`(${{ quote: dataType.target + '$' }} || ${_foreign('_id')})`} = ${_local(colname)}
       `, ...joins],
       field,
