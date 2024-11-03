@@ -144,7 +144,7 @@ export const encodeForeignField = (
   const _foreign = (field: string) => sql`${{ identifier: tempName }}.${{ identifier: field }}`;
 
   if (_.isEmpty(subpath) && isRelation(dataType) && dataType.foreignField) {
-    const { joins, field, array } = encodeForeignField(
+    const { joins, field, rows, array } = encodeForeignField(
       compiler,
       context,
       { className: dataType.target, name: tempName },
@@ -157,7 +157,7 @@ export const encodeForeignField = (
         SELECT ${sql`(${{ quote: parent.className + '$' }} || ${_foreign('_id')})`}
         FROM ${encodeRemix(parent, remix)} AS ${{ identifier: tempName }}
         ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
-        WHERE ${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ${array ? sql`ANY(${field})` : field}
+        WHERE ${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ${array || rows ? sql`ANY(${field})` : field}
       )`,
       array: false,
       rows: true,
