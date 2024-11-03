@@ -357,21 +357,18 @@ export class QueryValidator<E> {
     return _matches;
   }
 
-  validateRelatedBy(className: string, relation: { className: string; key: string; }) {
+  validateRelatedBy(className: string | null, relation: { className: string; key: string; }) {
 
     if (!this.validateCLPs(relation.className, 'get')) throw Error('No permission');
     if (!this.validateKey(relation.className, relation.key, 'read', QueryValidator.patterns.path)) throw Error('No permission');
 
     const { dataType } = resolveColumn(this.schema, relation.className, relation.key);
+    if (!isPointer(dataType) && !isRelation(dataType)) throw Error(`Invalid relation key: ${relation.key}`);
+    if (className && dataType.target !== className) throw Error(`Invalid relation key: ${relation.key}`);
 
     if (isRelation(dataType) && dataType.foreignField) {
-
       this.validateForeignField(dataType, 'read', `Invalid relation key: ${relation.key}`);
-      this.validateRelatedBy(className, { className: dataType.target, key: dataType.foreignField });
-
-    } else if (isPointer(dataType) || isRelation(dataType)) {
-
-      if (dataType.target !== className) throw Error(`Invalid relation key: ${relation.key}`);
+      this.validateRelatedBy(null, { className: dataType.target, key: dataType.foreignField });
     }
   }
 
