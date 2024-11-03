@@ -151,18 +151,13 @@ export const encodeForeignField = (
       dataType.foreignField,
       remix,
     );
-    let cond: SQL;
-    if (_isPointer(compiler.schema, dataType.target, dataType.foreignField)) {
-      cond = sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ${_foreign(dataType.foreignField)}`;
-    } else {
-      cond = sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ANY(${_foreign(dataType.foreignField)})`;
-    }
     return {
       joins: [],
       field: sql`(
-          SELECT ${array ? sql`UNNEST(${field})` : field} FROM ${encodeRemix(parent, remix)} AS ${{ identifier: tempName }}
+          SELECT ${array ? sql`UNNEST(${field})` : field} AS ${{ identifier: colname }} 
+          FROM ${encodeRemix(parent, remix)} AS ${{ identifier: tempName }}
           ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
-          WHERE ${cond}
+          WHERE ${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ANY(${_foreign(colname)})
         )`,
       array: false,
       rows: true,
