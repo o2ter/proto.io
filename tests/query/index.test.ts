@@ -2008,6 +2008,23 @@ test('test relation query 10', async () => {
 
 }, 60000)
 
+test('test relation query 11', async () => {
+  const inserted3 = await Proto.Query('Relation3').insert({
+  });
+  const inserted2 = await Proto.Query('Relation2').insert({
+    pointer: inserted3,
+  });
+  const inserted = await Proto.Query('Relation').insert({
+    number: 42.5,
+    pointer: inserted2,
+  });
+
+  const result = await Proto.Relation('Relation', inserted3, 'relation').find();
+
+  expect(_.map(result, x => x.objectId).sort()).toStrictEqual([inserted.objectId].sort());
+
+}, 60000)
+
 test('test update', async () => {
   const date = new Date;
   const inserted = await Proto.Query('Test').insert({});
