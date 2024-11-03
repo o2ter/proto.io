@@ -385,13 +385,13 @@ export class QueryValidator<E> {
     return _matches;
   }
 
-  decodeRelatedBy<Q extends FindOptions & RelationOptions>(query: Q) {
+  validateRelatedBy<Q extends FindOptions & RelationOptions>(query: Q) {
 
     const { className, relatedBy } = query;
     if (!relatedBy) return;
 
-    if (relatedBy && !this.validateCLPs(relatedBy.className, 'get')) throw Error('No permission');
-    if (relatedBy && !this.validateKey(relatedBy.className, relatedBy.key, 'read', QueryValidator.patterns.path)) throw Error('No permission');
+    if (!this.validateCLPs(relatedBy.className, 'get')) throw Error('No permission');
+    if (!this.validateKey(relatedBy.className, relatedBy.key, 'read', QueryValidator.patterns.path)) throw Error('No permission');
 
     const { paths, dataType } = resolveColumn(this.schema, relatedBy.className, relatedBy.key);
     if (paths.length !== 1) throw Error(`Invalid relation key: ${relatedBy.key}`);
@@ -402,21 +402,15 @@ export class QueryValidator<E> {
     const foreignField = foreignFieldType(this.schema, dataType.target, dataType.foreignField);
     if (!foreignField) throw Error(`Invalid relation key: ${relatedBy.key}`);
     this.validateForeignField(dataType, 'read', `Invalid relation key: ${relatedBy.key}`);
-    const obj = this.proto.Object(relatedBy.className, relatedBy.objectId);
-
-    return {
-      [dataType.foreignField]: foreignField.type === 'pointer' ? { $eq: obj } : { $intersect: [obj] },
-    };
   }
 
   decodeQuery<Q extends (FindOptions & RelationOptions) | FindOneOptions>(query: Q, action: keyof TSchema.ACLs): DecodedQuery<Q> {
 
-    const relation = 'relatedBy' in query ? this.decodeRelatedBy(query) : undefined;
+    if ('relatedBy' in query) this.validateRelatedBy(query);
 
     const filter = QuerySelector.decode([
       ...action === 'read' ? this._rperm(query.className) : this._wperm(query.className),
       ..._.castArray<TQuerySelector>(query.filter),
-      ...relation ? [relation] : [],
       this._expiredAt,
     ]).simplify();
 
@@ -441,7 +435,7 @@ export class QueryValidator<E> {
     const matches = this.decodeMatches(query.className, query.matches ?? {}, includes);
 
     return {
-      ...relation ? _.omit(query, 'relatedBy') as Q : query,
+      ...query,
       filter,
       matches,
       includes,
