@@ -155,7 +155,7 @@ export const encodeForeignField = (
       joins: [],
       field: sql`(
         SELECT ${sql`(${{ quote: parent.className + '$' }} || ${_foreign('_id')})`}
-        FROM ${encodeRemix(parent, remix)} AS ${{ identifier: tempName }}
+        FROM ${encodeRemix({ className: dataType.target }, remix)} AS ${{ identifier: tempName }}
         ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
         WHERE ${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ${array || rows ? sql`ANY(${field})` : field}
       )`,
@@ -206,7 +206,8 @@ export const encodeForeignField = (
   return {
     joins: [],
     field: sql`(
-      SELECT ${array ? sql`UNNEST(${field})` : field} FROM ${encodeRemix(parent, remix)} AS ${{ identifier: tempName }}
+      SELECT ${array ? sql`UNNEST(${field})` : field}
+      FROM ${encodeRemix({ className: dataType.target }, remix)} AS ${{ identifier: tempName }}
       ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
       WHERE ${cond}
     )`,
