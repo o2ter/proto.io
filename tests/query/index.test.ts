@@ -1693,6 +1693,23 @@ test('test relation 13', async () => {
 
 }, 60000)
 
+test('test relation 14', async () => {
+  const inserted3 = await Proto.Query('Relation3').insert({
+  });
+  const inserted2 = await Proto.Query('Relation2').insert({
+    pointer: inserted3,
+  });
+  const inserted = await Proto.Query('Relation').insert({
+    number: 42.5,
+    pointer: inserted2,
+  });
+
+  const q = Proto.Query('Relation3').equalTo('_id', inserted3.objectId);
+
+  expect(_.map((await q.clone().includes('relation').first())?.get('relation'), x => x.objectId).sort()).toStrictEqual([inserted.objectId].sort());
+
+}, 60000)
+
 test('test relation query', async () => {
 
   await Proto.Query('Test').insertMany([

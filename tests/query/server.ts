@@ -170,7 +170,35 @@ const Proto = new ProtoService({
         { keys: { 'shape.relation': 1 } },
         { keys: { 'shape.test_field-name': 1 } },
       ],
-    }
+    },
+    'Relation': {
+      fields: {
+        number: 'number',
+        pointer: { type: 'pointer', target: 'Relation2' },
+      },
+      additionalObjectPermissions: {
+        read: ['role:system'],
+        update: ['role:system'],
+      },
+    },
+    'Relation2': {
+      fields: {
+        pointer: { type: 'pointer', target: 'Relation3' },
+      },
+      additionalObjectPermissions: {
+        read: ['role:system'],
+        update: ['role:system'],
+      },
+    },
+    'Relation3': {
+      fields: {
+        relation: { type: 'relation', target: 'Relation', foreignField: 'pointer.pointer' },
+      },
+      additionalObjectPermissions: {
+        read: ['role:system'],
+        update: ['role:system'],
+      },
+    },
   },
   storage: database,
   fileStorage: new DatabaseFileStorage(),
