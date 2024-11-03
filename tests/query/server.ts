@@ -174,6 +174,7 @@ const Proto = new ProtoService({
     'Relation': {
       fields: {
         relation: { type: 'relation', target: 'Relation3', foreignField: 'pointer.pointer' },
+        relation7: { type: 'relation', target: 'Relation7', foreignField: 'pointer.pointer.relation.relation.relation.relation' },
       },
       additionalObjectPermissions: {
         read: ['role:system'],
@@ -183,6 +184,7 @@ const Proto = new ProtoService({
     'Relation2': {
       fields: {
         pointer: { type: 'pointer', target: 'Relation' },
+        relation: { type: 'relation', target: 'Relation' },
       },
       additionalObjectPermissions: {
         read: ['role:system'],
@@ -192,6 +194,47 @@ const Proto = new ProtoService({
     'Relation3': {
       fields: {
         pointer: { type: 'pointer', target: 'Relation2' },
+        relation: { type: 'relation', target: 'Relation2' },
+      },
+      additionalObjectPermissions: {
+        read: ['role:system'],
+        update: ['role:system'],
+      },
+    },
+    'Relation4': {
+      fields: {
+        pointer: { type: 'pointer', target: 'Relation3' },
+        relation: { type: 'relation', target: 'Relation3' },
+      },
+      additionalObjectPermissions: {
+        read: ['role:system'],
+        update: ['role:system'],
+      },
+    },
+    'Relation5': {
+      fields: {
+        pointer: { type: 'pointer', target: 'Relation4' },
+        relation: { type: 'relation', target: 'Relation4' },
+      },
+      additionalObjectPermissions: {
+        read: ['role:system'],
+        update: ['role:system'],
+      },
+    },
+    'Relation6': {
+      fields: {
+        pointer: { type: 'pointer', target: 'Relation5' },
+        relation: { type: 'relation', target: 'Relation5' },
+      },
+      additionalObjectPermissions: {
+        read: ['role:system'],
+        update: ['role:system'],
+      },
+    },
+    'Relation7': {
+      fields: {
+        pointer: { type: 'pointer', target: 'Relation6' },
+        relation: { type: 'relation', target: 'Relation6' },
       },
       additionalObjectPermissions: {
         read: ['role:system'],
