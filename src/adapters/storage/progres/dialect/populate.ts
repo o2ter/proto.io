@@ -138,26 +138,38 @@ export const encodeForeignField = (
 ): { joins: SQL[]; field: SQL; rows: boolean; array: boolean; } => {
 
   const { paths: [colname, ...subpath], dataType } = resolveColumn(compiler.schema, parent.className, foreignField);
-  if (_.isEmpty(subpath)) {
-    if (isRelation(dataType) && dataType.foreignField) {
-      const tempName = `_populate_$${compiler.nextIdx()}`;
-      const { joins, field, array } = encodeForeignField(
-        compiler,
-        context,
-        { className: dataType.target, name: tempName },
-        dataType.foreignField,
-        remix,
-      );
-      return {
-        joins: [],
-        field: sql`(
+
+  const tempName = `_populate_$${compiler.nextIdx()}`;
+  const _local = (field: string) => sql`${{ identifier: parent.name }}.${{ identifier: field }}`;
+  const _foreign = (field: string) => sql`${{ identifier: tempName }}.${{ identifier: field }}`;
+
+  if (_.isEmpty(subpath) && isRelation(dataType) && dataType.foreignField) {
+    const { joins, field, array } = encodeForeignField(
+      compiler,
+      context,
+      { className: dataType.target, name: tempName },
+      dataType.foreignField,
+      remix,
+    );
+    let cond: SQL;
+    if (_isPointer(compiler.schema, dataType.target, dataType.foreignField)) {
+      cond = sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ${_foreign(dataType.foreignField)}`;
+    } else {
+      cond = sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ANY(${_foreign(dataType.foreignField)})`;
+    }
+    return {
+      joins: [],
+      field: sql`(
           SELECT ${array ? sql`UNNEST(${field})` : field} FROM ${encodeRemix(parent, remix)} AS ${{ identifier: tempName }}
           ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
+          WHERE ${cond}
         )`,
-        array: false,
-        rows: true,
-      };
-    }
+      array: false,
+      rows: true,
+    };
+  }
+
+  if (_.isEmpty(subpath)) {
     return {
       joins: [],
       field: sql`${{ identifier: parent.name }}.${{ identifier: foreignField }}`,
@@ -168,10 +180,6 @@ export const encodeForeignField = (
 
   if (!isPointer(dataType) && !isRelation(dataType)) throw Error(`Invalid path: ${foreignField}`);
 
-  const _local = (field: string) => sql`${{ identifier: parent.name }}.${{ identifier: field }}`;
-  const _foreign = (field: string) => sql`${{ identifier: tempName }}.${{ identifier: field }}`;
-
-  const tempName = `_populate_$${compiler.nextIdx()}`;
   const { joins, field, rows, array } = encodeForeignField(
     compiler,
     context,
