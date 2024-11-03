@@ -27,7 +27,35 @@ import _ from 'lodash';
 import { SQL, sql } from '../../../sql';
 import { QueryCompiler } from '../../../sql/compiler';
 import { TSchema, isPointer, isPrimitive, isRelation, isShape, isVector } from '../../../../../internals/schema';
-import { foreignFieldType, QueryValidator, resolveColumn } from '../../../../../server/query/dispatcher/validator';
+import { QueryValidator, resolveColumn } from '../../../../../server/query/dispatcher/validator';
+
+const foreignFieldType = (
+  schema: Record<string, TSchema>,
+  className: string,
+  path: string,
+) => {
+  let fields = schema[className].fields;
+  let last;
+  let result = false;
+  for (const key of _.toPath(path)) {
+    const dataType = fields[key];
+    if (_.isNil(dataType)) return;
+    if (isPrimitive(dataType) || isVector(dataType)) return;
+    if (isShape(dataType)) {
+      fields = dataType.shape;
+      continue;
+    }
+    if (_.isNil(schema[dataType.target])) return;
+    if (dataType.type === 'relation') result = true;
+    fields = schema[dataType.target].fields;
+    last = dataType;
+  }
+  if (!last) return;
+  return {
+    target: last.target,
+    type: result ? 'relation' : last.type,
+  };
+}
 
 const _fetchElement = (
   parent: { className?: string; name: string; },
