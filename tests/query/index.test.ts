@@ -1737,6 +1737,34 @@ test('test relation 15', async () => {
 
 }, 60000)
 
+test('test relation 16', async () => {
+  const inserted = await Proto.Query('Relation').insert({
+  });
+  const inserted2 = await Proto.Query('Relation2').insert({
+    pointer: inserted,
+  });
+  const inserted3 = await Proto.Query('Relation3').insert({
+    pointer: inserted2,
+  });
+  const inserted5 = await Proto.Query('Relation5').insert({
+  });
+  const inserted4 = await Proto.Query('Relation4').insert({
+    relation: [inserted3],
+    pointer: inserted5,
+  });
+  const inserted6 = await Proto.Query('Relation6').insert({
+    pointer: inserted5,
+  });
+  const inserted7 = await Proto.Query('Relation7').insert({
+    pointer: inserted6,
+  });
+
+  const q = Proto.Query('Relation').equalTo('_id', inserted.objectId);
+
+  expect(_.map((await q.clone().includes('relation9').first())?.get('relation9'), x => x.objectId).sort()).toStrictEqual([inserted7.objectId].sort());
+
+}, 60000)
+
 test('test relation query', async () => {
 
   await Proto.Query('Test').insertMany([
@@ -2074,6 +2102,34 @@ test('test relation query 12', async () => {
   });
 
   const result = await Proto.Relation('Relation7', inserted, 'relation7').find();
+
+  expect(_.map(result, x => x.objectId).sort()).toStrictEqual([inserted7.objectId].sort());
+
+}, 60000)
+
+test('test relation query 13', async () => {
+  const inserted = await Proto.Query('Relation').insert({
+  });
+  const inserted2 = await Proto.Query('Relation2').insert({
+    pointer: inserted,
+  });
+  const inserted3 = await Proto.Query('Relation3').insert({
+    pointer: inserted2,
+  });
+  const inserted5 = await Proto.Query('Relation5').insert({
+  });
+  const inserted4 = await Proto.Query('Relation4').insert({
+    relation: [inserted3],
+    pointer: inserted5,
+  });
+  const inserted6 = await Proto.Query('Relation6').insert({
+    pointer: inserted5,
+  });
+  const inserted7 = await Proto.Query('Relation7').insert({
+    pointer: inserted6,
+  });
+
+  const result = await Proto.Relation('Relation7', inserted, 'relation9').find();
 
   expect(_.map(result, x => x.objectId).sort()).toStrictEqual([inserted7.objectId].sort());
 
