@@ -89,13 +89,25 @@ export const sessionId = <E>(proto: ProtoService<E>, request: Request): string |
   return sessionMap.get(request)?.sessionId ?? session?.sessionId;
 }
 
-type SessionInfo<E> = Partial<Awaited<ReturnType<typeof fetchSessionInfo<E>>>>;
-const sessionInfoMap = new WeakMap<Request, SessionInfo<any>>();
+const userCacheMap = new WeakMap<any, {
+  [K in string]?: Promise<{ user?: TUser; _roles?: TRole[] }>;
+}>;
 
 const fetchSessionInfo = async <E>(proto: ProtoService<E>, userId?: string) => {
-  const user = _.isString(userId) ? await proto.Query('User').get(userId, { master: true }) : undefined;
-  const _roles = user instanceof TUser ? _.filter(await proto.userRoles(user), x => !_.isEmpty(x.name)) : [];
-  return { user, _roles };
+  if (!userId) return {};
+  if (!userCacheMap.has(proto[PVK])) userCacheMap.set(proto[PVK], {});
+  const cache = userCacheMap.get(proto[PVK])!;
+  if (_.isNil(cache[userId])) cache[userId] = (async () => {
+    const user = _.isString(userId) ? await proto.Query('User').get(userId, { master: true }) : undefined;
+    const _roles = user instanceof TUser ? _.filter(await proto.userRoles(user), x => !_.isEmpty(x.name)) : [];
+    cache[userId] = undefined;
+    return { user, _roles };
+  })();
+  const { user, _roles } = await cache[userId];
+  return {
+    user: user?.clone(),
+    _roles: _.map(_roles, x => x.clone()),
+  };
 }
 
 export const sessionWithToken = async <E>(proto: ProtoService<E>, token: string) => {
@@ -107,6 +119,9 @@ export const sessionWithToken = async <E>(proto: ProtoService<E>, token: string)
     loginedAt: info?.user ? session?.loginedAt : undefined,
   };
 }
+
+type SessionInfo<E> = Partial<Awaited<ReturnType<typeof fetchSessionInfo<E>>>>;
+const sessionInfoMap = new WeakMap<Request, SessionInfo<any>>();
 
 export const session = async <E>(proto: ProtoService<E>, request: Request) => {
 
