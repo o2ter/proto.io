@@ -94,11 +94,8 @@ const sessionInfoMap = new WeakMap<Request, SessionInfo<any>>();
 
 const fetchSessionInfo = async <E>(proto: ProtoService<E>, userId?: string) => {
   const user = _.isString(userId) ? await proto.Query('User').get(userId, { master: true }) : undefined;
-  const roles = user instanceof TUser ? _.filter(await proto.userRoles(user), x => !_.isEmpty(x.name)) as TRole[] : [];
-  return {
-    _roles: roles,
-    user: user instanceof TUser ? user : undefined,
-  };
+  const _roles = user instanceof TUser ? _.filter(await proto.userRoles(user), x => !_.isEmpty(x.name)) : [];
+  return { user, _roles };
 }
 
 export const sessionWithToken = async <E>(proto: ProtoService<E>, token: string) => {
