@@ -496,9 +496,9 @@ beforeAll(async () => {
     proto: Proto,
   }));
 
-  console.log('version: ', await database.version());
+  console.info('version: ', await database.version());
 
-  app.listen(8080, () => console.log('listening on port 8080'));
+  app.listen(8080, () => console.info('listening on port 8080'));
 });
 
 beforeEach(async () => {

@@ -62,9 +62,9 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
 
   private get _queryOptions() {
     return {
+      ...this[PVK].options,
       className: this.className,
       relatedBy: this._opts.relatedBy,
-      ...this[PVK].options,
     };
   }
 
