@@ -34,6 +34,7 @@ import { PVK } from '../../internals/private';
 import { _TValue } from '../../internals/types';
 import { TUser } from '../../internals/object/user';
 import { TObject } from '../../internals/object';
+import { PathName } from '../../internals/query/types';
 
 export class ProtoClient<Ext = any> extends ProtoType<Ext> {
 
@@ -49,7 +50,7 @@ export class ProtoClient<Ext = any> extends ProtoType<Ext> {
     return new ProtoClientQuery<T, Ext>(className, this, {});
   }
 
-  Relation(object: TObject, key: string): TQuery<string, Ext, boolean> {
+  Relation<T extends string>(object: TObject, key: PathName<T>): TQuery<string, Ext, boolean> {
     const objectId = object.objectId;
     if (!objectId) throw Error('Invalid object');
     return new ProtoClientRelationQuery<Ext>(this, {

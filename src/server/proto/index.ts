@@ -44,6 +44,7 @@ import { randomUUID } from '@o2ter/crypto-js';
 import { TObject } from '../../internals/object';
 import { asyncStream } from '@o2ter/utils-js';
 import { TRole } from '../../internals/object/role';
+import { PathName } from '../../internals/query/types';
 
 export class ProtoService<Ext = any> extends ProtoType<Ext> {
 
@@ -95,7 +96,7 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
     return new ProtoQuery<T, Ext, boolean>(className, this, {});
   }
 
-  Relation(object: TObject, key: string): TQuery<string, Ext, boolean> {
+  Relation<T extends string>(object: TObject, key: PathName<T>): TQuery<string, Ext, boolean> {
     const objectId = object.objectId;
     if (!objectId) throw Error('Invalid object');
     return new ProtoRelationQuery<Ext, boolean>(this, {
