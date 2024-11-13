@@ -32,6 +32,7 @@ import { TSchema, defaultObjectKeys, defaultObjectReadonlyKeys } from '../schema
 import { PathName } from '../query/types';
 import { TUpdateOp, TUpdateOpKeys } from './types';
 import { ProtoType } from '../proto';
+import { TQuery } from '../query';
 
 export const isPrimitiveValue = (x: any): x is TPrimitiveValue => {
   if (_.isNil(x) || _.isNumber(x) || _.isBoolean(x) || _.isString(x) || _.isDate(x)) return true;
@@ -81,6 +82,7 @@ export const decodeUpdateOp = (update: TUpdateOp) => {
 
 export interface TObject {
   clone(): TObject;
+  relation<T extends string>(key: PathName<T>): TQuery<string, any, boolean>;
   fetchWithInclude(keys: string[], options?: ExtraOptions<boolean>): PromiseLike<this>;
   save(options?: ExtraOptions<boolean> & { cascadeSave?: boolean }): PromiseLike<this>;
   destroy(options?: ExtraOptions<boolean>): PromiseLike<this>;

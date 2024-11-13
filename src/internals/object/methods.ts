@@ -1,3 +1,4 @@
+import { PathName } from './../query/types/index';
 //
 //  methods.ts
 //
@@ -100,6 +101,11 @@ export const applyObjectMethods = <T extends TSerializable, E>(
         clone[PVK].mutated = { ...this[PVK].mutated };
         clone[PVK].extra = { ...this[PVK].extra };
         return clone;
+      }
+    },
+    relation: {
+      value<T extends string>(key: PathName<T>) {
+        return proto.Relation(this, key);
       }
     },
     fetchWithInclude: {
