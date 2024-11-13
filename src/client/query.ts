@@ -41,20 +41,23 @@ type _QueryOptions = {
   };
 };
 
-export class ProtoClientQuery<T extends string, E> extends TQuery<T, E, boolean> {
+abstract class _ProtoClientQuery<T extends string, E> extends TQuery<T, E, boolean> {
 
-  private _proto: ProtoClient<E>;
-  private _opts: _QueryOptions;
+  protected _proto: ProtoClient<E>;
+  protected _opts: _QueryOptions;
 
-  constructor(className: T, proto: ProtoClient<E>, opts: _QueryOptions) {
-    super(className);
+  constructor(proto: ProtoClient<E>, opts: _QueryOptions) {
+    super();
     this._proto = proto;
     this._opts = opts;
   }
 
+  abstract get url(): string;
+  abstract get className(): T | undefined;
+
   private get _queryOptions() {
     return {
-      className: this[PVK].className,
+      className: this.className,
       relatedBy: this._opts.relatedBy,
       ...this[PVK].options,
     } as any;
@@ -64,18 +67,12 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E, boolean>
     const { context, ...opts } = options ?? {};
     return {
       method: 'post',
-      url: `classes/${encodeURIComponent(this.className)}`,
+      url: this.url,
       serializeOpts: {
         objAttrs: TObject.defaultReadonlyKeys,
       },
       ...opts,
     };
-  }
-
-  clone(options?: TQueryOptions) {
-    const clone = new ProtoClientQuery(this.className, this._proto, this._opts);
-    clone[PVK].options = options ?? { ...this[PVK].options };
-    return clone;
   }
 
   explain(options?: RequestOptions<boolean>) {
@@ -200,6 +197,50 @@ export class ProtoClientQuery<T extends string, E> extends TQuery<T, E, boolean>
       silent: options?.silent,
       ...this._queryOptions,
     }, this._requestOpt(options)) as any;
+  }
+
+}
+
+export class ProtoClientQuery<T extends string, E> extends _ProtoClientQuery<T, E> {
+
+  private _className: T;
+
+  constructor(className: T, proto: ProtoClient<E>, opts: _QueryOptions) {
+    super(proto, opts);
+    this._className = className;
+  }
+
+  get url(): string {
+    return `classes/${encodeURIComponent(this.className)}`;
+  }
+  get className(): T {
+    return this._className;
+  }
+
+  clone(options?: TQueryOptions) {
+    const clone = new ProtoClientQuery(this.className, this._proto, this._opts);
+    clone[PVK].options = options ?? { ...this[PVK].options };
+    return clone;
+  }
+
+}
+export class ProtoClientRelationQuery<E> extends _ProtoClientQuery<string, E> {
+
+  constructor(proto: ProtoClient<E>, opts: _QueryOptions) {
+    super(proto, opts);
+  }
+
+  get url(): string {
+    return `relation`;
+  }
+  get className(): undefined {
+    return undefined;
+  }
+
+  clone(options?: TQueryOptions) {
+    const clone = new ProtoClientRelationQuery(this._proto, this._opts);
+    clone[PVK].options = options ?? { ...this[PVK].options };
+    return clone;
   }
 
 }

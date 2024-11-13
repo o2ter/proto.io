@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import jwt from 'jsonwebtoken';
-import { ProtoQuery } from '../query';
+import { ProtoQuery, ProtoRelationQuery } from '../query';
 import { ProtoInternal } from './internal';
 import { CookieOptions, Request } from '@o2ter/server-js';
 import { ProtoServiceOptions, ProtoServiceKeyOptions } from './types';
@@ -95,10 +95,10 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
     return new ProtoQuery<T, Ext, boolean>(className, this, {});
   }
 
-  Relation<T extends string>(className: T, object: TObject, key: string): TQuery<T, Ext, boolean> {
+  Relation(object: TObject, key: string): TQuery<string, Ext, boolean> {
     const objectId = object.objectId;
     if (!objectId) throw Error('Invalid object');
-    return new ProtoQuery<T, Ext, boolean>(className, this, {
+    return new ProtoRelationQuery<Ext, boolean>(this, {
       relatedBy: {
         className: object.className,
         objectId,

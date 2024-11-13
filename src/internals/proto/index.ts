@@ -82,7 +82,7 @@ export abstract class ProtoType<Ext> {
 
   abstract run(name: string, data?: TSerializable, options?: ExtraOptions<boolean>): Promise<void | TSerializable>;
   abstract Query<T extends string>(className: T): TQuery<T, Ext, boolean>;
-  abstract Relation<T extends string>(className: T, object: TObject, key: string): TQuery<T, Ext, boolean>;
+  abstract Relation(object: TObject, key: string): TQuery<string, Ext, boolean>;
 
   abstract refs(object: TObject, options?: ExtraOptions<boolean>): ReturnType<typeof asyncStream<TObjectType<string, Ext>>>;
 

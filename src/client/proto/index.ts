@@ -23,7 +23,7 @@
 //  THE SOFTWARE.
 //
 
-import { ProtoClientQuery } from '../query';
+import { ProtoClientQuery, ProtoClientRelationQuery } from '../query';
 import { RequestOptions } from '../options';
 import { ProtoClientInternal } from './internal';
 import { ProtoOptions } from './types';
@@ -49,10 +49,10 @@ export class ProtoClient<Ext = any> extends ProtoType<Ext> {
     return new ProtoClientQuery<T, Ext>(className, this, {});
   }
 
-  Relation<T extends string>(className: T, object: TObject, key: string): TQuery<T, Ext, boolean> {
+  Relation(object: TObject, key: string): TQuery<string, Ext, boolean> {
     const objectId = object.objectId;
     if (!objectId) throw Error('Invalid object');
-    return new ProtoClientQuery<T, Ext>(className, this, {
+    return new ProtoClientRelationQuery<Ext>(this, {
       relatedBy: {
         className: object.className,
         objectId,

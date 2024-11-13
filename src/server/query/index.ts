@@ -35,6 +35,8 @@ import { TObject, decodeUpdateOp } from '../../internals/object';
 import { TExtended } from '../../internals/object/methods';
 import { TValue } from '../../internals/types';
 import { TObjectType, TUpdateOp } from '../../internals/object/types';
+import { resolveColumn } from './dispatcher/validator';
+import { isPointer, isRelation } from '../../internals/schema';
 
 type _QueryOptions = {
   insecure?: boolean;
@@ -45,16 +47,18 @@ type _QueryOptions = {
   };
 };
 
-export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T, E, M> {
+abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T, E, M> {
 
-  private _proto: ProtoService<E>;
-  private _opts: _QueryOptions;
+  protected _proto: ProtoService<E>;
+  protected _opts: _QueryOptions;
 
-  constructor(className: T, proto: ProtoService<E>, opts: _QueryOptions) {
-    super(className);
+  constructor(proto: ProtoService<E>, opts: _QueryOptions) {
+    super();
     this._proto = proto;
     this._opts = opts;
   }
+
+  abstract get className(): T;
 
   private get _queryOptions() {
     return {
@@ -83,12 +87,6 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
 
   count(options?: ExtraOptions<M>) {
     return this._dispatcher(options).count(this._queryOptions);
-  }
-
-  clone(options?: TQueryOptions) {
-    const clone = new ProtoQuery(this.className, this._proto, this._opts);
-    clone[PVK].options = options ?? { ...this[PVK].options };
-    return clone;
   }
 
   private _objectMethods<U extends TObject | TObject[] | undefined>(object: U) {
@@ -375,6 +373,48 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T
     }
 
     return this._dispatcher(options).deleteMany(this._queryOptions);
+  }
+
+}
+
+export class ProtoQuery<T extends string, E, M extends boolean> extends _ProtoQuery<T, E, M> {
+
+  private _className: T;
+
+  constructor(className: T, proto: ProtoService<E>, opts: _QueryOptions) {
+    super(proto, opts);
+    this._className = className;
+  }
+
+  get className(): T {
+    return this._className;
+  }
+
+  clone(options?: TQueryOptions) {
+    const clone = new ProtoQuery(this.className, this._proto, this._opts);
+    clone[PVK].options = options ?? { ...this[PVK].options };
+    return clone;
+  }
+
+}
+
+export class ProtoRelationQuery<E, M extends boolean> extends _ProtoQuery<string, E, M> {
+
+  constructor(proto: ProtoService<E>, opts: _QueryOptions) {
+    super(proto, opts);
+  }
+
+  get className(): string {
+    const { className, key } = this._opts.relatedBy!;
+    const { dataType } = resolveColumn(this._proto.schema, className, key);
+    if (!isPointer(dataType) && !isRelation(dataType)) throw Error(`Invalid relation key: ${key}`);
+    return dataType.target;
+  }
+
+  clone(options?: TQueryOptions) {
+    const clone = new ProtoRelationQuery(this._proto, this._opts);
+    clone[PVK].options = options ?? { ...this[PVK].options };
+    return clone;
   }
 
 }

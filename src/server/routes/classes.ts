@@ -40,6 +40,69 @@ const verifyRelatedBy = (relatedBy: any) => {
 
 export default <E>(router: Router, proto: ProtoService<E>) => {
 
+  const defaultHandler = async (req: Request<{ name?: string; }>) => {
+
+    const { name } = req.params;
+
+    const {
+      operation,
+      context,
+      silent,
+      random,
+      attributes,
+      update,
+      setOnInsert,
+      relatedBy,
+      ...options
+    } = deserialize(req.body) as any;
+
+    verifyRelatedBy(relatedBy);
+
+    const payload = proto.connect(req);
+    const query = relatedBy ? payload.Relation(
+      payload.Object(relatedBy.className, relatedBy.objectId),
+      relatedBy.key,
+    ) : payload.Query(name!);
+    query[PVK].options = options;
+
+    const opts = { master: payload.isMaster, context, silent };
+
+    switch (operation) {
+      case 'explain':
+        if (!payload.isMaster) throw Error('No permission');
+        return query.explain(opts);
+      case 'count': return query.count(opts);
+      case 'find':
+        {
+          const maxFetchLimit = payload[PVK].options.maxFetchLimit;
+          query[PVK].options.limit = query[PVK].options.limit ?? maxFetchLimit;
+          if (query[PVK].options.limit > maxFetchLimit) throw Error('Query over limit');
+          return await query.find(opts);
+        }
+      case 'random':
+        {
+          const maxFetchLimit = payload[PVK].options.maxFetchLimit;
+          query[PVK].options.limit = query[PVK].options.limit ?? maxFetchLimit;
+          if (query[PVK].options.limit > maxFetchLimit) throw Error('Query over limit');
+          return await query.random(random, opts);
+        }
+      case 'nonrefs':
+        {
+          const maxFetchLimit = payload[PVK].options.maxFetchLimit;
+          query[PVK].options.limit = query[PVK].options.limit ?? maxFetchLimit;
+          if (query[PVK].options.limit > maxFetchLimit) throw Error('Query over limit');
+          return await query.nonrefs(opts);
+        }
+      case 'insert': return query.insert(attributes, opts);
+      case 'insertMany': return query.insertMany(attributes, opts);
+      case 'updateOne': return query.updateOne(update, opts);
+      case 'upsertOne': return query.upsertOne(update, setOnInsert, opts);
+      case 'deleteOne': return query.deleteOne(opts);
+      case 'deleteMany': return query.deleteMany(opts);
+      default: throw Error('Invalid operation');
+    }
+  }
+
   router.post(
     '/classes/:name',
     Server.text({ type: '*/*' }),
@@ -52,71 +115,22 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
 
       if (!_.includes(classes, name)) return res.sendStatus(404);
 
-      await response(res, async () => {
-
-        const {
-          operation,
-          context,
-          silent,
-          random,
-          attributes,
-          update,
-          setOnInsert,
-          relatedBy,
-          ...options
-        } = deserialize(req.body) as any;
-
-        verifyRelatedBy(relatedBy);
-
-        const payload = proto.connect(req);
-        const query = relatedBy ? payload.Relation(
-          name,
-          payload.Object(relatedBy.className, relatedBy.objectId),
-          relatedBy.key,
-        ) : payload.Query(name);
-        query[PVK].options = options;
-
-        const opts = { master: payload.isMaster, context, silent };
-
-        switch (operation) {
-          case 'explain':
-            if (!payload.isMaster) throw Error('No permission');
-            return query.explain(opts);
-          case 'count': return query.count(opts);
-          case 'find':
-            {
-              const maxFetchLimit = payload[PVK].options.maxFetchLimit;
-              query[PVK].options.limit = query[PVK].options.limit ?? maxFetchLimit;
-              if (query[PVK].options.limit > maxFetchLimit) throw Error('Query over limit');
-              return await query.find(opts);
-            }
-          case 'random':
-            {
-              const maxFetchLimit = payload[PVK].options.maxFetchLimit;
-              query[PVK].options.limit = query[PVK].options.limit ?? maxFetchLimit;
-              if (query[PVK].options.limit > maxFetchLimit) throw Error('Query over limit');
-              return await query.random(random, opts);
-            }
-          case 'nonrefs':
-            {
-              const maxFetchLimit = payload[PVK].options.maxFetchLimit;
-              query[PVK].options.limit = query[PVK].options.limit ?? maxFetchLimit;
-              if (query[PVK].options.limit > maxFetchLimit) throw Error('Query over limit');
-              return await query.nonrefs(opts);
-            }
-          case 'insert': return query.insert(attributes, opts);
-          case 'insertMany': return query.insertMany(attributes, opts);
-          case 'updateOne': return query.updateOne(update, opts);
-          case 'upsertOne': return query.upsertOne(update, setOnInsert, opts);
-          case 'deleteOne': return query.deleteOne(opts);
-          case 'deleteMany': return query.deleteMany(opts);
-          default: throw Error('Invalid operation');
-        }
-      });
+      await response(res, () => defaultHandler(req));
     }
   );
 
-  const createQuery = <E>(payload: ProtoService<E>, req: Request<{ name: string; }>, checkLimit: boolean) => {
+  router.post(
+    '/relation',
+    Server.text({ type: '*/*' }),
+    async (req, res) => {
+
+      res.setHeader('Cache-Control', ['no-cache', 'no-store']);
+
+      await response(res, () => defaultHandler(req));
+    }
+  );
+
+  const createQuery = <E>(payload: ProtoService<E>, req: Request<{ name?: string; }>, checkLimit: boolean) => {
 
     const { name } = req.params;
 
@@ -132,10 +146,9 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
     verifyRelatedBy(relatedBy);
 
     const query = relatedBy ? payload.Relation(
-      name,
       payload.Object(relatedBy.className, relatedBy.objectId),
       relatedBy.key,
-    ) : payload.Query(name);
+    ) : payload.Query(name!);
 
     query[PVK].options.filter = !_.isEmpty(filter) && _.isString(filter) ? _.castArray(deserialize(filter)) as any : [];
     query[PVK].options.sort = _.isPlainObject(sort) && _.every(_.values(sort), _.isNumber) ? sort as any : undefined;
@@ -172,6 +185,19 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
   );
 
   router.get(
+    '/relation',
+    queryType.middleware(),
+    async (req, res) => {
+
+      res.setHeader('Cache-Control', ['no-cache', 'no-store']);
+
+      const payload = proto.connect(req);
+
+      await response(res, async () => createQuery(payload, req, true).find({ master: payload.isMaster }));
+    }
+  );
+
+  router.get(
     '/classes/:name/random',
     queryType.middleware(),
     async (req, res) => {
@@ -193,6 +219,22 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
   );
 
   router.get(
+    '/relation/random',
+    queryType.middleware(),
+    async (req, res) => {
+
+      res.setHeader('Cache-Control', ['no-cache', 'no-store']);
+
+      const payload = proto.connect(req);
+      const { weight } = req.query;
+
+      if (_.isEmpty(weight) || !_.isString(weight)) throw Error('Invalid operation');
+
+      await response(res, async () => createQuery(payload, req, true).random({ weight }, { master: payload.isMaster }));
+    }
+  );
+
+  router.get(
     '/classes/:name/nonrefs',
     queryType.middleware(),
     async (req, res) => {
@@ -203,6 +245,19 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       const classes = proto.classes();
 
       if (!_.includes(classes, name)) return res.sendStatus(404);
+
+      const payload = proto.connect(req);
+
+      await response(res, async () => createQuery(payload, req, true).nonrefs({ master: payload.isMaster }));
+    }
+  );
+
+  router.get(
+    '/relation/nonrefs',
+    queryType.middleware(),
+    async (req, res) => {
+
+      res.setHeader('Cache-Control', ['no-cache', 'no-store']);
 
       const payload = proto.connect(req);
 
@@ -277,6 +332,21 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       const classes = proto.classes();
 
       if (!_.includes(classes, name)) return res.sendStatus(404);
+
+      const payload = proto.connect(req);
+
+      await response(res, () => createQuery(payload, req, false).deleteMany({ master: payload.isMaster }));
+    }
+  );
+
+  router.delete(
+    '/relation',
+    Server.text({ type: '*/*' }),
+    async (req, res) => {
+
+      res.setHeader('Cache-Control', ['no-cache', 'no-store']);
+
+      if (!_.isEmpty(req.body)) return res.sendStatus(400);
 
       const payload = proto.connect(req);
 

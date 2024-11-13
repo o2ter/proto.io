@@ -44,22 +44,7 @@ export interface TQueryRandomOptions {
 export abstract class TQuery<T extends string, Ext, M extends boolean> extends TQueryBase {
 
   /** @internal */
-  [PVK]: {
-    className: T;
-    options: TQueryOptions;
-  }
-
-  constructor(className: T, options: TQueryOptions = {}) {
-    super();
-    this[PVK] = {
-      className,
-      options,
-    };
-  }
-
-  get className(): T {
-    return this[PVK].className;
-  }
+  [PVK]: { options: TQueryOptions; } = { options: {} };
 
   abstract clone(options?: TQueryOptions): TQuery<T, Ext, M>;
   abstract explain(options?: ExtraOptions<M>): PromiseLike<any>;
