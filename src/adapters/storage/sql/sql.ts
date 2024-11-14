@@ -80,7 +80,8 @@ export class SQL {
       } else if (_.isBoolean(value.value)) {
         query += dialect.boolean(value.value);
       } else if (_.isString(value.value)) {
-        query += `${dialect.quote(value.value)}::TEXT`;
+        query += `${dialect.placeholder(nextIdx())}::TEXT`;
+        values.push(value.value);
       } else if (_.isSafeInteger(value.value)) {
         query += `${value.value}`;
       } else if (_.isNumber(value.value)) {

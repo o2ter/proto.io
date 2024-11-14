@@ -160,6 +160,15 @@ test('test each batch 3', async () => {
   expect(counter).toStrictEqual(3);
 })
 
+test('test string', async () => {
+
+  const inserted = await Proto.Query('Test').insert({
+    string: 'hello\n\n\nworld',
+  });
+
+  expect(inserted.get('string')).toStrictEqual('hello\n\n\nworld');
+})
+
 test('test types', async () => {
   const date = new Date;
   const inserted = await Proto.Query('Test').insert({
