@@ -37,7 +37,6 @@ import schemaRoute from './server/routes/schema';
 import configRoute from './server/routes/config';
 import { TSchema } from './internals/schema';
 import { PVK } from './internals/private';
-import { _encodeValue } from './internals/object';
 import { _TValue } from './internals/types';
 import Decimal from 'decimal.js';
 import { response } from './server/routes/common';
