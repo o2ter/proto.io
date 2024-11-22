@@ -40,7 +40,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       res.setHeader('Cache-Control', ['no-cache', 'no-store']);
 
       const { name } = req.params;
-      if (_.isNil(proto[PVK].functions[name])) return res.sendStatus(404);
+      if (_.isNil(proto[PVK].functions[name])) return void res.sendStatus(404);
 
       await response(res, () => {
 
@@ -61,7 +61,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       res.setHeader('Cache-Control', ['no-cache', 'no-store']);
 
       const { name } = req.params;
-      if (_.isNil(proto[PVK].functions[name])) return res.sendStatus(404);
+      if (_.isNil(proto[PVK].functions[name])) return void res.sendStatus(404);
 
       await response(res, () => {
 

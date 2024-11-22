@@ -113,7 +113,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       const { name } = req.params;
       const classes = proto.classes();
 
-      if (!_.includes(classes, name)) return res.sendStatus(404);
+      if (!_.includes(classes, name)) return void res.sendStatus(404);
 
       await response(res, () => defaultHandler(req));
     }
@@ -176,7 +176,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       const { name } = req.params;
       const classes = proto.classes();
 
-      if (!_.includes(classes, name)) return res.sendStatus(404);
+      if (!_.includes(classes, name)) return void res.sendStatus(404);
 
       const payload = proto.connect(req);
 
@@ -207,7 +207,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       const { name } = req.params;
       const classes = proto.classes();
 
-      if (!_.includes(classes, name)) return res.sendStatus(404);
+      if (!_.includes(classes, name)) return void res.sendStatus(404);
 
       const payload = proto.connect(req);
       const { weight } = req.query;
@@ -244,7 +244,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       const { name } = req.params;
       const classes = proto.classes();
 
-      if (!_.includes(classes, name)) return res.sendStatus(404);
+      if (!_.includes(classes, name)) return void res.sendStatus(404);
 
       const payload = proto.connect(req);
 
@@ -274,7 +274,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       const { name, id } = req.params;
       const classes = proto.classes();
 
-      if (!_.includes(classes, name)) return res.sendStatus(404);
+      if (!_.includes(classes, name)) return void res.sendStatus(404);
 
       const payload = proto.connect(req);
 
@@ -291,7 +291,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       const { name, id } = req.params;
       const classes = proto.classes();
 
-      if (!_.includes(classes, name)) return res.sendStatus(404);
+      if (!_.includes(classes, name)) return void res.sendStatus(404);
 
       const payload = proto.connect(req);
 
@@ -309,7 +309,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       const { name, id } = req.params;
       const classes = proto.classes();
 
-      if (!_.includes(classes, name)) return res.sendStatus(404);
+      if (!_.includes(classes, name)) return void res.sendStatus(404);
 
       const payload = proto.connect(req);
       const query = payload.Query(name).equalTo('_id', id);
@@ -326,12 +326,12 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
 
       res.setHeader('Cache-Control', ['no-cache', 'no-store']);
 
-      if (!_.isEmpty(req.body)) return res.sendStatus(400);
+      if (!_.isEmpty(req.body)) return void res.sendStatus(400);
 
       const { name } = req.params;
       const classes = proto.classes();
 
-      if (!_.includes(classes, name)) return res.sendStatus(404);
+      if (!_.includes(classes, name)) return void res.sendStatus(404);
 
       const payload = proto.connect(req);
 
@@ -346,7 +346,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
 
       res.setHeader('Cache-Control', ['no-cache', 'no-store']);
 
-      if (!_.isEmpty(req.body)) return res.sendStatus(400);
+      if (!_.isEmpty(req.body)) return void res.sendStatus(400);
 
       const payload = proto.connect(req);
 
@@ -361,12 +361,12 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
 
       res.setHeader('Cache-Control', ['no-cache', 'no-store']);
 
-      if (!_.isEmpty(req.body)) return res.sendStatus(400);
+      if (!_.isEmpty(req.body)) return void res.sendStatus(400);
 
       const { name, id } = req.params;
       const classes = proto.classes();
 
-      if (!_.includes(classes, name)) return res.sendStatus(404);
+      if (!_.includes(classes, name)) return void res.sendStatus(404);
 
       const payload = proto.connect(req);
       const query = payload.Query(name).equalTo('_id', id);
