@@ -70,9 +70,9 @@ const validateShapedObject = (schema: Record<string, TSchema>, dataType: TSchema
 }
 
 const validateSchemaName = (schema: Record<string, TSchema>) => {
-
-  if (!_.isNil(schema['_Schema']) || !_.isNil(schema['_Config'])) throw Error('Reserved name of class');
-
+  for (const name of ['_Schema', '_Config']) {
+    if (!_.isNil(schema[name])) throw Error('Reserved name of class');
+  }
   for (const [, _schema] of _.toPairs(schema)) {
     for (const [key] of _.toPairs(_schema.fields)) {
       if (_.includes(TObject.defaultKeys, key)) throw Error(`Reserved field name: ${key}`);
