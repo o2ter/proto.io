@@ -191,12 +191,61 @@ export class PostgresClientDriver {
   }
 }
 
+class PostgresPubSub {
+
+  client: Awaitable<PoolClient>;
+  subscribers: Record<string, ((payload: EventData) => void)[]> = {};
+
+  channels: string[] = [];
+
+  constructor(client: Awaitable<PoolClient>) {
+    this.client = client;
+    (async () => {
+      try {
+        (await client).on('notification', ({ channel, payload }) => {
+          if (!payload) return;
+          try {
+            const _payload = _decodeValue(JSON.parse(payload));
+            for (const subscriber of this.subscribers[_.toUpper(channel)]) {
+              subscriber(_payload as EventData);
+            }
+          } catch (e) {
+            console.error(`Unknown payload: ${e}`);
+          }
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    })();
+  }
+
+  async shutdown() {
+    (await this.client).release();
+  }
+
+  async listen(channel: string) {
+    this.channels.push(channel);
+    await (await this.client).query(`LISTEN ${channel}`);
+  }
+
+  subscribe(channel: string, callback: (payload: EventData) => void) {
+    if (_.isNil(this.subscribers[channel])) this.subscribers[channel] = [];
+    this.subscribers[channel].push(callback);
+    return () => {
+      this.subscribers[channel] = this.subscribers[channel].filter(x => x !== callback);
+    };
+  }
+
+  isEmpty() {
+    return _.every(_.values(this.subscribers), x => _.isEmpty(x));
+  }
+}
+
 export class PostgresDriver extends PostgresClientDriver {
 
   database: Pool;
 
-  private pubsub?: Awaitable<PoolClient>;
-  private subscribers: ((payload: EventData) => void)[] = [];
+  private pubsub?: PostgresPubSub;
 
   constructor(config: string | PoolConfig) {
     if (_.isEmpty(config)) throw Error('Invalid postgre config.');
@@ -211,23 +260,10 @@ export class PostgresDriver extends PostgresClientDriver {
     await this.database.end();
   }
 
-  private async _init_pubsub() {
+  private _init_pubsub() {
     if (this.pubsub) return;
     try {
-      this.pubsub = this.database.connect();
-      const pubsub = await this.pubsub;
-      pubsub.on('notification', ({ channel, payload }) => {
-        if (_.toUpper(channel) !== PROTO_POSTGRES_MSG || !payload) return;
-        try {
-          const _payload = _decodeValue(JSON.parse(payload));
-          for (const subscriber of this.subscribers) {
-            subscriber(_payload as EventData);
-          }
-        } catch (e) {
-          console.error(`Unknown payload: ${e}`);
-        }
-      });
-      await pubsub.query(`LISTEN ${PROTO_POSTGRES_MSG}`);
+      this.pubsub = new PostgresPubSub(this.database.connect());
     } catch (e) {
       console.error(e);
     }
@@ -236,17 +272,20 @@ export class PostgresDriver extends PostgresClientDriver {
   private async _release_pubsub() {
     const pubsub = this.pubsub;
     this.pubsub = undefined;
-    await (await pubsub)?.release();
+    await pubsub?.shutdown();
+  }
+
+  _subscribe(channel: string, callback: (payload: EventData) => void) {
+    this._init_pubsub();
+    if (!_.includes(this.pubsub!.channels, channel)) this.pubsub!.listen(channel);
+    const release = this.pubsub!.subscribe(channel, callback);
+    return () => {
+      release();
+      if (this.pubsub?.isEmpty()) this._release_pubsub();
+    };
   }
 
   subscribe(callback: (payload: EventData) => void) {
-    this._init_pubsub();
-    this.subscribers.push(callback);
-    return () => { 
-      this.subscribers = this.subscribers.filter(x => x !== callback);
-      if (_.isEmpty(this.subscribers)) {
-        this._release_pubsub();
-      }
-    };
+    return this._subscribe(PROTO_POSTGRES_MSG, callback);
   }
 }
