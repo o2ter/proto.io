@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { Server, RequestHandler } from '@o2ter/server-js';
+import { Server } from '@o2ter/server-js';
 import { ProtoService } from './server/proto';
 import { ProtoServiceKeyOptions, ProtoServiceOptions } from './server/proto/types';
 import authHandler from './server/auth';
@@ -60,27 +60,15 @@ export const schema = _.assign((x: Record<string, TSchema>) => x, {
   relation: (target: string, foreignField?: string) => ({ type: 'relation', target, foreignField }) as const,
 });
 
-type AdapterHandler<E, Handler extends RequestHandler = RequestHandler>
-  = Handler extends (req: infer Req, ...args: infer Rest) => void
-  ? (req: ProtoService<E> & { req: Req; }, ...args: Rest) => void
-  : never;
-
 export const ProtoRoute = async <E>(options: {
-  adapters?: AdapterHandler<E>[],
   proto: ProtoService<E> | (ProtoServiceOptions<E> & ProtoServiceKeyOptions);
 }) => {
 
-  const {
-    adapters,
-    proto: _proto,
-  } = options;
-
-  const proto = _proto instanceof ProtoService ? _proto : new ProtoService(_proto);
+  const proto = options.proto instanceof ProtoService ? options.proto : new ProtoService(options.proto);
   await proto[PVK].prepare();
 
   const router = Server.Router().use(
     authHandler(proto),
-    ..._.map(adapters, x => ((req, res, next) => x(proto.connect(req), res, next)) as RequestHandler),
     (req, res, next) => {
       const payload = proto.connect(req);
       if (!payload.isInvalidMasterToken) return next();
