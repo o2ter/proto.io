@@ -1141,7 +1141,7 @@ test('test save keys 2', async () => {
 
 test('test save keys 3', async () => {
   const obj = await Proto.Query('Test').insert({});
-  obj.set('shape', { 
+  obj.set('shape', {
     number: 42,
     string: 'hello',
   });
@@ -1510,7 +1510,7 @@ test('test relation 8', async () => {
 
   const q = Proto.Query('Test').equalTo('_id', inserted.objectId);
 
-expect(_.map((await q.clone().includes('relation4').first())?.get('relation4'), x => x.objectId).sort()).toStrictEqual([inserted3.objectId].sort());
+  expect(_.map((await q.clone().includes('relation4').first())?.get('relation4'), x => x.objectId).sort()).toStrictEqual([inserted3.objectId].sort());
 
 }, 60000)
 
@@ -2667,6 +2667,41 @@ test('test relation permission 4', async () => {
   await Proto.logout();
 })
 
+test('test relation permission 5', async () => {
+  const inserted = await Proto.Query('Relation').insert({
+  });
+  const inserted2 = await Proto.Query('Relation2').insert({
+    relation: [inserted],
+  });
+  const inserted3 = await Proto.Query('Relation3').insert({
+    relation: [inserted2],
+    _rperm: ['role:admin']
+  });
+  const inserted4 = await Proto.Query('Relation4').insert({
+    relation: [inserted3],
+  });
+  const inserted5 = await Proto.Query('Relation5').insert({
+    relation: [inserted4],
+  });
+  const inserted6 = await Proto.Query('Relation6').insert({
+    pointer: inserted5,
+  });
+  const inserted7 = await Proto.Query('Relation7').insert({
+    pointer: inserted6,
+  });
+
+  const q = Proto.Query('Relation').equalTo('_id', inserted.objectId);
+
+  expect(_.map((await q.clone().includes('relation7').first())?.get('relation7'), x => x.objectId).sort()).toStrictEqual([]);
+
+  await Proto.run('createUserWithRole', { role: 'admin' });
+
+  expect(_.map((await q.clone().includes('relation7').first())?.get('relation7'), x => x.objectId).sort()).toStrictEqual([inserted7.objectId].sort());
+
+  await Proto.logout();
+
+}, 60000)
+
 test('test relation additional permission', async () => {
   const object = await Proto.Query('Test').insert({ _rperm: ['role:admin'] });
   const object2 = await Proto.Query('Test').insert({ pointer: object });
@@ -2705,11 +2740,46 @@ test('test relation additional permission 4', async () => {
   const object = await Proto.Query('Test').insert({ _rperm: ['role:admin'], relation: [object2] });
   const result = await Proto.Query('Test').includes('relation3').get(object2.objectId!);
   expect(_.first(result?.get('relation3'))).toBeUndefined();
-  await Proto.run('createUserWithRole', { role: 'admin' });
+  await Proto.run('createUserWithRole', { role: 'system' });
   const result2 = await Proto.Query('Test').includes('relation3').get(object2.objectId!);
   expect(_.first(result2?.get('relation3'))).toBeTruthy();
   await Proto.logout();
 })
+
+test('test relation additional permission 5', async () => {
+  const inserted = await Proto.Query('Relation').insert({
+  });
+  const inserted2 = await Proto.Query('Relation2').insert({
+    relation: [inserted],
+  });
+  const inserted3 = await Proto.Query('Relation3').insert({
+    relation: [inserted2],
+    _rperm: ['role:admin']
+  });
+  const inserted4 = await Proto.Query('Relation4').insert({
+    relation: [inserted3],
+  });
+  const inserted5 = await Proto.Query('Relation5').insert({
+    relation: [inserted4],
+  });
+  const inserted6 = await Proto.Query('Relation6').insert({
+    pointer: inserted5,
+  });
+  const inserted7 = await Proto.Query('Relation7').insert({
+    pointer: inserted6,
+  });
+
+  const q = Proto.Query('Relation').equalTo('_id', inserted.objectId);
+
+  expect(_.map((await q.clone().includes('relation7').first())?.get('relation7'), x => x.objectId).sort()).toStrictEqual([]);
+
+  await Proto.run('createUserWithRole', { role: 'system' });
+
+  expect(_.map((await q.clone().includes('relation7').first())?.get('relation7'), x => x.objectId).sort()).toStrictEqual([inserted7.objectId].sort());
+
+  await Proto.logout();
+
+}, 60000)
 
 test('test transaction', async () => {
 
