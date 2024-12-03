@@ -2623,6 +2623,94 @@ test('test additional permission', async () => {
   await Proto.logout();
 })
 
+test('test relation permission', async () => {
+  const object = await Proto.Query('Test').insert({ _rperm: ['role:admin'] });
+  const object2 = await Proto.Query('Test').insert({ pointer: object });
+  const result = await Proto.Query('Test').includes('pointer').get(object2.objectId!);
+  expect(result?.get('pointer')).toBeUndefined();
+  await Proto.run('createUserWithRole', { role: 'admin' });
+  const result2 = await Proto.Query('Test').includes('pointer').get(object2.objectId!);
+  expect(result2?.get('pointer')).toBeTruthy();
+  await Proto.logout();
+})
+
+test('test relation permission 2', async () => {
+  const object = await Proto.Query('Test').insert({ _rperm: ['role:admin'] });
+  const object2 = await Proto.Query('Test').insert({ relation: [object] });
+  const result = await Proto.Query('Test').includes('relation').get(object2.objectId!);
+  expect(_.first(result?.get('relation'))).toBeUndefined();
+  await Proto.run('createUserWithRole', { role: 'admin' });
+  const result2 = await Proto.Query('Test').includes('relation').get(object2.objectId!);
+  expect(_.first(result2?.get('relation'))).toBeTruthy();
+  await Proto.logout();
+})
+
+test('test relation permission 3', async () => {
+  const object2 = await Proto.Query('Test').insert({});
+  const object = await Proto.Query('Test').insert({ _rperm: ['role:admin'], pointer: object2 });
+  const result = await Proto.Query('Test').includes('relation2').get(object2.objectId!);
+  expect(_.first(result?.get('relation2'))).toBeUndefined();
+  await Proto.run('createUserWithRole', { role: 'admin' });
+  const result2 = await Proto.Query('Test').includes('relation2').get(object2.objectId!);
+  expect(_.first(result2?.get('relation2'))).toBeTruthy();
+  await Proto.logout();
+})
+
+test('test relation permission 4', async () => {
+  const object2 = await Proto.Query('Test').insert({});
+  const object = await Proto.Query('Test').insert({ _rperm: ['role:admin'], relation: [object2] });
+  const result = await Proto.Query('Test').includes('relation3').get(object2.objectId!);
+  expect(_.first(result?.get('relation3'))).toBeUndefined();
+  await Proto.run('createUserWithRole', { role: 'admin' });
+  const result2 = await Proto.Query('Test').includes('relation3').get(object2.objectId!);
+  expect(_.first(result2?.get('relation3'))).toBeTruthy();
+  await Proto.logout();
+})
+
+test('test relation additional permission', async () => {
+  const object = await Proto.Query('Test').insert({ _rperm: ['role:admin'] });
+  const object2 = await Proto.Query('Test').insert({ pointer: object });
+  const result = await Proto.Query('Test').includes('pointer').get(object2.objectId!);
+  expect(result?.get('pointer')).toBeUndefined();
+  await Proto.run('createUserWithRole', { role: 'system' });
+  const result2 = await Proto.Query('Test').includes('pointer').get(object2.objectId!);
+  expect(result2?.get('pointer')).toBeTruthy();
+  await Proto.logout();
+})
+
+test('test relation additional permission 2', async () => {
+  const object = await Proto.Query('Test').insert({ _rperm: ['role:admin'] });
+  const object2 = await Proto.Query('Test').insert({ relation: [object] });
+  const result = await Proto.Query('Test').includes('relation').get(object2.objectId!);
+  expect(_.first(result?.get('relation'))).toBeUndefined();
+  await Proto.run('createUserWithRole', { role: 'system' });
+  const result2 = await Proto.Query('Test').includes('relation').get(object2.objectId!);
+  expect(_.first(result2?.get('relation'))).toBeTruthy();
+  await Proto.logout();
+})
+
+test('test relation additional permission 3', async () => {
+  const object2 = await Proto.Query('Test').insert({});
+  const object = await Proto.Query('Test').insert({ _rperm: ['role:admin'], pointer: object2 });
+  const result = await Proto.Query('Test').includes('relation2').get(object2.objectId!);
+  expect(_.first(result?.get('relation2'))).toBeUndefined();
+  await Proto.run('createUserWithRole', { role: 'system' });
+  const result2 = await Proto.Query('Test').includes('relation2').get(object2.objectId!);
+  expect(_.first(result2?.get('relation2'))).toBeTruthy();
+  await Proto.logout();
+})
+
+test('test relation additional permission 4', async () => {
+  const object2 = await Proto.Query('Test').insert({});
+  const object = await Proto.Query('Test').insert({ _rperm: ['role:admin'], relation: [object2] });
+  const result = await Proto.Query('Test').includes('relation3').get(object2.objectId!);
+  expect(_.first(result?.get('relation3'))).toBeUndefined();
+  await Proto.run('createUserWithRole', { role: 'admin' });
+  const result2 = await Proto.Query('Test').includes('relation3').get(object2.objectId!);
+  expect(_.first(result2?.get('relation3'))).toBeTruthy();
+  await Proto.logout();
+})
+
 test('test transaction', async () => {
 
   const object = await Proto.Query('Test').insert({});
