@@ -194,6 +194,10 @@ export const encodeForeignField = (
   );
 
   const cond: (SQL | undefined)[] = [];
+  if (compiler.extraFilter) {
+    const filter = compiler.extraFilter(dataType.target);
+    cond.push(compiler._encodeFilter({ className: dataType.target, name: tempName }, filter));
+  }
   if (isPointer(dataType)) {
     cond.push(
       sql`${sql`(${{ quote: dataType.target + '$' }} || ${_foreign('_id')})`} = ${_local(colname)}`
