@@ -88,30 +88,39 @@ export const selectPopulate = (
 
   const subpaths = resolveSubpaths(compiler, populate);
 
+  const cond: SQL[] = [];
   if (populate.type === 'pointer') {
+    cond.push(
+      sql`${sql`(${{ quote: populate.className + '$' }} || ${_foreign('_id')})`} = ${_local(field)}`
+    );
     return {
       columns: _.map(subpaths, ({ path }) => sql`${{ identifier: populate.name }}.${{ identifier: path }} AS ${{ identifier: `${field}.${path}` }}`),
       join: sql`
         LEFT JOIN ${{ identifier: populate.name }}
-        ON ${sql`(${{ quote: populate.className + '$' }} || ${_foreign('_id')})`} = ${_local(field)}
+        ON ${{ literal: _.map(cond, x => sql`(${x})`), separator: ' AND ' }}
       `,
     };
   }
 
-  let cond: SQL;
   if (_.isNil(populate.foreignField)) {
-    cond = sql`${sql`(${{ quote: populate.className + '$' }} || ${_foreign('_id')})`} = ANY(${_local(field)})`;
+    cond.push(
+      sql`${sql`(${{ quote: populate.className + '$' }} || ${_foreign('_id')})`} = ANY(${_local(field)})`
+    );
   } else if (_isPointer(compiler.schema, populate.className, populate.foreignField)) {
-    cond = sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ${_foreign(populate.colname)}`;
+    cond.push(
+      sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ${_foreign(populate.colname)}`
+    );
   } else {
-    cond = sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ANY(${_foreign(populate.colname)})`;
+    cond.push(
+      sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ANY(${_foreign(populate.colname)})`
+    );
   }
   return {
     columns: [sql`
       ARRAY(
         SELECT to_jsonb(${{ identifier: populate.name }}) FROM (
           SELECT ${_.map(subpaths, ({ path, type }) => _encodePopulateInclude(populate.name, path, type))}
-          FROM ${{ identifier: populate.name }} WHERE ${cond}
+          FROM ${{ identifier: populate.name }} WHERE ${{ literal: _.map(cond, x => sql`(${x})`), separator: ' AND ' }}
           ${!_.isEmpty(populate.sort) ? sql`ORDER BY ${compiler._encodeSort(populate.sort, { className: populate.className, name: populate.name })}` : sql``}
           ${populate.limit ? sql`LIMIT ${{ literal: `${populate.limit}` }}` : sql``}
           ${populate.skip ? sql`OFFSET ${{ literal: `${populate.skip}` }}` : sql``}
@@ -183,11 +192,15 @@ export const encodeForeignField = (
     remix,
   );
 
+  const cond: SQL[] = [];
   if (isPointer(dataType)) {
+    cond.push(
+      sql`${sql`(${{ quote: dataType.target + '$' }} || ${_foreign('_id')})`} = ${_local(colname)}`
+    );
     return {
       joins: [sql`
         LEFT JOIN ${encodeRemix({ className: dataType.target }, remix)} AS ${{ identifier: tempName }}
-        ON ${sql`(${{ quote: dataType.target + '$' }} || ${_foreign('_id')})`} = ${_local(colname)}
+        ON ${{ literal: _.map(cond, x => sql`(${x})`), separator: ' AND ' }}
       `, ...joins],
       field,
       array,
@@ -195,13 +208,18 @@ export const encodeForeignField = (
     };
   }
 
-  let cond: SQL;
   if (_.isNil(dataType.foreignField)) {
-    cond = sql`${sql`(${{ quote: dataType.target + '$' }} || ${_foreign('_id')})`} = ANY(${_local(colname)})`;
+    cond.push(
+      sql`${sql`(${{ quote: dataType.target + '$' }} || ${_foreign('_id')})`} = ANY(${_local(colname)})`
+    );
   } else if (_isPointer(compiler.schema, dataType.target, dataType.foreignField)) {
-    cond = sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ${_foreign(dataType.foreignField)}`;
+    cond.push(
+      sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ${_foreign(dataType.foreignField)}`
+    );
   } else {
-    cond = sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ANY(${_foreign(dataType.foreignField)})`;
+    cond.push(
+      sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ANY(${_foreign(dataType.foreignField)})`
+    );
   }
   return {
     joins: [],
@@ -209,7 +227,7 @@ export const encodeForeignField = (
       SELECT ${array ? sql`UNNEST(${field})` : field}
       FROM ${encodeRemix({ className: dataType.target }, remix)} AS ${{ identifier: tempName }}
       ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
-      WHERE ${cond}
+      WHERE ${{ literal: _.map(cond, x => sql`(${x})`), separator: ' AND ' }}
     )`,
     array: false,
     rows: true,

@@ -409,6 +409,7 @@ export class QueryValidator<E> {
       includes,
       sort,
       objectIdSize: this.objectIdSize,
+      extraFilter: (className) => QuerySelector.decode([...this._rperm(className), this._expiredAt]).simplify(),
     };
   }
 

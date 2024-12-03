@@ -137,13 +137,22 @@ export class QueryCompiler {
   selectLock: boolean;
   isUpdate: boolean;
 
+  extraFilter?: (className: string) => QuerySelector;
+
   idx = 0;
 
-  constructor(schema: Record<string, TSchema>, dialect: SqlDialect, selectLock: boolean, isUpdate: boolean) {
-    this.schema = schema;
-    this.dialect = dialect;
-    this.selectLock = selectLock;
-    this.isUpdate = isUpdate;
+  constructor(options: {
+    schema: Record<string, TSchema>;
+    dialect: SqlDialect;
+    selectLock: boolean;
+    isUpdate: boolean;
+    extraFilter?: (className: string) => QuerySelector;
+  }) {
+    this.schema = options.schema;
+    this.dialect = options.dialect;
+    this.selectLock = options.selectLock;
+    this.isUpdate = options.isUpdate;
+    this.extraFilter = options.extraFilter;
   }
 
   nextIdx() {

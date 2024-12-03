@@ -64,6 +64,7 @@ export type DecodedQuery<T> = Decoded<T, {
   includes: string[];
   objectIdSize: number;
   sort?: Record<string, 1 | -1> | DecodedSortOption[];
+  extraFilter: (className: string) => QuerySelector;
 }>;
 
 export type InsertOptions = {
