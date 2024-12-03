@@ -34,18 +34,6 @@ const Proto = new ProtoClient({
   masterUser,
 });
 
-test('test count', async () => {
-  await Proto.Query('Test').insert({});
-  const count = await Proto.Query('Test').count();
-  expect(count).toBeGreaterThan(0);
-})
-
-test('test field name', async () => {
-  const inserted = await Proto.Query('Test').insert({ 'test_field-name': 'hello' });
-  expect(inserted.objectId).toBeTruthy();
-  expect(inserted.get('test_field-name')).toStrictEqual('hello');
-})
-
 test('test destroy', async () => {
   const inserted = await Proto.Query('Test').insert({ string: 'destroy' });
   expect(inserted.objectId).toBeTruthy();
@@ -53,40 +41,4 @@ test('test destroy', async () => {
   await inserted.destroy();
   const result = await Proto.Query('Test').equalTo('string', 'destroy').find();
   expect(result).toStrictEqual([]);
-})
-
-test('test save keys', async () => {
-  const inserted = await Proto.Query('Test').insert({});
-
-  const obj = Proto.Object('Test');
-  obj.set('pointer', inserted);
-  obj.set('shape', { pointer: inserted });
-  await obj.save();
-
-  expect(obj.get('pointer')?.objectId).toStrictEqual(inserted.objectId);
-  expect(obj.get('shape.pointer')?.objectId).toStrictEqual(inserted.objectId);
-})
-
-test('test save keys 2', async () => {
-  const inserted = await Proto.Query('Test').insert({});
-
-  const obj = Proto.Object('Test');
-  obj.set('relation', [inserted]);
-  obj.set('shape', { relation: [inserted] });
-  await obj.save();
-
-  expect(obj.get('relation')?.[0]?.objectId).toStrictEqual(inserted.objectId);
-  expect(obj.get('shape.relation')?.[0]?.objectId).toStrictEqual(inserted.objectId);
-})
-
-test('test save keys 3', async () => {
-  const obj = await Proto.Query('Test').insert({});
-  obj.set('shape', {
-    number: 42,
-    string: 'hello',
-  });
-  await obj.save();
-
-  expect(obj.get('shape.number')).toStrictEqual(42);
-  expect(obj.get('shape.string')).toStrictEqual('hello');
 })
