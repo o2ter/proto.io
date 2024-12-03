@@ -50,7 +50,7 @@ export type Populate = {
   type: TSchema.Relation;
   foreignField?: string;
   subpaths: string[];
-  filter: QuerySelector;
+  filter?: QuerySelector;
   includes: Record<string, TSchema.DataType>;
   populates: Record<string, Populate>;
   sort?: Record<string, 1 | -1> | DecodedSortOption[];
@@ -219,13 +219,13 @@ export class QueryCompiler {
   ) {
 
     const context = this._makeContext(query);
-    const _stages = _.mapValues(context.populates, (populate) => this.dialect.encodePopulate(this, context, populate));
+    const _stages = _.mapValues(context.populates, (populate) => this.dialect.encodePopulate(this, populate));
     const stages = _.fromPairs(_.flatMap(_.values(_stages), (p) => _.toPairs(p)));
 
     const fetchName = `_fetch_$${query.className.toLowerCase()}`;
     const parent = { className: query.className, name: fetchName };
 
-    const baseFilter = this._encodeFilter(context, parent, query.filter);
+    const baseFilter = this._encodeFilter(parent, query.filter);
     const populates = this._selectPopulateMap(context, query.className, fetchName);
     const joins = _.compact(_.map(populates, ({ join }) => join));
 
@@ -241,7 +241,7 @@ export class QueryCompiler {
     const filter = _.compact([
       baseFilter,
       _options?.extraFilter,
-      query.relatedBy && this.dialect.encodeRelation(this, context, parent, query.relatedBy),
+      query.relatedBy && this.dialect.encodeRelation(this, parent, query.relatedBy),
     ]);
 
     return {
@@ -267,12 +267,11 @@ export class QueryCompiler {
   private _refetch(
     name: string,
     query: DecodedQuery<FindOneOptions>,
-    context: CompileContext,
   ) {
 
     const _context = this._encodeIncludes(query.className, query.includes, query.matches);
     const populates = _.mapValues(
-      _context.populates, (populate) => this.dialect.encodePopulate(this, context, populate, { className: query.className, name })
+      _context.populates, (populate) => this.dialect.encodePopulate(this, populate, { className: query.className, name })
     );
     const stages = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
 
@@ -361,9 +360,8 @@ export class QueryCompiler {
   private _encodeCoditionalSelector(
     parent: { className?: string; name: string; },
     filter: QueryCoditionalSelector,
-    context: CompileContext,
   ) {
-    const queries = _.compact(_.map(filter.exprs, x => this._encodeFilter(context, parent, x)));
+    const queries = _.compact(_.map(filter.exprs, x => this._encodeFilter(parent, x)));
     if (_.isEmpty(queries)) return;
     switch (filter.type) {
       case '$and': return sql`(${{ literal: _.map(queries, x => sql`(${x})`), separator: ' AND ' }})`;
@@ -373,15 +371,14 @@ export class QueryCompiler {
   }
 
   _encodeFilter(
-    context: CompileContext,
     parent: { className?: string; name: string; },
     filter: QuerySelector,
   ): SQL | undefined {
     if (filter instanceof QueryCoditionalSelector) {
-      return this._encodeCoditionalSelector(parent, filter, context);
+      return this._encodeCoditionalSelector(parent, filter);
     }
     if (filter instanceof QueryFieldSelector) {
-      return this.dialect.encodeFieldExpression(this, context, parent, filter.field, filter.expr);
+      return this.dialect.encodeFieldExpression(this, parent, filter.field, filter.expr);
     }
     if (filter instanceof QueryExpressionSelector) {
       return this.dialect.encodeQueryExpression(this, parent, filter.expr);
@@ -440,7 +437,7 @@ export class QueryCompiler {
 
     const context = this._makeContext(options);
 
-    const populates = _.mapValues(context.populates, (populate) => this.dialect.encodePopulate(this, context, populate));
+    const populates = _.mapValues(context.populates, (populate) => this.dialect.encodePopulate(this, populate));
     const stages = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
 
     const _populates = this._selectPopulateMap(context, options.className, name);
@@ -484,7 +481,7 @@ export class QueryCompiler {
   updateOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>) {
     return this._modifyQuery(
       { ...query, limit: 1 },
-      (fetchName, context) => {
+      (fetchName) => {
         const name = `_update_$${query.className.toLowerCase()}`;
         return sql`
           , ${{ identifier: name }} AS (
@@ -494,7 +491,7 @@ export class QueryCompiler {
             WHERE ${{ identifier: query.className }}._id IN (SELECT ${{ identifier: fetchName }}._id FROM ${{ identifier: fetchName }})
             RETURNING *
           )
-          ${this._refetch(name, query, context)}
+          ${this._refetch(name, query)}
         `;
       }
     );
@@ -509,7 +506,7 @@ export class QueryCompiler {
 
     return this._modifyQuery(
       { ...query, limit: 1 },
-      (fetchName, context) => {
+      (fetchName) => {
         const updateName = `_update_$${query.className.toLowerCase()}`;
         const insertName = `_insert_$${query.className.toLowerCase()}`;
         const upsertName = `_upsert_$${query.className.toLowerCase()}`;
@@ -533,7 +530,7 @@ export class QueryCompiler {
             UNION
             SELECT * FROM ${{ identifier: insertName }}
           )
-          ${this._refetch(upsertName, query, context)}
+          ${this._refetch(upsertName, query)}
         `;
       }
     );

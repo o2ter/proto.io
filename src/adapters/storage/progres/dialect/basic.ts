@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { escapeIdentifier, escapeLiteral } from 'pg/lib/utils';
 import { SQL, sql } from '../../sql/sql';
-import { CompileContext, QueryCompiler } from '../../sql/compiler';
+import { QueryCompiler } from '../../sql/compiler';
 import { fetchElement } from './query/utils';
 
 export const stringArrayAttrs = ['_rperm', '_wperm'];

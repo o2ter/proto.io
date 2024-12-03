@@ -53,7 +53,7 @@ export type DecodedSortOption = {
 };
 
 export type DecodedBaseQuery = Decoded<TQueryBaseOptions, {
-  filter: QuerySelector;
+  filter?: QuerySelector;
   matches: Record<string, DecodedBaseQuery>;
   sort?: Record<string, 1 | -1> | DecodedSortOption[];
 }>;
@@ -64,7 +64,7 @@ export type DecodedQuery<T> = Decoded<T, {
   includes: string[];
   objectIdSize: number;
   sort?: Record<string, 1 | -1> | DecodedSortOption[];
-  extraFilter: (className: string) => QuerySelector;
+  extraFilter?: (className: string) => QuerySelector;
 }>;
 
 export type InsertOptions = {

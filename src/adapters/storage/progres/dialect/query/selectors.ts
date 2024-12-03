@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { SQL, sql } from '../../../sql';
 import { _typeof, isPrimitive } from '../../../../../internals/schema';
-import { CompileContext, QueryCompiler } from '../../../sql/compiler';
+import { QueryCompiler } from '../../../sql/compiler';
 import { FieldSelectorExpression, QuerySelector } from '../../../../../server/query/dispatcher/parser';
 import { _encodeJsonValue } from '../encode';
 import { encodeType } from '../encode';
@@ -39,7 +39,6 @@ import { TValue } from '../../../../../internals/types';
 
 export const encodeFieldExpression = (
   compiler: QueryCompiler,
-  context: CompileContext,
   parent: { className?: string; name: string; },
   field: string,
   expr: FieldSelectorExpression
@@ -232,7 +231,7 @@ export const encodeFieldExpression = (
     case '$not':
       {
         if (!(expr.value instanceof FieldSelectorExpression)) break;
-        return sql`NOT (${encodeFieldExpression(compiler, context, parent, field, expr.value)})`;
+        return sql`NOT (${encodeFieldExpression(compiler, parent, field, expr.value)})`;
       }
     case '$pattern':
       {
@@ -309,7 +308,7 @@ export const encodeFieldExpression = (
         if (!(expr.value instanceof QuerySelector)) break;
 
         const tempName = `_expr_$${compiler.nextIdx()}`;
-        const filter = compiler._encodeFilter(context, { name: tempName, className: relation?.target }, expr.value);
+        const filter = compiler._encodeFilter({ name: tempName, className: relation?.target }, expr.value);
         if (!filter) break;
 
         if (relation) {
@@ -334,7 +333,7 @@ export const encodeFieldExpression = (
         if (!(expr.value instanceof QuerySelector)) break;
 
         const tempName = `_expr_$${compiler.nextIdx()}`;
-        const filter = compiler._encodeFilter(context, { name: tempName, className: relation?.target }, expr.value);
+        const filter = compiler._encodeFilter({ name: tempName, className: relation?.target }, expr.value);
         if (!filter) break;
 
         if (relation) {

@@ -26,7 +26,7 @@
 import { FieldSelectorExpression } from '../../../server/query/dispatcher/parser';
 import { QueryExpression } from '../../../server/query/dispatcher/parser/expressions';
 import { TSchema } from '../../../internals/schema';
-import { CompileContext, Populate, QueryCompiler } from './compiler';
+import { Populate, QueryCompiler } from './compiler';
 import { SQL } from './sql';
 import { TValue } from '../../../internals/types';
 import { TUpdateOp } from '../../../internals/object/types';
@@ -50,7 +50,6 @@ export interface SqlDialect {
 
   encodeFieldExpression(
     compiler: QueryCompiler,
-    context: CompileContext,
     parent: { className?: string; name: string; },
     field: string,
     expr: FieldSelectorExpression,
@@ -64,14 +63,12 @@ export interface SqlDialect {
 
   encodePopulate(
     compiler: QueryCompiler,
-    context: CompileContext,
     parent: Populate,
     remix?: { className: string; name: string; }
   ): Record<string, SQL>
 
   encodeRelation(
     compiler: QueryCompiler,
-    context: CompileContext,
     parent: { className: string; name: string; },
     relatedBy: NonNullable<RelationOptions['relatedBy']>
   ): SQL

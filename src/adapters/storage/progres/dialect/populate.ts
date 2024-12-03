@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { SQL, sql } from '../../sql';
 import { TSchema, isPointer, isPrimitive, isRelation, isShape, isVector } from '../../../../internals/schema';
-import { CompileContext, Populate, QueryCompiler } from '../../sql/compiler';
+import { Populate, QueryCompiler } from '../../sql/compiler';
 import { _encodePopulateInclude } from './encode';
 import { resolveColumn } from '../../../../server/query/dispatcher/validator';
 
@@ -88,7 +88,11 @@ export const selectPopulate = (
 
   const subpaths = resolveSubpaths(compiler, populate);
 
-  const cond: SQL[] = [];
+  const cond: (SQL | undefined)[] = [];
+  if (compiler.extraFilter) {
+    const filter = compiler.extraFilter(populate.className);
+    cond.push(compiler._encodeFilter(populate, filter));
+  }
   if (populate.type === 'pointer') {
     cond.push(
       sql`${sql`(${{ quote: populate.className + '$' }} || ${_foreign('_id')})`} = ${_local(field)}`
@@ -97,7 +101,7 @@ export const selectPopulate = (
       columns: _.map(subpaths, ({ path }) => sql`${{ identifier: populate.name }}.${{ identifier: path }} AS ${{ identifier: `${field}.${path}` }}`),
       join: sql`
         LEFT JOIN ${{ identifier: populate.name }}
-        ON ${{ literal: _.map(cond, x => sql`(${x})`), separator: ' AND ' }}
+        ON ${{ literal: _.map(_.compact(cond), x => sql`(${x})`), separator: ' AND ' }}
       `,
     };
   }
@@ -120,7 +124,7 @@ export const selectPopulate = (
       ARRAY(
         SELECT to_jsonb(${{ identifier: populate.name }}) FROM (
           SELECT ${_.map(subpaths, ({ path, type }) => _encodePopulateInclude(populate.name, path, type))}
-          FROM ${{ identifier: populate.name }} WHERE ${{ literal: _.map(cond, x => sql`(${x})`), separator: ' AND ' }}
+          FROM ${{ identifier: populate.name }} WHERE ${{ literal: _.map(_.compact(cond), x => sql`(${x})`), separator: ' AND ' }}
           ${!_.isEmpty(populate.sort) ? sql`ORDER BY ${compiler._encodeSort(populate.sort, { className: populate.className, name: populate.name })}` : sql``}
           ${populate.limit ? sql`LIMIT ${{ literal: `${populate.limit}` }}` : sql``}
           ${populate.skip ? sql`OFFSET ${{ literal: `${populate.skip}` }}` : sql``}
@@ -140,7 +144,6 @@ const encodeRemix = (
 
 export const encodeForeignField = (
   compiler: QueryCompiler,
-  context: CompileContext,
   parent: { className: string; name: string; },
   foreignField: string,
   remix?: { className: string; name: string; }
@@ -155,7 +158,6 @@ export const encodeForeignField = (
   if (_.isEmpty(subpath) && isRelation(dataType) && dataType.foreignField) {
     const { joins, field, rows, array } = encodeForeignField(
       compiler,
-      context,
       { className: dataType.target, name: tempName },
       dataType.foreignField,
       remix,
@@ -186,13 +188,12 @@ export const encodeForeignField = (
 
   const { joins, field, rows, array } = encodeForeignField(
     compiler,
-    context,
     { className: dataType.target, name: tempName },
     subpath.join('.'),
     remix,
   );
 
-  const cond: SQL[] = [];
+  const cond: (SQL | undefined)[] = [];
   if (isPointer(dataType)) {
     cond.push(
       sql`${sql`(${{ quote: dataType.target + '$' }} || ${_foreign('_id')})`} = ${_local(colname)}`
@@ -200,7 +201,7 @@ export const encodeForeignField = (
     return {
       joins: [sql`
         LEFT JOIN ${encodeRemix({ className: dataType.target }, remix)} AS ${{ identifier: tempName }}
-        ON ${{ literal: _.map(cond, x => sql`(${x})`), separator: ' AND ' }}
+        ON ${{ literal: _.map(_.compact(cond), x => sql`(${x})`), separator: ' AND ' }}
       `, ...joins],
       field,
       array,
@@ -227,7 +228,7 @@ export const encodeForeignField = (
       SELECT ${array ? sql`UNNEST(${field})` : field}
       FROM ${encodeRemix({ className: dataType.target }, remix)} AS ${{ identifier: tempName }}
       ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
-      WHERE ${{ literal: _.map(cond, x => sql`(${x})`), separator: ' AND ' }}
+      WHERE ${{ literal: _.map(_.compact(cond), x => sql`(${x})`), separator: ' AND ' }}
     )`,
     array: false,
     rows: true,
@@ -236,11 +237,10 @@ export const encodeForeignField = (
 
 export const encodePopulate = (
   compiler: QueryCompiler,
-  context: CompileContext,
   parent: Populate,
   remix?: { className: string; name: string; }
 ): Record<string, SQL> => {
-  const _filter = compiler._encodeFilter(context, parent, parent.filter);
+  const _filter = parent.filter && compiler._encodeFilter(parent, parent.filter);
   const _populates = _.map(parent.populates, (populate, field) => selectPopulate(compiler, parent, populate, field));
   const _joins = _.compact(_.map(_populates, ({ join }) => join));
   const _includes = _.pickBy(parent.includes, v => isPrimitive(v));
@@ -248,12 +248,12 @@ export const encodePopulate = (
     joins: _joins2 = [],
     field: _foreignField = undefined,
     rows = false,
-  } = parent.foreignField ? encodeForeignField(compiler, context, {
+  } = parent.foreignField ? encodeForeignField(compiler, {
     className: parent.className,
     name: parent.name,
   }, parent.foreignField, remix) : {};
   return _.reduce(parent.populates, (acc, populate) => ({
-    ...encodePopulate(compiler, context, populate, remix),
+    ...encodePopulate(compiler, populate, remix),
     ...acc,
   }), {
     [parent.name]: sql`

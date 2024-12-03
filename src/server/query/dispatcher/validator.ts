@@ -312,7 +312,6 @@ export class QueryValidator<E> {
       if (!this.validateKeyPerm(colname, 'read', schema)) continue;
       if (isPrimitive(dataType) || isVector(dataType) || isShape(dataType)) continue;
       _matches[colname] = {
-        filter: QuerySelector.decode([...this._rperm(dataType.target), this._expiredAt]).simplify(),
         matches: this.decodeMatches(
           dataType.target, {},
           includes.filter(x => x.startsWith(`${colname}.`)).map(x => x.slice(colname.length + 1)),
@@ -327,7 +326,6 @@ export class QueryValidator<E> {
 
       if (isPointer(dataType) && !_.isEmpty(subpath)) {
         _matches[_colname] = {
-          filter: QuerySelector.decode([...this._rperm(dataType.target), this._expiredAt]).simplify(),
           matches: this.decodeMatches(
             dataType.target, { [subpath.join('.')]: match },
             includes.filter(x => x.startsWith(`${_colname}.`)).map(x => x.slice(_colname.length + 1)),
@@ -338,11 +336,7 @@ export class QueryValidator<E> {
         this.validateForeignField(dataType, 'read', `Invalid match: ${colname}`);
         _matches[_colname] = {
           ...match,
-          filter: QuerySelector.decode([
-            ...this._rperm(dataType.target),
-            this._expiredAt,
-            ..._.castArray<TQuerySelector>(match.filter),
-          ]).simplify(),
+          filter: QuerySelector.decode(_.castArray<TQuerySelector>(match.filter)).simplify(),
           matches: this.decodeMatches(
             dataType.target, match.matches ?? {},
             includes.filter(x => x.startsWith(`${_colname}.`)).map(x => x.slice(_colname.length + 1)),
