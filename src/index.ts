@@ -24,6 +24,7 @@
 //
 
 import _ from 'lodash';
+import { Router } from 'express';
 import { Server } from '@o2ter/server-js';
 import { ProtoService } from './server/proto';
 import { ProtoServiceKeyOptions, ProtoServiceOptions } from './server/proto/types';
@@ -62,7 +63,7 @@ export const schema = _.assign((x: Record<string, TSchema>) => x, {
 
 export const ProtoRoute = async <E>(options: {
   proto: ProtoService<E> | (ProtoServiceOptions<E> & ProtoServiceKeyOptions);
-}) => {
+}): Promise<Router> => {
 
   const proto = options.proto instanceof ProtoService ? options.proto : new ProtoService(options.proto);
   await proto[PVK].prepare();
