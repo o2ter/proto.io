@@ -45,6 +45,7 @@ import { TObject } from '../../internals/object';
 import { asyncStream } from '@o2ter/utils-js';
 import { TRole } from '../../internals/object/role';
 import { PathName } from '../../internals/query/types';
+import { QuerySelector } from '../query/dispatcher/parser';
 
 export class ProtoService<Ext = any> extends ProtoType<Ext> {
 
@@ -298,5 +299,30 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
       const objects = await self[PVK].refs(self, object, options);
       for await (const object of objects) yield self.rebind(object) as TObjectType<string, Ext>;
     });
+  }
+
+  async gc(classNames?: string | string[]) {
+    for (const className of _.castArray(classNames ?? this.classes())) {
+      if (className === 'File') {
+        const found = this.storage.find({
+          className: 'File',
+          filter: QuerySelector.decode({ _expired_at: { $lt: new Date() } }),
+          matches: {},
+          includes: ['_id', '_expired_at', 'token'],
+          objectIdSize: 0
+        });
+        for await (const item of found) {
+          const token = item.get('token');
+          if (!_.isEmpty(token)) await this.fileStorage.destroy(this, token);
+        }
+      }
+      await this.storage.deleteMany({
+        className,
+        filter: QuerySelector.decode({ _expired_at: { $lt: new Date() } }),
+        includes: ['_id', '_expired_at'],
+        matches: {},
+        objectIdSize: 0
+      });
+    }
   }
 }

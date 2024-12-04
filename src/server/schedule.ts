@@ -24,33 +24,11 @@
 //
 
 import _ from 'lodash';
-import { QuerySelector } from './query/dispatcher/parser';
 import { ProtoService } from './proto';
 
 const scheduleOp = {
   expireDocument: async (proto: ProtoService<any>) => {
-    for (const className of proto.classes()) {
-      if (className === 'File') {
-        const found = proto.storage.find({
-          className: 'File',
-          filter: QuerySelector.decode({ _expired_at: { $lt: new Date() } }),
-          matches: {},
-          includes: ['_id', '_expired_at', 'token'],
-          objectIdSize: 0
-        });
-        for await (const item of found) {
-          const token = item.get('token');
-          if (!_.isEmpty(token)) await proto.fileStorage.destroy(proto, token);
-        }
-      }
-      await proto.storage.deleteMany({
-        className,
-        filter: QuerySelector.decode({ _expired_at: { $lt: new Date() } }),
-        includes: ['_id', '_expired_at'],
-        matches: {},
-        objectIdSize: 0
-      });
-    }
+    await proto.gc();
   }
 }
 
