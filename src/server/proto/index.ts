@@ -163,6 +163,23 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
     return _.assign(payload, _.isFunction(attrs) ? attrs(payload) : attrs)
   }
 
+  async userRoles(user: TUser) {
+    let queue = await this.Query('Role')
+      .isIntersect('users', [user])
+      .includes('name')
+      .find({ master: true });
+    let roles = queue;
+    while (!_.isEmpty(queue)) {
+      queue = await this.Query('Role')
+        .isIntersect('roles', queue)
+        .notContainsIn('_id', _.compact(_.map(roles, x => x.objectId)))
+        .includes('name')
+        .find({ master: true });
+      roles = _.uniqBy([...roles, ...queue], x => x.objectId);
+    }
+    return roles;
+  }
+
   async becomeUser(
     req: Request,
     user: TUser,

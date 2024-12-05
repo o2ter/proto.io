@@ -45,6 +45,7 @@ import { Socket } from 'socket.io-client';
 import { Session } from '../../server/proto/session';
 import { asyncStream } from '@o2ter/utils-js';
 import { PathName } from '../query/types';
+import { TRole } from '../object/role';
 
 export type TransactionMode = 'default' | 'committed' | 'repeatable' | 'serializable';
 
@@ -118,23 +119,6 @@ export abstract class ProtoType<Ext> {
     return file;
   }
 
-  async userRoles(user: TUser) {
-    let queue = await this.Query('Role')
-      .isIntersect('users', [user])
-      .includes('name')
-      .find({ master: true });
-    let roles = queue;
-    while (!_.isEmpty(queue)) {
-      queue = await this.Query('Role')
-        .isIntersect('roles', queue)
-        .notContainsIn('_id', _.compact(_.map(roles, x => x.objectId)))
-        .includes('name')
-        .find({ master: true });
-      roles = _.uniqBy([...roles, ...queue], x => x.objectId);
-    }
-    return roles;
-  }
-
   abstract notify(
     data: Record<string, _TValue> & { _rperm?: string[]; },
     options?: ExtraOptions<boolean>
@@ -159,6 +143,8 @@ export interface ProtoType<Ext> {
   ): Promise<this & { session?: Session; } & T>
 
   setSessionToken(token?: string): void
+
+  userRoles(user: TUser): Promise<TRole[]>;
 
   becomeUser(
     req: Request,
