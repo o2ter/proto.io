@@ -121,14 +121,14 @@ export abstract class ProtoType<Ext> {
   async userRoles(user: TUser) {
     let queue = await this.Query('Role')
       .isIntersect('users', [user])
-      .includes('users', 'name')
+      .includes('name')
       .find({ master: true });
     let roles = queue;
     while (!_.isEmpty(queue)) {
       queue = await this.Query('Role')
         .isIntersect('roles', queue)
         .notContainsIn('_id', _.compact(_.map(roles, x => x.objectId)))
-        .includes('roles', 'name')
+        .includes('name')
         .find({ master: true });
       roles = _.uniqBy([...roles, ...queue], x => x.objectId);
     }
