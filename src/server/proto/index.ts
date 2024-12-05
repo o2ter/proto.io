@@ -46,6 +46,7 @@ import { asyncStream } from '@o2ter/utils-js';
 import { TRole } from '../../internals/object/role';
 import { PathName } from '../../internals/query/types';
 import { QuerySelector } from '../query/dispatcher/parser';
+import { _typeof, isRelation } from '../../internals/schema';
 
 export class ProtoService<Ext = any> extends ProtoType<Ext> {
 
@@ -60,6 +61,7 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
   constructor(options: ProtoServiceOptions<Ext> & ProtoServiceKeyOptions) {
     super();
     this[PVK] = new ProtoInternal({
+      roleInheritKeys: [],
       objectIdSize: 10,
       maxFetchLimit: 1000,
       maxUploadSize: 20 * 1024 * 1024,
@@ -164,14 +166,18 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
   }
 
   async userRoles(user: TUser) {
+    const roleInheritKeys = this[PVK].options.roleInheritKeys;
+    const fields = this.schema['Role'].fields;
+    const userKeys = _.filter(roleInheritKeys, k => isRelation(fields[k]) && fields[k].target === 'User');
+    const roleKeys = _.filter(roleInheritKeys, k => isRelation(fields[k]) && fields[k].target === 'Role');
     let queue = await this.Query('Role')
-      .isIntersect('users', [user])
+      .or(_.map(_.uniq(['users', ...userKeys]), k => q => q.isIntersect(k, [user])))
       .includes('name')
       .find({ master: true });
     let roles = queue;
     while (!_.isEmpty(queue)) {
       queue = await this.Query('Role')
-        .isIntersect('roles', queue)
+        .or(_.map(_.uniq(['roles', ...roleKeys]), k => q => q.isIntersect(k, queue)))
         .notContainsIn('_id', _.compact(_.map(roles, x => x.objectId)))
         .includes('name')
         .find({ master: true });

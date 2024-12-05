@@ -35,6 +35,7 @@ import { TPubSub } from '../pubsub';
 export type ProtoServiceOptions<Ext> = {
   endpoint: string;
   schema: Record<string, TSchema>;
+  roleInheritKeys?: string[];
   storage: TStorage;
   fileStorage: TFileStorage;
   pubsub?: TPubSub;

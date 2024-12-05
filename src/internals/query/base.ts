@@ -161,9 +161,9 @@ class TQueryFilterBase {
     return this.filter({ [key]: { $some: { $and: _.castArray<TQuerySelector>(query[PVK].options.filter) } } });
   }
 
-  and(...callbacks: ((query: TQueryFilterBase) => void)[]) {
+  and(...callbacks: _.Many<(query: TQueryFilterBase) => void>[]) {
     return this.filter({
-      $and: _.flatMap(callbacks, callback => {
+      $and: _.flatMap(_.flatten(callbacks), callback => {
         const query = new TQueryFilterBase();
         callback(query);
         return _.castArray<TQuerySelector>(query[PVK].options.filter);
@@ -171,9 +171,9 @@ class TQueryFilterBase {
     });
   }
 
-  or(...callbacks: ((query: TQueryFilterBase) => void)[]) {
+  or(...callbacks: _.Many<(query: TQueryFilterBase) => void>[]) {
     return this.filter({
-      $or: _.map(callbacks, callback => {
+      $or: _.map(_.flatten(callbacks), callback => {
         const query = new TQueryFilterBase();
         callback(query);
         return {
@@ -183,9 +183,9 @@ class TQueryFilterBase {
     });
   }
 
-  nor(...callbacks: ((query: TQueryFilterBase) => void)[]) {
+  nor(...callbacks: _.Many<(query: TQueryFilterBase) => void>[]) {
     return this.filter({
-      $nor: _.map(callbacks, callback => {
+      $nor: _.map(_.flatten(callbacks), callback => {
         const query = new TQueryFilterBase();
         callback(query);
         return {

@@ -31,7 +31,7 @@ import { defaultSchema } from './defaults';
 import { ProtoServiceOptions, ProtoServiceKeyOptions } from './types';
 import { ProtoFunction, ProtoFunctionOptions, ProtoTrigger } from '../../internals/proto/types';
 import { generateId } from '../crypto/random';
-import { TSchema, defaultObjectKeyTypes, isPointer, isPrimitive, isRelation, isShape, isVector } from '../../internals/schema';
+import { TSchema, _typeof, defaultObjectKeyTypes, isPointer, isPrimitive, isRelation, isShape, isVector } from '../../internals/schema';
 import { resolveDataType, QueryValidator } from '../query/dispatcher/validator';
 import { passwordHash, varifyPassword } from '../crypto/password';
 import { proxy } from './proxy';
@@ -160,6 +160,10 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     validateSchemaName(options.schema);
     const schema = mergeSchema(defaultSchema, options.fileStorage.schema, options.schema);
     validateSchema(schema);
+    const role = schema['Role'].fields;
+    if (!_.every(options.roleInheritKeys, k => isRelation(role[k]) && _.includes(['User', 'Role'], role[k].target))) {
+      throw Error(`Invalid role keys`);
+    }
     this.options = {
       ...options,
       schema,
