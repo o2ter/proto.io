@@ -160,8 +160,10 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     validateSchemaName(options.schema);
     const schema = mergeSchema(defaultSchema, options.fileStorage.schema, options.schema);
     validateSchema(schema);
-    const role = schema['Role'].fields;
-    if (!_.every(options.roleInheritKeys, k => isRelation(role[k]) && _.includes(['User', 'Role'], role[k].target))) {
+    if (!_.every(options.roleInheritKeys, k => {
+      const type = resolveDataType(schema, 'Role', k);
+      return type && isRelation(type) && _.includes(['User', 'Role'], type.target);
+    })) {
       throw Error(`Invalid role keys`);
     }
     this.options = {

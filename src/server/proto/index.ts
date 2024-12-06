@@ -47,6 +47,7 @@ import { TRole } from '../../internals/object/role';
 import { PathName } from '../../internals/query/types';
 import { QuerySelector } from '../query/dispatcher/parser';
 import { _typeof, isRelation } from '../../internals/schema';
+import { resolveDataType } from '../query/dispatcher/validator';
 
 export class ProtoService<Ext = any> extends ProtoType<Ext> {
 
@@ -167,9 +168,15 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
 
   async userRoles(user: TUser) {
     const roleInheritKeys = this[PVK].options.roleInheritKeys;
-    const fields = this.schema['Role'].fields;
-    const userKeys = _.filter(roleInheritKeys, k => isRelation(fields[k]) && fields[k].target === 'User');
-    const roleKeys = _.filter(roleInheritKeys, k => isRelation(fields[k]) && fields[k].target === 'Role');
+    const schema = this.schema;
+    const userKeys = _.filter(roleInheritKeys, k => {
+      const type = resolveDataType(schema, 'Role', k);
+      return !!type && isRelation(type) && type.target === 'User';
+    });
+    const roleKeys = _.filter(roleInheritKeys, k => {
+      const type = resolveDataType(schema, 'Role', k);
+      return !!type && isRelation(type) && type.target === 'Role';
+    });
     let queue = await this.Query('Role')
       .or(_.map(_.uniq(['users', ...userKeys]), k => q => q.isIntersect(k, [user])))
       .includes('name')
