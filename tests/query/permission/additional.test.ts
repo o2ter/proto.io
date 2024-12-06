@@ -34,89 +34,51 @@ const Proto = new ProtoClient({
   masterUser,
 });
 
-test('test permission', async () => {
-  await expect(() => Proto.Query('Test').insert({ no_permission: true })).rejects.toThrow('No permission');
-  await expect(() => Proto.Query('Test').includes('no_permission').find()).rejects.toThrow('No permission');
-})
-
-test('test permission 2', async () => {
-  await expect(() => Proto.Query('Test').insert({ no_permission: true })).rejects.toThrow('No permission');
-  await Proto.run('createUserWithRole', { role: 'admin' });
-  expect(await Proto.Query('Test').insert({ no_permission: true })).toBeTruthy();
-  await Proto.logout();
-})
-
-test('test permission 3', async () => {
-  const object = await Proto.Query('Test').insert({ _rperm: ['role:admin'] });
-  expect(await Proto.Query('Test').get(object.objectId!)).toBeUndefined();
-  await Proto.run('createUserWithRole', { role: 'admin' });
-  expect(await Proto.Query('Test').get(object.objectId!)).toBeTruthy();
-  await Proto.logout();
-})
-
-test('test permission 4', async () => {
-  const object = await Proto.Query('Test').insert({ _rperm: [] });
-  object.push('_rperm', ['role:admin']);
-  await object.save({ master: true });
-  expect(await Proto.Query('Test').get(object.objectId!)).toBeUndefined();
-  await Proto.run('createUserWithRole', { role: 'admin' });
-  expect(await Proto.Query('Test').get(object.objectId!)).toBeTruthy();
-  await Proto.logout();
-})
-
-test('test additional permission', async () => {
-  const object = await Proto.Query('Test').insert({ _rperm: ['role:admin'] });
-  expect(await Proto.Query('Test').get(object.objectId!)).toBeUndefined();
-  await Proto.run('createUserWithRole', { role: 'system' });
-  expect(await Proto.Query('Test').get(object.objectId!)).toBeTruthy();
-  await Proto.logout();
-})
-
-test('test relation permission', async () => {
+test('test relation additional permission', async () => {
   const object = await Proto.Query('Test').insert({ _rperm: ['role:admin'] });
   const object2 = await Proto.Query('Test').insert({ pointer: object });
   const result = await Proto.Query('Test').includes('pointer').get(object2.objectId!);
   expect(result?.get('pointer')).toBeUndefined();
-  await Proto.run('createUserWithRole', { role: 'admin' });
+  await Proto.run('createUserWithRole', { role: 'system' });
   const result2 = await Proto.Query('Test').includes('pointer').get(object2.objectId!);
   expect(result2?.get('pointer')).toBeTruthy();
   await Proto.logout();
 })
 
-test('test relation permission 2', async () => {
+test('test relation additional permission 2', async () => {
   const object = await Proto.Query('Test').insert({ _rperm: ['role:admin'] });
   const object2 = await Proto.Query('Test').insert({ relation: [object] });
   const result = await Proto.Query('Test').includes('relation').get(object2.objectId!);
   expect(_.first(result?.get('relation'))).toBeUndefined();
-  await Proto.run('createUserWithRole', { role: 'admin' });
+  await Proto.run('createUserWithRole', { role: 'system' });
   const result2 = await Proto.Query('Test').includes('relation').get(object2.objectId!);
   expect(_.first(result2?.get('relation'))).toBeTruthy();
   await Proto.logout();
 })
 
-test('test relation permission 3', async () => {
+test('test relation additional permission 3', async () => {
   const object2 = await Proto.Query('Test').insert({});
   const object = await Proto.Query('Test').insert({ _rperm: ['role:admin'], pointer: object2 });
   const result = await Proto.Query('Test').includes('relation2').get(object2.objectId!);
   expect(_.first(result?.get('relation2'))).toBeUndefined();
-  await Proto.run('createUserWithRole', { role: 'admin' });
+  await Proto.run('createUserWithRole', { role: 'system' });
   const result2 = await Proto.Query('Test').includes('relation2').get(object2.objectId!);
   expect(_.first(result2?.get('relation2'))).toBeTruthy();
   await Proto.logout();
 })
 
-test('test relation permission 4', async () => {
+test('test relation additional permission 4', async () => {
   const object2 = await Proto.Query('Test').insert({});
   const object = await Proto.Query('Test').insert({ _rperm: ['role:admin'], relation: [object2] });
   const result = await Proto.Query('Test').includes('relation3').get(object2.objectId!);
   expect(_.first(result?.get('relation3'))).toBeUndefined();
-  await Proto.run('createUserWithRole', { role: 'admin' });
+  await Proto.run('createUserWithRole', { role: 'system' });
   const result2 = await Proto.Query('Test').includes('relation3').get(object2.objectId!);
   expect(_.first(result2?.get('relation3'))).toBeTruthy();
   await Proto.logout();
 })
 
-test('test relation permission 5', async () => {
+test('test relation additional permission 5', async () => {
   const inserted = await Proto.Query('Relation').insert({
   });
   const inserted2 = await Proto.Query('Relation2').insert({
@@ -143,7 +105,7 @@ test('test relation permission 5', async () => {
 
   expect(_.map((await q.clone().includes('relation7').first())?.get('relation7'), x => x.objectId).sort()).toStrictEqual([]);
 
-  await Proto.run('createUserWithRole', { role: 'admin' });
+  await Proto.run('createUserWithRole', { role: 'system' });
 
   expect(_.map((await q.clone().includes('relation7').first())?.get('relation7'), x => x.objectId).sort()).toStrictEqual([inserted7.objectId].sort());
 
@@ -151,7 +113,7 @@ test('test relation permission 5', async () => {
 
 }, 60000)
 
-test('test relation permission 6', async () => {
+test('test relation additional permission 6', async () => {
   const inserted = await Proto.Query('Relation').insert({
   });
   const inserted2 = await Proto.Query('Relation2').insert({
@@ -178,7 +140,7 @@ test('test relation permission 6', async () => {
 
   expect(_.map((await q.clone().includes('relation7').first())?.get('relation7'), x => x.objectId).sort()).toStrictEqual([]);
 
-  await Proto.run('createUserWithRole', { role: 'admin' });
+  await Proto.run('createUserWithRole', { role: 'system' });
 
   expect(_.map((await q.clone().includes('relation7').first())?.get('relation7'), x => x.objectId).sort()).toStrictEqual([inserted7.objectId].sort());
 
