@@ -65,7 +65,24 @@ const Proto = new ProtoService({
   endpoint: 'http://localhost:8080/proto',
   masterUsers: [masterUser],
   jwtToken: randomUUID(),
+  roleInheritKeys: ['groupUsers'],
   schema: {
+    'User': {
+      fields: {
+        groups: { type: 'relation', target: 'Group', foreignField: 'users' },
+      },
+    },
+    'Role': {
+      fields: {
+        groupUsers: { type: 'relation', target: 'User', foreignField: 'groups.roles' },
+      },
+    },
+    'Group': {
+      fields: {
+        users: { type: 'relation', target: 'User' },
+        roles: { type: 'relation', target: 'Role' },
+      },
+    },
     'Test': {
       fields: {
         unique: 'number',
@@ -246,6 +263,8 @@ const Proto = new ProtoService({
   storage: database,
   fileStorage: new DatabaseFileStorage(),
 });
+
+Proto.define('currentRoles', async ({ currentRoles }) => currentRoles());
 
 Proto.define('createUserWithRole', async (proto) => {
   const { role } = proto.params as any;
