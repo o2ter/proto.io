@@ -24,21 +24,49 @@
 //
 
 import _ from 'lodash';
-import { masterUser } from './server';
+import { masterUser } from '../server';
 import { test, expect } from '@jest/globals';
 import Decimal from 'decimal.js';
-import { ProtoClient } from '../../src/client/proto';
+import { ProtoClient } from '../../../src/client/proto';
 
 const Proto = new ProtoClient({
   endpoint: 'http://localhost:8080/proto',
   masterUser,
 });
 
-test('test destroy', async () => {
-  const inserted = await Proto.Query('Test').insert({ string: 'destroy' });
+test('test insert', async () => {
+  const inserted = await Proto.Query('Test').insert({ string: 'hello', 'shape.string': 'hello' });
   expect(inserted.objectId).toBeTruthy();
-  expect(inserted.get('string')).toStrictEqual('destroy');
-  await inserted.destroy();
-  const result = await Proto.Query('Test').equalTo('string', 'destroy').find();
-  expect(result).toStrictEqual([]);
+  expect(inserted.get('string')).toStrictEqual('hello');
+  expect(inserted.get('shape.string')).toStrictEqual('hello');
+})
+
+test('test insert 2', async () => {
+  const obj = Proto.Object('Test');
+  obj.set('string', 'hello');
+  obj.set('shape.string', 'hello');
+
+  await obj.save();
+
+  expect(obj.objectId).toBeTruthy();
+  expect(obj.get('string')).toStrictEqual('hello');
+  expect(obj.get('shape.string')).toStrictEqual('hello');
+})
+
+test('test insert many', async () => {
+  const count = await Proto.Query('Test').insertMany([
+    { string: 'insertMany', 'shape.string': 'insertMany' },
+    { string: 'insertMany', 'shape.string': 'insertMany' },
+    { string: 'insertMany', 'shape.string': 'insertMany' },
+    { string: 'insertMany', 'shape.string': 'insertMany' },
+  ]);
+  expect(count).toStrictEqual(4);
+
+  const result = await Proto.Query('Test').equalTo('string', 'insertMany').find();
+  expect(result.length).toStrictEqual(4);
+
+  for (const item of result) {
+    expect(item.get('string')).toStrictEqual('insertMany');
+    expect(item.get('shape.string')).toStrictEqual('insertMany');
+  }
 })

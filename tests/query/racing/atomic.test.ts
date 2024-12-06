@@ -24,49 +24,46 @@
 //
 
 import _ from 'lodash';
-import { masterUser } from './server';
+import { masterUser } from '../server';
 import { test, expect } from '@jest/globals';
 import Decimal from 'decimal.js';
-import { ProtoClient } from '../../src/client/proto';
+import { ProtoClient } from '../../../src/client/proto';
 
 const Proto = new ProtoClient({
   endpoint: 'http://localhost:8080/proto',
   masterUser,
 });
 
-test('test insert', async () => {
-  const inserted = await Proto.Query('Test').insert({ string: 'hello', 'shape.string': 'hello' });
-  expect(inserted.objectId).toBeTruthy();
-  expect(inserted.get('string')).toStrictEqual('hello');
-  expect(inserted.get('shape.string')).toStrictEqual('hello');
+test('test long atomic', async () => {
+
+  const inserted = await Proto.Query('Test').insert({
+    number: 0,
+  });
+
+  const results = await Promise.all([
+    Proto.run('updateWithAtomic', { inserted }),
+    Proto.run('updateWithAtomic', { inserted }),
+    Proto.run('updateWithAtomic', { inserted }),
+    Proto.run('updateWithAtomic', { inserted }),
+    Proto.run('updateWithAtomic', { inserted }),
+  ]) as number[];
+
+  expect(results.sort((a, b) => a - b)).toStrictEqual([1, 2, 3, 4, 5]);
 })
 
-test('test insert 2', async () => {
-  const obj = Proto.Object('Test');
-  obj.set('string', 'hello');
-  obj.set('shape.string', 'hello');
+test('test long atomic 2', async () => {
 
-  await obj.save();
+  const inserted = await Proto.Query('Test').insert({
+    number: 0,
+  });
 
-  expect(obj.objectId).toBeTruthy();
-  expect(obj.get('string')).toStrictEqual('hello');
-  expect(obj.get('shape.string')).toStrictEqual('hello');
-})
+  const results = await Promise.all([
+    Proto.run('updateWithAtomic2', { inserted }),
+    Proto.run('updateWithAtomic2', { inserted }),
+    Proto.run('updateWithAtomic2', { inserted }),
+    Proto.run('updateWithAtomic2', { inserted }),
+    Proto.run('updateWithAtomic2', { inserted }),
+  ]) as number[];
 
-test('test insert many', async () => {
-  const count = await Proto.Query('Test').insertMany([
-    { string: 'insertMany', 'shape.string': 'insertMany' },
-    { string: 'insertMany', 'shape.string': 'insertMany' },
-    { string: 'insertMany', 'shape.string': 'insertMany' },
-    { string: 'insertMany', 'shape.string': 'insertMany' },
-  ]);
-  expect(count).toStrictEqual(4);
-
-  const result = await Proto.Query('Test').equalTo('string', 'insertMany').find();
-  expect(result.length).toStrictEqual(4);
-
-  for (const item of result) {
-    expect(item.get('string')).toStrictEqual('insertMany');
-    expect(item.get('shape.string')).toStrictEqual('insertMany');
-  }
+  expect(results.sort((a, b) => a - b)).toStrictEqual([1, 2, 3, 4, 5]);
 })

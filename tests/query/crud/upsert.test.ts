@@ -24,10 +24,10 @@
 //
 
 import _ from 'lodash';
-import { masterUser } from './server';
+import { masterUser } from '../server';
 import { test, expect } from '@jest/globals';
 import Decimal from 'decimal.js';
-import { ProtoClient } from '../../src/client/proto';
+import { ProtoClient } from '../../../src/client/proto';
 
 const Proto = new ProtoClient({
   endpoint: 'http://localhost:8080/proto',

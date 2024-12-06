@@ -24,48 +24,21 @@
 //
 
 import _ from 'lodash';
-import { masterUser } from './server';
+import { masterUser } from '../server';
 import { test, expect } from '@jest/globals';
 import Decimal from 'decimal.js';
-import { ProtoClient } from '../../src/client/proto';
+import { ProtoClient } from '../../../src/client/proto';
 
 const Proto = new ProtoClient({
   endpoint: 'http://localhost:8080/proto',
   masterUser,
 });
 
-test('test save keys', async () => {
-  const inserted = await Proto.Query('Test').insert({});
-
-  const obj = Proto.Object('Test');
-  obj.set('pointer', inserted);
-  obj.set('shape', { pointer: inserted });
-  await obj.save();
-
-  expect(obj.get('pointer')?.objectId).toStrictEqual(inserted.objectId);
-  expect(obj.get('shape.pointer')?.objectId).toStrictEqual(inserted.objectId);
-})
-
-test('test save keys 2', async () => {
-  const inserted = await Proto.Query('Test').insert({});
-
-  const obj = Proto.Object('Test');
-  obj.set('relation', [inserted]);
-  obj.set('shape', { relation: [inserted] });
-  await obj.save();
-
-  expect(obj.get('relation')?.[0]?.objectId).toStrictEqual(inserted.objectId);
-  expect(obj.get('shape.relation')?.[0]?.objectId).toStrictEqual(inserted.objectId);
-})
-
-test('test save keys 3', async () => {
-  const obj = await Proto.Query('Test').insert({});
-  obj.set('shape', {
-    number: 42,
-    string: 'hello',
-  });
-  await obj.save();
-
-  expect(obj.get('shape.number')).toStrictEqual(42);
-  expect(obj.get('shape.string')).toStrictEqual('hello');
+test('test destroy', async () => {
+  const inserted = await Proto.Query('Test').insert({ string: 'destroy' });
+  expect(inserted.objectId).toBeTruthy();
+  expect(inserted.get('string')).toStrictEqual('destroy');
+  await inserted.destroy();
+  const result = await Proto.Query('Test').equalTo('string', 'destroy').find();
+  expect(result).toStrictEqual([]);
 })

@@ -1,25 +1,3 @@
-
-test('test each batch', async () => {
-  const count = await Proto.Query('Test').insertMany([
-    { string: 'eachBatch' },
-    { string: 'eachBatch' },
-    { string: 'eachBatch' },
-    { string: 'eachBatch' },
-    { string: 'eachBatch' },
-  ]);
-  expect(count).toStrictEqual(5);
-
-  const result: any[] = [];
-  let counter = 0;
-  await Proto.Query('Test').equalTo('string', 'eachBatch').eachBatch((batch) => {
-    result.push(...batch);
-    counter += 1;
-  }, { batchSize: 2 });
-
-  expect(result.length).toStrictEqual(5);
-  expect(_.uniqBy(result, x => x.objectId).length).toStrictEqual(5);
-  expect(counter).toStrictEqual(3);
-})
 //
 //  index.test.ts
 //
@@ -46,16 +24,37 @@ test('test each batch', async () => {
 //
 
 import _ from 'lodash';
-import { masterUser } from './server';
+import { masterUser } from '../server';
 import { test, expect } from '@jest/globals';
 import Decimal from 'decimal.js';
-import { ProtoClient } from '../../src/client/proto';
+import { ProtoClient } from '../../../src/client/proto';
 
 const Proto = new ProtoClient({
   endpoint: 'http://localhost:8080/proto',
   masterUser,
 });
 
+test('test each batch', async () => {
+  const count = await Proto.Query('Test').insertMany([
+    { string: 'eachBatch' },
+    { string: 'eachBatch' },
+    { string: 'eachBatch' },
+    { string: 'eachBatch' },
+    { string: 'eachBatch' },
+  ]);
+  expect(count).toStrictEqual(5);
+
+  const result: any[] = [];
+  let counter = 0;
+  await Proto.Query('Test').equalTo('string', 'eachBatch').eachBatch((batch) => {
+    result.push(...batch);
+    counter += 1;
+  }, { batchSize: 2 });
+
+  expect(result.length).toStrictEqual(5);
+  expect(_.uniqBy(result, x => x.objectId).length).toStrictEqual(5);
+  expect(counter).toStrictEqual(3);
+})
 test('test each batch 2', async () => {
   const count = await Proto.Query('Test').insertMany([
     { string: 'eachBatch2', number: 1 },
