@@ -69,9 +69,13 @@ const encodeEJSON = (
     };
   }
 
-  return _.transform(x, (r, v, k) => {
-    r[k.startsWith('$') ? `$${k}` : k] = encodeEJSON(v, [...stack, x], options);
-  }, {} as TDictionary);
+  return _.transform(
+    _.pick(x, Object.getOwnPropertyNames(x)),
+    (r, v, k) => {
+      r[k.startsWith('$') ? `$${k}` : k] = encodeEJSON(v, [...stack, x], options);
+    },
+    {} as TDictionary,
+  );
 }
 
 const decodeEJSON = (
