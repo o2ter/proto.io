@@ -72,6 +72,7 @@ const encodeEJSON = (
   return _.transform(
     _.pick(x, Object.getOwnPropertyNames(x)),
     (r, v, k) => {
+      if (_.isFunction(v)) return;
       r[k.startsWith('$') ? `$${k}` : k] = encodeEJSON(v, [...stack, x], options);
     },
     {} as TDictionary,
