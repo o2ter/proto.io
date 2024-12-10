@@ -32,7 +32,7 @@ import { TSerializable, serialize } from '../../common';
 
 export const encodeError = (error: any) => {
   if (error instanceof String) return { message: error };
-  if (error instanceof Error) return { ...error, message: error.message };
+  if (error instanceof Error) return { message: error.message };
   return error;
 }
 
