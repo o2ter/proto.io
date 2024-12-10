@@ -24,17 +24,12 @@
 //
 
 import _ from 'lodash';
+import { prototypes } from '@o2ter/utils-js';
 
 export const proxy = <T>(x: T): T => {
   const self = x as any;
   const proxy = _.create(self) as any;
-  const _prototypes = (x: any): any[] => {
-    const prototype = Object.getPrototypeOf(x);
-    if (_.isNil(prototype) || prototype === Object.prototype) return [];
-    return [prototype, ..._prototypes(prototype)];
-  };
-  const prototypes = _prototypes(proxy);
-  for (const name of _.uniq(_.flatMap(prototypes, x => Object.getOwnPropertyNames(x)))) {
+  for (const name of _.uniq(_.flatMap(prototypes(proxy), x => Object.getOwnPropertyNames(x)))) {
     if (name === 'constructor') continue;
     if (_.isFunction(self[name])) {
       proxy[name] = self[name].bind(self);

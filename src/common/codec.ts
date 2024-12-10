@@ -29,6 +29,7 @@ import { TObject } from '../internals/object';
 import { TObjectTypes } from '../internals/object/types';
 import { isObjKey } from '../internals/utils';
 import { TValue } from '../internals/types';
+import { prototypes } from '@o2ter/utils-js';
 
 export { Decimal };
 type TNumber = number | Decimal | BigInt;
@@ -69,8 +70,9 @@ const encodeEJSON = (
     };
   }
 
+  const props = _.uniq(_.flatMap([x, ...prototypes(x)], x => Object.getOwnPropertyNames(x)));
   return _.transform(
-    _.pick(x, Object.getOwnPropertyNames(x)),
+    _.pick(x, props),
     (r, v, k) => {
       if (_.isFunction(v)) return;
       r[k.startsWith('$') ? `$${k}` : k] = encodeEJSON(v, [...stack, x], options);
