@@ -142,7 +142,7 @@ export const fetchElement = (
           dataType: foreignField,
           relation: {
             target: foreignField.target,
-            sql: (callback: (value: SQL) => SQL) => sql`SELECT 
+            mapElem: (callback: (value: SQL) => SQL) => sql`SELECT 
               ${callback(sql`UNNEST`)} 
             FROM UNNEST(${{ identifier: parent.name }}.${{ identifier: colname }})`,
           },
@@ -155,7 +155,7 @@ export const fetchElement = (
       dataType: json ? null : dataType,
       relation: isRelation(dataType) ? {
         target: dataType.target,
-        sql: (callback: (value: SQL) => SQL) => sql`SELECT
+        mapElem: (callback: (value: SQL) => SQL) => sql`SELECT
           ${callback(sql`${json ? sql`VALUE` : sql`UNNEST`}`)}
         FROM ${json ? sql`jsonb_array_elements(${element})` : sql`UNNEST(${element})`}`,
       } : null,

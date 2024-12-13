@@ -184,7 +184,7 @@ export const encodeFieldExpression = (
           return sql`${element} <@ ${{ value: _encodeValue(expr.value) }}`;
         } else if (relation) {
           if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
-          return sql`ARRAY(${relation.sql((v) => sql`${v} ->> '_id'`)}) <@ ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
+          return sql`ARRAY(${relation.mapElem((v) => sql`${v} ->> '_id'`)}) <@ ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
         } else if (!dataType) {
           return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'array' AND ${element} <@ ${_encodeJsonValue(_encodeValue(expr.value))}`;
         }
@@ -197,7 +197,7 @@ export const encodeFieldExpression = (
           return sql`${element} @> ${{ value: _encodeValue(expr.value) }}`;
         } else if (relation) {
           if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
-          return sql`ARRAY(${relation.sql((v) => sql`${v} ->> '_id'`)}) @> ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
+          return sql`ARRAY(${relation.mapElem((v) => sql`${v} ->> '_id'`)}) @> ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
         } else if (!dataType) {
           return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'array' AND ${element} @> ${_encodeJsonValue(_encodeValue(expr.value))}`;
         }
@@ -210,7 +210,7 @@ export const encodeFieldExpression = (
           return sql`NOT ${element} && ${{ value: _encodeValue(expr.value) }}`;
         } else if (relation) {
           if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
-          return sql`NOT ARRAY(${relation.sql((v) => sql`${v} ->> '_id'`)}) && ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
+          return sql`NOT ARRAY(${relation.mapElem((v) => sql`${v} ->> '_id'`)}) && ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
         } else if (!dataType) {
           return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'array' AND NOT ${element} && ${_encodeJsonValue(_encodeValue(expr.value))}`;
         }
@@ -223,7 +223,7 @@ export const encodeFieldExpression = (
           return sql`${element} && ${{ value: _encodeValue(expr.value) }}`;
         } else if (relation) {
           if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
-          return sql`ARRAY(${relation.sql((v) => sql`${v} ->> '_id'`)}) && ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
+          return sql`ARRAY(${relation.mapElem((v) => sql`${v} ->> '_id'`)}) && ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
         } else if (!dataType) {
           return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'array' AND ${element} && ${_encodeJsonValue(_encodeValue(expr.value))}`;
         }
@@ -313,7 +313,7 @@ export const encodeFieldExpression = (
 
         if (relation) {
           return sql`NOT EXISTS(
-            SELECT * FROM (${relation.sql((v) => sql`${v} AS "$"`)}) AS ${{ identifier: tempName }}
+            SELECT * FROM (${relation.mapElem((v) => sql`${v} AS "$"`)}) AS ${{ identifier: tempName }}
             WHERE NOT (${filter})
           )`;
         } else if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'vector'))) {
@@ -338,7 +338,7 @@ export const encodeFieldExpression = (
 
         if (relation) {
           return sql`EXISTS(
-            SELECT * FROM (${relation.sql((v) => sql`${v} AS "$"`)}) AS ${{ identifier: tempName }}
+            SELECT * FROM (${relation.mapElem((v) => sql`${v} AS "$"`)}) AS ${{ identifier: tempName }}
             WHERE ${filter}
           )`;
         } else if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'vector'))) {
