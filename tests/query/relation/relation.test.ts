@@ -328,6 +328,39 @@ test('test relation 7', async () => {
 
 }, 60000)
 
+test('test relation 7b', async () => {
+  const inserted = await Proto.Query('Test').insert({
+    number: 42.5,
+  });
+  await Proto.Query('Test')
+    .equalTo('_id', inserted.objectId)
+    .updateOne({
+      pointer: { $set: inserted },
+      relation: { $set: [inserted] },
+      'shape.pointer': { $set: inserted },
+      'shape.relation': { $set: [inserted] },
+    });
+
+  const inserted2 = await Proto.Query('Test').insert({
+    pointer: inserted,
+  });
+
+  const q = Proto.Query('Test').equalTo('_id', inserted2.objectId);
+
+  expect((await q.clone().some('pointer.relation', q => q.some('relation', q => q.equalTo('number', 42.5))).first())?.objectId).toStrictEqual(inserted2.objectId);
+  expect((await q.clone().some('pointer.relation', q => q.some('relation', q => q.equalTo('pointer.number', 42.5))).first())?.objectId).toStrictEqual(inserted2.objectId);
+
+  expect((await q.clone().some('pointer.shape.relation', q => q.some('relation', q => q.equalTo('number', 42.5))).first())?.objectId).toStrictEqual(inserted2.objectId);
+  expect((await q.clone().some('pointer.shape.relation', q => q.some('relation', q => q.equalTo('pointer.number', 42.5))).first())?.objectId).toStrictEqual(inserted2.objectId);
+
+  expect((await q.clone().every('pointer.relation', q => q.every('relation', q => q.equalTo('number', 42.5))).first())?.objectId).toStrictEqual(inserted2.objectId);
+  expect((await q.clone().every('pointer.relation', q => q.every('relation', q => q.equalTo('pointer.number', 42.5))).first())?.objectId).toStrictEqual(inserted2.objectId);
+
+  expect((await q.clone().every('pointer.shape.relation', q => q.every('relation', q => q.equalTo('number', 42.5))).first())?.objectId).toStrictEqual(inserted2.objectId);
+  expect((await q.clone().every('pointer.shape.relation', q => q.every('relation', q => q.equalTo('pointer.number', 42.5))).first())?.objectId).toStrictEqual(inserted2.objectId);
+
+}, 60000)
+
 test('test relation 8', async () => {
   const inserted = await Proto.Query('Test').insert({
     number: 42.5,
