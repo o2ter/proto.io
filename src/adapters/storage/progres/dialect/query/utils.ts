@@ -29,34 +29,6 @@ import { QueryCompiler } from '../../../sql/compiler';
 import { TSchema, isPointer, isPrimitive, isRelation, isShape, isVector } from '../../../../../internals/schema';
 import { QueryValidator, resolveColumn } from '../../../../../server/query/dispatcher/validator';
 
-const foreignFieldType = (
-  schema: Record<string, TSchema>,
-  className: string,
-  path: string,
-) => {
-  let fields = schema[className].fields;
-  let last;
-  let result = false;
-  for (const key of _.toPath(path)) {
-    const dataType = fields[key];
-    if (_.isNil(dataType)) return;
-    if (isPrimitive(dataType) || isVector(dataType)) return;
-    if (isShape(dataType)) {
-      fields = dataType.shape;
-      continue;
-    }
-    if (_.isNil(schema[dataType.target])) return;
-    if (dataType.type === 'relation') result = true;
-    fields = schema[dataType.target].fields;
-    last = dataType;
-  }
-  if (!last) return;
-  return {
-    target: last.target,
-    type: result ? 'relation' : last.type,
-  };
-}
-
 const _fetchElement = (
   parent: { className?: string; name: string; },
   colname: string,
@@ -134,21 +106,6 @@ export const fetchElement = (
   if (parent.className) {
     const { dataType, colname, subpath } = resolvePaths(compiler, parent.className, _.toPath(field));
     const { element, json } = _fetchElement(parent, colname, subpath, dataType);
-    if (!_.isEmpty(subpath)) {
-      const foreignField = foreignFieldType(compiler.schema, parent.className, field);
-      if (foreignField) {
-        return {
-          element,
-          dataType: foreignField,
-          relation: {
-            target: foreignField.target,
-            mapElem: (callback: (value: SQL) => SQL) => sql`SELECT 
-              ${callback(sql`UNNEST`)} 
-            FROM UNNEST(${{ identifier: parent.name }}.${{ identifier: colname }})`,
-          },
-        };
-      }
-    }
     if (isPointer(dataType)) return { element: sql`${{ identifier: parent.name }}.${{ identifier: `${colname}._id` }}`, dataType };
     return {
       element,
