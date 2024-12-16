@@ -154,9 +154,9 @@ export const selectPopulate = (
   return {
     columns: _.map(subpaths, ({ path }) => sql`${{ identifier: populate.name }}.${{ identifier: path }} AS ${{ identifier: `${field}.${path}` }}`),
     join: sql`
-        LEFT JOIN ${{ identifier: populate.name }}
-        ON ${{ literal: _.map(_.compact(cond), x => sql`(${x})`), separator: ' AND ' }}
-      `,
+      LEFT JOIN ${{ identifier: populate.name }}
+      ON ${{ literal: _.map(_.compact(cond), x => sql`(${x})`), separator: ' AND ' }}
+    `,
   };
 };
 
