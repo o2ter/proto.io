@@ -98,7 +98,7 @@ const resolvePaths = (
   return { dataType, colname, subpath };
 }
 
-const _resolvePopulate = (path: string[], populates: Record<string, Populate>): Populate | undefined => {
+const _resolvePopulate = (path: string[], populates?: Record<string, Populate>): Populate | undefined => {
   let [colname, ...subpath] = path;
   while (!_.isEmpty(subpath)) {
     const populate = populates?.[colname];
@@ -119,7 +119,7 @@ export const fetchElement = (
     const { dataType, colname, subpath } = resolvePaths(compiler, parent.className, _.toPath(field));
     const { element, json } = _fetchElement(parent, colname, subpath, dataType);
     if (isPointer(dataType)) return { element: sql`${{ identifier: parent.name }}.${{ identifier: `${colname}._id` }}`, dataType };
-    const populate = isRelation(dataType) && parent.populates && _resolvePopulate(_.toPath(colname), parent.populates);
+    const populate = isRelation(dataType) && _resolvePopulate(_.toPath(colname), parent.populates);
     if (!populate) return { element, dataType: json ? null : dataType };
     return {
       element,
