@@ -341,7 +341,7 @@ export const encodeFieldExpression = (
           )`;
         }
 
-        const tempName = `_expr_$${compiler.nextIdx()}`;
+        const tempName = `_doller_expr_$${compiler.nextIdx()}`;
         const filter = compiler._encodeFilter({ name: tempName, className: relation?.target }, expr.value);
         if (!filter) break;
 
@@ -379,7 +379,7 @@ export const encodeFieldExpression = (
           )`;
         }
 
-        const tempName = `_expr_$${compiler.nextIdx()}`;
+        const tempName = `_doller_expr_$${compiler.nextIdx()}`;
         const filter = compiler._encodeFilter({ name: tempName, className: relation?.target }, expr.value);
         if (!filter) break;
 

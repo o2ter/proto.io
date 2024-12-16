@@ -35,7 +35,7 @@ const _fetchElement = (
   subpath: string[],
   dataType?: TSchema.DataType,
 ) => {
-  const element = sql`${{ identifier: parent.name }}.${{ identifier: parent.name.startsWith('_expr_$') ? '$' : colname }}`;
+  const element = sql`${{ identifier: parent.name }}.${{ identifier: parent.name.startsWith('_doller_expr_$') ? '$' : colname }}`;
   if (!parent.className) {
     if (colname !== '$') {
       return {
@@ -62,7 +62,7 @@ const _fetchElement = (
       };
     }
   }
-  if (parent.name.startsWith('_expr_$') && colname !== '$') {
+  if (parent.name.startsWith('_doller_expr_$') && colname !== '$') {
     return {
       element: sql`jsonb_extract_path(${element}, ${{ quote: colname.startsWith('$') ? `$${colname}` : colname }})`,
       json: true,
