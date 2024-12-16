@@ -136,15 +136,6 @@ export const selectPopulate = (
   const _foreign = (field: string) => sql`${{ identifier: populate.name }}.${{ identifier: field }}`;
 
   const subpaths = resolveSubpaths(compiler, populate);
-
-  const cond: (SQL | undefined)[] = [];
-  if (compiler.extraFilter) {
-    const filter = compiler.extraFilter(populate.className);
-    cond.push(compiler._encodeFilter(populate, filter));
-  }
-  cond.push(
-    sql`${sql`(${{ quote: populate.className + '$' }} || ${_foreign('_id')})`} = ${_local(field)}`
-  );
   return {
     columns: _.compact(_.flatMap(subpaths, ({ path, type }) => [
       sql`${{ identifier: populate.name }}.${{ identifier: path }} AS ${{ identifier: `${field}.${path}` }}`,
@@ -152,7 +143,7 @@ export const selectPopulate = (
     ])),
     join: sql`
       LEFT JOIN ${{ identifier: populate.name }}
-      ON ${{ literal: _.map(_.compact(cond), x => sql`(${x})`), separator: ' AND ' }}
+      ON ${sql`(${{ quote: populate.className + '$' }} || ${_foreign('_id')})`} = ${_local(field)}
     `,
   };
 };
