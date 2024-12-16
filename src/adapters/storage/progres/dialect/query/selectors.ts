@@ -324,20 +324,19 @@ export const encodeFieldExpression = (
       {
         if (!(expr.value instanceof QuerySelector)) break;
 
-        const populate = relation?.populate;
-        if (populate && parent.className) {
+        if (relation?.populate && parent.className) {
           const tempName = `_populate_expr_$${compiler.nextIdx()}`;
           const filter = compiler._encodeFilter({
             name: tempName,
             className: relation.target,
-            populates: relation.populate?.populates,
+            populates: relation.populate.populates,
           }, expr.value);
           if (!filter) break;
           return sql`NOT EXISTS(
             SELECT * FROM (${_selectRelationPopulate(compiler, {
               className: parent.className,
               name: parent.name,
-            }, populate, `$${field}`, false)}) AS ${{ identifier: tempName }}
+            }, relation.populate, `$${field}`, false)}) AS ${{ identifier: tempName }}
             WHERE NOT (${filter})
           )`;
         }
@@ -369,20 +368,19 @@ export const encodeFieldExpression = (
       {
         if (!(expr.value instanceof QuerySelector)) break;
 
-        const populate = relation?.populate;
-        if (populate && parent.className) {
+        if (relation?.populate && parent.className) {
           const tempName = `_populate_expr_$${compiler.nextIdx()}`;
           const filter = compiler._encodeFilter({
             name: tempName,
             className: relation.target,
-            populates: relation.populate?.populates,
+            populates: relation.populate.populates,
            }, expr.value);
           if (!filter) break;
           return sql`EXISTS(
             SELECT * FROM (${_selectRelationPopulate(compiler, {
               className: parent.className,
               name: parent.name,
-            }, populate, `$${field}`, false)}) AS ${{ identifier: tempName }}
+            }, relation.populate, `$${field}`, false)}) AS ${{ identifier: tempName }}
             WHERE ${filter}
           )`;
         }
