@@ -98,7 +98,7 @@ const resolvePaths = (
   return { dataType, colname, subpath };
 }
 
-const _resolvePopulate = (path: string[], populates?: Record<string, Populate>) => {
+const _resolvePopulate = (path: string[], populates: Record<string, Populate>) => {
   const [colname, ...subpath] = path;
   const populate = populates?.[colname];
   if (!populate || _.isEmpty(subpath)) return populate;
@@ -119,7 +119,7 @@ export const fetchElement = (
       dataType: json ? null : dataType,
       relation: isRelation(dataType) ? {
         target: dataType.target,
-        populate: _resolvePopulate(_.toPath(colname), parent.populates),
+        populate: parent.populates && _resolvePopulate(_.toPath(colname), parent.populates),
         mapElem: (callback: (value: SQL) => SQL) => sql`SELECT
           ${callback(sql`${json ? sql`VALUE` : sql`UNNEST`}`)}
         FROM ${json ? sql`jsonb_array_elements(${element})` : sql`UNNEST(${element})`}`,
