@@ -119,16 +119,18 @@ export const fetchElement = (
     const { dataType, colname, subpath } = resolvePaths(compiler, parent.className, _.toPath(field));
     const { element, json } = _fetchElement(parent, colname, subpath, dataType);
     if (isPointer(dataType)) return { element: sql`${{ identifier: parent.name }}.${{ identifier: `${colname}._id` }}`, dataType };
+    const populate = isRelation(dataType) && parent.populates && _resolvePopulate(_.toPath(colname), parent.populates);
+    if (!populate) return { element, dataType: json ? null : dataType };
     return {
       element,
       dataType: json ? null : dataType,
-      relation: isRelation(dataType) ? {
+      relation: {
         target: dataType.target,
-        populate: parent.populates && _resolvePopulate(_.toPath(colname), parent.populates),
+        populate,
         mapElem: (callback: (value: SQL) => SQL) => sql`SELECT
           ${callback(sql`${json ? sql`VALUE` : sql`UNNEST`}`)}
         FROM ${json ? sql`jsonb_array_elements(${element})` : sql`UNNEST(${element})`}`,
-      } : null,
+      },
     };
   }
   const [colname, ...subpath] = _.toPath(field);

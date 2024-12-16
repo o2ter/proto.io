@@ -345,12 +345,6 @@ export const encodeFieldExpression = (
         const filter = compiler._encodeFilter({ name: tempName, className: relation?.target }, expr.value);
         if (!filter) break;
 
-        if (relation) {
-          return sql`NOT EXISTS(
-            SELECT * FROM (${relation.mapElem((v) => sql`${v} AS "$"`)}) AS ${{ identifier: tempName }}
-            WHERE NOT (${filter})
-          )`;
-        }
         if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'vector'))) {
           return sql`NOT EXISTS(
             SELECT * FROM (SELECT UNNEST AS "$" FROM UNNEST(${element})) AS ${{ identifier: tempName }}
@@ -389,12 +383,6 @@ export const encodeFieldExpression = (
         const filter = compiler._encodeFilter({ name: tempName, className: relation?.target }, expr.value);
         if (!filter) break;
 
-        if (relation) {
-          return sql`EXISTS(
-            SELECT * FROM (${relation.mapElem((v) => sql`${v} AS "$"`)}) AS ${{ identifier: tempName }}
-            WHERE ${filter}
-          )`;
-        }
         if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'vector'))) {
           return sql`EXISTS(
             SELECT * FROM (SELECT UNNEST AS "$" FROM UNNEST(${element})) AS ${{ identifier: tempName }}
