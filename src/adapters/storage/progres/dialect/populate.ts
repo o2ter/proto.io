@@ -108,7 +108,11 @@ export const _selectRelationPopulate = (
     );
   }
   return sql`
-    SELECT ${_.map(subpaths, ({ path, type }) => encode ? _encodePopulateInclude(populate.name, path, type) : sql`${{ identifier: populate.name }}.${{ identifier: path }}`)}
+    SELECT ${_.compact(_.flatMap(subpaths, ({ path, type }) => [
+      encode && _encodePopulateInclude(populate.name, path, type),
+      !encode && sql`${{ identifier: populate.name }}.${{ identifier: path }}`,
+      !encode && isRelation(type) && sql`${{ identifier: populate.name }}.${{ identifier: `$${path}` }}`,
+    ]))}
     FROM ${{ identifier: populate.name }} WHERE ${{ literal: _.map(_.compact(cond), x => sql`(${x})`), separator: ' AND ' }}
     ${!_.isEmpty(populate.sort) ? sql`ORDER BY ${compiler._encodeSort(populate.sort, { className: populate.className, name: populate.name })}` : sql``}
     ${populate.limit ? sql`LIMIT ${{ literal: `${populate.limit}` }}` : sql``}
@@ -154,7 +158,7 @@ export const selectPopulate = (
   return {
     columns: _.compact(_.flatMap(subpaths, ({ path, type }) => [
       sql`${{ identifier: populate.name }}.${{ identifier: path }} AS ${{ identifier: `${field}.${path}` }}`,
-      isRelation(type) && sql`${{ identifier: populate.name }}.${{ identifier: `$${path}` }} AS ${{ identifier: `$${field}.${path}` }}`
+      isRelation(type) && sql`${{ identifier: populate.name }}.${{ identifier: `$${path}` }} AS ${{ identifier: `$${field}.${path}` }}`,
     ])),
     join: sql`
       LEFT JOIN ${{ identifier: populate.name }}

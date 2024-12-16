@@ -327,7 +327,11 @@ export const encodeFieldExpression = (
         const populate = relation?.populate;
         if (populate && parent.className) {
           const tempName = `_populate_expr_$${compiler.nextIdx()}`;
-          const filter = compiler._encodeFilter({ name: tempName, className: relation.target }, expr.value);
+          const filter = compiler._encodeFilter({
+            name: tempName,
+            className: relation.target,
+            populates: relation.populate?.populates,
+          }, expr.value);
           if (!filter) break;
           return sql`NOT EXISTS(
             SELECT * FROM (${_selectRelationPopulate(compiler, {
@@ -368,7 +372,11 @@ export const encodeFieldExpression = (
         const populate = relation?.populate;
         if (populate && parent.className) {
           const tempName = `_populate_expr_$${compiler.nextIdx()}`;
-          const filter = compiler._encodeFilter({ name: tempName, className: relation.target }, expr.value);
+          const filter = compiler._encodeFilter({
+            name: tempName,
+            className: relation.target,
+            populates: relation.populate?.populates,
+           }, expr.value);
           if (!filter) break;
           return sql`EXISTS(
             SELECT * FROM (${_selectRelationPopulate(compiler, {
