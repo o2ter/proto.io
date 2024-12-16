@@ -100,8 +100,8 @@ const resolvePaths = (
 
 const _resolvePopulate = (path: string[], populates?: Record<string, Populate>): Populate | undefined => {
   let [colname, ...subpath] = path;
-  while (!_.isEmpty(subpath)) {
-    const populate = populates?.[colname];
+  while (populates && !_.isEmpty(subpath)) {
+    const populate = populates[colname];
     if (populate) return _resolvePopulate(subpath, populate.populates);
     const [key, ...remain] = subpath;
     colname = `${colname}.${key}`;
