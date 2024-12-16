@@ -98,11 +98,16 @@ const resolvePaths = (
   return { dataType, colname, subpath };
 }
 
-const _resolvePopulate = (path: string[], populates: Record<string, Populate>) => {
-  const [colname, ...subpath] = path;
-  const populate = populates?.[colname];
-  if (!populate || _.isEmpty(subpath)) return populate;
-  return _resolvePopulate(subpath, populate.populates);
+const _resolvePopulate = (path: string[], populates: Record<string, Populate>): Populate | undefined => {
+  let [colname, ...subpath] = path;
+  while (!_.isEmpty(subpath)) {
+    const populate = populates?.[colname];
+    if (populate) return _resolvePopulate(subpath, populate.populates);
+    const [key, ...remain] = subpath;
+    colname = `${colname}.${key}`;
+    subpath = remain;
+  }
+  return populates?.[colname];
 }
 
 export const fetchElement = (

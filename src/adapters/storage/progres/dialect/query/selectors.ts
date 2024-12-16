@@ -331,9 +331,9 @@ export const encodeFieldExpression = (
           if (!filter) break;
           return sql`NOT EXISTS(
             SELECT * FROM (${_selectRelationPopulate(compiler, {
-            className: parent.className,
-            name: parent.name,
-          }, populate, `$${field}`, false)}) AS ${{ identifier: tempName }}
+              className: parent.className,
+              name: parent.name,
+            }, populate, `$${field}`, false)}) AS ${{ identifier: tempName }}
             WHERE NOT (${filter})
           )`;
         }

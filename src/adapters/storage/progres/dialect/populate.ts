@@ -152,7 +152,10 @@ export const selectPopulate = (
     sql`${sql`(${{ quote: populate.className + '$' }} || ${_foreign('_id')})`} = ${_local(field)}`
   );
   return {
-    columns: _.map(subpaths, ({ path }) => sql`${{ identifier: populate.name }}.${{ identifier: path }} AS ${{ identifier: `${field}.${path}` }}`),
+    columns: _.compact(_.flatMap(subpaths, ({ path, type }) => [
+      sql`${{ identifier: populate.name }}.${{ identifier: path }} AS ${{ identifier: `${field}.${path}` }}`,
+      isRelation(type) && sql`${{ identifier: populate.name }}.${{ identifier: `$${path}` }} AS ${{ identifier: `$${field}.${path}` }}`
+    ])),
     join: sql`
       LEFT JOIN ${{ identifier: populate.name }}
       ON ${{ literal: _.map(_.compact(cond), x => sql`(${x})`), separator: ' AND ' }}
