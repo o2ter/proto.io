@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { SQL, sql } from '../../../sql';
-import { QueryCompiler } from '../../../sql/compiler';
+import { Populate, QueryCompiler } from '../../../sql/compiler';
 import { TSchema, isPointer, isRelation, isVector } from '../../../../../internals/schema';
 import { QueryValidator, resolveColumn } from '../../../../../server/query/dispatcher/validator';
 
@@ -100,7 +100,7 @@ const resolvePaths = (
 
 export const fetchElement = (
   compiler: QueryCompiler,
-  parent: { className?: string; name: string; },
+  parent: { className?: string; name: string; populates?: Record<string, Populate>; },
   field: string,
 ) => {
   if (parent.className) {
@@ -112,6 +112,7 @@ export const fetchElement = (
       dataType: json ? null : dataType,
       relation: isRelation(dataType) ? {
         target: dataType.target,
+        populate: parent.populates?.[colname],
         mapElem: (callback: (value: SQL) => SQL) => sql`SELECT
           ${callback(sql`${json ? sql`VALUE` : sql`UNNEST`}`)}
         FROM ${json ? sql`jsonb_array_elements(${element})` : sql`UNNEST(${element})`}`,

@@ -77,12 +77,13 @@ const _isPointer = (
   return last?.type === 'pointer';
 }
 
-export const selectPopulate = (
+export const _selectRelationPopulate = (
   compiler: QueryCompiler,
   parent: { className: string; name: string; },
   populate: Populate,
-  field: string
-): { columns: SQL[]; join?: SQL; } => {
+  field: string,
+  encode: boolean,
+) => {
   const _local = (field: string) => sql`${{ identifier: parent.name }}.${{ identifier: field }}`;
   const _foreign = (field: string) => sql`${{ identifier: populate.name }}.${{ identifier: field }}`;
 
@@ -93,19 +94,6 @@ export const selectPopulate = (
     const filter = compiler.extraFilter(populate.className);
     cond.push(compiler._encodeFilter(populate, filter));
   }
-  if (populate.type === 'pointer') {
-    cond.push(
-      sql`${sql`(${{ quote: populate.className + '$' }} || ${_foreign('_id')})`} = ${_local(field)}`
-    );
-    return {
-      columns: _.map(subpaths, ({ path }) => sql`${{ identifier: populate.name }}.${{ identifier: path }} AS ${{ identifier: `${field}.${path}` }}`),
-      join: sql`
-        LEFT JOIN ${{ identifier: populate.name }}
-        ON ${{ literal: _.map(_.compact(cond), x => sql`(${x})`), separator: ' AND ' }}
-      `,
-    };
-  }
-
   if (_.isNil(populate.foreignField)) {
     cond.push(
       sql`${sql`(${{ quote: populate.className + '$' }} || ${_foreign('_id')})`} = ANY(${_local(field)})`
@@ -119,19 +107,56 @@ export const selectPopulate = (
       sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ANY(${_foreign(populate.colname)})`
     );
   }
+  return sql`
+    SELECT ${_.map(subpaths, ({ path, type }) => encode ? _encodePopulateInclude(populate.name, path, type) : sql`${{ identifier: populate.name }}.${{ identifier: path }}`)}
+    FROM ${{ identifier: populate.name }} WHERE ${{ literal: _.map(_.compact(cond), x => sql`(${x})`), separator: ' AND ' }}
+    ${!_.isEmpty(populate.sort) ? sql`ORDER BY ${compiler._encodeSort(populate.sort, { className: populate.className, name: populate.name })}` : sql``}
+    ${populate.limit ? sql`LIMIT ${{ literal: `${populate.limit}` }}` : sql``}
+    ${populate.skip ? sql`OFFSET ${{ literal: `${populate.skip}` }}` : sql``}
+    ${compiler.selectLock ? compiler.isUpdate ? sql`FOR UPDATE NOWAIT` : sql`FOR SHARE NOWAIT` : sql``}
+  `;
+}
+
+export const selectPopulate = (
+  compiler: QueryCompiler,
+  parent: { className: string; name: string; },
+  populate: Populate,
+  field: string
+): { columns: SQL[]; join?: SQL; } => {
+  if (populate.type === 'relation') {
+    return {
+      columns: [
+        sql`
+          ARRAY(
+            SELECT to_jsonb(${{ identifier: populate.name }}) FROM (
+              ${_selectRelationPopulate(compiler, parent, populate, field, true)}
+            ) ${{ identifier: populate.name }}
+          ) AS ${{ identifier: field }}
+        `,
+        sql`${{ identifier: parent.name }}.${{ identifier: field }} AS ${{ identifier: `$${field}` }}`
+      ],
+    };
+  }
+
+  const _local = (field: string) => sql`${{ identifier: parent.name }}.${{ identifier: field }}`;
+  const _foreign = (field: string) => sql`${{ identifier: populate.name }}.${{ identifier: field }}`;
+
+  const subpaths = resolveSubpaths(compiler, populate);
+
+  const cond: (SQL | undefined)[] = [];
+  if (compiler.extraFilter) {
+    const filter = compiler.extraFilter(populate.className);
+    cond.push(compiler._encodeFilter(populate, filter));
+  }
+  cond.push(
+    sql`${sql`(${{ quote: populate.className + '$' }} || ${_foreign('_id')})`} = ${_local(field)}`
+  );
   return {
-    columns: [sql`
-      ARRAY(
-        SELECT to_jsonb(${{ identifier: populate.name }}) FROM (
-          SELECT ${_.map(subpaths, ({ path, type }) => _encodePopulateInclude(populate.name, path, type))}
-          FROM ${{ identifier: populate.name }} WHERE ${{ literal: _.map(_.compact(cond), x => sql`(${x})`), separator: ' AND ' }}
-          ${!_.isEmpty(populate.sort) ? sql`ORDER BY ${compiler._encodeSort(populate.sort, { className: populate.className, name: populate.name })}` : sql``}
-          ${populate.limit ? sql`LIMIT ${{ literal: `${populate.limit}` }}` : sql``}
-          ${populate.skip ? sql`OFFSET ${{ literal: `${populate.skip}` }}` : sql``}
-          ${compiler.selectLock ? compiler.isUpdate ? sql`FOR UPDATE NOWAIT` : sql`FOR SHARE NOWAIT` : sql``}
-        ) ${{ identifier: populate.name }}
-      ) AS ${{ identifier: field }}
-    `],
+    columns: _.map(subpaths, ({ path }) => sql`${{ identifier: populate.name }}.${{ identifier: path }} AS ${{ identifier: `${field}.${path}` }}`),
+    join: sql`
+        LEFT JOIN ${{ identifier: populate.name }}
+        ON ${{ literal: _.map(_.compact(cond), x => sql`(${x})`), separator: ' AND ' }}
+      `,
   };
 };
 

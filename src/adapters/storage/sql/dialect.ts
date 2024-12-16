@@ -50,7 +50,7 @@ export interface SqlDialect {
 
   encodeFieldExpression(
     compiler: QueryCompiler,
-    parent: { className?: string; name: string; },
+    parent: { className?: string; name: string; populates?: Record<string, Populate>; },
     field: string,
     expr: FieldSelectorExpression,
   ): SQL

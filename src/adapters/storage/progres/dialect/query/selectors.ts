@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { SQL, sql } from '../../../sql';
 import { _typeof, isPrimitive } from '../../../../../internals/schema';
-import { QueryCompiler } from '../../../sql/compiler';
+import { Populate, QueryCompiler } from '../../../sql/compiler';
 import { FieldSelectorExpression, QuerySelector } from '../../../../../server/query/dispatcher/parser';
 import { _encodeJsonValue } from '../encode';
 import { encodeType } from '../encode';
@@ -36,10 +36,11 @@ import Decimal from 'decimal.js';
 import { TObject } from '../../../../../internals/object';
 import { _encodeValue } from '../../../../../internals/object';
 import { TValue } from '../../../../../internals/types';
+import { _selectRelationPopulate } from '../populate';
 
 export const encodeFieldExpression = (
   compiler: QueryCompiler,
-  parent: { className?: string; name: string; },
+  parent: { className?: string; name: string; populates?: Record<string, Populate>; },
   field: string,
   expr: FieldSelectorExpression
 ): SQL => {
@@ -182,10 +183,12 @@ export const encodeFieldExpression = (
         if (!_.isArray(expr.value)) break;
         if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
           return sql`${element} <@ ${{ value: _encodeValue(expr.value) }}`;
-        } else if (relation) {
+        }
+        if (relation) {
           if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
           return sql`ARRAY(${relation.mapElem((v) => sql`${v} ->> '_id'`)}) <@ ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
-        } else if (!dataType) {
+        }
+        if (!dataType) {
           return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'array' AND ${element} <@ ${_encodeJsonValue(_encodeValue(expr.value))}`;
         }
       }
@@ -195,10 +198,12 @@ export const encodeFieldExpression = (
         if (_.isEmpty(expr.value)) return sql`true`;
         if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
           return sql`${element} @> ${{ value: _encodeValue(expr.value) }}`;
-        } else if (relation) {
+        }
+        if (relation) {
           if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
           return sql`ARRAY(${relation.mapElem((v) => sql`${v} ->> '_id'`)}) @> ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
-        } else if (!dataType) {
+        }
+        if (!dataType) {
           return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'array' AND ${element} @> ${_encodeJsonValue(_encodeValue(expr.value))}`;
         }
       }
@@ -208,10 +213,12 @@ export const encodeFieldExpression = (
         if (_.isEmpty(expr.value)) return sql`true`;
         if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
           return sql`NOT ${element} && ${{ value: _encodeValue(expr.value) }}`;
-        } else if (relation) {
+        }
+        if (relation) {
           if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
           return sql`NOT ARRAY(${relation.mapElem((v) => sql`${v} ->> '_id'`)}) && ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
-        } else if (!dataType) {
+        }
+        if (!dataType) {
           return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'array' AND NOT ${element} && ${_encodeJsonValue(_encodeValue(expr.value))}`;
         }
       }
@@ -221,10 +228,12 @@ export const encodeFieldExpression = (
         if (_.isEmpty(expr.value)) return sql`false`;
         if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
           return sql`${element} && ${{ value: _encodeValue(expr.value) }}`;
-        } else if (relation) {
+        }
+        if (relation) {
           if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
           return sql`ARRAY(${relation.mapElem((v) => sql`${v} ->> '_id'`)}) && ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
-        } else if (!dataType) {
+        }
+        if (!dataType) {
           return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'array' AND ${element} && ${_encodeJsonValue(_encodeValue(expr.value))}`;
         }
       }
@@ -238,14 +247,16 @@ export const encodeFieldExpression = (
         if (dataType === 'string' || (!_.isString(dataType) && dataType?.type === 'string')) {
           if (_.isString(expr.value)) {
             return sql`${element} LIKE ${{ value: `%${expr.value.replace(/([\\_%])/g, '\\$1')}%` }}`;
-          } else if (_.isRegExp(expr.value)) {
+          }
+          if (_.isRegExp(expr.value)) {
             if (expr.value.ignoreCase) return sql`${element} ~* ${{ value: expr.value.source }}`;
             return sql`${element} ~ ${{ value: expr.value.source }}`;
           }
         } else if (!dataType) {
           if (_.isString(expr.value)) {
             return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'string' AND (${element} #>> '{}') LIKE ${{ value: `%${expr.value.replace(/([\\_%])/g, '\\$1')}%` }}`;
-          } else if (_.isRegExp(expr.value)) {
+          }
+          if (_.isRegExp(expr.value)) {
             if (expr.value.ignoreCase) return sql`${element} ~* ${{ value: expr.value.source }}`;
             return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'string' AND (${element} #>> '{}') ~ ${{ value: expr.value.source }}`;
           }
@@ -256,7 +267,8 @@ export const encodeFieldExpression = (
         if (!_.isString(expr.value)) break;
         if (dataType === 'string' || (!_.isString(dataType) && dataType?.type === 'string')) {
           return sql`${element} LIKE ${{ value: `${expr.value.replace(/([\\_%])/g, '\\$1')}%` }}`;
-        } else if (!dataType) {
+        }
+        if (!dataType) {
           return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'string' AND (${element} #>> '{}') LIKE ${{ value: `${expr.value.replace(/([\\_%])/g, '\\$1')}%` }}`;
         }
       }
@@ -265,7 +277,8 @@ export const encodeFieldExpression = (
         if (!_.isString(expr.value)) break;
         if (dataType === 'string' || (!_.isString(dataType) && dataType?.type === 'string')) {
           return sql`${element} LIKE ${{ value: `%${expr.value.replace(/([\\_%])/g, '\\$1')}` }}`;
-        } else if (!dataType) {
+        }
+        if (!dataType) {
           return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'string' AND (${element} #>> '{}') LIKE ${{ value: `%${expr.value.replace(/([\\_%])/g, '\\$1')}` }}`;
         }
       }
@@ -274,9 +287,11 @@ export const encodeFieldExpression = (
         if (!_.isNumber(expr.value) || !_.isSafeInteger(expr.value)) break;
         if (dataType === 'string' || (!_.isString(dataType) && dataType?.type === 'string')) {
           return sql`COALESCE(length(${element}), 0) = ${{ value: expr.value }}`;
-        } else if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'vector' || dataType?.type === 'relation'))) {
+        }
+        if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'vector' || dataType?.type === 'relation'))) {
           return sql`COALESCE(array_length(${element}, 1), 0) = ${{ value: expr.value }}`;
-        } else if (!dataType) {
+        }
+        if (!dataType) {
           return sql`(
             CASE jsonb_typeof(${element})
               WHEN 'array' THEN jsonb_array_length(${element}) = ${{ value: expr.value }}
@@ -291,9 +306,11 @@ export const encodeFieldExpression = (
         if (!_.isBoolean(expr.value)) break;
         if (dataType === 'string' || (!_.isString(dataType) && dataType?.type === 'string')) {
           return sql`COALESCE(length(${element}), 0) ${{ literal: expr.value ? '=' : '<>' }} 0`;
-        } else if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'vector' || dataType?.type === 'relation'))) {
+        }
+        if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'vector' || dataType?.type === 'relation'))) {
           return sql`COALESCE(array_length(${element}, 1), 0) ${{ literal: expr.value ? '=' : '<>' }} 0`;
-        } else if (!dataType) {
+        }
+        if (!dataType) {
           return sql`(
             CASE jsonb_typeof(${element})
               WHEN 'array' THEN jsonb_array_length(${element}) ${{ literal: expr.value ? '=' : '<>' }} 0
@@ -307,6 +324,20 @@ export const encodeFieldExpression = (
       {
         if (!(expr.value instanceof QuerySelector)) break;
 
+        const populate = relation?.populate;
+        if (populate && parent.className) {
+          const tempName = `_populate_expr_$${compiler.nextIdx()}`;
+          const filter = compiler._encodeFilter({ name: tempName, className: relation?.target }, expr.value);
+          if (!filter) break;
+          return sql`NOT EXISTS(
+            SELECT * FROM (${_selectRelationPopulate(compiler, {
+            className: parent.className,
+            name: parent.name,
+          }, populate, `$${field}`, false)}) AS ${{ identifier: tempName }}
+            WHERE NOT (${filter})
+          )`;
+        }
+
         const tempName = `_expr_$${compiler.nextIdx()}`;
         const filter = compiler._encodeFilter({ name: tempName, className: relation?.target }, expr.value);
         if (!filter) break;
@@ -316,12 +347,14 @@ export const encodeFieldExpression = (
             SELECT * FROM (${relation.mapElem((v) => sql`${v} AS "$"`)}) AS ${{ identifier: tempName }}
             WHERE NOT (${filter})
           )`;
-        } else if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'vector'))) {
+        }
+        if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'vector'))) {
           return sql`NOT EXISTS(
             SELECT * FROM (SELECT UNNEST AS "$" FROM UNNEST(${element})) AS ${{ identifier: tempName }}
             WHERE NOT (${filter})
           )`;
-        } else if (!dataType) {
+        }
+        if (!dataType) {
           return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'array' AND NOT EXISTS(
             SELECT * FROM (SELECT value AS "$" FROM jsonb_array_elements(${element})) AS ${{ identifier: tempName }}
             WHERE NOT (${filter})
@@ -332,6 +365,20 @@ export const encodeFieldExpression = (
       {
         if (!(expr.value instanceof QuerySelector)) break;
 
+        const populate = relation?.populate;
+        if (populate && parent.className) {
+          const tempName = `_populate_expr_$${compiler.nextIdx()}`;
+          const filter = compiler._encodeFilter({ name: tempName, className: relation?.target }, expr.value);
+          if (!filter) break;
+          return sql`EXISTS(
+            SELECT * FROM (${_selectRelationPopulate(compiler, {
+              className: parent.className,
+              name: parent.name,
+            }, populate, `$${field}`, false)}) AS ${{ identifier: tempName }}
+            WHERE ${filter}
+          )`;
+        }
+
         const tempName = `_expr_$${compiler.nextIdx()}`;
         const filter = compiler._encodeFilter({ name: tempName, className: relation?.target }, expr.value);
         if (!filter) break;
@@ -341,12 +388,14 @@ export const encodeFieldExpression = (
             SELECT * FROM (${relation.mapElem((v) => sql`${v} AS "$"`)}) AS ${{ identifier: tempName }}
             WHERE ${filter}
           )`;
-        } else if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'vector'))) {
+        }
+        if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'vector'))) {
           return sql`EXISTS(
             SELECT * FROM (SELECT UNNEST AS "$" FROM UNNEST(${element})) AS ${{ identifier: tempName }}
             WHERE ${filter}
           )`;
-        } else if (!dataType) {
+        }
+        if (!dataType) {
           return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'array' AND EXISTS(
             SELECT * FROM (SELECT value AS "$" FROM jsonb_array_elements(${element})) AS ${{ identifier: tempName }}
             WHERE ${filter}

@@ -223,7 +223,7 @@ export class QueryCompiler {
     const stages = _.fromPairs(_.flatMap(_.values(_stages), (p) => _.toPairs(p)));
 
     const fetchName = `_fetch_$${query.className.toLowerCase()}`;
-    const parent = { className: query.className, name: fetchName };
+    const parent = { className: query.className, name: fetchName, populates: context.populates };
 
     const baseFilter = this._encodeFilter(parent, query.filter);
     const populates = this._selectPopulateMap(context, query.className, fetchName);
@@ -358,7 +358,7 @@ export class QueryCompiler {
   }
 
   private _encodeCoditionalSelector(
-    parent: { className?: string; name: string; },
+    parent: { className?: string; name: string; populates?: Record<string, Populate>; },
     filter: QueryCoditionalSelector,
   ) {
     const queries = _.compact(_.map(filter.exprs, x => this._encodeFilter(parent, x)));
@@ -371,7 +371,7 @@ export class QueryCompiler {
   }
 
   _encodeFilter(
-    parent: { className?: string; name: string; },
+    parent: { className?: string; name: string; populates?: Record<string, Populate>; },
     filter: QuerySelector,
   ): SQL | undefined {
     if (filter instanceof QueryCoditionalSelector) {
