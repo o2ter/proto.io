@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { SQL, sql } from '../../../sql';
 import { QueryCompiler } from '../../../sql/compiler';
-import { TSchema, isPointer, isPrimitive, isRelation, isShape, isVector } from '../../../../../internals/schema';
+import { TSchema, isPointer, isRelation, isVector } from '../../../../../internals/schema';
 import { QueryValidator, resolveColumn } from '../../../../../server/query/dispatcher/validator';
 
 const _fetchElement = (
