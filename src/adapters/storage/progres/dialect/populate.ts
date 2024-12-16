@@ -89,23 +89,13 @@ export const _selectRelationPopulate = (
 
   const subpaths = resolveSubpaths(compiler, populate);
 
-  const cond: (SQL | undefined)[] = [];
-  if (compiler.extraFilter) {
-    const filter = compiler.extraFilter(populate.className);
-    cond.push(compiler._encodeFilter(populate, filter));
-  }
+  let cond: SQL;
   if (_.isNil(populate.foreignField)) {
-    cond.push(
-      sql`${sql`(${{ quote: populate.className + '$' }} || ${_foreign('_id')})`} = ANY(${_local(field)})`
-    );
+    cond = sql`${sql`(${{ quote: populate.className + '$' }} || ${_foreign('_id')})`} = ANY(${_local(field)})`;
   } else if (_isPointer(compiler.schema, populate.className, populate.foreignField)) {
-    cond.push(
-      sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ${_foreign(populate.colname)}`
-    );
+    cond = sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ${_foreign(populate.colname)}`;
   } else {
-    cond.push(
-      sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ANY(${_foreign(populate.colname)})`
-    );
+    cond = sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ANY(${_foreign(populate.colname)})`;
   }
   return sql`
     SELECT ${_.compact(_.flatMap(subpaths, ({ path, type }) => [
@@ -113,7 +103,7 @@ export const _selectRelationPopulate = (
       !encode && sql`${{ identifier: populate.name }}.${{ identifier: path }}`,
       !encode && isRelation(type) && sql`${{ identifier: populate.name }}.${{ identifier: `$${path}` }}`,
     ]))}
-    FROM ${{ identifier: populate.name }} WHERE ${{ literal: _.map(_.compact(cond), x => sql`(${x})`), separator: ' AND ' }}
+    FROM ${{ identifier: populate.name }} WHERE ${cond}
     ${!_.isEmpty(populate.sort) ? sql`ORDER BY ${compiler._encodeSort(populate.sort, { className: populate.className, name: populate.name })}` : sql``}
     ${populate.limit ? sql`LIMIT ${{ literal: `${populate.limit}` }}` : sql``}
     ${populate.skip ? sql`OFFSET ${{ literal: `${populate.skip}` }}` : sql``}
@@ -276,7 +266,10 @@ export const encodePopulate = (
   parent: Populate,
   remix?: { className: string; name: string; }
 ): Record<string, SQL> => {
-  const _filter = parent.filter && compiler._encodeFilter(parent, parent.filter);
+  const _filter = _.compact([
+    parent.filter && compiler._encodeFilter(parent, parent.filter),
+    compiler.extraFilter && compiler._encodeFilter(parent, compiler.extraFilter(parent.className)),
+  ]);
   const _populates = _.map(parent.populates, (populate, field) => selectPopulate(compiler, parent, populate, field));
   const _joins = _.compact(_.map(_populates, ({ join }) => join));
   const _includes = _.pickBy(parent.includes, v => isPrimitive(v));
@@ -305,7 +298,7 @@ export const encodePopulate = (
         FROM ${encodeRemix(parent, remix)} AS ${{ identifier: parent.name }}
         ${!_.isEmpty(_joins) || !_.isEmpty(_joins2) ? { literal: [..._joins, ..._joins2], separator: '\n' } : sql``}
       ) AS ${{ identifier: parent.name }}
-      ${_filter ? sql`WHERE ${_filter}` : sql``}
+      ${!_.isEmpty(_filter) ? sql`WHERE ${{ literal: _.map(_.compact(_filter), x => sql`(${x})`), separator: ' AND ' }}` : sql``}
     `,
   });
 };
