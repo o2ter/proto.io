@@ -197,8 +197,12 @@ export const encodeFieldExpression = (
         }
         if (relation && parent.className) {
           if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
+          const tempName = `_populate_expr_$${compiler.nextIdx()}`;
           const populate = _selectRelationPopulate(compiler, { className: parent.className, name: parent.name }, relation.populate, `$${field}`, false);
-          return sql`ARRAY(SELECT ${{ identifier: '_id' }} FROM (${populate})) ${{ literal: op }} ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
+          return sql`ARRAY(
+            SELECT ${{ identifier: '_id' }}
+            FROM (${populate}) AS ${{ identifier: tempName }}
+          ) ${{ literal: op }} ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
         }
         if (!dataType) {
           return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'array' AND ${element} ${{ literal: op }} ${_encodeJsonValue(_encodeValue(expr.value))}`;
