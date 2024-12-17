@@ -71,48 +71,48 @@ export const encodeFieldExpression = (
     case '$lt':
     case '$lte':
       {
-        const operatorMap = {
+        const op = {
           '$gt': '>',
           '$gte': '>=',
           '$lt': '<',
           '$lte': '<=',
-        };
+        }[expr.type];
         if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldSelectorExpression) break;
         if (dataType && isPrimitive(dataType)) {
           switch (_typeof(dataType)) {
             case 'boolean':
               if (!_.isBoolean(expr.value)) break;
-              return sql`${element} ${{ literal: operatorMap[expr.type] }} ${encodeValue(expr.value)}`;
+              return sql`${element} ${{ literal: op }} ${encodeValue(expr.value)}`;
             case 'number':
             case 'decimal':
               if (!(expr.value instanceof Decimal) && !_.isNumber(expr.value)) break;
-              return sql`${element} ${{ literal: operatorMap[expr.type] }} ${encodeValue(expr.value)}`;
+              return sql`${element} ${{ literal: op }} ${encodeValue(expr.value)}`;
             case 'string':
               if (!_.isString(expr.value)) break;
-              return sql`${element} ${{ literal: operatorMap[expr.type] }} ${encodeValue(expr.value)}`;
+              return sql`${element} ${{ literal: op }} ${encodeValue(expr.value)}`;
             case 'date':
               if (!_.isDate(expr.value)) break;
-              return sql`${element} ${{ literal: operatorMap[expr.type] }} ${encodeValue(expr.value)}`;
+              return sql`${element} ${{ literal: op }} ${encodeValue(expr.value)}`;
             default: break;
           }
         } else if (!_.isString(dataType) && dataType?.type === 'pointer' && expr.value instanceof TObject && expr.value.objectId) {
-          return sql`${element} ${{ literal: operatorMap[expr.type] }} ${{ value: expr.value.objectId }}`;
+          return sql`${element} ${{ literal: op }} ${{ value: expr.value.objectId }}`;
         } else if (!dataType) {
           if (expr.value instanceof Decimal || _.isNumber(expr.value)) {
             return sql`(
               jsonb_typeof(${element}) ${nullSafeEqual()} 'number'
-              AND ${element}::NUMERIC ${{ literal: operatorMap[expr.type] }} ${{ value: expr.value instanceof Decimal ? expr.value.toNumber() : expr.value }}
+              AND ${element}::NUMERIC ${{ literal: op }} ${{ value: expr.value instanceof Decimal ? expr.value.toNumber() : expr.value }}
             ) OR (
               jsonb_typeof(${element} -> '$decimal') ${nullSafeEqual()} 'string'
-              AND (${element} ->> '$decimal')::DECIMAL ${{ literal: operatorMap[expr.type] }} ${{ value: expr.value instanceof Decimal ? expr.value.toString() : expr.value }}::DECIMAL
+              AND (${element} ->> '$decimal')::DECIMAL ${{ literal: op }} ${{ value: expr.value instanceof Decimal ? expr.value.toString() : expr.value }}::DECIMAL
             )`;
           } else if (_.isDate(expr.value)) {
             return sql`(
               jsonb_typeof(${element} -> '$date') ${nullSafeEqual()} 'string'
-              AND ${element} ${{ literal: operatorMap[expr.type] }} ${encodeValue(expr.value)}
+              AND ${element} ${{ literal: op }} ${encodeValue(expr.value)}
             )`;
           } else {
-            return sql`${element} ${{ literal: operatorMap[expr.type] }} ${encodeValue(expr.value)}`;
+            return sql`${element} ${{ literal: op }} ${encodeValue(expr.value)}`;
           }
         }
       }
@@ -179,50 +179,27 @@ export const encodeFieldExpression = (
         }
       }
     case '$subset':
-      {
-        if (!_.isArray(expr.value)) break;
-        if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
-          return sql`${element} <@ ${{ value: _encodeValue(expr.value) }}`;
-        }
-        if (relation && parent.className) {
-          if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
-          const populate = _selectRelationPopulate(compiler, { className: parent.className, name: parent.name }, relation.populate, `$${field}`, false);
-          return sql`ARRAY(SELECT ${{ identifier: '_id' }} FROM (${populate})) <@ ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
-        }
-        if (!dataType) {
-          return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'array' AND ${element} <@ ${_encodeJsonValue(_encodeValue(expr.value))}`;
-        }
-      }
     case '$superset':
+    case '$intersect':
       {
+        const op_map = {
+          '$subset': '<@',
+          '$superset': '@>',
+          '$intersect': '&&',
+        };
+        const op = op_map[expr.type as keyof typeof op_map];
         if (!_.isArray(expr.value)) break;
         if (_.isEmpty(expr.value)) return sql`true`;
         if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
-          return sql`${element} @> ${{ value: _encodeValue(expr.value) }}`;
+          return sql`${element} ${{ literal: op }} ${{ value: _encodeValue(expr.value) }}`;
         }
         if (relation && parent.className) {
           if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
           const populate = _selectRelationPopulate(compiler, { className: parent.className, name: parent.name }, relation.populate, `$${field}`, false);
-          return sql`ARRAY(SELECT ${{ identifier: '_id' }} FROM (${populate})) @> ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
+          return sql`ARRAY(SELECT ${{ identifier: '_id' }} FROM (${populate})) ${{ literal: op }} ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
         }
         if (!dataType) {
-          return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'array' AND ${element} @> ${_encodeJsonValue(_encodeValue(expr.value))}`;
-        }
-      }
-    case '$intersect':
-      {
-        if (!_.isArray(expr.value)) break;
-        if (_.isEmpty(expr.value)) return sql`false`;
-        if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
-          return sql`${element} && ${{ value: _encodeValue(expr.value) }}`;
-        }
-        if (relation && parent.className) {
-          if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
-          const populate = _selectRelationPopulate(compiler, { className: parent.className, name: parent.name }, relation.populate, `$${field}`, false);
-          return sql`ARRAY(SELECT ${{ identifier: '_id' }} FROM (${populate})) && ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
-        }
-        if (!dataType) {
-          return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'array' AND ${element} && ${_encodeJsonValue(_encodeValue(expr.value))}`;
+          return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'array' AND ${element} ${{ literal: op }} ${_encodeJsonValue(_encodeValue(expr.value))}`;
         }
       }
     case '$not':
