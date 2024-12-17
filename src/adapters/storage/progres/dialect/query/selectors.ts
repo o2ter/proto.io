@@ -191,7 +191,13 @@ export const encodeFieldExpression = (
           '$intersect': '&&',
         }[expr.type];
         if (!_.isArray(expr.value)) break;
-        if (_.isEmpty(expr.value)) return sql`true`;
+        if (_.isEmpty(expr.value)) {
+          switch (expr.type) {
+            case '$superset': return sql`true`;
+            case '$intersect': return sql`false`;
+            default: break;
+          }
+        }
         if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
           return sql`${element} ${{ literal: op }} ${{ value: _encodeValue(expr.value) }}`;
         }
