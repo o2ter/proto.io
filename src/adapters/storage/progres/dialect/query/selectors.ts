@@ -184,9 +184,10 @@ export const encodeFieldExpression = (
         if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
           return sql`${element} <@ ${{ value: _encodeValue(expr.value) }}`;
         }
-        if (relation) {
+        if (relation && parent.className) {
           if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
-          return sql`ARRAY(${relation.mapElem((v) => sql`${v} ->> '_id'`)}) <@ ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
+          const populate = _selectRelationPopulate(compiler, { className: parent.className, name: parent.name }, relation.populate, `$${field}`, false);
+          return sql`ARRAY(SELECT ${{ identifier: '_id' }} FROM (${populate})) <@ ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
         }
         if (!dataType) {
           return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'array' AND ${element} <@ ${_encodeJsonValue(_encodeValue(expr.value))}`;
@@ -199,9 +200,10 @@ export const encodeFieldExpression = (
         if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
           return sql`${element} @> ${{ value: _encodeValue(expr.value) }}`;
         }
-        if (relation) {
+        if (relation && parent.className) {
           if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
-          return sql`ARRAY(${relation.mapElem((v) => sql`${v} ->> '_id'`)}) @> ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
+          const populate = _selectRelationPopulate(compiler, { className: parent.className, name: parent.name }, relation.populate, `$${field}`, false);
+          return sql`ARRAY(SELECT ${{ identifier: '_id' }} FROM (${populate})) @> ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
         }
         if (!dataType) {
           return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'array' AND ${element} @> ${_encodeJsonValue(_encodeValue(expr.value))}`;
@@ -214,9 +216,10 @@ export const encodeFieldExpression = (
         if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
           return sql`NOT ${element} && ${{ value: _encodeValue(expr.value) }}`;
         }
-        if (relation) {
+        if (relation && parent.className) {
           if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
-          return sql`NOT ARRAY(${relation.mapElem((v) => sql`${v} ->> '_id'`)}) && ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
+          const populate = _selectRelationPopulate(compiler, { className: parent.className, name: parent.name }, relation.populate, `$${field}`, false);
+          return sql`NOT ARRAY(SELECT ${{ identifier: '_id' }} FROM (${populate})) && ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
         }
         if (!dataType) {
           return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'array' AND NOT ${element} && ${_encodeJsonValue(_encodeValue(expr.value))}`;
@@ -229,9 +232,10 @@ export const encodeFieldExpression = (
         if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
           return sql`${element} && ${{ value: _encodeValue(expr.value) }}`;
         }
-        if (relation) {
+        if (relation && parent.className) {
           if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
-          return sql`ARRAY(${relation.mapElem((v) => sql`${v} ->> '_id'`)}) && ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
+          const populate = _selectRelationPopulate(compiler, { className: parent.className, name: parent.name }, relation.populate, `$${field}`, false);
+          return sql`ARRAY(SELECT ${{ identifier: '_id' }} FROM (${populate})) && ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
         }
         if (!dataType) {
           return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'array' AND ${element} && ${_encodeJsonValue(_encodeValue(expr.value))}`;
@@ -332,11 +336,9 @@ export const encodeFieldExpression = (
             populates: relation.populate.populates,
           }, expr.value);
           if (!filter) break;
+          const populate = _selectRelationPopulate(compiler, { className: parent.className, name: parent.name }, relation.populate, `$${field}`, false);
           return sql`NOT EXISTS(
-            SELECT * FROM (${_selectRelationPopulate(compiler, {
-              className: parent.className,
-              name: parent.name,
-            }, relation.populate, `$${field}`, false)}) AS ${{ identifier: tempName }}
+            SELECT * FROM (${populate}) AS ${{ identifier: tempName }}
             WHERE NOT (${filter})
           )`;
         }
@@ -370,11 +372,9 @@ export const encodeFieldExpression = (
             populates: relation.populate.populates,
            }, expr.value);
           if (!filter) break;
+          const populate = _selectRelationPopulate(compiler, { className: parent.className, name: parent.name }, relation.populate, `$${field}`, false);
           return sql`EXISTS(
-            SELECT * FROM (${_selectRelationPopulate(compiler, {
-              className: parent.className,
-              name: parent.name,
-            }, relation.populate, `$${field}`, false)}) AS ${{ identifier: tempName }}
+            SELECT * FROM (${populate}) AS ${{ identifier: tempName }}
             WHERE ${filter}
           )`;
         }
