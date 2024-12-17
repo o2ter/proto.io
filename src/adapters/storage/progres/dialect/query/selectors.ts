@@ -208,7 +208,7 @@ export const encodeFieldExpression = (
           return sql`ARRAY(
             SELECT ${{ identifier: '_id' }}
             FROM (${populate}) AS ${{ identifier: tempName }}
-          ) ${{ literal: op }} ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
+          ) ${{ literal: op }} ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]::TEXT[]`;
         }
         if (!dataType) {
           return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'array' AND ${element} ${{ literal: op }} ${_encodeJsonValue(_encodeValue(expr.value))}`;
