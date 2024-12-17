@@ -324,7 +324,7 @@ export const encodeFieldExpression = (
       {
         if (!(expr.value instanceof QuerySelector)) break;
 
-        if (relation?.populate && parent.className) {
+        if (relation && parent.className) {
           const tempName = `_populate_expr_$${compiler.nextIdx()}`;
           const filter = compiler._encodeFilter({
             name: tempName,
@@ -362,7 +362,7 @@ export const encodeFieldExpression = (
       {
         if (!(expr.value instanceof QuerySelector)) break;
 
-        if (relation?.populate && parent.className) {
+        if (relation && parent.className) {
           const tempName = `_populate_expr_$${compiler.nextIdx()}`;
           const filter = compiler._encodeFilter({
             name: tempName,
