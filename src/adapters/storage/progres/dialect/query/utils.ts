@@ -127,9 +127,6 @@ export const fetchElement = (
       relation: {
         target: dataType.target,
         populate,
-        mapElem: (callback: (value: SQL) => SQL) => sql`SELECT
-          ${callback(sql`${json ? sql`VALUE` : sql`UNNEST`}`)}
-        FROM ${json ? sql`jsonb_array_elements(${element})` : sql`UNNEST(${element})`}`,
       },
     };
   }
