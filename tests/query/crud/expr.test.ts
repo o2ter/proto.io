@@ -299,6 +299,48 @@ test('test relation every 4', async () => {
 
 })
 
+test('test relation every 5', async () => {
+
+  const inserted = await Proto.Query('Relation').insert({
+    number: 42,
+  });
+  const inserted_b = await Proto.Query('Relation').insert({
+    number: 42,
+  });
+  const inserted2 = await Proto.Query('Relation2').insert({
+    relation: [inserted, inserted_b],
+  });
+  const inserted3 = await Proto.Query('Relation3').insert({
+    relation: [inserted2],
+  });
+
+  const q = Proto.Query('Relation3').equalTo('_id', inserted3.objectId);
+
+  expect((await q.clone().every('relation', x => x.every('relation', x => x.equalTo('number', 42))).first())?.objectId).toStrictEqual(inserted3.objectId);
+
+})
+
+test('test relation every 6', async () => {
+
+  const inserted = await Proto.Query('Relation').insert({
+    number: 42,
+  });
+  const inserted_b = await Proto.Query('Relation').insert({
+    number: 16,
+  });
+  const inserted2 = await Proto.Query('Relation2').insert({
+    relation: [inserted, inserted_b],
+  });
+  const inserted3 = await Proto.Query('Relation3').insert({
+    relation: [inserted2],
+  });
+
+  const q = Proto.Query('Relation3').equalTo('_id', inserted3.objectId);
+
+  expect((await q.clone().every('relation', x => x.every('relation', x => x.equalTo('number', 42))).first())?.objectId).toBeUndefined();
+
+})
+
 test('test relation some', async () => {
 
   const inserted = await Proto.Query('Relation').insert({
@@ -374,5 +416,47 @@ test('test relation some 4', async () => {
   const q = Proto.Query('Relation3').equalTo('_id', inserted3.objectId);
 
   expect((await q.clone().some('pointer.relation', x => x.equalTo('number', 42)).first())?.objectId).toStrictEqual(inserted3.objectId);
+
+})
+
+test('test relation some 5', async () => {
+
+  const inserted = await Proto.Query('Relation').insert({
+    number: 42,
+  });
+  const inserted_b = await Proto.Query('Relation').insert({
+    number: 42,
+  });
+  const inserted2 = await Proto.Query('Relation2').insert({
+    relation: [inserted, inserted_b],
+  });
+  const inserted3 = await Proto.Query('Relation3').insert({
+    relation: [inserted2],
+  });
+
+  const q = Proto.Query('Relation3').equalTo('_id', inserted3.objectId);
+
+  expect((await q.clone().some('relation', x => x.some('relation', x => x.equalTo('number', 42))).first())?.objectId).toStrictEqual(inserted3.objectId);
+
+})
+
+test('test relation some 6', async () => {
+
+  const inserted = await Proto.Query('Relation').insert({
+    number: 42,
+  });
+  const inserted_b = await Proto.Query('Relation').insert({
+    number: 16,
+  });
+  const inserted2 = await Proto.Query('Relation2').insert({
+    relation: [inserted, inserted_b],
+  });
+  const inserted3 = await Proto.Query('Relation3').insert({
+    relation: [inserted2],
+  });
+
+  const q = Proto.Query('Relation3').equalTo('_id', inserted3.objectId);
+
+  expect((await q.clone().some('relation', x => x.some('relation', x => x.equalTo('number', 42))).first())?.objectId).toStrictEqual(inserted3.objectId);
 
 })
