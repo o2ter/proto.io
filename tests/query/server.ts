@@ -190,6 +190,7 @@ const Proto = new ProtoService({
     },
     'Relation': {
       fields: {
+        number: 'number',
         relation: { type: 'relation', target: 'Relation3', foreignField: 'pointer.pointer' },
         relation7: { type: 'relation', target: 'Relation7', foreignField: 'pointer.pointer.relation.relation.relation.relation' },
         relation9: { type: 'relation', target: 'Relation7', foreignField: 'pointer.pointer.relation2.relation.pointer.pointer' },

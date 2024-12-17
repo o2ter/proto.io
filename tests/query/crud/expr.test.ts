@@ -220,3 +220,69 @@ test('test relation disjoint 2', async () => {
   expect((await q.clone().isDisjoint('pointer.relation', [inserted3]).first())?.objectId).toStrictEqual(inserted3.objectId);
 
 })
+
+test('test relation every', async () => {
+
+  const inserted = await Proto.Query('Relation').insert({
+    number: 42,
+  });
+  const inserted2 = await Proto.Query('Relation2').insert({
+    relation: [inserted],
+  });
+
+  const q = Proto.Query('Relation2').equalTo('_id', inserted2.objectId);
+
+  expect((await q.clone().every('relation', x => x.equalTo('number', 42)).first())?.objectId).toStrictEqual(inserted2.objectId);
+
+})
+
+test('test relation every 2', async () => {
+
+  const inserted = await Proto.Query('Relation').insert({
+    number: 42,
+  });
+  const inserted2 = await Proto.Query('Relation2').insert({
+    relation: [inserted],
+  });
+  const inserted3 = await Proto.Query('Relation3').insert({
+    pointer: inserted2,
+  });
+
+  const q = Proto.Query('Relation3').equalTo('_id', inserted3.objectId);
+
+  expect((await q.clone().every('pointer.relation', x => x.equalTo('number', 42)).first())?.objectId).toStrictEqual(inserted3.objectId);
+
+})
+
+test('test relation some', async () => {
+
+  const inserted = await Proto.Query('Relation').insert({
+    number: 42,
+  });
+  const inserted2 = await Proto.Query('Relation2').insert({
+    relation: [inserted],
+  });
+
+  const q = Proto.Query('Relation2').equalTo('_id', inserted2.objectId);
+
+  expect((await q.clone().some('relation', x => x.equalTo('number', 42)).first())?.objectId).toStrictEqual(inserted2.objectId);
+
+})
+
+test('test relation some 2', async () => {
+
+  const inserted = await Proto.Query('Relation').insert({
+    number: 42,
+  });
+  const inserted2 = await Proto.Query('Relation2').insert({
+    relation: [inserted],
+  });
+  const inserted3 = await Proto.Query('Relation3').insert({
+    pointer: inserted2,
+  });
+
+  const q = Proto.Query('Relation3').equalTo('_id', inserted3.objectId);
+
+  expect((await q.clone().some('pointer.relation', x => x.equalTo('number', 42)).first())?.objectId).toStrictEqual(inserted3.objectId);
+
+})
