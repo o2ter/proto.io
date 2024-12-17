@@ -116,6 +116,7 @@ export const encodeFieldExpression = (
           }
         }
       }
+      break;
     case '$in':
       {
         if (!_.isArray(expr.value)) break;
@@ -147,6 +148,7 @@ export const encodeFieldExpression = (
             return sql`${element} IN (${_.map(values, x => encodeValue(x))})`;
         }
       }
+      break;
     case '$nin':
       {
         if (!_.isArray(expr.value)) break;
@@ -178,16 +180,16 @@ export const encodeFieldExpression = (
             return sql`${element} NOT IN (${_.map(values, x => encodeValue(x))})`;
         }
       }
+      break;
     case '$subset':
     case '$superset':
     case '$intersect':
       {
-        const op_map = {
+        const op = {
           '$subset': '<@',
           '$superset': '@>',
           '$intersect': '&&',
-        };
-        const op = op_map[expr.type as keyof typeof op_map];
+        }[expr.type];
         if (!_.isArray(expr.value)) break;
         if (_.isEmpty(expr.value)) return sql`true`;
         if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
@@ -202,6 +204,7 @@ export const encodeFieldExpression = (
           return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'array' AND ${element} ${{ literal: op }} ${_encodeJsonValue(_encodeValue(expr.value))}`;
         }
       }
+      break;
     case '$not':
       {
         if (!(expr.value instanceof FieldSelectorExpression)) break;
@@ -227,6 +230,7 @@ export const encodeFieldExpression = (
           }
         }
       }
+      break;
     case '$starts':
       {
         if (!_.isString(expr.value)) break;
@@ -237,6 +241,7 @@ export const encodeFieldExpression = (
           return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'string' AND (${element} #>> '{}') LIKE ${{ value: `${expr.value.replace(/([\\_%])/g, '\\$1')}%` }}`;
         }
       }
+      break;
     case '$ends':
       {
         if (!_.isString(expr.value)) break;
@@ -247,6 +252,7 @@ export const encodeFieldExpression = (
           return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'string' AND (${element} #>> '{}') LIKE ${{ value: `%${expr.value.replace(/([\\_%])/g, '\\$1')}` }}`;
         }
       }
+      break;
     case '$size':
       {
         if (!_.isNumber(expr.value) || !_.isSafeInteger(expr.value)) break;
@@ -266,6 +272,7 @@ export const encodeFieldExpression = (
           )`;
         }
       }
+      break;
     case '$empty':
       {
         if (!_.isBoolean(expr.value)) break;
@@ -285,6 +292,7 @@ export const encodeFieldExpression = (
           )`;
         }
       }
+      break;
     case '$every':
       {
         if (!(expr.value instanceof QuerySelector)) break;
@@ -321,6 +329,7 @@ export const encodeFieldExpression = (
           )`;
         }
       }
+      break;
     case '$some':
       {
         if (!(expr.value instanceof QuerySelector)) break;
@@ -357,6 +366,7 @@ export const encodeFieldExpression = (
           )`;
         }
       }
+      break;
     default: break;
   }
   throw Error('Invalid expression');
