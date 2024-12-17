@@ -209,22 +209,6 @@ export const encodeFieldExpression = (
           return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'array' AND ${element} @> ${_encodeJsonValue(_encodeValue(expr.value))}`;
         }
       }
-    case '$disjoint':
-      {
-        if (!_.isArray(expr.value)) break;
-        if (_.isEmpty(expr.value)) return sql`true`;
-        if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
-          return sql`NOT ${element} && ${{ value: _encodeValue(expr.value) }}`;
-        }
-        if (relation && parent.className) {
-          if (!_.every(expr.value, x => x instanceof TObject && x.objectId)) break;
-          const populate = _selectRelationPopulate(compiler, { className: parent.className, name: parent.name }, relation.populate, `$${field}`, false);
-          return sql`NOT ARRAY(SELECT ${{ identifier: '_id' }} FROM (${populate})) && ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]`;
-        }
-        if (!dataType) {
-          return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'array' AND NOT ${element} && ${_encodeJsonValue(_encodeValue(expr.value))}`;
-        }
-      }
     case '$intersect':
       {
         if (!_.isArray(expr.value)) break;

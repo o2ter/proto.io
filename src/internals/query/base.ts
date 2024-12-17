@@ -142,7 +142,7 @@ class TQueryFilterBase {
   }
 
   isDisjoint<T extends string>(key: PathName<T>, value: TValue[]) {
-    return this.filter({ [key]: { $disjoint: value } });
+    return this.filter({ [key]: { $not: { $intersect: value } } });
   }
 
   isIntersect<T extends string>(key: PathName<T>, value: TValue[]) {

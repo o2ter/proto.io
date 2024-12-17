@@ -40,7 +40,6 @@ export const TValueListKeys = [
 export const TValueSetKeys = [
   '$subset',
   '$superset',
-  '$disjoint',
   '$intersect',
 ] as const;
 
