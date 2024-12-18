@@ -168,8 +168,8 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
 
   async userRoles(user: TUser) {
     const self = this;
+    const { inheritKeys, resolver } = self[PVK].options.roleResolver;
     const defaultResolver = async () => {
-      const inheritKeys = self[PVK].options.roleResolver?.inheritKeys ?? [];
       const schema = self.schema;
       const userKeys = _.filter(inheritKeys, k => {
         const type = resolveDataType(schema, 'Role', k);
@@ -194,7 +194,6 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
       }
       return roles;
     };
-    const resolver = self[PVK].options.roleResolver?.resolver;
     if (resolver) return resolver(user, defaultResolver);
     return defaultResolver();
   }
