@@ -160,7 +160,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     validateSchemaName(options.schema);
     const schema = mergeSchema(defaultSchema, options.fileStorage.schema, options.schema);
     validateSchema(schema);
-    if (!_.every(options.roleInheritKeys, k => {
+    if (!_.every(options.roleResolver?.inheritKeys, k => {
       const type = resolveDataType(schema, 'Role', k);
       return type && isRelation(type) && _.includes(['User', 'Role'], type.target);
     })) {

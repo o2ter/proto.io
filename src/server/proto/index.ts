@@ -62,7 +62,7 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
   constructor(options: ProtoServiceOptions<Ext> & ProtoServiceKeyOptions) {
     super();
     this[PVK] = new ProtoInternal({
-      roleInheritKeys: [],
+      roleResolver: {},
       objectIdSize: 10,
       maxFetchLimit: 1000,
       maxUploadSize: 20 * 1024 * 1024,
@@ -167,30 +167,36 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
   }
 
   async userRoles(user: TUser) {
-    const roleInheritKeys = this[PVK].options.roleInheritKeys;
-    const schema = this.schema;
-    const userKeys = _.filter(roleInheritKeys, k => {
-      const type = resolveDataType(schema, 'Role', k);
-      return !!type && isRelation(type) && type.target === 'User';
-    });
-    const roleKeys = _.filter(roleInheritKeys, k => {
-      const type = resolveDataType(schema, 'Role', k);
-      return !!type && isRelation(type) && type.target === 'Role';
-    });
-    let queue = await this.Query('Role')
-      .or(_.map(_.uniq(['users', ...userKeys]), k => q => q.isIntersect(k, [user])))
-      .includes('name')
-      .find({ master: true });
-    let roles = queue;
-    while (!_.isEmpty(queue)) {
-      queue = await this.Query('Role')
-        .or(_.map(_.uniq(['roles', ...roleKeys]), k => q => q.isIntersect(k, queue)))
-        .notContainsIn('_id', _.compact(_.map(roles, x => x.objectId)))
+    const self = this;
+    const defaultResolver = async () => {
+      const inheritKeys = self[PVK].options.roleResolver?.inheritKeys ?? [];
+      const schema = self.schema;
+      const userKeys = _.filter(inheritKeys, k => {
+        const type = resolveDataType(schema, 'Role', k);
+        return !!type && isRelation(type) && type.target === 'User';
+      });
+      const roleKeys = _.filter(inheritKeys, k => {
+        const type = resolveDataType(schema, 'Role', k);
+        return !!type && isRelation(type) && type.target === 'Role';
+      });
+      let queue = await self.Query('Role')
+        .or(_.map(_.uniq(['users', ...userKeys]), k => q => q.isIntersect(k, [user])))
         .includes('name')
         .find({ master: true });
-      roles = _.uniqBy([...roles, ...queue], x => x.objectId);
-    }
-    return roles;
+      let roles = queue;
+      while (!_.isEmpty(queue)) {
+        queue = await self.Query('Role')
+          .or(_.map(_.uniq(['roles', ...roleKeys]), k => q => q.isIntersect(k, queue)))
+          .notContainsIn('_id', _.compact(_.map(roles, x => x.objectId)))
+          .includes('name')
+          .find({ master: true });
+        roles = _.uniqBy([...roles, ...queue], x => x.objectId);
+      }
+      return roles;
+    };
+    const resolver = self[PVK].options.roleResolver?.resolver;
+    if (resolver) return resolver(user, defaultResolver);
+    return defaultResolver();
   }
 
   async becomeUser(

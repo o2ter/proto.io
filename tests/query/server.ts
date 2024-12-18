@@ -65,7 +65,9 @@ const Proto = new ProtoService({
   endpoint: 'http://localhost:8080/proto',
   masterUsers: [masterUser],
   jwtToken: randomUUID(),
-  roleInheritKeys: ['groupUsers'],
+  roleResolver: {
+    inheritKeys: ['groupUsers'],
+  },
   schema: {
     'User': {
       fields: {

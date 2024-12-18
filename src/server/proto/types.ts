@@ -31,11 +31,19 @@ import { SignOptions, VerifyOptions } from 'jsonwebtoken';
 import { PasswordHashOptions } from '../crypto/password';
 import { TExtensions } from '../../internals/object/types';
 import { TPubSub } from '../pubsub';
+import { TUser } from '../../internals/object/user';
+import { TRole } from '../../internals/object/role';
 
 export type ProtoServiceOptions<Ext> = {
   endpoint: string;
   schema: Record<string, TSchema>;
-  roleInheritKeys?: string[];
+  roleResolver?: {
+    inheritKeys?: string[];
+    resolver?: (
+      user: TUser,
+      defaultResolver: () => PromiseLike<TRole[]>,
+    ) => PromiseLike<TRole[]>;
+  };
   storage: TStorage;
   fileStorage: TFileStorage;
   pubsub?: TPubSub;
