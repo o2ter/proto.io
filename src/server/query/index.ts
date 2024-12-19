@@ -243,6 +243,49 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
     return result;
   }
 
+  async updateMany(
+    update: Record<string, TUpdateOp>,
+    options?: ExtraOptions<M>
+  ) {
+    const context = options?.context ?? {};
+    const silent = _.castArray(options?.silent ?? []);
+
+    const beforeSave = _.includes(silent, 'beforeSave') ? null : this._proto[PVK].triggers?.beforeSave?.[this.className];
+    const afterSave = _.includes(silent, 'afterSave') ? null : this._proto[PVK].triggers?.afterSave?.[this.className];
+
+    if (_.isFunction(beforeSave) || _.isFunction(afterSave)) {
+
+      const objects = this._objectMethods(await asyncIterableToArray(this._dispatcher(options).find(this._queryOptions)));
+      if (_.isEmpty(objects)) return 0;
+
+      if (_.isFunction(beforeSave)) {
+        await Promise.all(_.map(objects, object => beforeSave(
+          proxy(Object.setPrototypeOf({ object, context }, options?.session ?? this._proto))))
+        );
+      }
+
+      if (!_.isFunction(afterSave)) {
+        return this._dispatcher(options).updateMany({
+          ...this._queryOptions,
+          filter: { _id: { $in: _.map(objects, x => x.objectId!) } },
+        }, update);
+      }
+
+      const updated = await Promise.all(_.map(objects, x => this._dispatcher(options).updateOne({
+        ...this._queryOptions,
+        filter: { _id: { $eq: x.objectId } },
+      }, update)));
+
+      await Promise.all(_.map(updated, object => afterSave(
+        proxy(Object.setPrototypeOf({ object, context }, options?.session ?? this._proto))))
+      );
+
+      return updated.length;
+    }
+
+    return this._dispatcher(options).updateMany(this._queryOptions, update);
+  }
+
   async upsertOne(
     update: Record<string, TUpdateOp>,
     setOnInsert: Record<string, TValue>,
@@ -297,6 +340,70 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
       );
     }
     return result;
+  }
+
+  async upsertMany(
+    update: Record<string, TUpdateOp>,
+    setOnInsert: Record<string, TValue>,
+    options?: ExtraOptions<M>
+  ) {
+    const context = options?.context ?? {};
+    const silent = _.castArray(options?.silent ?? []);
+
+    const beforeSave = _.includes(silent, 'beforeSave') ? null : this._proto[PVK].triggers?.beforeSave?.[this.className];
+    const afterSave = _.includes(silent, 'afterSave') ? null : this._proto[PVK].triggers?.afterSave?.[this.className];
+
+    if (_.isFunction(beforeSave) || _.isFunction(afterSave)) {
+
+      const objects = this._objectMethods(await asyncIterableToArray(this._dispatcher(options).find(this._queryOptions)));
+
+      if (!_.isEmpty(objects) && _.isFunction(beforeSave)) {
+        await Promise.all(_.map(objects, object => beforeSave(
+          proxy(Object.setPrototypeOf({ object, context }, options?.session ?? this._proto))))
+        );
+      }
+
+      if (_.isEmpty(objects)) {
+
+        const result = await this._dispatcher(options).insert({
+          className: this.className,
+          includes: this[PVK].options.includes,
+          matches: this[PVK].options.matches,
+        }, setOnInsert);
+
+        if (!result) throw Error('Unable to insert document');
+        if (_.isFunction(afterSave)) {
+          await afterSave(
+            proxy(Object.setPrototypeOf({ object: result, context }, options?.session ?? this._proto))
+          );
+        }
+
+        return { updated: 0, inserted: 1 };
+      }
+
+      if (!_.isFunction(afterSave)) {
+        return {
+          inserted: 0,
+          updated: await this._dispatcher(options).updateMany({
+            ...this._queryOptions,
+            filter: { _id: { $in: _.map(objects, x => x.objectId!) } },
+          }, update),
+        };
+      }
+
+      const updated = await Promise.all(_.map(objects, x => this._dispatcher(options).updateOne({
+        ...this._queryOptions,
+        filter: { _id: { $eq: x.objectId } },
+      }, update)));
+
+      await Promise.all(_.map(updated, object => afterSave(
+        proxy(Object.setPrototypeOf({ object, context }, options?.session ?? this._proto))))
+      );
+
+      return { updated: updated.length, inserted: 0 };
+    }
+
+    return this._dispatcher(options).upsertMany(this._queryOptions, update, setOnInsert);
   }
 
   async deleteOne(options?: ExtraOptions<M>) {
