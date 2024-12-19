@@ -67,9 +67,31 @@ export interface ProtoInternalType<Ext, P extends ProtoType<any>> {
     classExtends?: TExtensions<Ext>;
   };
 
+  /**
+   * Saves a file.
+   * @param proto - The proto instance.
+   * @param object - The file object to save.
+   * @param options - Additional options for saving the file.
+   * @returns A promise that resolves to the saved file.
+   */
   saveFile(proto: P, object: TFile, options?: ExtraOptions<boolean>): Promise<TFile>;
+
+  /**
+   * Deletes a file.
+   * @param proto - The proto instance.
+   * @param object - The file object to delete.
+   * @param options - Additional options for deleting the file.
+   * @returns A promise that resolves to the deleted file.
+   */
   deleteFile(proto: P, object: TFile, options?: ExtraOptions<boolean>): Promise<TFile>;
 
+  /**
+   * Retrieves file data.
+   * @param proto - The proto instance.
+   * @param object - The file object to retrieve data for.
+   * @param options - Additional options for retrieving the file data.
+   * @returns A file stream.
+   */
   fileData(proto: P, object: TFile, options?: ExtraOptions<boolean>): FileStream;
 }
 
@@ -78,16 +100,64 @@ export abstract class ProtoType<Ext> {
   /** @internal */
   abstract [PVK]: ProtoInternalType<Ext, this>;
 
+  /**
+   * Retrieves the configuration.
+   * @param options - Optional settings for retrieving the configuration.
+   * @returns A promise that resolves to the configuration.
+   */
   abstract config(options?: { master?: boolean; }): Promise<Record<string, _TValue>>;
+
+  /**
+   * Retrieves the ACL of configuration.
+   * @param options - Settings for retrieving the ACL of configuration.
+   * @returns A promise that resolves to the ACL of configuration.
+   */
   abstract configAcl(options: { master: true; }): PromiseLike<Record<string, string[]>>;
+
+  /**
+   * Sets the configuration.
+   * @param values - The configuration values to set.
+   * @param options - Settings for setting the configuration.
+   * @returns A promise that resolves when the configuration is set.
+   */
   abstract setConfig(values: Record<string, _TValue>, options: { master: true; acl?: string[]; }): Promise<void>;
 
+  /**
+   * Runs a function.
+   * @param name - The name of the function to run.
+   * @param data - The data to pass to the function.
+   * @param options - Additional options for running the function.
+   * @returns A promise that resolves to the result of the function.
+   */
   abstract run(name: string, data?: TSerializable, options?: ExtraOptions<boolean>): Promise<void | TSerializable>;
+
+  /**
+   * Creates a query.
+   * @param className - The name of the class to query.
+   * @returns A query instance.
+   */
   abstract Query<T extends string>(className: T): TQuery<T, Ext, boolean>;
+
+  /**
+   * Creates a relation query.
+   * @param object - The object to create the relation for.
+   * @param key - The key of the relation.
+   * @returns A relation query instance.
+   */
   abstract Relation<T extends string>(object: TObject, key: PathName<T>): TQuery<string, Ext, boolean>;
 
+  /**
+   * Get all references to an object.
+   * @param object - The object to get references for.
+   * @param options - Additional options for getting references.
+   * @returns A stream of references.
+   */
   abstract refs(object: TObject, options?: ExtraOptions<boolean>): ReturnType<typeof asyncStream<TObjectType<string, Ext>>>;
 
+  /**
+   * Checks if the server is online.
+   * @returns A promise that resolves to a boolean indicating if the server is online.
+   */
   async online() {
     try {
       const res = await axios({
@@ -101,16 +171,34 @@ export abstract class ProtoType<Ext> {
     }
   }
 
+  /**
+   * Rebinds an object to the proto instance.
+   * @param object - The object to rebind.
+   * @returns The rebinded object.
+   */
   rebind<T extends TSerializable | undefined>(object: T): T {
     return applyObjectMethods(object, this);
   }
 
+  /**
+   * Creates a new object.
+   * @param className - The name of the class to create.
+   * @param objectId - The ID of the object to create.
+   * @returns The created object.
+   */
   Object<T extends string>(className: T, objectId?: string): TObjectType<T, Ext> {
     const attrs: Record<string, TValue> = objectId ? { _id: objectId } : {};
     const obj = isObjKey(className, TObjectTypes) ? new TObjectTypes[className](attrs) : new TObject(className, attrs);
     return this.rebind(obj as TObjectType<T, Ext>);
   }
 
+  /**
+   * Creates a new file object.
+   * @param filename - The name of the file.
+   * @param data - The file data.
+   * @param type - The type of the file.
+   * @returns The created file object.
+   */
   File(filename: string, data: FileData, type?: string) {
     const file = this.Object('File');
     file.set('filename', filename);
@@ -119,11 +207,21 @@ export abstract class ProtoType<Ext> {
     return file;
   }
 
+  /**
+   * Notifies an event.
+   * @param data - The data to notify.
+   * @param options - Additional options for notifying the event.
+   */
   abstract notify(
     data: Record<string, _TValue> & { _rperm?: string[]; },
     options?: ExtraOptions<boolean>
   ): Promise<void>
 
+  /**
+   * Listens for events.
+   * @param callback - The callback to call when an event occurs.
+   * @returns An object with a remove function to stop listening.
+   */
   abstract listen(callback: (data: EventData) => void): {
     remove: VoidFunction;
     socket?: Socket;
@@ -132,20 +230,48 @@ export abstract class ProtoType<Ext> {
 
 export interface ProtoType<Ext> {
 
+  /**
+   * Connects a request with optional attributes.
+   * @param req - The request to connect.
+   * @param attrs - Optional attributes or a function returning attributes.
+   * @returns The instance with the request and attributes.
+   */
   connect<R extends Request, T extends object>(
     req: R,
     attrs?: T | ((x: this & { req: R; }) => T)
   ): this & { req: R; } & T;
 
+  /**
+   * Connects using a session token with optional attributes.
+   * @param token - The session token.
+   * @param attrs - Optional attributes or a function returning attributes.
+   * @returns A promise resolving to the instance with the session and attributes.
+   */
   connectWithSessionToken<T extends object>(
     token: string,
     attrs?: T | ((x: this & { session?: Session; }) => T)
   ): Promise<this & { session?: Session; } & T>
 
+  /**
+   * Sets the session token.
+   * @param token - The session token.
+   */
   setSessionToken(token?: string): void
 
+  /**
+   * Retrieves the roles of a user.
+   * @param user - The user whose roles are to be retrieved.
+   * @returns A promise resolving to an array of roles.
+   */
   userRoles(user: TUser): Promise<TRole[]>;
 
+  /**
+   * Becomes a specified user.
+   * @param req - The request.
+   * @param user - The user to become.
+   * @param options - Optional cookie and JWT sign options.
+   * @returns A promise resolving to void.
+   */
   becomeUser(
     req: Request,
     user: TUser,
@@ -154,6 +280,13 @@ export interface ProtoType<Ext> {
       jwtSignOptions?: SignOptions | undefined;
     }
   ): Promise<void>;
+
+  /**
+   * Logs out a user.
+   * @param req - The request.
+   * @param options - Optional cookie and JWT sign options.
+   * @returns A promise resolving to void.
+   */
   logoutUser(
     req: Request,
     options?: {
@@ -162,32 +295,111 @@ export interface ProtoType<Ext> {
     }
   ): Promise<void>;
 
+  /**
+   * Verifies a user's password.
+   * @param user - The user whose password is to be verified.
+   * @param password - The password to verify.
+   * @param options - Extra options.
+   * @returns A promise resolving to a boolean indicating if the password is correct.
+   */
   varifyPassword(user: TUser, password: string, options: ExtraOptions<true>): Promise<boolean>;
+
+  /**
+   * Sets a user's password.
+   * @param user - The user whose password is to be set.
+   * @param password - The new password.
+   * @param options - Extra options.
+   * @returns A promise resolving to void.
+   */
   setPassword(user: TUser, password: string, options: ExtraOptions<true>): Promise<void>;
+
+  /**
+   * Unsets a user's password.
+   * @param user - The user whose password is to be unset.
+   * @param options - Extra options.
+   * @returns A promise resolving to void.
+   */
   unsetPassword(user: TUser, options: ExtraOptions<true>): Promise<void>;
 
+  /**
+   * Defines a new function.
+   * @param name - The name of the function.
+   * @param callback - The function callback.
+   * @param options - Optional function options excluding the callback.
+   */
   define(
     name: string,
     callback: ProtoFunction<Ext>,
     options?: Omit<ProtoFunctionOptions<Ext>, 'callback'>,
   ): void;
 
+  /**
+   * Registers a before-save trigger.
+   * @param name - The name of the trigger.
+   * @param callback - The trigger callback.
+   */
   beforeSave<T extends string>(name: T, callback: ProtoTrigger<T, Ext>): void;
+
+  /**
+   * Registers an after-save trigger.
+   * @param name - The name of the trigger.
+   * @param callback - The trigger callback.
+   */
   afterSave<T extends string>(name: T, callback: ProtoTrigger<T, Ext>): void;
+
+  /**
+   * Registers a before-delete trigger.
+   * @param name - The name of the trigger.
+   * @param callback - The trigger callback.
+   */
   beforeDelete<T extends string>(name: T, callback: ProtoTrigger<T, Ext>): void;
+
+  /**
+   * Registers a after-delete trigger.
+   * @param name - The name of the trigger.
+   * @param callback - The trigger callback.
+   */
   afterDelete<T extends string>(name: T, callback: ProtoTrigger<T, Ext>): void;
 
+  /**
+   * Locks a table for updates.
+   * @param className - The name of the class or an array of class names.
+   * @param update - Whether to lock for update.
+   */
   lockTable(className: string | string[], update: boolean): void;
 
+  /**
+   * Executes a callback within a transaction.
+   * @param callback - The callback to execute.
+   * @param options - Optional transaction options.
+   */
   withTransaction<T>(
     callback: (connection: ProtoType<Ext>) => PromiseLike<T>,
     options?: TransactionOptions,
   ): void;
 
+  /**
+   * Generates an upload token.
+   * @param options - Optional settings for the upload token.
+   * @returns The generated upload token.
+   */
   generateUploadToken(
     options?: { maxUploadSize?: number; }
   ): string;
 
+  /**
+   * Signs a JWT.
+   * @param payload - The payload to sign.
+   * @param options - Options for signing the JWT.
+   * @returns The signed JWT.
+   */
   jwtSign(payload: any, options: jwt.SignOptions): string;
+
+  /**
+   * Verifies a JWT.
+   * @param token - The token to verify.
+   * @param options - Options for verifying the JWT.
+   * @returns The decoded JWT payload or undefined if verification fails.
+   */
   jwtVarify(token: string, options?: jwt.VerifyOptions): jwt.JwtPayload | undefined;
 };
