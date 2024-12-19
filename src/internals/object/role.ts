@@ -28,6 +28,10 @@ import { TObject } from './index';
 import { TValue } from '../types';
 import { TUser } from './user';
 
+/**
+ * Class representing a Role.
+ * @extends TObject
+ */
 export class TRole extends TObject {
 
   constructor(
@@ -36,22 +40,42 @@ export class TRole extends TObject {
     super('Role', attributes);
   }
 
+  /**
+   * Get the name of the role.
+   * @return {string | undefined} The name of the role.
+   */
   get name(): string | undefined {
     return this.get('name');
   }
 
+  /**
+   * Get the users associated with the role.
+   * @return {TUser[]} The users associated with the role.
+   */
   get users(): TUser[] {
     return this.get('users') ?? [];
   }
 
+  /**
+   * Set the users associated with the role.
+   * @param {TUser[]} value - The users to associate with the role.
+   */
   set users(value: TUser[]) {
     this.set('users', value);
   }
 
+  /**
+   * Get the roles associated with the role.
+   * @return {TRole[]} The roles associated with the role.
+   */
   get roles(): TRole[] {
     return this.get('roles') ?? [];
   }
 
+  /**
+   * Set the roles associated with the role.
+   * @param {TRole[]} value - The roles to associate with the role.
+   */
   set roles(value: TRole[]) {
     this.set('roles', value);
   }
