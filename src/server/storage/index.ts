@@ -100,9 +100,12 @@ export interface TStorage {
   insertMany(options: InsertOptions, values: Record<string, TValue>[]): PromiseLike<number>;
 
   updateOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>): PromiseLike<TObject | undefined>;
-  upsertOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValue>): PromiseLike<TObject | undefined>;
-  deleteOne(query: DecodedQuery<FindOneOptions>): PromiseLike<TObject | undefined>;
+  updateMany(query: DecodedQuery<FindOptions>, update: Record<string, TUpdateOp>): PromiseLike<number>;
 
+  upsertOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValue>): PromiseLike<TObject | undefined>;
+  upsertMany(query: DecodedQuery<FindOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValue>): PromiseLike<{ updated: number; inserted: number; }>;
+
+  deleteOne(query: DecodedQuery<FindOneOptions>): PromiseLike<TObject | undefined>;
   deleteMany(query: DecodedQuery<FindOptions>): PromiseLike<number>;
 
   lockTable(className: string | string[], update: boolean): Promise<void>;
