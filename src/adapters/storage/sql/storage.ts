@@ -240,10 +240,25 @@ export abstract class SqlStorage implements TStorage {
     return _.isNil(updated) ? undefined : this._decodeObject(query.className, updated);
   }
 
+  async updateMany(query: DecodedQuery<FindOptions>, update: Record<string, TUpdateOp>) {
+    const compiler = this._makeCompiler(true, query.extraFilter);
+    const updated = await this.query(compiler.updateMany(query, update));
+    return updated.length;
+  }
+
   async upsertOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValue>) {
     const compiler = this._makeCompiler(true, query.extraFilter);
     const upserted = _.first(await this.query(compiler.upsertOne(query, update, setOnInsert)));
     return _.isNil(upserted) ? undefined : this._decodeObject(query.className, upserted);
+  }
+
+  async upsertMany(query: DecodedQuery<FindOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValue>) {
+    const compiler = this._makeCompiler(true, query.extraFilter);
+    const upserted = await this.query(compiler.upsertMany(query, update, setOnInsert));
+    return {
+      updated: _.filter(upserted, x => x.result === 0).length,
+      inserted: _.filter(upserted, x => x.result === 1).length,
+    };
   }
 
   async deleteOne(query: DecodedQuery<FindOneOptions>) {

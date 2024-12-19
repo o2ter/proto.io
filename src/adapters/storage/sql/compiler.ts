@@ -497,6 +497,22 @@ export class QueryCompiler {
     );
   }
 
+  updateMany(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>) {
+    return this._modifyQuery(
+      query,
+      (fetchName) => {
+        const name = `_update_$${query.className.toLowerCase()}`;
+        return sql`
+          UPDATE ${{ identifier: query.className }}
+          SET __v = __v + 1, _updated_at = NOW()
+          ${!_.isEmpty(update) ? sql`, ${this._encodeUpdateAttrs(query.className, update)}` : sql``}
+          WHERE ${{ identifier: query.className }}._id IN (SELECT ${{ identifier: fetchName }}._id FROM ${{ identifier: fetchName }})
+          RETURNING 0
+        `;
+      }
+    );
+  }
+
   upsertOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValue>) {
 
     const _insert: [string, SQL][] = _.toPairs({
@@ -531,6 +547,42 @@ export class QueryCompiler {
             SELECT * FROM ${{ identifier: insertName }}
           )
           ${this._refetch(upsertName, query)}
+        `;
+      }
+    );
+  }
+
+  upsertMany(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValue>) {
+
+    const _insert: [string, SQL][] = _.toPairs({
+      ..._defaultInsertOpts(query),
+      ...this._encodeObjectAttrs(query.className, setOnInsert),
+    });
+
+    return this._modifyQuery(
+      query,
+      (fetchName) => {
+        const updateName = `_update_$${query.className.toLowerCase()}`;
+        const insertName = `_insert_$${query.className.toLowerCase()}`;
+        const upsertName = `_upsert_$${query.className.toLowerCase()}`;
+        return sql`
+          , ${{ identifier: updateName }} AS (
+            UPDATE ${{ identifier: query.className }}
+            SET __v = __v + 1, _updated_at = NOW()
+            ${!_.isEmpty(update) ? sql`, ${this._encodeUpdateAttrs(query.className, update)}` : sql``}
+            WHERE ${{ identifier: query.className }}._id IN (SELECT ${{ identifier: fetchName }}._id FROM ${{ identifier: fetchName }})
+            RETURNING 0 AS ${{ identifier: 'result' }}
+          )
+          , ${{ identifier: insertName }} AS (
+            INSERT INTO ${{ identifier: query.className }}
+            (${_.map(_insert, x => sql`${{ identifier: x[0] }}`)})
+            SELECT ${_.map(_insert, x => sql`${x[1]} AS ${{ identifier: x[0] }}`)}
+            WHERE NOT EXISTS(SELECT * FROM ${{ identifier: updateName }})
+            RETURNING 1 AS ${{ identifier: 'result' }}
+          )
+          SELECT * FROM ${{ identifier: updateName }}
+          UNION
+          SELECT * FROM ${{ identifier: insertName }}
         `;
       }
     );

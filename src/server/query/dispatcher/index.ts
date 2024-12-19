@@ -167,6 +167,18 @@ export const dispatcher = <E>(proto: ProtoService<E>, options: ExtraOptions<bool
         normalize(_validator.validateFields(query.className, update, 'update', QueryValidator.patterns.path)),
       ));
     },
+    async updateMany(
+      query: FindOptions,
+      update: Record<string, TUpdateOp>
+    ) {
+      QueryValidator.recursiveCheck(query, update);
+      const _validator = await validator();
+      if (!_validator.validateCLPs(query.className, 'update')) throw Error('No permission');
+      return proto.storage.atomic((storage) => storage.updateMany(
+        _validator.decodeQuery(normalize(query), 'update'),
+        normalize(_validator.validateFields(query.className, update, 'update', QueryValidator.patterns.path)),
+      ));
+    },
     async upsertOne(
       query: FindOneOptions,
       update: Record<string, TUpdateOp>,
@@ -182,6 +194,29 @@ export const dispatcher = <E>(proto: ProtoService<E>, options: ExtraOptions<bool
         try {
           return await proto.storage.atomic(
             (storage) => storage.upsertOne(_query, _update, _setOnInsert),
+            { lockTable: query.className, retry: true },
+          );
+        } catch (e) {
+          if (proto.storage.isDuplicateIdError(e)) continue;
+          throw e;
+        }
+      }
+    },
+    async upsertMany(
+      query: FindOptions,
+      update: Record<string, TUpdateOp>,
+      setOnInsert: Record<string, TValue>
+    ) {
+      QueryValidator.recursiveCheck(query, update, setOnInsert);
+      const _validator = await validator();
+      if (!_validator.validateCLPs(query.className, 'create', 'update')) throw Error('No permission');
+      const _query = _validator.decodeQuery(normalize(query), 'update');
+      const _update = normalize(_validator.validateFields(query.className, update, 'update', QueryValidator.patterns.path));
+      const _setOnInsert = normalize(_validator.validateFields(query.className, setOnInsert, 'create', QueryValidator.patterns.name));
+      while (true) {
+        try {
+          return await proto.storage.atomic(
+            (storage) => storage.upsertMany(_query, _update, _setOnInsert),
             { lockTable: query.className, retry: true },
           );
         } catch (e) {
