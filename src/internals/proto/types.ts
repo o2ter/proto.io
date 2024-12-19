@@ -28,19 +28,62 @@ import { ProtoService } from '../../server/proto';
 import { TSerializable } from '../../common/codec';
 import { TObjectType } from '../object/types';
 
+/**
+ * A callback function type.
+ * @param request - The request object.
+ * @returns An awaitable response.
+ */
 type Callback<T, R, E> = (request: ProtoService<E> & T) => Awaitable<R>;
 
+/**
+ * A callback function type.
+ * @param request - The request object.
+ * @returns An awaitable response.
+ */
 export type ProtoFunction<E> = Callback<{ params: TSerializable; }, void | TSerializable, E>;
+
+/**
+ * A trigger type for proto services.
+ */
 export type ProtoTrigger<T, E> = Callback<{ object: TObjectType<T, E>; context: TSerializable; }, void, E>;
 
+/**
+ * Validator options for proto functions.
+ */
 type Validator = {
+  /**
+   * Indicates if a user is required.
+   */
   requireUser?: boolean;
+
+  /**
+   * Indicates if a master user is required.
+   */
   requireMaster?: boolean;
+
+  /**
+   * Indicates if any user roles are required.
+   */
   requireAnyUserRoles?: string[];
+
+  /**
+   * Indicates if all user roles are required.
+   */
   requireAllUserRoles?: string[];
 };
 
+/**
+ * Options for configuring a proto function.
+ * @template E - The type of the error.
+ */
 export type ProtoFunctionOptions<E> = {
+  /**
+   * The callback function for the proto function.
+   */
   callback: ProtoFunction<E>;
+
+  /**
+   * Optional validator for the proto function.
+   */
   validator?: Validator;
 };
