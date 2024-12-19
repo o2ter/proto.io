@@ -28,15 +28,39 @@ import { ProtoService } from '../proto/index';
 import { TSchema } from '../../internals/schema';
 import { BinaryData } from '@o2ter/utils-js';
 
+/**
+ * Represents file information.
+ */
 export type TFileInfo = {
+  /**
+   * The MIME type of the file.
+   */
   mimeType?: string;
+
+  /**
+   * The filename.
+   */
   filename?: string;
 };
 
+/**
+ * Interface for file storage operations.
+ */
 export interface TFileStorage {
 
+  /**
+   * The schema definition for the file storage.
+   */
   schema: Record<string, TSchema>;
 
+  /**
+   * Creates a new file in the storage.
+   * @param proto - The ProtoService instance.
+   * @param stream - The binary data stream or async iterable of binary data.
+   * @param info - The file information.
+   * @param maxUploadSize - The maximum upload size.
+   * @returns A promise that resolves to an object containing the file ID and size.
+   */
   create<E>(
     proto: ProtoService<E>,
     stream: BinaryData | AsyncIterable<BinaryData>,
@@ -44,8 +68,22 @@ export interface TFileStorage {
     maxUploadSize: number,
   ): PromiseLike<{ _id: string; size: number; }>;
 
+  /**
+   * Destroys a file in the storage.
+   * @param proto - The ProtoService instance.
+   * @param id - The ID of the file to destroy.
+   * @returns A promise that resolves when the file is destroyed.
+   */
   destroy<E>(proto: ProtoService<E>, id: string): PromiseLike<void>;
 
+  /**
+   * Retrieves file data from the storage.
+   * @param proto - The ProtoService instance.
+   * @param id - The ID of the file.
+   * @param start - The optional start byte position.
+   * @param end - The optional end byte position.
+   * @returns An async iterable of binary data.
+   */
   fileData<E>(proto: ProtoService<E>, id: string, start?: number, end?: number): AsyncIterable<BinaryData>;
 
 }
