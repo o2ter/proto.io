@@ -501,7 +501,6 @@ export class QueryCompiler {
     return this._modifyQuery(
       query,
       (fetchName) => {
-        const name = `_update_$${query.className.toLowerCase()}`;
         return sql`
           UPDATE ${{ identifier: query.className }}
           SET __v = __v + 1, _updated_at = NOW()
@@ -564,7 +563,6 @@ export class QueryCompiler {
       (fetchName) => {
         const updateName = `_update_$${query.className.toLowerCase()}`;
         const insertName = `_insert_$${query.className.toLowerCase()}`;
-        const upsertName = `_upsert_$${query.className.toLowerCase()}`;
         return sql`
           , ${{ identifier: updateName }} AS (
             UPDATE ${{ identifier: query.className }}
