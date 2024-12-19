@@ -166,6 +166,19 @@ abstract class _ProtoClientQuery<T extends string, E> extends TQuery<T, E, boole
     }, this._requestOpt(options)) as any;
   }
 
+  updateMany(
+    update: Record<string, TUpdateOp>,
+    options?: RequestOptions<boolean>
+  ) {
+    return this._proto[PVK].request(this._proto, {
+      operation: 'updateMany',
+      context: options?.context ?? {},
+      silent: options?.silent,
+      update,
+      ...this._queryOptions,
+    }, this._requestOpt(options)) as any;
+  }
+
   upsertOne(
     update: Record<string, TUpdateOp>,
     setOnInsert: Record<string, TValue>,
@@ -173,6 +186,21 @@ abstract class _ProtoClientQuery<T extends string, E> extends TQuery<T, E, boole
   ) {
     return this._proto[PVK].request(this._proto, {
       operation: 'upsertOne',
+      context: options?.context ?? {},
+      silent: options?.silent,
+      update,
+      setOnInsert,
+      ...this._queryOptions,
+    }, this._requestOpt(options)) as any;
+  }
+
+  upsertMany(
+    update: Record<string, TUpdateOp>,
+    setOnInsert: Record<string, TValue>,
+    options?: RequestOptions<boolean>
+  ) {
+    return this._proto[PVK].request(this._proto, {
+      operation: 'upsertMany',
       context: options?.context ?? {},
       silent: options?.silent,
       update,

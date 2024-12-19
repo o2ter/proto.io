@@ -96,7 +96,9 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       case 'insert': return query.insert(attributes, opts);
       case 'insertMany': return query.insertMany(attributes, opts);
       case 'updateOne': return query.updateOne(update, opts);
+      case 'updateMany': return query.updateMany(update, opts);
       case 'upsertOne': return query.upsertOne(update, setOnInsert, opts);
+      case 'upsertMany': return query.upsertMany(update, setOnInsert, opts);
       case 'deleteOne': return query.deleteOne(opts);
       case 'deleteMany': return query.deleteMany(opts);
       default: throw Error('Invalid operation');

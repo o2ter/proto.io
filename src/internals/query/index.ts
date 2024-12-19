@@ -67,11 +67,20 @@ export abstract class TQuery<T extends string, Ext, M extends boolean> extends T
     update: Record<string, TUpdateOp>,
     options?: ExtraOptions<M>
   ): PromiseLike<TObjectType<T, Ext> | undefined>;
+  abstract updateMany(
+    update: Record<string, TUpdateOp>,
+    options?: ExtraOptions<M>
+  ): PromiseLike<number>;
   abstract upsertOne(
     update: Record<string, TUpdateOp>,
     setOnInsert: Record<string, TValue>,
     options?: ExtraOptions<M>
   ): PromiseLike<TObjectType<T, Ext>>;
+  abstract upsertMany(
+    update: Record<string, TUpdateOp>,
+    setOnInsert: Record<string, TValue>,
+    options?: ExtraOptions<M>
+  ): PromiseLike<{ updated: number; inserted: number; }>;
   abstract deleteOne(options?: ExtraOptions<M>): PromiseLike<TObjectType<T, Ext> | undefined>;
   abstract deleteMany(options?: ExtraOptions<M>): PromiseLike<number>;
 
