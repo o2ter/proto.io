@@ -80,14 +80,49 @@ export const decodeUpdateOp = (update: TUpdateOp) => {
   return pairs[0] as [typeof TUpdateOpKeys[number], TValue];
 }
 
+/**
+ * Interface representing a object.
+ */
 export interface TObject {
+  /**
+   * Clones the object.
+   * @returns A clone of the object.
+   */
   clone(): TObject;
+
+  /**
+   * Gets a relation query for the specified key.
+   * @param key - The key of the relation.
+   * @returns A query object for the relation.
+   */
   relation<T extends string>(key: PathName<T>): TQuery<string, any, boolean>;
+
+  /**
+   * Fetches the object with the specified keys included.
+   * @param keys - The keys to include.
+   * @param options - Additional options for the fetch operation.
+   * @returns A promise that resolves to the fetched object.
+   */
   fetchWithInclude(keys: string[], options?: ExtraOptions<boolean>): PromiseLike<this>;
+
+  /**
+   * Saves the object.
+   * @param options - Additional options for the save operation.
+   * @returns A promise that resolves to the saved object.
+   */
   save(options?: ExtraOptions<boolean> & { cascadeSave?: boolean }): PromiseLike<this>;
+
+  /**
+   * Destroys the object.
+   * @param options - Additional options for the destroy operation.
+   * @returns A promise that resolves to the destroyed object.
+   */
   destroy(options?: ExtraOptions<boolean>): PromiseLike<this>;
 }
 
+/**
+ * Class representing a object.
+ */
 export class TObject {
 
   static defaultReadonlyKeys = defaultObjectReadonlyKeys;
@@ -114,42 +149,74 @@ export class TObject {
     }
   }
 
+  /**
+   * Gets the class name of the object.
+   */
   get className(): string {
     return this[PVK].className;
   }
 
+  /**
+   * Gets the attributes of the object.
+   */
   get attributes(): Record<string, TValue> {
     return cloneValue(this[PVK].attributes);
   }
 
+  /**
+   * Gets the object ID.
+   */
   get objectId(): string | undefined {
     return this[PVK].attributes._id as string;
   }
 
+  /**
+   * Gets the creation date of the object.
+   */
   get createdAt(): Date | undefined {
     return this[PVK].attributes._created_at as Date;
   }
 
+  /**
+   * Gets the last updated date of the object.
+   */
   get updatedAt(): Date | undefined {
     return this[PVK].attributes._updated_at as Date;
   }
 
+  /**
+   * Gets the version number of the object.
+   */
   get __v(): number {
     return this[PVK].attributes.__v as number;
   }
 
+  /**
+   * Gets the sequence number of the object.
+   */
   get __i(): number {
     return this[PVK].attributes.__i as number;
   }
 
+  /**
+   * Gets the expiration date of the object.
+   */
   get expiredAt(): Date | undefined {
     return this.get('_expired_at');
   }
 
+  /**
+   * Sets the expiration date of the object.
+   * @param value - The expiration date.
+   */
   set expiredAt(value: Date | undefined) {
     this.set('_expired_at', value);
   }
 
+  /**
+   * Gets the access control list (ACL) of the object.
+   * @returns The ACL of the object.
+   */
   acl(): TSchema.ACLs {
     return {
       read: this.get('_rperm') ?? ['*'],
@@ -157,23 +224,43 @@ export class TObject {
     };
   }
 
+  /**
+   * Sets the access control list (ACL) of the object.
+   * @param value - The ACL to set.
+   */
   setAcl(value: Partial<TSchema.ACLs>) {
     this.set('_rperm', value.read ?? ['*']);
     this.set('_wperm', value.update ?? ['*']);
   }
 
+  /**
+   * Sets the read access control list (ACL) of the object.
+   * @param value - The read ACL to set.
+   */
   setReadAcl(value: TSchema.ACL) {
     this.set('_rperm', value);
   }
 
+  /**
+   * Sets the write access control list (ACL) of the object.
+   * @param value - The write ACL to set.
+   */
   setWriteAcl(value: TSchema.ACL) {
     this.set('_wperm', value);
   }
 
+  /**
+   * Gets the keys of the object's attributes and mutated attributes.
+   * @returns An array of keys.
+   */
   keys(): string[] {
     return _.uniq([..._.keys(this[PVK].attributes), ..._.compact(_.map(_.keys(this[PVK].mutated), x => _.first(_.toPath(x))))]);
   }
 
+  /**
+   * Gets an iterator for the entries of the object's attributes.
+   * @returns An iterator for the entries.
+   */
   *entries() {
     for (const key of this.keys()) {
       yield [key, this.get(key)] as [string, any];
@@ -189,6 +276,10 @@ export class TObject {
     }
   }
 
+  /**
+   * Converts the object to a plain object.
+   * @returns The plain object representation of the object.
+   */
   toObject() {
     const toObject = (value: TValue): _TValue => {
       if (isPrimitiveValue(value)) return value;
@@ -212,6 +303,11 @@ export class TObject {
     return cloneValue(value);
   }
 
+  /**
+   * Get the value of the attribute.
+   * @param key - The key of the attribute.
+   * @returns The value of the attribute.
+   */
   get<T extends string>(key: PathName<T>): any {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (_.isNil(this[PVK].mutated[key])) return this._value(key);
@@ -219,86 +315,160 @@ export class TObject {
     return op === '$set' ? value : this._value(key);
   }
 
+  /**
+   * Set the value of the attribute.
+   * @param key - The key of the attribute.
+   * @param value - The value to set.
+   */
   set<T extends string>(key: PathName<T>, value: TValue | undefined) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
     this[PVK].mutated[key] = { $set: value ?? null };
   }
 
+  /**
+   * Is the object dirty.
+   */
   get isDirty(): boolean {
     return !_.isEmpty(this[PVK].mutated);
   }
 
+  /**
+   * Increment the value of the attribute.
+   * @param key - The key to increment.
+   * @param value - The value to increment by.
+   */
   increment<T extends string>(key: PathName<T>, value: number) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
     this[PVK].mutated[key] = { $inc: value };
   }
 
+  /**
+   * Decrement the value of the attribute.
+   * @param key - The key to decrement.
+   * @param value - The value to decrement by.
+   */
   decrement<T extends string>(key: PathName<T>, value: number) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
     this[PVK].mutated[key] = { $dec: value };
   }
 
+  /**
+   * Multiplies the value of the specified attribute.
+   * @param key - The key of the attribute to multiply.
+   * @param value - The multiplier value.
+   */
   multiply<T extends string>(key: PathName<T>, value: number) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
     this[PVK].mutated[key] = { $mul: value };
   }
 
+  /**
+   * Divides the value of the specified attribute.
+   * @param key - The key of the attribute to divide.
+   * @param value - The divisor value.
+   */
   divide<T extends string>(key: PathName<T>, value: number) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
     this[PVK].mutated[key] = { $div: value };
   }
 
+  /**
+   * Sets the value of the specified attribute to the maximum of the current value and the provided value.
+   * @param key - The key of the attribute to compare.
+   * @param value - The value to compare against.
+   */
   max<T extends string>(key: PathName<T>, value: TValue) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
     this[PVK].mutated[key] = { $max: value };
   }
 
+  /**
+   * Sets the value of the specified attribute to the minimum of the current value and the provided value.
+   * @param key - The key of the attribute to compare.
+   * @param value - The value to compare against.
+   */
   min<T extends string>(key: PathName<T>, value: TValue) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
     this[PVK].mutated[key] = { $min: value };
   }
 
+  /**
+   * Adds the specified values to the set of the specified attribute.
+   * @param key - The key of the attribute.
+   * @param values - The values to add to the set.
+   */
   addToSet<T extends string>(key: PathName<T>, values: TValue[]) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
     this[PVK].mutated[key] = { $addToSet: values };
   }
 
+  /**
+   * Adds the values to the array of the attribute.
+   * @param key - The key of the attribute.
+   * @param values - The values to add.
+   */
   push<T extends string>(key: PathName<T>, values: TValue[]) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
     this[PVK].mutated[key] = { $push: values };
   }
 
+  /**
+   * Removes the values from the array of the attribute.
+   * @param key - The key of the attribute.
+   * @param values - The values to remove.
+   */
   removeAll<T extends string>(key: PathName<T>, values: TValue[]) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
     this[PVK].mutated[key] = { $removeAll: values };
   }
 
+  /**
+   * Removes the first elements from the array of the attribute.
+   * @param key - The key of the attribute.
+   * @param count - The number of elements to remove. Defaults to 1.
+   */
   popFirst<T extends string>(key: PathName<T>, count = 1) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
     this[PVK].mutated[key] = { $popFirst: count };
   }
 
+  /**
+   * Removes the last elements from the array of the attribute.
+   * @param key - The key of the attribute.
+   * @param count - The number of elements to remove. Defaults to 1.
+   */
   popLast<T extends string>(key: PathName<T>, count = 1) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
     this[PVK].mutated[key] = { $popLast: count };
   }
 
+  /**
+   * Fetches the object data.
+   * @param options - Additional options for the fetch operation.
+   * @returns A promise that resolves to the fetched object.
+   */
   async fetch(options?: ExtraOptions<boolean>) {
     return this.fetchWithInclude(_.keys(this[PVK].attributes), options);
   }
 
+  /**
+   * Fetches the object data if needed.
+   * @param keys - The keys of the attributes to fetch.
+   * @param options - Additional options for the fetch operation.
+   * @returns A promise that resolves to the fetched object.
+   */
   async fetchIfNeeded(keys: string[], options?: ExtraOptions<boolean>) {
     const current = _.keys(this[PVK].attributes);
     if (_.every(keys, k => _.includes(current, k))) return this;
