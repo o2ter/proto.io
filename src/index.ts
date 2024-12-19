@@ -47,20 +47,95 @@ export { TFileStorage } from './server/file/index';
 export { ProtoService } from './server/proto';
 export { ProtoClient } from './client';
 
+/**
+ * Schema definition utility functions.
+ */
 export const schema = _.assign((x: Record<string, TSchema>) => x, {
+  /**
+   * Defines a boolean schema.
+   * @param defaultValue - The default value for the boolean.
+   * @returns The boolean schema.
+   */
   boolean: (defaultValue?: boolean) => ({ type: 'boolean', default: defaultValue }) as const,
+
+  /**
+   * Defines a number schema.
+   * @param defaultValue - The default value for the number.
+   * @returns The number schema.
+   */
   number: (defaultValue?: number) => ({ type: 'number', default: defaultValue }) as const,
+
+  /**
+   * Defines a decimal schema.
+   * @param defaultValue - The default value for the decimal.
+   * @returns The decimal schema.
+   */
   decimal: (defaultValue?: Decimal) => ({ type: 'decimal', default: defaultValue }) as const,
+
+  /**
+   * Defines a string schema.
+   * @param defaultValue - The default value for the string.
+   * @returns The string schema.
+   */
   string: (defaultValue?: string) => ({ type: 'string', default: defaultValue }) as const,
+
+  /**
+   * Defines a date schema.
+   * @param defaultValue - The default value for the date.
+   * @returns The date schema.
+   */
   date: (defaultValue?: Date) => ({ type: 'date', default: defaultValue }) as const,
+
+  /**
+   * Defines an object schema.
+   * @param defaultValue - The default value for the object.
+   * @returns The object schema.
+   */
   object: <T extends Record<string, _TValue>>(defaultValue?: T) => ({ type: 'object', default: defaultValue }) as const,
+
+  /**
+   * Defines an array schema.
+   * @param defaultValue - The default value for the array.
+   * @returns The array schema.
+   */
   array: <T extends _TValue[]>(defaultValue?: T) => ({ type: 'array', default: defaultValue }) as const,
+
+  /**
+   * Defines a vector schema.
+   * @param dimension - The dimension of the vector.
+   * @param defaultValue - The default value for the vector.
+   * @returns The vector schema.
+   */
   vector: (dimension: number, defaultValue?: number[]) => ({ type: 'vector', dimension, default: defaultValue }) as const,
+
+  /**
+   * Defines a shape schema.
+   * @param shape - The shape definition.
+   * @returns The shape schema.
+   */
   shape: (shape: Record<string, TSchema.DataType>) => ({ type: 'shape', shape }) as const,
+
+  /**
+   * Defines a pointer schema.
+   * @param target - The target of the pointer.
+   * @returns The pointer schema.
+   */
   pointer: (target: string) => ({ type: 'pointer', target }) as const,
+
+  /**
+   * Defines a relation schema.
+   * @param target - The target of the relation.
+   * @param foreignField - The foreign field of the relation.
+   * @returns The relation schema.
+   */
   relation: (target: string, foreignField?: string) => ({ type: 'relation', target, foreignField }) as const,
 });
 
+/**
+ * Creates a ProtoRoute.
+ * @param options - The options for the ProtoRoute.
+ * @returns A promise that resolves to a Router.
+ */
 export const ProtoRoute = async <E>(options: {
   proto: ProtoService<E> | (ProtoServiceOptions<E> & ProtoServiceKeyOptions);
 }): Promise<Router> => {
@@ -93,6 +168,13 @@ export const ProtoRoute = async <E>(options: {
   return router;
 }
 
+/**
+ * Registers a ProtoSocket.
+ * @param proto - The ProtoService instance.
+ * @param server - The server instance.
+ * @param endpoint - The optional endpoint.
+ * @returns The socket.io instance.
+ */
 export const registerProtoSocket = <E>(
   proto: ProtoService<E>,
   server: Server,
