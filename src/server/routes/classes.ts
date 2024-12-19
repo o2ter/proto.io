@@ -302,6 +302,25 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
   );
 
   router.patch(
+    '/classes/:name',
+    Server.text({ type: '*/*' }),
+    async (req, res) => {
+
+      res.setHeader('Cache-Control', ['no-cache', 'no-store']);
+
+      const { name } = req.params;
+      const classes = proto.classes();
+
+      if (!_.includes(classes, name)) return void res.sendStatus(404);
+
+      const payload = proto.connect(req);
+
+      const update = _.mapValues(deserialize(req.body) as any, v => ({ $set: v }));
+      await response(res, () => createQuery(payload, req, false).updateMany(update as any, { master: payload.isMaster }));
+    }
+  );
+
+  router.patch(
     '/classes/:name/:id',
     Server.text({ type: '*/*' }),
     async (req, res) => {
