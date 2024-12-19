@@ -35,31 +35,121 @@ import { TUser } from '../../internals/object/user';
 import { TRole } from '../../internals/object/role';
 
 export type ProtoServiceOptions<Ext> = {
+  /**
+   * The endpoint for the service.
+   */
   endpoint: string;
+
+  /**
+   * The schema definitions for the service.
+   */
   schema: Record<string, TSchema>;
+
+  /**
+   * Role resolver configuration.
+   */
   roleResolver?: {
+    /**
+     * Keys to inherit roles.
+     */
     inheritKeys?: string[];
+
+    /**
+     * Custom resolver function for roles.
+     * @param user The user object.
+     * @param defaultResolver The default resolver function.
+     * @returns A promise that resolves to an array of roles.
+     */
     resolver?: (
       user: TUser,
       defaultResolver: () => PromiseLike<TRole[]>,
     ) => PromiseLike<TRole[]>;
   };
+
+  /**
+   * Storage configuration.
+   */
   storage: TStorage;
+
+  /**
+   * File storage configuration.
+   */
   fileStorage: TFileStorage;
+
+  /**
+   * Pub/Sub configuration.
+   */
   pubsub?: TPubSub;
+
+  /**
+   * Class extensions configuration.
+   */
   classExtends?: TExtensions<Ext>;
+
+  /**
+   * Size of the object ID.
+   */
   objectIdSize?: number;
+
+  /**
+   * Maximum fetch limit.
+   */
   maxFetchLimit?: number;
+
+  /**
+   * Maximum upload size.
+   */
   maxUploadSize?: number;
+
+  /**
+   * Cookie options.
+   */
   cookieOptions?: CookieOptions;
+
+  /**
+   * JWT sign options.
+   */
   jwtSignOptions?: SignOptions;
+
+  /**
+   * JWT verify options.
+   */
   jwtVerifyOptions?: VerifyOptions;
+
+  /**
+   * JWT upload sign options.
+   */
   jwtUploadSignOptions?: SignOptions;
+
+  /**
+   * JWT upload verify options.
+   */
   jwtUploadVerifyOptions?: VerifyOptions;
+
+  /**
+   * Password hash options.
+   */
   passwordHashOptions?: PasswordHashOptions;
 };
 
 export type ProtoServiceKeyOptions = {
+  /**
+   * JWT token for the service.
+   */
   jwtToken: string;
-  masterUsers?: { user: string; pass: string; }[];
+
+  /**
+   * Master users configuration.
+   */
+  masterUsers?: { 
+    /**
+     * Username of the master user.
+     */
+    user: string; 
+
+    /**
+     * Password of the master user.
+     */
+    pass: string; 
+  }[];
 };

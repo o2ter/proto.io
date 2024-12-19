@@ -27,36 +27,208 @@ import _ from 'lodash';
 import { _TValue } from './types';
 
 export namespace TSchema {
+  /**
+   * Access Control List represented as an array of strings.
+   */
   export type ACL = string[];
-  export type ACLs = { read: TSchema.ACL; update: TSchema.ACL; };
+
+  /**
+   * Access Control Lists for read and update operations.
+   */
+  export type ACLs = { 
+    /**
+     * ACL for read operation.
+     */
+    read: TSchema.ACL; 
+
+    /**
+     * ACL for update operation.
+     */
+    update: TSchema.ACL; 
+  };
+
+  /**
+   * Primitive data types.
+   */
   export type Primitive = 'boolean' | 'number' | 'decimal' | 'string' | 'date' | 'object' | 'array';
-  export type PrimitiveType = Primitive | { type: Primitive; default?: _TValue; };
-  export type VectorType = { type: 'vector'; dimension: number; default?: number[]; };
-  export type ShapeType = { type: 'shape'; shape: Record<string, DataType>; };
-  export type Relation = 'pointer' | 'relation';
-  export type PointerType = { type: 'pointer'; target: string; };
-  export type RelationType = { type: 'relation'; target: string; foreignField?: string; };
+
+  /**
+   * Primitive type with an optional default value.
+   */
+  export type PrimitiveType = Primitive | { 
+    /**
+     * The type of the primitive.
+     */
+    type: Primitive; 
+
+    /**
+     * Optional default value.
+     */
+    default?: _TValue; 
+  };
+
+  /**
+   * Vector type with a specified dimension and an optional default value.
+   */
+  export type VectorType = { 
+    /**
+     * The type of the vector.
+     */
+    type: 'vector'; 
+
+    /**
+     * The dimension of the vector.
+     */
+    dimension: number; 
+
+    /**
+     * Optional default value.
+     */
+    default?: number[]; 
+  };
+
+  /**
+   * Shape type with a specified shape.
+   */
+  export type ShapeType = { 
+    /**
+     * The type of the shape.
+     */
+    type: 'shape'; 
+
+    /**
+     * The shape definition.
+     */
+    shape: Record<string, DataType>; 
+  };
+
+  /**
+     * Pointer type with a target.
+     */
+  export type PointerType = { 
+    /**
+     * The type of the pointer.
+     */
+    type: 'pointer'; 
+
+    /**
+     * The target class of the pointer.
+     */
+    target: string; 
+  };
+
+  /**
+   * Relation type with a target and an optional foreign field.
+   */
+  export type RelationType = { 
+    /**
+     * The type of the relation.
+     */
+    type: 'relation'; 
+
+    /**
+     * The target class of the relation.
+     */
+    target: string; 
+
+    /**
+     * Optional foreign field.
+     */
+    foreignField?: string; 
+  };
+
+  /**
+   * Data type which can be a primitive, vector, shape, pointer, or relation type.
+   */
   export type DataType = PrimitiveType | VectorType | ShapeType | PointerType | RelationType;
+
+  /**
+   * Class Level Permissions.
+   */
   export type CLPs = {
+    /**
+     * ACL for get operation.
+     */
     get?: TSchema.ACL;
+
+    /**
+     * ACL for find operation.
+     */
     find?: TSchema.ACL;
+
+    /**
+     * ACL for count operation.
+     */
     count?: TSchema.ACL;
+
+    /**
+     * ACL for create operation.
+     */
     create?: TSchema.ACL;
+
+    /**
+     * ACL for update operation.
+     */
     update?: TSchema.ACL;
+
+    /**
+     * ACL for delete operation.
+     */
     delete?: TSchema.ACL;
   };
+
+  /**
+   * Field Level Permissions.
+   */
   export type FLPs = {
+    /**
+     * ACL for read operation.
+     */
     read?: TSchema.ACL;
+
+    /**
+     * ACL for create operation.
+     */
     create?: TSchema.ACL;
+
+    /**
+     * ACL for update operation.
+     */
     update?: TSchema.ACL;
   };
+
+  /**
+   * Indexes for the schema.
+   */
   export type Indexes = {
+    /**
+     * Type of the index, default is 'basic'.
+     */
     type?: 'basic';
+
+    /**
+     * Keys for the index.
+     */
     keys: Record<string, 1 | -1>;
+
+    /**
+     * Whether the index is unique.
+     */
     unique?: boolean;
   } | {
+    /**
+     * Type of the index, must be 'vector'.
+     */
     type: 'vector';
+
+    /**
+     * Keys for the vector index.
+     */
     keys: string | string[];
+
+    /**
+     * Method for the vector index.
+     */
     method?: 'hnsw' | 'ivfflat';
   };
 }
@@ -77,11 +249,34 @@ export const shapePaths = (x: TSchema.ShapeType): {
 ));
 
 export interface TSchema {
+  /**
+   * Fields of the schema, where each field is a data type.
+   */
   fields: Record<string, TSchema.DataType>;
+
+  /**
+   * Class level permissions for the schema.
+   */
   classLevelPermissions?: TSchema.CLPs;
+
+  /**
+   * Additional object permissions for the schema.
+   */
   additionalObjectPermissions?: TSchema.ACLs;
+
+  /**
+   * Field level permissions for the schema, where each field can have its own permissions.
+   */
   fieldLevelPermissions?: Record<string, TSchema.FLPs>;
+
+  /**
+   * Secure fields in the schema.
+   */
   secureFields?: string[];
+
+  /**
+   * Indexes for the schema.
+   */
   indexes?: TSchema.Indexes[];
 }
 

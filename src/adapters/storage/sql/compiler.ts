@@ -47,7 +47,7 @@ export type Populate = {
   name: string;
   className: string;
   colname: string;
-  type: TSchema.Relation;
+  type: 'pointer' | 'relation';
   foreignField?: string;
   subpaths: string[];
   filter?: QuerySelector;

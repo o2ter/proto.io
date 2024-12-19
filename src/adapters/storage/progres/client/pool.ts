@@ -54,7 +54,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
     }
   }
 
-  private _pgType(type: TSchema.Primitive | TSchema.Relation | 'vector') {
+  private _pgType(type: TSchema.Primitive | 'pointer' | 'relation' | 'vector') {
     switch (type) {
       case 'boolean': return 'BOOLEAN';
       case 'number': return 'DOUBLE PRECISION';
