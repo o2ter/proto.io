@@ -474,7 +474,7 @@ export class QueryCompiler {
       INSERT INTO ${{ identifier: options.className }}
       (${_.map(keys, x => sql`${{ identifier: x }}`)})
       VALUES ${_.map(_values, v => sql`(${_.map(keys, k => sql`${v[k]}`)})`)}
-      RETURNING 0
+      RETURNING _id
     `;
   }
 
@@ -506,7 +506,7 @@ export class QueryCompiler {
           SET __v = __v + 1, _updated_at = NOW()
           ${!_.isEmpty(update) ? sql`, ${this._encodeUpdateAttrs(query.className, update)}` : sql``}
           WHERE ${{ identifier: query.className }}._id IN (SELECT ${{ identifier: fetchName }}._id FROM ${{ identifier: fetchName }})
-          RETURNING 0
+          RETURNING _id
         `;
       }
     );
@@ -569,14 +569,14 @@ export class QueryCompiler {
             SET __v = __v + 1, _updated_at = NOW()
             ${!_.isEmpty(update) ? sql`, ${this._encodeUpdateAttrs(query.className, update)}` : sql``}
             WHERE ${{ identifier: query.className }}._id IN (SELECT ${{ identifier: fetchName }}._id FROM ${{ identifier: fetchName }})
-            RETURNING 0 AS ${{ identifier: 'result' }}
+            RETURNING _id, 0 AS ${{ identifier: 'result' }}
           )
           , ${{ identifier: insertName }} AS (
             INSERT INTO ${{ identifier: query.className }}
             (${_.map(_insert, x => sql`${{ identifier: x[0] }}`)})
             SELECT ${_.map(_insert, x => sql`${x[1]} AS ${{ identifier: x[0] }}`)}
             WHERE NOT EXISTS(SELECT * FROM ${{ identifier: updateName }})
-            RETURNING 1 AS ${{ identifier: 'result' }}
+            RETURNING _id, 1 AS ${{ identifier: 'result' }}
           )
           SELECT * FROM ${{ identifier: updateName }}
           UNION
@@ -620,7 +620,7 @@ export class QueryCompiler {
       (fetchName) => sql`
         DELETE FROM ${{ identifier: query.className }}
         WHERE ${{ identifier: query.className }}._id IN (SELECT ${{ identifier: fetchName }}._id FROM ${{ identifier: fetchName }})
-        RETURNING 0
+        RETURNING _id
       `
     );
   }
