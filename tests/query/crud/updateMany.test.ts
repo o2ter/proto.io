@@ -53,4 +53,8 @@ test('test update many', async () => {
     });
 
   expect(updated).toStrictEqual(3);
+
+  const result = await Proto.Query('Test').equalTo('string', 'updateMany').find();
+
+  expect(_.map(result, x => x.get('number')).sort()).toStrictEqual([1, 2, 4, 5, 6]);
 })
