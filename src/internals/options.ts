@@ -38,7 +38,6 @@ type TriggerType = 'beforeSave' | 'afterSave' | 'beforeDelete' | 'afterDelete';
 
 /**
  * Represents additional options that can be passed to certain methods.
- * @template M - A boolean indicating whether the master option is enabled.
  */
 export type ExtraOptions<M extends boolean> = {
   /**

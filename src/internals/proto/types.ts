@@ -74,7 +74,6 @@ type Validator = {
 
 /**
  * Options for configuring a proto function.
- * @template E - The type of the error.
  */
 export type ProtoFunctionOptions<E> = {
   /**
