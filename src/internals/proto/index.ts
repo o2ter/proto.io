@@ -47,17 +47,44 @@ import { asyncStream } from '@o2ter/utils-js';
 import { PathName } from '../query/types';
 import { TRole } from '../object/role';
 
+/**
+ * The mode of the transaction.
+ */
 export type TransactionMode = 'default' | 'committed' | 'repeatable' | 'serializable';
 
+/**
+ * Options for configuring a transaction.
+ */
 export type TransactionOptions = {
+  /**
+   * The mode of the transaction.
+   */
   mode?: TransactionMode;
+
+  /**
+   * The number of retries or a boolean indicating whether to retry.
+   */
   retry?: number | boolean;
 };
 
+/**
+ * Represents event data with additional metadata.
+ */
 export type EventData = Record<string, _TValue> & {
-  _id: string,
-  _created_at: Date,
-  _rperm: string[],
+  /**
+   * The unique identifier for the event.
+   */
+  _id: string;
+
+  /**
+   * The creation date of the event.
+   */
+  _created_at: Date;
+
+  /**
+   * The read permissions for the event.
+   */
+  _rperm: string[];
 };
 
 export interface ProtoInternalType<Ext, P extends ProtoType<any>> {
@@ -67,31 +94,8 @@ export interface ProtoInternalType<Ext, P extends ProtoType<any>> {
     classExtends?: TExtensions<Ext>;
   };
 
-  /**
-   * Saves a file.
-   * @param proto - The proto instance.
-   * @param object - The file object to save.
-   * @param options - Additional options for saving the file.
-   * @returns A promise that resolves to the saved file.
-   */
   saveFile(proto: P, object: TFile, options?: ExtraOptions<boolean>): Promise<TFile>;
-
-  /**
-   * Deletes a file.
-   * @param proto - The proto instance.
-   * @param object - The file object to delete.
-   * @param options - Additional options for deleting the file.
-   * @returns A promise that resolves to the deleted file.
-   */
   deleteFile(proto: P, object: TFile, options?: ExtraOptions<boolean>): Promise<TFile>;
-
-  /**
-   * Retrieves file data.
-   * @param proto - The proto instance.
-   * @param object - The file object to retrieve data for.
-   * @param options - Additional options for retrieving the file data.
-   * @returns A file stream.
-   */
   fileData(proto: P, object: TFile, options?: ExtraOptions<boolean>): FileStream;
 }
 
