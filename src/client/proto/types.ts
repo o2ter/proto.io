@@ -25,16 +25,52 @@
 
 import { TExtensions } from '../../internals/object/types';
 
+/**
+ * Options for configuring Axios requests.
+ */
 export type AxiosOptions = {
+  /**
+   * The name of the XSRF cookie.
+   */
   xsrfCookieName?: string;
+
+  /**
+   * The name of the XSRF header.
+   */
   xsrfHeaderName?: string;
+
+  /**
+   * The limit for retry attempts.
+   */
   retryLimit?: number;
 };
 
+/**
+ * Options for configuring the Proto client.
+ */
 export type ProtoOptions<Ext> = {
+  /**
+   * The endpoint URL for the Proto client.
+   */
   endpoint: string;
+
+  /**
+   * The socket endpoint URL for the Proto client.
+   */
   socketEndpoint?: string;
+
+  /**
+   * The master user credentials.
+   */
   masterUser?: { user: string; pass: string; };
+
+  /**
+   * The class extensions.
+   */
   classExtends?: TExtensions<Ext>;
+
+  /**
+   * The Axios configuration options.
+   */
   axiosOptions?: AxiosOptions;
 };
