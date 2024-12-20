@@ -29,7 +29,7 @@ import { Blob } from 'node:buffer';
 import { Readable } from 'node:stream';
 import { defaultSchema } from './defaults';
 import { ProtoServiceOptions, ProtoServiceKeyOptions } from './types';
-import { ProtoFunction, ProtoFunctionOptions, ProtoTrigger } from '../../internals/proto/types';
+import { ProtoFunction, ProtoFunctionOptions } from '../../internals/proto/types';
 import { generateId } from '../crypto/random';
 import { TSchema, _typeof, defaultObjectKeyTypes, isPointer, isPrimitive, isRelation, isShape, isVector } from '../../internals/schema';
 import { resolveDataType, QueryValidator } from '../query/dispatcher/validator';
@@ -149,12 +149,6 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
   options: Required<ProtoServiceOptions<Ext>> & ProtoServiceKeyOptions;
 
   functions: Record<string, ProtoFunction<Ext> | ProtoFunctionOptions<Ext>> = {};
-  triggers: {
-    beforeSave?: Record<string, ProtoTrigger<string, Ext>>;
-    afterSave?: Record<string, ProtoTrigger<string, Ext>>;
-    beforeDelete?: Record<string, ProtoTrigger<string, Ext>>;
-    afterDelete?: Record<string, ProtoTrigger<string, Ext>>;
-  } = {};
 
   constructor(options: Required<ProtoServiceOptions<Ext>> & ProtoServiceKeyOptions) {
     validateSchemaName(options.schema);

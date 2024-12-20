@@ -124,39 +124,14 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
     attrs: Record<string, TValue>,
     options?: ExtraOptions<M>
   ) {
-    const context = options?.context ?? {};
-    const silent = _.castArray(options?.silent ?? []);
-
-    const beforeSave = _.includes(silent, 'beforeSave') ? null : this._proto[PVK].triggers?.beforeSave?.[this.className];
-    const afterSave = _.includes(silent, 'afterSave') ? null : this._proto[PVK].triggers?.afterSave?.[this.className];
-
-    const object = this._proto.Object(this.className);
-    for (const [key, value] of _.toPairs(attrs)) {
-      object[PVK].mutated[key] = { $set: value };
-    }
-
-    if (_.isFunction(beforeSave)) await beforeSave(
-      proxy(Object.setPrototypeOf({ object, context }, options?.session ?? this._proto))
-    );
-
     const result = this._objectMethods(
       await this._dispatcher(options).insert({
         className: this.className,
         includes: this[PVK].options.includes,
         matches: this[PVK].options.matches,
-      }, _.fromPairs([...object._set_entries()]))
+      }, attrs)
     );
     if (!result) throw Error('Unable to insert document');
-
-    if (_.isFunction(afterSave)) {
-      try {
-        await afterSave(
-          proxy(Object.setPrototypeOf({ object: result.clone(), context }, options?.session ?? this._proto))
-        );
-      } catch (e) {
-        console.error(e);
-      }
-    }
     return result;
   }
 
@@ -164,51 +139,6 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
     values: Record<string, TValue>[],
     options?: ExtraOptions<M>
   ) {
-    const context = options?.context ?? {};
-    const silent = _.castArray(options?.silent ?? []);
-
-    const beforeSave = _.includes(silent, 'beforeSave') ? null : this._proto[PVK].triggers?.beforeSave?.[this.className];
-    const afterSave = _.includes(silent, 'afterSave') ? null : this._proto[PVK].triggers?.afterSave?.[this.className];
-
-    if (_.isFunction(beforeSave) || _.isFunction(afterSave)) {
-
-      const objects = _.map(values, attr => {
-        const object = this._proto.Object(this.className);
-        for (const [key, value] of _.toPairs(attr)) {
-          object[PVK].mutated[key] = { $set: value };
-        }
-        return object;
-      });
-      if (_.isEmpty(objects)) return 0;
-
-      if (_.isFunction(beforeSave)) {
-        await Promise.all(_.map(objects, object => beforeSave(
-          proxy(Object.setPrototypeOf({ object, context }, options?.session ?? this._proto))))
-        );
-      }
-
-      await this._dispatcher(options).insertMany({
-        className: this.className,
-        includes: this[PVK].options.includes,
-        matches: this[PVK].options.matches,
-      }, _.map(objects, x => _.fromPairs([...x._set_entries()])));
-
-      if (_.isFunction(afterSave)) {
-        await Promise.all(_.map(objects, async object => {
-          try {
-            await afterSave(
-              proxy(Object.setPrototypeOf({ object: object.clone(), context }, options?.session ?? this._proto))
-            );
-          } catch (e) {
-            console.error(e);
-          }
-        }));
-
-      }
-
-      return objects.length;
-    }
-
     return this._dispatcher(options).insertMany({
       className: this.className,
       includes: this[PVK].options.includes,
@@ -220,90 +150,15 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
     update: Record<string, TUpdateOp>,
     options?: ExtraOptions<M>
   ) {
-    const context = options?.context ?? {};
-    const silent = _.castArray(options?.silent ?? []);
-
-    const beforeSave = _.includes(silent, 'beforeSave') ? null : this._proto[PVK].triggers?.beforeSave?.[this.className];
-    const afterSave = _.includes(silent, 'afterSave') ? null : this._proto[PVK].triggers?.afterSave?.[this.className];
-
-    if (_.isFunction(beforeSave)) {
-
-      const object = this._objectMethods(
-        _.first(await asyncIterableToArray(this._dispatcher(options).find({ ...this._queryOptions, limit: 1 })))
-      );
-      if (!object) return undefined;
-
-      object[PVK].mutated = update;
-      await beforeSave(
-        proxy(Object.setPrototypeOf({ object, context }, options?.session ?? this._proto))
-      );
-
-      update = object[PVK].mutated;
-    }
-
-    const result = this._objectMethods(
+    return this._objectMethods(
       await this._dispatcher(options).updateOne(this._queryOptions, update)
     );
-
-    if (result && _.isFunction(afterSave)) {
-      try {
-        await afterSave(
-          proxy(Object.setPrototypeOf({ object: result.clone(), context }, options?.session ?? this._proto))
-        );
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    return result;
   }
 
   async updateMany(
     update: Record<string, TUpdateOp>,
     options?: ExtraOptions<M>
   ) {
-    const context = options?.context ?? {};
-    const silent = _.castArray(options?.silent ?? []);
-
-    const beforeSave = _.includes(silent, 'beforeSave') ? null : this._proto[PVK].triggers?.beforeSave?.[this.className];
-    const afterSave = _.includes(silent, 'afterSave') ? null : this._proto[PVK].triggers?.afterSave?.[this.className];
-
-    if (_.isFunction(beforeSave) || _.isFunction(afterSave)) {
-
-      const objects = this._objectMethods(await asyncIterableToArray(this._dispatcher(options).find(this._queryOptions)));
-      if (_.isEmpty(objects)) return 0;
-
-      if (_.isFunction(beforeSave)) {
-        await Promise.all(_.map(objects, object => beforeSave(
-          proxy(Object.setPrototypeOf({ object, context }, options?.session ?? this._proto))))
-        );
-      }
-
-      if (!_.isFunction(afterSave)) {
-        return this._dispatcher(options).updateMany({
-          ...this._queryOptions,
-          filter: { _id: { $in: _.map(objects, x => x.objectId!) } },
-        }, update);
-      }
-
-      const updated = _.compact(await Promise.all(_.map(objects, x => this._dispatcher(options).updateOne({
-        ...this._queryOptions,
-        filter: { _id: { $eq: x.objectId } },
-      }, update))));
-
-      await Promise.all(_.map(updated, async object => {
-        try {
-          await afterSave(
-            proxy(Object.setPrototypeOf({ object: object.clone(), context }, options?.session ?? this._proto))
-          );
-        } catch (e) {
-          console.error(e);
-        }
-      }));
-
-      return updated.length;
-    }
-
     return this._dispatcher(options).updateMany(this._queryOptions, update);
   }
 
@@ -312,58 +167,11 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
     setOnInsert: Record<string, TValue>,
     options?: ExtraOptions<M>
   ) {
-    const context = options?.context ?? {};
-    const silent = _.castArray(options?.silent ?? []);
-
-    const beforeSave = _.includes(silent, 'beforeSave') ? null : this._proto[PVK].triggers?.beforeSave?.[this.className];
-    const afterSave = _.includes(silent, 'afterSave') ? null : this._proto[PVK].triggers?.afterSave?.[this.className];
-
-    if (_.isFunction(beforeSave)) {
-
-      let object = this._objectMethods(
-        _.first(await asyncIterableToArray(this._dispatcher(options).find({ ...this._queryOptions, limit: 1 })))
-      );
-
-      if (object) {
-        object[PVK].mutated = update;
-      } else {
-        object = this._proto.Object(this.className);
-        for (const [key, value] of _.toPairs(setOnInsert)) {
-          object[PVK].mutated[key] = { $set: value };
-        }
-      }
-
-      await beforeSave(
-        proxy(Object.setPrototypeOf({ object, context }, options?.session ?? this._proto))
-      );
-
-      if (object.objectId) {
-        update = object[PVK].mutated;
-      } else {
-        setOnInsert = {};
-        for (const [key, update] of _.toPairs(object[PVK].mutated)) {
-          const [op, value] = decodeUpdateOp(update);
-          if (op === '$set') {
-            setOnInsert[key] = value;
-          }
-        }
-      }
-    }
-
     const result = this._objectMethods(
       await this._dispatcher(options).upsertOne(this._queryOptions, update, setOnInsert)
     );
     if (!result) throw Error('Unable to upsert document');
 
-    if (_.isFunction(afterSave)) {
-      try {
-        await afterSave(
-          proxy(Object.setPrototypeOf({ object: result.clone(), context }, options?.session ?? this._proto))
-        );
-      } catch (e) {
-        console.error(e);
-      }
-    }
     return result;
   }
 
@@ -372,159 +180,16 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
     setOnInsert: Record<string, TValue>,
     options?: ExtraOptions<M>
   ) {
-    const context = options?.context ?? {};
-    const silent = _.castArray(options?.silent ?? []);
-
-    const beforeSave = _.includes(silent, 'beforeSave') ? null : this._proto[PVK].triggers?.beforeSave?.[this.className];
-    const afterSave = _.includes(silent, 'afterSave') ? null : this._proto[PVK].triggers?.afterSave?.[this.className];
-
-    if (_.isFunction(beforeSave) || _.isFunction(afterSave)) {
-
-      const objects = this._objectMethods(await asyncIterableToArray(this._dispatcher(options).find(this._queryOptions)));
-
-      if (!_.isEmpty(objects) && _.isFunction(beforeSave)) {
-        await Promise.all(_.map(objects, object => beforeSave(
-          proxy(Object.setPrototypeOf({ object, context }, options?.session ?? this._proto))))
-        );
-      }
-
-      if (_.isEmpty(objects)) {
-
-        const result = await this._dispatcher(options).insert({
-          className: this.className,
-          includes: this[PVK].options.includes,
-          matches: this[PVK].options.matches,
-        }, setOnInsert);
-
-        if (!result) throw Error('Unable to insert document');
-        if (_.isFunction(afterSave)) {
-          try {
-            await afterSave(
-              proxy(Object.setPrototypeOf({ object: result.clone(), context }, options?.session ?? this._proto))
-            );
-          } catch (e) {
-            console.error(e);
-          }
-        }
-
-        return { updated: 0, inserted: 1 };
-      }
-
-      if (!_.isFunction(afterSave)) {
-        return {
-          inserted: 0,
-          updated: await this._dispatcher(options).updateMany({
-            ...this._queryOptions,
-            filter: { _id: { $in: _.map(objects, x => x.objectId!) } },
-          }, update),
-        };
-      }
-
-      const updated = _.compact(await Promise.all(_.map(objects, x => this._dispatcher(options).updateOne({
-        ...this._queryOptions,
-        filter: { _id: { $eq: x.objectId } },
-      }, update))));
-
-      await Promise.all(_.map(updated, async object => {
-        try {
-          await afterSave(
-            proxy(Object.setPrototypeOf({ object: object.clone(), context }, options?.session ?? this._proto))
-          );
-        } catch (e) {
-          console.error(e);
-        }
-      }));
-
-      return { updated: updated.length, inserted: 0 };
-    }
-
     return this._dispatcher(options).upsertMany(this._queryOptions, update, setOnInsert);
   }
 
   async deleteOne(options?: ExtraOptions<M>) {
-    const context = options?.context ?? {};
-    const silent = _.castArray(options?.silent ?? []);
-
-    const beforeDelete = _.includes(silent, 'beforeDelete') ? null : this._proto[PVK].triggers?.beforeDelete?.[this.className];
-    const afterDelete = _.includes(silent, 'afterDelete') ? null : this._proto[PVK].triggers?.afterDelete?.[this.className];
-
-    let result: TObjectType<T, E> | undefined;
-
-    if (_.isFunction(beforeDelete)) {
-
-      const object = this._objectMethods(
-        _.first(await asyncIterableToArray(this._dispatcher(options).find({ ...this._queryOptions, limit: 1 })))
-      );
-      if (!object) return undefined;
-
-      await beforeDelete(
-        proxy(Object.setPrototypeOf({ object, context }, options?.session ?? this._proto))
-      );
-
-      result = this._objectMethods(
-        await this._dispatcher(options).deleteOne({
-          ...this._queryOptions,
-          filter: { _id: { $eq: object.objectId } },
-        })
-      );
-
-    } else {
-      result = this._objectMethods(
-        await this._dispatcher(options).deleteOne(this._queryOptions)
-      );
-    }
-
-    if (result && _.isFunction(afterDelete)) {
-      try {
-        await afterDelete(
-          proxy(Object.setPrototypeOf({ object: result.clone(), context }, options?.session ?? this._proto))
-        );
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    return result;
+    return this._objectMethods(
+      await this._dispatcher(options).deleteOne(this._queryOptions)
+    );
   }
 
   async deleteMany(options?: ExtraOptions<M>) {
-    const context = options?.context ?? {};
-    const silent = _.castArray(options?.silent ?? []);
-
-    const beforeDelete = _.includes(silent, 'beforeDelete') ? null : this._proto[PVK].triggers?.beforeDelete?.[this.className];
-    const afterDelete = _.includes(silent, 'afterDelete') ? null : this._proto[PVK].triggers?.afterDelete?.[this.className];
-
-    if (_.isFunction(beforeDelete) || _.isFunction(afterDelete)) {
-
-      const objects = this._objectMethods(await asyncIterableToArray(this._dispatcher(options).find(this._queryOptions)));
-      if (_.isEmpty(objects)) return 0;
-
-      if (_.isFunction(beforeDelete)) {
-        await Promise.all(_.map(objects, object => beforeDelete(
-          proxy(Object.setPrototypeOf({ object, context }, options?.session ?? this._proto))))
-        );
-      }
-
-      await this._dispatcher(options).deleteMany({
-        ...this._queryOptions,
-        filter: { _id: { $in: _.map(objects, x => x.objectId!) } },
-      });
-
-      if (_.isFunction(afterDelete)) {
-        await Promise.all(_.map(objects, async object => {
-          try {
-            await afterDelete(
-              proxy(Object.setPrototypeOf({ object: object.clone(), context }, options?.session ?? this._proto))
-            );
-          } catch (e) {
-            console.error(e);
-          }
-        }));
-
-      }
-
-      return objects.length;
-    }
-
     return this._dispatcher(options).deleteMany(this._queryOptions);
   }
 

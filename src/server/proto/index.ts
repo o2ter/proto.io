@@ -29,7 +29,7 @@ import { ProtoQuery, ProtoRelationQuery } from '../query';
 import { ProtoInternal } from './internal';
 import { CookieOptions, Request } from '@o2ter/server-js';
 import { ProtoServiceOptions, ProtoServiceKeyOptions } from './types';
-import { ProtoFunction, ProtoFunctionOptions, ProtoTrigger } from '../../internals/proto/types';
+import { ProtoFunction, ProtoFunctionOptions } from '../../internals/proto/types';
 import { sessionId, sessionIsMaster, session, signUser, Session, sessionWithToken } from './session';
 import { EventData, ProtoType, TransactionOptions } from '../../internals/proto';
 import { schedule } from '../schedule';
@@ -267,23 +267,6 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
     options?: Omit<ProtoFunctionOptions<Ext>, 'callback'>,
   ) {
     this[PVK].functions[name] = options ? { callback, ...options } : callback;
-  }
-
-  beforeSave<T extends string>(name: T, callback: ProtoTrigger<T, Ext>) {
-    if (!this[PVK].triggers.beforeSave) this[PVK].triggers.beforeSave = {};
-    this[PVK].triggers.beforeSave[name] = callback as ProtoTrigger<string, Ext>;
-  }
-  afterSave<T extends string>(name: T, callback: ProtoTrigger<T, Ext>) {
-    if (!this[PVK].triggers.afterSave) this[PVK].triggers.afterSave = {};
-    this[PVK].triggers.afterSave[name] = callback as ProtoTrigger<string, Ext>;
-  }
-  beforeDelete<T extends string>(name: T, callback: ProtoTrigger<T, Ext>) {
-    if (!this[PVK].triggers.beforeDelete) this[PVK].triggers.beforeDelete = {};
-    this[PVK].triggers.beforeDelete[name] = callback as ProtoTrigger<string, Ext>;
-  }
-  afterDelete<T extends string>(name: T, callback: ProtoTrigger<T, Ext>) {
-    if (!this[PVK].triggers.afterDelete) this[PVK].triggers.afterDelete = {};
-    this[PVK].triggers.afterDelete[name] = callback as ProtoTrigger<string, Ext>;
   }
 
   lockTable(className: string | string[], update: boolean) {

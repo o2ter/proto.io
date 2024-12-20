@@ -59,7 +59,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
     options?: Parameters<Service<Ext, P>['request']>[0]
   ) {
 
-    const { serializeOpts, context, ...opts } = options ?? {};
+    const { serializeOpts, ...opts } = options ?? {};
 
     const res = await this.service.request({
       baseURL: this.options.endpoint,
@@ -80,7 +80,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
     options?: RequestOptions<boolean>
   ) {
 
-    const { serializeOpts, context, ...opts } = options ?? {};
+    const { serializeOpts, ...opts } = options ?? {};
 
     const res = await this.service.request({
       method: 'get',
@@ -98,7 +98,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
     options?: RequestOptions<boolean>
   ): Promise<TObjectType<'User', Ext> | undefined> {
 
-    const { serializeOpts, context, ...opts } = options ?? {};
+    const { serializeOpts, ...opts } = options ?? {};
 
     const res = await this.service.request({
       method: 'get',
@@ -116,7 +116,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
 
   async config(options?: RequestOptions<boolean>) {
 
-    const { serializeOpts, context, ...opts } = options ?? {};
+    const { serializeOpts, ...opts } = options ?? {};
 
     const res = await this.service.request({
       method: 'get',
@@ -130,7 +130,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
   }
   async configAcl(options: RequestOptions<boolean>) {
 
-    const { serializeOpts, context, ...opts } = options ?? {};
+    const { serializeOpts, ...opts } = options ?? {};
 
     const res = await this.service.request({
       method: 'get',
@@ -144,7 +144,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
   }
   async setConfig(values: Record<string, _TValue>, options: RequestOptions<boolean> & { acl?: string[]; }) {
 
-    const { serializeOpts, context, acl, ...opts } = options ?? {};
+    const { serializeOpts, acl, ...opts } = options ?? {};
 
     await this.service.request({
       method: 'post',
@@ -158,7 +158,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
 
   async logout(options?: RequestOptions<boolean>) {
 
-    const { serializeOpts, context, ...opts } = options ?? {};
+    const { serializeOpts, ...opts } = options ?? {};
 
     await this.service.request({
       method: 'post',
@@ -174,7 +174,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
     if (!user.objectId) throw Error('Invalid user');
     if (_.isEmpty(password)) throw Error('Invalid password');
 
-    const { serializeOpts, context, ...opts } = options ?? {};
+    const { serializeOpts, ...opts } = options ?? {};
 
     await this.service.request({
       method: 'post',
@@ -190,7 +190,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
 
     if (!user.objectId) throw Error('Invalid user');
 
-    const { serializeOpts, context, ...opts } = options ?? {};
+    const { serializeOpts, ...opts } = options ?? {};
 
     await this.service.request({
       method: 'post',
@@ -203,7 +203,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
 
   async schema(options: RequestOptions<true>): Promise<Record<string, TSchema>> {
 
-    const { serializeOpts, context, ...opts } = options ?? {};
+    const { serializeOpts, ...opts } = options ?? {};
 
     const res = await this.service.request({
       method: 'get',
@@ -234,7 +234,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
 
   async createFile(proto: P, object: TFile, options?: RequestOptions<boolean> & { uploadToken?: string; }) {
 
-    const { serializeOpts, context, uploadToken, ...opts } = options ?? {};
+    const { serializeOpts, uploadToken, ...opts } = options ?? {};
     const { data } = object[PVK].extra;
     if (_.isNil(data)) throw Error('Invalid file object');
 
@@ -297,7 +297,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
 
   fileData(proto: P, object: TFile, options?: RequestOptions<boolean>) {
 
-    const { serializeOpts, context, ...opts } = options ?? {};
+    const { serializeOpts, ...opts } = options ?? {};
 
     const filename = object.filename;
     if (_.isNil(filename)) throw Error('Invalid filename');
@@ -328,7 +328,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
     options?: RequestOptions<boolean>
   ) {
 
-    const { serializeOpts, context, ...opts } = options ?? {};
+    const { serializeOpts, ...opts } = options ?? {};
 
     await this.service.request({
       method: 'post',
@@ -357,7 +357,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
   refs(proto: P, object: TObject, options?: RequestOptions<boolean>) {
     if (!object.objectId) throw Error('Invalid object');
     const request = async () => {
-      const { serializeOpts, context, ...opts } = options ?? {};
+      const { serializeOpts, ...opts } = options ?? {};
       const res = await this.service.request({
         method: 'get',
         baseURL: this.options.endpoint,

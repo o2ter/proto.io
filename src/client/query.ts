@@ -64,7 +64,7 @@ abstract class _ProtoClientQuery<T extends string, E> extends TQuery<T, E, boole
   }
 
   private _requestOpt(options?: RequestOptions<boolean>) {
-    const { context, ...opts } = options ?? {};
+    const { ...opts } = options ?? {};
     return {
       method: 'post',
       url: this.url,
@@ -78,8 +78,6 @@ abstract class _ProtoClientQuery<T extends string, E> extends TQuery<T, E, boole
   explain(options?: RequestOptions<boolean>) {
     return this._proto[PVK].request(this._proto, {
       operation: 'explain',
-      context: options?.context ?? {},
-      silent: options?.silent,
       ...this._queryOptions,
     }, this._requestOpt(options));
   }
@@ -87,8 +85,6 @@ abstract class _ProtoClientQuery<T extends string, E> extends TQuery<T, E, boole
   count(options?: RequestOptions<boolean>) {
     return this._proto[PVK].request(this._proto, {
       operation: 'count',
-      context: options?.context ?? {},
-      silent: options?.silent,
       ...this._queryOptions,
     }, this._requestOpt(options)) as any;
   }
@@ -96,8 +92,6 @@ abstract class _ProtoClientQuery<T extends string, E> extends TQuery<T, E, boole
   find(options?: RequestOptions<boolean>) {
     const request = () => this._proto[PVK].request(this._proto, {
       operation: 'find',
-      context: options?.context ?? {},
-      silent: options?.silent,
       ...this._queryOptions,
     }, this._requestOpt(options)) as Promise<TObjectType<T, E>[]>;
     return asyncStream(request);
@@ -109,8 +103,6 @@ abstract class _ProtoClientQuery<T extends string, E> extends TQuery<T, E, boole
   ) {
     const request = () => this._proto[PVK].request(this._proto, {
       operation: 'random',
-      context: options?.context ?? {},
-      silent: options?.silent,
       random: opts,
       ...this._queryOptions,
     }, this._requestOpt(options)) as Promise<TObjectType<T, E>[]>;
@@ -120,8 +112,6 @@ abstract class _ProtoClientQuery<T extends string, E> extends TQuery<T, E, boole
   nonrefs(options?: RequestOptions<boolean>) {
     const request = () => this._proto[PVK].request(this._proto, {
       operation: 'nonrefs',
-      context: options?.context ?? {},
-      silent: options?.silent,
       ...this._queryOptions,
     }, this._requestOpt(options)) as Promise<TObjectType<T, E>[]>;
     return asyncStream(request);
@@ -133,8 +123,6 @@ abstract class _ProtoClientQuery<T extends string, E> extends TQuery<T, E, boole
   ) {
     return this._proto[PVK].request(this._proto, {
       operation: 'insert',
-      context: options?.context ?? {},
-      silent: options?.silent,
       attributes: attrs,
       ...this._queryOptions,
     }, this._requestOpt(options)) as any;
@@ -146,8 +134,6 @@ abstract class _ProtoClientQuery<T extends string, E> extends TQuery<T, E, boole
   ) {
     return this._proto[PVK].request(this._proto, {
       operation: 'insertMany',
-      context: options?.context ?? {},
-      silent: options?.silent,
       attributes: values,
       ...this._queryOptions,
     }, this._requestOpt(options)) as any;
@@ -159,8 +145,6 @@ abstract class _ProtoClientQuery<T extends string, E> extends TQuery<T, E, boole
   ) {
     return this._proto[PVK].request(this._proto, {
       operation: 'updateOne',
-      context: options?.context ?? {},
-      silent: options?.silent,
       update,
       ...this._queryOptions,
     }, this._requestOpt(options)) as any;
@@ -172,8 +156,6 @@ abstract class _ProtoClientQuery<T extends string, E> extends TQuery<T, E, boole
   ) {
     return this._proto[PVK].request(this._proto, {
       operation: 'updateMany',
-      context: options?.context ?? {},
-      silent: options?.silent,
       update,
       ...this._queryOptions,
     }, this._requestOpt(options)) as any;
@@ -186,8 +168,6 @@ abstract class _ProtoClientQuery<T extends string, E> extends TQuery<T, E, boole
   ) {
     return this._proto[PVK].request(this._proto, {
       operation: 'upsertOne',
-      context: options?.context ?? {},
-      silent: options?.silent,
       update,
       setOnInsert,
       ...this._queryOptions,
@@ -201,8 +181,6 @@ abstract class _ProtoClientQuery<T extends string, E> extends TQuery<T, E, boole
   ) {
     return this._proto[PVK].request(this._proto, {
       operation: 'upsertMany',
-      context: options?.context ?? {},
-      silent: options?.silent,
       update,
       setOnInsert,
       ...this._queryOptions,
@@ -212,8 +190,6 @@ abstract class _ProtoClientQuery<T extends string, E> extends TQuery<T, E, boole
   deleteOne(options?: RequestOptions<boolean>) {
     return this._proto[PVK].request(this._proto, {
       operation: 'deleteOne',
-      context: options?.context ?? {},
-      silent: options?.silent,
       ...this._queryOptions,
     }, this._requestOpt(options)) as any;
   }
@@ -221,8 +197,6 @@ abstract class _ProtoClientQuery<T extends string, E> extends TQuery<T, E, boole
   deleteMany(options?: RequestOptions<boolean>) {
     return this._proto[PVK].request(this._proto, {
       operation: 'deleteMany',
-      context: options?.context ?? {},
-      silent: options?.silent,
       ...this._queryOptions,
     }, this._requestOpt(options)) as any;
   }

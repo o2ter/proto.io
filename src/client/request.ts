@@ -71,7 +71,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
 
   async _request<T = any, D = any>(config: RequestOptions<boolean> & AxiosRequestConfig<D>, retry = 0): Promise<AxiosResponse<T, D>> {
 
-    const { master, abortSignal, serializeOpts, context, headers, ...opts } = config ?? {};
+    const { master, abortSignal, serializeOpts, headers, ...opts } = config ?? {};
 
     const res = await this.service.request({
       signal: abortSignal,

@@ -23,18 +23,8 @@
 //  THE SOFTWARE.
 //
 
-import { TSerializable } from '../common/codec';
 import { ProtoService } from '../server/proto';
 import { ProtoType } from './proto';
-
-/**
- * Represents the types of triggers that can be used.
- * - 'beforeSave': Triggered before saving.
- * - 'afterSave': Triggered after saving.
- * - 'beforeDelete': Triggered before deleting.
- * - 'afterDelete': Triggered after deleting.
- */
-type TriggerType = 'beforeSave' | 'afterSave' | 'beforeDelete' | 'afterDelete';
 
 /**
  * Represents additional options that can be passed to certain methods.
@@ -44,16 +34,6 @@ export type ExtraOptions<M extends boolean> = {
    * Indicates whether the master option is enabled.
    */
   master?: M;
-
-  /**
-   * The context object to be used.
-   */
-  context?: TSerializable;
-
-  /**
-   * Specifies the trigger type(s) to be silenced.
-   */
-  silent?: TriggerType | TriggerType[];
 
   /**
    * The session associated with the operation.

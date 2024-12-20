@@ -40,7 +40,7 @@ import { TValue, _TValue } from '../types';
 import { TObject } from '../object';
 import { TSerializable } from '../../common/codec';
 import { TUser } from '../object/user';
-import { ProtoFunction, ProtoFunctionOptions, ProtoTrigger } from './types';
+import { ProtoFunction, ProtoFunctionOptions } from './types';
 import { Socket } from 'socket.io-client';
 import { Session } from '../../server/proto/session';
 import { asyncStream } from '@o2ter/utils-js';
@@ -336,34 +336,6 @@ export interface ProtoType<Ext> {
     callback: ProtoFunction<Ext>,
     options?: Omit<ProtoFunctionOptions<Ext>, 'callback'>,
   ): void;
-
-  /**
-   * Registers a before-save trigger.
-   * @param name - The name of the trigger.
-   * @param callback - The trigger callback.
-   */
-  beforeSave<T extends string>(name: T, callback: ProtoTrigger<T, Ext>): void;
-
-  /**
-   * Registers an after-save trigger.
-   * @param name - The name of the trigger.
-   * @param callback - The trigger callback.
-   */
-  afterSave<T extends string>(name: T, callback: ProtoTrigger<T, Ext>): void;
-
-  /**
-   * Registers a before-delete trigger.
-   * @param name - The name of the trigger.
-   * @param callback - The trigger callback.
-   */
-  beforeDelete<T extends string>(name: T, callback: ProtoTrigger<T, Ext>): void;
-
-  /**
-   * Registers a after-delete trigger.
-   * @param name - The name of the trigger.
-   * @param callback - The trigger callback.
-   */
-  afterDelete<T extends string>(name: T, callback: ProtoTrigger<T, Ext>): void;
 
   /**
    * Locks a table for updates.
