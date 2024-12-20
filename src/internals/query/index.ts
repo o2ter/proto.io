@@ -261,6 +261,7 @@ export abstract class TQuery<T extends string, Ext, M extends boolean> extends T
     const keys = _.keys(sorting);
     let batch: TObjectType<T, Ext>[] = [];
     while (true) {
+      options?.abortSignal?.throwIfAborted();
       const q = _.isEmpty(batch) ? query : query.clone()
         .filter(keys.length > 1 ? {
           $expr: {
