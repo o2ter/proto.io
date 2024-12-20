@@ -320,11 +320,12 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
   }
 
   async gc(classNames?: string | string[]) {
+    const time = new Date();
     for (const className of _.castArray(classNames ?? this.classes())) {
       if (className === 'File') {
         const found = this.storage.find({
           className: 'File',
-          filter: QuerySelector.decode({ _expired_at: { $lt: new Date() } }),
+          filter: QuerySelector.decode({ _expired_at: { $lt: time } }),
           matches: {},
           includes: ['_id', '_expired_at', 'token'],
           objectIdSize: 0
@@ -336,7 +337,7 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
       }
       await this.storage.deleteMany({
         className,
-        filter: QuerySelector.decode({ _expired_at: { $lt: new Date() } }),
+        filter: QuerySelector.decode({ _expired_at: { $lt: time } }),
         includes: ['_id', '_expired_at'],
         matches: {},
         objectIdSize: 0
