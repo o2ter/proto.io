@@ -149,9 +149,13 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
     if (!result) throw Error('Unable to insert document');
 
     if (_.isFunction(afterSave)) {
-      await afterSave(
-        proxy(Object.setPrototypeOf({ object: result, context }, options?.session ?? this._proto))
-      );
+      try {
+        await afterSave(
+          proxy(Object.setPrototypeOf({ object: result.clone(), context }, options?.session ?? this._proto))
+        );
+      } catch (e) {
+        console.error(e);
+      }
     }
     return result;
   }
@@ -190,9 +194,16 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
       }, _.map(objects, x => _.fromPairs([...x._set_entries()])));
 
       if (_.isFunction(afterSave)) {
-        await Promise.all(_.map(objects, object => afterSave(
-          proxy(Object.setPrototypeOf({ object, context }, options?.session ?? this._proto))))
-        );
+        await Promise.all(_.map(objects, async object => {
+          try {
+            await afterSave(
+              proxy(Object.setPrototypeOf({ object: object.clone(), context }, options?.session ?? this._proto))
+            );
+          } catch (e) {
+            console.error(e);
+          }
+        }));
+
       }
 
       return objects.length;
@@ -235,9 +246,13 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
     );
 
     if (result && _.isFunction(afterSave)) {
-      await afterSave(
-        proxy(Object.setPrototypeOf({ object: result, context }, options?.session ?? this._proto))
-      );
+      try {
+        await afterSave(
+          proxy(Object.setPrototypeOf({ object: result.clone(), context }, options?.session ?? this._proto))
+        );
+      } catch (e) {
+        console.error(e);
+      }
     }
 
     return result;
@@ -271,14 +286,20 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
         }, update);
       }
 
-      const updated = await Promise.all(_.map(objects, x => this._dispatcher(options).updateOne({
+      const updated = _.compact(await Promise.all(_.map(objects, x => this._dispatcher(options).updateOne({
         ...this._queryOptions,
         filter: { _id: { $eq: x.objectId } },
-      }, update)));
+      }, update))));
 
-      await Promise.all(_.map(updated, object => afterSave(
-        proxy(Object.setPrototypeOf({ object, context }, options?.session ?? this._proto))))
-      );
+      await Promise.all(_.map(updated, async object => {
+        try {
+          await afterSave(
+            proxy(Object.setPrototypeOf({ object: object.clone(), context }, options?.session ?? this._proto))
+          );
+        } catch (e) {
+          console.error(e);
+        }
+      }));
 
       return updated.length;
     }
@@ -335,9 +356,13 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
     if (!result) throw Error('Unable to upsert document');
 
     if (_.isFunction(afterSave)) {
-      await afterSave(
-        proxy(Object.setPrototypeOf({ object: result, context }, options?.session ?? this._proto))
-      );
+      try {
+        await afterSave(
+          proxy(Object.setPrototypeOf({ object: result.clone(), context }, options?.session ?? this._proto))
+        );
+      } catch (e) {
+        console.error(e);
+      }
     }
     return result;
   }
@@ -373,9 +398,13 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
 
         if (!result) throw Error('Unable to insert document');
         if (_.isFunction(afterSave)) {
-          await afterSave(
-            proxy(Object.setPrototypeOf({ object: result, context }, options?.session ?? this._proto))
-          );
+          try {
+            await afterSave(
+              proxy(Object.setPrototypeOf({ object: result.clone(), context }, options?.session ?? this._proto))
+            );
+          } catch (e) {
+            console.error(e);
+          }
         }
 
         return { updated: 0, inserted: 1 };
@@ -391,14 +420,20 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
         };
       }
 
-      const updated = await Promise.all(_.map(objects, x => this._dispatcher(options).updateOne({
+      const updated = _.compact(await Promise.all(_.map(objects, x => this._dispatcher(options).updateOne({
         ...this._queryOptions,
         filter: { _id: { $eq: x.objectId } },
-      }, update)));
+      }, update))));
 
-      await Promise.all(_.map(updated, object => afterSave(
-        proxy(Object.setPrototypeOf({ object, context }, options?.session ?? this._proto))))
-      );
+      await Promise.all(_.map(updated, async object => {
+        try {
+          await afterSave(
+            proxy(Object.setPrototypeOf({ object: object.clone(), context }, options?.session ?? this._proto))
+          );
+        } catch (e) {
+          console.error(e);
+        }
+      }));
 
       return { updated: updated.length, inserted: 0 };
     }
@@ -440,9 +475,13 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
     }
 
     if (result && _.isFunction(afterDelete)) {
-      await afterDelete(
-        proxy(Object.setPrototypeOf({ object: result, context }, options?.session ?? this._proto))
-      );
+      try {
+        await afterDelete(
+          proxy(Object.setPrototypeOf({ object: result.clone(), context }, options?.session ?? this._proto))
+        );
+      } catch (e) {
+        console.error(e);
+      }
     }
     return result;
   }
@@ -471,9 +510,16 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
       });
 
       if (_.isFunction(afterDelete)) {
-        await Promise.all(_.map(objects, object => afterDelete(
-          proxy(Object.setPrototypeOf({ object, context }, options?.session ?? this._proto))))
-        );
+        await Promise.all(_.map(objects, async object => {
+          try {
+            await afterDelete(
+              proxy(Object.setPrototypeOf({ object: object.clone(), context }, options?.session ?? this._proto))
+            );
+          } catch (e) {
+            console.error(e);
+          }
+        }));
+
       }
 
       return objects.length;
