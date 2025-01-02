@@ -98,11 +98,13 @@ export const dispatcher = <E>(proto: ProtoService<E>, options: ExtraOptions<bool
         className: string;
         includes?: string[];
         matches?: Record<string, TQueryBaseOptions>;
+        countMatches?: string[];
       },
       attrs: Record<string, TValue>,
     ) {
       QueryValidator.recursiveCheck(attrs);
       const _validator = await validator();
+      _validator.validateCountMatches(options.className, options.countMatches ?? []);
       const _includes = _validator.decodeIncludes(options.className, options.includes ?? ['*']);
       const _matches = _validator.decodeMatches(options.className, options.matches ?? {}, _includes);
       if (!_validator.validateCLPs(options.className, 'create')) throw Error('No permission');
@@ -114,6 +116,7 @@ export const dispatcher = <E>(proto: ProtoService<E>, options: ExtraOptions<bool
               className: options.className,
               includes: _includes,
               matches: _matches,
+              countMatches: options.countMatches ?? [],
               objectIdSize: proto[PVK].options.objectIdSize
             }, _attrs),
             { lockTable: options.className, retry: true },
@@ -129,11 +132,13 @@ export const dispatcher = <E>(proto: ProtoService<E>, options: ExtraOptions<bool
         className: string;
         includes?: string[];
         matches?: Record<string, TQueryBaseOptions>;
+        countMatches?: string[];
       },
       values: Record<string, TValue>[],
     ) {
       QueryValidator.recursiveCheck(values);
       const _validator = await validator();
+      _validator.validateCountMatches(options.className, options.countMatches ?? []);
       const _includes = _validator.decodeIncludes(options.className, options.includes ?? ['*']);
       const _matches = _validator.decodeMatches(options.className, options.matches ?? {}, _includes);
       if (!_validator.validateCLPs(options.className, 'create')) throw Error('No permission');
@@ -145,6 +150,7 @@ export const dispatcher = <E>(proto: ProtoService<E>, options: ExtraOptions<bool
               className: options.className,
               includes: _includes,
               matches: _matches,
+              countMatches: options.countMatches ?? [],
               objectIdSize: proto[PVK].options.objectIdSize
             }, _attrs),
             { lockTable: options.className, retry: true },

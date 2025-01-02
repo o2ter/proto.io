@@ -128,6 +128,7 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
         className: this.className,
         includes: this[PVK].options.includes,
         matches: this[PVK].options.matches,
+        countMatches: this[PVK].options.countMatches,
       }, attrs)
     );
     if (!result) throw Error('Unable to insert document');
@@ -142,6 +143,7 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
       className: this.className,
       includes: this[PVK].options.includes,
       matches: this[PVK].options.matches,
+      countMatches: this[PVK].options.countMatches,
     }, values);
   }
 

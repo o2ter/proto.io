@@ -104,6 +104,7 @@ export class DatabaseFileStorage extends FileStorageBase {
       filter: QuerySelector.decode({ token: { $eq: token } }),
       includes: ['_id'],
       matches: {},
+      countMatches: [],
       objectIdSize: 0
     });
   }

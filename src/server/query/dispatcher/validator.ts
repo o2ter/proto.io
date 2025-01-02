@@ -230,6 +230,13 @@ export class QueryValidator<E> {
     return _values;
   }
 
+  validateCountMatches(className: string, countMatches: string[]) {
+    for (const colname of countMatches) {
+      const dataType = resolveDataType(this.schema, className, colname);
+      if (!dataType || !isRelation(dataType)) throw Error(`Invalid relation key: ${colname}`);
+    }
+  }
+
   decodeIncludes(className: string, includes: string[]): string[] {
 
     const schema = this.schema[className] ?? {};
@@ -371,10 +378,7 @@ export class QueryValidator<E> {
 
     if ('relatedBy' in query && query.relatedBy) this.validateRelatedBy(query.className, query.relatedBy);
 
-    for (const colname of query.countMatches ?? []) {
-      const dataType = resolveDataType(this.schema, query.className, colname);
-      if (!dataType || !isRelation(dataType)) throw Error(`Invalid relation key: ${colname}`);
-    }
+    this.validateCountMatches(query.className, query.countMatches ?? []);
 
     const filter = QuerySelector.decode([
       ...action === 'read' ? this._rperm(query.className) : this._wperm(query.className),
