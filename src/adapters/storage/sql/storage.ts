@@ -255,9 +255,10 @@ export abstract class SqlStorage implements TStorage {
   async upsertMany(query: DecodedQuery<FindOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValue>) {
     const compiler = this._makeCompiler(true, query.extraFilter);
     const upserted = await this.query(compiler.upsertMany(query, update, setOnInsert));
+    const inserted = _.filter(upserted, x => x.__v === 0).length;
     return {
-      updated: _.filter(upserted, x => x.result === 0).length,
-      inserted: _.filter(upserted, x => x.result === 1).length,
+      updated: upserted.length - inserted,
+      inserted: inserted,
     };
   }
 

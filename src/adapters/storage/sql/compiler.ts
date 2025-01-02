@@ -317,7 +317,10 @@ export class QueryCompiler {
   }
 
   private _encodeUpdateAttrs(className: string, attrs: Record<string, TUpdateOp>): SQL[] {
-    const updates: SQL[] = [];
+    const updates: SQL[] = [
+      sql`__v = __v + 1`,
+      sql`_updated_at = NOW()`,
+    ];
     for (const [path, op] of _.toPairs(attrs)) {
       const { paths: [column, ...subpath], dataType } = resolveColumn(this.schema, className, path);
       if (isShape(dataType)) {
@@ -486,8 +489,7 @@ export class QueryCompiler {
         return sql`
           , ${{ identifier: name }} AS (
             UPDATE ${{ identifier: query.className }}
-            SET __v = __v + 1, _updated_at = NOW()
-            ${!_.isEmpty(update) ? sql`, ${this._encodeUpdateAttrs(query.className, update)}` : sql``}
+            SET ${this._encodeUpdateAttrs(query.className, update)}
             WHERE ${{ identifier: query.className }}._id IN (SELECT ${{ identifier: fetchName }}._id FROM ${{ identifier: fetchName }})
             RETURNING *
           )
@@ -503,8 +505,7 @@ export class QueryCompiler {
       (fetchName) => {
         return sql`
           UPDATE ${{ identifier: query.className }}
-          SET __v = __v + 1, _updated_at = NOW()
-          ${!_.isEmpty(update) ? sql`, ${this._encodeUpdateAttrs(query.className, update)}` : sql``}
+          SET ${this._encodeUpdateAttrs(query.className, update)}
           WHERE ${{ identifier: query.className }}._id IN (SELECT ${{ identifier: fetchName }}._id FROM ${{ identifier: fetchName }})
           RETURNING _id
         `;
@@ -528,8 +529,7 @@ export class QueryCompiler {
         return sql`
           , ${{ identifier: updateName }} AS (
             UPDATE ${{ identifier: query.className }}
-            SET __v = __v + 1, _updated_at = NOW()
-            ${!_.isEmpty(update) ? sql`, ${this._encodeUpdateAttrs(query.className, update)}` : sql``}
+            SET ${this._encodeUpdateAttrs(query.className, update)}
             WHERE ${{ identifier: query.className }}._id IN (SELECT ${{ identifier: fetchName }}._id FROM ${{ identifier: fetchName }})
             RETURNING *
           )
@@ -566,17 +566,16 @@ export class QueryCompiler {
         return sql`
           , ${{ identifier: updateName }} AS (
             UPDATE ${{ identifier: query.className }}
-            SET __v = __v + 1, _updated_at = NOW()
-            ${!_.isEmpty(update) ? sql`, ${this._encodeUpdateAttrs(query.className, update)}` : sql``}
+            SET ${this._encodeUpdateAttrs(query.className, update)}
             WHERE ${{ identifier: query.className }}._id IN (SELECT ${{ identifier: fetchName }}._id FROM ${{ identifier: fetchName }})
-            RETURNING _id, 0 AS ${{ identifier: 'result' }}
+            RETURNING _id, __v
           )
           , ${{ identifier: insertName }} AS (
             INSERT INTO ${{ identifier: query.className }}
             (${_.map(_insert, x => sql`${{ identifier: x[0] }}`)})
             SELECT ${_.map(_insert, x => sql`${x[1]} AS ${{ identifier: x[0] }}`)}
             WHERE NOT EXISTS(SELECT * FROM ${{ identifier: updateName }})
-            RETURNING _id, 1 AS ${{ identifier: 'result' }}
+            RETURNING _id, __v
           )
           SELECT * FROM ${{ identifier: updateName }}
           UNION
