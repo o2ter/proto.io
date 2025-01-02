@@ -33,7 +33,7 @@ import { prototypes } from '@o2ter/utils-js';
 
 export { Decimal };
 type TNumber = number | Decimal | BigInt;
-type TPrimitive = Date | string | TNumber | boolean | null | undefined;
+type TPrimitive = RegExp | Date | string | TNumber | boolean | null | undefined;
 type TDictionary = { [x: string]: TSerializable };
 export type TSerializable = TDictionary | TSerializable[] | TPrimitive | TObject;
 
@@ -53,6 +53,7 @@ const encodeEJSON = (
 ): any => {
   if (_.isNil(x) || _.isNumber(x) || _.isBoolean(x) || _.isString(x)) return x ?? null;
   if (_.isDate(x)) return { $date: x.valueOf() };
+  if (_.isRegExp(x)) return { $regex: x.source, $options: x.flags };
   if (x instanceof BigInt) return { $integer: x.toString() };
   if (x instanceof Decimal) return { $decimal: x.toString() };
 
@@ -93,6 +94,7 @@ const decodeEJSON = (
     }, [] as TSerializable[]);
   }
   if (!_.isNil(x.$date)) return new Date(x.$date);
+  if (!_.isNil(x.$regex)) return new RegExp(x.$regex, x.$options || '');
   if (!_.isNil(x.$integer)) return BigInt(x.$integer);
   if (!_.isNil(x.$decimal)) return new Decimal(x.$decimal);
   if (!_.isNil(x.$ref)) return stack[x.$ref];
