@@ -26,15 +26,14 @@
 import _ from 'lodash';
 import { ProtoService } from '../proto/index';
 import { dispatcher } from './dispatcher';
-import { proxy } from '../proto/proxy';
-import { asyncIterableToArray, asyncStream } from '@o2ter/utils-js';
+import { asyncStream } from '@o2ter/utils-js';
 import { PVK } from '../../internals/private';
 import { _serviceOf, ExtraOptions } from '../../internals/options';
 import { TQuery, TQueryOptions, TQueryRandomOptions } from '../../internals/query';
-import { TObject, decodeUpdateOp } from '../../internals/object';
+import { TObject } from '../../internals/object';
 import { TExtended } from '../../internals/object/methods';
 import { TValue } from '../../internals/types';
-import { TObjectType, TUpdateOp } from '../../internals/object/types';
+import { TUpdateOp } from '../../internals/object/types';
 import { resolveColumn } from './dispatcher/validator';
 import { isPointer, isRelation } from '../../internals/schema';
 
