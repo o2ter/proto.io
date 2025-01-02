@@ -336,6 +336,7 @@ export class QueryValidator<E> {
         this.validateForeignField(dataType, 'read', `Invalid match: ${colname}`);
         _matches[_colname] = {
           ...match,
+          countOnly: match.countOnly ?? [],
           filter: QuerySelector.decode(_.castArray<TQuerySelector>(match.filter)).simplify(),
           matches: this.decodeMatches(
             dataType.target, match.matches ?? {},
@@ -382,6 +383,7 @@ export class QueryValidator<E> {
       ..._.keys(match.sort),
       ...QuerySelector.decode(match.filter ?? []).keyPaths(),
       ...matcheKeyPaths(match.matches ?? {}),
+      ...match.countOnly ?? [],
     ].map(x => `${key}.${x}`));
 
     const sort = query.sort && this.decodeSort(query.sort);
@@ -391,6 +393,7 @@ export class QueryValidator<E> {
       ..._.isArray(sort) ? _.flatMap(sort, s => s.expr.keyPaths()) : _.keys(sort),
       ...filter.keyPaths(),
       ...matcheKeyPaths(query.matches ?? {}),
+      ...query.countOnly ?? [],
     ]);
 
     const includes = this.decodeIncludes(query.className, keyPaths);
@@ -398,6 +401,7 @@ export class QueryValidator<E> {
 
     return {
       ...query,
+      countOnly: query.countOnly ?? [],
       filter,
       matches,
       includes,

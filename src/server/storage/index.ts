@@ -55,12 +55,14 @@ export type DecodedSortOption = {
 export type DecodedBaseQuery = Decoded<TQueryBaseOptions, {
   filter?: QuerySelector;
   matches: Record<string, DecodedBaseQuery>;
+  countOnly?: string[];
   sort?: Record<string, 1 | -1> | DecodedSortOption[];
 }>;
 
 export type DecodedQuery<T> = Decoded<T, {
   filter: QuerySelector;
   matches: Record<string, DecodedBaseQuery>;
+  countOnly: string[];
   includes: string[];
   objectIdSize: number;
   sort?: Record<string, 1 | -1> | DecodedSortOption[];
@@ -71,6 +73,7 @@ export type InsertOptions = {
   className: string;
   includes: string[];
   matches: Record<string, DecodedBaseQuery>;
+  countOnly: string[];
   objectIdSize: number;
 };
 

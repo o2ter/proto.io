@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { PathName, PathNameMap } from './types';
+import { PathName, PathNameMap, PathNames } from './types';
 import { TQuerySelector } from './types/selectors';
 import { TValue } from '../types';
 import { PVK } from '../private';
@@ -74,6 +74,10 @@ export interface TQueryBaseOptions extends TQueryFilterBaseOptions {
    * Nested query options for matching specific fields.
    */
   matches?: Record<string, TQueryBaseOptions>;
+  /**
+   * Specifies which relations should only return the count.
+   */
+  countOnly?: string[];
 };
 
 const mergeOpts = (lhs: TQueryBaseOptions, rhs: TQueryBaseOptions): TQueryBaseOptions => {
@@ -88,6 +92,10 @@ const mergeOpts = (lhs: TQueryBaseOptions, rhs: TQueryBaseOptions): TQueryBaseOp
       ...lhs.matches,
       ..._.mapValues(rhs.matches, (opts, key) => lhs.matches?.[key] ? mergeOpts(lhs.matches[key], opts) : opts),
     },
+    countOnly: [
+      ...lhs.countOnly ?? [],
+      ...rhs.countOnly ?? [],
+    ],
   };
 }
 
@@ -422,6 +430,17 @@ export class TQueryBase extends TQueryFilterBase {
       this[PVK].options.matches = { ...this[PVK].options.matches };
       this[PVK].options.matches[key] = mergeOpts(this[PVK].options.matches[key], query[PVK].options);
     }
+    return this;
+  }
+
+  /**
+   * Adds the specified relations to the count-only options for a nested query.
+   * This method is used to specify that only the count of the nested relations should be retrieved.
+   * @param relations - The keys of the nested relations to be counted.
+   * @returns The current instance for chaining.
+   */
+  countOnly<T extends string[]>(...relations: PathNames<T>) {
+    this[PVK].options.countOnly = this[PVK].options.countOnly ? [...this[PVK].options.countOnly, ...relations] : relations;
     return this;
   }
 }
