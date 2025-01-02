@@ -38,6 +38,7 @@ test('test regex', async () => {
 
   await Proto.Query('Test').insertMany([
     { string: 'hello' },
+    { string: 'hello, world' },
     { string: 'world' },
     { string: '12345' },
   ]);
@@ -46,9 +47,12 @@ test('test regex', async () => {
   expect(result.length).toStrictEqual(1);
 
   const result2 = await Proto.Query('Test').pattern('string', /^hell/).find();
-  expect(result2.length).toStrictEqual(1);
+  expect(result2.length).toStrictEqual(2);
 
   const result3 = await Proto.Query('Test').pattern('string', /l/).find();
-  expect(result3.length).toStrictEqual(2);
+  expect(result3.length).toStrictEqual(3);
+
+  const result4 = await Proto.Query('Test').pattern('string', /^hello$/).find();
+  expect(result4.length).toStrictEqual(1);
 
 })
