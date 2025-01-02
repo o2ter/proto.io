@@ -124,7 +124,7 @@ export const selectPopulate = (
         countOnly ? sql`
           (
             SELECT COUNT(*) FROM (
-              ${_selectRelationPopulate(compiler, parent, populate, field, true)}
+              ${_selectRelationPopulate(compiler, parent, populate, field, false)}
             ) ${{ identifier: populate.name }}
           ) AS ${{ identifier: field }}
         ` : sql`
