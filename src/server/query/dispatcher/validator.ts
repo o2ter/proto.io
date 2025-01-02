@@ -371,6 +371,11 @@ export class QueryValidator<E> {
 
     if ('relatedBy' in query && query.relatedBy) this.validateRelatedBy(query.className, query.relatedBy);
 
+    for (const colname of query.countOnly ?? []) {
+      const dataType = resolveDataType(this.schema, query.className, colname);
+      if (!dataType || !isRelation(dataType)) throw Error(`Invalid relation key: ${colname}`);
+    }
+
     const filter = QuerySelector.decode([
       ...action === 'read' ? this._rperm(query.className) : this._wperm(query.className),
       ..._.castArray<TQuerySelector>(query.filter),
