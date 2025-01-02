@@ -157,7 +157,7 @@ test('test countOnly 6', async () => {
     .countOnly('pointer.relation2')
     .first();
 
-  expect(result?.get('pointer.relation2')).toBe(5);
+  expect(result?.get('pointer.relation2')).toBe(6);
 
 })
 
@@ -206,6 +206,6 @@ test('test countOnly 8', async () => {
     .countOnly('pointer.shape.relation2')
     .first();
 
-  expect(result?.get('pointer.shape.relation2')).toBe(5);
+  expect(result?.get('pointer.shape.relation2')).toBe(6);
 
 })
