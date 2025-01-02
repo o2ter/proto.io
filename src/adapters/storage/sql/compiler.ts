@@ -185,6 +185,8 @@ export class QueryCompiler {
 
       names[colname] = dataType;
 
+      if (isRelation(dataType) && _.includes(query.countOnly, colname)) countOnly.push(colname);
+
       if (isPointer(dataType) || isRelation(dataType)) {
         if (_.isEmpty(subpath)) throw Error(`Invalid path: ${include}`);
         const _matches = query.matches[colname];
@@ -216,7 +218,10 @@ export class QueryCompiler {
         className: populate.className,
         includes: populate.subpaths,
         matches: _matches.matches,
-        countOnly: _matches.countOnly ?? [],
+        countOnly: [
+          ..._.filter(query.countOnly, x => _.startsWith(x, `${colname}.`)).map(x => x.slice(colname.length + 1)),
+          ..._matches.countOnly ?? [],
+        ],
       });
       populate.sort = _encodeSorting(includes, populates, _matches.sort);
       populate.includes = includes;
