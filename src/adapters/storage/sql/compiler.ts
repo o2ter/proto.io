@@ -53,6 +53,7 @@ export type Populate = {
   filter?: QuerySelector;
   includes: Record<string, TSchema.DataType>;
   populates: Record<string, Populate>;
+  countOnly: string[];
   sort?: Record<string, 1 | -1> | DecodedSortOption[];
   skip?: number;
   limit?: number;
@@ -61,6 +62,7 @@ export type Populate = {
 export type CompileContext = {
   includes: Record<string, TSchema.DataType>;
   populates: Record<string, Populate>;
+  countOnly: string[];
   sorting?: Record<string, 1 | -1> | DecodedSortOption[];
 }
 
@@ -163,6 +165,7 @@ export class QueryCompiler {
     const context = this._encodeIncludes(query.className, query.includes, query.matches);
     return {
       ...context,
+      countOnly: query.countOnly,
       sorting: _encodeSorting(context.includes, context.populates, query.sort),
     };
   }
@@ -208,6 +211,7 @@ export class QueryCompiler {
       populate.sort = _encodeSorting(includes, populates, _matches.sort);
       populate.includes = includes;
       populate.populates = populates;
+      populate.countOnly = _matches.countOnly ?? [];
     }
 
     return { includes: names, populates };
@@ -275,7 +279,7 @@ export class QueryCompiler {
     );
     const stages = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
 
-    const _populates = this._selectPopulateMap(_context, query.className, name);
+    const _populates = this._selectPopulateMap({ ..._context, countOnly: query.countOnly }, query.className, name);
     const _joins = _.compact(_.map(_populates, ({ join }) => join));
 
     const _includes = {
