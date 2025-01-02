@@ -113,3 +113,99 @@ test('test countOnly 4', async () => {
   expect(result?.get('shape.relation2')).toBe(5);
 
 })
+
+test('test countOnly 5', async () => {
+
+  const parent = await Proto.Query('Test').insert({
+    relation: [
+      await Proto.Query('Test').insert({}),
+      await Proto.Query('Test').insert({}),
+      await Proto.Query('Test').insert({}),
+      await Proto.Query('Test').insert({}),
+      await Proto.Query('Test').insert({}),
+    ],
+  });
+
+  const parent2 = await Proto.Query('Test').insert({
+    pointer: parent,
+  });
+
+  const result = await Proto.Query('Test')
+    .equalTo('_id', parent2.objectId)
+    .countOnly('pointer.relation')
+    .first();
+
+  expect(result?.get('pointer.relation')).toBe(5);
+
+})
+
+test('test countOnly 6', async () => {
+
+  const parent = await Proto.Query('Test').insert({});
+  for (const i of _.range(1, 6)) {
+    await Proto.Query('Test').insert({
+      pointer: parent,
+    });
+  }
+
+  const parent2 = await Proto.Query('Test').insert({
+    pointer: parent,
+  });
+
+  const result = await Proto.Query('Test')
+    .equalTo('_id', parent2.objectId)
+    .countOnly('pointer.relation2')
+    .first();
+
+  expect(result?.get('pointer.relation2')).toBe(5);
+
+})
+
+test('test countOnly 7', async () => {
+
+  const parent = await Proto.Query('Test').insert({
+    shape: {
+      relation: [
+        await Proto.Query('Test').insert({}),
+        await Proto.Query('Test').insert({}),
+        await Proto.Query('Test').insert({}),
+        await Proto.Query('Test').insert({}),
+        await Proto.Query('Test').insert({}),
+      ],
+    }
+  });
+
+  const parent2 = await Proto.Query('Test').insert({
+    pointer: parent,
+  });
+
+  const result = await Proto.Query('Test')
+    .equalTo('_id', parent2.objectId)
+    .countOnly('pointer.shape.relation')
+    .first();
+
+  expect(result?.get('pointer.shape.relation')).toBe(5);
+
+})
+
+test('test countOnly 8', async () => {
+
+  const parent = await Proto.Query('Test').insert({});
+  for (const i of _.range(1, 6)) {
+    await Proto.Query('Test').insert({
+      pointer: parent,
+    });
+  }
+
+  const parent2 = await Proto.Query('Test').insert({
+    pointer: parent,
+  });
+
+  const result = await Proto.Query('Test')
+    .equalTo('_id', parent2.objectId)
+    .countOnly('pointer.shape.relation2')
+    .first();
+
+  expect(result?.get('pointer.shape.relation2')).toBe(5);
+
+})
