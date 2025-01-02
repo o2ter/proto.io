@@ -162,27 +162,32 @@ export class QueryCompiler {
   }
 
   private _makeContext(query: InsertOptions & { sort?: Record<string, 1 | -1> | DecodedSortOption[] }) {
-    const context = this._encodeIncludes(query.className, query.includes, query.matches);
+    const context = this._encodeIncludes(query);
     return {
       ...context,
-      countOnly: query.countOnly,
       sorting: _encodeSorting(context.includes, context.populates, query.sort),
     };
   }
 
-  private _encodeIncludes(className: string, includes: string[], matches: Record<string, DecodedBaseQuery>) {
+  private _encodeIncludes(query: {
+    className: string;
+    includes: string[];
+    matches: Record<string, DecodedBaseQuery>;
+    countOnly: string[];
+  }) {
 
     const names: Record<string, TSchema.DataType> = {};
     const populates: Record<string, Populate> = {};
+    const countOnly: string[] = [];
 
-    for (const include of includes) {
-      const { paths: [colname, ...subpath], dataType } = resolveColumn(this.schema, className, include);
+    for (const include of query.includes) {
+      const { paths: [colname, ...subpath], dataType } = resolveColumn(this.schema, query.className, include);
 
       names[colname] = dataType;
 
       if (isPointer(dataType) || isRelation(dataType)) {
         if (_.isEmpty(subpath)) throw Error(`Invalid path: ${include}`);
-        const _matches = matches[colname];
+        const _matches = query.matches[colname];
         populates[colname] = populates[colname] ?? {
           name: `t${this.nextIdx()}`,
           className: dataType.target,
@@ -206,15 +211,20 @@ export class QueryCompiler {
     }
 
     for (const [colname, populate] of _.toPairs(populates)) {
-      const _matches = matches[colname];
-      const { includes, populates } = this._encodeIncludes(populate.className, populate.subpaths, _matches.matches);
+      const _matches = query.matches[colname];
+      const { includes, populates, countOnly } = this._encodeIncludes({
+        className: populate.className,
+        includes: populate.subpaths,
+        matches: _matches.matches,
+        countOnly: _matches.countOnly ?? [],
+      });
       populate.sort = _encodeSorting(includes, populates, _matches.sort);
       populate.includes = includes;
       populate.populates = populates;
-      populate.countOnly = _matches.countOnly ?? [];
+      populate.countOnly = countOnly;
     }
 
-    return { includes: names, populates };
+    return { includes: names, populates, countOnly };
   }
 
   private _baseSelectQuery(
@@ -273,13 +283,13 @@ export class QueryCompiler {
     query: DecodedQuery<FindOneOptions>,
   ) {
 
-    const _context = this._encodeIncludes(query.className, query.includes, query.matches);
+    const _context = this._encodeIncludes(query);
     const populates = _.mapValues(
       _context.populates, (populate) => this.dialect.encodePopulate(this, populate, { className: query.className, name })
     );
     const stages = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
 
-    const _populates = this._selectPopulateMap({ ..._context, countOnly: query.countOnly }, query.className, name);
+    const _populates = this._selectPopulateMap(_context, query.className, name);
     const _joins = _.compact(_.map(_populates, ({ join }) => join));
 
     const _includes = {
