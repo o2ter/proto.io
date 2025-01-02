@@ -24,18 +24,18 @@
 //
 
 import _ from 'lodash';
-import { masterUser } from './server';
+import { masterUser } from '../server';
 import { test, expect } from '@jest/globals';
 import Decimal from 'decimal.js';
-import { ProtoClient } from '../../src/client/proto';
+import { ProtoClient } from '../../../src/client/proto';
 
 const Proto = new ProtoClient({
   endpoint: 'http://localhost:8080/proto',
   masterUser,
 });
 
-test('test field name', async () => {
-  const inserted = await Proto.Query('Test').insert({ 'test_field-name': 'hello' });
-  expect(inserted.objectId).toBeTruthy();
-  expect(inserted.get('test_field-name')).toStrictEqual('hello');
+test('test count', async () => {
+  await Proto.Query('Test').insert({});
+  const count = await Proto.Query('Test').count();
+  expect(count).toBeGreaterThan(0);
 })
