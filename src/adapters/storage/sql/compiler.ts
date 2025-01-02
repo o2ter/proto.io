@@ -53,7 +53,7 @@ export type Populate = {
   filter?: QuerySelector;
   includes: Record<string, TSchema.DataType>;
   populates: Record<string, Populate>;
-  countOnly: string[];
+  countMatches: string[];
   sort?: Record<string, 1 | -1> | DecodedSortOption[];
   skip?: number;
   limit?: number;
@@ -62,7 +62,7 @@ export type Populate = {
 export type CompileContext = {
   includes: Record<string, TSchema.DataType>;
   populates: Record<string, Populate>;
-  countOnly: string[];
+  countMatches: string[];
   sorting?: Record<string, 1 | -1> | DecodedSortOption[];
 }
 
@@ -173,19 +173,19 @@ export class QueryCompiler {
     className: string;
     includes: string[];
     matches: Record<string, DecodedBaseQuery>;
-    countOnly: string[];
+    countMatches: string[];
   }) {
 
     const names: Record<string, TSchema.DataType> = {};
     const populates: Record<string, Populate> = {};
-    const countOnly: string[] = [];
+    const countMatches: string[] = [];
 
     for (const include of query.includes) {
       const { paths: [colname, ...subpath], dataType } = resolveColumn(this.schema, query.className, include);
 
       names[colname] = dataType;
 
-      if (isRelation(dataType) && _.includes(query.countOnly, colname)) countOnly.push(colname);
+      if (isRelation(dataType) && _.includes(query.countMatches, colname)) countMatches.push(colname);
 
       if (isPointer(dataType) || isRelation(dataType)) {
         if (_.isEmpty(subpath)) throw Error(`Invalid path: ${include}`);
@@ -214,22 +214,22 @@ export class QueryCompiler {
 
     for (const [colname, populate] of _.toPairs(populates)) {
       const _matches = query.matches[colname];
-      const { includes, populates, countOnly } = this._encodeIncludes({
+      const { includes, populates, countMatches } = this._encodeIncludes({
         className: populate.className,
         includes: populate.subpaths,
         matches: _matches.matches,
-        countOnly: [
-          ..._.filter(query.countOnly, x => _.startsWith(x, `${colname}.`)).map(x => x.slice(colname.length + 1)),
-          ..._matches.countOnly ?? [],
+        countMatches: [
+          ..._.filter(query.countMatches, x => _.startsWith(x, `${colname}.`)).map(x => x.slice(colname.length + 1)),
+          ..._matches.countMatches ?? [],
         ],
       });
       populate.sort = _encodeSorting(includes, populates, _matches.sort);
       populate.includes = includes;
       populate.populates = populates;
-      populate.countOnly = countOnly;
+      populate.countMatches = countMatches;
     }
 
-    return { includes: names, populates, countOnly };
+    return { includes: names, populates, countMatches };
   }
 
   private _baseSelectQuery(
@@ -445,7 +445,7 @@ export class QueryCompiler {
       this, {
       className,
       name,
-    }, populate, field, _.includes(context.countOnly, field)));
+    }, populate, field, _.includes(context.countMatches, field)));
   }
 
   insert(options: InsertOptions, attrs: Record<string, TValue>) {

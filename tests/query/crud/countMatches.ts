@@ -34,7 +34,7 @@ const Proto = new ProtoClient({
   masterUser,
 });
 
-test('test countOnly', async () => {
+test('test count matches', async () => {
 
   const parent = await Proto.Query('Test').insert({
     relation: [
@@ -48,14 +48,14 @@ test('test countOnly', async () => {
 
   const result = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
-    .countOnly('relation')
+    .countMatches('relation')
     .first();
 
   expect(result?.get('relation')).toBe(5);
 
 })
 
-test('test countOnly 2', async () => {
+test('test count matches 2', async () => {
 
   const parent = await Proto.Query('Test').insert({});
   for (const i of _.range(1, 6)) {
@@ -66,14 +66,14 @@ test('test countOnly 2', async () => {
 
   const result = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
-    .countOnly('relation2')
+    .countMatches('relation2')
     .first();
 
   expect(result?.get('relation2')).toBe(5);
 
 })
 
-test('test countOnly 3', async () => {
+test('test count matches 3', async () => {
 
   const parent = await Proto.Query('Test').insert({
     shape: {
@@ -89,14 +89,14 @@ test('test countOnly 3', async () => {
 
   const result = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
-    .countOnly('shape.relation')
+    .countMatches('shape.relation')
     .first();
 
   expect(result?.get('shape.relation')).toBe(5);
 
 })
 
-test('test countOnly 4', async () => {
+test('test count matches 4', async () => {
 
   const parent = await Proto.Query('Test').insert({});
   for (const i of _.range(1, 6)) {
@@ -107,14 +107,14 @@ test('test countOnly 4', async () => {
 
   const result = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
-    .countOnly('shape.relation2')
+    .countMatches('shape.relation2')
     .first();
 
   expect(result?.get('shape.relation2')).toBe(5);
 
 })
 
-test('test countOnly 5', async () => {
+test('test count matches 5', async () => {
 
   const parent = await Proto.Query('Test').insert({
     relation: [
@@ -132,14 +132,14 @@ test('test countOnly 5', async () => {
 
   const result = await Proto.Query('Test')
     .equalTo('_id', parent2.objectId)
-    .countOnly('pointer.relation')
+    .countMatches('pointer.relation')
     .first();
 
   expect(result?.get('pointer.relation')).toBe(5);
 
 })
 
-test('test countOnly 6', async () => {
+test('test count matches 6', async () => {
 
   const parent = await Proto.Query('Test').insert({});
   for (const i of _.range(1, 6)) {
@@ -154,14 +154,14 @@ test('test countOnly 6', async () => {
 
   const result = await Proto.Query('Test')
     .equalTo('_id', parent2.objectId)
-    .countOnly('pointer.relation2')
+    .countMatches('pointer.relation2')
     .first();
 
   expect(result?.get('pointer.relation2')).toBe(6);
 
 })
 
-test('test countOnly 7', async () => {
+test('test count matches 7', async () => {
 
   const parent = await Proto.Query('Test').insert({
     shape: {
@@ -181,14 +181,14 @@ test('test countOnly 7', async () => {
 
   const result = await Proto.Query('Test')
     .equalTo('_id', parent2.objectId)
-    .countOnly('pointer.shape.relation')
+    .countMatches('pointer.shape.relation')
     .first();
 
   expect(result?.get('pointer.shape.relation')).toBe(5);
 
 })
 
-test('test countOnly 8', async () => {
+test('test count matches 8', async () => {
 
   const parent = await Proto.Query('Test').insert({});
   for (const i of _.range(1, 6)) {
@@ -203,7 +203,7 @@ test('test countOnly 8', async () => {
 
   const result = await Proto.Query('Test')
     .equalTo('_id', parent2.objectId)
-    .countOnly('pointer.shape.relation2')
+    .countMatches('pointer.shape.relation2')
     .first();
 
   expect(result?.get('pointer.shape.relation2')).toBe(6);

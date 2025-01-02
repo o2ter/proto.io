@@ -77,7 +77,7 @@ export interface TQueryBaseOptions extends TQueryFilterBaseOptions {
   /**
    * Specifies which relations should only return the count.
    */
-  countOnly?: string[];
+  countMatches?: string[];
 };
 
 const mergeOpts = (lhs: TQueryBaseOptions, rhs: TQueryBaseOptions): TQueryBaseOptions => {
@@ -92,9 +92,9 @@ const mergeOpts = (lhs: TQueryBaseOptions, rhs: TQueryBaseOptions): TQueryBaseOp
       ...lhs.matches,
       ..._.mapValues(rhs.matches, (opts, key) => lhs.matches?.[key] ? mergeOpts(lhs.matches[key], opts) : opts),
     },
-    countOnly: [
-      ...lhs.countOnly ?? [],
-      ...rhs.countOnly ?? [],
+    countMatches: [
+      ...lhs.countMatches ?? [],
+      ...rhs.countMatches ?? [],
     ],
   };
 }
@@ -439,8 +439,8 @@ export class TQueryBase extends TQueryFilterBase {
    * @param relations - The keys of the nested relations to be counted.
    * @returns The current instance for chaining.
    */
-  countOnly<T extends string[]>(...relations: PathNames<T>) {
-    this[PVK].options.countOnly = this[PVK].options.countOnly ? [...this[PVK].options.countOnly, ...relations] : relations;
+  countMatches<T extends string[]>(...relations: PathNames<T>) {
+    this[PVK].options.countMatches = this[PVK].options.countMatches ? [...this[PVK].options.countMatches, ...relations] : relations;
     return this;
   }
 }

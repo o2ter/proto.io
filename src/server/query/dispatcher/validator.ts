@@ -336,7 +336,7 @@ export class QueryValidator<E> {
         this.validateForeignField(dataType, 'read', `Invalid match: ${colname}`);
         _matches[_colname] = {
           ...match,
-          countOnly: match.countOnly ?? [],
+          countMatches: match.countMatches ?? [],
           filter: QuerySelector.decode(_.castArray<TQuerySelector>(match.filter)).simplify(),
           matches: this.decodeMatches(
             dataType.target, match.matches ?? {},
@@ -371,7 +371,7 @@ export class QueryValidator<E> {
 
     if ('relatedBy' in query && query.relatedBy) this.validateRelatedBy(query.className, query.relatedBy);
 
-    for (const colname of query.countOnly ?? []) {
+    for (const colname of query.countMatches ?? []) {
       const dataType = resolveDataType(this.schema, query.className, colname);
       if (!dataType || !isRelation(dataType)) throw Error(`Invalid relation key: ${colname}`);
     }
@@ -388,7 +388,7 @@ export class QueryValidator<E> {
       ..._.keys(match.sort),
       ...QuerySelector.decode(match.filter ?? []).keyPaths(),
       ...matcheKeyPaths(match.matches ?? {}),
-      ...match.countOnly ?? [],
+      ...match.countMatches ?? [],
     ].map(x => `${key}.${x}`));
 
     const sort = query.sort && this.decodeSort(query.sort);
@@ -398,7 +398,7 @@ export class QueryValidator<E> {
       ..._.isArray(sort) ? _.flatMap(sort, s => s.expr.keyPaths()) : _.keys(sort),
       ...filter.keyPaths(),
       ...matcheKeyPaths(query.matches ?? {}),
-      ...query.countOnly ?? [],
+      ...query.countMatches ?? [],
     ]);
 
     const includes = this.decodeIncludes(query.className, keyPaths);
@@ -406,7 +406,7 @@ export class QueryValidator<E> {
 
     return {
       ...query,
-      countOnly: query.countOnly ?? [],
+      countMatches: query.countMatches ?? [],
       filter,
       matches,
       includes,

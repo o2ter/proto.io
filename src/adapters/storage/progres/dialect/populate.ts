@@ -116,12 +116,12 @@ export const selectPopulate = (
   parent: { className: string; name: string; },
   populate: Populate,
   field: string,
-  countOnly: boolean,
+  countMatches: boolean,
 ): { columns: SQL[]; join?: SQL; } => {
   if (populate.type === 'relation') {
     return {
       columns: [
-        countOnly ? sql`
+        countMatches ? sql`
           (
             SELECT COUNT(*) FROM (
               ${_selectRelationPopulate(compiler, parent, populate, field, false)}
@@ -268,7 +268,7 @@ export const encodePopulate = (
     parent.filter && compiler._encodeFilter(parent, parent.filter),
     compiler.extraFilter && compiler._encodeFilter(parent, compiler.extraFilter(parent.className)),
   ]);
-  const _populates = _.map(parent.populates, (populate, field) => selectPopulate(compiler, parent, populate, field, _.includes(parent.countOnly, field)));
+  const _populates = _.map(parent.populates, (populate, field) => selectPopulate(compiler, parent, populate, field, _.includes(parent.countMatches, field)));
   const _joins = _.compact(_.map(_populates, ({ join }) => join));
   const _includes = _.pickBy(parent.includes, v => isPrimitive(v));
   const {
