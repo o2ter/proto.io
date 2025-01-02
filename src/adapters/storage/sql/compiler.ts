@@ -430,7 +430,7 @@ export class QueryCompiler {
       this, {
       className,
       name,
-    }, populate, field));
+    }, populate, field, _.includes(context.countOnly, field)));
   }
 
   insert(options: InsertOptions, attrs: Record<string, TValue>) {

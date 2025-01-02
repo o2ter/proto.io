@@ -46,6 +46,7 @@ export interface SqlDialect {
     parent: { className: string; name: string; },
     populate: Populate,
     field: string,
+    countOnly: boolean,
   ): { columns: SQL[], join?: SQL }
 
   encodeFieldExpression(
