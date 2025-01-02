@@ -31,7 +31,6 @@ import { TPrimitiveValue, TValue, _TValue } from '../types';
 import { TSchema, defaultObjectKeys, defaultObjectReadonlyKeys } from '../schema';
 import { PathName } from '../query/types';
 import { TUpdateOp, TUpdateOpKeys } from './types';
-import { ProtoType } from '../proto';
 import { TQuery } from '../query';
 
 export const isPrimitiveValue = (x: any): x is TPrimitiveValue => {
@@ -338,7 +337,7 @@ export class TObject {
    * @param key - The key to increment.
    * @param value - The value to increment by.
    */
-  increment<T extends string>(key: PathName<T>, value: number) {
+  increment<T extends string>(key: PathName<T>, value: number | Decimal) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
     this[PVK].mutated[key] = { $inc: value };
@@ -349,7 +348,7 @@ export class TObject {
    * @param key - The key to decrement.
    * @param value - The value to decrement by.
    */
-  decrement<T extends string>(key: PathName<T>, value: number) {
+  decrement<T extends string>(key: PathName<T>, value: number | Decimal) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
     this[PVK].mutated[key] = { $dec: value };
@@ -360,7 +359,7 @@ export class TObject {
    * @param key - The key of the attribute to multiply.
    * @param value - The multiplier value.
    */
-  multiply<T extends string>(key: PathName<T>, value: number) {
+  multiply<T extends string>(key: PathName<T>, value: number | Decimal) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
     this[PVK].mutated[key] = { $mul: value };
@@ -371,7 +370,7 @@ export class TObject {
    * @param key - The key of the attribute to divide.
    * @param value - The divisor value.
    */
-  divide<T extends string>(key: PathName<T>, value: number) {
+  divide<T extends string>(key: PathName<T>, value: number | Decimal) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
     this[PVK].mutated[key] = { $div: value };
