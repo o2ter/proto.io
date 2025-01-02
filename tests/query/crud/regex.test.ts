@@ -43,7 +43,12 @@ test('test regex', async () => {
   ]);
 
   const result = await Proto.Query('Test').pattern('string', /^\d+$/).find();
-
   expect(result.length).toStrictEqual(1);
+
+  const result2 = await Proto.Query('Test').pattern('string', /^hell/).find();
+  expect(result2.length).toStrictEqual(1);
+
+  const result3 = await Proto.Query('Test').pattern('string', /l/).find();
+  expect(result3.length).toStrictEqual(2);
 
 })
