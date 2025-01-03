@@ -556,15 +556,17 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
           await func(proxy(payload));
 
           job.set('status', 'completed');
-          job.set('completedAt', new Date());
-          await job.save({ master: true });
 
         } catch (e) {
 
+          await proto.Query('_JobScope').equalTo('job', job).deleteMany({ master: true });
           job.set('error', _.pick(e, _.uniq(_.flatMap(prototypes(e), x => Object.getOwnPropertyNames(x)))));
           job.set('status', 'failed');
-          job.set('completedAt', new Date());
 
+        } finally {
+
+          await proto.Query('_JobScope').equalTo('job', job).deleteMany({ master: true });
+          job.set('completedAt', new Date());
           await job.save({ master: true });
         }
       }
