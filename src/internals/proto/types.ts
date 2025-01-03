@@ -26,7 +26,7 @@
 import { Awaitable } from '@o2ter/utils-js';
 import { ProtoService } from '../../server/proto';
 import { TSerializable } from '../../common/codec';
-import { TObjectType } from '../object/types';
+import { _TValue } from '../types';
 
 /**
  * A callback function type.
@@ -41,6 +41,13 @@ type Callback<T, R, E> = (request: ProtoService<E> & T) => Awaitable<R>;
  * @returns An awaitable response.
  */
 export type ProtoFunction<E> = Callback<{ params: TSerializable; }, void | TSerializable, E>;
+
+/**
+ * A job callback function type.
+ * @param request - The request object.
+ * @returns An awaitable response.
+ */
+export type ProtoJobFunction<E> = Callback<{ params: _TValue; }, void, E>;
 
 /**
  * Validator options for proto functions.
@@ -75,6 +82,21 @@ export type ProtoFunctionOptions<E> = {
    * The callback function for the proto function.
    */
   callback: ProtoFunction<E>;
+
+  /**
+   * Optional validator for the proto function.
+   */
+  validator?: Validator;
+};
+
+/**
+ * Options for configuring a proto job function.
+ */
+export type ProtoJobFunctionOptions<E> = {
+  /**
+   * The callback function for the proto job function.
+   */
+  callback: ProtoJobFunction<E>;
 
   /**
    * Optional validator for the proto function.

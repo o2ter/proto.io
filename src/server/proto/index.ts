@@ -29,7 +29,7 @@ import { ProtoQuery, ProtoRelationQuery } from '../query';
 import { ProtoInternal } from './internal';
 import { CookieOptions, Request } from '@o2ter/server-js';
 import { ProtoServiceOptions, ProtoServiceKeyOptions } from './types';
-import { ProtoFunction, ProtoFunctionOptions } from '../../internals/proto/types';
+import { ProtoFunction, ProtoFunctionOptions, ProtoJobFunction, ProtoJobFunctionOptions } from '../../internals/proto/types';
 import { sessionId, sessionIsMaster, session, signUser, Session, sessionWithToken } from './session';
 import { EventData, ProtoType, TransactionOptions } from '../../internals/proto';
 import { schedule } from '../schedule';
@@ -267,6 +267,14 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
     options?: Omit<ProtoFunctionOptions<Ext>, 'callback'>,
   ) {
     this[PVK].functions[name] = options ? { callback, ...options } : callback;
+  }
+
+  defineJob(
+    name: string,
+    callback: ProtoJobFunction<Ext>,
+    options?: Omit<ProtoJobFunctionOptions<Ext>, 'callback'>,
+  ) {
+    this[PVK].jobs[name] = options ? { callback, ...options } : callback;
   }
 
   lockTable(className: string | string[], update: boolean) {
