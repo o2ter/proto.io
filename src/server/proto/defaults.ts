@@ -99,6 +99,7 @@ export const defaultSchema: Record<string, TSchema> = {
       data: 'object',
       scope: 'string[]',
       status: { type: 'string', default: 'pending' },
+      user: { type: 'pointer', target: 'User' },
       startedAt: 'date',
       completedAt: 'date',
     },
