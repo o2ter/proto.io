@@ -99,6 +99,11 @@ export type ProtoJobFunctionOptions<E> = {
   callback: ProtoJobFunction<E>;
 
   /**
+   * Optional scopes for the proto job function.
+   */
+  scopes?: string[];
+
+  /**
    * Optional validator for the proto function.
    */
   validator?: Validator;
