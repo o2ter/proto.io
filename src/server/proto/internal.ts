@@ -512,7 +512,10 @@ class JobRunner<Ext, P extends ProtoService<Ext>> {
   private _running = false;
 
   private async cleanUpOldJobs(proto: P) {
-    await proto.Query('_JobScope').lessThan('_updated_at', new Date(Date.now() - 1000 * 60 * 5)).deleteMany({ master: true });
+    await proto.Query('_JobScope').or(
+      q => q.lessThan('_updated_at', new Date(Date.now() - 1000 * 60 * 5)),
+      q => q.notEqualTo('job.completedAt', null),
+    ).deleteMany({ master: true });
   }
 
   private async getAvailableJobs(proto: P) {
