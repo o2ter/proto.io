@@ -550,6 +550,10 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
           continue;
         }
 
+        const timer = setInterval(() => {
+          proto.Query('_JobScope').equalTo('job', job).updateOne({}, { master: true });
+        }, 1000 * 60);
+
         try {
 
           const params = job.get('data');
@@ -562,11 +566,12 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
 
         } catch (e) {
 
-          await proto.Query('_JobScope').equalTo('job', job).deleteMany({ master: true });
           job.set('error', _.pick(e, _.uniq(_.flatMap(prototypes(e), x => Object.getOwnPropertyNames(x)))));
           job.set('status', 'failed');
 
         } finally {
+
+          clearInterval(timer);
 
           await proto.Query('_JobScope').equalTo('job', job).deleteMany({ master: true });
           job.set('completedAt', new Date());
