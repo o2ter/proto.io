@@ -94,4 +94,53 @@ export const defaultSchema: Record<string, TSchema> = {
       },
     ],
   },
+  '_Job': {
+    fields: {
+      data: 'object',
+      scope: 'array',
+      status: { type: 'string', default: 'pending' },
+      startedAt: 'date',
+      completedAt: 'date',
+    },
+    classLevelPermissions: {
+      find: [],
+      count: [],
+      update: [],
+      delete: [],
+    },
+    fieldLevelPermissions: {
+      data: { update: [] },
+      scope: { update: [] },
+      status: { update: [] },
+      startedAt: { create: [], update: [] },
+      completedAt: { create: [], update: [] },
+      _expired_at: { create: [], update: [] },
+    },
+    indexes: [
+      { keys: { status: 1 } },
+    ],
+  },
+  '_JobScope': {
+    fields: {
+      scope: 'string',
+      job: { type: 'pointer', target: '_Job' },
+    },
+    classLevelPermissions: {
+      find: [],
+      count: [],
+      update: [],
+      delete: [],
+    },
+    fieldLevelPermissions: {
+      scope: { update: [] },
+      job: { update: [] },
+      _expired_at: { create: [], update: [] },
+    },
+    indexes: [
+      {
+        keys: { scope: 1 },
+        unique: true,
+      },
+    ],
+  },
 }
