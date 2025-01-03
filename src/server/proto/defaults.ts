@@ -116,7 +116,7 @@ export const defaultSchema: Record<string, TSchema> = {
     fieldLevelPermissions: {
       name: { update: [] },
       data: { update: [] },
-      scope: { update: [] },
+      error: { update: [] },
       status: { update: [] },
       user: { update: [] },
       startedAt: { create: [], update: [] },
