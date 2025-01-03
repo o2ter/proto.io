@@ -529,6 +529,10 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
           const params = job.get('data');
           const payload = Object.setPrototypeOf({ params, user: job.get('user'), job }, this);
 
+          job.set('status', 'started');
+          job.set('startedAt', new Date());
+          await job.save({ master: true });
+
           const func = _.isFunction(opt) ? opt : opt.callback;
           await func(proxy(payload));
 
