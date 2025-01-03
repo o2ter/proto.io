@@ -327,6 +327,16 @@ export const encodeFieldExpression = (
           )`;
         }
 
+        if (dataType && _isTypeof(dataType, 'vector')) {
+          const tempName = `_doller_num_expr_$${compiler.nextIdx()}`;
+          const filter = compiler._encodeFilter({ name: tempName, className: relation?.target }, expr.value);
+          if (!filter) break;
+          return sql`NOT EXISTS(
+            SELECT * FROM (SELECT UNNEST AS "$" FROM UNNEST(${element})) AS ${{ identifier: tempName }}
+            WHERE NOT (${filter})
+          )`;
+        }
+
         if (dataType && _isTypeof(dataType, 'string[]')) {
           const tempName = `_doller_str_expr_$${compiler.nextIdx()}`;
           const filter = compiler._encodeFilter({ name: tempName, className: relation?.target }, expr.value);
@@ -341,7 +351,7 @@ export const encodeFieldExpression = (
         const filter = compiler._encodeFilter({ name: tempName, className: relation?.target }, expr.value);
         if (!filter) break;
 
-        if (dataType && _isTypeof(dataType, ['array', 'vector'])) {
+        if (dataType && _isTypeof(dataType, 'array')) {
           return sql`NOT EXISTS(
             SELECT * FROM (SELECT UNNEST AS "$" FROM UNNEST(${element})) AS ${{ identifier: tempName }}
             WHERE NOT (${filter})
@@ -374,6 +384,16 @@ export const encodeFieldExpression = (
           )`;
         }
 
+        if (dataType && _isTypeof(dataType, 'vector')) {
+          const tempName = `_doller_num_expr_$${compiler.nextIdx()}`;
+          const filter = compiler._encodeFilter({ name: tempName, className: relation?.target }, expr.value);
+          if (!filter) break;
+          return sql`EXISTS(
+            SELECT * FROM (SELECT UNNEST AS "$" FROM UNNEST(${element})) AS ${{ identifier: tempName }}
+            WHERE ${filter}
+          )`;
+        }
+
         if (dataType && _isTypeof(dataType, 'string[]')) {
           const tempName = `_doller_str_expr_$${compiler.nextIdx()}`;
           const filter = compiler._encodeFilter({ name: tempName, className: relation?.target }, expr.value);
@@ -388,7 +408,7 @@ export const encodeFieldExpression = (
         const filter = compiler._encodeFilter({ name: tempName, className: relation?.target }, expr.value);
         if (!filter) break;
 
-        if (dataType && _isTypeof(dataType, ['array', 'vector'])) {
+        if (dataType && _isTypeof(dataType, 'array')) {
           return sql`EXISTS(
             SELECT * FROM (SELECT UNNEST AS "$" FROM UNNEST(${element})) AS ${{ identifier: tempName }}
             WHERE ${filter}

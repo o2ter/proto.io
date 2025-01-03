@@ -130,6 +130,13 @@ export const fetchElement = (
       },
     };
   }
+  if (parent.name.startsWith('_doller_num_expr_$') && field === '$') {
+    return {
+      element: sql`${{ identifier: parent.name }}.${{ identifier: '$' }}`,
+      dataType: 'number' as const,
+      relation: null,
+    };
+  }
   if (parent.name.startsWith('_doller_str_expr_$') && field === '$') {
     return {
       element: sql`${{ identifier: parent.name }}.${{ identifier: '$' }}`,

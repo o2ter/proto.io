@@ -663,6 +663,30 @@ test('test types 9', async () => {
 
 })
 
+test('test types 10', async () => {
+  const inserted = await Proto.Query('Test').insert({
+    vector: [1, 2, 3],
+    shape: {
+      vector: [1, 2, 3],
+    },
+  });
+
+  const q = Proto.Query('Test').equalTo('_id', inserted.objectId);
+
+  expect((await q.clone().every('vector', q => q.equalTo('$', 1)).first())?.objectId).toBeUndefined();
+  expect((await q.clone().every('vector', q => q.notEqualTo('$', 1)).first())?.objectId).toBeUndefined();
+
+  expect((await q.clone().every('shape.vector', q => q.equalTo('$', 1)).first())?.objectId).toBeUndefined();
+  expect((await q.clone().every('shape.vector', q => q.notEqualTo('$', 1)).first())?.objectId).toBeUndefined();
+
+  expect((await q.clone().some('vector', q => q.equalTo('$', 1)).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().some('vector', q => q.notEqualTo('$', 1)).first())?.objectId).toStrictEqual(inserted.objectId);
+
+  expect((await q.clone().some('shape.vector', q => q.equalTo('$', 1)).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().some('shape.vector', q => q.notEqualTo('$', 1)).first())?.objectId).toStrictEqual(inserted.objectId);
+
+})
+
 test('test update types', async () => {
   const date = new Date;
   const date2 = new Date;
