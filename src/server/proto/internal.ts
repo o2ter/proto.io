@@ -504,6 +504,6 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     this.excuteJob(proto);
   }
 
-  async excuteJob(proto: P) {
+  excuteJob(proto: P) {
   }
 }
