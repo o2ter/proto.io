@@ -1034,3 +1034,26 @@ test('test update types 8', async () => {
   expect((await q.clone().updateOne({ 'shape.date': { $set: null } }))?.get('shape.date')).toBeUndefined();
   expect((await q.clone().updateOne({ 'shape.array': { $set: null } }))?.get('shape.array')).toBeUndefined();
 })
+
+test('test update types 9', async () => {
+  const inserted = await Proto.Query('Test').insert({
+    stringArr: ['1', '2', '3'],
+    shape: {
+      stringArr: ['1', '2', '3'],
+    },
+  });
+
+  const q = Proto.Query('Test').equalTo('_id', inserted.objectId);
+
+  expect((await q.clone().updateOne({ stringArr: { $addToSet: ['2', '3', '4'] } }))?.get('stringArr')).toStrictEqual(['1', '2', '3', '4']);
+  expect((await q.clone().updateOne({ stringArr: { $push: ['4', '5'] } }))?.get('stringArr')).toStrictEqual(['1', '2', '3', '4', '4', '5']);
+  expect((await q.clone().updateOne({ stringArr: { $removeAll: ['4'] } }))?.get('stringArr')).toStrictEqual(['1', '2', '3', '5']);
+  expect((await q.clone().updateOne({ stringArr: { $popFirst: '1' } }))?.get('stringArr')).toStrictEqual(['2', '3', '5']);
+  expect((await q.clone().updateOne({ stringArr: { $popLast: '1' } }))?.get('stringArr')).toStrictEqual(['2', '3']);
+
+  expect((await q.clone().updateOne({ 'shape.stringArr': { $addToSet: ['2', '3', '4'] } }))?.get('shape.stringArr')).toStrictEqual(['1', '2', '3', '4']);
+  expect((await q.clone().updateOne({ 'shape.stringArr': { $push: ['4', '5'] } }))?.get('shape.stringArr')).toStrictEqual(['1', '2', '3', '4', '4', '5']);
+  expect((await q.clone().updateOne({ 'shape.stringArr': { $removeAll: ['4'] } }))?.get('shape.stringArr')).toStrictEqual(['1', '2', '3', '5']);
+  expect((await q.clone().updateOne({ 'shape.stringArr': { $popFirst: '1' } }))?.get('shape.stringArr')).toStrictEqual(['2', '3', '5']);
+  expect((await q.clone().updateOne({ 'shape.stringArr': { $popLast: '1' } }))?.get('shape.stringArr')).toStrictEqual(['2', '3']);
+})
