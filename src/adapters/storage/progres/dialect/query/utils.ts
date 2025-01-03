@@ -50,7 +50,7 @@ const _fetchElement = (
     }
   } else if (!_.isEmpty(subpath)) {
     const _subpath = sql`${_.map(subpath, x => sql`${{ quote: x.startsWith('$') ? `$${x}` : x }}`)}`;
-    if (dataType && _isTypeof(dataType, ['array', 'relation'])) {
+    if (dataType && _isTypeof(dataType, ['array', 'string[]', 'relation'])) {
       return {
         element: sql`jsonb_extract_path(to_jsonb(${element}), ${_subpath})`,
         json: true,
@@ -128,6 +128,13 @@ export const fetchElement = (
         target: dataType.target,
         populate,
       },
+    };
+  }
+  if (parent.name.startsWith('_doller_str_expr_$') && field === '$') {
+    return {
+      element: sql`${{ identifier: parent.name }}.${{ identifier: '$' }}`,
+      dataType: 'string' as const,
+      relation: null,
     };
   }
   const [colname, ...subpath] = _.toPath(field);
