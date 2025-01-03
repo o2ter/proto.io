@@ -1048,12 +1048,12 @@ test('test update types 9', async () => {
   expect((await q.clone().updateOne({ stringArr: { $addToSet: ['2', '3', '4'] } }))?.get('stringArr')).toStrictEqual(['1', '2', '3', '4']);
   expect((await q.clone().updateOne({ stringArr: { $push: ['4', '5'] } }))?.get('stringArr')).toStrictEqual(['1', '2', '3', '4', '4', '5']);
   expect((await q.clone().updateOne({ stringArr: { $removeAll: ['4'] } }))?.get('stringArr')).toStrictEqual(['1', '2', '3', '5']);
-  expect((await q.clone().updateOne({ stringArr: { $popFirst: '1' } }))?.get('stringArr')).toStrictEqual(['2', '3', '5']);
-  expect((await q.clone().updateOne({ stringArr: { $popLast: '1' } }))?.get('stringArr')).toStrictEqual(['2', '3']);
+  expect((await q.clone().updateOne({ stringArr: { $popFirst: 1 } }))?.get('stringArr')).toStrictEqual(['2', '3', '5']);
+  expect((await q.clone().updateOne({ stringArr: { $popLast: 1 } }))?.get('stringArr')).toStrictEqual(['2', '3']);
 
   expect((await q.clone().updateOne({ 'shape.stringArr': { $addToSet: ['2', '3', '4'] } }))?.get('shape.stringArr')).toStrictEqual(['1', '2', '3', '4']);
   expect((await q.clone().updateOne({ 'shape.stringArr': { $push: ['4', '5'] } }))?.get('shape.stringArr')).toStrictEqual(['1', '2', '3', '4', '4', '5']);
   expect((await q.clone().updateOne({ 'shape.stringArr': { $removeAll: ['4'] } }))?.get('shape.stringArr')).toStrictEqual(['1', '2', '3', '5']);
-  expect((await q.clone().updateOne({ 'shape.stringArr': { $popFirst: '1' } }))?.get('shape.stringArr')).toStrictEqual(['2', '3', '5']);
-  expect((await q.clone().updateOne({ 'shape.stringArr': { $popLast: '1' } }))?.get('shape.stringArr')).toStrictEqual(['2', '3']);
+  expect((await q.clone().updateOne({ 'shape.stringArr': { $popFirst: 1 } }))?.get('shape.stringArr')).toStrictEqual(['2', '3', '5']);
+  expect((await q.clone().updateOne({ 'shape.stringArr': { $popLast: 1 } }))?.get('shape.stringArr')).toStrictEqual(['2', '3']);
 })
