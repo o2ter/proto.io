@@ -513,8 +513,15 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
 
       while (true) {
 
+        const running = _.map(await proto.Query('_JobScope').find({ master: true }), x => x.get('scope'));
+        const availableJobs = _.pickBy(this.jobs, opt => {
+          if (_.isFunction(opt)) return true;
+          return _.intersection(opt.scopes ?? [], running).length === 0;
+        });
+
         const job = await proto.Query('_Job')
           .equalTo('status', 'pending')
+          .containsIn('name', _.keys(availableJobs))
           .includes('*', 'user')
           .sort({ _created_at: 1 })
           .first({ master: true });
@@ -522,14 +529,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
 
         const name = job.get('name');
         const opt = this.jobs?.[name];
-
-        if (_.isNil(opt)) {
-          job.set('status', 'failed');
-          job.set('error', { message: 'Job not found' });
-          job.set('completedAt', new Date());
-          await job.save({ master: true });
-          continue;
-        }
+        if (_.isNil(opt)) continue;
 
         try {
 
