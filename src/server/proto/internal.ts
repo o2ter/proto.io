@@ -443,8 +443,12 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
         payload => {
           const { _rperm } = payload as EventData;
           (async () => {
-            if (isMaster || _.some(await roles, x => _.includes(_rperm, x))) {
-              callback(payload as EventData);
+            try {
+              if (isMaster || _.some(await roles, x => _.includes(_rperm, x))) {
+                callback(payload as EventData);
+              }
+            } catch (e) {
+              console.error(e);
             }
           })();
         }
