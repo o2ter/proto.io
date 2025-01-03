@@ -530,6 +530,10 @@ class JobRunner<Ext, P extends ProtoService<Ext>> {
     const availableJobs = await this.getAvailableJobs(proto);
     return await proto.Query('_Job')
       .containsIn('name', availableJobs)
+      .or(
+        q => q.lessThan('startedAt', new Date(Date.now() - 1000 * 60 * 5)),
+        q => q.equalTo('startedAt', null),
+      )
       .equalTo('completedAt', null)
       .empty('locks')
       .includes('*', 'user')
