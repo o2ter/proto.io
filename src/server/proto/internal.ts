@@ -562,13 +562,13 @@ class JobRunner<Ext, P extends ProtoService<Ext>> {
   }
 
   private async finalizeJob(proto: P, job: TObject, status: string, error: any = null) {
-    await proto.Query('_JobScope').equalTo('job', job).deleteMany({ master: true });
     job.set('status', status);
     if (error) {
       job.set('error', _.pick(error, _.uniq(_.flatMap(prototypes(error), x => Object.getOwnPropertyNames(x)))));
     }
     job.set('completedAt', new Date());
     await job.save({ master: true });
+    await proto.Query('_JobScope').equalTo('job', job).deleteMany({ master: true });
   }
 
   async excuteJob(proto: P) {
