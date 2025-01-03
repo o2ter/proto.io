@@ -31,6 +31,7 @@ import { ProtoServiceKeyOptions, ProtoServiceOptions } from './server/proto/type
 import authHandler from './server/auth';
 import classesRoute from './server/routes/classes';
 import functionRoute from './server/routes/function';
+import jobRoute from './server/routes/job';
 import filesRoute from './server/routes/files';
 import userRoute from './server/routes/user';
 import notifyRoute from './server/routes/notify';
@@ -166,6 +167,7 @@ export const ProtoRoute = async <E>(options: {
 
   classesRoute(router, proto);
   functionRoute(router, proto);
+  jobRoute(router, proto);
   filesRoute(router, proto);
   userRoute(router, proto);
   notifyRoute(router, proto);
