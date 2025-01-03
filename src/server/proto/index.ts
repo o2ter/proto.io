@@ -269,6 +269,11 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
     this[PVK].functions[name] = options ? { callback, ...options } : callback;
   }
 
+  scheduleJob(name: string, params?: _TValue, options?: ExtraOptions<boolean>) {
+    const payload = Object.setPrototypeOf({ params }, this);
+    return this[PVK].scheduleJob(this, name, payload, options);
+  }
+
   defineJob(
     name: string,
     callback: ProtoJobFunction<Ext>,

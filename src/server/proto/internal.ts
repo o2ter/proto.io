@@ -477,6 +477,10 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     return storage.refs(object, classNames, options?.master ? undefined : roles);
   }
 
+  async scheduleJob(proto: P, name: string, payload: any, options?: ExtraOptions<boolean>) {
+
+  }
+
   async excuteJob(proto: P) {
   }
 }
