@@ -103,6 +103,7 @@ export const defaultSchema: Record<string, TSchema> = {
       user: { type: 'pointer', target: 'User' },
       startedAt: 'date',
       completedAt: 'date',
+      locks: { type: 'relation', target: '_JobScope', foreignField: 'job' },
     },
     classLevelPermissions: {
       get: [],
