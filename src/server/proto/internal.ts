@@ -563,13 +563,10 @@ class JobRunner<Ext, P extends ProtoService<Ext>> {
     await func(proxy(payload));
   }
 
-  private async finalizeJob(proto: P, job: TObject, error: any = null) {
-    if (error) {
-      job.set('error', _.pick(error, _.uniq(_.flatMap(prototypes(error), x => Object.getOwnPropertyNames(x)))));
-    }
+  private async finalizeJob(job: TObject, error: any = null) {
+    if (error) job.set('error', _.pick(error, _.uniq(_.flatMap(prototypes(error), x => Object.getOwnPropertyNames(x)))));
     job.set('completedAt', new Date());
     await job.save({ master: true });
-    await proto.Query('_JobScope').equalTo('job', job).deleteMany({ master: true });
   }
 
   async excuteJob(proto: P) {
@@ -596,7 +593,7 @@ class JobRunner<Ext, P extends ProtoService<Ext>> {
         const timer = setInterval(() => this.updateJobScope(proto, job), 1000 * 60);
         try {
           await this.executeJobFunction(proto, job, opt);
-          await this.finalizeJob(proto, job);
+          await this.finalizeJob(job);
         } catch (e) {
           clearInterval(timer);
           await this.finalizeJob(proto, job, e);
