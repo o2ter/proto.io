@@ -24,7 +24,7 @@
 //
 
 import { Awaitable } from '@o2ter/utils-js';
-import { EventData } from '../../internals/proto';
+import { _TValue } from '../../internals/types';
 
 /**
  * Interface for publish-subscribe operations.
@@ -32,18 +32,18 @@ import { EventData } from '../../internals/proto';
 export interface TPubSub {
 
   /**
-   * Subscribes to events.
+   * Subscribes to a channel.
+   * @param channel - The name of the channel to subscribe to.
    * @param callback - The callback function to handle the event data.
-   * @returns A function to unsubscribe from the events.
+   * @returns A function to unsubscribe from the channel.
    */
-  subscribe(
-    callback: (payload: EventData) => void
-  ): VoidFunction;
+  subscribe(channel: string, callback: (payload: _TValue) => void): VoidFunction;
 
   /**
-   * Publishes an event.
+   * Publishes an event to a channel.
+   * @param channel - The name of the channel to publish to.
    * @param payload - The event data to publish.
    * @returns A promise that resolves when the event is published.
    */
-  publish(payload: EventData): Awaitable<void>;
+  publish(channel: string, payload: _TValue): Awaitable<void>;
 }

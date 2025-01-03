@@ -48,6 +48,7 @@ import { PVK } from '../../internals/private';
 import { fetchUserPerms } from '../query/dispatcher';
 import { EventData } from '../../internals/proto';
 import { normalize } from '../utils';
+import { PROTO_NOTY_MSG } from '../../internals/const';
 
 const validateForeignField = (schema: Record<string, TSchema>, key: string, dataType: TSchema.RelationType) => {
   if (!dataType.foreignField) return;
@@ -58,7 +59,7 @@ const validateForeignField = (schema: Record<string, TSchema>, key: string, data
   if (foreignField.type === 'relation' && !_.isNil(foreignField.foreignField)) throw Error(`Invalid foreign field: ${key}`);
 }
 
-const validateShapedObject = (schema: Record<string, TSchema>, dataType: TSchema.ShapeType) => { 
+const validateShapedObject = (schema: Record<string, TSchema>, dataType: TSchema.ShapeType) => {
   for (const [key, type] of _.entries(dataType.shape)) {
     if (!key.match(QueryValidator.patterns.name)) throw Error(`Invalid field name: ${key}`);
     if (isShape(type)) {
@@ -422,26 +423,33 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     if (data._rperm && (!_.isArray(data._rperm) || !_.every(data._rperm, _.isString))) {
       throw Error('Invalid data type');
     }
-    return this.options.pubsub.publish({
-      ...data,
-      _id: this.generateId(),
-      _created_at: new Date(),
-      _rperm: data._rperm || ['*'],
-    });
+    return this.options.pubsub.publish(
+      PROTO_NOTY_MSG,
+      {
+        ...data,
+        _id: this.generateId(),
+        _created_at: new Date(),
+        _rperm: data._rperm || ['*'],
+      }
+    );
   }
 
   listen(proto: P, callback: (data: EventData) => void) {
     const isMaster = proto.isMaster;
     const roles = isMaster ? [] : this._perms(proto);
     return {
-      remove: this.options.pubsub.subscribe(payload => {
-        const { _rperm } = payload;
-        (async () => {
-          if (isMaster || _.some(await roles, x => _.includes(_rperm, x))) {
-            callback(payload);
+      remove: this.options.pubsub.subscribe(
+        PROTO_NOTY_MSG,
+        payload => {
+          const { _rperm } = payload as EventData;
+          (async () => {
+            if (isMaster || _.some(await roles, x => _.includes(_rperm, x))) {
+              callback(payload as EventData);
+            }
           }
-        })();
-      }),
+          )();
+        }
+      ),
     };
   }
 

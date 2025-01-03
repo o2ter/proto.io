@@ -212,14 +212,14 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
     }
   }
 
-  subscribe(callback: (payload: EventData) => void) {
+  subscribe(channel: string, callback: (payload: _TValue) => void) {
     const db = this._driver;
     if (!(db instanceof PostgresDriver)) throw Error('Invalid pubsub instance');
-    return db.subscribe(callback);
+    return db.subscribe(channel, callback);
   }
 
-  publish(payload: EventData) {
-    return this._driver.publish(payload);
+  publish(channel: string, payload: _TValue) {
+    return this._driver.publish(channel, payload);
   }
 
   _refs(
