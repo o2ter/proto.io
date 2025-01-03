@@ -44,11 +44,9 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
 
       await response(res, () => {
 
-        const payload = proto.connect(req, x => ({
-          params: null,
-        }));
+        const payload = proto.connect(req);
 
-        return payload[PVK].scheduleJob(payload, name, payload, { master: payload.isMaster });
+        return payload[PVK].scheduleJob(payload, name, null, { master: payload.isMaster });
       });
     }
   );
@@ -65,11 +63,10 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
 
       await response(res, () => {
 
-        const payload = proto.connect(req, x => ({
-          params: x.rebind(deserialize(req.body, { objAttrs: TObject.defaultReadonlyKeys })),
-        }));
+        const payload = proto.connect(req);
+        const params = payload.rebind(deserialize(req.body, { objAttrs: TObject.defaultReadonlyKeys }));
 
-        return payload[PVK].scheduleJob(payload, name, payload, { master: payload.isMaster });
+        return payload[PVK].scheduleJob(payload, name, params, { master: payload.isMaster });
       });
     }
   );
