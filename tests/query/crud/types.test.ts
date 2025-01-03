@@ -635,6 +635,30 @@ test('test types 8', async () => {
   expect((await q3.clone().notContainsIn('string', ['', null]).first())?.objectId).toStrictEqual(inserted3.objectId);
 })
 
+test('test types 9', async () => {
+  const inserted = await Proto.Query('Test').insert({
+    stringArr: ['hello', 'world'],
+    shape: {
+      stringArr: ['hello', 'world'],
+    },
+  });
+
+  const q = Proto.Query('Test').equalTo('_id', inserted.objectId);
+
+  expect((await q.clone().every('stringArr', q => q.every('$', q => q.equalTo('$', 'hello'))).first())?.objectId).toBeUndefined();
+  expect((await q.clone().every('stringArr', q => q.every('$', q => q.notEqualTo('$', 'hello'))).first())?.objectId).toBeUndefined();
+
+  expect((await q.clone().every('shape.stringArr', q => q.every('$', q => q.equalTo('$', 'hello'))).first())?.objectId).toBeUndefined();
+  expect((await q.clone().every('shape.stringArr', q => q.every('$', q => q.notEqualTo('$', 'hello'))).first())?.objectId).toBeUndefined();
+
+  expect((await q.clone().some('stringArr', q => q.some('$', q => q.equalTo('$', 'hello'))).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().some('stringArr', q => q.some('$', q => q.notEqualTo('$', 'hello'))).first())?.objectId).toStrictEqual(inserted.objectId);
+
+  expect((await q.clone().some('shape.stringArr', q => q.some('$', q => q.equalTo('$', 'hello'))).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().some('shape.stringArr', q => q.some('$', q => q.notEqualTo('$', 'hello'))).first())?.objectId).toStrictEqual(inserted.objectId);
+
+})
+
 test('test update types', async () => {
   const date = new Date;
   const date2 = new Date;
@@ -1009,28 +1033,4 @@ test('test update types 8', async () => {
   expect((await q.clone().updateOne({ 'shape.string': { $set: null } }))?.get('shape.string')).toBeUndefined();
   expect((await q.clone().updateOne({ 'shape.date': { $set: null } }))?.get('shape.date')).toBeUndefined();
   expect((await q.clone().updateOne({ 'shape.array': { $set: null } }))?.get('shape.array')).toBeUndefined();
-})
-
-test('test types 6', async () => {
-  const inserted = await Proto.Query('Test').insert({
-    stringArr: ['hello', 'world'],
-    shape: {
-      stringArr: ['hello', 'world'],
-    },
-  });
-
-  const q = Proto.Query('Test').equalTo('_id', inserted.objectId);
-
-  expect((await q.clone().every('stringArr', q => q.every('$', q => q.equalTo('$', 'hello'))).first())?.objectId).toBeUndefined();
-  expect((await q.clone().every('stringArr', q => q.every('$', q => q.notEqualTo('$', 'hello'))).first())?.objectId).toBeUndefined();
-
-  expect((await q.clone().every('shape.stringArr', q => q.every('$', q => q.equalTo('$', 'hello'))).first())?.objectId).toBeUndefined();
-  expect((await q.clone().every('shape.stringArr', q => q.every('$', q => q.notEqualTo('$', 'hello'))).first())?.objectId).toBeUndefined();
-
-  expect((await q.clone().some('stringArr', q => q.some('$', q => q.equalTo('$', 'hello'))).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().some('stringArr', q => q.some('$', q => q.notEqualTo('$', 'hello'))).first())?.objectId).toStrictEqual(inserted.objectId);
-
-  expect((await q.clone().some('shape.stringArr', q => q.some('$', q => q.equalTo('$', 'hello'))).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().some('shape.stringArr', q => q.some('$', q => q.notEqualTo('$', 'hello'))).first())?.objectId).toStrictEqual(inserted.objectId);
-
 })
