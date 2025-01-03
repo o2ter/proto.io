@@ -647,15 +647,19 @@ test('test types 9', async () => {
 
   expect((await q.clone().every('stringArr', q => q.equalTo('$', 'hello')).first())?.objectId).toBeUndefined();
   expect((await q.clone().every('stringArr', q => q.notEqualTo('$', 'hello')).first())?.objectId).toBeUndefined();
+  expect((await q.clone().every('stringArr', q => q.startsWith('$', 'hel')).first())?.objectId).toBeUndefined();
 
   expect((await q.clone().every('shape.stringArr', q => q.equalTo('$', 'hello')).first())?.objectId).toBeUndefined();
   expect((await q.clone().every('shape.stringArr', q => q.notEqualTo('$', 'hello')).first())?.objectId).toBeUndefined();
+  expect((await q.clone().every('shape.stringArr', q => q.startsWith('$', 'hel')).first())?.objectId).toBeUndefined();
 
   expect((await q.clone().some('stringArr', q => q.equalTo('$', 'hello')).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().some('stringArr', q => q.notEqualTo('$', 'hello')).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().some('stringArr', q => q.startsWith('$', 'hel')).first())?.objectId).toStrictEqual(inserted.objectId);
 
   expect((await q.clone().some('shape.stringArr', q => q.equalTo('$', 'hello')).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().some('shape.stringArr', q => q.notEqualTo('$', 'hello')).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().some('shape.stringArr', q => q.startsWith('$', 'hel')).first())?.objectId).toStrictEqual(inserted.objectId);
 
 })
 
