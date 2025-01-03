@@ -121,6 +121,9 @@ export const defaultSchema: Record<string, TSchema> = {
       completedAt: { create: [], update: [] },
       _expired_at: { create: [], update: [] },
     },
+    indexes: [
+      { keys: { completedAt: 1, _created_at: 1 } },
+    ],
   },
   '_JobScope': {
     fields: {
