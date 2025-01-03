@@ -480,7 +480,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
   async scheduleJob(proto: P, name: string, payload: any, options?: ExtraOptions<boolean>) {
 
     const func = this.jobs?.[name];
-    if (_.isNil(func)) throw Error('Function not found');
+    if (_.isNil(func)) throw Error('Job not found');
 
     const user = await proto.currentUser();
 
