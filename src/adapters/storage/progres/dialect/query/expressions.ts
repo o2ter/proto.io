@@ -121,6 +121,7 @@ const encodeJsonQueryExpression = (
         case 'number': return sql`to_jsonb(${element})`;
         case 'decimal': return sql`jsonb_build_object('$decimal', CAST(${element} AS TEXT))`;
         case 'string': return sql`to_jsonb(${element})`;
+        case 'string[]': return sql`to_jsonb(${element})`;
         case 'date': return sql`jsonb_build_object(
           '$date', to_char(${element} AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')
         )`;

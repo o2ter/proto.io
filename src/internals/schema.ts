@@ -50,7 +50,7 @@ export namespace TSchema {
   /**
    * Primitive data types.
    */
-  export type Primitive = 'boolean' | 'number' | 'decimal' | 'string' | 'date' | 'object' | 'array';
+  export type Primitive = 'boolean' | 'number' | 'decimal' | 'string' | 'string[]' | 'date' | 'object' | 'array';
 
   /**
    * Primitive type with an optional default value.
@@ -233,6 +233,10 @@ export namespace TSchema {
   };
 }
 
+export const _isTypeof = (x: TSchema.DataType, types: string | string[]) => {
+  if (_.isString(x)) return _.includes(_.castArray(types), x);
+  return _.includes(_.castArray(types), x.type);
+};
 export const isPrimitive = (x: TSchema.DataType): x is TSchema.PrimitiveType => _.isString(x) || (x.type !== 'pointer' && x.type !== 'relation' && x.type !== 'shape');
 export const isVector = (x: TSchema.DataType): x is TSchema.VectorType => !_.isString(x) && x.type === 'vector';
 export const dimensionOf = (x: TSchema.DataType) => isVector(x) ? x.dimension : 0;
@@ -287,8 +291,8 @@ export const defaultObjectKeyTypes: Record<string, TSchema.DataType> = {
   _created_at: 'date',
   _updated_at: 'date',
   _expired_at: 'date',
-  _rperm: 'array',
-  _wperm: 'array',
+  _rperm: 'string[]',
+  _wperm: 'string[]',
 };
 
 export const defaultObjectReadonlyKeys = ['_id', '__v', '__i', '_created_at', '_updated_at'];

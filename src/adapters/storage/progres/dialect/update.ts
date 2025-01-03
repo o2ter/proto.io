@@ -25,9 +25,8 @@
 
 import _ from 'lodash';
 import { SQL, sql } from '../../sql/sql';
-import { TSchema, isVector } from '../../../../internals/schema';
+import { TSchema, _isTypeof, isVector } from '../../../../internals/schema';
 import { _encodeJsonValue } from './encode';
-import { stringArrayAttrs } from './basic';
 import { encodeType } from './encode';
 import { nullSafeEqual } from './basic';
 import Decimal from 'decimal.js';
@@ -73,7 +72,7 @@ export const updateOperation = (paths: string[], dataType: TSchema.DataType, ope
       case '$min': return sql`LEAST(${{ identifier: column }}, ${encodeType(column, dataType, value)})`;
       default: break;
     }
-    if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
+    if (dataType && _isTypeof(dataType, ['array', 'string[]'])) {
       switch (op) {
         case '$popFirst':
           if (!_.isNumber(value) || !_.isSafeInteger(value) || value < 0) break;
@@ -83,7 +82,7 @@ export const updateOperation = (paths: string[], dataType: TSchema.DataType, ope
           return sql`${{ identifier: column }}[:array_length(${{ identifier: column }}, 1) - ${{ literal: `${value}` }}]`;
         default:
           {
-            const isStringArray = _.includes(stringArrayAttrs, column);
+            const isStringArray = dataType === 'string[]';
             if (!_.isArray(value)) break;
             if (isStringArray && !_.every(value, x => _.isString(x))) break;
             switch (op) {
@@ -139,7 +138,7 @@ export const updateOperation = (paths: string[], dataType: TSchema.DataType, ope
     let element = sql`${{ identifier: column }}`;
     const _subpath = sql`${_.map(subpath, x => sql`${{ quote: x.startsWith('$') ? `$${x}` : x }}`)}`;
     let updateKey: (value: SQL) => SQL;
-    if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
+    if (dataType && _isTypeof(dataType, ['array', 'string[]'])) {
       element = sql`jsonb_extract_path(to_jsonb(${element}), ${_subpath})`;
       updateKey = (value: SQL) => sql`ARRAY(SELECT * FROM jsonb_array_elements(
         jsonb_set(to_jsonb(${{ identifier: column }}), ARRAY[${_subpath}], ${value})

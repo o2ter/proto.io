@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { SQL, sql } from '../../../sql';
 import { Populate, QueryCompiler } from '../../../sql/compiler';
-import { TSchema, isPointer, isRelation, isVector } from '../../../../../internals/schema';
+import { TSchema, _isTypeof, isPointer, isRelation, isVector } from '../../../../../internals/schema';
 import { QueryValidator, resolveColumn } from '../../../../../server/query/dispatcher/validator';
 
 const _fetchElement = (
@@ -50,7 +50,7 @@ const _fetchElement = (
     }
   } else if (!_.isEmpty(subpath)) {
     const _subpath = sql`${_.map(subpath, x => sql`${{ quote: x.startsWith('$') ? `$${x}` : x }}`)}`;
-    if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'relation'))) {
+    if (dataType && _isTypeof(dataType, ['array', 'relation'])) {
       return {
         element: sql`jsonb_extract_path(to_jsonb(${element}), ${_subpath})`,
         json: true,

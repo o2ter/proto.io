@@ -29,8 +29,6 @@ import { SQL, sql } from '../../sql/sql';
 import { QueryCompiler } from '../../sql/compiler';
 import { fetchElement } from './query/utils';
 
-export const stringArrayAttrs = ['_rperm', '_wperm'];
-
 export const nullSafeEqual = () => sql`IS NOT DISTINCT FROM`;
 export const nullSafeNotEqual = () => sql`IS DISTINCT FROM`;
 
