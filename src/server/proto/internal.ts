@@ -194,7 +194,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
 
   async run(proto: P, name: string, payload: any, options?: ExtraOptions<boolean>) {
 
-    const func = this.functions?.[name];
+    const func = this.functions[name];
 
     if (_.isNil(func)) throw Error('Function not found');
     if (_.isFunction(func)) return func(proxy(payload ?? proto));
@@ -481,7 +481,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
 
   async scheduleJob(proto: P, name: string, params: any, options?: ExtraOptions<boolean>) {
 
-    const opt = this.jobs?.[name];
+    const opt = this.jobs[name];
     if (_.isNil(opt)) throw Error('Job not found');
 
     const user = await proto.currentUser();
@@ -583,7 +583,7 @@ class JobRunner<Ext, P extends ProtoService<Ext>> {
       if (!job) break;
 
       const name = job.get('name');
-      const opt = proto[PVK].jobs?.[name];
+      const opt = proto[PVK].jobs[name];
       if (_.isNil(opt)) continue;
 
       try {
