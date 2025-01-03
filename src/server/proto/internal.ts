@@ -526,7 +526,7 @@ class JobRunner<Ext, P extends ProtoService<Ext>> {
   private async getNextJob(proto: P) {
     const availableJobs = await this.getAvailableJobs(proto);
     return await proto.Query('_Job')
-      .equalTo('status', ['pending', 'started'])
+      .containsIn('status', ['pending', 'started'])
       .containsIn('name', availableJobs)
       .empty('locks')
       .includes('*', 'user')
