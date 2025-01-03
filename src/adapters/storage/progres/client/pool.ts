@@ -60,6 +60,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
       case 'number': return 'DOUBLE PRECISION';
       case 'decimal': return 'DECIMAL';
       case 'string': return 'TEXT';
+      case 'string[]': return 'TEXT[]';
       case 'date': return 'TIMESTAMP(3) WITH TIME ZONE';
       case 'object': return 'JSONB';
       case 'array': return 'JSONB[]';

@@ -26,7 +26,6 @@
 import _ from 'lodash';
 import { SQL, sql } from '../../sql';
 import { TSchema, _typeof, dimensionOf } from '../../../../internals/schema';
-import { stringArrayAttrs } from './basic';
 import Decimal from 'decimal.js';
 import { _decodeValue, _encodeValue } from '../../../../internals/object';
 import { TValue } from '../../../../internals/types';
@@ -74,6 +73,9 @@ export const encodeType = (colname: string, dataType: TSchema.DataType, value: T
     case 'string':
       if (_.isString(value)) return sql`${{ value }}`;
       break;
+    case 'string[]':
+      if (_.isArray(value) && _.every(value, x => _.isString(x))) return sql`ARRAY[${_.map(value, x => sql`${{ value: x }}`)}]::TEXT[]`;
+      break;
     case 'date':
       if (_.isDate(value)) return sql`${{ value }}`;
       break;
@@ -86,10 +88,6 @@ export const encodeType = (colname: string, dataType: TSchema.DataType, value: T
       return sql`${{ value }}::DOUBLE PRECISION[]`;
     case 'array':
       if (!_.isArray(value)) break;
-      if (_.includes(stringArrayAttrs, colname)) {
-        if (!_.every(value, x => _.isString(x))) break;
-        return sql`ARRAY[${_.map(value, x => sql`${{ value: x }}`)}]::TEXT[]`;
-      }
       return sql`ARRAY[${_.map(value, x => _encodeJsonValue(_encodeValue(x)))}]::JSONB[]`;
     case 'pointer':
       if (value instanceof TObject && value.objectId) return sql`${{ value: `${value.className}$${value.objectId}` }}`;
@@ -126,6 +124,9 @@ export const decodeType = (type: TSchema.Primitive | 'vector', value: any): TVal
       break;
     case 'string':
       if (_.isString(value)) return value;
+      break;
+    case 'string[]':
+      if (_.isArray(value) && _.every(value, x => _.isString(x))) return value;
       break;
     case 'date':
       if (_.isDate(value)) return value;

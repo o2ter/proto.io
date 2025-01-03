@@ -185,7 +185,7 @@ export class QueryValidator<E> {
     const { paths: [_colname, ...subpath], dataType } = resolveColumn(this.schema, className, _key);
     const isElem = _.first(subpath)?.match(QueryValidator.patterns.digits);
     if (isElem) {
-      if (dataType === 'array') return true;
+      if (dataType === 'array' || dataType === 'string[]') return true;
       if (!_.isString(dataType) && dataType.type !== 'relation') return false;
     }
 

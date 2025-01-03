@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { SQL, sql } from '../../../sql';
-import { _typeof, isPrimitive } from '../../../../../internals/schema';
+import { _isTypeof, _typeof, isPrimitive } from '../../../../../internals/schema';
 import { Populate, QueryCompiler } from '../../../sql/compiler';
 import { FieldSelectorExpression, QuerySelector } from '../../../../../server/query/dispatcher/parser';
 import { _encodeJsonValue } from '../encode';
@@ -91,6 +91,9 @@ export const encodeFieldExpression = (
               return sql`${element} ${{ literal: op }} ${encodeValue(expr.value)}`;
             case 'string':
               if (!_.isString(expr.value)) break;
+              return sql`${element} ${{ literal: op }} ${encodeValue(expr.value)}`;
+            case 'string[]':
+              if (!_.isArray(expr.value) || !_.every(expr.value, _.isString)) break;
               return sql`${element} ${{ literal: op }} ${encodeValue(expr.value)}`;
             case 'date':
               if (!_.isDate(expr.value)) break;
@@ -200,7 +203,7 @@ export const encodeFieldExpression = (
             default: break;
           }
         }
-        if (dataType === 'array' || (!_.isString(dataType) && dataType?.type === 'array')) {
+        if (dataType && _isTypeof(dataType, ['array', 'string[]'])) {
           return sql`${element} ${{ literal: op }} ${{ value: _encodeValue(expr.value) }}`;
         }
         if (relation && parent.className) {
@@ -224,7 +227,7 @@ export const encodeFieldExpression = (
       }
     case '$pattern':
       {
-        if (dataType === 'string' || (!_.isString(dataType) && dataType?.type === 'string')) {
+        if (dataType && _isTypeof(dataType, 'string')) {
           if (_.isString(expr.value)) {
             return sql`${element} LIKE ${{ value: `%${expr.value.replace(/([\\_%])/g, '\\$1')}%` }}`;
           }
@@ -246,7 +249,7 @@ export const encodeFieldExpression = (
     case '$starts':
       {
         if (!_.isString(expr.value)) break;
-        if (dataType === 'string' || (!_.isString(dataType) && dataType?.type === 'string')) {
+        if (dataType && _isTypeof(dataType, 'string')) {
           return sql`${element} LIKE ${{ value: `${expr.value.replace(/([\\_%])/g, '\\$1')}%` }}`;
         }
         if (!dataType) {
@@ -257,7 +260,7 @@ export const encodeFieldExpression = (
     case '$ends':
       {
         if (!_.isString(expr.value)) break;
-        if (dataType === 'string' || (!_.isString(dataType) && dataType?.type === 'string')) {
+        if (dataType && _isTypeof(dataType, 'string')) {
           return sql`${element} LIKE ${{ value: `%${expr.value.replace(/([\\_%])/g, '\\$1')}` }}`;
         }
         if (!dataType) {
@@ -268,10 +271,10 @@ export const encodeFieldExpression = (
     case '$size':
       {
         if (!_.isNumber(expr.value) || !_.isSafeInteger(expr.value)) break;
-        if (dataType === 'string' || (!_.isString(dataType) && dataType?.type === 'string')) {
+        if (dataType && _isTypeof(dataType, 'string')) {
           return sql`COALESCE(length(${element}), 0) = ${{ value: expr.value }}`;
         }
-        if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'vector' || dataType?.type === 'relation'))) {
+        if (dataType && _isTypeof(dataType, ['array', 'string[]', 'vector', 'relation'])) {
           return sql`COALESCE(array_length(${element}, 1), 0) = ${{ value: expr.value }}`;
         }
         if (!dataType) {
@@ -288,10 +291,10 @@ export const encodeFieldExpression = (
     case '$empty':
       {
         if (!_.isBoolean(expr.value)) break;
-        if (dataType === 'string' || (!_.isString(dataType) && dataType?.type === 'string')) {
+        if (dataType && _isTypeof(dataType, 'string')) {
           return sql`COALESCE(length(${element}), 0) ${{ literal: expr.value ? '=' : '<>' }} 0`;
         }
-        if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'vector' || dataType?.type === 'relation'))) {
+        if (dataType && _isTypeof(dataType, ['array', 'string[]', 'vector', 'relation'])) {
           return sql`COALESCE(array_length(${element}, 1), 0) ${{ literal: expr.value ? '=' : '<>' }} 0`;
         }
         if (!dataType) {
@@ -316,7 +319,8 @@ export const encodeFieldExpression = (
             className: relation.target,
             populates: relation.populate.populates,
           }, expr.value);
-          if (!filter) break;
+          if (!filter) throw Error('Invalid expression');
+
           const populate = _selectRelationPopulate(compiler, { className: parent.className, name: parent.name }, relation.populate, `$${field}`, false);
           return sql`NOT EXISTS(
             SELECT * FROM (${populate}) AS ${{ identifier: tempName }}
@@ -324,11 +328,28 @@ export const encodeFieldExpression = (
           )`;
         }
 
+        const mapping = {
+          'vector': '_doller_num_expr_$',
+          'string[]': '_doller_str_expr_$',
+        };
+        for (const [key, value] of _.entries(mapping)) {
+          if (dataType && _isTypeof(dataType, key)) {
+            const tempName = `${value}${compiler.nextIdx()}`;
+            const filter = compiler._encodeFilter({ name: tempName, className: relation?.target }, expr.value);
+            if (!filter) throw Error('Invalid expression');
+
+            return sql`NOT EXISTS(
+              SELECT * FROM (SELECT UNNEST AS "$" FROM UNNEST(${element})) AS ${{ identifier: tempName }}
+              WHERE NOT (${filter})
+            )`;
+          }
+        }
+
         const tempName = `_doller_expr_$${compiler.nextIdx()}`;
         const filter = compiler._encodeFilter({ name: tempName, className: relation?.target }, expr.value);
-        if (!filter) break;
+        if (!filter) throw Error('Invalid expression');
 
-        if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'vector'))) {
+        if (dataType && _isTypeof(dataType, 'array')) {
           return sql`NOT EXISTS(
             SELECT * FROM (SELECT UNNEST AS "$" FROM UNNEST(${element})) AS ${{ identifier: tempName }}
             WHERE NOT (${filter})
@@ -352,8 +373,9 @@ export const encodeFieldExpression = (
             name: tempName,
             className: relation.target,
             populates: relation.populate.populates,
-           }, expr.value);
-          if (!filter) break;
+          }, expr.value);
+          if (!filter) throw Error('Invalid expression');
+
           const populate = _selectRelationPopulate(compiler, { className: parent.className, name: parent.name }, relation.populate, `$${field}`, false);
           return sql`EXISTS(
             SELECT * FROM (${populate}) AS ${{ identifier: tempName }}
@@ -361,11 +383,28 @@ export const encodeFieldExpression = (
           )`;
         }
 
+        const mapping = {
+          'vector': '_doller_num_expr_$',
+          'string[]': '_doller_str_expr_$',
+        };
+        for (const [key, value] of _.entries(mapping)) {
+          if (dataType && _isTypeof(dataType, key)) {
+            const tempName = `${value}${compiler.nextIdx()}`;
+            const filter = compiler._encodeFilter({ name: tempName, className: relation?.target }, expr.value);
+            if (!filter) throw Error('Invalid expression');
+
+            return sql`EXISTS(
+              SELECT * FROM (SELECT UNNEST AS "$" FROM UNNEST(${element})) AS ${{ identifier: tempName }}
+              WHERE ${filter}
+            )`;
+          }
+        }
+
         const tempName = `_doller_expr_$${compiler.nextIdx()}`;
         const filter = compiler._encodeFilter({ name: tempName, className: relation?.target }, expr.value);
-        if (!filter) break;
+        if (!filter) throw Error('Invalid expression');
 
-        if (dataType === 'array' || (!_.isString(dataType) && (dataType?.type === 'array' || dataType?.type === 'vector'))) {
+        if (dataType && _isTypeof(dataType, 'array')) {
           return sql`EXISTS(
             SELECT * FROM (SELECT UNNEST AS "$" FROM UNNEST(${element})) AS ${{ identifier: tempName }}
             WHERE ${filter}
