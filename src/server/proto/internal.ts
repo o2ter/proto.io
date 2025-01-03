@@ -520,20 +520,26 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
           .first({ master: true });
         if (!job) break;
 
+        const name = job.get('name');
+        const opt = this.jobs?.[name];
+        if (_.isNil(opt)) throw Error('Job not found');
+
         try {
-
-          const name = job.get('name');
-          const opt = this.jobs?.[name];
-          if (_.isNil(opt)) throw Error('Job not found');
-
-          const params = job.get('data');
-          const payload = Object.setPrototypeOf({ params, user: job.get('user'), job }, this);
 
           const scopes = _.isFunction(opt) ? [] : opt.scopes ?? [];
 
           job.set('status', 'started');
           job.set('startedAt', new Date());
           await job.save({ master: true });
+
+        } catch (e) {
+
+        }
+
+        try {
+
+          const params = job.get('data');
+          const payload = Object.setPrototypeOf({ params, user: job.get('user'), job }, this);
 
           const func = _.isFunction(opt) ? opt : opt.callback;
           await func(proxy(payload));
