@@ -551,7 +551,9 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
         }
 
         const timer = setInterval(() => {
-          proto.Query('_JobScope').equalTo('job', job).updateOne({}, { master: true });
+          try {
+            proto.Query('_JobScope').equalTo('job', job).updateOne({}, { master: true });
+          } catch (e) { }
         }, 1000 * 60);
 
         try {
