@@ -475,4 +475,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     const storage = _serviceOf(options)?.storage ?? this.options.storage;
     return storage.refs(object, classNames, options?.master ? undefined : roles);
   }
+
+  async excuteJob(proto: P) {
+  }
 }

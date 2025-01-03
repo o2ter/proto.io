@@ -25,12 +25,16 @@
 
 import _ from 'lodash';
 import { ProtoService } from './proto';
+import { PVK } from '../internals/private';
 
 const scheduleOp = {
   expireDocument: async (proto: ProtoService<any>) => {
     await proto.gc();
-  }
-}
+  },
+  excuteJob: async (proto: ProtoService<any>) => {
+    await proto[PVK].excuteJob(proto);
+  },
+};
 
 export type ScheduleOp = keyof typeof scheduleOp;
 
