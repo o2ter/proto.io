@@ -479,6 +479,29 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
 
   async scheduleJob(proto: P, name: string, payload: any, options?: ExtraOptions<boolean>) {
 
+    const func = this.jobs?.[name];
+    if (_.isNil(func)) throw Error('Function not found');
+
+    const user = await proto.currentUser();
+
+    if (!_.isFunction(func)) {
+      const roles = await proto.currentRoles();
+      const { validator } = func;
+      if (!options?.master) {
+        if (!!validator?.requireUser && !user) throw Error('No permission');
+        if (!!validator?.requireMaster) throw Error('No permission');
+        if (_.isArray(validator?.requireAnyUserRoles) && !_.some(validator?.requireAnyUserRoles, x => _.includes(roles, x))) throw Error('No permission');
+        if (_.isArray(validator?.requireAllUserRoles) && _.some(validator?.requireAllUserRoles, x => !_.includes(roles, x))) throw Error('No permission');
+      }
+    }
+
+    const obj = proto.Object('_Job');
+    obj.set('name', name);
+    obj.set('data', payload);
+    obj.set('user', user);
+    await obj.save({ master: true });
+
+    this.excuteJob(proto);
   }
 
   async excuteJob(proto: P) {
