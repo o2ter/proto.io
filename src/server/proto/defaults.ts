@@ -97,7 +97,7 @@ export const defaultSchema: Record<string, TSchema> = {
   '_Job': {
     fields: {
       data: 'object',
-      scope: 'array',
+      scope: 'string[]',
       status: { type: 'string', default: 'pending' },
       startedAt: 'date',
       completedAt: 'date',
