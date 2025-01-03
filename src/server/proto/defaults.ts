@@ -99,7 +99,6 @@ export const defaultSchema: Record<string, TSchema> = {
       name: 'string',
       data: 'object',
       error: 'object',
-      status: { type: 'string', default: 'pending' },
       user: { type: 'pointer', target: 'User' },
       startedAt: 'date',
       completedAt: 'date',
@@ -117,15 +116,11 @@ export const defaultSchema: Record<string, TSchema> = {
       name: { update: [] },
       data: { update: [] },
       error: { update: [] },
-      status: { update: [] },
       user: { update: [] },
       startedAt: { create: [], update: [] },
       completedAt: { create: [], update: [] },
       _expired_at: { create: [], update: [] },
     },
-    indexes: [
-      { keys: { status: 1 } },
-    ],
   },
   '_JobScope': {
     fields: {

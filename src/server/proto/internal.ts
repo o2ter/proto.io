@@ -526,8 +526,8 @@ class JobRunner<Ext, P extends ProtoService<Ext>> {
   private async getNextJob(proto: P) {
     const availableJobs = await this.getAvailableJobs(proto);
     return await proto.Query('_Job')
-      .containsIn('status', ['pending', 'started'])
       .containsIn('name', availableJobs)
+      .equalTo('completedAt', null)
       .empty('locks')
       .includes('*', 'user')
       .sort({ _created_at: 1 })
@@ -542,7 +542,6 @@ class JobRunner<Ext, P extends ProtoService<Ext>> {
         obj.set('job', job);
         await obj.save({ master: true });
       }
-      job.set('status', 'started');
       job.set('startedAt', new Date());
       await job.save({ master: true });
     });
@@ -561,8 +560,7 @@ class JobRunner<Ext, P extends ProtoService<Ext>> {
     await func(proxy(payload));
   }
 
-  private async finalizeJob(proto: P, job: TObject, status: string, error: any = null) {
-    job.set('status', status);
+  private async finalizeJob(proto: P, job: TObject, error: any = null) {
     if (error) {
       job.set('error', _.pick(error, _.uniq(_.flatMap(prototypes(error), x => Object.getOwnPropertyNames(x)))));
     }
@@ -595,10 +593,10 @@ class JobRunner<Ext, P extends ProtoService<Ext>> {
         const timer = setInterval(() => this.updateJobScope(proto, job), 1000 * 60);
         try {
           await this.executeJobFunction(proto, job, opt);
-          await this.finalizeJob(proto, job, 'completed');
+          await this.finalizeJob(proto, job);
         } catch (e) {
           clearInterval(timer);
-          await this.finalizeJob(proto, job, 'failed', e);
+          await this.finalizeJob(proto, job, e);
         } 
         this.excuteJob(proto);
       })();
