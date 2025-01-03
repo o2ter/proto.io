@@ -84,7 +84,7 @@ export const schema = _.assign((x: Record<string, TSchema>) => x, {
    * @param defaultValue - The default value for the string array.
    * @returns The string array schema.
    */
-  stringArray: (defaultValue?: string) => ({ type: 'string[]', default: defaultValue }) as const,
+  stringArray: (defaultValue?: string[]) => ({ type: 'string[]', default: defaultValue }) as const,
 
   /**
    * Defines a date schema.
