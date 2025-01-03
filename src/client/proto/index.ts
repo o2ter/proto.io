@@ -86,6 +86,18 @@ export class ProtoClient<Ext = any> extends ProtoType<Ext> {
     });
   }
 
+  async scheduleJob(
+    name: string,
+    data?: _TValue,
+    options?: RequestOptions<boolean>
+  ) {
+    await this[PVK].request(this, data, {
+      method: 'post',
+      url: `jobs/${encodeURIComponent(name)}`,
+      ...(options ?? {})
+    });
+  }
+
   setSessionToken(token?: string) {
     this[PVK].setSessionToken(this, token);
   }
