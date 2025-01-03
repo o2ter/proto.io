@@ -522,6 +522,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
         const job = await proto.Query('_Job')
           .equalTo('status', 'pending')
           .containsIn('name', _.keys(availableJobs))
+          .empty('locks')
           .includes('*', 'user')
           .sort({ _created_at: 1 })
           .first({ master: true });
