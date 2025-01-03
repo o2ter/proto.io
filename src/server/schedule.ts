@@ -32,7 +32,7 @@ const scheduleOp = {
     await proto.gc();
   },
   excuteJob: async (proto: ProtoService<any>) => {
-    proto[PVK].excuteJob(proto);
+    proto[PVK].jobRunner.excuteJob(proto);
   },
 };
 

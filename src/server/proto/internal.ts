@@ -503,10 +503,6 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     obj.set('user', user);
     await obj.save({ master: true });
 
-    this.excuteJob(proto);
-  }
-
-  excuteJob(proto: P) {
     this.jobRunner.excuteJob(proto);
   }
 }
@@ -604,7 +600,8 @@ class JobRunner<Ext, P extends ProtoService<Ext>> {
         } catch (e) {
           clearInterval(timer);
           await this.finalizeJob(proto, job, 'failed', e);
-        }
+        } 
+        this.excuteJob(proto);
       })();
     }
 
