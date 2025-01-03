@@ -518,8 +518,7 @@ class JobRunner<Ext, P extends ProtoService<Ext>> {
   private async getAvailableJobs(proto: P) {
     const running = _.map(await proto.Query('_JobScope').find({ master: true }), x => x.get('scope'));
     const availableJobs = _.pickBy(proto[PVK].jobs, opt => {
-      if (_.isFunction(opt)) return true;
-      return _.intersection(opt.scopes ?? [], running).length === 0;
+      return _.isFunction(opt) || _.isEmpty(_.intersection(opt.scopes ?? [], running));
     });
     return _.keys(availableJobs);
   }
