@@ -522,7 +522,14 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
 
         const name = job.get('name');
         const opt = this.jobs?.[name];
-        if (_.isNil(opt)) throw Error('Job not found');
+
+        if (_.isNil(opt)) {
+          job.set('status', 'failed');
+          job.set('error', { message: 'Job not found' });
+          job.set('completedAt', new Date());
+          await job.save({ master: true });
+          continue;
+        }
 
         try {
 
