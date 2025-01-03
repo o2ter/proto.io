@@ -98,6 +98,7 @@ export const defaultSchema: Record<string, TSchema> = {
     fields: {
       name: 'string',
       data: 'object',
+      error: 'object',
       status: { type: 'string', default: 'pending' },
       user: { type: 'pointer', target: 'User' },
       startedAt: 'date',

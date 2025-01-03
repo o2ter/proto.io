@@ -36,7 +36,7 @@ import { resolveDataType, QueryValidator } from '../query/dispatcher/validator';
 import { passwordHash, varifyPassword } from '../crypto/password';
 import { proxy } from './proxy';
 import { ProtoService } from '.';
-import { base64ToBuffer, isBinaryData } from '@o2ter/utils-js';
+import { base64ToBuffer, isBinaryData, prototypes } from '@o2ter/utils-js';
 import { ProtoInternalType } from '../../internals/proto';
 import { TObject } from '../../internals/object';
 import { _TValue } from '../../internals/types';
@@ -538,9 +538,10 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
 
         } catch (e) {
 
-          console.error(e);
+          job.set('error', _.pick(e, _.uniq(_.flatMap(prototypes(e), x => Object.getOwnPropertyNames(x)))));
           job.set('status', 'failed');
           job.set('completedAt', new Date());
+
           await job.save({ master: true });
         }
       }
