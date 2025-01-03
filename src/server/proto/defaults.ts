@@ -96,6 +96,7 @@ export const defaultSchema: Record<string, TSchema> = {
   },
   '_Job': {
     fields: {
+      name: 'string',
       data: 'object',
       scope: 'string[]',
       status: { type: 'string', default: 'pending' },
@@ -110,9 +111,11 @@ export const defaultSchema: Record<string, TSchema> = {
       delete: [],
     },
     fieldLevelPermissions: {
+      name: { update: [] },
       data: { update: [] },
       scope: { update: [] },
       status: { update: [] },
+      user: { update: [] },
       startedAt: { create: [], update: [] },
       completedAt: { create: [], update: [] },
       _expired_at: { create: [], update: [] },
