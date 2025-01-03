@@ -40,7 +40,7 @@ import { TValue, _TValue } from '../types';
 import { TObject } from '../object';
 import { TSerializable } from '../../common/codec';
 import { TUser } from '../object/user';
-import { ProtoFunction, ProtoFunctionOptions } from './types';
+import { ProtoFunction, ProtoFunctionOptions, ProtoJobFunction, ProtoJobFunctionOptions } from './types';
 import { Socket } from 'socket.io-client';
 import { Session } from '../../server/proto/session';
 import { asyncStream } from '@o2ter/utils-js';
@@ -134,6 +134,8 @@ export abstract class ProtoType<Ext> {
    * @returns A promise that resolves to the result of the function.
    */
   abstract run(name: string, data?: TSerializable, options?: ExtraOptions<boolean>): Promise<void | TSerializable>;
+
+  abstract scheduleJob(name: string, params?: _TValue, options?: ExtraOptions<boolean>): Promise<void>;
 
   /**
    * Creates a query.
@@ -335,6 +337,12 @@ export interface ProtoType<Ext> {
     name: string,
     callback: ProtoFunction<Ext>,
     options?: Omit<ProtoFunctionOptions<Ext>, 'callback'>,
+  ): void;
+
+  defineJob(
+    name: string,
+    callback: ProtoJobFunction<Ext>,
+    options?: Omit<ProtoJobFunctionOptions<Ext>, 'callback'>,
   ): void;
 
   /**

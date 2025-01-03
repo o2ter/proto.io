@@ -105,8 +105,10 @@ export const defaultSchema: Record<string, TSchema> = {
       completedAt: 'date',
     },
     classLevelPermissions: {
+      get: [],
       find: [],
       count: [],
+      create: [],
       update: [],
       delete: [],
     },
@@ -130,8 +132,10 @@ export const defaultSchema: Record<string, TSchema> = {
       job: { type: 'pointer', target: '_Job' },
     },
     classLevelPermissions: {
+      get: [],
       find: [],
       count: [],
+      create: [],
       update: [],
       delete: [],
     },
