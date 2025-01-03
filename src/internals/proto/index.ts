@@ -135,6 +135,13 @@ export abstract class ProtoType<Ext> {
    */
   abstract run(name: string, data?: TSerializable, options?: ExtraOptions<boolean>): Promise<void | TSerializable>;
 
+  /**
+   * Schedules a job.
+   * @param name - The name of the job to schedule.
+   * @param params - The parameters to pass to the job.
+   * @param options - Additional options for scheduling the job.
+   * @returns A promise that resolves when the job is scheduled.
+   */
   abstract scheduleJob(name: string, params?: _TValue, options?: ExtraOptions<boolean>): Promise<void>;
 
   /**
@@ -339,6 +346,12 @@ export interface ProtoType<Ext> {
     options?: Omit<ProtoFunctionOptions<Ext>, 'callback'>,
   ): void;
 
+  /**
+   * Defines a new job function.
+   * @param name - The name of the job function.
+   * @param callback - The job function callback.
+   * @param options - Optional job function options excluding the callback.
+   */
   defineJob(
     name: string,
     callback: ProtoJobFunction<Ext>,
