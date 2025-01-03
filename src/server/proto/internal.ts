@@ -596,15 +596,16 @@ class JobRunner<Ext, P extends ProtoService<Ext>> {
         continue;
       }
 
-      const timer = setInterval(() => this.updateJobScope(proto, job), 1000 * 60);
-
-      try {
-        await this.executeJobFunction(proto, job, opt);
-        await this.finalizeJob(proto, job, 'completed');
-      } catch (e) {
-        clearInterval(timer);
-        await this.finalizeJob(proto, job, 'failed', e);
-      }
+      (async () => {
+        const timer = setInterval(() => this.updateJobScope(proto, job), 1000 * 60);
+        try {
+          await this.executeJobFunction(proto, job, opt);
+          await this.finalizeJob(proto, job, 'completed');
+        } catch (e) {
+          clearInterval(timer);
+          await this.finalizeJob(proto, job, 'failed', e);
+        }
+      })();
     }
 
     this._running = false;
