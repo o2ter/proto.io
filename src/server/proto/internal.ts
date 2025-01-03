@@ -513,13 +513,13 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
 
 class JobRunner<Ext, P extends ProtoService<Ext>> {
 
-  _running = false;
+  private _running = false;
 
-  async cleanUpOldJobs(proto: P) {
+  private async cleanUpOldJobs(proto: P) {
     await proto.Query('_JobScope').lessThan('_updated_at', new Date(Date.now() - 1000 * 60 * 5)).deleteMany({ master: true });
   }
 
-  async getAvailableJobs(proto: P) {
+  private async getAvailableJobs(proto: P) {
     const running = _.map(await proto.Query('_JobScope').find({ master: true }), x => x.get('scope'));
     const availableJobs = _.pickBy(proto[PVK].jobs, opt => {
       if (_.isFunction(opt)) return true;
@@ -528,7 +528,7 @@ class JobRunner<Ext, P extends ProtoService<Ext>> {
     return _.keys(availableJobs);
   }
 
-  async getNextJob(proto: P) {
+  private async getNextJob(proto: P) {
     const availableJobs = await this.getAvailableJobs(proto);
     return await proto.Query('_Job')
       .equalTo('status', ['pending', 'started'])
@@ -539,7 +539,7 @@ class JobRunner<Ext, P extends ProtoService<Ext>> {
       .first({ master: true });
   }
 
-  async startJob(proto: P, job: TObject, opt: ProtoJobFunction<Ext> | ProtoJobFunctionOptions<Ext>) {
+  private async startJob(proto: P, job: TObject, opt: ProtoJobFunction<Ext> | ProtoJobFunctionOptions<Ext>) {
     await proto.withTransaction(async () => {
       for (const scope of _.isFunction(opt) ? [] : opt.scopes ?? []) {
         const obj = proto.Object('_JobScope');
@@ -553,20 +553,20 @@ class JobRunner<Ext, P extends ProtoService<Ext>> {
     });
   }
 
-  async updateJobScope(proto: P, job: TObject) {
+  private async updateJobScope(proto: P, job: TObject) {
     try {
       await proto.Query('_JobScope').equalTo('job', job).updateOne({}, { master: true });
     } catch (e) { }
   }
 
-  async executeJobFunction(proto: P, job: TObject, opt: ProtoJobFunction<Ext> | ProtoJobFunctionOptions<Ext>) {
+  private async executeJobFunction(proto: P, job: TObject, opt: ProtoJobFunction<Ext> | ProtoJobFunctionOptions<Ext>) {
     const params = job.get('data');
     const payload = Object.setPrototypeOf({ params, user: job.get('user'), job }, this);
     const func = _.isFunction(opt) ? opt : opt.callback;
     await func(proxy(payload));
   }
 
-  async finalizeJob(proto: P, job: TObject, status: string, error: any = null) {
+  private async finalizeJob(proto: P, job: TObject, status: string, error: any = null) {
     await proto.Query('_JobScope').equalTo('job', job).deleteMany({ master: true });
     job.set('status', status);
     if (error) {
