@@ -152,7 +152,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
   functions: Record<string, ProtoFunction<Ext> | ProtoFunctionOptions<Ext>> = {};
   jobs: Record<string, ProtoJobFunction<Ext> | ProtoJobFunctionOptions<Ext>> = {};
 
-  _jobs_running = false;
+  jobRunner = new JobRunner<Ext, P>();
 
   constructor(options: Required<ProtoServiceOptions<Ext>> & ProtoServiceKeyOptions) {
     validateSchemaName(options.schema);
@@ -507,81 +507,106 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
   }
 
   excuteJob(proto: P) {
-    (async () => {
-      if (this._jobs_running) return;
-      this._jobs_running = true;
+    this.jobRunner.excuteJob(proto);
+  }
+}
 
-      while (true) {
+class JobRunner<Ext, P extends ProtoService<Ext>> {
 
-        await proto.Query('_JobScope').lessThan('_updated_at', new Date(Date.now() - 1000 * 60 * 5)).deleteMany({ master: true });
+  _running = false;
 
-        const running = _.map(await proto.Query('_JobScope').find({ master: true }), x => x.get('scope'));
-        const availableJobs = _.pickBy(this.jobs, opt => {
-          if (_.isFunction(opt)) return true;
-          return _.intersection(opt.scopes ?? [], running).length === 0;
-        });
+  async cleanUpOldJobs(proto: P) {
+    await proto.Query('_JobScope').lessThan('_updated_at', new Date(Date.now() - 1000 * 60 * 5)).deleteMany({ master: true });
+  }
 
-        const job = await proto.Query('_Job')
-          .equalTo('status', ['pending', 'started'])
-          .containsIn('name', _.keys(availableJobs))
-          .empty('locks')
-          .includes('*', 'user')
-          .sort({ _created_at: 1 })
-          .first({ master: true });
-        if (!job) break;
+  async getAvailableJobs(proto: P) {
+    const running = _.map(await proto.Query('_JobScope').find({ master: true }), x => x.get('scope'));
+    const availableJobs = _.pickBy(proto[PVK].jobs, opt => {
+      if (_.isFunction(opt)) return true;
+      return _.intersection(opt.scopes ?? [], running).length === 0;
+    });
+    return _.keys(availableJobs);
+  }
 
-        const name = job.get('name');
-        const opt = this.jobs?.[name];
-        if (_.isNil(opt)) continue;
+  async getNextJob(proto: P) {
+    const availableJobs = await this.getAvailableJobs(proto);
+    return await proto.Query('_Job')
+      .equalTo('status', ['pending', 'started'])
+      .containsIn('name', availableJobs)
+      .empty('locks')
+      .includes('*', 'user')
+      .sort({ _created_at: 1 })
+      .first({ master: true });
+  }
 
-        try {
-          proto.withTransaction(async () => {
-            for (const scope of _.isFunction(opt) ? [] : opt.scopes ?? []) {
-              const obj = proto.Object('_JobScope');
-              obj.set('scope', scope);
-              obj.set('job', job);
-              await obj.save({ master: true });
-            }
-            job.set('status', 'started');
-            job.set('startedAt', new Date());
-            await job.save({ master: true });
-          });
-        } catch (e) {
-          continue;
-        }
+  async startJob(proto: P, job: TObject, opt: any) {
+    await proto.withTransaction(async () => {
+      for (const scope of _.isFunction(opt) ? [] : opt.scopes ?? []) {
+        const obj = proto.Object('_JobScope');
+        obj.set('scope', scope);
+        obj.set('job', job);
+        await obj.save({ master: true });
+      }
+      job.set('status', 'started');
+      job.set('startedAt', new Date());
+      await job.save({ master: true });
+    });
+  }
 
-        const timer = setInterval(() => {
-          try {
-            proto.Query('_JobScope').equalTo('job', job).updateOne({}, { master: true });
-          } catch (e) { }
-        }, 1000 * 60);
+  async updateJobScope(proto: P, job: TObject) {
+    try {
+      await proto.Query('_JobScope').equalTo('job', job).updateOne({}, { master: true });
+    } catch (e) { }
+  }
 
-        try {
+  async executeJobFunction(proto: P, job: TObject, opt: any) {
+    const params = job.get('data');
+    const payload = Object.setPrototypeOf({ params, user: job.get('user'), job }, this);
+    const func = _.isFunction(opt) ? opt : opt.callback;
+    await func(proxy(payload));
+  }
 
-          const params = job.get('data');
-          const payload = Object.setPrototypeOf({ params, user: job.get('user'), job }, this);
+  async finalizeJob(proto: P, job: TObject, status: string, error: any = null) {
+    await proto.Query('_JobScope').equalTo('job', job).deleteMany({ master: true });
+    job.set('status', status);
+    if (error) {
+      job.set('error', _.pick(error, _.uniq(_.flatMap(prototypes(error), x => Object.getOwnPropertyNames(x)))));
+    }
+    job.set('completedAt', new Date());
+    await job.save({ master: true });
+  }
 
-          const func = _.isFunction(opt) ? opt : opt.callback;
-          await func(proxy(payload));
+  async excuteJob(proto: P) {
+    if (this._running) return;
+    this._running = true;
 
-          job.set('status', 'completed');
+    while (true) {
+      await this.cleanUpOldJobs(proto);
 
-        } catch (e) {
+      const job = await this.getNextJob(proto);
+      if (!job) break;
 
-          job.set('error', _.pick(e, _.uniq(_.flatMap(prototypes(e), x => Object.getOwnPropertyNames(x)))));
-          job.set('status', 'failed');
+      const name = job.get('name');
+      const opt = proto[PVK].jobs?.[name];
+      if (_.isNil(opt)) continue;
 
-        } finally {
-
-          clearInterval(timer);
-
-          await proto.Query('_JobScope').equalTo('job', job).deleteMany({ master: true });
-          job.set('completedAt', new Date());
-          await job.save({ master: true });
-        }
+      try {
+        await this.startJob(proto, job, opt);
+      } catch (e) {
+        continue;
       }
 
-      this._jobs_running = false;
-    })();
+      const timer = setInterval(() => this.updateJobScope(proto, job), 1000 * 60);
+
+      try {
+        await this.executeJobFunction(proto, job, opt);
+        await this.finalizeJob(proto, job, 'completed');
+      } catch (e) {
+        clearInterval(timer);
+        await this.finalizeJob(proto, job, 'failed', e);
+      }
+    }
+
+    this._running = false;
   }
 }
