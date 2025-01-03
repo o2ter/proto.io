@@ -511,9 +511,12 @@ class JobRunner<Ext, P extends ProtoService<Ext>> {
 
   private _running = false;
 
+  static TIMEOUT = 1000 * 60 * 5;
+  static HEALTH = 1000 * 60;
+
   private async cleanUpOldJobs(proto: P) {
     await proto.Query('_JobScope').or(
-      q => q.lessThan('_updated_at', new Date(Date.now() - 1000 * 60 * 5)),
+      q => q.lessThan('_updated_at', new Date(Date.now() - JobRunner.TIMEOUT)),
       q => q.notEqualTo('job.completedAt', null),
     ).deleteMany({ master: true });
   }
@@ -531,7 +534,7 @@ class JobRunner<Ext, P extends ProtoService<Ext>> {
     return await proto.Query('_Job')
       .containsIn('name', availableJobs)
       .or(
-        q => q.lessThan('startedAt', new Date(Date.now() - 1000 * 60 * 5)),
+        q => q.lessThan('startedAt', new Date(Date.now() - JobRunner.TIMEOUT)),
         q => q.equalTo('startedAt', null),
       )
       .equalTo('completedAt', null)
@@ -594,7 +597,7 @@ class JobRunner<Ext, P extends ProtoService<Ext>> {
       }
 
       (async () => {
-        const timer = setInterval(() => this.updateJobScope(proto, job), 1000 * 60);
+        const timer = setInterval(() => this.updateJobScope(proto, job), JobRunner.HEALTH);
         try {
           await this.executeJobFunction(proto, job, opt);
           await this.finalizeJob(job);
