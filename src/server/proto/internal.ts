@@ -152,6 +152,8 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
   functions: Record<string, ProtoFunction<Ext> | ProtoFunctionOptions<Ext>> = {};
   jobs: Record<string, ProtoJobFunction<Ext> | ProtoJobFunctionOptions<Ext>> = {};
 
+  _jobs_running = false;
+
   constructor(options: Required<ProtoServiceOptions<Ext>> & ProtoServiceKeyOptions) {
     validateSchemaName(options.schema);
     const schema = mergeSchema(defaultSchema, options.fileStorage.schema, options.schema);
@@ -477,16 +479,16 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     return storage.refs(object, classNames, options?.master ? undefined : roles);
   }
 
-  async scheduleJob(proto: P, name: string, payload: any, options?: ExtraOptions<boolean>) {
+  async scheduleJob(proto: P, name: string, params: any, options?: ExtraOptions<boolean>) {
 
-    const func = this.jobs?.[name];
-    if (_.isNil(func)) throw Error('Job not found');
+    const opt = this.jobs?.[name];
+    if (_.isNil(opt)) throw Error('Job not found');
 
     const user = await proto.currentUser();
 
-    if (!_.isFunction(func)) {
+    if (!_.isFunction(opt)) {
       const roles = await proto.currentRoles();
-      const { validator } = func;
+      const { validator } = opt;
       if (!options?.master) {
         if (!!validator?.requireUser && !user) throw Error('No permission');
         if (!!validator?.requireMaster) throw Error('No permission');
@@ -497,7 +499,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
 
     const obj = proto.Object('_Job');
     obj.set('name', name);
-    obj.set('data', payload);
+    obj.set('data', params);
     obj.set('user', user);
     await obj.save({ master: true });
 
@@ -505,5 +507,45 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
   }
 
   excuteJob(proto: P) {
+    (async () => {
+      if (this._jobs_running) return;
+      this._jobs_running = true;
+
+      while (true) {
+
+        const job = await proto.Query('_Job')
+          .equalTo('status', 'pending')
+          .includes('*', 'user')
+          .sort({ _created_at: 1 })
+          .first({ master: true });
+        if (!job) break;
+
+        try {
+
+          const name = job.get('name');
+          const opt = this.jobs?.[name];
+          if (_.isNil(opt)) throw Error('Job not found');
+
+          const params = job.get('data');
+          const payload = Object.setPrototypeOf({ params, user: job.get('user'), job }, this);
+
+          const func = _.isFunction(opt) ? opt : opt.callback;
+          await func(proxy(payload));
+
+          job.set('status', 'completed');
+          job.set('completedAt', new Date());
+          await job.save({ master: true });
+
+        } catch (e) {
+
+          console.error(e);
+          job.set('status', 'failed');
+          job.set('completedAt', new Date());
+          await job.save({ master: true });
+        }
+      }
+
+      this._jobs_running = false;
+    })();
   }
 }

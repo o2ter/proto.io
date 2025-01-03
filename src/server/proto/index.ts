@@ -270,8 +270,7 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
   }
 
   async scheduleJob(name: string, params?: _TValue, options?: ExtraOptions<boolean>) {
-    const payload = Object.setPrototypeOf({ params }, this);
-    await this[PVK].scheduleJob(this, name, payload, options);
+    await this[PVK].scheduleJob(this, name, params, options);
   }
 
   defineJob(
