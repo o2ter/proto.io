@@ -157,9 +157,11 @@ test('test types', async () => {
   expect((await q.clone().notEmpty('shape.null_string').first())?.objectId).toBeUndefined();
   expect((await q.clone().notEmpty('shape.null_array').first())?.objectId).toBeUndefined();
 
+  expect((await q.clone().isDisjoint('stringArr', ['hello']).first())?.objectId).toBeUndefined();
   expect((await q.clone().size('stringArr', 1).first())?.objectId).toBeUndefined();
   expect((await q.clone().empty('stringArr').first())?.objectId).toBeUndefined();
 
+  expect((await q.clone().isDisjoint('shape.stringArr', ['hello']).first())?.objectId).toBeUndefined();
   expect((await q.clone().size('shape.stringArr', 1).first())?.objectId).toBeUndefined();
   expect((await q.clone().empty('shape.stringArr').first())?.objectId).toBeUndefined();
 
@@ -221,9 +223,11 @@ test('test types', async () => {
   expect((await q.clone().empty('shape.null_string').first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().empty('shape.null_array').first())?.objectId).toStrictEqual(inserted.objectId);
 
+  expect((await q.clone().isIntersect('stringArr', ['hello']).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().size('stringArr', 2).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().notEmpty('stringArr').first())?.objectId).toStrictEqual(inserted.objectId);
 
+  expect((await q.clone().isIntersect('shape.stringArr', ['hello']).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().size('shape.stringArr', 2).first())?.objectId).toStrictEqual(inserted.objectId);
   expect((await q.clone().notEmpty('shape.stringArr').first())?.objectId).toStrictEqual(inserted.objectId);
 
