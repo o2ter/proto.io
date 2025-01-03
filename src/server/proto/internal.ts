@@ -513,7 +513,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
 
       while (true) {
 
-        await proto.Query('_JobScope').lessThan('updatedAt', new Date(Date.now() - 1000 * 60 * 5)).deleteMany({ master: true });
+        await proto.Query('_JobScope').lessThan('_updated_at', new Date(Date.now() - 1000 * 60 * 5)).deleteMany({ master: true });
 
         const running = _.map(await proto.Query('_JobScope').find({ master: true }), x => x.get('scope'));
         const availableJobs = _.pickBy(this.jobs, opt => {
