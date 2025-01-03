@@ -446,8 +446,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
             if (isMaster || _.some(await roles, x => _.includes(_rperm, x))) {
               callback(payload as EventData);
             }
-          }
-          )();
+          })();
         }
       ),
     };
