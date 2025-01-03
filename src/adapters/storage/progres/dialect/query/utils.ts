@@ -130,19 +130,20 @@ export const fetchElement = (
       },
     };
   }
-  if (parent.name.startsWith('_doller_num_expr_$') && field === '$') {
-    return {
-      element: sql`${{ identifier: parent.name }}.${{ identifier: '$' }}`,
-      dataType: 'number' as const,
-      relation: null,
+  if (field === '$') {
+    const mapping = {
+      'number': '_doller_num_expr_$',
+      'string': '_doller_str_expr_$',
     };
-  }
-  if (parent.name.startsWith('_doller_str_expr_$') && field === '$') {
-    return {
-      element: sql`${{ identifier: parent.name }}.${{ identifier: '$' }}`,
-      dataType: 'string' as const,
-      relation: null,
-    };
+    for (const [key, value] of _.entries(mapping)) {
+      if (parent.name.startsWith(value)) {
+        return {
+          element: sql`${{ identifier: parent.name }}.${{ identifier: '$' }}`,
+          dataType: key as TSchema.DataType,
+          relation: null,
+        };
+      }
+    }
   }
   const [colname, ...subpath] = _.toPath(field);
   const { element } = _fetchElement(parent, colname, subpath);

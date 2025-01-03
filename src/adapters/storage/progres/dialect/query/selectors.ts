@@ -319,7 +319,8 @@ export const encodeFieldExpression = (
             className: relation.target,
             populates: relation.populate.populates,
           }, expr.value);
-          if (!filter) break;
+          if (!filter) throw Error('Invalid expression');
+
           const populate = _selectRelationPopulate(compiler, { className: parent.className, name: parent.name }, relation.populate, `$${field}`, false);
           return sql`NOT EXISTS(
             SELECT * FROM (${populate}) AS ${{ identifier: tempName }}
@@ -327,29 +328,26 @@ export const encodeFieldExpression = (
           )`;
         }
 
-        if (dataType && _isTypeof(dataType, 'vector')) {
-          const tempName = `_doller_num_expr_$${compiler.nextIdx()}`;
-          const filter = compiler._encodeFilter({ name: tempName, className: relation?.target }, expr.value);
-          if (!filter) break;
-          return sql`NOT EXISTS(
-            SELECT * FROM (SELECT UNNEST AS "$" FROM UNNEST(${element})) AS ${{ identifier: tempName }}
-            WHERE NOT (${filter})
-          )`;
-        }
+        const mapping = {
+          'vector': '_doller_num_expr_$',
+          'string[]': '_doller_str_expr_$',
+        };
+        for (const [key, value] of _.entries(mapping)) {
+          if (dataType && _isTypeof(dataType, key)) {
+            const tempName = `${value}${compiler.nextIdx()}`;
+            const filter = compiler._encodeFilter({ name: tempName, className: relation?.target }, expr.value);
+            if (!filter) throw Error('Invalid expression');
 
-        if (dataType && _isTypeof(dataType, 'string[]')) {
-          const tempName = `_doller_str_expr_$${compiler.nextIdx()}`;
-          const filter = compiler._encodeFilter({ name: tempName, className: relation?.target }, expr.value);
-          if (!filter) break;
-          return sql`NOT EXISTS(
-            SELECT * FROM (SELECT UNNEST AS "$" FROM UNNEST(${element})) AS ${{ identifier: tempName }}
-            WHERE NOT (${filter})
-          )`;
+            return sql`NOT EXISTS(
+              SELECT * FROM (SELECT UNNEST AS "$" FROM UNNEST(${element})) AS ${{ identifier: tempName }}
+              WHERE NOT (${filter})
+            )`;
+          }
         }
 
         const tempName = `_doller_expr_$${compiler.nextIdx()}`;
         const filter = compiler._encodeFilter({ name: tempName, className: relation?.target }, expr.value);
-        if (!filter) break;
+        if (!filter) throw Error('Invalid expression');
 
         if (dataType && _isTypeof(dataType, 'array')) {
           return sql`NOT EXISTS(
@@ -376,7 +374,8 @@ export const encodeFieldExpression = (
             className: relation.target,
             populates: relation.populate.populates,
           }, expr.value);
-          if (!filter) break;
+          if (!filter) throw Error('Invalid expression');
+
           const populate = _selectRelationPopulate(compiler, { className: parent.className, name: parent.name }, relation.populate, `$${field}`, false);
           return sql`EXISTS(
             SELECT * FROM (${populate}) AS ${{ identifier: tempName }}
@@ -384,29 +383,26 @@ export const encodeFieldExpression = (
           )`;
         }
 
-        if (dataType && _isTypeof(dataType, 'vector')) {
-          const tempName = `_doller_num_expr_$${compiler.nextIdx()}`;
-          const filter = compiler._encodeFilter({ name: tempName, className: relation?.target }, expr.value);
-          if (!filter) break;
-          return sql`EXISTS(
-            SELECT * FROM (SELECT UNNEST AS "$" FROM UNNEST(${element})) AS ${{ identifier: tempName }}
-            WHERE ${filter}
-          )`;
-        }
+        const mapping = {
+          'vector': '_doller_num_expr_$',
+          'string[]': '_doller_str_expr_$',
+        };
+        for (const [key, value] of _.entries(mapping)) {
+          if (dataType && _isTypeof(dataType, key)) {
+            const tempName = `${value}${compiler.nextIdx()}`;
+            const filter = compiler._encodeFilter({ name: tempName, className: relation?.target }, expr.value);
+            if (!filter) throw Error('Invalid expression');
 
-        if (dataType && _isTypeof(dataType, 'string[]')) {
-          const tempName = `_doller_str_expr_$${compiler.nextIdx()}`;
-          const filter = compiler._encodeFilter({ name: tempName, className: relation?.target }, expr.value);
-          if (!filter) break;
-          return sql`EXISTS(
-            SELECT * FROM (SELECT UNNEST AS "$" FROM UNNEST(${element})) AS ${{ identifier: tempName }}
-            WHERE ${filter}
-          )`;
+            return sql`EXISTS(
+              SELECT * FROM (SELECT UNNEST AS "$" FROM UNNEST(${element})) AS ${{ identifier: tempName }}
+              WHERE ${filter}
+            )`;
+          }
         }
 
         const tempName = `_doller_expr_$${compiler.nextIdx()}`;
         const filter = compiler._encodeFilter({ name: tempName, className: relation?.target }, expr.value);
-        if (!filter) break;
+        if (!filter) throw Error('Invalid expression');
 
         if (dataType && _isTypeof(dataType, 'array')) {
           return sql`EXISTS(
