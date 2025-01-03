@@ -90,6 +90,7 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
 
   async shutdown() {
     this._schedule.destroy();
+    this[PVK].shutdown();
   }
 
   classes(): string[] {

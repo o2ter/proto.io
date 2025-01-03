@@ -174,6 +174,10 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     await this.options.storage.prepare(this.options.schema);
   }
 
+  shutdown() {
+    this.jobRunner.shutdown();
+  }
+
   generateId() {
     return generateId(this.options.objectIdSize);
   }
@@ -510,9 +514,14 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
 class JobRunner<Ext, P extends ProtoService<Ext>> {
 
   private _running = false;
+  private _stopped = false;
 
   static TIMEOUT = 1000 * 60 * 5;
   static HEALTH = 1000 * 60;
+
+  shutdown() {
+    this._stopped = true;
+  }
 
   private async cleanUpOldJobs(proto: P) {
     await proto.Query('_JobScope').or(
@@ -577,10 +586,10 @@ class JobRunner<Ext, P extends ProtoService<Ext>> {
   }
 
   async excuteJob(proto: P) {
-    if (this._running) return;
+    if (this._running || this._stopped) return;
     this._running = true;
 
-    while (true) {
+    while (!this._stopped) {
       await this.cleanUpOldJobs(proto);
 
       const job = await this.getNextJob(proto);
