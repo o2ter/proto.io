@@ -532,15 +532,19 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
         if (_.isNil(opt)) continue;
 
         try {
-
-          const scopes = _.isFunction(opt) ? [] : opt.scopes ?? [];
-
-          job.set('status', 'started');
-          job.set('startedAt', new Date());
-          await job.save({ master: true });
-
+          proto.withTransaction(async () => {
+            for (const scope of _.isFunction(opt) ? [] : opt.scopes ?? []) {
+              const obj = proto.Object('_JobScope');
+              obj.set('scope', scope);
+              obj.set('job', job);
+              await obj.save({ master: true });
+            }
+            job.set('status', 'started');
+            job.set('startedAt', new Date());
+            await job.save({ master: true });
+          });
         } catch (e) {
-
+          continue;
         }
 
         try {
