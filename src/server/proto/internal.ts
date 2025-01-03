@@ -535,15 +535,15 @@ class JobRunner<Ext, P extends ProtoService<Ext>> {
   }
 
   private async startJob(proto: P, job: TObject, opt: ProtoJobFunction<Ext> | ProtoJobFunctionOptions<Ext>) {
-    await proto.withTransaction(async () => {
+    await proto.withTransaction(async (session) => {
       for (const scope of _.isFunction(opt) ? [] : opt.scopes ?? []) {
-        const obj = proto.Object('_JobScope');
+        const obj = session.Object('_JobScope');
         obj.set('scope', scope);
         obj.set('job', job);
         await obj.save({ master: true });
       }
       job.set('startedAt', new Date());
-      await job.save({ master: true });
+      await job.save({ master: true, session });
     });
   }
 
@@ -597,7 +597,7 @@ class JobRunner<Ext, P extends ProtoService<Ext>> {
         } catch (e) {
           clearInterval(timer);
           await this.finalizeJob(proto, job, e);
-        } 
+        }
         this.excuteJob(proto);
       })();
     }
