@@ -39,6 +39,7 @@ export const updateOperation = (paths: string[], dataType: TSchema.DataType, ope
   const [op, value] = decodeUpdateOp(operation);
   if (isVector(dataType)) {
     if (_.isEmpty(subpath)) {
+      if (_.isNil(value) && op === '$set') return sql`${encodeType(column, dataType, value)}`;
       if (!_.isArray(value) || value.length !== dataType.dimension) throw Error('Invalid update operation');
       if (!_.every(value, x => _.isFinite(x))) throw Error('Invalid update operation');
       if (op === '$set') {
