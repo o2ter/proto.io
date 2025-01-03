@@ -539,7 +539,7 @@ class JobRunner<Ext, P extends ProtoService<Ext>> {
       .first({ master: true });
   }
 
-  async startJob(proto: P, job: TObject, opt: any) {
+  async startJob(proto: P, job: TObject, opt: ProtoJobFunction<Ext> | ProtoJobFunctionOptions<Ext>) {
     await proto.withTransaction(async () => {
       for (const scope of _.isFunction(opt) ? [] : opt.scopes ?? []) {
         const obj = proto.Object('_JobScope');
@@ -559,7 +559,7 @@ class JobRunner<Ext, P extends ProtoService<Ext>> {
     } catch (e) { }
   }
 
-  async executeJobFunction(proto: P, job: TObject, opt: any) {
+  async executeJobFunction(proto: P, job: TObject, opt: ProtoJobFunction<Ext> | ProtoJobFunctionOptions<Ext>) {
     const params = job.get('data');
     const payload = Object.setPrototypeOf({ params, user: job.get('user'), job }, this);
     const func = _.isFunction(opt) ? opt : opt.callback;
