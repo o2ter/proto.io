@@ -50,3 +50,32 @@ test('test job', async () => {
   expect(_.map(result, x => x.get('params.number')).sort()).toEqual([1, 2, 3]);
 
 })
+
+test('test job 2', async () => {
+
+  await Promise.all([
+    Proto.scheduleJob('TestJob2', { number: 1 }),
+    Proto.scheduleJob('TestJob2', { number: 2 }),
+    Proto.scheduleJob('TestJob2', { number: 3 }),
+  ]);
+
+  await new Promise((resolve) => setTimeout(resolve, 500));
+
+  const result = await Proto.Query('Test').find({ master: true });
+
+  expect(result.length).toEqual(1);
+
+  await new Promise((resolve) => setTimeout(resolve, 500));
+
+  const result2 = await Proto.Query('Test').find({ master: true });
+
+  expect(result2.length).toEqual(2);
+
+  await new Promise((resolve) => setTimeout(resolve, 500));
+
+  const result3 = await Proto.Query('Test').find({ master: true });
+
+  expect(result3.length).toEqual(3);
+  expect(_.map(result3, x => x.get('params.number')).sort()).toEqual([1, 2, 3]);
+
+})

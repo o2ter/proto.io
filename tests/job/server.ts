@@ -83,6 +83,16 @@ Proto.defineJob('TestJob', async ({ params }) => {
 
 });
 
+Proto.defineJob('TestJob2', async ({ params }) => {
+
+  await new Promise((resolve) => setTimeout(resolve, 400));
+
+  await Proto.Query('Test').insert({ params });
+
+}, {
+  scopes: ['test']
+});
+
 beforeAll(async () => {
 
   app.use('/proto', await ProtoRoute({
