@@ -34,7 +34,7 @@ const Proto = new ProtoClient({
   masterUser,
 });
 
-test('test job', async () => {
+test('test job without scope', async () => {
 
   await Promise.all([
     Proto.scheduleJob('TestJob', { number: 1 }),
@@ -51,12 +51,12 @@ test('test job', async () => {
 
 })
 
-test('test job 2', async () => {
+test('test job with scope', async () => {
 
   await Promise.all([
-    Proto.scheduleJob('TestJob2', { number: 1 }),
-    Proto.scheduleJob('TestJob2', { number: 2 }),
-    Proto.scheduleJob('TestJob2', { number: 3 }),
+    Proto.scheduleJob('TestJobScope', { number: 1 }),
+    Proto.scheduleJob('TestJobScope', { number: 2 }),
+    Proto.scheduleJob('TestJobScope', { number: 3 }),
   ]);
 
   await new Promise((resolve) => setTimeout(resolve, 500));

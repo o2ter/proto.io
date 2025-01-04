@@ -83,7 +83,7 @@ Proto.defineJob('TestJob', async ({ params }) => {
 
 });
 
-Proto.defineJob('TestJob2', async ({ params }) => {
+Proto.defineJob('TestJobScope', async ({ params }) => {
 
   await new Promise((resolve) => setTimeout(resolve, 400));
 
