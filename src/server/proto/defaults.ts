@@ -105,7 +105,6 @@ export const defaultSchema: Record<string, TSchema> = {
       locks: { type: 'relation', target: '_JobScope', foreignField: 'job' },
     },
     classLevelPermissions: {
-      get: [],
       find: [],
       count: [],
       create: [],
