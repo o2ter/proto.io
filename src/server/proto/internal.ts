@@ -612,8 +612,9 @@ class JobRunner<Ext, P extends ProtoService<Ext>> {
           await this.executeJobFunction(proto, job, opt);
           await this.finalizeJob(job);
         } catch (e) {
-          clearInterval(timer);
           await this.finalizeJob(job, e);
+        } finally {
+          clearInterval(timer);
         }
         this.excuteJob(proto);
       })();
