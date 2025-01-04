@@ -270,8 +270,8 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
     this[PVK].functions[name] = options ? { callback, ...options } : callback;
   }
 
-  async scheduleJob(name: string, params?: _TValue, options?: ExtraOptions<boolean>) {
-    await this[PVK].scheduleJob(this, name, params, options);
+  scheduleJob(name: string, params?: _TValue, options?: ExtraOptions<boolean>) {
+    return this[PVK].scheduleJob(this, name, params, options);
   }
 
   defineJob(

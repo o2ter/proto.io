@@ -49,6 +49,7 @@ import { fetchUserPerms } from '../query/dispatcher';
 import { EventData } from '../../internals/proto';
 import { normalize } from '../utils';
 import { PROTO_NOTY_MSG } from '../../internals/const';
+import { TJob } from '../../internals/object/job';
 
 const validateForeignField = (schema: Record<string, TSchema>, key: string, dataType: TSchema.RelationType) => {
   if (!dataType.foreignField) return;
@@ -508,6 +509,8 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     await obj.save({ master: true });
 
     this.jobRunner.excuteJob(proto);
+
+    return obj;
   }
 }
 
@@ -553,7 +556,7 @@ class JobRunner<Ext, P extends ProtoService<Ext>> {
       .first({ master: true });
   }
 
-  private async startJob(proto: P, job: TObject, opt: ProtoJobFunction<Ext> | ProtoJobFunctionOptions<Ext>) {
+  private async startJob(proto: P, job: TJob, opt: ProtoJobFunction<Ext> | ProtoJobFunctionOptions<Ext>) {
     await proto.withTransaction(async (session) => {
       for (const scope of _.isFunction(opt) ? [] : opt.scopes ?? []) {
         const obj = session.Object('_JobScope');
@@ -566,20 +569,19 @@ class JobRunner<Ext, P extends ProtoService<Ext>> {
     });
   }
 
-  private async updateJobScope(proto: P, job: TObject) {
+  private async updateJobScope(proto: P, job: TJob) {
     try {
       await proto.Query('_JobScope').equalTo('job', job).updateOne({}, { master: true });
     } catch (e) { }
   }
 
-  private async executeJobFunction(proto: P, job: TObject, opt: ProtoJobFunction<Ext> | ProtoJobFunctionOptions<Ext>) {
-    const params = job.get('data');
-    const payload = Object.setPrototypeOf({ params, user: job.get('user'), job }, this);
+  private async executeJobFunction(proto: P, job: TJob, opt: ProtoJobFunction<Ext> | ProtoJobFunctionOptions<Ext>) {
+    const payload = Object.setPrototypeOf({ params: job.data, user: job.user, job }, this);
     const func = _.isFunction(opt) ? opt : opt.callback;
     await func(proxy(payload));
   }
 
-  private async finalizeJob(job: TObject, error: any = null) {
+  private async finalizeJob(job: TJob, error: any = null) {
     if (error) job.set('error', _.pick(error, _.uniq(_.flatMap(prototypes(error), x => Object.getOwnPropertyNames(x)))));
     job.set('completedAt', new Date());
     await job.save({ master: true });
@@ -595,8 +597,7 @@ class JobRunner<Ext, P extends ProtoService<Ext>> {
       const job = await this.getNextJob(proto);
       if (!job) break;
 
-      const name = job.get('name');
-      const opt = proto[PVK].jobs[name];
+      const opt = proto[PVK].jobs[job.name];
       if (_.isNil(opt)) continue;
 
       try {

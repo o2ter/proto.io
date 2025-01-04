@@ -46,6 +46,7 @@ import { Session } from '../../server/proto/session';
 import { asyncStream } from '@o2ter/utils-js';
 import { PathName } from '../query/types';
 import { TRole } from '../object/role';
+import { TJob } from '../object/job';
 
 /**
  * The mode of the transaction.
@@ -142,7 +143,7 @@ export abstract class ProtoType<Ext> {
    * @param options - Additional options for scheduling the job.
    * @returns A promise that resolves when the job is scheduled.
    */
-  abstract scheduleJob(name: string, params?: _TValue, options?: ExtraOptions<boolean>): Promise<void>;
+  abstract scheduleJob(name: string, params?: _TValue, options?: ExtraOptions<boolean>): Promise<TJob>;
 
   /**
    * Creates a query.

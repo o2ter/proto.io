@@ -29,11 +29,13 @@ import { TRole } from './role';
 import { TFile } from './file';
 import { TValue } from '../types';
 import { ExactOneProp } from '../types';
+import { TJob } from './job';
 
 export const TObjectTypes = {
   'User': TUser,
   'Role': TRole,
   'File': TFile,
+  '_Job': TJob,
 };
 
 type _TObjectType<K> = K extends keyof typeof TObjectTypes ? InstanceType<(typeof TObjectTypes)[K]> : TObject;
