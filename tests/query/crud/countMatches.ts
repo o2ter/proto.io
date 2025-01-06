@@ -209,3 +209,47 @@ test('test count matches 8', async () => {
   expect(result?.get('pointer.shape.relation2')).toBe(6);
 
 })
+
+test('test count matches 9', async () => {
+
+  const parent = await Proto.Query('Test').insert({
+    relation: [
+      await Proto.Query('Test').insert({ number: 42 }),
+      await Proto.Query('Test').insert({}),
+      await Proto.Query('Test').insert({ number: 42 }),
+      await Proto.Query('Test').insert({ number: 42 }),
+      await Proto.Query('Test').insert({}),
+    ],
+  });
+
+  const result = await Proto.Query('Test')
+    .equalTo('_id', parent.objectId)
+    .some('relation', q => q.equalTo('number', 42))
+    .countMatches('relation')
+    .first();
+
+  expect(result?.get('relation')).toBe(5);
+
+})
+
+test('test count matches 11', async () => {
+
+  const parent = await Proto.Query('Test').insert({
+    relation: [
+      await Proto.Query('Test').insert({ number: 42 }),
+      await Proto.Query('Test').insert({}),
+      await Proto.Query('Test').insert({ number: 42 }),
+      await Proto.Query('Test').insert({ number: 42 }),
+      await Proto.Query('Test').insert({}),
+    ],
+  });
+
+  const result = await Proto.Query('Test')
+    .equalTo('_id', parent.objectId)
+    .match('relation', q => q.equalTo('number', 42))
+    .countMatches('relation')
+    .first();
+
+  expect(result?.get('relation')).toBe(3);
+
+})
