@@ -44,14 +44,14 @@ export type QueryCompilerOptions = {
 }
 
 export type QueryContext = {
+  name: string;
+  className?: string;
   includes?: Record<string, TSchema.DataType>;
   populates?: Record<string, Populate>;
   countMatches?: string[];
 }
 
 export type Populate = Required<QueryContext> & {
-  name: string;
-  className: string;
   colname: string;
   type: 'pointer' | 'relation';
   foreignField?: string;
@@ -225,15 +225,20 @@ export class QueryCompiler {
     options?: _SelectOptions | ((x: { fetchName: string; }) => _SelectOptions),
   ) {
 
-    const context = this._encodeIncludes(query);
+    const fetchName = `_fetch_$${query.className.toLowerCase()}`;
+    const context = {
+      ...this._encodeIncludes(query),
+      className: query.className,
+      name: fetchName,
+    };
+
     const _stages = _.mapValues(context.populates, (populate) => this.dialect.encodePopulate(this, populate));
     const stages = _.fromPairs(_.flatMap(_.values(_stages), (p) => _.toPairs(p)));
 
-    const fetchName = `_fetch_$${query.className.toLowerCase()}`;
     const parent = { className: query.className, name: fetchName, populates: context.populates };
 
     const baseFilter = this._encodeFilter(parent, query.filter);
-    const populates = this._selectPopulateMap(context, query.className, fetchName);
+    const populates = this._selectPopulateMap(context);
     const joins = _.compact(_.map(populates, ({ join }) => join));
 
     const includes = {
@@ -276,13 +281,17 @@ export class QueryCompiler {
     query: DecodedQuery<FindOneOptions>,
   ) {
 
-    const _context = this._encodeIncludes(query);
+    const _context = {
+      ...this._encodeIncludes(query),
+      className: query.className,
+      name,
+    };
     const populates = _.mapValues(
       _context.populates, (populate) => this.dialect.encodePopulate(this, populate, { className: query.className, name })
     );
     const stages = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
 
-    const _populates = this._selectPopulateMap(_context, query.className, name);
+    const _populates = this._selectPopulateMap(_context);
     const _joins = _.compact(_.map(_populates, ({ join }) => join));
 
     const _includes = {
@@ -313,7 +322,7 @@ export class QueryCompiler {
 
   private _modifyQuery(
     query: DecodedQuery<FindOneOptions> & { limit?: number },
-    action: (fetchName: string, context: QueryContext) => SQL
+    action: (fetchName: string, context: QueryContext & { className: string; }) => SQL
   ) {
     const { stages, fetchName, query: _query, context } = this._baseSelectQuery(query);
     stages[fetchName] = _query;
@@ -425,15 +434,15 @@ export class QueryCompiler {
   }
 
   private _selectPopulateMap(
-    context: QueryContext,
-    className: string,
-    name: string,
+    context: QueryContext & { className: string; },
   ) {
     return _.map(context.populates, (populate, field) => this.dialect.selectPopulate(
-      this, {
-      className,
-      name,
-    }, populate, field, _.includes(context.countMatches, field)));
+      this,
+      context,
+      populate,
+      field,
+      _.includes(context.countMatches, field),
+    ));
   }
 
   insert(options: InsertOptions, attrs: Record<string, TValue>) {
@@ -445,12 +454,16 @@ export class QueryCompiler {
 
     const name = `_insert_$${options.className.toLowerCase()}`;
 
-    const context = this._encodeIncludes(options);
+    const context = {
+      ...this._encodeIncludes(options),
+      className: options.className,
+      name,
+    };
 
     const populates = _.mapValues(context.populates, (populate) => this.dialect.encodePopulate(this, populate));
     const stages = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
 
-    const _populates = this._selectPopulateMap(context, options.className, name);
+    const _populates = this._selectPopulateMap(context);
     const joins = _.compact(_.map(_populates, ({ join }) => join));
 
     return sql`
@@ -598,7 +611,7 @@ export class QueryCompiler {
       { ...query, limit: 1 },
       (fetchName, context) => {
         const name = `_delete_$${query.className.toLowerCase()}`;
-        const populates = this._selectPopulateMap(context, query.className, name);
+        const populates = this._selectPopulateMap({ ...context, className: query.className, name });
         const joins = _.compact(_.map(populates, ({ join }) => join));
         return sql`
           , ${{ identifier: name }} AS (
