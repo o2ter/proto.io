@@ -282,6 +282,9 @@ export const encodeFieldExpression = (
         if (dataType && _isTypeof(dataType, 'string')) {
           return sql`COALESCE(length(${element}), 0) = ${{ value: expr.value }}`;
         }
+        if (relation && _.includes(parent.countMatches, relation.colname)) {
+          return sql`${element} = ${{ value: expr.value }}`;
+        }
         if (dataType && _isTypeof(dataType, ['array', 'string[]', 'vector', 'relation'])) {
           return sql`COALESCE(array_length(${element}, 1), 0) = ${{ value: expr.value }}`;
         }
@@ -301,6 +304,9 @@ export const encodeFieldExpression = (
         if (!_.isBoolean(expr.value)) break;
         if (dataType && _isTypeof(dataType, 'string')) {
           return sql`COALESCE(length(${element}), 0) ${{ literal: expr.value ? '=' : '<>' }} 0`;
+        }
+        if (relation && _.includes(parent.countMatches, relation.colname)) {
+          return sql`${element} ${{ literal: expr.value ? '=' : '<>' }} 0`;
         }
         if (dataType && _isTypeof(dataType, ['array', 'string[]', 'vector', 'relation'])) {
           return sql`COALESCE(array_length(${element}, 1), 0) ${{ literal: expr.value ? '=' : '<>' }} 0`;

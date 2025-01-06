@@ -264,4 +264,22 @@ test('test count matches 9', async () => {
 
   expect(result5?.get('relation')).toBeUndefined();
 
+  const result6 = await Proto.Query('Test')
+    .equalTo('_id', parent.objectId)
+    .match('relation', q => q.equalTo('number', 42))
+    .notEmpty('relation')
+    .countMatches('relation')
+    .first();
+
+  expect(result6?.get('relation')).toBe(3);
+
+  const result7 = await Proto.Query('Test')
+    .equalTo('_id', parent.objectId)
+    .match('relation', q => q.equalTo('number', 42))
+    .empty('relation')
+    .countMatches('relation')
+    .first();
+
+  expect(result7?.get('relation')).toBeUndefined();
+
 })
