@@ -125,6 +125,7 @@ export const fetchElement = (
       element,
       dataType: json ? null : dataType,
       relation: {
+        colname,
         target: dataType.target,
         populate,
       },

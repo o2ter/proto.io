@@ -231,9 +231,7 @@ export class QueryCompiler {
     const _stages = _.mapValues(context.populates, (populate) => this.dialect.encodePopulate(this, populate));
     const stages = _.fromPairs(_.flatMap(_.values(_stages), (p) => _.toPairs(p)));
 
-    const parent = { className: query.className, name: fetchName, populates: context.populates };
-
-    const baseFilter = this._encodeFilter(parent, query.filter);
+    const baseFilter = this._encodeFilter(context, query.filter);
     const populates = this._selectPopulateMap(context);
     const joins = _.compact(_.map(populates, ({ join }) => join));
 
@@ -249,7 +247,7 @@ export class QueryCompiler {
     const filter = _.compact([
       baseFilter,
       _options?.extraFilter,
-      query.relatedBy && this.dialect.encodeRelation(this, parent, query.relatedBy),
+      query.relatedBy && this.dialect.encodeRelation(this, context, query.relatedBy),
     ]);
 
     return {
