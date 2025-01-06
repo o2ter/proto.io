@@ -43,7 +43,13 @@ export type QueryCompilerOptions = {
   matches: Record<string, DecodedBaseQuery>;
 }
 
-export type Populate = {
+export type Context = {
+  includes: Record<string, TSchema.DataType>;
+  populates: Record<string, Populate>;
+  countMatches: string[];
+}
+
+export type Populate = Context & {
   name: string;
   className: string;
   colname: string;
@@ -51,19 +57,9 @@ export type Populate = {
   foreignField?: string;
   subpaths: string[];
   filter?: QuerySelector;
-  includes: Record<string, TSchema.DataType>;
-  populates: Record<string, Populate>;
-  countMatches: string[];
   sort?: Record<string, 1 | -1> | DecodedSortOption[];
   skip?: number;
   limit?: number;
-}
-
-export type CompileContext = {
-  includes: Record<string, TSchema.DataType>;
-  populates: Record<string, Populate>;
-  countMatches: string[];
-  sorting?: Record<string, 1 | -1> | DecodedSortOption[];
 }
 
 const _resolveSortingName = (
@@ -161,14 +157,6 @@ export class QueryCompiler {
     return this.idx++;
   }
 
-  private _makeContext(query: InsertOptions & { sort?: Record<string, 1 | -1> | DecodedSortOption[] }) {
-    const context = this._encodeIncludes(query);
-    return {
-      ...context,
-      sorting: _encodeSorting(context.includes, context.populates, query.sort),
-    };
-  }
-
   private _encodeIncludes(query: {
     className: string;
     includes: string[];
@@ -237,7 +225,7 @@ export class QueryCompiler {
     options?: _SelectOptions | ((x: { fetchName: string; }) => _SelectOptions),
   ) {
 
-    const context = this._makeContext(query);
+    const context = this._encodeIncludes(query);
     const _stages = _.mapValues(context.populates, (populate) => this.dialect.encodePopulate(this, populate));
     const stages = _.fromPairs(_.flatMap(_.values(_stages), (p) => _.toPairs(p)));
 
@@ -325,7 +313,7 @@ export class QueryCompiler {
 
   private _modifyQuery(
     query: DecodedQuery<FindOneOptions> & { limit?: number },
-    action: (fetchName: string, context: CompileContext) => SQL
+    action: (fetchName: string, context: Context) => SQL
   ) {
     const { stages, fetchName, query: _query, context } = this._baseSelectQuery(query);
     stages[fetchName] = _query;
@@ -437,7 +425,7 @@ export class QueryCompiler {
   }
 
   private _selectPopulateMap(
-    context: CompileContext,
+    context: Context,
     className: string,
     name: string,
   ) {
@@ -457,7 +445,7 @@ export class QueryCompiler {
 
     const name = `_insert_$${options.className.toLowerCase()}`;
 
-    const context = this._makeContext(options);
+    const context = this._encodeIncludes(options);
 
     const populates = _.mapValues(context.populates, (populate) => this.dialect.encodePopulate(this, populate));
     const stages = _.fromPairs(_.flatMap(_.values(populates), (p) => _.toPairs(p)));
