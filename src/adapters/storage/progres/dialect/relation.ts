@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { QueryCompiler } from '../../sql/compiler';
+import { QueryCompiler, QueryContext } from '../../sql/compiler';
 import { RelationOptions } from '../../../../server/storage';
 import { sql, SQL } from '../../sql';
 import { encodeForeignField } from './populate';

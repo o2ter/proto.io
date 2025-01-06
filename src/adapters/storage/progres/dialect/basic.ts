@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { escapeIdentifier, escapeLiteral } from 'pg/lib/utils';
 import { SQL, sql } from '../../sql/sql';
-import { QueryCompiler } from '../../sql/compiler';
+import { QueryCompiler, QueryContext } from '../../sql/compiler';
 import { fetchElement } from './query/utils';
 
 export const nullSafeEqual = () => sql`IS NOT DISTINCT FROM`;
