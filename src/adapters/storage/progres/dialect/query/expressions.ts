@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { SQL, sql } from '../../../sql';
 import { _typeof, isPrimitive, isVector } from '../../../../../internals/schema';
-import { QueryCompiler } from '../../../sql/compiler';
+import { QueryCompiler, QueryContext } from '../../../sql/compiler';
 import { nullSafeEqual, nullSafeNotEqual } from '../basic';
 import {
   QueryArrayExpression,
@@ -68,7 +68,7 @@ type PrimitiveValue = typeof _PrimitiveValue[number];
 
 const encodeTypedQueryExpression = (
   compiler: QueryCompiler,
-  parent: { className?: string; name: string; },
+  parent: QueryContext,
   expr: QueryExpression
 ): { type: PrimitiveValue; sql: SQL }[] | undefined => {
 
@@ -109,7 +109,7 @@ const encodeTypedQueryExpression = (
 
 const encodeJsonQueryExpression = (
   compiler: QueryCompiler,
-  parent: { className?: string; name: string; },
+  parent: QueryContext,
   expr: QueryExpression
 ): SQL => {
 
@@ -144,7 +144,7 @@ const encodeJsonQueryExpression = (
 
 const encodeVectorExpression = (
   compiler: QueryCompiler,
-  parent: { className?: string; name: string; },
+  parent: QueryContext,
   exprs: QueryExpression[]
 ) => {
   if (exprs.length === 1) {
@@ -166,7 +166,7 @@ const encodeVectorExpression = (
 
 const encodeDistanceQueryExpression = (
   compiler: QueryCompiler,
-  parent: { className?: string; name: string; },
+  parent: QueryContext,
   expr: QueryDistanceExpression
 ): SQL => {
 
@@ -205,7 +205,7 @@ const matchType = (
 
 export const encodeBooleanExpression = (
   compiler: QueryCompiler,
-  parent: { className?: string; name: string; },
+  parent: QueryContext,
   expr: QueryExpression
 ): SQL | undefined => {
 
@@ -264,7 +264,7 @@ export const encodeBooleanExpression = (
 
 export const encodeQueryExpression = (
   compiler: QueryCompiler,
-  parent: { className?: string; name: string; },
+  parent: QueryContext,
   expr: QueryExpression
 ): SQL | undefined => {
 

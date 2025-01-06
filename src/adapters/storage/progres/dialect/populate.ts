@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { SQL, sql } from '../../sql';
 import { TSchema, isPointer, isPrimitive, isRelation, isShape, isVector } from '../../../../internals/schema';
-import { Populate, QueryCompiler } from '../../sql/compiler';
+import { Populate, QueryCompiler, QueryContext } from '../../sql/compiler';
 import { _encodePopulateInclude } from './encode';
 import { resolveColumn } from '../../../../server/query/dispatcher/validator';
 
@@ -79,7 +79,7 @@ const _isPointer = (
 
 export const _selectRelationPopulate = (
   compiler: QueryCompiler,
-  parent: { className: string; name: string; },
+  parent: QueryContext & { className: string; },
   populate: Populate,
   field: string,
   encode: boolean,
@@ -113,7 +113,7 @@ export const _selectRelationPopulate = (
 
 export const selectPopulate = (
   compiler: QueryCompiler,
-  parent: { className: string; name: string; },
+  parent: QueryContext & { className: string; },
   populate: Populate,
   field: string,
   countMatches: boolean,
@@ -157,16 +157,16 @@ export const selectPopulate = (
 
 const encodeRemix = (
   parent: { className: string; },
-  remix?: { className: string; name: string; },
+  remix?: QueryContext & { className: string; },
 ) => sql`${remix?.className === parent.className ? sql`
   (SELECT * FROM ${{ identifier: remix.name }} UNION SELECT * FROM ${{ identifier: parent.className }})
 ` : { identifier: parent.className }}`;
 
 export const encodeForeignField = (
   compiler: QueryCompiler,
-  parent: { className: string; name: string; },
+  parent: QueryContext & { className: string; },
   foreignField: string,
-  remix?: { className: string; name: string; }
+  remix?: QueryContext & { className: string; }
 ): { joins: SQL[]; field: SQL; rows: boolean; array: boolean; } => {
 
   const { paths: [colname, ...subpath], dataType } = resolveColumn(compiler.schema, parent.className, foreignField);
@@ -262,7 +262,7 @@ export const encodeForeignField = (
 export const encodePopulate = (
   compiler: QueryCompiler,
   parent: Populate,
-  remix?: { className: string; name: string; }
+  remix?: QueryContext & { className: string; }
 ): Record<string, SQL> => {
   const _filter = _.compact([
     parent.filter && compiler._encodeFilter(parent, parent.filter),

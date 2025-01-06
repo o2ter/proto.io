@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { SQL, sql } from '../../../sql';
 import { _isTypeof, _typeof, isPrimitive } from '../../../../../internals/schema';
-import { Populate, QueryCompiler } from '../../../sql/compiler';
+import { QueryCompiler, QueryContext } from '../../../sql/compiler';
 import { FieldSelectorExpression, QuerySelector } from '../../../../../server/query/dispatcher/parser';
 import { _encodeJsonValue } from '../encode';
 import { encodeType } from '../encode';
@@ -40,7 +40,7 @@ import { _selectRelationPopulate } from '../populate';
 
 export const encodeFieldExpression = (
   compiler: QueryCompiler,
-  parent: { className?: string; name: string; populates?: Record<string, Populate>; },
+  parent: QueryContext,
   field: string,
   expr: FieldSelectorExpression
 ): SQL => {

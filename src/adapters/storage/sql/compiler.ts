@@ -377,7 +377,7 @@ export class QueryCompiler {
   }
 
   private _encodeCoditionalSelector(
-    parent: { className?: string; name: string; populates?: Record<string, Populate>; },
+    parent: QueryContext,
     filter: QueryCoditionalSelector,
   ) {
     const queries = _.compact(_.map(filter.exprs, x => this._encodeFilter(parent, x)));
@@ -390,7 +390,7 @@ export class QueryCompiler {
   }
 
   _encodeFilter(
-    parent: { className?: string; name: string; populates?: Record<string, Populate>; },
+    parent: QueryContext,
     filter: QuerySelector,
   ): SQL | undefined {
     if (filter instanceof QueryCoditionalSelector) {
@@ -419,7 +419,7 @@ export class QueryCompiler {
 
   _encodeSort(
     sort: Record<string, 1 | -1> | DecodedSortOption[],
-    parent: { className?: string; name: string; },
+    parent: QueryContext,
   ): SQL {
     if (_.isArray(sort)) {
       return sql`${_.map(sort, ({ expr, order }) => {

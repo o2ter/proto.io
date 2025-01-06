@@ -39,7 +39,7 @@ export const boolean = (value: boolean) => value ? 'true' : 'false';
 
 export const encodeSortKey = (
   compiler: QueryCompiler,
-  parent: { className?: string; name: string; },
+  parent: QueryContext,
   key: string,
 ): SQL => {
   const { element } = fetchElement(compiler, parent, key);

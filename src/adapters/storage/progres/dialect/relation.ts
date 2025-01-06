@@ -31,7 +31,7 @@ import { encodeForeignField } from './populate';
 
 export const encodeRelation = (
   compiler: QueryCompiler,
-  parent: { className: string; name: string; },
+  parent: QueryContext & { className: string; },
   relatedBy: NonNullable<RelationOptions['relatedBy']>
 ): SQL => {
   const name = `_relation_$${relatedBy.className.toLowerCase()}`;

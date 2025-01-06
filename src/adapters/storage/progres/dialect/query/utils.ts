@@ -24,13 +24,13 @@
 //
 
 import _ from 'lodash';
-import { SQL, sql } from '../../../sql';
-import { Populate, QueryCompiler } from '../../../sql/compiler';
+import { sql } from '../../../sql';
+import { Populate, QueryCompiler, QueryContext } from '../../../sql/compiler';
 import { TSchema, _isTypeof, isPointer, isRelation, isVector } from '../../../../../internals/schema';
 import { QueryValidator, resolveColumn } from '../../../../../server/query/dispatcher/validator';
 
 const _fetchElement = (
-  parent: { className?: string; name: string; },
+  parent: QueryContext,
   colname: string,
   subpath: string[],
   dataType?: TSchema.DataType,
@@ -112,7 +112,7 @@ const _resolvePopulate = (path: string[], populates?: Record<string, Populate>):
 
 export const fetchElement = (
   compiler: QueryCompiler,
-  parent: { className?: string; name: string; populates?: Record<string, Populate>; },
+  parent: QueryContext,
   field: string,
 ) => {
   if (parent.className) {

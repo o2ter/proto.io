@@ -26,7 +26,7 @@
 import { FieldSelectorExpression } from '../../../server/query/dispatcher/parser';
 import { QueryExpression } from '../../../server/query/dispatcher/parser/expressions';
 import { TSchema } from '../../../internals/schema';
-import { Populate, QueryCompiler } from './compiler';
+import { Populate, QueryCompiler, QueryContext } from './compiler';
 import { SQL } from './sql';
 import { TValue } from '../../../internals/types';
 import { TUpdateOp } from '../../../internals/object/types';
@@ -43,7 +43,7 @@ export interface SqlDialect {
 
   selectPopulate(
     compiler: QueryCompiler,
-    parent: { className: string; name: string; },
+    parent: QueryContext & { className: string; },
     populate: Populate,
     field: string,
     countMatches: boolean,
@@ -51,32 +51,32 @@ export interface SqlDialect {
 
   encodeFieldExpression(
     compiler: QueryCompiler,
-    parent: { className?: string; name: string; populates?: Record<string, Populate>; },
+    parent: QueryContext,
     field: string,
     expr: FieldSelectorExpression,
   ): SQL
 
   encodeQueryExpression(
     compiler: QueryCompiler,
-    parent: { className?: string; name: string; },
+    parent: QueryContext,
     expr: QueryExpression,
   ): SQL | undefined
 
   encodePopulate(
     compiler: QueryCompiler,
     parent: Populate,
-    remix?: { className: string; name: string; }
+    remix?: QueryContext & { className: string; }
   ): Record<string, SQL>
 
   encodeRelation(
     compiler: QueryCompiler,
-    parent: { className: string; name: string; },
+    parent: QueryContext & { className: string; },
     relatedBy: NonNullable<RelationOptions['relatedBy']>
   ): SQL
 
   encodeSortKey(
     compiler: QueryCompiler,
-    parent: { className?: string; name: string; },
+    parent: QueryContext,
     key: string
   ): SQL
 
