@@ -230,26 +230,20 @@ test('test count matches 9', async () => {
 
   expect(result?.get('relation')).toBe(5);
 
-})
+  const result2 = await Proto.Query('Test')
+    .equalTo('_id', parent.objectId)
+    .every('relation', q => q.equalTo('number', 42))
+    .countMatches('relation')
+    .first();
 
-test('test count matches 11', async () => {
+  expect(result2?.get('relation')).toBeUndefined();
 
-  const parent = await Proto.Query('Test').insert({
-    relation: [
-      await Proto.Query('Test').insert({ number: 42 }),
-      await Proto.Query('Test').insert({}),
-      await Proto.Query('Test').insert({ number: 42 }),
-      await Proto.Query('Test').insert({ number: 42 }),
-      await Proto.Query('Test').insert({}),
-    ],
-  });
-
-  const result = await Proto.Query('Test')
+  const result3 = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .match('relation', q => q.equalTo('number', 42))
     .countMatches('relation')
     .first();
 
-  expect(result?.get('relation')).toBe(3);
+  expect(result3?.get('relation')).toBe(3);
 
 })
