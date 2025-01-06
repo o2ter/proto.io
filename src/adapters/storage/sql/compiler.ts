@@ -43,13 +43,13 @@ export type QueryCompilerOptions = {
   matches: Record<string, DecodedBaseQuery>;
 }
 
-export type Context = {
+export type QueryContext = {
   includes?: Record<string, TSchema.DataType>;
   populates?: Record<string, Populate>;
   countMatches?: string[];
 }
 
-export type Populate = Required<Context> & {
+export type Populate = Required<QueryContext> & {
   name: string;
   className: string;
   colname: string;
@@ -313,7 +313,7 @@ export class QueryCompiler {
 
   private _modifyQuery(
     query: DecodedQuery<FindOneOptions> & { limit?: number },
-    action: (fetchName: string, context: Context) => SQL
+    action: (fetchName: string, context: QueryContext) => SQL
   ) {
     const { stages, fetchName, query: _query, context } = this._baseSelectQuery(query);
     stages[fetchName] = _query;
@@ -425,7 +425,7 @@ export class QueryCompiler {
   }
 
   private _selectPopulateMap(
-    context: Context,
+    context: QueryContext,
     className: string,
     name: string,
   ) {
