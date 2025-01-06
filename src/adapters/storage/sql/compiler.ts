@@ -217,7 +217,7 @@ export class QueryCompiler {
       populate.countMatches = countMatches;
     }
 
-    return { className: query.className, includes: names, populates, countMatches };
+    return { className: query.className, includes: names, populates, countMatches: _.uniq(countMatches) };
   }
 
   private _baseSelectQuery(
