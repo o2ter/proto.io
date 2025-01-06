@@ -44,12 +44,12 @@ export type QueryCompilerOptions = {
 }
 
 export type Context = {
-  includes: Record<string, TSchema.DataType>;
-  populates: Record<string, Populate>;
-  countMatches: string[];
+  includes?: Record<string, TSchema.DataType>;
+  populates?: Record<string, Populate>;
+  countMatches?: string[];
 }
 
-export type Populate = Context & {
+export type Populate = Required<Context> & {
   name: string;
   className: string;
   colname: string;
@@ -608,7 +608,7 @@ export class QueryCompiler {
           )
           SELECT ${{
             literal: [
-              ...this._selectIncludes(name, context.includes),
+              ...this._selectIncludes(name, context.includes ?? {}),
               ..._.flatMap(populates, ({ columns }) => columns),
             ], separator: ',\n'
           }}
