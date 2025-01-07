@@ -26,9 +26,11 @@
 import Decimal from 'decimal.js';
 import { TObject } from './object';
 
+export type _TContainer<Primitive> = { [x: string]: _TContainer<Primitive>; } | _TContainer<Primitive>[] | Primitive;
+
 export type TPrimitiveValue = boolean | number | Decimal | string | Date | null;
-export type _TValue = { [x: string]: _TValue; } | _TValue[] | TPrimitiveValue;
-export type TValue = { [x: string]: TValue; } | TValue[] | TPrimitiveValue | TObject;
+export type _TValue = _TContainer<TPrimitiveValue>;
+export type TValue = _TContainer<TPrimitiveValue | TObject>;
 
 export type Exact<T, Shape> =
   T extends Shape ?

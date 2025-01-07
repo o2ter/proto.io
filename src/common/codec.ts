@@ -28,14 +28,13 @@ import { Decimal } from 'decimal.js';
 import { TObject } from '../internals/object';
 import { TObjectTypes } from '../internals/object/types';
 import { isObjKey } from '../internals/utils';
-import { TValue } from '../internals/types';
+import { _TContainer, TValue } from '../internals/types';
 import { prototypes } from '@o2ter/utils-js';
 
 export { Decimal };
 type TNumber = number | Decimal | BigInt;
 type TPrimitive = RegExp | Date | string | TNumber | boolean | null | undefined;
-type TDictionary = { [x: string]: TSerializable };
-export type TSerializable = TDictionary | TSerializable[] | TPrimitive | TObject;
+export type TSerializable = _TContainer<TPrimitive | TObject>;
 
 export type SerializeOptions = {
   space?: string | number;
@@ -78,7 +77,7 @@ const encodeEJSON = (
       if (_.isFunction(v)) return;
       r[k.startsWith('$') ? `$${k}` : k] = encodeEJSON(v, [...stack, x], options);
     },
-    {} as TDictionary,
+    {} as { [x: string]: TSerializable },
   );
 }
 
@@ -108,7 +107,7 @@ const decodeEJSON = (
   }
   return _.transform(x, (r, v, k) => {
     if (_.isString(k)) r[k.startsWith('$') ? k.substring(1) : k] = decodeEJSON(v, [...stack, r], options);
-  }, {} as TDictionary);
+  }, {} as { [x: string]: TSerializable });
 }
 
 export const serialize = (
