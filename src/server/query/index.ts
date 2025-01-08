@@ -73,11 +73,10 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
     if (this._opts.insecure) {
       if (options?.master !== true) throw Error('No permission');
     }
-    return dispatcher(
-      _serviceOf(options) ?? this._proto,
-      options ?? {},
-      !!this._opts.insecure,
-    );
+    return dispatcher(_serviceOf(options) ?? this._proto, {
+      ...options ?? {},
+      disableSecurity: !!this._opts.insecure,
+    });
   }
 
   explain(options?: ExtraOptions<M>) {

@@ -85,12 +85,16 @@ export const resolveColumn = (
   };
 }
 
+type QueryValidatorOption = {
+  master: boolean;
+  disableSecurity: boolean;
+};
+
 export class QueryValidator<E> {
 
   proto: ProtoService<E>
   acls: string[];
-  master: boolean;
-  disableSecurity: boolean;
+  options: QueryValidatorOption;
 
   static patterns = {
     path: /^[a-z_][\w-]*(\[\d+\]|\.\d*|\.[a-z_][\w-]*)*$/gi,
@@ -99,13 +103,13 @@ export class QueryValidator<E> {
   }
 
   _rperm(className: string) {
-    if (this.master) return [];
+    if (this.options.master) return [];
     const check = _.intersection(this.schema[className]?.additionalObjectPermissions?.read, this.acls);
     if (!_.isEmpty(check)) return [];
     return [{ _rperm: { $intersect: this.acls } }];
   }
   _wperm(className: string) {
-    if (this.master) return [];
+    if (this.options.master) return [];
     const check = _.intersection(this.schema[className]?.additionalObjectPermissions?.update, this.acls);
     if (!_.isEmpty(check)) return [];
     return [{ _wperm: { $intersect: this.acls } }];
@@ -115,13 +119,11 @@ export class QueryValidator<E> {
   constructor(
     proto: ProtoService<E>,
     acls: string[],
-    master: boolean,
-    disableSecurity: boolean,
+    options: QueryValidatorOption,
   ) {
     this.proto = proto;
     this.acls = _.uniq(['*', ...acls]);
-    this.master = master;
-    this.disableSecurity = disableSecurity;
+    this.options = options;
   }
 
   get schema() {
@@ -145,8 +147,8 @@ export class QueryValidator<E> {
     if (_.isEmpty(key) || (!_.has(schema.fields, key) && !TObject.defaultKeys.includes(key))) throw Error(`Invalid key: ${key}`);
     if (type === 'read' && TObject.defaultKeys.includes(key)) return true;
     if (type !== 'read' && TObject.defaultReadonlyKeys.includes(key)) return false;
-    if (!this.disableSecurity && _.includes(schema.secureFields, key)) return false;
-    return this.master || !_.every(schema.fieldLevelPermissions?.[key]?.[type] ?? ['*'], x => !_.includes(this.acls, x));
+    if (!this.options.disableSecurity && _.includes(schema.secureFields, key)) return false;
+    return this.options.master || !_.every(schema.fieldLevelPermissions?.[key]?.[type] ?? ['*'], x => !_.includes(this.acls, x));
   }
 
   validateCLPs(
@@ -154,7 +156,7 @@ export class QueryValidator<E> {
     ...keys: (keyof TSchema.CLPs)[]
   ) {
     if (!_.has(this.schema, className)) throw Error('No permission');
-    return this.master || this.proto[PVK].validateCLPs(className, this.acls, keys);
+    return this.options.master || this.proto[PVK].validateCLPs(className, this.acls, keys);
   }
 
   validateForeignField(dataType: TSchema.RelationType, type: keyof TSchema.FLPs, errorMeg: string) {
