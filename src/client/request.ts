@@ -69,7 +69,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
     }
   }
 
-  async _request<T = any, D = any>(config: RequestOptions<boolean> & AxiosRequestConfig<D>, retry = 0): Promise<AxiosResponse<T, D>> {
+  async _request<T extends unknown = any, D extends unknown = any>(config: RequestOptions<boolean> & AxiosRequestConfig<D>, retry = 0): Promise<AxiosResponse<T, D>> {
 
     const { master, abortSignal, serializeOpts, headers, ...opts } = config ?? {};
 
@@ -114,7 +114,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
     return res;
   }
 
-  async request<T = any, D = any>(config: RequestOptions<boolean> & AxiosRequestConfig<D>) {
+  async request<T extends unknown = any, D extends unknown = any>(config: RequestOptions<boolean> & AxiosRequestConfig<D>) {
     return this._request<T, D>(config);
   }
 
