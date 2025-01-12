@@ -70,6 +70,8 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
   private _dispatcher(
     options?: ExtraOptions<M>
   ): ReturnType<typeof dispatcher<E>> {
+    const schema = this._proto.schema[this.className];
+    if (_.isNil(schema)) throw Error('Invalid className');
     if (this._opts.insecure) {
       if (options?.master !== true) throw Error('No permission');
     }
