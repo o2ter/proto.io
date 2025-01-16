@@ -23,6 +23,7 @@
 //  THE SOFTWARE.
 //
 
+import _ from 'lodash';
 import { Exact } from '../../types';
 
 type _Digit = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
@@ -61,8 +62,8 @@ export type PathName<T extends string> = string extends T ? string : T extends '
   ? `${PathComponent<L>}.${PathComponents<R>}`
   : never;
 
-export type PathNames<T extends string[]> = T extends [] ? [] :
-  T extends [infer H extends string, ...infer R extends string[]] ?
+export type PathNames<T extends _.RecursiveArray<string>> = T extends [] ? [] :
+  T extends [infer H extends string, ...infer R extends _.RecursiveArray<string>] ?
 H extends undefined ? PathNames<R> : [PathName<H>, ...PathNames<R>] : T;
 
 export type IncludePath<T extends string> = T extends '*' | FieldName<T> ? T
@@ -70,8 +71,8 @@ export type IncludePath<T extends string> = T extends '*' | FieldName<T> ? T
   ? `${FieldName<L>}.${IncludePath<R>}`
   : never;
 
-export type IncludePaths<T extends string[]> = T extends [] ? [] :
-  T extends [infer H extends string, ...infer R extends string[]] ?
+export type IncludePaths<T extends _.RecursiveArray<string>> = T extends [] ? [] :
+  T extends [infer H extends string, ...infer R extends _.RecursiveArray<string>] ?
   H extends undefined ? IncludePaths<R> : [IncludePath<H>, ...IncludePaths<R>] : T;
 
 export type PathNameMap<T extends object> = Exact<T, { [K in keyof T as K extends string ? PathName<K> : never]: T[K] }>;

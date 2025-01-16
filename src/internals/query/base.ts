@@ -439,8 +439,8 @@ export class TQueryBase extends TQueryFilterBase {
    * @param relations - The keys of the nested relations to be counted.
    * @returns The current instance for chaining.
    */
-  countMatches<T extends string[]>(...relations: PathNames<T>) {
-    this[PVK].options.countMatches = this[PVK].options.countMatches ? [...this[PVK].options.countMatches, ...relations] : relations;
+  countMatches<T extends _.RecursiveArray<string>>(...relations: PathNames<T>) {
+    this[PVK].options.countMatches = this[PVK].options.countMatches ? [...this[PVK].options.countMatches, ..._.flattenDeep(relations)] : _.flattenDeep(relations);
     return this;
   }
 }

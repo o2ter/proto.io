@@ -196,8 +196,8 @@ export abstract class TQuery<T extends string, Ext, M extends boolean> extends T
    * @param includes - The fields to include.
    * @returns The query instance.
    */
-  includes<T extends string[]>(...includes: IncludePaths<T>) {
-    this[PVK].options.includes = this[PVK].options.includes ? [...this[PVK].options.includes, ...includes] : includes;
+  includes<T extends _.RecursiveArray<string>>(...includes: IncludePaths<T>) {
+    this[PVK].options.includes = this[PVK].options.includes ? [...this[PVK].options.includes, ..._.flattenDeep(includes)] : _.flattenDeep(includes);
     return this;
   }
 
