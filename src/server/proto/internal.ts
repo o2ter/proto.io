@@ -61,6 +61,7 @@ const validateForeignField = (schema: Record<string, TSchema>, key: string, data
 }
 
 const validateShapedObject = (schema: Record<string, TSchema>, dataType: TSchema.ShapeType) => {
+  if (_.isEmpty(dataType.shape)) throw Error('Invalid empty shape');
   for (const [key, type] of _.entries(dataType.shape)) {
     if (!key.match(QueryValidator.patterns.name)) throw Error(`Invalid field name: ${key}`);
     if (isShape(type)) {
