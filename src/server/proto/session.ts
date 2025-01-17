@@ -99,7 +99,7 @@ const fetchSessionInfo = async <E>(proto: ProtoService<E>, userId?: string) => {
   const cache = userCacheMap.get(proto[PVK])!;
   if (_.isNil(cache[userId])) cache[userId] = (async () => {
     const _user = _.isString(userId) ? await proto.Query('User').get(userId, { master: true }) : undefined;
-    const user = proto.req ? await proto[PVK].options.userResolver(proto.req, _user) : _user;
+    const user = proto.req ? await proto[PVK].options.userResolver(proto, _user) : _user;
     const _roles = user instanceof TUser ? _.filter(await proto.userRoles(user), x => !_.isEmpty(x.name)) : [];
     cache[userId] = undefined;
     return { user, _roles };
