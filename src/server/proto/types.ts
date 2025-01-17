@@ -26,13 +26,14 @@
 import { TFileStorage } from '../file';
 import { TStorage } from '../storage';
 import { TSchema } from '../../internals/schema';
-import { CookieOptions } from '@o2ter/server-js';
+import { CookieOptions, Request } from '@o2ter/server-js';
 import { SignOptions, VerifyOptions } from 'jsonwebtoken';
 import { PasswordHashOptions } from '../crypto/password';
 import { TExtensions } from '../../internals/object/types';
 import { TPubSub } from '../pubsub';
 import { TUser } from '../../internals/object/user';
 import { TRole } from '../../internals/object/role';
+import { Awaitable } from '@o2ter/utils-js';
 
 export type ProtoServiceOptions<Ext> = {
   /**
@@ -44,6 +45,11 @@ export type ProtoServiceOptions<Ext> = {
    * The schema definitions for the service.
    */
   schema: Record<string, TSchema>;
+
+  /**
+   * User resolver configuration.
+   */
+  userResolver?: (req: Request, user?: TUser) => Awaitable<TUser | undefined>;
 
   /**
    * Role resolver configuration.
@@ -62,8 +68,8 @@ export type ProtoServiceOptions<Ext> = {
      */
     resolver?: (
       user: TUser,
-      defaultResolver: () => PromiseLike<TRole[]>,
-    ) => PromiseLike<TRole[]>;
+      defaultResolver: () => Promise<TRole[]>,
+    ) => Awaitable<TRole[]>;
   };
 
   /**

@@ -62,6 +62,7 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
   constructor(options: ProtoServiceOptions<Ext> & ProtoServiceKeyOptions) {
     super();
     this[PVK] = new ProtoInternal({
+      userResolver: (_req, user) => user,
       roleResolver: {},
       objectIdSize: 10,
       maxFetchLimit: 1000,
