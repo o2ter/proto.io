@@ -49,6 +49,8 @@ import { QuerySelector } from '../query/dispatcher/parser';
 import { _typeof, isRelation } from '../../internals/schema';
 import { resolveDataType } from '../query/dispatcher/validator';
 
+export const _serviceOf = (options?: ExtraOptions<any>) => options?.session instanceof ProtoService ? options?.session : undefined;
+
 export class ProtoService<Ext = any> extends ProtoType<Ext> {
 
   /** @internal */

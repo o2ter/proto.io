@@ -35,12 +35,12 @@ import { TSchema, _typeof, defaultObjectKeyTypes, isPointer, isPrimitive, isRela
 import { resolveDataType, QueryValidator } from '../query/dispatcher/validator';
 import { passwordHash, varifyPassword } from '../crypto/password';
 import { proxy } from './proxy';
-import { ProtoService } from '.';
+import { _serviceOf, ProtoService } from '.';
 import { base64ToBuffer, isBinaryData, prototypes } from '@o2ter/utils-js';
 import { ProtoInternalType } from '../../internals/proto';
 import { TObject } from '../../internals/object';
 import { _TValue } from '../../internals/types';
-import { _serviceOf, ExtraOptions } from '../../internals/options';
+import { ExtraOptions } from '../../internals/options';
 import { TUser } from '../../internals/object/user';
 import { TFile } from '../../internals/object/file';
 import { FileData } from '../../internals/buffer';

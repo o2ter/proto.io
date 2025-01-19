@@ -25,6 +25,7 @@
 
 import { TObject } from '../internals/object';
 import { TFile } from '../internals/object/file';
+import { TJob } from '../internals/object/job';
 import { TRole } from '../internals/object/role';
 import { TExtensions } from '../internals/object/types';
 import { TUser } from '../internals/object/user';
@@ -51,4 +52,8 @@ export const isRole = (x: any): x is TRole => {
 
 export const isFile = (x: any): x is TFile => {
   return x instanceof TFile;
+}
+
+export const isJob = (x: any): x is TJob => {
+  return x instanceof TJob;
 }

@@ -47,6 +47,7 @@ import { asyncStream } from '@o2ter/utils-js';
 import { PathName } from '../query/types';
 import { TRole } from '../object/role';
 import { TJob } from '../object/job';
+import { isFile, isJob, isObject, isQuery, isRole, isUser } from '../../common';
 
 /**
  * The mode of the transaction.
@@ -101,6 +102,13 @@ export interface ProtoInternalType<Ext, P extends ProtoType<any>> {
 }
 
 export abstract class ProtoType<Ext> {
+
+  static isQuery = isQuery;
+  static isObject = isObject;
+  static isUser = isUser;
+  static isRole = isRole;
+  static isFile = isFile;
+  static isJob = isJob;
 
   /** @internal */
   abstract [PVK]: ProtoInternalType<Ext, this>;

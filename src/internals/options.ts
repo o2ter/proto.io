@@ -23,7 +23,6 @@
 //  THE SOFTWARE.
 //
 
-import { ProtoService } from '../server/proto';
 import { ProtoType } from './proto';
 
 /**
@@ -45,5 +44,3 @@ export type ExtraOptions<M extends boolean> = {
    */
   abortSignal?: AbortSignal;
 };
-
-export const _serviceOf = (options?: ExtraOptions<any>) => options?.session instanceof ProtoService ? options?.session : undefined;

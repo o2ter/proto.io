@@ -24,11 +24,11 @@
 //
 
 import _ from 'lodash';
-import { ProtoService } from '../proto/index';
+import { _serviceOf, ProtoService } from '../proto';
 import { dispatcher } from './dispatcher';
 import { asyncStream } from '@o2ter/utils-js';
 import { PVK } from '../../internals/private';
-import { _serviceOf, ExtraOptions } from '../../internals/options';
+import { ExtraOptions } from '../../internals/options';
 import { TQuery, TQueryOptions, TQueryRandomOptions } from '../../internals/query';
 import { TObject } from '../../internals/object';
 import { TExtended } from '../../internals/object/methods';
