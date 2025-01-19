@@ -304,7 +304,10 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
     return this[PVK].jwtSign({
       nonce: randomUUID(),
       maxUploadSize: options.maxUploadSize,
-      attributes: JSON.parse(serialize(options.attributes ?? {})),
+      attributes: JSON.parse(serialize(
+        options.attributes ?? {},
+        { objAttrs: ['_id'] },
+      )),
     }, options?.jwtSignOptions ?? 'upload');
   }
 

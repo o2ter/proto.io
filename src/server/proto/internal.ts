@@ -288,7 +288,10 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
 
     return {
       nonce,
-      attributes: _.isObject(attributes) ? deserialize(JSON.stringify(attributes)) as Record<string, TValue> : {},
+      attributes: _.isObject(attributes) ? deserialize(
+        JSON.stringify(attributes),
+        { objAttrs: ['_id'] },
+      ) as Record<string, TValue> : {},
       maxUploadSize: maxUploadSize ?? this.options.maxUploadSize,
     };
   }
