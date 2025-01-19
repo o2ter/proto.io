@@ -103,12 +103,12 @@ export interface ProtoInternalType<Ext, P extends ProtoType<any>> {
 
 export abstract class ProtoType<Ext> {
 
-  static isQuery = isQuery;
-  static isObject = isObject;
-  static isUser = isUser;
-  static isRole = isRole;
-  static isFile = isFile;
-  static isJob = isJob;
+  isQuery = isQuery;
+  isObject = isObject;
+  isUser = isUser;
+  isRole = isRole;
+  isFile = isFile;
+  isJob = isJob;
 
   /** @internal */
   abstract [PVK]: ProtoInternalType<Ext, this>;
