@@ -65,6 +65,11 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
 
     const opts = { master: payload.isMaster };
 
+    if (
+      _.includes(['File', '_Job', '_JobScope'], name) &&
+      _.includes(['insert', 'insertMany', 'upsertOne', 'upsertMany'], operation)
+    ) throw Error('Invaild operation');
+
     switch (operation) {
       case 'explain':
         if (!payload.isMaster) throw Error('No permission');

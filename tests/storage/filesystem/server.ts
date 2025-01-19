@@ -80,6 +80,11 @@ Proto.define('generateUploadToken', async (proto) => {
   });
 });
 
+Proto.define('createFileInternal', async (proto) => {
+  const file = Proto.File('test.txt', 'hello, world', 'text/plain');
+  return file.save();
+});
+
 beforeAll(async () => {
 
   app.use('/proto', await ProtoRoute({

@@ -301,7 +301,11 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     const data = object[PVK].extra.data as FileData | { _id: string; size: number; };
     if (_.isNil(data)) throw Error('Invalid file object');
 
-    const { nonce, maxUploadSize, attributes } = this.varifyUploadToken(proto, options?.uploadToken, options?.master);
+    const {
+      nonce,
+      attributes = {},
+      maxUploadSize = this.options.maxUploadSize,
+    } = options?.uploadToken ? this.varifyUploadToken(proto, options.uploadToken, options.master) : {};
 
     if (nonce) {
       const found = await proto.Query('File').equalTo('nonce', nonce).first({ master: true });

@@ -144,6 +144,7 @@ export const dispatcher = <E>(
       },
       values: Record<string, TValue>[],
     ) {
+      if (options.className === 'File') throw Error('File is not support insertMany');
       QueryValidator.recursiveCheck(values);
       const _validator = await validator();
       _validator.validateCountMatches(options.className, options.countMatches ?? []);
@@ -198,6 +199,7 @@ export const dispatcher = <E>(
       update: Record<string, TUpdateOp>,
       setOnInsert: Record<string, TValue>
     ) {
+      if (query.className === 'File') throw Error('File is not support upsertOne');
       QueryValidator.recursiveCheck(query, update, setOnInsert);
       const _validator = await validator();
       if (!_validator.validateCLPs(query.className, 'create', 'update')) throw Error('No permission');
@@ -221,6 +223,7 @@ export const dispatcher = <E>(
       update: Record<string, TUpdateOp>,
       setOnInsert: Record<string, TValue>
     ) {
+      if (query.className === 'File') throw Error('File is not support upsertOne');
       QueryValidator.recursiveCheck(query, update, setOnInsert);
       const _validator = await validator();
       if (!_validator.validateCLPs(query.className, 'create', 'update')) throw Error('No permission');

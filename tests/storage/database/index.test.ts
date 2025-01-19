@@ -72,3 +72,10 @@ test('test uploadToken 2', async () => {
   expect(data.toString('utf8')).toStrictEqual('hello, world');
   expect(file.expiredAt).toStrictEqual(now);
 });
+
+test('test create file internal', async () => {
+  const file = await Proto.run('createFileInternal') as any;
+
+  const data = await streamToBuffer(file.fileData());
+  expect(data.toString('utf8')).toStrictEqual('hello, world');
+});
