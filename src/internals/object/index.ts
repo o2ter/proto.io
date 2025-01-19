@@ -277,15 +277,16 @@ export class TObject {
 
   /**
    * Converts the object to a plain object.
+   * @param replacer - An optional function to replace values during the conversion.
    * @returns The plain object representation of the object.
    */
-  toObject() {
-    const toObject = (value: TValue): _TValue => {
+  toObject(replacer?: (value: TObject) => any): any {
+    const toObject = (value: TValue): any => {
       if (isPrimitiveValue(value)) return value;
-      if (value instanceof TObject) return value.toObject();
+      if (value instanceof TObject) return replacer?.(value) ?? value.toObject();
       if (_.isArray(value)) return _.map(value, toObject);
       return _.mapValues(value, toObject);
-    }
+    };
     return _.fromPairs(_.map(this.keys(), k => [k, toObject(this.get(k))]));
   }
 
