@@ -283,7 +283,7 @@ export class TObject {
   toObject(replacer?: (value: TObject) => any): any {
     const toObject = (value: TValue): any => {
       if (isPrimitiveValue(value)) return value;
-      if (value instanceof TObject) return replacer?.(value) ?? value.toObject();
+      if (value instanceof TObject) return replacer?.(value) ?? value.toObject(replacer);
       if (_.isArray(value)) return _.map(value, toObject);
       return _.mapValues(value, toObject);
     };
