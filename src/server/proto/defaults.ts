@@ -81,7 +81,7 @@ export const defaultSchema: Record<string, TSchema> = {
       type: { update: [] },
       token: { update: [] },
       nonce: { update: [] },
-      _expired_at: { create: [], update: [] },
+      _expired_at: { update: [] },
     },
     indexes: [
       {

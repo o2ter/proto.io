@@ -62,3 +62,13 @@ test('test uploadToken', async () => {
   const file = Proto.File('test.txt', 'hello, world', 'text/plain');
   await expect(() => file.save()).rejects.toThrow('Upload token is required');
 });
+
+test('test uploadToken 2', async () => {
+  const now = new Date(Date.now() + 60 * 1000 * 1000);
+  const file = Proto.File('test.txt', 'hello, world', 'text/plain');
+  await file.save({ uploadToken: await Proto.run('generateUploadToken', { _expired_at: now }) as string });
+
+  const data = await streamToBuffer(file.fileData());
+  expect(data.toString('utf8')).toStrictEqual('hello, world');
+  expect(file.expiredAt).toStrictEqual(now);
+});

@@ -33,13 +33,13 @@ import { ProtoFunction, ProtoFunctionOptions, ProtoJobFunction, ProtoJobFunction
 import { sessionId, sessionIsMaster, session, signUser, Session, sessionWithToken } from './session';
 import { EventData, ProtoType, TransactionOptions } from '../../internals/proto';
 import { schedule } from '../schedule';
-import { TSerializable } from '../../common';
+import { serialize, TSerializable } from '../../common';
 import { PVK } from '../../internals/private';
 import { TExtensions, TObjectType } from '../../internals/object/types';
 import { TQuery } from '../../internals/query';
 import { TUser } from '../../internals/object/user';
 import { ExtraOptions } from '../../internals/options';
-import { _TValue } from '../../internals/types';
+import { _TValue, TValue } from '../../internals/types';
 import { randomUUID } from '@o2ter/crypto-js';
 import { TObject } from '../../internals/object';
 import { asyncStream } from '@o2ter/utils-js';
@@ -296,15 +296,15 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
     return this.storage.withTransaction((storage) => callback(_.create(this, { _storage: storage })), options);
   }
 
-  generateUploadToken(
-    options: {
-      maxUploadSize?: number;
-      jwtSignOptions?: jwt.SignOptions;
-    } = {}
-  ) {
+  generateUploadToken(options: {
+    maxUploadSize?: number;
+    attributes?: Record<string, TValue>;
+    jwtSignOptions?: jwt.SignOptions;
+  } = {}) {
     return this[PVK].jwtSign({
       nonce: randomUUID(),
       maxUploadSize: options.maxUploadSize,
+      attributes: JSON.parse(serialize(options.attributes ?? {})),
     }, options?.jwtSignOptions ?? 'upload');
   }
 

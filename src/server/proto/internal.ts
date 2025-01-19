@@ -39,7 +39,7 @@ import { _serviceOf, ProtoService } from '.';
 import { base64ToBuffer, isBinaryData, prototypes } from '@o2ter/utils-js';
 import { ProtoInternalType } from '../../internals/proto';
 import { TObject } from '../../internals/object';
-import { _TValue } from '../../internals/types';
+import { _TValue, TValue } from '../../internals/types';
 import { ExtraOptions } from '../../internals/options';
 import { TUser } from '../../internals/object/user';
 import { TFile } from '../../internals/object/file';
@@ -50,6 +50,7 @@ import { EventData } from '../../internals/proto';
 import { normalize } from '../utils';
 import { PROTO_NOTY_MSG } from '../../internals/const';
 import { TJob } from '../../internals/object/job';
+import { deserialize } from '../../common';
 
 const validateForeignField = (schema: Record<string, TSchema>, key: string, dataType: TSchema.RelationType) => {
   if (!dataType.foreignField) return;
@@ -276,15 +277,18 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
 
     const {
       nonce,
-      maxUploadSize
+      attributes,
+      maxUploadSize,
     } = (_.isString(token) ? this.jwtVarify(token, 'upload') ?? {} : {}) as {
       nonce?: string;
       maxUploadSize?: number;
+        attributes?: Record<string, any>;
     };
     if (!isMaster && !nonce) throw Error('Upload token is required');
 
     return {
       nonce,
+      attributes: _.isObject(attributes) ? deserialize(JSON.stringify(attributes)) as Record<string, TValue> : {},
       maxUploadSize: maxUploadSize ?? this.options.maxUploadSize,
     };
   }
@@ -294,7 +298,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     const data = object[PVK].extra.data as FileData | { _id: string; size: number; };
     if (_.isNil(data)) throw Error('Invalid file object');
 
-    const { nonce, maxUploadSize } = this.varifyUploadToken(proto, options?.uploadToken, options?.master);
+    const { nonce, maxUploadSize, attributes } = this.varifyUploadToken(proto, options?.uploadToken, options?.master);
 
     if (nonce) {
       const found = await proto.Query('File').equalTo('nonce', nonce).first({ master: true });
@@ -329,6 +333,9 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
 
     try {
 
+      for (const [key, value] of _.entries(attributes)) {
+        object.set(key, value);
+      }
       object.set('token', file._id);
       object.set('size', file.size);
       if (nonce) object.set('nonce', nonce);
