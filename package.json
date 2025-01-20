@@ -18,7 +18,7 @@
   "dependencies": {
     "@google-cloud/storage": "^7.14.0",
     "@o2ter/crypto-js": "^0.0.7",
-    "@o2ter/utils-js": "^0.0.12",
+    "@o2ter/utils-js": "^0.0.13",
     "axios": "^1.7.7",
     "busboy": "^1.6.0",
     "decimal.js": "^10.4.3",
@@ -33,7 +33,7 @@
     "@babel/core": "^7.26.0",
     "@babel/preset-env": "^7.26.0",
     "@babel/preset-typescript": "^7.26.0",
-    "@o2ter/server-js": "^0.0.19",
+    "@o2ter/server-js": "^0.0.20",
     "@rollup/plugin-babel": "^6.0.4",
     "@rollup/plugin-commonjs": "^28.0.1",
     "@rollup/plugin-json": "^6.1.0",
