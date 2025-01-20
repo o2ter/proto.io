@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { Pool, PoolConfig, PoolClient, types } from 'pg';
 import QueryStream from 'pg-query-stream';
-import { asyncStream, Awaitable, IteratorPool } from '@o2ter/utils-js';
+import { Awaitable, IteratorPool } from '@o2ter/utils-js';
 import Decimal from 'decimal.js';
 import { _decodeValue, _encodeValue } from '../../../../internals/object';
 import { _TValue } from '../../../../internals/types';
@@ -53,12 +53,12 @@ export class PostgresClientDriver {
 
   query(text: string, values: any[] = [], batchSize?: number) {
     const db = this.db;
-    return asyncStream(async function* () {
+    return IteratorPool(Number.MAX_SAFE_INTEGER, async function* () {
       const client = db instanceof Pool ? await db.connect() : db;
       const stream = new QueryStream(text, values, { batchSize });
       client.query(stream);
       try {
-        yield* IteratorPool(Number.MAX_SAFE_INTEGER, stream);
+        yield* stream;
       } finally {
         stream.destroy();
         if (db instanceof Pool) client.release();
