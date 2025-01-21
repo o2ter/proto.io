@@ -25,11 +25,27 @@
 
 import _ from 'lodash';
 import { PoolConfig } from 'pg';
-import { TSchema, isPointer, isRelation, isShape, isVector, shapePaths } from '../../../../internals/schema';
+import { TSchema, _isTypeof, isPointer, isPrimitive, isRelation, isShape, isVector, shapePaths } from '../../../../internals/schema';
 import { PostgresDriver, PostgresClientDriver } from '../driver';
 import { sql } from '../../sql';
 import { PostgresStorageClient } from './base';
 import { TObject } from '../../../../internals/object';
+
+const resolveDataType = (
+  schema: TSchema,
+  path: string,
+) => {
+  let fields = schema.fields;
+  let last;
+  for (const key of _.toPath(path)) {
+    const dataType = fields[key];
+    if (_.isNil(dataType)) throw Error(`Invalid path: ${path}`);
+    if (isPrimitive(dataType) || isVector(dataType)) return dataType;
+    if (!isShape(dataType)) return dataType;
+    fields = dataType.shape;
+  }
+  return last;
+}
 
 export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
 
@@ -260,15 +276,18 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
         default:
           {
             const name = this._indexBasicName(className, index.keys, !!index.unique);
-            const isAcl = _.isEqual(index.keys, { _rperm: 1 }) || _.isEqual(index.keys, { _wperm: 1 });
-            const isRelation = _.has(relations, _.last(_.keys(index.keys))!);
+            const useGin = _.some(_.keys(index.keys), column => {
+              const dataType = resolveDataType(schema, column);
+              if (!dataType || isShape(dataType)) throw Error('Invalid index type');
+              return _isTypeof(dataType, 'string[]') || _.has(relations, column);
+            });
             await this.query(sql`
               CREATE ${{ literal: index.unique ? 'UNIQUE' : '' }} INDEX CONCURRENTLY
               IF NOT EXISTS ${{ identifier: name }}
               ON ${{ identifier: className }}
-              ${{ literal: isAcl || isRelation ? 'USING GIN' : '' }}
+              ${{ literal: useGin ? 'USING GIN' : '' }}
               (${_.map(index.keys, (v, k) => sql`
-                ${{ identifier: k }} ${{ literal: isAcl || isRelation ? '' : v === 1 ? 'ASC' : 'DESC' }}
+                ${{ identifier: k }} ${{ literal: useGin ? '' : v === 1 ? 'ASC' : 'DESC' }}
               `)})
             `);
           }
