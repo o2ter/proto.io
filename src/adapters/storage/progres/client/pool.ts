@@ -147,7 +147,8 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
     };
   }
 
-  private _indexBasicName(className: string, keys: Record<string, 1 | -1>) {
+  private _indexBasicName(className: string, keys: Record<string, 1 | -1>, unique: boolean) {
+    if (unique) return `${className}$u$${_.map(keys, (v, k) => `${k}:${v}`).join('$')}`;
     return `${className}$b$${_.map(keys, (v, k) => `${k}:${v}`).join('$')}`;
   }
 
@@ -170,7 +171,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
           names.push(..._.values(this._indexVectorName(className, _.castArray(index.keys))));
           break;
         default:
-          names.push(this._indexBasicName(className, index.keys));
+          names.push(this._indexBasicName(className, index.keys, !!index.unique));
           break;
       }
     }
@@ -258,7 +259,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
           break;
         default:
           {
-            const name = this._indexBasicName(className, index.keys);
+            const name = this._indexBasicName(className, index.keys, !!index.unique);
             const isAcl = _.isEqual(index.keys, { _rperm: 1 }) || _.isEqual(index.keys, { _wperm: 1 });
             const isRelation = _.has(relations, _.last(_.keys(index.keys))!);
             await this.query(sql`
