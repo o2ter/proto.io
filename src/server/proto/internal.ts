@@ -561,7 +561,7 @@ class JobRunner<Ext, P extends ProtoService<Ext>> {
   private async getNextJob(proto: P) {
     const availableJobs = await this.getAvailableJobs(proto);
     return await proto.Query('_Job')
-      .containsIn('name', availableJobs)
+      .containedIn('name', availableJobs)
       .or(
         q => q.lessThan('startedAt', new Date(Date.now() - JobRunner.TIMEOUT)),
         q => q.equalTo('startedAt', null),

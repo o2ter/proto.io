@@ -46,9 +46,9 @@ test('test relation contains', async () => {
 
   const q = Proto.Query('Relation2').equalTo('_id', inserted2.objectId);
 
-  expect((await q.clone().containsIn('pointer', [inserted_b]).first())?.objectId).toBeUndefined();
+  expect((await q.clone().containedIn('pointer', [inserted_b]).first())?.objectId).toBeUndefined();
 
-  expect((await q.clone().containsIn('pointer', [inserted]).first())?.objectId).toStrictEqual(inserted2.objectId);
+  expect((await q.clone().containedIn('pointer', [inserted]).first())?.objectId).toStrictEqual(inserted2.objectId);
 
 })
 
@@ -67,9 +67,9 @@ test('test relation contains 2', async () => {
 
   const q = Proto.Query('Relation3').equalTo('_id', inserted3.objectId);
 
-  expect((await q.clone().containsIn('pointer.pointer', [inserted_b]).first())?.objectId).toBeUndefined();
+  expect((await q.clone().containedIn('pointer.pointer', [inserted_b]).first())?.objectId).toBeUndefined();
 
-  expect((await q.clone().containsIn('pointer.pointer', [inserted]).first())?.objectId).toStrictEqual(inserted3.objectId);
+  expect((await q.clone().containedIn('pointer.pointer', [inserted]).first())?.objectId).toStrictEqual(inserted3.objectId);
 
 })
 
@@ -85,9 +85,9 @@ test('test relation not contains', async () => {
 
   const q = Proto.Query('Relation2').equalTo('_id', inserted2.objectId);
 
-  expect((await q.clone().notContainsIn('pointer', [inserted]).first())?.objectId).toBeUndefined();
+  expect((await q.clone().notContainedIn('pointer', [inserted]).first())?.objectId).toBeUndefined();
 
-  expect((await q.clone().notContainsIn('pointer', [inserted_b]).first())?.objectId).toStrictEqual(inserted2.objectId);
+  expect((await q.clone().notContainedIn('pointer', [inserted_b]).first())?.objectId).toStrictEqual(inserted2.objectId);
 
 })
 
@@ -106,9 +106,9 @@ test('test relation not contains 2', async () => {
 
   const q = Proto.Query('Relation3').equalTo('_id', inserted3.objectId);
 
-  expect((await q.clone().notContainsIn('pointer.pointer', [inserted]).first())?.objectId).toBeUndefined();
+  expect((await q.clone().notContainedIn('pointer.pointer', [inserted]).first())?.objectId).toBeUndefined();
 
-  expect((await q.clone().notContainsIn('pointer.pointer', [inserted_b]).first())?.objectId).toStrictEqual(inserted3.objectId);
+  expect((await q.clone().notContainedIn('pointer.pointer', [inserted_b]).first())?.objectId).toStrictEqual(inserted3.objectId);
 
 })
 

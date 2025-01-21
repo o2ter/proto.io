@@ -191,7 +191,7 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
       while (!_.isEmpty(queue)) {
         queue = await self.Query('Role')
           .or(_.map(_.uniq(['roles', ...roleKeys]), k => q => q.isIntersect(k, queue)))
-          .notContainsIn('_id', _.compact(_.map(roles, x => x.objectId)))
+          .notContainedIn('_id', _.compact(_.map(roles, x => x.objectId)))
           .includes('name')
           .find({ master: true });
         roles = _.uniqBy([...roles, ...queue], x => x.objectId);

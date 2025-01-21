@@ -247,7 +247,7 @@ class TQueryFilterBase {
    * @param value - The array of values to check for.
    * @returns The current instance for chaining.
    */
-  containsIn<T extends string>(key: PathName<T>, value: TValue[]) {
+  containedIn<T extends string>(key: PathName<T>, value: TValue[]) {
     return this.filter({ [key]: { $in: value } });
   }
 
@@ -257,7 +257,7 @@ class TQueryFilterBase {
    * @param value - The array of values to exclude.
    * @returns The current instance for chaining.
    */
-  notContainsIn<T extends string>(key: PathName<T>, value: TValue[]) {
+  notContainedIn<T extends string>(key: PathName<T>, value: TValue[]) {
     return this.filter({ [key]: { $nin: value } });
   }
 
