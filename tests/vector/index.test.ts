@@ -115,7 +115,7 @@ test('test distance 2', async () => {
 
 test('test distance sort', async () => {
 
-  for (const x of _.range(0, 5)) {
+  for (const x of _.range(5)) {
     await Proto.Query('Vector').insert({
       string: 'distance sort',
       vector: {
@@ -147,7 +147,7 @@ test('test distance sort', async () => {
 
 test('test distance sort 2', async () => {
 
-  for (const x of _.range(0, 5)) {
+  for (const x of _.range(5)) {
     await Proto.Query('Vector').insert({
       string: 'distance sort 2',
       vector2: [x, 1, 2],
