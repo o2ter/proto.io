@@ -33,26 +33,6 @@ import { TObject } from '../../internals/object';
 
 export default <E>(router: Router, proto: ProtoService<E>) => {
 
-  router.get(
-    '/functions/:name',
-    async (req, res) => {
-
-      res.setHeader('Cache-Control', ['no-cache', 'no-store']);
-
-      const { name } = req.params;
-      if (_.isNil(proto[PVK].functions[name])) return void res.sendStatus(404);
-
-      await response(res, () => {
-
-        const payload = proto.connect(req, x => ({
-          params: null,
-        }));
-
-        return payload[PVK].run(payload, name, payload, { master: payload.isMaster });
-      });
-    }
-  );
-
   router.post(
     '/functions/:name',
     Server.text({ type: '*/*' }),

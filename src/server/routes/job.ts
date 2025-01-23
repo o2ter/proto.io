@@ -33,24 +33,6 @@ import { TObject } from '../../internals/object';
 
 export default <E>(router: Router, proto: ProtoService<E>) => {
 
-  router.get(
-    '/jobs/:name',
-    async (req, res) => {
-
-      res.setHeader('Cache-Control', ['no-cache', 'no-store']);
-
-      const { name } = req.params;
-      if (_.isNil(proto[PVK].jobs[name])) return void res.sendStatus(404);
-
-      await response(res, () => {
-
-        const payload = proto.connect(req);
-
-        return payload[PVK].scheduleJob(payload, name, null, { master: payload.isMaster });
-      });
-    }
-  );
-
   router.post(
     '/jobs/:name',
     Server.text({ type: '*/*' }),
