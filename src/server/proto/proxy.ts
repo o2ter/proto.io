@@ -31,11 +31,8 @@ export const proxy = <T>(x: T): T => {
   const proxy = _.create(self) as any;
   for (const name of _.uniq(_.flatMap(prototypes(proxy), x => Object.getOwnPropertyNames(x)))) {
     if (name === 'constructor') continue;
-    if (_.isFunction(self[name])) {
-      proxy[name] = self[name].bind(self);
-    } else {
-      Object.defineProperty(proxy, name, { get: () => self[name] });
-    }
+    const value = _.isFunction(self[name]) ? self[name].bind(self) : self[name];
+    Object.defineProperty(proxy, name, { get: () => value });
   }
   return proxy;
 };
