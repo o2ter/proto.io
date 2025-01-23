@@ -117,7 +117,7 @@ const Proto = new ProtoService({
         relation7: { type: 'relation', target: 'Test', foreignField: 'pointer.pointer.relation.relation.relation.relation' },
         relation8: { type: 'relation', target: 'Test', foreignField: 'pointer.pointer.relation2.relation' },
         relation9: { type: 'relation', target: 'Test', foreignField: 'pointer.pointer.relation2.relation.pointer.pointer' },
-        'test_field-name': 'string',
+        '_test_field-name_01': 'string',
         shape: schema.shape({
           default: { type: 'number', default: 42 },
           boolean: 'boolean',
@@ -141,7 +141,7 @@ const Proto = new ProtoService({
           relation: { type: 'relation', target: 'Test' },
           relation2: { type: 'relation', target: 'Test', foreignField: 'pointer' },
           relation3: { type: 'relation', target: 'Test', foreignField: 'relation' },
-          'test_field-name': 'string',
+          '_test_field-name_01': 'string',
         }),
       },
       additionalObjectPermissions: {
@@ -173,7 +173,7 @@ const Proto = new ProtoService({
         { keys: { pointer: 1 } },
         { keys: { pointer2: 1 } },
         { keys: { relation: 1 } },
-        { keys: { 'test_field-name': 1 } },
+        { keys: { '_test_field-name_01': 1 } },
         { keys: { 'shape.default': 1 } },
         { keys: { 'shape.boolean': 1 } },
         { keys: { 'shape.number': 1 } },
@@ -193,7 +193,7 @@ const Proto = new ProtoService({
         { keys: { 'shape.pointer': 1 } },
         { keys: { 'shape.pointer2': 1 } },
         { keys: { 'shape.relation': 1 } },
-        { keys: { 'shape.test_field-name': 1 } },
+        { keys: { 'shape._test_field-name_01': 1 } },
       ],
     },
     'Relation': {
