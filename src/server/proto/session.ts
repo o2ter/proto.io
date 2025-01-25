@@ -94,7 +94,14 @@ const userCacheMap = new WeakMap<any, {
 }>;
 
 const fetchSessionInfo = async <E>(proto: ProtoService<E>, userId?: string) => {
-  if (!userId) return {};
+  if (!userId) {
+    const user = proto.req ? await proto[PVK].options.userResolver(proto, undefined) : undefined;
+    const _roles = user instanceof TUser ? _.filter(await proto.userRoles(user), x => !_.isEmpty(x.name)) : [];
+    return {
+      user: user?.clone(),
+      _roles: _.map(_roles, x => x.clone()),
+    };
+  }
   if (!userCacheMap.has(proto[PVK])) userCacheMap.set(proto[PVK], {});
   const cache = userCacheMap.get(proto[PVK])!;
   if (_.isNil(cache[userId])) cache[userId] = (async () => {
