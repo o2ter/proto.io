@@ -25,12 +25,12 @@
 
 import _ from 'lodash';
 import { SqlDialect } from './dialect';
-import { TValue } from '../../../internals/types';
+import { TValueWithUndefined } from '../../../internals/types';
 
 type SQLLiteral = SQL | SQL[] | { literal: string | SQL[], separator?: string };
 type SQLIdentifier = { identifier: string };
 type SQLEscapeString = { quote: string };
-type SQLValue = { value: TValue } | SQLIdentifier | SQLLiteral | SQLEscapeString;
+type SQLValue = { value: TValueWithUndefined } | SQLIdentifier | SQLLiteral | SQLEscapeString;
 
 const isSQLArray = (v: any): v is SQL[] => _.isArray(v) && _.every(v, x => x instanceof SQL);
 

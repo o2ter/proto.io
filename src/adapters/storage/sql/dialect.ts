@@ -28,7 +28,7 @@ import { QueryExpression } from '../../../server/query/dispatcher/parser/express
 import { TSchema } from '../../../internals/schema';
 import { Populate, QueryCompiler, QueryContext } from './compiler';
 import { SQL } from './sql';
-import { TValue } from '../../../internals/types';
+import { TValue, TValueWithUndefined } from '../../../internals/types';
 import { TUpdateOp } from '../../../internals/object/types';
 import { RelationOptions } from '../../../server/storage';
 
@@ -37,7 +37,7 @@ export interface SqlDialect {
   identifier(name: string): string;
   placeholder(idx: number): string;
   boolean(value: boolean): string;
-  encodeType(colname: string, type: TSchema.DataType, value: TValue): SQL;
+  encodeType(colname: string, type: TSchema.DataType, value: TValueWithUndefined): SQL;
   decodeType(type: TSchema.Primitive | 'vector', value: any): TValue;
   updateOperation(paths: string[], dataType: TSchema.DataType, operation: TUpdateOp): SQL;
 

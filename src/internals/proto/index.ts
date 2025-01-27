@@ -36,7 +36,7 @@ import { TFile } from '../object/file';
 import { FileData, FileStream } from '../buffer';
 import { isObjKey } from '../utils';
 import { applyObjectMethods } from '../object/methods';
-import { TValue, _TValue } from '../types';
+import { TValue, TValueWithoutObject } from '../types';
 import { TObject } from '../object';
 import { TSerializable } from '../../common/codec';
 import { TUser } from '../object/user';
@@ -72,7 +72,7 @@ export type TransactionOptions = {
 /**
  * Represents event data with additional metadata.
  */
-export type EventData = Record<string, _TValue> & {
+export type EventData = Record<string, TValueWithoutObject> & {
   /**
    * The unique identifier for the event.
    */
@@ -118,7 +118,7 @@ export abstract class ProtoType<Ext> {
    * @param options - Optional settings for retrieving the configuration.
    * @returns A promise that resolves to the configuration.
    */
-  abstract config(options?: { master?: boolean; }): Promise<Record<string, _TValue>>;
+  abstract config(options?: { master?: boolean; }): Promise<Record<string, TValueWithoutObject>>;
 
   /**
    * Retrieves the ACL of configuration.
@@ -133,7 +133,7 @@ export abstract class ProtoType<Ext> {
    * @param options - Settings for setting the configuration.
    * @returns A promise that resolves when the configuration is set.
    */
-  abstract setConfig(values: Record<string, _TValue>, options: { master: true; acl?: string[]; }): Promise<void>;
+  abstract setConfig(values: Record<string, TValueWithoutObject>, options: { master: true; acl?: string[]; }): Promise<void>;
 
   /**
    * Runs a function.
@@ -151,7 +151,7 @@ export abstract class ProtoType<Ext> {
    * @param options - Additional options for scheduling the job.
    * @returns A promise that resolves when the job is scheduled.
    */
-  abstract scheduleJob(name: string, params?: _TValue, options?: ExtraOptions<boolean>): Promise<TJob>;
+  abstract scheduleJob(name: string, params?: TValueWithoutObject, options?: ExtraOptions<boolean>): Promise<TJob>;
 
   /**
    * Creates a query.
@@ -235,7 +235,7 @@ export abstract class ProtoType<Ext> {
    * @param options - Additional options for notifying the event.
    */
   abstract notify(
-    data: Record<string, _TValue> & { _rperm?: string[]; },
+    data: Record<string, TValueWithoutObject> & { _rperm?: string[]; },
     options?: ExtraOptions<boolean>
   ): Promise<void>
 

@@ -28,7 +28,7 @@ import { SQL, sql } from '../../sql';
 import { TSchema, _typeof, dimensionOf } from '../../../../internals/schema';
 import Decimal from 'decimal.js';
 import { _decodeValue, _encodeValue } from '../../../../internals/object';
-import { TValue } from '../../../../internals/types';
+import { TValue, TValueWithUndefined } from '../../../../internals/types';
 import { TObject } from '../../../../internals/object';
 
 export const _encodeJsonValue = (value: any): SQL => {
@@ -56,7 +56,7 @@ export const _encodePopulateInclude = (
   }
 };
 
-export const encodeType = (colname: string, dataType: TSchema.DataType, value: TValue) => {
+export const encodeType = (colname: string, dataType: TSchema.DataType, value: TValueWithUndefined) => {
   if (_.isNil(value)) return sql`NULL`;
   switch (_.isString(dataType) ? dataType : dataType.type) {
     case 'boolean':

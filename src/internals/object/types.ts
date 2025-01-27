@@ -27,7 +27,7 @@ import { TObject } from './index';
 import { TUser } from './user';
 import { TRole } from './role';
 import { TFile } from './file';
-import { TValue } from '../types';
+import { TValueWithUndefined } from '../types';
 import { ExactOneProp } from '../types';
 import { TJob } from './job';
 
@@ -88,4 +88,4 @@ export const TUpdateOpKeys = [
   '$popLast',
 ] as const;
 
-export type TUpdateOp = ExactOneProp<Record<(typeof TUpdateOpKeys)[number], TValue>>;
+export type TUpdateOp = ExactOneProp<Record<(typeof TUpdateOpKeys)[number], TValueWithUndefined>>;

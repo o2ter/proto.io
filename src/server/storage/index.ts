@@ -28,7 +28,7 @@ import { TSchema } from '../../internals/schema';
 import { TQueryBaseOptions } from '../../internals/query/base';
 import { TransactionOptions } from '../../internals/proto';
 import { TQueryOptions, TQueryRandomOptions } from '../../internals/query';
-import { TValue, _TValue } from '../../internals/types';
+import { TValue, TValueWithoutObject, TValueWithUndefined } from '../../internals/types';
 import { TObject } from '../../internals/object';
 import { TUpdateOp } from '../../internals/object/types';
 import { QueryExpression } from '../query/dispatcher/parser/expressions';
@@ -86,9 +86,9 @@ export interface TStorage {
 
   classes(): string[];
 
-  config(acl?: string[]): PromiseLike<Record<string, _TValue>>;
+  config(acl?: string[]): PromiseLike<Record<string, TValueWithoutObject>>;
   configAcl(): PromiseLike<Record<string, string[]>>;
-  setConfig(values: Record<string, _TValue>, acl?: string[]): PromiseLike<void>;
+  setConfig(values: Record<string, TValueWithoutObject>, acl?: string[]): PromiseLike<void>;
 
   explain(query: DecodedQuery<FindOptions & RelationOptions>): PromiseLike<any>;
 
@@ -99,8 +99,8 @@ export interface TStorage {
   refs(object: TObject, classNames: string[], roles?: string[]): AsyncIterable<TObject>;
   nonrefs(query: DecodedQuery<FindOptions>): AsyncIterable<TObject>;
 
-  insert(options: InsertOptions, attrs: Record<string, TValue>): PromiseLike<TObject | undefined>;
-  insertMany(options: InsertOptions, values: Record<string, TValue>[]): PromiseLike<number>;
+  insert(options: InsertOptions, attrs: Record<string, TValueWithUndefined>): PromiseLike<TObject | undefined>;
+  insertMany(options: InsertOptions, values: Record<string, TValueWithUndefined>[]): PromiseLike<number>;
 
   updateOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>): PromiseLike<TObject | undefined>;
   updateMany(query: DecodedQuery<FindOptions>, update: Record<string, TUpdateOp>): PromiseLike<number>;

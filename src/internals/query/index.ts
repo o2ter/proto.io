@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { IncludePaths } from './types';
-import { TValue } from '../types';
+import { TValue, TValueWithUndefined } from '../types';
 import { PVK } from '../private';
 import { TObjectType } from '../object/types';
 import { TQueryBase, TQueryBaseOptions } from './base';
@@ -114,7 +114,7 @@ export abstract class TQuery<T extends string, Ext, M extends boolean> extends T
    * @returns A promise that resolves to the inserted record.
    */
   abstract insert(
-    attrs: Record<string, TValue>,
+    attrs: Record<string, TValueWithUndefined>,
     options?: ExtraOptions<M>
   ): PromiseLike<TObjectType<T, Ext>>;
 
@@ -125,7 +125,7 @@ export abstract class TQuery<T extends string, Ext, M extends boolean> extends T
    * @returns A promise that resolves to the number of inserted records.
    */
   abstract insertMany(
-    values: Record<string, TValue>[],
+    values: Record<string, TValueWithUndefined>[],
     options?: ExtraOptions<M>
   ): PromiseLike<number>;
 

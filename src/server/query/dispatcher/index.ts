@@ -30,7 +30,7 @@ import { FindOptions, FindOneOptions, RelationOptions } from '../../storage';
 import { TQueryBaseOptions } from '../../../internals/query/base';
 import { ExtraOptions } from '../../../internals/options';
 import { TQueryRandomOptions } from '../../../internals/query';
-import { TValue } from '../../../internals/types';
+import { TValue, TValueWithUndefined } from '../../../internals/types';
 import { PVK } from '../../../internals/private';
 import { TUpdateOp } from '../../../internals/object/types';
 import { normalize } from '../../utils';
@@ -108,7 +108,7 @@ export const dispatcher = <E>(
         matches?: Record<string, TQueryBaseOptions>;
         countMatches?: string[];
       },
-      attrs: Record<string, TValue>,
+      attrs: Record<string, TValueWithUndefined>,
     ) {
       QueryValidator.recursiveCheck(attrs);
       const _validator = await validator();
@@ -142,7 +142,7 @@ export const dispatcher = <E>(
         matches?: Record<string, TQueryBaseOptions>;
         countMatches?: string[];
       },
-      values: Record<string, TValue>[],
+      values: Record<string, TValueWithUndefined>[],
     ) {
       if (options.className === 'File') throw Error('File is not support insertMany');
       QueryValidator.recursiveCheck(values);

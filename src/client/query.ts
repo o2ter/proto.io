@@ -31,7 +31,7 @@ import { PVK } from '../internals/private';
 import { TQuery, TQueryOptions, TQueryRandomOptions } from '../internals/query';
 import { TObject } from '../internals/object';
 import { TObjectType, TUpdateOp } from '../internals/object/types';
-import { TValue } from '../internals/types';
+import { TValue, TValueWithUndefined } from '../internals/types';
 
 type _QueryOptions = {
   relatedBy?: {
@@ -118,7 +118,7 @@ abstract class _ProtoClientQuery<T extends string, E> extends TQuery<T, E, boole
   }
 
   insert(
-    attrs: Record<string, TValue>,
+    attrs: Record<string, TValueWithUndefined>,
     options?: RequestOptions<boolean>
   ) {
     return this._proto[PVK].request(this._proto, {
@@ -129,7 +129,7 @@ abstract class _ProtoClientQuery<T extends string, E> extends TQuery<T, E, boole
   }
 
   insertMany(
-    values: Record<string, TValue>[],
+    values: Record<string, TValueWithUndefined>[],
     options?: RequestOptions<boolean>
   ) {
     return this._proto[PVK].request(this._proto, {

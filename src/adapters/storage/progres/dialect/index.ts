@@ -44,7 +44,7 @@ import {
   decodeType
 } from './encode';
 
-export const PostgresDialect: SqlDialect = {
+export const PostgresDialect = {
   quote,
   identifier,
   placeholder,

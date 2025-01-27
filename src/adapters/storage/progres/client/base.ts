@@ -30,9 +30,9 @@ import { PostgresDialect } from '../dialect';
 import { _encodeJsonValue } from '../dialect/encode';
 import { QueryCompiler } from '../../sql/compiler';
 import { DecodedQuery, FindOptions } from '../../../../server/storage';
-import { EventData, TransactionOptions } from '../../../../internals/proto';
+import { TransactionOptions } from '../../../../internals/proto';
 import { _decodeValue, _encodeValue } from '../../../../internals/object';
-import { _TValue } from '../../../../internals/types';
+import { TValueWithoutObject } from '../../../../internals/types';
 import { TPubSub } from '../../../../server/pubsub';
 import { TSchema, isPointer, isRelation } from '../../../../internals/schema';
 
@@ -54,7 +54,7 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
   }
 
   async config(acl?: string[]) {
-    const config: Record<string, _TValue> = {};
+    const config: Record<string, TValueWithoutObject> = {};
     const query = _.isNil(acl)
       ? sql`SELECT * FROM ${{ identifier: '_Config' }}`
       : sql`SELECT * FROM ${{ identifier: '_Config' }} WHERE _rperm && ${{ value: acl }}`;
@@ -71,7 +71,7 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
     }
     return config;
   }
-  async setConfig(values: Record<string, _TValue>, acl?: string[]) {
+  async setConfig(values: Record<string, TValueWithoutObject>, acl?: string[]) {
     const _values = _.pickBy(values, v => !_.isNil(v));
     const nilKeys = _.keys(_.pickBy(values, v => _.isNil(v)));
     if (!_.isEmpty(_values)) {
@@ -212,13 +212,13 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
     }
   }
 
-  subscribe(channel: string, callback: (payload: _TValue) => void) {
+  subscribe(channel: string, callback: (payload: TValueWithoutObject) => void) {
     const db = this._driver;
     if (!(db instanceof PostgresDriver)) throw Error('Invalid pubsub instance');
     return db.subscribe(channel, callback);
   }
 
-  publish(channel: string, payload: _TValue) {
+  publish(channel: string, payload: TValueWithoutObject) {
     return this._driver.publish(channel, payload);
   }
 

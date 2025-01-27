@@ -39,7 +39,7 @@ import schemaRoute from './server/routes/schema';
 import configRoute from './server/routes/config';
 import { TSchema } from './internals/schema';
 import { PVK } from './internals/private';
-import { _TValue } from './internals/types';
+import { TValueWithoutObject } from './internals/types';
 import Decimal from 'decimal.js';
 import { response } from './server/routes/common';
 
@@ -99,14 +99,14 @@ export const schema = _.assign((x: Record<string, TSchema>) => x, {
    * @param defaultValue - The default value for the object.
    * @returns The object schema.
    */
-  object: <T extends Record<string, _TValue>>(defaultValue?: T) => ({ type: 'object', default: defaultValue }) as const,
+  object: <T extends Record<string, TValueWithoutObject>>(defaultValue?: T) => ({ type: 'object', default: defaultValue }) as const,
 
   /**
    * Defines an array schema.
    * @param defaultValue - The default value for the array.
    * @returns The array schema.
    */
-  array: <T extends _TValue[]>(defaultValue?: T) => ({ type: 'array', default: defaultValue }) as const,
+  array: <T extends TValueWithoutObject[]>(defaultValue?: T) => ({ type: 'array', default: defaultValue }) as const,
 
   /**
    * Defines a vector schema.

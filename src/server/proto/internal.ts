@@ -39,7 +39,7 @@ import { _serviceOf, ProtoService } from '.';
 import { base64ToBuffer, isBinaryData, prototypes } from '@o2ter/utils-js';
 import { ProtoInternalType } from '../../internals/proto';
 import { TObject } from '../../internals/object';
-import { _TValue, TValue } from '../../internals/types';
+import { TValueWithoutObject, TValue } from '../../internals/types';
 import { ExtraOptions } from '../../internals/options';
 import { TUser } from '../../internals/object/user';
 import { TFile } from '../../internals/object/file';
@@ -197,7 +197,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
   configAcl() {
     return this.options.storage.configAcl();
   }
-  async setConfig(values: Record<string, _TValue>, acl?: string[]) {
+  async setConfig(values: Record<string, TValueWithoutObject>, acl?: string[]) {
     return this.options.storage.setConfig(normalize(values), normalize(acl));
   }
 
@@ -444,7 +444,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     }
   }
 
-  async notify(proto: P, data: Record<string, _TValue> & { _rperm?: string[]; }) {
+  async notify(proto: P, data: Record<string, TValueWithoutObject> & { _rperm?: string[]; }) {
     if (data._rperm && (!_.isArray(data._rperm) || !_.every(data._rperm, _.isString))) {
       throw Error('Invalid data type');
     }

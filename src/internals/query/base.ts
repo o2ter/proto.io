@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { PathName, PathNameMap, PathNames } from './types';
 import { TQuerySelector } from './types/selectors';
-import { TValue } from '../types';
+import { TValue, TValueWithUndefined } from '../types';
 import { PVK } from '../private';
 import { TExpression } from './types/expressions';
 
@@ -129,7 +129,7 @@ class TQueryFilterBase {
    * @param value - The value to filter.
    * @returns The current instance for chaining.
    */
-  equalTo<T extends string>(key: PathName<T>, value: TValue | undefined) {
+  equalTo<T extends string>(key: PathName<T>, value: TValueWithUndefined) {
     return this.filter({ [key]: { $eq: value ?? null } });
   }
 
@@ -139,7 +139,7 @@ class TQueryFilterBase {
    * @param value - The value to filter.
    * @returns The current instance for chaining.
    */
-  notEqualTo<T extends string>(key: PathName<T>, value: TValue | undefined) {
+  notEqualTo<T extends string>(key: PathName<T>, value: TValueWithUndefined) {
     return this.filter({ [key]: { $ne: value ?? null } });
   }
 
@@ -149,7 +149,7 @@ class TQueryFilterBase {
    * @param value - The value to filter.
    * @returns The current instance for chaining.
    */
-  lessThan<T extends string>(key: PathName<T>, value: TValue | undefined) {
+  lessThan<T extends string>(key: PathName<T>, value: TValueWithUndefined) {
     return this.filter({ [key]: { $lt: value ?? null } });
   }
 
@@ -159,7 +159,7 @@ class TQueryFilterBase {
    * @param value - The value to filter.
    * @returns The current instance for chaining.
    */
-  greaterThan<T extends string>(key: PathName<T>, value: TValue | undefined) {
+  greaterThan<T extends string>(key: PathName<T>, value: TValueWithUndefined) {
     return this.filter({ [key]: { $gt: value ?? null } });
   }
 
@@ -169,7 +169,7 @@ class TQueryFilterBase {
    * @param value - The value to filter.
    * @returns The current instance for chaining.
    */
-  lessThanOrEqualTo<T extends string>(key: PathName<T>, value: TValue | undefined) {
+  lessThanOrEqualTo<T extends string>(key: PathName<T>, value: TValueWithUndefined) {
     return this.filter({ [key]: { $lte: value ?? null } });
   }
 
@@ -179,7 +179,7 @@ class TQueryFilterBase {
    * @param value - The value to filter.
    * @returns The current instance for chaining.
    */
-  greaterThanOrEqualTo<T extends string>(key: PathName<T>, value: TValue | undefined) {
+  greaterThanOrEqualTo<T extends string>(key: PathName<T>, value: TValueWithUndefined) {
     return this.filter({ [key]: { $gte: value ?? null } });
   }
 
@@ -247,7 +247,7 @@ class TQueryFilterBase {
    * @param value - The array of values to check for.
    * @returns The current instance for chaining.
    */
-  containedIn<T extends string>(key: PathName<T>, value: TValue[]) {
+  containedIn<T extends string>(key: PathName<T>, value: TValueWithUndefined[]) {
     return this.filter({ [key]: { $in: value } });
   }
 
@@ -257,7 +257,7 @@ class TQueryFilterBase {
    * @param value - The array of values to exclude.
    * @returns The current instance for chaining.
    */
-  notContainedIn<T extends string>(key: PathName<T>, value: TValue[]) {
+  notContainedIn<T extends string>(key: PathName<T>, value: TValueWithUndefined[]) {
     return this.filter({ [key]: { $nin: value } });
   }
 
@@ -267,7 +267,7 @@ class TQueryFilterBase {
    * @param value - The array of values to check against.
    * @returns The current instance for chaining.
    */
-  isSubset<T extends string>(key: PathName<T>, value: TValue[]) {
+  isSubset<T extends string>(key: PathName<T>, value: TValueWithUndefined[]) {
     return this.filter({ [key]: { $subset: value } });
   }
 
@@ -277,7 +277,7 @@ class TQueryFilterBase {
    * @param value - The array of values to check against.
    * @returns The current instance for chaining.
    */
-  isSuperset<T extends string>(key: PathName<T>, value: TValue[]) {
+  isSuperset<T extends string>(key: PathName<T>, value: TValueWithUndefined[]) {
     return this.filter({ [key]: { $superset: value } });
   }
 
@@ -287,7 +287,7 @@ class TQueryFilterBase {
    * @param value - The array of values to check against.
    * @returns The current instance for chaining.
    */
-  isDisjoint<T extends string>(key: PathName<T>, value: TValue[]) {
+  isDisjoint<T extends string>(key: PathName<T>, value: TValueWithUndefined[]) {
     return this.filter({ [key]: { $not: { $intersect: value } } });
   }
 
@@ -297,7 +297,7 @@ class TQueryFilterBase {
    * @param value - The array of values to check against.
    * @returns The current instance for chaining.
    */
-  isIntersect<T extends string>(key: PathName<T>, value: TValue[]) {
+  isIntersect<T extends string>(key: PathName<T>, value: TValueWithUndefined[]) {
     return this.filter({ [key]: { $intersect: value } });
   }
 

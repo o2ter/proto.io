@@ -29,7 +29,7 @@ import QueryStream from 'pg-query-stream';
 import { asyncStream, Awaitable, IteratorPool } from '@o2ter/utils-js';
 import Decimal from 'decimal.js';
 import { _decodeValue, _encodeValue } from '../../../../internals/object';
-import { _TValue } from '../../../../internals/types';
+import { TValueWithoutObject } from '../../../../internals/types';
 import { quote } from '../dialect/basic';
 
 const typeParser = (oid: number, format?: any) => {
@@ -184,7 +184,7 @@ export class PostgresClientDriver {
     }
   }
 
-  async publish(channel: string, payload: _TValue) {
+  async publish(channel: string, payload: TValueWithoutObject) {
     await this.withClient(async (db) => {
       await db.query(`NOTIFY ${channel}, ${quote(JSON.stringify(_encodeValue(payload)))}`);
     })
@@ -194,7 +194,7 @@ export class PostgresClientDriver {
 class PostgresPubSub {
 
   client: Awaitable<PoolClient>;
-  subscribers: Record<string, ((payload: _TValue) => void)[]> = {};
+  subscribers: Record<string, ((payload: TValueWithoutObject) => void)[]> = {};
 
   channels: string[] = [];
 
@@ -228,7 +228,7 @@ class PostgresPubSub {
     await (await this.client).query(`LISTEN ${channel}`);
   }
 
-  subscribe(channel: string, callback: (payload: _TValue) => void) {
+  subscribe(channel: string, callback: (payload: TValueWithoutObject) => void) {
     if (_.isNil(this.subscribers[channel])) this.subscribers[channel] = [];
     this.subscribers[channel].push(callback);
     return () => {
@@ -275,7 +275,7 @@ export class PostgresDriver extends PostgresClientDriver {
     await pubsub?.shutdown();
   }
 
-  subscribe(channel: string, callback: (payload: _TValue) => void) {
+  subscribe(channel: string, callback: (payload: TValueWithoutObject) => void) {
     this._init_pubsub();
     if (!_.includes(this.pubsub!.channels, channel)) this.pubsub!.listen(channel);
     const release = this.pubsub!.subscribe(channel, callback);

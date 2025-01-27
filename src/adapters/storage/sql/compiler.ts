@@ -33,7 +33,7 @@ import { SqlDialect } from './dialect';
 import { resolveColumn, resolveDataType } from '../../../server/query/dispatcher/validator';
 import { decodeUpdateOp } from '../../../internals/object';
 import { TUpdateOp } from '../../../internals/object/types';
-import { TValue } from '../../../internals/types';
+import { TValue, TValueWithUndefined } from '../../../internals/types';
 
 export type QueryCompilerOptions = {
   className: string;
@@ -348,7 +348,7 @@ export class QueryCompiler {
     return updates;
   }
 
-  private _encodeObjectAttrs(className: string, attrs: Record<string, TValue>): Record<string, SQL> {
+  private _encodeObjectAttrs(className: string, attrs: Record<string, TValueWithUndefined>): Record<string, SQL> {
     const result: Record<string, SQL> = {};
     for (const [key, value] of _.toPairs(attrs)) {
       const { paths: [column, ...subpath], dataType } = resolveColumn(this.schema, className, key);
@@ -435,7 +435,7 @@ export class QueryCompiler {
     ));
   }
 
-  insert(options: InsertOptions, attrs: Record<string, TValue>) {
+  insert(options: InsertOptions, attrs: Record<string, TValueWithUndefined>) {
 
     const _attrs: [string, SQL][] = _.toPairs({
       ..._defaultInsertOpts(options),
@@ -469,7 +469,7 @@ export class QueryCompiler {
     `;
   }
 
-  insertMany(options: InsertOptions, values: Record<string, TValue>[]) {
+  insertMany(options: InsertOptions, values: Record<string, TValueWithUndefined>[]) {
 
     const _values: Record<string, SQL>[] = _.map(values, attr => ({
       ..._defaultInsertOpts(options),

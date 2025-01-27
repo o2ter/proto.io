@@ -29,7 +29,8 @@ import { TObject } from './object';
 export type _TContainer<Primitive> = { [x: string]: _TContainer<Primitive>; } | _TContainer<Primitive>[] | Primitive;
 
 export type TPrimitiveValue = boolean | number | Decimal | string | Date | null;
-export type _TValue = _TContainer<TPrimitiveValue>;
+export type TValueWithUndefined = _TContainer<TPrimitiveValue | TObject | undefined>;
+export type TValueWithoutObject = _TContainer<TPrimitiveValue>;
 export type TValue = _TContainer<TPrimitiveValue | TObject>;
 
 export type Exact<T, Shape> =

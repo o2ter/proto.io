@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { _TValue } from './types';
+import { TValueWithoutObject } from './types';
 
 export namespace TSchema {
   /**
@@ -64,7 +64,7 @@ export namespace TSchema {
     /**
      * Optional default value.
      */
-    default?: _TValue; 
+    default?: TValueWithoutObject; 
   };
 
   /**

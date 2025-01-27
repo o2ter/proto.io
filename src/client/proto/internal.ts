@@ -33,7 +33,7 @@ import { TSerializable, deserialize, serialize } from '../../common';
 import { EventData, ProtoInternalType, ProtoType } from '../../internals/proto';
 import { TObjectType } from '../../internals/object/types';
 import { TUser } from '../../internals/object/user';
-import { _TValue } from '../../internals/types';
+import { TValueWithoutObject } from '../../internals/types';
 import { TFile } from '../../internals/object/file';
 import { PVK } from '../../internals/private';
 import { FileData } from '../../internals/buffer';
@@ -126,7 +126,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
       ...opts,
     });
 
-    return deserialize(res.data) as Record<string, _TValue>;
+    return deserialize(res.data) as Record<string, TValueWithoutObject>;
   }
   async configAcl(options: RequestOptions<boolean>) {
 
@@ -142,7 +142,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
 
     return deserialize(res.data) as Record<string, string[]>;
   }
-  async setConfig(values: Record<string, _TValue>, options: RequestOptions<boolean> & { acl?: string[]; }) {
+  async setConfig(values: Record<string, TValueWithoutObject>, options: RequestOptions<boolean> & { acl?: string[]; }) {
 
     const { serializeOpts, acl, ...opts } = options ?? {};
 
@@ -324,7 +324,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
 
   async notify(
     proto: P,
-    data: Record<string, _TValue> & { _rperm?: string[]; },
+    data: Record<string, TValueWithoutObject> & { _rperm?: string[]; },
     options?: RequestOptions<boolean>
   ) {
 

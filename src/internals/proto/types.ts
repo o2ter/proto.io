@@ -26,7 +26,7 @@
 import { Awaitable } from '@o2ter/utils-js';
 import { ProtoService } from '../../server/proto';
 import { TSerializable } from '../../common/codec';
-import { _TValue } from '../types';
+import { TValueWithoutObject } from '../types';
 import { TUser } from '../object/user';
 import { TObject } from '../object';
 
@@ -49,7 +49,7 @@ export type ProtoFunction<E> = Callback<{ params: TSerializable; }, void | TSeri
  * @param request - The request object.
  * @returns An awaitable response.
  */
-export type ProtoJobFunction<E> = Callback<{ params: _TValue; user?: TUser; job: TObject; }, void, E>;
+export type ProtoJobFunction<E> = Callback<{ params: TValueWithoutObject; user?: TUser; job: TObject; }, void, E>;
 
 /**
  * Validator options for proto functions.

@@ -27,7 +27,7 @@ import _ from 'lodash';
 import { PVK } from '../private';
 import { ExtraOptions } from '../options';
 import { Decimal } from 'decimal.js';
-import { TPrimitiveValue, TValue, _TValue } from '../types';
+import { TPrimitiveValue, TValue, TValueWithoutObject, TValueWithUndefined } from '../types';
 import { TSchema, defaultObjectKeys, defaultObjectReadonlyKeys } from '../schema';
 import { PathName } from '../query/types';
 import { TUpdateOp, TUpdateOpKeys } from './types';
@@ -52,7 +52,7 @@ export const cloneValue = <T extends TValue>(x: T): T => {
   return _.mapValues(x, v => cloneValue(v)) as T;
 }
 
-export const _decodeValue = (value: _TValue): _TValue => {
+export const _decodeValue = (value: TValueWithoutObject): TValueWithoutObject => {
   if (isPrimitiveValue(value)) return value;
   if (_.isArray(value)) return _.map(value, x => _decodeValue(x));
   if (_.isString(value.$date)) return new Date(value.$date);
@@ -62,7 +62,8 @@ export const _decodeValue = (value: _TValue): _TValue => {
   }, {} as any);
 };
 
-export const _encodeValue = (value: TValue): _TValue => {
+export const _encodeValue = (value: TValueWithUndefined): TValueWithoutObject => {
+  if (_.isNil(value)) return value ?? null;
   if (value instanceof TObject) throw Error('Invalid data type');
   if (_.isDate(value)) return { $date: value.toISOString() };
   if (value instanceof Decimal) return { $decimal: value.toString() };
@@ -320,7 +321,7 @@ export class TObject {
    * @param key - The key of the attribute.
    * @param value - The value to set.
    */
-  set<T extends string>(key: PathName<T>, value: TValue | undefined) {
+  set<T extends string>(key: PathName<T>, value: TValueWithUndefined) {
     if (_.isEmpty(key)) throw Error('Invalid key');
     if (TObject.defaultReadonlyKeys.includes(_.first(_.toPath(key))!)) return;
     this[PVK].mutated[key] = { $set: value ?? null };

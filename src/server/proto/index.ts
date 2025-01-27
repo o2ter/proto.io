@@ -39,7 +39,7 @@ import { TExtensions, TObjectType } from '../../internals/object/types';
 import { TQuery } from '../../internals/query';
 import { TUser } from '../../internals/object/user';
 import { ExtraOptions } from '../../internals/options';
-import { _TValue, TValue } from '../../internals/types';
+import { TValueWithoutObject, TValue } from '../../internals/types';
 import { randomUUID } from '@o2ter/crypto-js';
 import { TObject } from '../../internals/object';
 import { asyncStream } from '@o2ter/utils-js';
@@ -255,7 +255,7 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
     if (options.master !== true) throw Error('No permission');
     return this[PVK].configAcl();
   }
-  async setConfig(values: Record<string, _TValue>, options: { master: true; acl?: string[]; }) {
+  async setConfig(values: Record<string, TValueWithoutObject>, options: { master: true; acl?: string[]; }) {
     if (options.master !== true) throw Error('No permission');
     await this[PVK].setConfig(values, options.acl);
   }
@@ -273,7 +273,7 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
     this[PVK].functions[name] = options ? { callback, ...options } : callback;
   }
 
-  scheduleJob(name: string, params?: _TValue, options?: ExtraOptions<boolean>) {
+  scheduleJob(name: string, params?: TValueWithoutObject, options?: ExtraOptions<boolean>) {
     return this[PVK].scheduleJob(this, name, params, options);
   }
 
@@ -319,7 +319,7 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
     return this[PVK].jwtVarify(token, options);
   }
 
-  notify(data: Record<string, _TValue> & { _rperm?: string[]; }) {
+  notify(data: Record<string, TValueWithoutObject> & { _rperm?: string[]; }) {
     return this[PVK].notify(this, data);
   }
 

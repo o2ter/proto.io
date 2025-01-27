@@ -32,7 +32,7 @@ import { ExtraOptions } from '../../internals/options';
 import { TQuery, TQueryOptions, TQueryRandomOptions } from '../../internals/query';
 import { TObject } from '../../internals/object';
 import { TExtended } from '../../internals/object/methods';
-import { TValue } from '../../internals/types';
+import { TValue, TValueWithUndefined } from '../../internals/types';
 import { TUpdateOp } from '../../internals/object/types';
 import { resolveColumn } from './dispatcher/validator';
 import { isPointer, isRelation } from '../../internals/schema';
@@ -121,7 +121,7 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
   }
 
   async insert(
-    attrs: Record<string, TValue>,
+    attrs: Record<string, TValueWithUndefined>,
     options?: ExtraOptions<M>
   ) {
     const result = this._objectMethods(
@@ -137,7 +137,7 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
   }
 
   async insertMany(
-    values: Record<string, TValue>[],
+    values: Record<string, TValueWithUndefined>[],
     options?: ExtraOptions<M>
   ) {
     return this._dispatcher(options).insertMany({

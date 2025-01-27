@@ -31,7 +31,7 @@ import { SQL, sql } from './sql';
 import { SqlDialect } from './dialect';
 import { QueryCompiler } from './compiler';
 import { asyncStream } from '@o2ter/utils-js';
-import { TValue, _TValue } from '../../../internals/types';
+import { TValue, TValueWithoutObject } from '../../../internals/types';
 import { TObject } from '../../../internals/object';
 import { PVK } from '../../../internals/private';
 import { TQueryRandomOptions } from '../../../internals/query';
@@ -54,9 +54,9 @@ export abstract class SqlStorage implements TStorage {
 
   abstract selectLock(): boolean;
 
-  abstract config(acl?: string[]): PromiseLike<Record<string, _TValue>>;
+  abstract config(acl?: string[]): PromiseLike<Record<string, TValueWithoutObject>>;
   abstract configAcl(): PromiseLike<Record<string, string[]>>;
-  abstract setConfig(values: Record<string, _TValue>, acl?: string[]): PromiseLike<void>;
+  abstract setConfig(values: Record<string, TValueWithoutObject>, acl?: string[]): PromiseLike<void>;
   abstract lockTable(className: string | string[], update: boolean): Promise<void>;
   abstract withConnection<T>(callback: (connection: TStorage) => PromiseLike<T>): PromiseLike<T>;
   abstract isDuplicateIdError(error: any): boolean;

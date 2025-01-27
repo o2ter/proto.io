@@ -31,7 +31,7 @@ import { TSerializable } from '../../common';
 import { EventData, ProtoType } from '../../internals/proto';
 import { TQuery } from '../../internals/query';
 import { PVK } from '../../internals/private';
-import { _TValue } from '../../internals/types';
+import { TValueWithoutObject } from '../../internals/types';
 import { TUser } from '../../internals/object/user';
 import { TObject } from '../../internals/object';
 import { PathName } from '../../internals/query/types';
@@ -62,14 +62,14 @@ export class ProtoClient<Ext = any> extends ProtoType<Ext> {
     });
   }
 
-  config(options?: RequestOptions<boolean>): Promise<Record<string, _TValue>> {
+  config(options?: RequestOptions<boolean>): Promise<Record<string, TValueWithoutObject>> {
     return this[PVK].config(options);
   }
   configAcl(options: RequestOptions<true>) {
     if (options.master !== true) throw Error('No permission');
     return this[PVK].configAcl(options);
   }
-  async setConfig(values: Record<string, _TValue>, options: RequestOptions<true> & { acl?: string[]; }) {
+  async setConfig(values: Record<string, TValueWithoutObject>, options: RequestOptions<true> & { acl?: string[]; }) {
     if (options.master !== true) throw Error('No permission');
     await this[PVK].setConfig(values, options);
   }
@@ -88,7 +88,7 @@ export class ProtoClient<Ext = any> extends ProtoType<Ext> {
 
   scheduleJob(
     name: string,
-    data?: _TValue,
+    data?: TValueWithoutObject,
     options?: RequestOptions<boolean>
   ) {
     return this[PVK].request(this, data, {
@@ -126,7 +126,7 @@ export class ProtoClient<Ext = any> extends ProtoType<Ext> {
     return this[PVK].schema(options);
   }
 
-  notify(data: Record<string, _TValue> & { _rperm?: string[]; }, options?: RequestOptions<boolean>) {
+  notify(data: Record<string, TValueWithoutObject> & { _rperm?: string[]; }, options?: RequestOptions<boolean>) {
     return this[PVK].notify(this, data, options);
   }
 
