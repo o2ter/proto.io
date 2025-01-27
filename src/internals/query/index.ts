@@ -160,7 +160,7 @@ export abstract class TQuery<T extends string, Ext, M extends boolean> extends T
    */
   abstract upsertOne(
     update: Record<string, TUpdateOp>,
-    setOnInsert: Record<string, TValue>,
+    setOnInsert: Record<string, TValueWithUndefined>,
     options?: ExtraOptions<M>
   ): PromiseLike<TObjectType<T, Ext>>;
 
@@ -173,7 +173,7 @@ export abstract class TQuery<T extends string, Ext, M extends boolean> extends T
    */
   abstract upsertMany(
     update: Record<string, TUpdateOp>,
-    setOnInsert: Record<string, TValue>,
+    setOnInsert: Record<string, TValueWithUndefined>,
     options?: ExtraOptions<M>
   ): PromiseLike<{ updated: number; inserted: number; }>;
 

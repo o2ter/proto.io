@@ -163,7 +163,7 @@ abstract class _ProtoClientQuery<T extends string, E> extends TQuery<T, E, boole
 
   upsertOne(
     update: Record<string, TUpdateOp>,
-    setOnInsert: Record<string, TValue>,
+    setOnInsert: Record<string, TValueWithUndefined>,
     options?: RequestOptions<boolean>
   ) {
     return this._proto[PVK].request(this._proto, {
@@ -176,7 +176,7 @@ abstract class _ProtoClientQuery<T extends string, E> extends TQuery<T, E, boole
 
   upsertMany(
     update: Record<string, TUpdateOp>,
-    setOnInsert: Record<string, TValue>,
+    setOnInsert: Record<string, TValueWithUndefined>,
     options?: RequestOptions<boolean>
   ) {
     return this._proto[PVK].request(this._proto, {

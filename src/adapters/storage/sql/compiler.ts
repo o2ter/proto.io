@@ -518,7 +518,7 @@ export class QueryCompiler {
     );
   }
 
-  upsertOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValue>) {
+  upsertOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValueWithUndefined>) {
 
     const _insert: [string, SQL][] = _.toPairs({
       ..._defaultInsertOpts(query),
@@ -556,7 +556,7 @@ export class QueryCompiler {
     );
   }
 
-  upsertMany(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValue>) {
+  upsertMany(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValueWithUndefined>) {
 
     const _insert: [string, SQL][] = _.toPairs({
       ..._defaultInsertOpts(query),

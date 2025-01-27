@@ -166,7 +166,7 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
 
   async upsertOne(
     update: Record<string, TUpdateOp>,
-    setOnInsert: Record<string, TValue>,
+    setOnInsert: Record<string, TValueWithUndefined>,
     options?: ExtraOptions<M>
   ) {
     const result = this._objectMethods(
@@ -179,7 +179,7 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
 
   async upsertMany(
     update: Record<string, TUpdateOp>,
-    setOnInsert: Record<string, TValue>,
+    setOnInsert: Record<string, TValueWithUndefined>,
     options?: ExtraOptions<M>
   ) {
     return this._dispatcher(options).upsertMany(this._queryOptions, update, setOnInsert);

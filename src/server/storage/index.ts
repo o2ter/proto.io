@@ -105,8 +105,8 @@ export interface TStorage {
   updateOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>): PromiseLike<TObject | undefined>;
   updateMany(query: DecodedQuery<FindOptions>, update: Record<string, TUpdateOp>): PromiseLike<number>;
 
-  upsertOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValue>): PromiseLike<TObject | undefined>;
-  upsertMany(query: DecodedQuery<FindOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValue>): PromiseLike<{ updated: number; inserted: number; }>;
+  upsertOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValueWithUndefined>): PromiseLike<TObject | undefined>;
+  upsertMany(query: DecodedQuery<FindOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValueWithUndefined>): PromiseLike<{ updated: number; inserted: number; }>;
 
   deleteOne(query: DecodedQuery<FindOneOptions>): PromiseLike<TObject | undefined>;
   deleteMany(query: DecodedQuery<FindOptions>): PromiseLike<number>;

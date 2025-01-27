@@ -197,7 +197,7 @@ export const dispatcher = <E>(
     async upsertOne(
       query: FindOneOptions,
       update: Record<string, TUpdateOp>,
-      setOnInsert: Record<string, TValue>
+      setOnInsert: Record<string, TValueWithUndefined>
     ) {
       if (query.className === 'File') throw Error('File is not support upsertOne');
       QueryValidator.recursiveCheck(query, update, setOnInsert);
@@ -221,7 +221,7 @@ export const dispatcher = <E>(
     async upsertMany(
       query: FindOptions,
       update: Record<string, TUpdateOp>,
-      setOnInsert: Record<string, TValue>
+      setOnInsert: Record<string, TValueWithUndefined>
     ) {
       if (query.className === 'File') throw Error('File is not support upsertOne');
       QueryValidator.recursiveCheck(query, update, setOnInsert);

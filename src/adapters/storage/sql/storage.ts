@@ -31,7 +31,7 @@ import { SQL, sql } from './sql';
 import { SqlDialect } from './dialect';
 import { QueryCompiler } from './compiler';
 import { asyncStream } from '@o2ter/utils-js';
-import { TValue, TValueWithoutObject } from '../../../internals/types';
+import { TValue, TValueWithoutObject, TValueWithUndefined } from '../../../internals/types';
 import { TObject } from '../../../internals/object';
 import { PVK } from '../../../internals/private';
 import { TQueryRandomOptions } from '../../../internals/query';
@@ -224,13 +224,13 @@ export abstract class SqlStorage implements TStorage {
     })();
   }
 
-  async insert(options: InsertOptions, attrs: Record<string, TValue>) {
+  async insert(options: InsertOptions, attrs: Record<string, TValueWithUndefined>) {
     const compiler = this._makeCompiler(true);
     const result = _.first(await this.query(compiler.insert(options, attrs)));
     return _.isNil(result) ? undefined : this._decodeObject(options.className, result);
   }
 
-  async insertMany(options: InsertOptions, values: Record<string, TValue>[]) {
+  async insertMany(options: InsertOptions, values: Record<string, TValueWithUndefined>[]) {
     const compiler = this._makeCompiler(true);
     const result = await this.query(compiler.insertMany(options, values));
     return result.length;
@@ -248,13 +248,13 @@ export abstract class SqlStorage implements TStorage {
     return updated.length;
   }
 
-  async upsertOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValue>) {
+  async upsertOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValueWithUndefined>) {
     const compiler = this._makeCompiler(true, query.extraFilter);
     const upserted = _.first(await this.query(compiler.upsertOne(query, update, setOnInsert)));
     return _.isNil(upserted) ? undefined : this._decodeObject(query.className, upserted);
   }
 
-  async upsertMany(query: DecodedQuery<FindOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValue>) {
+  async upsertMany(query: DecodedQuery<FindOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValueWithUndefined>) {
     const compiler = this._makeCompiler(true, query.extraFilter);
     const upserted = await this.query(compiler.upsertMany(query, update, setOnInsert));
     const inserted = _.filter(upserted, x => x.__v === 0).length;
