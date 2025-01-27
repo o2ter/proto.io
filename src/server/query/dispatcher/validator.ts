@@ -98,7 +98,8 @@ export class QueryValidator<E> {
 
   static patterns = {
     path: /^[a-z_][\w-]*(\[\d+\]|\.\d*|\.[a-z_][\w-]*)*$/gi,
-    name: /^[a-z_][\w-]*$/gi,
+    className: /^[a-z_][\w]*$/gi,
+    fieldName: /^[a-z_][\w-]*$/gi,
     digits: /^\d+$/g,
   }
 

@@ -98,7 +98,7 @@ export const dispatcher = <E>(
       const decoded = _validator.decodeQuery(normalize(query), 'read');
       const isGet = _validator.isGetMethod(decoded.filter);
       if (!_validator.validateCLPs(query.className, isGet ? 'get' : 'find')) throw Error('No permission');
-      if (opts?.weight && !_validator.validateKey(query.className, opts.weight, 'read', QueryValidator.patterns.name)) throw Error('No permission');
+      if (opts?.weight && !_validator.validateKey(query.className, opts.weight, 'read', QueryValidator.patterns.path)) throw Error('No permission');
       return proto.storage.random(decoded, opts);
     },
     async insert(
@@ -205,7 +205,7 @@ export const dispatcher = <E>(
       if (!_validator.validateCLPs(query.className, 'create', 'update')) throw Error('No permission');
       const _query = _validator.decodeQuery(normalize(query), 'update');
       const _update = normalize(_validator.validateFields(query.className, update, 'update', QueryValidator.patterns.path));
-      const _setOnInsert = normalize(_validator.validateFields(query.className, setOnInsert, 'create', QueryValidator.patterns.name));
+      const _setOnInsert = normalize(_validator.validateFields(query.className, setOnInsert, 'create', QueryValidator.patterns.path));
       while (true) {
         try {
           return await proto.storage.atomic(
@@ -229,7 +229,7 @@ export const dispatcher = <E>(
       if (!_validator.validateCLPs(query.className, 'create', 'update')) throw Error('No permission');
       const _query = _validator.decodeQuery(normalize(query), 'update');
       const _update = normalize(_validator.validateFields(query.className, update, 'update', QueryValidator.patterns.path));
-      const _setOnInsert = normalize(_validator.validateFields(query.className, setOnInsert, 'create', QueryValidator.patterns.name));
+      const _setOnInsert = normalize(_validator.validateFields(query.className, setOnInsert, 'create', QueryValidator.patterns.path));
       while (true) {
         try {
           return await proto.storage.atomic(

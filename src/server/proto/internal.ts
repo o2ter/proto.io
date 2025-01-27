@@ -64,7 +64,7 @@ const validateForeignField = (schema: Record<string, TSchema>, key: string, data
 const validateShapedObject = (schema: Record<string, TSchema>, dataType: TSchema.ShapeType) => {
   if (_.isEmpty(dataType.shape)) throw Error('Invalid empty shape');
   for (const [key, type] of _.entries(dataType.shape)) {
-    if (!key.match(QueryValidator.patterns.name)) throw Error(`Invalid field name: ${key}`);
+    if (!key.match(QueryValidator.patterns.fieldName)) throw Error(`Invalid field name: ${key}`);
     if (isShape(type)) {
       validateShapedObject(schema, type);
     } else if (isRelation(type)) {
@@ -87,10 +87,10 @@ const validateSchemaName = (schema: Record<string, TSchema>) => {
 const validateSchema = (schema: Record<string, TSchema>) => {
   for (const [className, _schema] of _.toPairs(schema)) {
 
-    if (!className.match(QueryValidator.patterns.name)) throw Error(`Invalid class name: ${className}`);
+    if (!className.match(QueryValidator.patterns.className)) throw Error(`Invalid class name: ${className}`);
 
     for (const [key, dataType] of _.toPairs(_schema.fields)) {
-      if (!key.match(QueryValidator.patterns.name)) throw Error(`Invalid field name: ${key}`);
+      if (!key.match(QueryValidator.patterns.fieldName)) throw Error(`Invalid field name: ${key}`);
       if (isShape(dataType)) {
         validateShapedObject(schema, dataType);
       } else if (isPointer(dataType)) {
