@@ -58,12 +58,12 @@ export class GoogleCloudStorage extends FileChunkStorageBase<File> {
       name: _.last(_.split(x.name, '/'))!,
     }));
     return _.map(_.filter(files, x => !!x.name?.match(/^\d+\.chunk$/)), x => ({
-      ...x,
+      file: x.file,
       start: parseInt(x.name.slice(0, -6)),
     }));
   }
 
-  async readChunk<E>(proto: ProtoService<E>, name: string, file: File) {
+  async readChunk<E>(proto: ProtoService<E>, file: File) {
     const [buffer] = await file.download() ?? [];
     if (!buffer) throw Error('Unable to connect cloud storage');
     return buffer;

@@ -31,11 +31,10 @@ export abstract class FileChunkStorageBase<File> extends FileStorageBase {
 
   abstract listChunks<E>(proto: ProtoService<E>, token: string): PromiseLike<{
     start: number;
-    name: string;
     file: File;
   }[]>;
 
-  abstract readChunk<E>(proto: ProtoService<E>, name: string, file: File): PromiseLike<Buffer>;
+  abstract readChunk<E>(proto: ProtoService<E>, file: File): PromiseLike<Buffer>;
 
   async* readChunks<E>(proto: ProtoService<E>, token: string, start?: number | undefined, end?: number | undefined) {
     const files = _.orderBy(await this.listChunks(proto, token), x => x.start);
@@ -45,7 +44,7 @@ export abstract class FileChunkStorageBase<File> extends FileStorageBase {
       if (!chunk) continue;
       yield {
         start: chunk.start,
-        data: (async () => this.readChunk(proto, chunk.name, chunk.file))(),
+        data: (async () => this.readChunk(proto, chunk.file))(),
       };
     }
   }
