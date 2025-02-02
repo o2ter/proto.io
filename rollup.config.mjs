@@ -14,6 +14,7 @@ const rollupConfig = {
     'adapters/file/database': 'src/adapters/file/database/index',
     'adapters/file/filesystem': 'src/adapters/file/filesystem/index',
     'adapters/file/google-cloud-storage': 'src/adapters/file/google-cloud-storage/index',
+    'adapters/file/aliyun-oss': 'src/adapters/file/aliyun-oss/index',
   },
   external: [
     /node_modules/
