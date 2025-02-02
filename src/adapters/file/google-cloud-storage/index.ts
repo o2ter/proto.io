@@ -25,10 +25,11 @@
 
 import _ from 'lodash';
 import { ProtoService } from '../../../server/proto';
-import { Storage } from '@google-cloud/storage';
-import FileStorageBase, { FileStorageOptions } from '../base';
+import { Storage, File } from '@google-cloud/storage';
+import { FileStorageOptions } from '../base';
+import { FileChunkStorageBase } from '../base/chunk';
 
-export class GoogleCloudStorage extends FileStorageBase {
+export class GoogleCloudStorage extends FileChunkStorageBase<File> {
 
   private _storage: Storage;
   private _bucket: string;
@@ -47,31 +48,25 @@ export class GoogleCloudStorage extends FileStorageBase {
     await this.bucket.file(`${token}/${start}.chunk`).save(compressed);
   }
 
-  async* readChunks<E>(proto: ProtoService<E>, token: string, start?: number | undefined, end?: number | undefined) {
+  async listChunks<E>(proto: ProtoService<E>, token: string) {
     const [response] = await this.bucket.getFiles({
       prefix: `${token}/`,
       delimiter: '/',
     });
-    const _files = _.filter(_.map(response, x => ({
+    const files = _.map(response, x => ({
       file: x,
-      name: _.last(_.split(x.name, '/')),
-    })), x => !!x.name?.match(/^\d+\.chunk$/));
-    const files = _.orderBy(_.map(_files, x => ({
-      file: x.file,
-      start: parseInt(x.name!.slice(0, -6)),
-    })), x => x.start);
-    for (const [chunk, endBytes] of _.zip(files, _.slice(_.map(files, x => x.start), 1))) {
-      if (_.isNumber(start) && _.isNumber(endBytes) && start >= endBytes) continue;
-      if (_.isNumber(end) && end <= chunk!.start) continue;
-      yield {
-        start: chunk!.start,
-        data: (async () => {
-          const [buffer] = await chunk?.file.download() ?? [];
-          if (!buffer) throw Error('Unable to connect cloud storage');
-          return buffer;
-        })(),
-      };
-    }
+      name: _.last(_.split(x.name, '/'))!,
+    }));
+    return _.map(_.filter(files, x => !!x.name?.match(/^\d+\.chunk$/)), x => ({
+      ...x,
+      start: parseInt(x.name.slice(0, -6)),
+    }));
+  }
+
+  async readChunk<E>(proto: ProtoService<E>, name: string, file: File) {
+    const [buffer] = await file.download() ?? [];
+    if (!buffer) throw Error('Unable to connect cloud storage');
+    return buffer;
   }
 
   async destroy<E>(proto: ProtoService<E>, token: string) {

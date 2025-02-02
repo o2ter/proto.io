@@ -27,9 +27,10 @@ import _ from 'lodash';
 import path from 'path';
 import fs from 'fs/promises';
 import { ProtoService } from '../../../server/proto';
-import FileStorageBase, { FileStorageOptions } from '../base';
+import { FileStorageOptions } from '../base';
+import { FileChunkStorageBase } from '../base/chunk';
 
-export class FileSystemStorage extends FileStorageBase {
+export class FileSystemStorage extends FileChunkStorageBase<string> {
 
   volumn: string;
 
@@ -46,21 +47,18 @@ export class FileSystemStorage extends FileStorageBase {
     await fs.writeFile(path.join(directory, `${start}.chunk`), compressed);
   }
 
-  async* readChunks<E>(proto: ProtoService<E>, token: string, start?: number | undefined, end?: number | undefined) {
+  async listChunks<E>(proto: ProtoService<E>, token: string) {
     const directory = path.resolve(this.volumn, token);
-    const _files = _.filter(await fs.readdir(directory), x => !!x.match(/^\d+\.chunk$/));
-    const files = _.orderBy(_.map(_files, x => ({
-      path: path.resolve(directory, x),
+    const files = _.filter(await fs.readdir(directory), x => !!x.match(/^\d+\.chunk$/));
+    return _.map(files, x => ({
+      name: x,
       start: parseInt(x.slice(0, -6)),
-    })), x => x.start);
-    for (const [chunk, endBytes] of _.zip(files, _.slice(_.map(files, x => x.start), 1))) {
-      if (_.isNumber(start) && _.isNumber(endBytes) && start >= endBytes) continue;
-      if (_.isNumber(end) && end <= chunk!.start) continue;
-      yield {
-        start: chunk!.start,
-        data: fs.readFile(chunk!.path),
-      };
-    }
+      file: path.resolve(directory, x),
+    }));
+  }
+
+  async readChunk<E>(proto: ProtoService<E>, name: string, file: string) {
+    return fs.readFile(file);
   }
 
   async destroy<E>(proto: ProtoService<E>, token: string) {

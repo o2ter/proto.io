@@ -1,5 +1,5 @@
 //
-//  index.ts
+//  object.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2025 O2ter Limited. All rights reserved.
@@ -23,9 +23,30 @@
 //  THE SOFTWARE.
 //
 
+import _ from 'lodash';
 import { FileStorageBase } from './base';
+import { ProtoService } from '../../../server/proto';
 
-export * from './base';
-export * from './chunk';
+export abstract class FileChunkStorageBase<File> extends FileStorageBase {
 
-export default FileStorageBase;
+  abstract listChunks<E>(proto: ProtoService<E>, token: string): PromiseLike<{
+    start: number;
+    name: string;
+    file: File;
+  }[]>;
+
+  abstract readChunk<E>(proto: ProtoService<E>, name: string, file: File): PromiseLike<Buffer>;
+
+  async* readChunks<E>(proto: ProtoService<E>, token: string, start?: number | undefined, end?: number | undefined) {
+    const files = _.orderBy(await this.listChunks(proto, token), x => x.start);
+    for (const [chunk, endBytes] of _.zip(files, _.slice(_.map(files, x => x.start), 1))) {
+      if (_.isNumber(start) && _.isNumber(endBytes) && start >= endBytes) continue;
+      if (_.isNumber(end) && end <= chunk!.start) continue;
+      if (!chunk) continue;
+      yield {
+        start: chunk.start,
+        data: (async () => this.readChunk(proto, chunk.name, chunk.file))(),
+      };
+    }
+  }
+}
