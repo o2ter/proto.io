@@ -197,7 +197,8 @@ export abstract class TQuery<T extends string, Ext, M extends boolean> extends T
    * @returns The query instance.
    */
   includes<T extends _.RecursiveArray<string>>(...includes: IncludePaths<T>) {
-    this[PVK].options.includes = this[PVK].options.includes ? [...this[PVK].options.includes, ..._.flattenDeep(includes)] : _.flattenDeep(includes);
+    const keys = this[PVK].options.includes ? [...this[PVK].options.includes, ..._.flattenDeep(includes)] : _.flattenDeep(includes);
+    this[PVK].options.includes = _.uniq(keys);
     return this;
   }
 

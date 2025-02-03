@@ -29,7 +29,7 @@ import { ExtraOptions } from '../options';
 import { Decimal } from 'decimal.js';
 import { TPrimitiveValue, TValue, TValueWithoutObject, TValueWithUndefined } from '../types';
 import { TSchema, defaultObjectKeys, defaultObjectReadonlyKeys } from '../schema';
-import { PathName } from '../query/types';
+import { IncludePaths, PathName } from '../query/types';
 import { TUpdateOp, TUpdateOpKeys } from './types';
 import { TQuery } from '../query';
 
@@ -103,7 +103,7 @@ export interface TObject {
    * @param options - Additional options for the fetch operation.
    * @returns A promise that resolves to the fetched object.
    */
-  fetchWithInclude(keys: string[], options?: ExtraOptions<boolean>): PromiseLike<this>;
+  fetchWithInclude<T extends _.RecursiveArray<string>>(keys: IncludePaths<T>, options?: ExtraOptions<boolean>): PromiseLike<this>;
 
   /**
    * Saves the object.
@@ -470,10 +470,10 @@ export class TObject {
    * @param options - Additional options for the fetch operation.
    * @returns A promise that resolves to the fetched object.
    */
-  async fetchIfNeeded(keys: string[], options?: ExtraOptions<boolean>) {
+  async fetchIfNeeded<T extends _.RecursiveArray<string>>(keys: IncludePaths<T>, options?: ExtraOptions<boolean>) {
     const current = _.keys(this[PVK].attributes);
     if (_.every(keys, k => _.includes(current, k))) return this;
-    return this.fetchWithInclude(_.uniq([...current, ...keys]), options);
+    return this.fetchWithInclude([current, keys], options);
   }
 
 }

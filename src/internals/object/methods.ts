@@ -1,3 +1,4 @@
+import { IncludePaths } from './../query/types/index';
 //
 //  methods.ts
 //
@@ -109,8 +110,8 @@ export const applyObjectMethods = <T extends TSerializable, E>(
       }
     },
     fetchWithInclude: {
-      async value(keys: string[], options?: ExtraOptions<boolean>) {
-        const fetched = await query().equalTo('_id', this.objectId).includes(...keys).first(options);
+      async value(keys: _.RecursiveArray<string>, options?: ExtraOptions<boolean>) {
+        const fetched = await query().equalTo('_id', this.objectId).includes(keys).first(options);
         if (!fetched) throw Error('Unable to fetch document');
         this[PVK].attributes = fetched.attributes;
         return this;
