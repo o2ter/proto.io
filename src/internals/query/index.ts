@@ -31,7 +31,7 @@ import { TObjectType } from '../object/types';
 import { TQueryBase, TQueryBaseOptions } from './base';
 import { TUpdateOp } from '../object/types';
 import { ExtraOptions } from '../options';
-import { asyncStream, Awaitable } from '@o2ter/utils-js';
+import { asyncStream, Awaitable, EventIterator } from '@o2ter/utils-js';
 
 /**
  * Options for a query.
@@ -297,15 +297,14 @@ export abstract class TQuery<T extends string, Ext, M extends boolean> extends T
   }
 
   /**
-   * Finds all records in the collection and returns them as an array.
-   * @param options - Extra options for the query, including batch size.
-   * @returns A promise that resolves to an array of all records.
+   * Finds all records matching the query.
+   * @param options - Extra options for the query.
+   * @returns An iterator for the records.
    */
-  async findAll(options?: ExtraOptions<M> & { batchSize?: number; }) {
-    const result: TObjectType<T, Ext>[] = [];
-    await this.eachBatch(items => {
-      result.push(...items);
-    }, options);
-    return result;
+  findAll(options?: ExtraOptions<M> & { batchSize?: number; }) {
+    return EventIterator<TObjectType<T, Ext>>(async (push, stop) => {
+      await this.each(item => push(item), options);
+      stop();
+    });
   }
 };
