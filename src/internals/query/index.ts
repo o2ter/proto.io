@@ -295,4 +295,17 @@ export abstract class TQuery<T extends string, Ext, M extends boolean> extends T
       }
     }, options);
   }
+
+  /**
+   * Finds all records in the collection and returns them as an array.
+   * @param options - Extra options for the query, including batch size.
+   * @returns A promise that resolves to an array of all records.
+   */
+  async findAll(options?: ExtraOptions<M> & { batchSize?: number; }) {
+    const result: TObjectType<T, Ext>[] = [];
+    await this.eachBatch(items => {
+      result.push(...items);
+    }, options);
+    return result;
+  }
 };
