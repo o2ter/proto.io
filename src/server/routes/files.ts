@@ -96,8 +96,9 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       if (_.isArray(ranges) && ranges.type === 'bytes') {
 
         const startBytes = _.minBy(ranges, r => r.start)?.start ?? 0;
-        const endBytes = _.maxBy(ranges, r => r.end)?.end ?? file.size;
+        const endBytes = _.maxBy(ranges, r => r.end)?.end ?? (file.size - 1);
 
+        res.setHeader('Content-Length', endBytes - startBytes + 1);
         res.setHeader('Content-Range', `bytes ${startBytes}-${endBytes}/${file.size}`);
         res.status(206);
 
@@ -105,6 +106,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
 
       } else {
 
+        res.setHeader('Content-Length', file.size);
         res.status(200);
 
         stream = payload.fileStorage.fileData(payload, file.token);
