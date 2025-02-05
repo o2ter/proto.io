@@ -26,6 +26,7 @@
 import _ from 'lodash';
 import { SqlDialect } from './dialect';
 import { TValueWithUndefined } from '../../../internals/types';
+import Decimal from 'decimal.js';
 
 type SQLLiteral = SQL | SQL[] | { literal: string | SQL[], separator?: string };
 type SQLIdentifier = { identifier: string };
@@ -87,6 +88,9 @@ export class SQL {
       } else if (_.isNumber(value.value)) {
         query += `${dialect.placeholder(nextIdx())}::DOUBLE PRECISION`;
         values.push(value.value);
+      } else if (Decimal.isDecimal(value.value)) {
+        query += `${dialect.placeholder(nextIdx())}::DECIMAL`;
+        values.push(value.value.toString());
       } else {
         query += dialect.placeholder(nextIdx());
         values.push(value.value);

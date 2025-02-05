@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { Server } from '@o2ter/server-js';
-import { ProtoService, ProtoRoute, schema } from '../../src/index';
+import { ProtoService, ProtoRoute, schema, Decimal } from '../../src/index';
 import { beforeAll, afterAll, beforeEach } from '@jest/globals';
 import DatabaseFileStorage from '../../src/adapters/file/database';
 import PostgresStorage from '../../src/adapters/storage/progres';
@@ -89,6 +89,7 @@ const Proto = new ProtoService({
       fields: {
         unique: 'number',
         default: { type: 'number', default: 42 },
+        defaultDecimal: { type: 'decimal', default: new Decimal(0) },
         boolean: 'boolean',
         number: 'number',
         decimal: 'decimal',
