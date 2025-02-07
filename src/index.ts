@@ -43,6 +43,7 @@ import { TValueWithoutObject } from './internals/types';
 import Decimal from 'decimal.js';
 import { response } from './server/routes/common';
 import { TQuerySelector } from './internals/query/types/selectors';
+import { QuerySelector } from './server/query/dispatcher/parser';
 
 export * from './common';
 export { TFileStorage } from './server/file/index';
@@ -194,7 +195,10 @@ export const registerProtoSocket = <E>(
 
   io.on('connection', async (socket) => {
 
-    const listeners: Record<string, TQuerySelector | undefined> = {};
+    const listeners: Record<string, {
+      selector?: QuerySelector;
+      error?: any;
+    } | undefined> = {};
 
     const connect = async (token: string) => {
       const payload = await proto.connectWithSessionToken(token);
@@ -217,7 +221,12 @@ export const registerProtoSocket = <E>(
     });
 
     socket.on('listen', ({ id, selector }) => {
-      listeners[id] = selector;
+      try {
+        const _selector = QuerySelector.decode(selector);
+        listeners[id] = { selector: _selector };
+      } catch (error) {
+        listeners[id] = { error };
+      }
     });
 
     socket.on('remove', ({ id }) => {
