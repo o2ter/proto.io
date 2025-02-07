@@ -204,10 +204,7 @@ export class FieldSelectorExpression {
     } else {
       switch (this.type) {
         case '$not':
-          if (this.value instanceof FieldSelectorExpression) {
-            return !this.value.eval(value);
-          }
-          break;
+          return this.value instanceof FieldSelectorExpression && !this.value.eval(value);
         case '$pattern':
           if (_.isString(this.value)) {
             return _.isString(value) && value.includes(this.value);
@@ -215,49 +212,25 @@ export class FieldSelectorExpression {
           if (_.isRegExp(this.value)) {
             return _.isString(value) && !!value.match(this.value);
           }
-          break;
+          return false;
         case '$starts':
-          if (_.isString(this.value)) {
-            return _.isString(value) && value.startsWith(this.value);
-          }
-          break;
+          return _.isString(this.value) && _.isString(value) && value.startsWith(this.value);
         case '$ends':
-          if (_.isString(this.value)) {
-            return _.isString(value) && value.endsWith(this.value);
-          }
-          break;
+          return _.isString(this.value) && _.isString(value) && value.endsWith(this.value);
         case '$size':
-          if (_.isNumber(this.value)) {
-            if (_.isString(value) || _.isArray(value)) {
-              return value.length === this.value;
-            }
-            return false;
-          }
-          break;
+          return _.isNumber(this.value) && (_.isString(value) || _.isArray(value)) && value.length === this.value;
         case '$empty':
-          if (_.isBoolean(this.value)) {
-            if (_.isString(value) || _.isArray(value)) {
-              return _.isEmpty(value);
-            }
-            return false;
-          }
-          break;
+          return _.isBoolean(this.value) && (_.isString(value) || _.isArray(value)) && _.isEmpty(value);
         case '$every':
           {
             const expr = this.value;
-            if (expr instanceof QuerySelector) {
-              return _.isArray(value) && _.every(value, x => expr.eval(x));
-            }
+            return expr instanceof QuerySelector && _.isArray(value) && _.every(value, x => expr.eval(x));
           }
-          break;
         case '$some':
           {
             const expr = this.value;
-            if (expr instanceof QuerySelector) {
-              return _.isArray(value) && _.some(value, x => expr.eval(x));
-            }
+            return expr instanceof QuerySelector && _.isArray(value) && _.some(value, x => expr.eval(x));
           }
-          break;
         default: break;
       }
     }
