@@ -156,6 +156,17 @@ export class QueryComparisonExpression extends QueryExpression {
   mapKey(callback: (key: string) => string): QueryExpression {
     return new QueryComparisonExpression(this.type, this.left.mapKey(callback), this.right.mapKey(callback));
   }
+
+  eval(value: any) {
+    switch (this.type) {
+      case '$eq': return this.left.eval(value) === this.right.eval(value);
+      case '$gt': return this.left.eval(value) > this.right.eval(value);
+      case '$gte': return this.left.eval(value) >= this.right.eval(value);
+      case '$lt': return this.left.eval(value) < this.right.eval(value);
+      case '$lte': return this.left.eval(value) <= this.right.eval(value);
+      case '$ne': return this.left.eval(value) !== this.right.eval(value);
+    }
+  }
 }
 
 export class QueryNotExpression extends QueryExpression {
