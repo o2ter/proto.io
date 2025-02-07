@@ -250,6 +250,11 @@ export class QueryDistanceExpression extends QueryExpression {
   mapKey(callback: (key: string) => string): QueryExpression {
     return new QueryDistanceExpression(this.type, _.map(this.left, x => x.mapKey(callback)), _.map(this.right, x => x.mapKey(callback)));
   }
+
+  eval(value: any) {
+    const left = _.map(this.left, x => x.eval(value));
+    const right = _.map(this.right, x => x.eval(value));
+  }
 }
 
 export class QueryKeyExpression extends QueryExpression {
