@@ -195,7 +195,7 @@ export const registerProtoSocket = <E>(
 
   io.on('connection', async (socket) => {
 
-    const listeners: Record<string, QuerySelector | true | undefined> = {};
+    const listeners: Record<string, QuerySelector | boolean> = {};
 
     const connect = async (token: string) => {
       const payload = await proto.connectWithSessionToken(token);
@@ -226,7 +226,7 @@ export const registerProtoSocket = <E>(
     });
 
     socket.on('remove', ({ id }) => {
-      listeners[id] = undefined;
+      listeners[id] = false;
     });
   });
 
