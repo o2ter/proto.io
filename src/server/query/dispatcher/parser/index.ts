@@ -61,7 +61,7 @@ export class QuerySelector {
     return [];
   }
 
-  eval(value: any): boolean{
+  eval(value: any): boolean {
     return true;
   }
 }
