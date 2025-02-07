@@ -97,7 +97,7 @@ export class QueryCoditionalSelector extends QuerySelector {
     return _.uniq(_.flatMap(this.exprs, x => x.keyPaths()));
   }
 
-  eval(value: any): boolean {
+  eval(value: any) {
     switch (this.type) {
       case '$and': return _.every(this.exprs, expr => expr.eval(value));
       case '$nor': return !_.some(this.exprs, expr => expr.eval(value));
@@ -218,5 +218,9 @@ export class QueryExpressionSelector extends QuerySelector {
 
   keyPaths(): string[] {
     return this.expr.keyPaths();
+  }
+
+  eval(value: any) {
+    return this.expr.eval(value);
   }
 }

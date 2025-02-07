@@ -79,6 +79,10 @@ export class QueryExpression {
   mapKey(callback: (key: string) => string): QueryExpression {
     return this;
   }
+
+  eval(value: any): boolean {
+    return true;
+  }
 }
 
 export class QueryCoditionalExpression extends QueryExpression {
@@ -114,6 +118,14 @@ export class QueryCoditionalExpression extends QueryExpression {
 
   mapKey(callback: (key: string) => string): QueryExpression {
     return new QueryCoditionalExpression(this.type, _.map(this.exprs, x => x.mapKey(callback)));
+  }
+
+  eval(value: any) {
+    switch (this.type) {
+      case '$and': return _.every(this.exprs, expr => expr.eval(value));
+      case '$nor': return !_.some(this.exprs, expr => expr.eval(value));
+      case '$or': return _.some(this.exprs, expr => expr.eval(value));
+    }
   }
 }
 
@@ -165,6 +177,10 @@ export class QueryNotExpression extends QueryExpression {
 
   mapKey(callback: (key: string) => string): QueryExpression {
     return new QueryNotExpression(this.expr.mapKey(callback));
+  }
+
+  eval(value: any) {
+    return !this.expr.eval(value);
   }
 }
 
