@@ -330,6 +330,7 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
   ) {
     const _selector = !_.isNil(selector) ? QuerySelector.decode(selector) : undefined;
     return this[PVK].listen(this, data => {
+      if (_selector && !_selector.eval(data)) return;
       callback(data);
     });
   }

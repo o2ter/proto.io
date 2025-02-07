@@ -200,7 +200,8 @@ export const registerProtoSocket = <E>(
     const connect = async (token: string) => {
       const payload = await proto.connectWithSessionToken(token);
       const { remove } = payload.listen(data => {
-        socket.emit('data', { ids: [], data });
+        const ids = _.keys(_.pickBy(listeners, v => v instanceof QuerySelector ? v.eval(data) : v));
+        if (!_.isEmpty(ids)) socket.emit('data', { ids, data });
       });
       return remove;
     };

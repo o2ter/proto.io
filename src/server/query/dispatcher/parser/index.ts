@@ -60,6 +60,10 @@ export class QuerySelector {
   keyPaths(): string[] {
     return [];
   }
+
+  eval(value: any): boolean{
+    return true;
+  }
 }
 
 export class QueryCoditionalSelector extends QuerySelector {
