@@ -243,7 +243,20 @@ export class FieldSelectorExpression {
           }
           break;
         case '$every':
+          {
+            const expr = this.value;
+            if (expr instanceof QuerySelector) {
+              return _.isArray(value) && _.every(value, x => expr.eval(x));
+            }
+          }
+          break;
         case '$some':
+          {
+            const expr = this.value;
+            if (expr instanceof QuerySelector) {
+              return _.isArray(value) && _.some(value, x => expr.eval(x));
+            }
+          }
           break;
         default: break;
       }
