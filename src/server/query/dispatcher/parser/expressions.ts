@@ -270,6 +270,10 @@ export class QueryKeyExpression extends QueryExpression {
   mapKey(callback: (key: string) => string): QueryExpression {
     return new QueryKeyExpression(callback(this.key));
   }
+
+  eval(value: any) {
+    return _.get(value, this.key);
+  }
 }
 
 export class QueryValueExpression extends QueryExpression {
@@ -279,5 +283,9 @@ export class QueryValueExpression extends QueryExpression {
   constructor(value: TValue) {
     super();
     this.value = value;
+  }
+
+  eval(value: any) {
+    return value;
   }
 }
