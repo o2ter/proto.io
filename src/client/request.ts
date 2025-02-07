@@ -164,8 +164,8 @@ export default class Service<Ext, P extends ProtoType<any>> {
         listeners.push(_callback);
         return () => {
           listeners = listeners.filter(x => x !== _callback);
-          if (_.isEmpty(listeners)) destroy();
           socket.send('remove', { id });
+          if (_.isEmpty(listeners)) destroy();
         };
       },
       onDestroy: (callback: VoidFunction) => {
