@@ -266,8 +266,11 @@ export class QueryDistanceExpression extends QueryExpression {
   }
 
   eval(value: any) {
-    const left = _.map(this.left, x => x.eval(value));
-    const right = _.map(this.right, x => x.eval(value));
+    const left = this.left.length === 1 ? this.left[0].eval(value) : _.map(this.left, x => x.eval(value));
+    const right = this.right.length === 1 ? this.right[0].eval(value) : _.map(this.right, x => x.eval(value));
+    if (!_.isArray(left) || !_.every(left, x => _.isFinite(x))) throw Error('Invalid vectors');
+    if (!_.isArray(right) || !_.every(right, x => _.isFinite(x))) throw Error('Invalid vectors');
+    
   }
 }
 
