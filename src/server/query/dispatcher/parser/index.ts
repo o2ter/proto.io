@@ -195,11 +195,11 @@ export class FieldSelectorExpression {
       }
     } else if (_.includes(TValueListKeys, this.type) || _.includes(TValueSetKeys, this.type)) {
       switch (this.type) {
-        case '$in':
-        case '$nin':
+        case '$in': return _.isArray(value) && _.includes(value, this.value);
+        case '$nin': return _.isArray(value) && !_.includes(value, this.value);
         case '$subset':
         case '$superset':
-        case '$intersect':
+        case '$intersect': return _.isArray(value) && _.isArray(this.value) && !_.isEmpty(_.intersection(value, this.value));
       }
     } else {
       switch (this.type) {
