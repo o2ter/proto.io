@@ -98,7 +98,9 @@ export class QueryExpression {
     return this;
   }
 
-  eval(value: any): any {}
+  eval(value: any): any {
+    return true;
+  }
 }
 
 export class QueryCoditionalExpression extends QueryExpression {
