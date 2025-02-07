@@ -219,7 +219,7 @@ export const registerProtoSocket = <E>(
 
     socket.on('listen', ({ id, selector }) => {
       try {
-        listeners[id] = QuerySelector.decode(selector);
+        listeners[id] = !_.isNil(selector) ? QuerySelector.decode(selector) : undefined;
       } catch (error) {
         console.error(error);
       }

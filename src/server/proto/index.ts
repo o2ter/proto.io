@@ -328,7 +328,7 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
     callback: (data: EventData) => void,
     selector?: TQuerySelector
   ) {
-    const _selector = selector && QuerySelector.decode(selector);
+    const _selector = !_.isNil(selector) ? QuerySelector.decode(selector) : undefined;
     return this[PVK].listen(this, data => {
       callback(data);
     });
