@@ -183,7 +183,54 @@ export class FieldSelectorExpression {
   }
 
   eval(value: any) {
-    return true;
+    if (_.includes(TComparisonKeys, this.type)) {
+      if (!isValue(this.value)) throw Error('Invalid expression');
+      switch (this.type) {
+        case '$eq':
+        case '$gt':
+        case '$gte':
+        case '$lt':
+        case '$lte':
+        case '$ne':
+      }
+    } else if (_.includes(TValueListKeys, this.type) || _.includes(TValueSetKeys, this.type)) {
+      if (!isValue(this.value) || !_.isArray(this.value)) throw Error('Invalid expression');
+      switch (this.type) {
+        case '$in':
+        case '$nin':
+        case '$subset':
+        case '$superset':
+        case '$intersect':
+      }
+    } else {
+      switch (this.type) {
+        case '$not':
+          {
+            const _expr = this.value ? { ...this.value as any } : {};
+            const keys = _.keys(_expr);
+            if (keys.length !== 1 && !allFieldQueryKeys.includes(keys[0])) throw Error('Invalid expression');
+
+          }
+        case '$pattern':
+          if (!_.isString(this.value) && !_.isRegExp(this.value)) throw Error('Invalid expression');
+
+        case '$starts':
+        case '$ends':
+          if (!_.isString(this.value)) throw Error('Invalid expression');
+
+        case '$size':
+          if (!_.isNumber(this.value)) throw Error('Invalid expression');
+
+        case '$empty':
+          if (!_.isBoolean(this.value)) throw Error('Invalid expression');
+
+        case '$every':
+        case '$some':
+
+        default: throw Error('Invalid expression');
+      }
+    }
+    return true
   }
 }
 
