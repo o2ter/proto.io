@@ -28,24 +28,7 @@ import { TExpression } from '../../../../internals/query/types/expressions';
 import { TComparisonKeys, TConditionalKeys, TDistanceKeys } from '../../../../internals/query/types/keys';
 import { isValue } from '../../../../internals/object';
 import { TValue } from '../../../../internals/types';
-
-const equal = (lhs: any, rhs: any) => {
-  return _.isEqual(lhs, rhs);
-};
-
-const distance = (v1: number[], v2: number[]) => {
-  if (v1.length !== v2.length) throw Error('Invalid comparison of two vectors of different lengths');
-  return Math.sqrt(_.sumBy(_.zip(v1, v2), ([a, b]) => (a! - b!) ** 2));
-};
-
-const cosine = (v1: number[], v2: number[]) => {
-  if (v1.length !== v2.length) throw Error('Invalid comparison of two vectors of different lengths');
-  const s1 = _.sumBy(v1, v => v ** 2);
-  const s2 = _.sumBy(v2, v => v ** 2);
-  if (s1 === 0 && s2 === 0) return 1;
-  if (s1 === 0 || s2 === 0) return 0;
-  return _.sumBy(_.zip(v1, v2), ([a, b]) => a! * b!) / Math.sqrt(s1 * s2);
-};
+import { equal } from './utils';
 
 export class QueryExpression {
 

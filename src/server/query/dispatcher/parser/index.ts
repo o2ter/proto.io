@@ -29,6 +29,7 @@ import { TFieldQuerySelector, TQuerySelector, allFieldQueryKeys } from '../../..
 import { TComparisonKeys, TConditionalKeys, TValueListKeys, TValueSetKeys } from '../../../../internals/query/types/keys';
 import { isValue } from '../../../../internals/object';
 import { TValue } from '../../../../internals/types';
+import { equal } from './utils';
 
 export class QuerySelector {
 
@@ -186,12 +187,12 @@ export class FieldSelectorExpression {
     if (_.includes(TComparisonKeys, this.type)) {
       if (!isValue(this.value)) throw Error('Invalid expression');
       switch (this.type) {
-        case '$eq':
-        case '$gt':
-        case '$gte':
-        case '$lt':
-        case '$lte':
-        case '$ne':
+        case '$eq': return equal(value, this.value);
+        case '$gt': return !_.isNil(value) && !_.isNil(this.value) && value > this.value;
+        case '$gte': return !_.isNil(value) && !_.isNil(this.value) && value >= this.value;
+        case '$lt': return !_.isNil(value) && !_.isNil(this.value) && value < this.value;
+        case '$lte': return !_.isNil(value) && !_.isNil(this.value) && value <= this.value;
+        case '$ne': return !equal(value, this.value);
       }
     } else if (_.includes(TValueListKeys, this.type) || _.includes(TValueSetKeys, this.type)) {
       if (!isValue(this.value) || !_.isArray(this.value)) throw Error('Invalid expression');
