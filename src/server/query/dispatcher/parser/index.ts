@@ -207,10 +207,8 @@ export class FieldSelectorExpression {
       switch (this.type) {
         case '$not':
           {
-            const _expr = this.value ? { ...this.value as any } : {};
-            const keys = _.keys(_expr);
-            if (keys.length !== 1 && !allFieldQueryKeys.includes(keys[0])) throw Error('Invalid expression');
-
+            const expr = this.value as FieldSelectorExpression;
+            return !expr.eval(value);
           }
         case '$pattern':
           if (!_.isString(this.value) && !_.isRegExp(this.value)) throw Error('Invalid expression');
