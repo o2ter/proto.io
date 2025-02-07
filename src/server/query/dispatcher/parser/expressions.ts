@@ -84,9 +84,7 @@ export class QueryExpression {
     return this;
   }
 
-  eval(value: any): any {
-    return true;
-  }
+  eval(value: any): any {}
 }
 
 export class QueryCoditionalExpression extends QueryExpression {
