@@ -195,7 +195,7 @@ export const registerProtoSocket = <E>(
 
   io.on('connection', async (socket) => {
 
-    const listeners: Record<string, QuerySelector | undefined> = {};
+    const listeners: Record<string, QuerySelector | true | undefined> = {};
 
     const connect = async (token: string) => {
       const payload = await proto.connectWithSessionToken(token);
@@ -219,7 +219,7 @@ export const registerProtoSocket = <E>(
 
     socket.on('listen', ({ id, selector }) => {
       try {
-        listeners[id] = !_.isNil(selector) ? QuerySelector.decode(selector) : undefined;
+        listeners[id] = !_.isNil(selector) ? QuerySelector.decode(selector) : true;
       } catch (error) {
         console.error(error);
       }
