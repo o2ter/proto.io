@@ -183,9 +183,8 @@ export class FieldSelectorExpression {
     return field ? result.map(x => `${field}.${x}`) : result;
   }
 
-  eval(value: any) {
+  eval(value: any): any {
     if (_.includes(TComparisonKeys, this.type)) {
-      if (!isValue(this.value)) throw Error('Invalid expression');
       switch (this.type) {
         case '$eq': return equal(value, this.value);
         case '$gt': return !_.isNil(value) && !_.isNil(this.value) && value > this.value;
@@ -195,7 +194,6 @@ export class FieldSelectorExpression {
         case '$ne': return !equal(value, this.value);
       }
     } else if (_.includes(TValueListKeys, this.type) || _.includes(TValueSetKeys, this.type)) {
-      if (!isValue(this.value) || !_.isArray(this.value)) throw Error('Invalid expression');
       switch (this.type) {
         case '$in':
         case '$nin':
@@ -206,30 +204,41 @@ export class FieldSelectorExpression {
     } else {
       switch (this.type) {
         case '$not':
-          {
-            const expr = this.value as FieldSelectorExpression;
-            return !expr.eval(value);
+          if (this.value instanceof FieldSelectorExpression) {
+            return !this.value.eval(value);
           }
+          break;
         case '$pattern':
-          if (!_.isString(this.value) && !_.isRegExp(this.value)) throw Error('Invalid expression');
+          if (_.isString(this.value)) {
 
+          }
+          if (_.isRegExp(this.value)) {
+
+          }
+          break;
         case '$starts':
         case '$ends':
-          if (!_.isString(this.value)) throw Error('Invalid expression');
+          if (!_.isString(this.value)) {
 
+          }
+          break;
         case '$size':
-          if (!_.isNumber(this.value)) throw Error('Invalid expression');
+          if (!_.isNumber(this.value)) {
 
+          }
+          break;
         case '$empty':
-          if (!_.isBoolean(this.value)) throw Error('Invalid expression');
+          if (!_.isBoolean(this.value)) {
 
+          }
+          break;
         case '$every':
         case '$some':
-
-        default: throw Error('Invalid expression');
+          break;
+        default: break;
       }
     }
-    return true
+    throw Error('Invalid expression');
   }
 }
 
