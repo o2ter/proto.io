@@ -219,6 +219,10 @@ export class QueryArrayExpression extends QueryExpression {
   mapKey(callback: (key: string) => string): QueryExpression {
     return new QueryArrayExpression(_.map(this.exprs, x => x.mapKey(callback)));
   }
+
+  eval(value: any) {
+    return _.map(this.exprs, x => x.eval(value));
+  }
 }
 
 export class QueryDistanceExpression extends QueryExpression {
