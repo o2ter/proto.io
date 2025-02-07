@@ -84,7 +84,7 @@ export class QueryExpression {
     return this;
   }
 
-  eval(value: any): boolean {
+  eval(value: any): any {
     return true;
   }
 }

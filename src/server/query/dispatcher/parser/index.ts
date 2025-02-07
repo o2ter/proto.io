@@ -229,6 +229,6 @@ export class QueryExpressionSelector extends QuerySelector {
   }
 
   eval(value: any) {
-    return this.expr.eval(value);
+    return !!this.expr.eval(value);
   }
 }
