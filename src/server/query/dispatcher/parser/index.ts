@@ -210,10 +210,10 @@ export class FieldSelectorExpression {
           break;
         case '$pattern':
           if (_.isString(this.value)) {
-
+            return _.isString(value) && value.includes(this.value);
           }
           if (_.isRegExp(this.value)) {
-
+            return _.isString(value) && !!value.match(this.value);
           }
           break;
         case '$starts':
