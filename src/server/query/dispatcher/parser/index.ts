@@ -217,19 +217,29 @@ export class FieldSelectorExpression {
           }
           break;
         case '$starts':
+          if (_.isString(this.value)) {
+            return _.isString(value) && value.startsWith(this.value);
+          }
+          break;
         case '$ends':
-          if (!_.isString(this.value)) {
-
+          if (_.isString(this.value)) {
+            return _.isString(value) && value.endsWith(this.value);
           }
           break;
         case '$size':
-          if (!_.isNumber(this.value)) {
-
+          if (_.isNumber(this.value)) {
+            if (_.isString(value) || _.isArray(value)) {
+              return value.length === this.value;
+            }
+            return false;
           }
           break;
         case '$empty':
-          if (!_.isBoolean(this.value)) {
-
+          if (_.isBoolean(this.value)) {
+            if (_.isString(value) || _.isArray(value)) {
+              return _.isEmpty(value);
+            }
+            return false;
           }
           break;
         case '$every':
