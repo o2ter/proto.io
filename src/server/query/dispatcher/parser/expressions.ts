@@ -29,6 +29,10 @@ import { TComparisonKeys, TConditionalKeys, TDistanceKeys } from '../../../../in
 import { isValue } from '../../../../internals/object';
 import { TValue } from '../../../../internals/types';
 
+const equal = (lhs: any, rhs: any) => {
+  return _.isEqual(lhs, rhs);
+};
+
 export class QueryExpression {
 
   static decode(expr: _.Many<TExpression>, dollerSign: boolean): QueryExpression {
@@ -159,12 +163,12 @@ export class QueryComparisonExpression extends QueryExpression {
 
   eval(value: any) {
     switch (this.type) {
-      case '$eq': return this.left.eval(value) === this.right.eval(value);
+      case '$eq': return equal(this.left.eval(value), this.right.eval(value));
       case '$gt': return this.left.eval(value) > this.right.eval(value);
       case '$gte': return this.left.eval(value) >= this.right.eval(value);
       case '$lt': return this.left.eval(value) < this.right.eval(value);
       case '$lte': return this.left.eval(value) <= this.right.eval(value);
-      case '$ne': return this.left.eval(value) !== this.right.eval(value);
+      case '$ne': return !equal(this.left.eval(value), this.right.eval(value));
     }
   }
 }
