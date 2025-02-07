@@ -218,7 +218,7 @@ export const registerProtoSocket = <E>(
       remove.then(rm => rm());
     });
 
-    socket.on('listen', ({ id, selector }) => {
+    socket.on('add_listener', ({ id, selector }) => {
       try {
         listeners[id] = !_.isNil(selector) ? QuerySelector.decode(selector) : true;
       } catch (error) {
@@ -226,7 +226,7 @@ export const registerProtoSocket = <E>(
       }
     });
 
-    socket.on('remove', ({ id }) => {
+    socket.on('remove_listener', ({ id }) => {
       listeners[id] = false;
     });
   });
