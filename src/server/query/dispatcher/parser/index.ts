@@ -207,7 +207,7 @@ export class QueryFieldSelector extends QuerySelector {
   }
 
   eval(value: any) {
-    return this.expr.eval(_.get(value, this.field));
+    return this.expr.eval(this.field === '$' ? value : _.get(value, this.field));
   }
 }
 
