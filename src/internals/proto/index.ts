@@ -48,6 +48,7 @@ import { PathName } from '../query/types';
 import { TRole } from '../object/role';
 import { TJob } from '../object/job';
 import { isFile, isJob, isObject, isQuery, isRole, isUser } from '../../common';
+import { TQuerySelector } from '../query/types/selectors';
 
 /**
  * The mode of the transaction.
@@ -244,7 +245,10 @@ export abstract class ProtoType<Ext> {
    * @param callback - The callback to call when an event occurs.
    * @returns An object with a remove function to stop listening.
    */
-  abstract listen(callback: (data: EventData) => void): {
+  abstract listen(
+    callback: (data: EventData) => void,
+    selector?: TQuerySelector
+  ): {
     remove: VoidFunction;
     socket?: Socket;
   }

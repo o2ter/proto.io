@@ -196,7 +196,7 @@ export const registerProtoSocket = <E>(
     const connect = async (token: string) => {
       const payload = await proto.connectWithSessionToken(token);
       const { remove } = payload.listen(data => {
-        socket.emit('data', data);
+        socket.emit('data', { ids: [], data });
       });
       return remove;
     };

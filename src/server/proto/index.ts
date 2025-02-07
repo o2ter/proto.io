@@ -48,6 +48,7 @@ import { PathName } from '../../internals/query/types';
 import { QuerySelector } from '../query/dispatcher/parser';
 import { _typeof, isRelation } from '../../internals/schema';
 import { resolveDataType } from '../query/dispatcher/validator';
+import { TQuerySelector } from '../../internals/query/types/selectors';
 
 export const _serviceOf = (options?: ExtraOptions<any>) => options?.session instanceof ProtoService ? options?.session : undefined;
 
@@ -323,7 +324,11 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
     return this[PVK].notify(this, data);
   }
 
-  listen(callback: (data: EventData) => void) {
+  listen(
+    callback: (data: EventData) => void,
+    selector?: TQuerySelector
+  ) {
+    const _selector = selector && QuerySelector.decode(selector);
     return this[PVK].listen(this, data => {
       callback(data);
     });

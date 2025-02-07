@@ -36,6 +36,8 @@ import { ProtoType } from '../internals/proto';
 import { AxiosOptions } from './proto/types';
 import { XSRF_COOKIE_NAME, XSRF_HEADER_NAME } from '@o2ter/server-js/dist/const';
 import { io, Socket } from 'socket.io-client';
+import { TQuerySelector } from '../internals/query/types/selectors';
+import { randomUUID } from '@o2ter/crypto-js';
 
 export default class Service<Ext, P extends ProtoType<any>> {
 
@@ -153,10 +155,18 @@ export default class Service<Ext, P extends ProtoType<any>> {
 
     return {
       socket,
-      listen: (callback: (payload: any) => void) => {
-        listeners.push(callback);
+      listen: (callback: (payload: any) => void, selector?: TQuerySelector) => {
+        const id = randomUUID();
+        socket.send('listen', { id, selector });
+        const _callback = ({ ids, data }: {
+          ids: string[];
+          data: any;
+        }) => {
+          if (_.includes(ids, id)) callback(data);
+        };
+        listeners.push(_callback);
         return () => {
-          listeners = listeners.filter(x => x !== callback);
+          listeners = listeners.filter(x => x !== _callback);
           if (_.isEmpty(listeners)) destroy();
         };
       },

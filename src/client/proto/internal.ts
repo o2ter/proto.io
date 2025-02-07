@@ -40,6 +40,7 @@ import { FileData } from '../../internals/buffer';
 import { ExtraOptions } from '../../internals/options';
 import { UPLOAD_TOKEN_HEADER_NAME } from '../../internals/const';
 import { _decodeValue, TObject } from '../../internals/object';
+import { TQuerySelector } from '../../internals/query/types/selectors';
 
 export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements ProtoInternalType<Ext, P> {
 
@@ -340,7 +341,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
     });
   }
 
-  listen(proto: P, callback: (data: EventData) => void) {
+  listen(proto: P, callback: (data: EventData) => void, selector?: TQuerySelector) {
     const { socket, listen, onDestroy } = this.socket ?? this.service.socket();
     if (_.isNil(this.socket)) {
       this.socket = { socket, listen, onDestroy };
@@ -350,7 +351,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
       socket,
       remove: listen((payload) => {
         callback(payload);
-      }),
+      }, selector),
     };
   }
 

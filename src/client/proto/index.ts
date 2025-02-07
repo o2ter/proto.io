@@ -35,6 +35,7 @@ import { TValueWithoutObject } from '../../internals/types';
 import { TUser } from '../../internals/object/user';
 import { TObject } from '../../internals/object';
 import { PathName } from '../../internals/query/types';
+import { TQuerySelector } from '../../internals/query/types/selectors';
 
 export class ProtoClient<Ext = any> extends ProtoType<Ext> {
 
@@ -130,8 +131,11 @@ export class ProtoClient<Ext = any> extends ProtoType<Ext> {
     return this[PVK].notify(this, data, options);
   }
 
-  listen(callback: (data: EventData) => void) {
-    return this[PVK].listen(this, callback);
+  listen(
+    callback: (data: EventData) => void,
+    selector?: TQuerySelector
+  ) {
+    return this[PVK].listen(this, callback, selector);
   }
 
   refs(object: TObject, options?: RequestOptions<boolean>) {
