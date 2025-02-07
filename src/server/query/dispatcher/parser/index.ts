@@ -181,6 +181,10 @@ export class FieldSelectorExpression {
     }
     return field ? result.map(x => `${field}.${x}`) : result;
   }
+
+  eval(value: any) {
+    return true;
+  }
 }
 
 export class QueryFieldSelector extends QuerySelector {
@@ -200,6 +204,10 @@ export class QueryFieldSelector extends QuerySelector {
 
   keyPaths(): string[] {
     return this.field === '$' ? this.expr.keyPaths() : [this.field, ...this.expr.keyPaths(this.field)];
+  }
+
+  eval(value: any) {
+    return this.expr.eval(_.get(value, this.field));
   }
 }
 
