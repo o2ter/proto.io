@@ -106,6 +106,11 @@ export const distance = (v1: number[], v2: number[]) => {
   return Math.sqrt(innerProduct(v1, v2));
 };
 
+export const rectilinearDistance = (v1: number[], v2: number[]) => {
+  if (v1.length !== v2.length) throw Error('Invalid comparison of two vectors of different lengths');
+  return _.sumBy(_.zip(v1, v2), ([a, b]) => Math.abs(a! - b!));
+};
+
 export const cosine = (v1: number[], v2: number[]) => {
   if (v1.length !== v2.length) throw Error('Invalid comparison of two vectors of different lengths');
   const s1 = _.sumBy(v1, v => v ** 2);

@@ -28,7 +28,7 @@ import { TExpression } from '../../../../internals/query/types/expressions';
 import { TComparisonKeys, TConditionalKeys, TDistanceKeys } from '../../../../internals/query/types/keys';
 import { isValue } from '../../../../internals/object';
 import { TValue } from '../../../../internals/types';
-import { cosine, distance, equal, greaterThan, greaterThanOrEqual, innerProduct, lessThan, lessThanOrEqual } from './utils';
+import { cosine, distance, equal, greaterThan, greaterThanOrEqual, innerProduct, lessThan, lessThanOrEqual, rectilinearDistance } from './utils';
 
 export class QueryExpression {
 
@@ -260,7 +260,7 @@ export class QueryDistanceExpression extends QueryExpression {
       case '$innerProduct': return innerProduct(left, right);
       case '$negInnerProduct': return -innerProduct(left, right);
       case '$cosineDistance': return cosine(left, right);
-      case '$rectilinearDistance': return distance(left, right);
+      case '$rectilinearDistance': return rectilinearDistance(left, right);
     }
   }
 }
