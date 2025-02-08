@@ -29,7 +29,7 @@ import { TFieldQuerySelector, TQuerySelector, allFieldQueryKeys } from '../../..
 import { TComparisonKeys, TConditionalKeys, TValueListKeys, TValueSetKeys } from '../../../../internals/query/types/keys';
 import { isValue } from '../../../../internals/object';
 import { TValue } from '../../../../internals/types';
-import { equal, lessThan, lessThanOrEqual } from './utils';
+import { equal, greaterThan, greaterThanOrEqual, isIntersect, isSubset, isSuperset, lessThan, lessThanOrEqual } from './utils';
 
 export class QuerySelector {
 
@@ -187,19 +187,19 @@ export class FieldSelectorExpression {
     if (_.includes(TComparisonKeys, this.type)) {
       switch (this.type) {
         case '$eq': return equal(value, this.value);
-        case '$gt': return lessThan(this.value, value);
-        case '$gte': return lessThanOrEqual(this.value, value);
+        case '$gt': return greaterThan(value, this.value);
+        case '$gte': return greaterThanOrEqual(value, this.value);
         case '$lt': return lessThan(value, this.value);
         case '$lte': return lessThanOrEqual(value, this.value);
         case '$ne': return !equal(value, this.value);
       }
     } else if (_.includes(TValueListKeys, this.type) || _.includes(TValueSetKeys, this.type)) {
       switch (this.type) {
-        case '$in': return _.isArray(value) && _.includes(value, this.value);
-        case '$nin': return _.isArray(value) && !_.includes(value, this.value);
-        case '$subset':
-        case '$superset':
-        case '$intersect': return _.isArray(value) && _.isArray(this.value) && !_.isEmpty(_.intersection(value, this.value));
+        case '$in': return _.isArray(value) && _.some(value, x => equal(x, this.value));
+        case '$nin': return _.isArray(value) && !_.some(value, x => equal(x, this.value));
+        case '$subset': return _.isArray(value) && _.isArray(this.value) && isSubset(value, this.value);
+        case '$superset': return _.isArray(value) && _.isArray(this.value) && isSuperset(value, this.value);
+        case '$intersect': return _.isArray(value) && _.isArray(this.value) && isIntersect(value, this.value);
       }
     } else {
       switch (this.type) {

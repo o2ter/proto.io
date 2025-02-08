@@ -66,16 +66,36 @@ export const lessThan = (lhs: any, rhs: any) => {
   if (_.isArray(lhs) && _.isArray(rhs)) {
     for (const i of _.range(Math.min(lhs.length, rhs.length))) {
       if (lessThan(lhs[i], rhs[i])) return true;
-      if (lessThan(rhs[i], lhs[i])) return false;
+      if (greaterThan(lhs[i], rhs[i])) return false;
     }
     return lhs.length < rhs.length;
   }
   return false;
 };
 
+export const greaterThan = (lhs: any, rhs: any) => {
+  return lessThan(rhs, lhs);
+};
+
 export const lessThanOrEqual = (lhs: any, rhs: any) => {
   return equal(lhs, rhs) || lessThan(lhs, rhs);
 };
+
+export const greaterThanOrEqual = (lhs: any, rhs: any) => {
+  return lessThanOrEqual(rhs, lhs);
+};
+
+export const isSubset = (lhs: any[], rhs: any[]) => {
+  return _.some(lhs, l => _.every(rhs, r => equal(l, r)));
+}
+
+export const isSuperset = (lhs: any[], rhs: any[]) => {
+  return isSubset(rhs, lhs);
+}
+
+export const isIntersect = (lhs: any[], rhs: any[]) => {
+  return _.some(lhs, l => _.some(rhs, r => equal(l, r)));
+}
 
 export const distance = (v1: number[], v2: number[]) => {
   if (v1.length !== v2.length) throw Error('Invalid comparison of two vectors of different lengths');
