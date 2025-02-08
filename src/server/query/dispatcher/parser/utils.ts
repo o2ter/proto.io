@@ -24,14 +24,23 @@
 //
 
 import _ from 'lodash';
+import Decimal from 'decimal.js';
 
 export const equal = (lhs: any, rhs: any) => {
   if (_.isNil(lhs) && _.isNil(rhs)) return true;
+  if (Decimal.isDecimal(lhs) && Decimal.isDecimal(rhs)) return lhs.equals(rhs);
+  if (_.isNumber(lhs) && Decimal.isDecimal(rhs)) return rhs.equals(lhs);
+  if (Decimal.isDecimal(lhs) && _.isNumber(rhs)) return lhs.equals(rhs);
   return _.isEqual(lhs, rhs);
 };
 
 export const lessThan = (lhs: any, rhs: any) => {
-  return lhs < rhs;
+  if (_.isNumber(lhs) && _.isNumber(rhs)) return lhs < rhs;
+  if (_.isString(lhs) && _.isString(rhs)) return lhs < rhs;
+  if (Decimal.isDecimal(lhs) && Decimal.isDecimal(rhs)) return lhs.lessThan(rhs);
+  if (_.isNumber(lhs) && Decimal.isDecimal(rhs)) return rhs.greaterThan(lhs);
+  if (Decimal.isDecimal(lhs) && _.isNumber(rhs)) return lhs.lessThan(rhs);
+  return false;
 };
 
 export const lessThanOrEqual = (lhs: any, rhs: any) => {
