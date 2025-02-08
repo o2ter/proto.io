@@ -26,7 +26,8 @@
 import _ from 'lodash';
 
 export const equal = (lhs: any, rhs: any) => {
-  return _.isEqual(lhs ?? null, rhs ?? null);
+  if (_.isNil(lhs) && _.isNil(rhs)) return true;
+  return _.isEqual(lhs, rhs);
 };
 
 export const lessThan = (lhs: any, rhs: any) => {
