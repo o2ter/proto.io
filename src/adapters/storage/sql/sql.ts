@@ -88,7 +88,7 @@ export class SQL {
       } else if (_.isNumber(value.value)) {
         query += `${dialect.placeholder(nextIdx())}::DOUBLE PRECISION`;
         values.push(value.value);
-      } else if (Decimal.isDecimal(value.value)) {
+      } else if (value.value instanceof Decimal) {
         query += `${dialect.placeholder(nextIdx())}::DECIMAL`;
         values.push(value.value.toString());
       } else {
