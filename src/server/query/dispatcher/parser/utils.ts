@@ -65,7 +65,11 @@ export const lessThan = (lhs: any, rhs: any) => {
   if (_.isDate(lhs) && _.isDate(rhs)) return lhs < rhs;
   if (isNum(lhs) && isNum(rhs)) return lessNum(lhs, rhs);
   if (_.isArray(lhs) && _.isArray(rhs)) {
-
+    for (const i of _.range(Math.min(lhs.length, rhs.length))) {
+      if (lessThan(lhs[i], rhs[i])) return true;
+      if (lessThan(rhs[i], lhs[i])) return false;
+    }
+    return lhs.length < rhs.length;
   }
   return false;
 };
