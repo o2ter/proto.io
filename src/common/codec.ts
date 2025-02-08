@@ -32,7 +32,7 @@ import { _TContainer, TValue } from '../internals/types';
 import { prototypes } from '@o2ter/utils-js';
 
 export { Decimal };
-type TNumber = number | Decimal | BigInt;
+export type TNumber = number | Decimal | BigInt;
 type TPrimitive = RegExp | Date | string | TNumber | boolean | null | undefined;
 export type TSerializable = _TContainer<TPrimitive | TObject>;
 

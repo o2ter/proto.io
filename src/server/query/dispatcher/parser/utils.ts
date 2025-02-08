@@ -25,12 +25,37 @@
 
 import _ from 'lodash';
 import Decimal from 'decimal.js';
+import { TNumber } from '../../../../common';
+
+const isNum = (x: any): x is TNumber => _.isNumber(x) || x instanceof BigInt || x instanceof Decimal;
+
+const equalNum = (lhs: TNumber, rhs: TNumber) => {
+  if (lhs instanceof Decimal && rhs instanceof Decimal) {
+    return lhs.equals(rhs);
+  } else if (lhs instanceof Decimal) {
+    return lhs.equals(rhs instanceof BigInt ? rhs.toString() : rhs);
+  } else if (rhs instanceof Decimal) {
+    return rhs.equals(lhs instanceof BigInt ? lhs.toString() : lhs);
+  } else {
+    return lhs === rhs;
+  }
+}
+
+const lessNum = (lhs: TNumber, rhs: TNumber) => {
+  if (lhs instanceof Decimal && rhs instanceof Decimal) {
+    return lhs.lessThan(rhs);
+  } else if (lhs instanceof Decimal) {
+    return lhs.lessThan(rhs instanceof BigInt ? rhs.toString() : rhs);
+  } else if (rhs instanceof Decimal) {
+    return rhs.greaterThan(lhs instanceof BigInt ? lhs.toString() : lhs);
+  } else {
+    return lhs < rhs;
+  }
+}
 
 export const equal = (lhs: any, rhs: any) => {
   if (_.isNil(lhs) && _.isNil(rhs)) return true;
-  if (lhs instanceof Decimal && rhs instanceof Decimal) return lhs.equals(rhs);
-  if (_.isNumber(lhs) && rhs instanceof Decimal) return rhs.equals(lhs);
-  if (lhs instanceof Decimal && _.isNumber(rhs)) return lhs.equals(rhs);
+  if (isNum(lhs) && isNum(rhs)) return equalNum(lhs, rhs);
   return _.isEqual(lhs, rhs);
 };
 
@@ -38,10 +63,7 @@ export const lessThan = (lhs: any, rhs: any) => {
   if (_.isNumber(lhs) && _.isNumber(rhs)) return lhs < rhs;
   if (_.isString(lhs) && _.isString(rhs)) return lhs < rhs;
   if (_.isDate(lhs) && _.isDate(rhs)) return lhs < rhs;
-  if (lhs instanceof BigInt && rhs instanceof BigInt) return lhs < rhs;
-  if (lhs instanceof Decimal && rhs instanceof Decimal) return lhs.lessThan(rhs);
-  if (_.isNumber(lhs) && rhs instanceof Decimal) return rhs.greaterThan(lhs);
-  if (lhs instanceof Decimal && _.isNumber(rhs)) return lhs.lessThan(rhs);
+  if (isNum(lhs) && isNum(rhs)) return lessNum(lhs, rhs);
   if (_.isArray(lhs) && _.isArray(rhs)) {
 
   }
