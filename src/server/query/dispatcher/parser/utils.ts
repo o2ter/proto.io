@@ -97,9 +97,13 @@ export const isIntersect = (lhs: any[], rhs: any[]) => {
   return _.some(lhs, l => _.some(rhs, r => equal(l, r)));
 }
 
-export const distance = (v1: number[], v2: number[]) => {
+export const innerProduct = (v1: number[], v2: number[]) => {
   if (v1.length !== v2.length) throw Error('Invalid comparison of two vectors of different lengths');
-  return Math.sqrt(_.sumBy(_.zip(v1, v2), ([a, b]) => (a! - b!) ** 2));
+  return _.sumBy(_.zip(v1, v2), ([a, b]) => (a! - b!) ** 2);
+};
+
+export const distance = (v1: number[], v2: number[]) => {
+  return Math.sqrt(innerProduct(v1, v2));
 };
 
 export const cosine = (v1: number[], v2: number[]) => {
