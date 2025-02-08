@@ -60,7 +60,6 @@ export const equal = (lhs: any, rhs: any) => {
 };
 
 export const lessThan = (lhs: any, rhs: any) => {
-  if (_.isNumber(lhs) && _.isNumber(rhs)) return lhs < rhs;
   if (_.isString(lhs) && _.isString(rhs)) return lhs < rhs;
   if (_.isDate(lhs) && _.isDate(rhs)) return lhs < rhs;
   if (isNum(lhs) && isNum(rhs)) return lessNum(lhs, rhs);
