@@ -33,6 +33,10 @@ export const lessThan = (lhs: any, rhs: any) => {
   return lhs < rhs;
 };
 
+export const lessThanOrEqual = (lhs: any, rhs: any) => {
+  return equal(lhs, rhs) || lessThan(lhs, rhs);
+};
+
 export const distance = (v1: number[], v2: number[]) => {
   if (v1.length !== v2.length) throw Error('Invalid comparison of two vectors of different lengths');
   return Math.sqrt(_.sumBy(_.zip(v1, v2), ([a, b]) => (a! - b!) ** 2));

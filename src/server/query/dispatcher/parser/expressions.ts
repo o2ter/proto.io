@@ -28,7 +28,7 @@ import { TExpression } from '../../../../internals/query/types/expressions';
 import { TComparisonKeys, TConditionalKeys, TDistanceKeys } from '../../../../internals/query/types/keys';
 import { isValue } from '../../../../internals/object';
 import { TValue } from '../../../../internals/types';
-import { equal, lessThan } from './utils';
+import { equal, lessThan, lessThanOrEqual } from './utils';
 
 export class QueryExpression {
 
@@ -162,9 +162,9 @@ export class QueryComparisonExpression extends QueryExpression {
     switch (this.type) {
       case '$eq': return equal(this.left.eval(value), this.right.eval(value));
       case '$gt': return lessThan(this.right.eval(value), this.left.eval(value));
-      case '$gte': return equal(this.left.eval(value), this.right.eval(value)) || lessThan(this.right.eval(value), this.left.eval(value));
+      case '$gte': return lessThanOrEqual(this.right.eval(value), this.left.eval(value));
       case '$lt': return lessThan(this.left.eval(value), this.right.eval(value));
-      case '$lte': return equal(this.left.eval(value), this.right.eval(value)) || lessThan(this.left.eval(value), this.right.eval(value));
+      case '$lte': return lessThanOrEqual(this.left.eval(value), this.right.eval(value));
       case '$ne': return !equal(this.left.eval(value), this.right.eval(value));
     }
   }

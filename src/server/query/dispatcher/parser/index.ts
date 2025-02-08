@@ -29,7 +29,7 @@ import { TFieldQuerySelector, TQuerySelector, allFieldQueryKeys } from '../../..
 import { TComparisonKeys, TConditionalKeys, TValueListKeys, TValueSetKeys } from '../../../../internals/query/types/keys';
 import { isValue } from '../../../../internals/object';
 import { TValue } from '../../../../internals/types';
-import { equal, lessThan } from './utils';
+import { equal, lessThan, lessThanOrEqual } from './utils';
 
 export class QuerySelector {
 
@@ -188,9 +188,9 @@ export class FieldSelectorExpression {
       switch (this.type) {
         case '$eq': return equal(value, this.value);
         case '$gt': return lessThan(this.value, value);
-        case '$gte': return equal(value, this.value) || lessThan(this.value, value);
+        case '$gte': return lessThanOrEqual(this.value, value);
         case '$lt': return lessThan(value, this.value);
-        case '$lte': return equal(value, this.value) || lessThan(value, this.value);
+        case '$lte': return lessThanOrEqual(value, this.value);
         case '$ne': return !equal(value, this.value);
       }
     } else if (_.includes(TValueListKeys, this.type) || _.includes(TValueSetKeys, this.type)) {
