@@ -157,6 +157,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
         socket.on('connect', register);
         socket.on('reconnect', register);
         listeners.push(_callback);
+        register();
         return () => {
           listeners = listeners.filter(x => x !== _callback);
           socket.off('connect', register);
