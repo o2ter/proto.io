@@ -151,11 +151,11 @@ export default class Service<Ext, P extends ProtoType<any>> {
         const register = () => {
           socket.emit('add_listener', { id, selector });
         };
-        socket.on('connect', register);
-        socket.on('reconnect', register);
         const _callback = ({ ids, data }: any) => {
           if (_.includes(ids, id)) callback(data);
         };
+        socket.on('connect', register);
+        socket.on('reconnect', register);
         listeners.push(_callback);
         return () => {
           listeners = listeners.filter(x => x !== _callback);
