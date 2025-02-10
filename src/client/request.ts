@@ -148,18 +148,19 @@ export default class Service<Ext, P extends ProtoType<any>> {
       socket,
       listen: (callback: (payload: any) => void, selector?: TQuerySelector) => {
         const id = randomUUID();
-        socket.on('connect', () => {
+        const register = () => {
           socket.emit('add_listener', { id, selector });
-        })
-        socket.on('reconnect', () => {
-          socket.emit('add_listener', { id, selector });
-        })
+        };
+        socket.on('connect', register);
+        socket.on('reconnect', register);
         const _callback = ({ ids, data }: any) => {
           if (_.includes(ids, id)) callback(data);
         };
         listeners.push(_callback);
         return () => {
           listeners = listeners.filter(x => x !== _callback);
+          socket.off('connect', register);
+          socket.off('reconnect', register);
           socket.emit('remove_listener', { id });
           if (_.isEmpty(listeners)) destroy();
         };
