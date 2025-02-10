@@ -127,16 +127,8 @@ export default class Service<Ext, P extends ProtoType<any>> {
 
     this.sockets.push(socket);
 
-    let disconnect = false;
     let listeners: ((payload: any) => void)[] = [];
     let destroyCallbacks: VoidFunction[] = [];
-
-    socket.on('connect_error', () => {
-      if (!disconnect && !socket.active) socket.connect();
-    });
-    socket.on('disconnect', () => {
-      if (!disconnect && !socket.active) socket.connect();
-    });
 
     socket.on('data', (payload) => {
       for (const callback of listeners) {
@@ -145,7 +137,6 @@ export default class Service<Ext, P extends ProtoType<any>> {
     });
 
     const destroy = () => {
-      disconnect = true;
       this.sockets = this.sockets.filter(x => x !== socket);
       socket.disconnect();
       for (const callback of destroyCallbacks) {
@@ -157,7 +148,12 @@ export default class Service<Ext, P extends ProtoType<any>> {
       socket,
       listen: (callback: (payload: any) => void, selector?: TQuerySelector) => {
         const id = randomUUID();
-        socket.emit('add_listener', { id, selector });
+        socket.on('connect', () => {
+          socket.emit('add_listener', { id, selector });
+        })
+        socket.on('reconnect', () => {
+          socket.emit('add_listener', { id, selector });
+        })
         const _callback = ({ ids, data }: any) => {
           if (_.includes(ids, id)) callback(data);
         };
