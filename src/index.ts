@@ -195,7 +195,7 @@ export const registerProtoSocket = <E>(
 
   io.on('connection', async (socket) => {
 
-    const listeners: Record<string, QuerySelector | boolean> = {};
+    let listeners: Record<string, QuerySelector | boolean> = {};
 
     const connect = async (token: string) => {
       const payload = await proto.connectWithSessionToken(token);
@@ -218,16 +218,16 @@ export const registerProtoSocket = <E>(
       remove.then(rm => rm());
     });
 
-    socket.on('add_listener', ({ id, selector }) => {
-      try {
-        listeners[id] = !_.isNil(selector) ? QuerySelector.decode(selector) : true;
-      } catch (error) {
-        console.error(error);
-      }
-    });
-
-    socket.on('remove_listener', ({ id }) => {
-      listeners[id] = false;
+    socket.on('register', (payload) => {
+      listeners = _.mapValues(payload, v => {
+        if (_.isBoolean(v)) return true;
+        try {
+          return QuerySelector.decode(v);
+        } catch (error) {
+          console.error(error);
+          return false;
+        }
+      });
     });
   });
 

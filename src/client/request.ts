@@ -127,14 +127,24 @@ export default class Service<Ext, P extends ProtoType<any>> {
 
     this.sockets.push(socket);
 
-    let listeners: ((payload: any) => void)[] = [];
+    let listeners: Record<string, {
+      callback: (payload: any) => void;
+      selector?: TQuerySelector;
+    }> = {};
     let destroyCallbacks: VoidFunction[] = [];
 
-    socket.on('data', (payload) => {
-      for (const callback of listeners) {
-        callback(payload);
+    const register = () => {
+      socket.emit('register', _.mapValues(listeners, x => x.selector ?? true));
+    };
+
+    socket.on('data', ({ ids, data }: any) => {
+      for (const [id, { callback }] of _.entries(listeners)) {
+        if (_.includes(ids, id)) callback(data);
       }
     });
+
+    socket.on('connect', register);
+    socket.on('reconnect', register);
 
     const destroy = () => {
       this.sockets = this.sockets.filter(x => x !== socket);
@@ -148,21 +158,11 @@ export default class Service<Ext, P extends ProtoType<any>> {
       socket,
       listen: (callback: (payload: any) => void, selector?: TQuerySelector) => {
         const id = randomUUID();
-        const register = () => {
-          socket.emit('add_listener', { id, selector });
-        };
-        const _callback = ({ ids, data }: any) => {
-          if (_.includes(ids, id)) callback(data);
-        };
-        socket.on('connect', register);
-        socket.on('reconnect', register);
-        listeners.push(_callback);
+        listeners[id] = { callback, selector };
         register();
         return () => {
-          listeners = listeners.filter(x => x !== _callback);
-          socket.off('connect', register);
-          socket.off('reconnect', register);
-          socket.emit('remove_listener', { id });
+          listeners = _.omit(listeners, id);
+          register();
           if (_.isEmpty(listeners)) destroy();
         };
       },
