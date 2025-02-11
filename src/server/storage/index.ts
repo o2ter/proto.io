@@ -28,14 +28,13 @@ import { TSchema } from '../../internals/schema';
 import { TQueryBaseOptions } from '../../internals/query/base';
 import { TransactionOptions } from '../../internals/proto';
 import { TQueryOptions, TQueryRandomOptions } from '../../internals/query';
-import { TValue, TValueWithoutObject, TValueWithUndefined } from '../../internals/types';
+import { TValueWithoutObject, TValueWithUndefined } from '../../internals/types';
 import { TObject } from '../../internals/object';
 import { TUpdateOp } from '../../internals/object/types';
 import { QueryExpression } from '../query/dispatcher/parser/expressions';
 
 type CommonFindOptions = { className: string; };
 export type FindOptions = CommonFindOptions & TQueryOptions;
-export type FindOneOptions = CommonFindOptions & Omit<TQueryOptions, 'skip' | 'limit'>;
 
 export type RelationOptions = {
   relatedBy?: {
@@ -99,17 +98,10 @@ export interface TStorage {
   refs(object: TObject, classNames: string[], roles?: string[]): AsyncIterable<TObject>;
   nonrefs(query: DecodedQuery<FindOptions>): AsyncIterable<TObject>;
 
-  insert(options: InsertOptions, attrs: Record<string, TValueWithUndefined>): PromiseLike<TObject | undefined>;
-  insertMany(options: InsertOptions, values: Record<string, TValueWithUndefined>[]): PromiseLike<TObject[]>;
-
-  updateOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>): PromiseLike<TObject | undefined>;
-  updateMany(query: DecodedQuery<FindOptions>, update: Record<string, TUpdateOp>): PromiseLike<TObject[]>;
-
-  upsertOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValueWithUndefined>): PromiseLike<TObject | undefined>;
-  upsertMany(query: DecodedQuery<FindOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValueWithUndefined>): PromiseLike<TObject[]>;
-
-  deleteOne(query: DecodedQuery<FindOneOptions>): PromiseLike<TObject | undefined>;
-  deleteMany(query: DecodedQuery<FindOptions>): PromiseLike<TObject[]>;
+  insert(options: InsertOptions, values: Record<string, TValueWithUndefined>[]): PromiseLike<TObject[]>;
+  update(query: DecodedQuery<FindOptions>, update: Record<string, TUpdateOp>): PromiseLike<TObject[]>;
+  upsert(query: DecodedQuery<FindOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValueWithUndefined>): PromiseLike<TObject[]>;
+  delete(query: DecodedQuery<FindOptions>): PromiseLike<TObject[]>;
 
   lockTable(className: string | string[], update: boolean): Promise<void>;
 

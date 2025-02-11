@@ -113,10 +113,14 @@ export abstract class TQuery<T extends string, Ext, M extends boolean> extends T
    * @param options - Extra options for the query.
    * @returns A promise that resolves to the inserted record.
    */
-  abstract insert(
+   async insert(
     attrs: Record<string, TValueWithUndefined>,
     options?: ExtraOptions<M>
-  ): PromiseLike<TObjectType<T, Ext>>;
+   ) {
+     const result = _.first(await this.clone().insertMany([attrs], options));
+     if (!result) throw Error('Unable to insert document');
+     return result;
+   }
 
   /**
    * Inserts multiple new records.
@@ -135,10 +139,12 @@ export abstract class TQuery<T extends string, Ext, M extends boolean> extends T
    * @param options - Extra options for the query.
    * @returns A promise that resolves to the updated record or undefined.
    */
-  abstract updateOne(
+  async updateOne(
     update: Record<string, TUpdateOp>,
     options?: ExtraOptions<M>
-  ): PromiseLike<TObjectType<T, Ext> | undefined>;
+  ) {
+    return _.first(await this.clone().limit(1).updateMany(update, options));
+  }
 
   /**
    * Updates multiple records.
@@ -158,11 +164,16 @@ export abstract class TQuery<T extends string, Ext, M extends boolean> extends T
    * @param options - Extra options for the query.
    * @returns A promise that resolves to the upserted record.
    */
-  abstract upsertOne(
+  async upsertOne(
     update: Record<string, TUpdateOp>,
     setOnInsert: Record<string, TValueWithUndefined>,
     options?: ExtraOptions<M>
-  ): PromiseLike<TObjectType<T, Ext>>;
+  ) {
+    const result = _.first(await this.clone().limit(1).upsertMany(update, setOnInsert, options));
+    if (!result) throw Error('Unable to upsert document');
+    return result;
+  }
+
 
   /**
    * Upserts multiple records.
@@ -182,7 +193,9 @@ export abstract class TQuery<T extends string, Ext, M extends boolean> extends T
    * @param options - Extra options for the query.
    * @returns A promise that resolves to the deleted record or undefined.
    */
-  abstract deleteOne(options?: ExtraOptions<M>): PromiseLike<TObjectType<T, Ext> | undefined>;
+  async deleteOne(options?: ExtraOptions<M>) {
+    return _.first(await this.clone().limit(1).deleteMany(options));
+  }
 
   /**
    * Deletes multiple records.

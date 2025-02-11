@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { DecodedBaseQuery, DecodedQuery, FindOptions, FindOneOptions, DecodedSortOption, RelationOptions } from '../../storage';
+import { DecodedBaseQuery, DecodedQuery, FindOptions, DecodedSortOption, RelationOptions } from '../../storage';
 import { QueryCoditionalSelector, QueryFieldSelector, QuerySelector } from './parser';
 import { TSchema, _typeof, isPointer, isPrimitive, isRelation, isShape, isVector, shapePaths } from '../../../internals/schema';
 import { ProtoService } from '../../proto';
@@ -377,7 +377,7 @@ export class QueryValidator<E> {
     }
   }
 
-  decodeQuery<Q extends (FindOptions & RelationOptions) | FindOneOptions>(query: Q, action: keyof TSchema.ACLs): DecodedQuery<Q> {
+  decodeQuery<Q extends FindOptions & RelationOptions>(query: Q, action: keyof TSchema.ACLs): DecodedQuery<Q> {
 
     if ('relatedBy' in query && query.relatedBy) this.validateRelatedBy(query.className, query.relatedBy);
 

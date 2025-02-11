@@ -361,7 +361,7 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
           if (!_.isEmpty(token)) await this.fileStorage.destroy(this, token);
         }
       }
-      await this.storage.deleteMany({
+      await this.storage.delete({
         className,
         filter: QuerySelector.decode({ _expired_at: { $lt: time } }),
         includes: ['_id', '_expired_at'],

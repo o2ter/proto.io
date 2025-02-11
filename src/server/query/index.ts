@@ -39,6 +39,7 @@ import { isPointer, isRelation } from '../../internals/schema';
 
 type _QueryOptions = {
   insecure?: boolean;
+  createFile?: boolean;
   relatedBy?: {
     className: string;
     objectId: string;
@@ -78,6 +79,7 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
     return dispatcher(_serviceOf(options) ?? this._proto, {
       ...options ?? {},
       disableSecurity: !!this._opts.insecure,
+      createFile: !!this._opts.createFile,
     });
   }
 
@@ -120,28 +122,12 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
     });
   }
 
-  async insert(
-    attrs: Record<string, TValueWithUndefined>,
-    options?: ExtraOptions<M>
-  ) {
-    const result = this._objectMethods(
-      await this._dispatcher(options).insert({
-        className: this.className,
-        includes: this[PVK].options.includes,
-        matches: this[PVK].options.matches,
-        countMatches: this[PVK].options.countMatches,
-      }, attrs)
-    );
-    if (!result) throw Error('Unable to insert document');
-    return result;
-  }
-
   async insertMany(
     values: Record<string, TValueWithUndefined>[],
     options?: ExtraOptions<M>
   ) {
     return this._objectMethods(
-      await this._dispatcher(options).insertMany({
+      await this._dispatcher(options).insert({
         className: this.className,
         includes: this[PVK].options.includes,
         matches: this[PVK].options.matches,
@@ -150,35 +136,13 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
     );
   }
 
-  async updateOne(
-    update: Record<string, TUpdateOp>,
-    options?: ExtraOptions<M>
-  ) {
-    return this._objectMethods(
-      await this._dispatcher(options).updateOne(this._queryOptions, update)
-    );
-  }
-
   async updateMany(
     update: Record<string, TUpdateOp>,
     options?: ExtraOptions<M>
   ) {
     return this._objectMethods(
-      await this._dispatcher(options).updateMany(this._queryOptions, update)
+      await this._dispatcher(options).update(this._queryOptions, update)
     );
-  }
-
-  async upsertOne(
-    update: Record<string, TUpdateOp>,
-    setOnInsert: Record<string, TValueWithUndefined>,
-    options?: ExtraOptions<M>
-  ) {
-    const result = this._objectMethods(
-      await this._dispatcher(options).upsertOne(this._queryOptions, update, setOnInsert)
-    );
-    if (!result) throw Error('Unable to upsert document');
-
-    return result;
   }
 
   async upsertMany(
@@ -187,19 +151,13 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
     options?: ExtraOptions<M>
   ) {
     return this._objectMethods(
-      await this._dispatcher(options).upsertMany(this._queryOptions, update, setOnInsert)
-    );
-  }
-
-  async deleteOne(options?: ExtraOptions<M>) {
-    return this._objectMethods(
-      await this._dispatcher(options).deleteOne(this._queryOptions)
+      await this._dispatcher(options).upsert(this._queryOptions, update, setOnInsert)
     );
   }
 
   async deleteMany(options?: ExtraOptions<M>) {
     return this._objectMethods(
-      await this._dispatcher(options).deleteMany(this._queryOptions)
+      await this._dispatcher(options).delete(this._queryOptions)
     );
   }
 

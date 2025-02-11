@@ -51,6 +51,7 @@ import { normalize } from '../utils';
 import { PROTO_NOTY_MSG } from '../../internals/const';
 import { TJob } from '../../internals/object/job';
 import { deserialize } from '../../common';
+import { ProtoQuery } from '../query';
 
 const validateForeignField = (schema: Record<string, TSchema>, key: string, dataType: TSchema.RelationType) => {
   if (!dataType.foreignField) return;
@@ -349,9 +350,8 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
       object.set('size', file.size);
       if (nonce) object.set('nonce', nonce);
 
-      const created = await proto.Query('File')
-        .includes(...object.keys())
-        .insert(_.fromPairs([...object._set_entries()]), options);
+      const query = new ProtoQuery('File', proto, { createFile: true });
+      const created = await query.includes(...object.keys()).insert(_.fromPairs([...object._set_entries()]), options);
 
       if (created) {
         object[PVK].attributes = created.attributes;

@@ -24,9 +24,9 @@
 //
 
 import _ from 'lodash';
-import { TSchema, defaultObjectKeys, isPointer, isPrimitive, isRelation, isShape, shapePaths } from '../../../internals/schema';
+import { TSchema, isPointer, isPrimitive, isRelation, isShape, shapePaths } from '../../../internals/schema';
 import { QueryCoditionalSelector, QueryExpressionSelector, QueryFieldSelector, QuerySelector } from '../../../server/query/dispatcher/parser';
-import { DecodedBaseQuery, DecodedQuery, FindOneOptions, FindOptions, InsertOptions, DecodedSortOption, RelationOptions } from '../../../server/storage';
+import { DecodedBaseQuery, DecodedQuery, FindOptions, InsertOptions, DecodedSortOption, RelationOptions } from '../../../server/storage';
 import { SQL, sql } from './sql';
 import { generateId } from '../../../server/crypto/random';
 import { SqlDialect } from './dialect';
@@ -272,7 +272,7 @@ export class QueryCompiler {
 
   private _refetch(
     name: string,
-    query: DecodedQuery<FindOneOptions>,
+    query: DecodedQuery<FindOptions>,
   ) {
 
     const _context = { ...this._encodeIncludes(query), name };
@@ -311,7 +311,7 @@ export class QueryCompiler {
   }
 
   private _modifyQuery(
-    query: DecodedQuery<FindOneOptions> & { limit?: number },
+    query: DecodedQuery<FindOptions>,
     action: (fetchName: string, context: QueryContext & { className: string; }) => SQL
   ) {
     const { stages, fetchName, query: _query, context } = this._baseSelectQuery(query);
@@ -435,12 +435,14 @@ export class QueryCompiler {
     ));
   }
 
-  insert(options: InsertOptions, attrs: Record<string, TValueWithUndefined>) {
+  insert(options: InsertOptions, values: Record<string, TValueWithUndefined>[]) {
 
-    const _attrs: [string, SQL][] = _.toPairs({
+    const _values: Record<string, SQL>[] = _.map(values, attr => ({
       ..._defaultInsertOpts(options),
-      ...this._encodeObjectAttrs(options.className, attrs),
-    });
+      ...this._encodeObjectAttrs(options.className, attr),
+    }));
+
+    const keys = _.uniq(_.flatMap(_values, x => _.keys(x)));
 
     const name = `_insert_$${options.className.toLowerCase()}`;
 
@@ -454,8 +456,8 @@ export class QueryCompiler {
     return sql`
       WITH ${{ identifier: name }} AS (
         INSERT INTO ${{ identifier: options.className }}
-        (${_.map(_attrs, x => sql`${{ identifier: x[0] }}`)})
-        VALUES (${_.map(_attrs, x => sql`${x[1]}`)})
+        (${_.map(keys, x => sql`${{ identifier: x }}`)})
+        VALUES ${_.map(_values, v => sql`(${_.map(keys, k => sql`${v[k]}`)})`)}
         RETURNING *
       )${!_.isEmpty(stages) ? sql`, ${_.map(stages, (q, n) => sql`${{ identifier: n }} AS (${q})`)}` : sql``}
       SELECT ${{
@@ -469,26 +471,9 @@ export class QueryCompiler {
     `;
   }
 
-  insertMany(options: InsertOptions, values: Record<string, TValueWithUndefined>[]) {
-
-    const _values: Record<string, SQL>[] = _.map(values, attr => ({
-      ..._defaultInsertOpts(options),
-      ...this._encodeObjectAttrs(options.className, attr),
-    }));
-
-    const keys = _.uniq(_.flatMap(_values, x => _.keys(x)));
-
-    return sql`
-      INSERT INTO ${{ identifier: options.className }}
-      (${_.map(keys, x => sql`${{ identifier: x }}`)})
-      VALUES ${_.map(_values, v => sql`(${_.map(keys, k => sql`${v[k]}`)})`)}
-      RETURNING ${_.map(defaultObjectKeys, k => sql`${{ identifier: k }}`)}
-    `;
-  }
-
-  updateOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>) {
+  update(query: DecodedQuery<FindOptions>, update: Record<string, TUpdateOp>) {
     return this._modifyQuery(
-      { ...query, limit: 1 },
+      query,
       (fetchName) => {
         const name = `_update_$${query.className.toLowerCase()}`;
         return sql`
@@ -504,21 +489,7 @@ export class QueryCompiler {
     );
   }
 
-  updateMany(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>) {
-    return this._modifyQuery(
-      query,
-      (fetchName) => {
-        return sql`
-          UPDATE ${{ identifier: query.className }}
-          SET ${this._encodeUpdateAttrs(query.className, update)}
-          WHERE ${{ identifier: query.className }}._id IN (SELECT ${{ identifier: fetchName }}._id FROM ${{ identifier: fetchName }})
-          RETURNING ${_.map(defaultObjectKeys, k => sql`${{ identifier: k }}`)}
-        `;
-      }
-    );
-  }
-
-  upsertOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValueWithUndefined>) {
+  upsert(query: DecodedQuery<FindOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValueWithUndefined>) {
 
     const _insert: [string, SQL][] = _.toPairs({
       ..._defaultInsertOpts(query),
@@ -526,7 +497,7 @@ export class QueryCompiler {
     });
 
     return this._modifyQuery(
-      { ...query, limit: 1 },
+      query,
       (fetchName) => {
         const updateName = `_update_$${query.className.toLowerCase()}`;
         const insertName = `_insert_$${query.className.toLowerCase()}`;
@@ -556,44 +527,10 @@ export class QueryCompiler {
     );
   }
 
-  upsertMany(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValueWithUndefined>) {
-
-    const _insert: [string, SQL][] = _.toPairs({
-      ..._defaultInsertOpts(query),
-      ...this._encodeObjectAttrs(query.className, setOnInsert),
-    });
+  delete(query: DecodedQuery<FindOptions>) {
 
     return this._modifyQuery(
       query,
-      (fetchName) => {
-        const updateName = `_update_$${query.className.toLowerCase()}`;
-        const insertName = `_insert_$${query.className.toLowerCase()}`;
-        return sql`
-          , ${{ identifier: updateName }} AS (
-            UPDATE ${{ identifier: query.className }}
-            SET ${this._encodeUpdateAttrs(query.className, update)}
-            WHERE ${{ identifier: query.className }}._id IN (SELECT ${{ identifier: fetchName }}._id FROM ${{ identifier: fetchName }})
-            RETURNING ${_.map(defaultObjectKeys, k => sql`${{ identifier: k }}`)}
-          )
-          , ${{ identifier: insertName }} AS (
-            INSERT INTO ${{ identifier: query.className }}
-            (${_.map(_insert, x => sql`${{ identifier: x[0] }}`)})
-            SELECT ${_.map(_insert, x => sql`${x[1]} AS ${{ identifier: x[0] }}`)}
-            WHERE NOT EXISTS(SELECT * FROM ${{ identifier: updateName }})
-            RETURNING ${_.map(defaultObjectKeys, k => sql`${{ identifier: k }}`)}
-          )
-          SELECT * FROM ${{ identifier: updateName }}
-          UNION
-          SELECT * FROM ${{ identifier: insertName }}
-        `;
-      }
-    );
-  }
-
-  deleteOne(query: DecodedQuery<FindOneOptions>) {
-
-    return this._modifyQuery(
-      { ...query, limit: 1 },
       (fetchName, context) => {
         const name = `_delete_$${query.className.toLowerCase()}`;
         const populates = this._selectPopulateMap({ ...context, name });
@@ -614,18 +551,6 @@ export class QueryCompiler {
           ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
         `;
       }
-    );
-  }
-
-  deleteMany(query: DecodedQuery<FindOptions>) {
-
-    return this._modifyQuery(
-      query,
-      (fetchName) => sql`
-        DELETE FROM ${{ identifier: query.className }}
-        WHERE ${{ identifier: query.className }}._id IN (SELECT ${{ identifier: fetchName }}._id FROM ${{ identifier: fetchName }})
-        RETURNING ${_.map(defaultObjectKeys, k => sql`${{ identifier: k }}`)}
-      `
     );
   }
 

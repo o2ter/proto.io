@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { DecodedQuery, FindOptions, FindOneOptions, InsertOptions, TStorage, RelationOptions } from '../../../server/storage';
+import { DecodedQuery, FindOptions, InsertOptions, TStorage, RelationOptions } from '../../../server/storage';
 import { TransactionOptions } from '../../../internals/proto';
 import { TSchema, isPointer, isRelation, isShape, shapePaths } from '../../../internals/schema';
 import { SQL, sql } from './sql';
@@ -224,51 +224,27 @@ export abstract class SqlStorage implements TStorage {
     })();
   }
 
-  async insert(options: InsertOptions, attrs: Record<string, TValueWithUndefined>) {
+  async insert(options: InsertOptions, values: Record<string, TValueWithUndefined>[]) {
     const compiler = this._makeCompiler(true);
-    const result = _.first(await this.query(compiler.insert(options, attrs)));
-    return _.isNil(result) ? undefined : this._decodeObject(options.className, result);
-  }
-
-  async insertMany(options: InsertOptions, values: Record<string, TValueWithUndefined>[]) {
-    const compiler = this._makeCompiler(true);
-    const result = await this.query(compiler.insertMany(options, values));
+    const result = await this.query(compiler.insert(options, values));
     return _.map(result, x => this._decodeObject(options.className, x));
   }
 
-  async updateOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>) {
+  async update(query: DecodedQuery<FindOptions>, update: Record<string, TUpdateOp>) {
     const compiler = this._makeCompiler(true, query.extraFilter);
-    const updated = _.first(await this.query(compiler.updateOne(query, update)));
-    return _.isNil(updated) ? undefined : this._decodeObject(query.className, updated);
-  }
-
-  async updateMany(query: DecodedQuery<FindOptions>, update: Record<string, TUpdateOp>) {
-    const compiler = this._makeCompiler(true, query.extraFilter);
-    const updated = await this.query(compiler.updateMany(query, update));
+    const updated = await this.query(compiler.update(query, update));
     return _.map(updated, x => this._decodeObject(query.className, x));
   }
 
-  async upsertOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValueWithUndefined>) {
+  async upsert(query: DecodedQuery<FindOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValueWithUndefined>) {
     const compiler = this._makeCompiler(true, query.extraFilter);
-    const upserted = _.first(await this.query(compiler.upsertOne(query, update, setOnInsert)));
-    return _.isNil(upserted) ? undefined : this._decodeObject(query.className, upserted);
-  }
-
-  async upsertMany(query: DecodedQuery<FindOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValueWithUndefined>) {
-    const compiler = this._makeCompiler(true, query.extraFilter);
-    const upserted = await this.query(compiler.upsertMany(query, update, setOnInsert));
+    const upserted = await this.query(compiler.upsert(query, update, setOnInsert));
     return _.map(upserted, x => this._decodeObject(query.className, x));
   }
 
-  async deleteOne(query: DecodedQuery<FindOneOptions>) {
+  async delete(query: DecodedQuery<FindOptions>) {
     const compiler = this._makeCompiler(true, query.extraFilter);
-    const deleted = _.first(await this.query(compiler.deleteOne(query)));
-    return _.isNil(deleted) ? undefined : this._decodeObject(query.className, deleted);
-  }
-
-  async deleteMany(query: DecodedQuery<FindOptions>) {
-    const compiler = this._makeCompiler(true, query.extraFilter);
-    const deleted = await this.query(compiler.deleteMany(query));
+    const deleted = await this.query(compiler.delete(query));
     return _.map(deleted, x => this._decodeObject(query.className, x));
   }
 }

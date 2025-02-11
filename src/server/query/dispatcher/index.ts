@@ -26,11 +26,11 @@
 import _ from 'lodash';
 import { ProtoService } from '../../proto/index';
 import { QueryValidator } from './validator';
-import { FindOptions, FindOneOptions, RelationOptions } from '../../storage';
+import { FindOptions, RelationOptions } from '../../storage';
 import { TQueryBaseOptions } from '../../../internals/query/base';
 import { ExtraOptions } from '../../../internals/options';
 import { TQueryRandomOptions } from '../../../internals/query';
-import { TValue, TValueWithUndefined } from '../../../internals/types';
+import { TValueWithUndefined } from '../../../internals/types';
 import { PVK } from '../../../internals/private';
 import { TUpdateOp } from '../../../internals/object/types';
 import { normalize } from '../../utils';
@@ -41,6 +41,7 @@ export const dispatcher = <E>(
   proto: ProtoService<E>,
   options: ExtraOptions<boolean> & {
     disableSecurity: boolean;
+    createFile: boolean;
   },
 ) => {
 
@@ -49,6 +50,8 @@ export const dispatcher = <E>(
     master: options.master ?? false,
     disableSecurity: options.disableSecurity,
   });
+
+  const createFile = options.createFile;
 
   return {
     async explain(
@@ -108,15 +111,16 @@ export const dispatcher = <E>(
         matches?: Record<string, TQueryBaseOptions>;
         countMatches?: string[];
       },
-      attrs: Record<string, TValueWithUndefined>,
+      values: Record<string, TValueWithUndefined>[],
     ) {
-      QueryValidator.recursiveCheck(attrs);
+      if (!createFile && options.className === 'File') throw Error('File is not support insert');
+      QueryValidator.recursiveCheck(values);
       const _validator = await validator();
       _validator.validateCountMatches(options.className, options.countMatches ?? []);
       const _includes = _validator.decodeIncludes(options.className, options.includes ?? ['*']);
       const _matches = _validator.decodeMatches(options.className, options.matches ?? {}, _includes);
       if (!_validator.validateCLPs(options.className, 'create')) throw Error('No permission');
-      const _attrs = normalize(_validator.validateFields(options.className, attrs, 'create', QueryValidator.patterns.path));
+      const _attrs = normalize(_.map(values, attr => _validator.validateFields(options.className, attr, 'create', QueryValidator.patterns.path)));
       while (true) {
         try {
           return await proto.storage.atomic(
@@ -135,71 +139,24 @@ export const dispatcher = <E>(
         }
       }
     },
-    async insertMany(
-      options: {
-        className: string;
-        includes?: string[];
-        matches?: Record<string, TQueryBaseOptions>;
-        countMatches?: string[];
-      },
-      values: Record<string, TValueWithUndefined>[],
-    ) {
-      if (options.className === 'File') throw Error('File is not support insertMany');
-      QueryValidator.recursiveCheck(values);
-      const _validator = await validator();
-      _validator.validateCountMatches(options.className, options.countMatches ?? []);
-      const _includes = _validator.decodeIncludes(options.className, options.includes ?? ['*']);
-      const _matches = _validator.decodeMatches(options.className, options.matches ?? {}, _includes);
-      if (!_validator.validateCLPs(options.className, 'create')) throw Error('No permission');
-      const _attrs = normalize(_.map(values, attr => _validator.validateFields(options.className, attr, 'create', QueryValidator.patterns.path)));
-      while (true) {
-        try {
-          return await proto.storage.atomic(
-            (storage) => storage.insertMany({
-              className: options.className,
-              includes: _includes,
-              matches: _matches,
-              countMatches: options.countMatches ?? [],
-              objectIdSize: proto[PVK].options.objectIdSize
-            }, _attrs),
-            { lockTable: options.className, retry: true },
-          );
-        } catch (e) {
-          if (proto.storage.isDuplicateIdError(e)) continue;
-          throw e;
-        }
-      }
-    },
-    async updateOne(
-      query: FindOneOptions,
-      update: Record<string, TUpdateOp>
-    ) {
-      QueryValidator.recursiveCheck(query, update);
-      const _validator = await validator();
-      if (!_validator.validateCLPs(query.className, 'update')) throw Error('No permission');
-      return proto.storage.atomic((storage) => storage.updateOne(
-        _validator.decodeQuery(normalize(query), 'update'),
-        normalize(_validator.validateFields(query.className, update, 'update', QueryValidator.patterns.path)),
-      ));
-    },
-    async updateMany(
+    async update(
       query: FindOptions,
       update: Record<string, TUpdateOp>
     ) {
       QueryValidator.recursiveCheck(query, update);
       const _validator = await validator();
       if (!_validator.validateCLPs(query.className, 'update')) throw Error('No permission');
-      return proto.storage.atomic((storage) => storage.updateMany(
+      return proto.storage.atomic((storage) => storage.update(
         _validator.decodeQuery(normalize(query), 'update'),
         normalize(_validator.validateFields(query.className, update, 'update', QueryValidator.patterns.path)),
       ));
     },
-    async upsertOne(
-      query: FindOneOptions,
+    async upsert(
+      query: FindOptions,
       update: Record<string, TUpdateOp>,
       setOnInsert: Record<string, TValueWithUndefined>
     ) {
-      if (query.className === 'File') throw Error('File is not support upsertOne');
+      if (query.className === 'File') throw Error('File is not support upsert');
       QueryValidator.recursiveCheck(query, update, setOnInsert);
       const _validator = await validator();
       if (!_validator.validateCLPs(query.className, 'create', 'update')) throw Error('No permission');
@@ -209,7 +166,7 @@ export const dispatcher = <E>(
       while (true) {
         try {
           return await proto.storage.atomic(
-            (storage) => storage.upsertOne(_query, _update, _setOnInsert),
+            (storage) => storage.upsert(_query, _update, _setOnInsert),
             { lockTable: query.className, retry: true },
           );
         } catch (e) {
@@ -218,45 +175,13 @@ export const dispatcher = <E>(
         }
       }
     },
-    async upsertMany(
-      query: FindOptions,
-      update: Record<string, TUpdateOp>,
-      setOnInsert: Record<string, TValueWithUndefined>
-    ) {
-      if (query.className === 'File') throw Error('File is not support upsertOne');
-      QueryValidator.recursiveCheck(query, update, setOnInsert);
-      const _validator = await validator();
-      if (!_validator.validateCLPs(query.className, 'create', 'update')) throw Error('No permission');
-      const _query = _validator.decodeQuery(normalize(query), 'update');
-      const _update = normalize(_validator.validateFields(query.className, update, 'update', QueryValidator.patterns.path));
-      const _setOnInsert = normalize(_validator.validateFields(query.className, setOnInsert, 'create', QueryValidator.patterns.path));
-      while (true) {
-        try {
-          return await proto.storage.atomic(
-            (storage) => storage.upsertMany(_query, _update, _setOnInsert),
-            { lockTable: query.className, retry: true },
-          );
-        } catch (e) {
-          if (proto.storage.isDuplicateIdError(e)) continue;
-          throw e;
-        }
-      }
-    },
-    async deleteOne(
-      query: FindOneOptions
-    ) {
-      QueryValidator.recursiveCheck(query);
-      const _validator = await validator();
-      if (!_validator.validateCLPs(query.className, 'delete')) throw Error('No permission');
-      return proto.storage.atomic((storage) => storage.deleteOne(_validator.decodeQuery(normalize(query), 'update')));
-    },
-    async deleteMany(
+    async delete(
       query: FindOptions
     ) {
       QueryValidator.recursiveCheck(query);
       const _validator = await validator();
       if (!_validator.validateCLPs(query.className, 'delete')) throw Error('No permission');
-      return proto.storage.atomic((storage) => storage.deleteMany(_validator.decodeQuery(normalize(query), 'update')));
+      return proto.storage.atomic((storage) => storage.delete(_validator.decodeQuery(normalize(query), 'update')));
     },
   };
 };
