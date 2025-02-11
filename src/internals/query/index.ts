@@ -122,7 +122,7 @@ export abstract class TQuery<T extends string, Ext, M extends boolean> extends T
    * Inserts multiple new records.
    * @param values - The attributes of the new records.
    * @param options - Extra options for the query.
-   * @returns A promise that resolves to the number of inserted records.
+   * @returns A promise that resolves to the inserted records.
    */
   abstract insertMany(
     values: Record<string, TValueWithUndefined>[],
@@ -144,7 +144,7 @@ export abstract class TQuery<T extends string, Ext, M extends boolean> extends T
    * Updates multiple records.
    * @param update - The update operations.
    * @param options - Extra options for the query.
-   * @returns A promise that resolves to the number of updated records.
+   * @returns A promise that resolves to the updated records.
    */
   abstract updateMany(
     update: Record<string, TUpdateOp>,
@@ -169,7 +169,7 @@ export abstract class TQuery<T extends string, Ext, M extends boolean> extends T
    * @param update - The update operations.
    * @param setOnInsert - The attributes to set on insert.
    * @param options - Extra options for the query.
-   * @returns A promise that resolves to the number of upserted records.
+   * @returns A promise that resolves to the upserted records.
    */
   abstract upsertMany(
     update: Record<string, TUpdateOp>,
@@ -187,7 +187,7 @@ export abstract class TQuery<T extends string, Ext, M extends boolean> extends T
   /**
    * Deletes multiple records.
    * @param options - Extra options for the query.
-   * @returns A promise that resolves to the number of deleted records.
+   * @returns A promise that resolves to the deleted records.
    */
   abstract deleteMany(options?: ExtraOptions<M>): PromiseLike<TObjectType<T, Ext>[]>;
 
