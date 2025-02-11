@@ -100,16 +100,16 @@ export interface TStorage {
   nonrefs(query: DecodedQuery<FindOptions>): AsyncIterable<TObject>;
 
   insert(options: InsertOptions, attrs: Record<string, TValueWithUndefined>): PromiseLike<TObject | undefined>;
-  insertMany(options: InsertOptions, values: Record<string, TValueWithUndefined>[]): PromiseLike<number>;
+  insertMany(options: InsertOptions, values: Record<string, TValueWithUndefined>[]): PromiseLike<TObject[]>;
 
   updateOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>): PromiseLike<TObject | undefined>;
-  updateMany(query: DecodedQuery<FindOptions>, update: Record<string, TUpdateOp>): PromiseLike<number>;
+  updateMany(query: DecodedQuery<FindOptions>, update: Record<string, TUpdateOp>): PromiseLike<TObject[]>;
 
   upsertOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValueWithUndefined>): PromiseLike<TObject | undefined>;
-  upsertMany(query: DecodedQuery<FindOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValueWithUndefined>): PromiseLike<{ updated: number; inserted: number; }>;
+  upsertMany(query: DecodedQuery<FindOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValueWithUndefined>): PromiseLike<TObject[]>;
 
   deleteOne(query: DecodedQuery<FindOneOptions>): PromiseLike<TObject | undefined>;
-  deleteMany(query: DecodedQuery<FindOptions>): PromiseLike<number>;
+  deleteMany(query: DecodedQuery<FindOptions>): PromiseLike<TObject[]>;
 
   lockTable(className: string | string[], update: boolean): Promise<void>;
 

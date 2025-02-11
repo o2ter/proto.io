@@ -43,17 +43,17 @@ test('test upsert many', async () => {
     { string: 'upsertMany', number: 5 },
   ]);
 
-  expect(data).toStrictEqual(5);
+  expect(data.length).toStrictEqual(5);
 
-  const { updated, inserted } = await Proto.Query('Test')
+  const upserted = await Proto.Query('Test')
     .equalTo('string', 'upsertMany')
     .greaterThan('number', 2)
     .upsertMany({
       number: { $inc: 1 },
     }, { string: 'upsertMany', number: 0 });
 
-  expect(updated).toStrictEqual(3);
-  expect(inserted).toStrictEqual(0);
+  expect(_.filter(upserted, x => x.__v !== 0).length).toStrictEqual(3);
+  expect(_.filter(upserted, x => x.__v === 0).length).toStrictEqual(0);
 
   const result = await Proto.Query('Test').equalTo('string', 'upsertMany').find();
 
@@ -69,17 +69,17 @@ test('test upsert many 2', async () => {
     { string: 'upsertMany', number: 5 },
   ]);
 
-  expect(data).toStrictEqual(5);
+  expect(data.length).toStrictEqual(5);
 
-  const { updated, inserted } = await Proto.Query('Test')
+  const upserted = await Proto.Query('Test')
     .equalTo('string', 'upsertMany')
     .greaterThan('number', 5)
     .upsertMany({
       number: { $inc: 1 },
     }, { string: 'upsertMany', number: 0 });
 
-  expect(updated).toStrictEqual(0);
-  expect(inserted).toStrictEqual(1);
+  expect(_.filter(upserted, x => x.__v !== 0).length).toStrictEqual(0);
+  expect(_.filter(upserted, x => x.__v === 0).length).toStrictEqual(1);
 
   const result = await Proto.Query('Test').equalTo('string', 'upsertMany').find();
 

@@ -35,14 +35,14 @@ const Proto = new ProtoClient({
 });
 
 test('test findAll', async () => {
-  const count = await Proto.Query('Test').insertMany([
+  const inserted = await Proto.Query('Test').insertMany([
     { string: 'findAll' },
     { string: 'findAll' },
     { string: 'findAll' },
     { string: 'findAll' },
     { string: 'findAll' },
   ]);
-  expect(count).toStrictEqual(5);
+  expect(inserted.length).toStrictEqual(5);
 
   const result = await Proto.Query('Test').equalTo('string', 'findAll').findAll({ batchSize: 2 });
 

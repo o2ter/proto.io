@@ -233,7 +233,7 @@ export abstract class SqlStorage implements TStorage {
   async insertMany(options: InsertOptions, values: Record<string, TValueWithUndefined>[]) {
     const compiler = this._makeCompiler(true);
     const result = await this.query(compiler.insertMany(options, values));
-    return result.length;
+    return _.map(result, x => this._decodeObject(options.className, x));
   }
 
   async updateOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>) {
@@ -245,7 +245,7 @@ export abstract class SqlStorage implements TStorage {
   async updateMany(query: DecodedQuery<FindOptions>, update: Record<string, TUpdateOp>) {
     const compiler = this._makeCompiler(true, query.extraFilter);
     const updated = await this.query(compiler.updateMany(query, update));
-    return updated.length;
+    return _.map(updated, x => this._decodeObject(query.className, x));
   }
 
   async upsertOne(query: DecodedQuery<FindOneOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValueWithUndefined>) {
@@ -257,11 +257,7 @@ export abstract class SqlStorage implements TStorage {
   async upsertMany(query: DecodedQuery<FindOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValueWithUndefined>) {
     const compiler = this._makeCompiler(true, query.extraFilter);
     const upserted = await this.query(compiler.upsertMany(query, update, setOnInsert));
-    const inserted = _.filter(upserted, x => x.__v === 0).length;
-    return {
-      updated: upserted.length - inserted,
-      inserted: inserted,
-    };
+    return _.map(upserted, x => this._decodeObject(query.className, x));
   }
 
   async deleteOne(query: DecodedQuery<FindOneOptions>) {
@@ -273,6 +269,6 @@ export abstract class SqlStorage implements TStorage {
   async deleteMany(query: DecodedQuery<FindOptions>) {
     const compiler = this._makeCompiler(true, query.extraFilter);
     const deleted = await this.query(compiler.deleteMany(query));
-    return deleted.length;
+    return _.map(deleted, x => this._decodeObject(query.className, x));
   }
 }

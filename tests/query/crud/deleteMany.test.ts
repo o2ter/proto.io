@@ -43,14 +43,14 @@ test('test delete many', async () => {
     { string: 'deleteMany', number: 5 },
   ]);
 
-  expect(inserted).toStrictEqual(5);
+  expect(inserted.length).toStrictEqual(5);
 
   const deleted = await Proto.Query('Test')
     .equalTo('string', 'deleteMany')
     .greaterThan('number', 2)
     .deleteMany();
 
-  expect(deleted).toStrictEqual(3);
+  expect(deleted.length).toStrictEqual(3);
 
   const result = await Proto.Query('Test').equalTo('string', 'deleteMany').find();
 

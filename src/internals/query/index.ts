@@ -127,7 +127,7 @@ export abstract class TQuery<T extends string, Ext, M extends boolean> extends T
   abstract insertMany(
     values: Record<string, TValueWithUndefined>[],
     options?: ExtraOptions<M>
-  ): PromiseLike<number>;
+  ): PromiseLike<TObjectType<T, Ext>[]>;
 
   /**
    * Updates a single record.
@@ -149,7 +149,7 @@ export abstract class TQuery<T extends string, Ext, M extends boolean> extends T
   abstract updateMany(
     update: Record<string, TUpdateOp>,
     options?: ExtraOptions<M>
-  ): PromiseLike<number>;
+  ): PromiseLike<TObjectType<T, Ext>[]>;
 
   /**
    * Upserts a single record.
@@ -175,7 +175,7 @@ export abstract class TQuery<T extends string, Ext, M extends boolean> extends T
     update: Record<string, TUpdateOp>,
     setOnInsert: Record<string, TValueWithUndefined>,
     options?: ExtraOptions<M>
-  ): PromiseLike<{ updated: number; inserted: number; }>;
+  ): PromiseLike<TObjectType<T, Ext>[]>;
 
   /**
    * Deletes a single record.
@@ -189,7 +189,7 @@ export abstract class TQuery<T extends string, Ext, M extends boolean> extends T
    * @param options - Extra options for the query.
    * @returns A promise that resolves to the number of deleted records.
    */
-  abstract deleteMany(options?: ExtraOptions<M>): PromiseLike<number>;
+  abstract deleteMany(options?: ExtraOptions<M>): PromiseLike<TObjectType<T, Ext>[]>;
 
   /**
    * Adds fields to include in the query.

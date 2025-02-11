@@ -43,7 +43,7 @@ test('test update many', async () => {
     { string: 'updateMany', number: 5 },
   ]);
 
-  expect(inserted).toStrictEqual(5);
+  expect(inserted.length).toStrictEqual(5);
 
   const updated = await Proto.Query('Test')
     .equalTo('string', 'updateMany')
@@ -52,7 +52,7 @@ test('test update many', async () => {
       number: { $inc: 1 },
     });
 
-  expect(updated).toStrictEqual(3);
+  expect(updated.length).toStrictEqual(3);
 
   const result = await Proto.Query('Test').equalTo('string', 'updateMany').find();
 

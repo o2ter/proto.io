@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { TSchema, isPointer, isPrimitive, isRelation, isShape, shapePaths } from '../../../internals/schema';
+import { TSchema, defaultObjectKeys, isPointer, isPrimitive, isRelation, isShape, shapePaths } from '../../../internals/schema';
 import { QueryCoditionalSelector, QueryExpressionSelector, QueryFieldSelector, QuerySelector } from '../../../server/query/dispatcher/parser';
 import { DecodedBaseQuery, DecodedQuery, FindOneOptions, FindOptions, InsertOptions, DecodedSortOption, RelationOptions } from '../../../server/storage';
 import { SQL, sql } from './sql';
@@ -482,7 +482,7 @@ export class QueryCompiler {
       INSERT INTO ${{ identifier: options.className }}
       (${_.map(keys, x => sql`${{ identifier: x }}`)})
       VALUES ${_.map(_values, v => sql`(${_.map(keys, k => sql`${v[k]}`)})`)}
-      RETURNING _id
+      RETURNING ${_.map(defaultObjectKeys, k => sql`${{ identifier: k }}`)}
     `;
   }
 
@@ -512,7 +512,7 @@ export class QueryCompiler {
           UPDATE ${{ identifier: query.className }}
           SET ${this._encodeUpdateAttrs(query.className, update)}
           WHERE ${{ identifier: query.className }}._id IN (SELECT ${{ identifier: fetchName }}._id FROM ${{ identifier: fetchName }})
-          RETURNING _id
+          RETURNING ${_.map(defaultObjectKeys, k => sql`${{ identifier: k }}`)}
         `;
       }
     );
@@ -573,14 +573,14 @@ export class QueryCompiler {
             UPDATE ${{ identifier: query.className }}
             SET ${this._encodeUpdateAttrs(query.className, update)}
             WHERE ${{ identifier: query.className }}._id IN (SELECT ${{ identifier: fetchName }}._id FROM ${{ identifier: fetchName }})
-            RETURNING _id, __v
+            RETURNING ${_.map(defaultObjectKeys, k => sql`${{ identifier: k }}`)}
           )
           , ${{ identifier: insertName }} AS (
             INSERT INTO ${{ identifier: query.className }}
             (${_.map(_insert, x => sql`${{ identifier: x[0] }}`)})
             SELECT ${_.map(_insert, x => sql`${x[1]} AS ${{ identifier: x[0] }}`)}
             WHERE NOT EXISTS(SELECT * FROM ${{ identifier: updateName }})
-            RETURNING _id, __v
+            RETURNING ${_.map(defaultObjectKeys, k => sql`${{ identifier: k }}`)}
           )
           SELECT * FROM ${{ identifier: updateName }}
           UNION
@@ -624,7 +624,7 @@ export class QueryCompiler {
       (fetchName) => sql`
         DELETE FROM ${{ identifier: query.className }}
         WHERE ${{ identifier: query.className }}._id IN (SELECT ${{ identifier: fetchName }}._id FROM ${{ identifier: fetchName }})
-        RETURNING _id
+        RETURNING ${_.map(defaultObjectKeys, k => sql`${{ identifier: k }}`)}
       `
     );
   }

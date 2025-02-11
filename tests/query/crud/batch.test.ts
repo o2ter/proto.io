@@ -35,14 +35,14 @@ const Proto = new ProtoClient({
 });
 
 test('test each batch', async () => {
-  const count = await Proto.Query('Test').insertMany([
+  const inserted = await Proto.Query('Test').insertMany([
     { string: 'eachBatch' },
     { string: 'eachBatch' },
     { string: 'eachBatch' },
     { string: 'eachBatch' },
     { string: 'eachBatch' },
   ]);
-  expect(count).toStrictEqual(5);
+  expect(inserted.length).toStrictEqual(5);
 
   const result: any[] = [];
   let counter = 0;
@@ -56,14 +56,14 @@ test('test each batch', async () => {
   expect(counter).toStrictEqual(3);
 })
 test('test each batch 2', async () => {
-  const count = await Proto.Query('Test').insertMany([
+  const inserted = await Proto.Query('Test').insertMany([
     { string: 'eachBatch2', number: 1 },
     { string: 'eachBatch2', number: 2 },
     { string: 'eachBatch2', number: 3 },
     { string: 'eachBatch2', number: 4 },
     { string: 'eachBatch2', number: 5 },
   ]);
-  expect(count).toStrictEqual(5);
+  expect(inserted.length).toStrictEqual(5);
 
   const result: any[] = [];
   let counter = 0;
@@ -79,14 +79,14 @@ test('test each batch 2', async () => {
 })
 
 test('test each batch 3', async () => {
-  const count = await Proto.Query('Test').insertMany([
+  const inserted = await Proto.Query('Test').insertMany([
     { string: 'eachBatch3', number: 1 },
     { string: 'eachBatch3', number: 2 },
     { string: 'eachBatch3', number: 3 },
     { string: 'eachBatch3', number: 4 },
     { string: 'eachBatch3', number: 5 },
   ]);
-  expect(count).toStrictEqual(5);
+  expect(inserted.length).toStrictEqual(5);
 
   const result: any[] = [];
   let counter = 0;

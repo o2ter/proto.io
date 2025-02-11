@@ -140,12 +140,14 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
     values: Record<string, TValueWithUndefined>[],
     options?: ExtraOptions<M>
   ) {
-    return this._dispatcher(options).insertMany({
-      className: this.className,
-      includes: this[PVK].options.includes,
-      matches: this[PVK].options.matches,
-      countMatches: this[PVK].options.countMatches,
-    }, values);
+    return this._objectMethods(
+      await this._dispatcher(options).insertMany({
+        className: this.className,
+        includes: this[PVK].options.includes,
+        matches: this[PVK].options.matches,
+        countMatches: this[PVK].options.countMatches,
+      }, values)
+    );
   }
 
   async updateOne(
@@ -161,7 +163,9 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
     update: Record<string, TUpdateOp>,
     options?: ExtraOptions<M>
   ) {
-    return this._dispatcher(options).updateMany(this._queryOptions, update);
+    return this._objectMethods(
+      await this._dispatcher(options).updateMany(this._queryOptions, update)
+    );
   }
 
   async upsertOne(
@@ -182,7 +186,9 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
     setOnInsert: Record<string, TValueWithUndefined>,
     options?: ExtraOptions<M>
   ) {
-    return this._dispatcher(options).upsertMany(this._queryOptions, update, setOnInsert);
+    return this._objectMethods(
+      await this._dispatcher(options).upsertMany(this._queryOptions, update, setOnInsert)
+    );
   }
 
   async deleteOne(options?: ExtraOptions<M>) {
@@ -192,7 +198,9 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
   }
 
   async deleteMany(options?: ExtraOptions<M>) {
-    return this._dispatcher(options).deleteMany(this._queryOptions);
+    return this._objectMethods(
+      await this._dispatcher(options).deleteMany(this._queryOptions)
+    );
   }
 
 }
