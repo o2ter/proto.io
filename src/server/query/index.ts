@@ -36,6 +36,7 @@ import { TValue, TValueWithUndefined } from '../../internals/types';
 import { TUpdateOp } from '../../internals/object/types';
 import { resolveColumn } from './dispatcher/validator';
 import { isPointer, isRelation } from '../../internals/schema';
+import { proxy } from '../proto/proxy';
 
 type _QueryOptions = {
   insecure?: boolean;
@@ -129,7 +130,7 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
       for (const tragger of obj.__v === 0 ? createTraggers : updateTraggers) {
         (async () => {
           try {
-            await tragger(Object.setPrototypeOf({ object: obj }, this._proto));
+            await tragger(proxy(Object.setPrototypeOf({ object: obj }, this._proto)));
           } catch (e) {
             console.error(e);
           }
@@ -144,7 +145,7 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
       for (const tragger of traggers) {
         (async () => {
           try {
-            await tragger(Object.setPrototypeOf({ object: obj }, this._proto));
+            await tragger(proxy(Object.setPrototypeOf({ object: obj }, this._proto)));
           } catch (e) {
             console.error(e);
           }
