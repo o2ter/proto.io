@@ -51,6 +51,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       update,
       setOnInsert,
       relatedBy,
+      silent,
       ...options
     } = deserialize(req.body) as any;
 
@@ -63,7 +64,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
     ) : payload.Query(name!);
     query[PVK].options = options;
 
-    const opts = { master: payload.isMaster };
+    const opts = { master: payload.isMaster, silent };
 
     if (
       _.includes(['File', '_Job', '_JobScope'], name) &&

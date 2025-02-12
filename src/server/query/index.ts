@@ -165,7 +165,7 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
         countMatches: this[PVK].options.countMatches,
       }, values)
     );
-    this._on_upsert(objs);
+    if (!options?.silent) this._on_upsert(objs);
     return objs;
   }
 
@@ -176,7 +176,7 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
     const objs = this._objectMethods(
       await this._dispatcher(options).update(this._queryOptions, update)
     );
-    this._on_upsert(objs);
+    if (!options?.silent) this._on_upsert(objs);
     return objs;
   }
 
@@ -188,7 +188,7 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
     const objs = this._objectMethods(
       await this._dispatcher(options).upsert(this._queryOptions, update, setOnInsert)
     );
-    this._on_upsert(objs);
+    if (!options?.silent) this._on_upsert(objs);
     return objs;
   }
 
@@ -196,7 +196,7 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
     const objs = this._objectMethods(
       await this._dispatcher(options).delete(this._queryOptions)
     );
-    this._on_delete(objs);
+    if (!options?.silent) this._on_delete(objs);
     return objs;
   }
 }

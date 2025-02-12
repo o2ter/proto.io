@@ -43,4 +43,9 @@ export type ExtraOptions<M extends boolean> = {
    * An AbortSignal object that can be used to abort the operation.
    */
   abortSignal?: AbortSignal;
+
+  /**
+   * Disable the triggers.
+   */
+  silent?: boolean;
 };

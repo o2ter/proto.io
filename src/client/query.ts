@@ -55,16 +55,21 @@ abstract class _ProtoClientQuery<T extends string, E> extends TQuery<T, E, boole
   abstract get url(): string;
   abstract get className(): T | undefined;
 
-  private get _queryOptions() {
+  private _queryOptions({
+    silent,
+  }: RequestOptions<boolean> = {}) {
     return {
       className: this.className,
       relatedBy: this._opts.relatedBy,
+      silent,
       ...this[PVK].options,
     } as any;
   }
 
-  private _requestOpt(options?: RequestOptions<boolean>) {
-    const { ...opts } = options ?? {};
+  private _requestOpt({
+    silent,
+    ...opts
+  }: RequestOptions<boolean> = {}) {
     return {
       method: 'post',
       url: this.url,
@@ -78,21 +83,21 @@ abstract class _ProtoClientQuery<T extends string, E> extends TQuery<T, E, boole
   explain(options?: RequestOptions<boolean>) {
     return this._proto[PVK].request(this._proto, {
       operation: 'explain',
-      ...this._queryOptions,
+      ...this._queryOptions(options),
     }, this._requestOpt(options));
   }
 
   count(options?: RequestOptions<boolean>) {
     return this._proto[PVK].request(this._proto, {
       operation: 'count',
-      ...this._queryOptions,
+      ...this._queryOptions(options),
     }, this._requestOpt(options)) as any;
   }
 
   find(options?: RequestOptions<boolean>) {
     const request = () => this._proto[PVK].request(this._proto, {
       operation: 'find',
-      ...this._queryOptions,
+      ...this._queryOptions(options),
     }, this._requestOpt(options)) as Promise<TObjectType<T, E>[]>;
     return asyncStream(request);
   }
@@ -104,7 +109,7 @@ abstract class _ProtoClientQuery<T extends string, E> extends TQuery<T, E, boole
     const request = () => this._proto[PVK].request(this._proto, {
       operation: 'random',
       random: opts,
-      ...this._queryOptions,
+      ...this._queryOptions(options),
     }, this._requestOpt(options)) as Promise<TObjectType<T, E>[]>;
     return asyncStream(request);
   }
@@ -112,7 +117,7 @@ abstract class _ProtoClientQuery<T extends string, E> extends TQuery<T, E, boole
   nonrefs(options?: RequestOptions<boolean>) {
     const request = () => this._proto[PVK].request(this._proto, {
       operation: 'nonrefs',
-      ...this._queryOptions,
+      ...this._queryOptions(options),
     }, this._requestOpt(options)) as Promise<TObjectType<T, E>[]>;
     return asyncStream(request);
   }
@@ -124,7 +129,7 @@ abstract class _ProtoClientQuery<T extends string, E> extends TQuery<T, E, boole
     return this._proto[PVK].request(this._proto, {
       operation: 'insert',
       attributes: attrs,
-      ...this._queryOptions,
+      ...this._queryOptions(options),
     }, this._requestOpt(options)) as any;
   }
 
@@ -135,7 +140,7 @@ abstract class _ProtoClientQuery<T extends string, E> extends TQuery<T, E, boole
     return this._proto[PVK].request(this._proto, {
       operation: 'insertMany',
       attributes: values,
-      ...this._queryOptions,
+      ...this._queryOptions(options),
     }, this._requestOpt(options)) as any;
   }
 
@@ -146,7 +151,7 @@ abstract class _ProtoClientQuery<T extends string, E> extends TQuery<T, E, boole
     return this._proto[PVK].request(this._proto, {
       operation: 'updateOne',
       update,
-      ...this._queryOptions,
+      ...this._queryOptions(options),
     }, this._requestOpt(options)) as any;
   }
 
@@ -157,7 +162,7 @@ abstract class _ProtoClientQuery<T extends string, E> extends TQuery<T, E, boole
     return this._proto[PVK].request(this._proto, {
       operation: 'updateMany',
       update,
-      ...this._queryOptions,
+      ...this._queryOptions(options),
     }, this._requestOpt(options)) as any;
   }
 
@@ -170,7 +175,7 @@ abstract class _ProtoClientQuery<T extends string, E> extends TQuery<T, E, boole
       operation: 'upsertOne',
       update,
       setOnInsert,
-      ...this._queryOptions,
+      ...this._queryOptions(options),
     }, this._requestOpt(options)) as any;
   }
 
@@ -183,21 +188,21 @@ abstract class _ProtoClientQuery<T extends string, E> extends TQuery<T, E, boole
       operation: 'upsertMany',
       update,
       setOnInsert,
-      ...this._queryOptions,
+      ...this._queryOptions(options),
     }, this._requestOpt(options)) as any;
   }
 
   deleteOne(options?: RequestOptions<boolean>) {
     return this._proto[PVK].request(this._proto, {
       operation: 'deleteOne',
-      ...this._queryOptions,
+      ...this._queryOptions(options),
     }, this._requestOpt(options)) as any;
   }
 
   deleteMany(options?: RequestOptions<boolean>) {
     return this._proto[PVK].request(this._proto, {
       operation: 'deleteMany',
-      ...this._queryOptions,
+      ...this._queryOptions(options),
     }, this._requestOpt(options)) as any;
   }
 
