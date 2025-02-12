@@ -44,7 +44,7 @@ export class AliyunObjectStorage extends FileChunkStorageBase<OSS.ObjectMeta> {
   async listChunks<E>(proto: ProtoService<E>, token: string) {
     const response: OSS.ObjectMeta[] = [];
     let next: string | undefined;
-    while (true) {
+    do {
       const { objects, nextContinuationToken } = await (this._storage as any).listV2({
         prefix: `${token}/`,
         delimiter: '/',
@@ -53,7 +53,7 @@ export class AliyunObjectStorage extends FileChunkStorageBase<OSS.ObjectMeta> {
       if (_.isEmpty(objects)) break;
       response.push(...objects);
       next = nextContinuationToken;
-    }
+    } while (next);
     const files = _.map(response, x => ({
       file: x,
       name: _.last(_.split(x.name, '/'))!,
