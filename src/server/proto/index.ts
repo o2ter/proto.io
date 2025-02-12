@@ -29,7 +29,7 @@ import { ProtoQuery, ProtoRelationQuery } from '../query';
 import { ProtoInternal } from './internal';
 import { CookieOptions, Request } from '@o2ter/server-js';
 import { ProtoServiceOptions, ProtoServiceKeyOptions } from './types';
-import { ProtoFunction, ProtoFunctionOptions, ProtoJobFunction, ProtoJobFunctionOptions } from '../../internals/proto/types';
+import { ProtoFunction, ProtoFunctionOptions, ProtoJobFunction, ProtoJobFunctionOptions, ProtoTriggerFunction } from '../../internals/proto/types';
 import { sessionId, sessionIsMaster, session, signUser, Session, sessionWithToken } from './session';
 import { EventData, ProtoType, TransactionOptions } from '../../internals/proto';
 import { schedule } from '../schedule';
@@ -272,6 +272,36 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
     options?: Omit<ProtoFunctionOptions<Ext>, 'callback'>,
   ) {
     this[PVK].functions[name] = options ? { callback, ...options } : callback;
+  }
+
+  afterCreate<T extends string>(
+    className: string,
+    callback: ProtoTriggerFunction<T, Ext>,
+  ) {
+    if (_.isNil(this[PVK].triggers[className])) {
+      this[PVK].triggers[className] = { create: [], update: [], delete: [] };
+    }
+    this[PVK].triggers[className].create.push(callback);
+  }
+
+  afterUpdate<T extends string>(
+    className: string,
+    callback: ProtoTriggerFunction<T, Ext>,
+  ) {
+    if (_.isNil(this[PVK].triggers[className])) {
+      this[PVK].triggers[className] = { create: [], update: [], delete: [] };
+    }
+    this[PVK].triggers[className].update.push(callback);
+  }
+
+  afterDelete<T extends string>(
+    className: string,
+    callback: ProtoTriggerFunction<T, Ext>,
+  ) {
+    if (_.isNil(this[PVK].triggers[className])) {
+      this[PVK].triggers[className] = { create: [], update: [], delete: [] };
+    }
+    this[PVK].triggers[className].delete.push(callback);
   }
 
   scheduleJob(name: string, params?: TValueWithoutObject, options?: ExtraOptions<boolean>) {

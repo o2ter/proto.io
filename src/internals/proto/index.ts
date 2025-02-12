@@ -40,7 +40,7 @@ import { TValue, TValueWithoutObject } from '../types';
 import { TObject } from '../object';
 import { TSerializable } from '../../common/codec';
 import { TUser } from '../object/user';
-import { ProtoFunction, ProtoFunctionOptions, ProtoJobFunction, ProtoJobFunctionOptions } from './types';
+import { ProtoFunction, ProtoFunctionOptions, ProtoJobFunction, ProtoJobFunctionOptions, ProtoTriggerFunction } from './types';
 import { Socket } from 'socket.io-client';
 import { Session } from '../../server/proto/session';
 import { asyncStream } from '@o2ter/utils-js';
@@ -357,6 +357,36 @@ export interface ProtoType<Ext> {
     name: string,
     callback: ProtoFunction<Ext>,
     options?: Omit<ProtoFunctionOptions<Ext>, 'callback'>,
+  ): void;
+
+  /**
+   * Registers a callback to be executed after an object is created.
+   * @param className - The name of the class.
+   * @param callback - The callback function.
+   */
+  afterCreate<T extends string>(
+    className: string,
+    callback: ProtoTriggerFunction<T, Ext>,
+  ): void;
+
+  /**
+   * Registers a callback to be executed after an object is updated.
+   * @param className - The name of the class.
+   * @param callback - The callback function.
+   */
+  afterUpdate<T extends string>(
+    className: string,
+    callback: ProtoTriggerFunction<T, Ext>,
+  ): void;
+
+  /**
+   * Registers a callback to be executed after an object is deleted.
+   * @param className - The name of the class.
+   * @param callback - The callback function.
+   */
+  afterDelete<T extends string>(
+    className: string,
+    callback: ProtoTriggerFunction<T, Ext>,
   ): void;
 
   /**

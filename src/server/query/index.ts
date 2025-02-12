@@ -122,11 +122,42 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
     });
   }
 
+  private _on_upsert(objects: TObject[]) {
+    const createTraggers = this._proto[PVK].triggers[this.className]?.create ?? [];
+    const updateTraggers = this._proto[PVK].triggers[this.className]?.update ?? [];
+    for (const obj of objects) {
+      for (const tragger of obj.__v === 0 ? createTraggers : updateTraggers) {
+        (async () => {
+          try {
+            await tragger(Object.setPrototypeOf({ object: obj }, this._proto));
+          } catch (e) {
+            console.error(e);
+          }
+        })();
+      }
+    }
+  }
+
+  private _on_delete(objects: TObject[]) {
+    const traggers = this._proto[PVK].triggers[this.className]?.delete ?? [];
+    for (const obj of objects) {
+      for (const tragger of traggers) {
+        (async () => {
+          try {
+            await tragger(Object.setPrototypeOf({ object: obj }, this._proto));
+          } catch (e) {
+            console.error(e);
+          }
+        })();
+      }
+    }
+  }
+
   async insertMany(
     values: Record<string, TValueWithUndefined>[],
     options?: ExtraOptions<M>
   ) {
-    return this._objectMethods(
+    const objs = this._objectMethods(
       await this._dispatcher(options).insert({
         className: this.className,
         includes: this[PVK].options.includes,
@@ -134,15 +165,19 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
         countMatches: this[PVK].options.countMatches,
       }, values)
     );
+    this._on_upsert(objs);
+    return objs;
   }
 
   async updateMany(
     update: Record<string, TUpdateOp>,
     options?: ExtraOptions<M>
   ) {
-    return this._objectMethods(
+    const objs = this._objectMethods(
       await this._dispatcher(options).update(this._queryOptions, update)
     );
+    this._on_upsert(objs);
+    return objs;
   }
 
   async upsertMany(
@@ -150,17 +185,20 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
     setOnInsert: Record<string, TValueWithUndefined>,
     options?: ExtraOptions<M>
   ) {
-    return this._objectMethods(
+    const objs = this._objectMethods(
       await this._dispatcher(options).upsert(this._queryOptions, update, setOnInsert)
     );
+    this._on_upsert(objs);
+    return objs;
   }
 
   async deleteMany(options?: ExtraOptions<M>) {
-    return this._objectMethods(
+    const objs = this._objectMethods(
       await this._dispatcher(options).delete(this._queryOptions)
     );
+    this._on_delete(objs);
+    return objs;
   }
-
 }
 
 export class ProtoQuery<T extends string, E, M extends boolean> extends _ProtoQuery<T, E, M> {

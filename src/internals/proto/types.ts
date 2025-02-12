@@ -29,6 +29,8 @@ import { TSerializable } from '../../common/codec';
 import { TValueWithoutObject } from '../types';
 import { TUser } from '../object/user';
 import { TObject } from '../object';
+import { TJob } from '../object/job';
+import { TObjectType } from '../object/types';
 
 /**
  * A callback function type.
@@ -45,11 +47,22 @@ type Callback<T, R, E> = (request: ProtoService<E> & T) => Awaitable<R>;
 export type ProtoFunction<E> = Callback<{ params: TSerializable; }, void | TSerializable, E>;
 
 /**
+ * A trigger callback function type.
+ * @param request - The request object.
+ * @returns An awaitable response.
+ */
+export type ProtoTriggerFunction<T, E> = Callback<{ object: TObjectType<T, E>; }, void, E>;
+
+/**
  * A job callback function type.
  * @param request - The request object.
  * @returns An awaitable response.
  */
-export type ProtoJobFunction<E> = Callback<{ params: TValueWithoutObject; user?: TUser; job: TObject; }, void, E>;
+export type ProtoJobFunction<E> = Callback<{
+  params: TValueWithoutObject;
+  user?: TUser;
+  job: TObjectType<'_Job', E>;
+}, void, E>;
 
 /**
  * Validator options for proto functions.
