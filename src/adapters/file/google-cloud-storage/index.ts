@@ -50,6 +50,7 @@ export class GoogleCloudStorage extends FileChunkStorageBase<File> {
 
   async listChunks<E>(proto: ProtoService<E>, token: string) {
     const [response] = await this.bucket.getFiles({
+      autoPaginate: false,
       prefix: `${token}/`,
       delimiter: '/',
     });
