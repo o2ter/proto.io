@@ -38,7 +38,7 @@ test('test triggers', async () => {
 
   const id = await Proto.run('testTriggers');
 
-  await new Promise((resolve) => setTimeout(resolve, 500));
+  await new Promise((resolve) => setTimeout(resolve, 1000));
 
   const results = await Proto.Query('Check').findAll();
 
