@@ -50,12 +50,12 @@ import { TJob } from '../object/job';
 import { isFile, isJob, isObject, isQuery, isRole, isUser } from '../../common';
 import { TQuerySelector } from '../query/types/selectors';
 
-export type Logger = {
-  debug: (...args: any[]) => void;
-  info: (...args: any[]) => void;
-  trace: (...args: any[]) => void;
-  warn: (...args: any[]) => void;
-  error: (...args: any[]) => void;
+export const _logLevels = ['error', 'warn', 'info', 'debug', 'trace'] as const;
+type _Logger = {
+  [x in typeof _logLevels[number]]: (...args: any[]) => void;
+};
+export type Logger = _Logger & {
+  loggerLevel: keyof _Logger | 'all' | 'none';
 };
 
 /**

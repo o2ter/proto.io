@@ -31,7 +31,7 @@ import { CookieOptions, Request } from '@o2ter/server-js';
 import { ProtoServiceOptions, ProtoServiceKeyOptions } from './types';
 import { ProtoFunction, ProtoFunctionOptions, ProtoJobFunction, ProtoJobFunctionOptions, ProtoTriggerFunction } from '../../internals/proto/types';
 import { sessionId, sessionIsMaster, session, signUser, Session, sessionWithToken } from './session';
-import { EventData, Logger, ProtoType, TransactionOptions } from '../../internals/proto';
+import { _logLevels, EventData, Logger, ProtoType, TransactionOptions } from '../../internals/proto';
 import { schedule } from '../schedule';
 import { serialize, TSerializable } from '../../common';
 import { PVK } from '../../internals/private';
@@ -88,14 +88,8 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
         keySize: 64,
         saltSize: 64,
       },
+      logger: {},
       ...options,
-      logger: {
-        debug: (...args) => (options.logger?.debug ?? console.debug)(...args),
-        info: (...args) => (options.logger?.info ?? console.info)(...args),
-        trace: (...args) => (options.logger?.trace ?? console.trace)(...args),
-        warn: (...args) => (options.logger?.warn ?? console.warn)(...args),
-        error: (...args) => (options.logger?.error ?? console.error)(...args),
-      },
     });
   }
 
@@ -105,7 +99,17 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
   }
 
   get logger() {
-    return this[PVK].options.logger as Logger;
+    const logger = this[PVK].options.logger;
+    const loggerLevel = logger.loggerLevel ?? 'warn';
+    const callbacks = _.map(_logLevels, (x, i) => [x, (...args: any[]) => {
+      if (loggerLevel !== 'all' && _.indexOf(_logLevels, loggerLevel) < i) return;
+      const func = logger[x] ?? console[x];
+      if (_.isFunction(func)) func(...args);
+    }] as const);
+    return {
+      loggerLevel,
+      ..._.fromPairs(callbacks as any),
+    } as Logger;
   }
 
   classes(): string[] {
