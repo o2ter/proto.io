@@ -31,7 +31,7 @@ import { CookieOptions, Request } from '@o2ter/server-js';
 import { ProtoServiceOptions, ProtoServiceKeyOptions } from './types';
 import { ProtoFunction, ProtoFunctionOptions, ProtoJobFunction, ProtoJobFunctionOptions, ProtoTriggerFunction } from '../../internals/proto/types';
 import { sessionId, sessionIsMaster, session, signUser, Session, sessionWithToken } from './session';
-import { EventData, ProtoType, TransactionOptions } from '../../internals/proto';
+import { EventData, Logger, ProtoType, TransactionOptions } from '../../internals/proto';
 import { schedule } from '../schedule';
 import { serialize, TSerializable } from '../../common';
 import { PVK } from '../../internals/private';
@@ -89,12 +89,23 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
         saltSize: 64,
       },
       ...options,
+      logger: {
+        debug: (...args) => (options.logger?.debug ?? console.debug)(...args),
+        info: (...args) => (options.logger?.info ?? console.info)(...args),
+        trace: (...args) => (options.logger?.trace ?? console.trace)(...args),
+        warn: (...args) => (options.logger?.warn ?? console.warn)(...args),
+        error: (...args) => (options.logger?.error ?? console.error)(...args),
+      },
     });
   }
 
   async shutdown() {
     this._schedule.destroy();
     this[PVK].shutdown();
+  }
+
+  get logger() {
+    return this[PVK].options.logger as Logger;
   }
 
   classes(): string[] {

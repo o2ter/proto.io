@@ -132,7 +132,7 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
           try {
             await tragger(proxy(Object.setPrototypeOf({ object: obj }, this._proto)));
           } catch (e) {
-            console.error(e);
+            this._proto.logger.error(e);
           }
         })();
       }
@@ -147,7 +147,7 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
           try {
             await tragger(proxy(Object.setPrototypeOf({ object: obj }, this._proto)));
           } catch (e) {
-            console.error(e);
+            this._proto.logger.error(e);
           }
         })();
       }

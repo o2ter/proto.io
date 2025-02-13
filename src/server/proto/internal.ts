@@ -416,7 +416,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
       try {
         await proto.fileStorage.destroy(proto, id);
       } catch (e) {
-        console.error(e);
+        proto.logger.error(e);
       }
     })();
   }
@@ -478,7 +478,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
                 callback(payload as EventData);
               }
             } catch (e) {
-              console.error(e);
+              proto.logger.error(e);
             }
           })();
         }

@@ -48,7 +48,7 @@ export const schedule = (proto: ProtoService<any>) => {
       try {
         await task(proto);
       } catch (e) {
-        console.error(`Errors on schedule ${op}: ${e}`);
+        proto.logger.error(`Errors on schedule ${op}: ${e}`);
       }
     }
     running = false;

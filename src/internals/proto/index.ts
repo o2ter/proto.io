@@ -50,6 +50,14 @@ import { TJob } from '../object/job';
 import { isFile, isJob, isObject, isQuery, isRole, isUser } from '../../common';
 import { TQuerySelector } from '../query/types/selectors';
 
+export type Logger = {
+  debug: (...args: any[]) => void;
+  info: (...args: any[]) => void;
+  trace: (...args: any[]) => void;
+  warn: (...args: any[]) => void;
+  error: (...args: any[]) => void;
+};
+
 /**
  * The mode of the transaction.
  */
@@ -255,6 +263,8 @@ export abstract class ProtoType<Ext> {
 };
 
 export interface ProtoType<Ext> {
+
+  get logger(): Logger;
 
   /**
    * Connects a request with optional attributes.

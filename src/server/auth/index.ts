@@ -34,7 +34,7 @@ export default <E>(proto: ProtoService<E>): RequestHandler => async (req, res, n
     await signUser(connected, res, await connected.currentUser());
     return next();
   } catch (e) {
-    console.error(e);
+    proto.logger.error(e);
     return next(new Error('Internal server error'));
   }
 };

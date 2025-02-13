@@ -224,7 +224,7 @@ export const registerProtoSocket = <E>(
         try {
           return QuerySelector.decode(v);
         } catch (error) {
-          console.error(error);
+          proto.logger.error(error);
           return false;
         }
       });

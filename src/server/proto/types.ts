@@ -35,6 +35,7 @@ import { TUser } from '../../internals/object/user';
 import { TRole } from '../../internals/object/role';
 import { Awaitable } from '@o2ter/utils-js';
 import { ProtoService } from './index';
+import { Logger } from '../../internals/proto';
 
 export type ProtoServiceOptions<Ext> = {
   /**
@@ -72,6 +73,11 @@ export type ProtoServiceOptions<Ext> = {
       defaultResolver: () => Promise<TRole[]>,
     ) => Awaitable<TRole[]>;
   };
+
+  /**
+   * Logger configuration.
+   */
+  logger?: Partial<Logger>;
 
   /**
    * Storage configuration.
