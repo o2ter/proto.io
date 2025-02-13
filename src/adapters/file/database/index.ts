@@ -79,7 +79,7 @@ export class DatabaseFileStorage extends FileStorageBase {
 
   }
 
-  async* readChunks<E>(proto: ProtoService<E>, token: string, start?: number | undefined, end?: number | undefined) {
+  async* readChunks<E>(proto: ProtoService<E>, token: string, start?: number, end?: number) {
     const query = proto.Query('_FileChunk')
       .sort({ start: 1 })
       .filter({

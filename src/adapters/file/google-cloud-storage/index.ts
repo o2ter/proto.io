@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { ProtoService } from '../../../server/proto';
-import { Storage, File } from '@google-cloud/storage';
+import { Storage, File, GetFilesOptions } from '@google-cloud/storage';
 import { FileStorageOptions } from '../base';
 import { FileChunkStorageBase } from '../base/chunk';
 
@@ -48,20 +48,25 @@ export class GoogleCloudStorage extends FileChunkStorageBase<File> {
     await this.bucket.file(`${token}/${start}.chunk`).save(compressed);
   }
 
-  async listChunks<E>(proto: ProtoService<E>, token: string) {
-    const [response] = await this.bucket.getFiles({
+  async* listChunks<E>(proto: ProtoService<E>, token: string, start?: number, end?: number) {
+    let query: any = {
       autoPaginate: false,
       prefix: `${token}/`,
       delimiter: '/',
-    });
-    const files = _.map(response, x => ({
-      file: x,
-      name: _.last(_.split(x.name, '/'))!,
-    }));
-    return _.map(_.filter(files, x => !!x.name?.match(/^\d+\.chunk$/)), x => ({
-      file: x.file,
-      start: parseInt(x.name.slice(0, -6)),
-    }));
+    };
+    do {
+      const [response, nextPage] = await this.bucket.getFiles(query);
+      if (_.isEmpty(response)) break;
+      for (const item of response) {
+        const name = _.last(_.split(item.name, '/'));
+        if (!name?.match(/^\d+\.chunk$/)) continue;
+        const pos = parseInt(name.slice(0, -6));
+        if (start && pos < start) continue;
+        if (end && pos >= end) continue;
+        yield { start: pos, file: item };
+      }
+      query = nextPage;
+    } while (query);
   }
 
   async readChunk<E>(proto: ProtoService<E>, file: File) {

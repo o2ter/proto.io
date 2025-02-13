@@ -41,8 +41,7 @@ export class AliyunObjectStorage extends FileChunkStorageBase<OSS.ObjectMeta> {
     await this._storage.put(`${token}/${start}.chunk`, compressed);
   }
 
-  async listChunks<E>(proto: ProtoService<E>, token: string) {
-    const response: OSS.ObjectMeta[] = [];
+  async* listChunks<E>(proto: ProtoService<E>, token: string, start?: number, end?: number) {
     let next: string | undefined;
     do {
       const { objects, nextContinuationToken } = await (this._storage as any).listV2({
@@ -51,17 +50,16 @@ export class AliyunObjectStorage extends FileChunkStorageBase<OSS.ObjectMeta> {
         continuationToken: next,
       }, {});
       if (_.isEmpty(objects)) break;
-      response.push(...objects);
+      for (const item of objects) {
+        const name = _.last(_.split(item.name, '/'));
+        if (!name?.match(/^\d+\.chunk$/)) continue;
+        const pos = parseInt(name.slice(0, -6));
+        if (start && pos < start) continue;
+        if (end && pos >= end) continue;
+        yield { start: pos, file: item };
+      }
       next = nextContinuationToken;
     } while (next);
-    const files = _.map(response, x => ({
-      file: x,
-      name: _.last(_.split(x.name, '/'))!,
-    }));
-    return _.map(_.filter(files, x => !!x.name?.match(/^\d+\.chunk$/)), x => ({
-      file: x.file,
-      start: parseInt(x.name.slice(0, -6)),
-    }));
   }
 
   async readChunk<E>(proto: ProtoService<E>, file: OSS.ObjectMeta) {

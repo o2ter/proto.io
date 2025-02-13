@@ -102,7 +102,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
         res.setHeader('Content-Range', `bytes ${startBytes}-${endBytes}/${file.size}`);
         res.status(206);
 
-        stream = payload.fileStorage.fileData(payload, file.token, startBytes, endBytes);
+        stream = payload.fileStorage.fileData(payload, file.token, startBytes, endBytes + 1);
 
       } else {
 

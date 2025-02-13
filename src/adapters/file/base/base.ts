@@ -112,9 +112,9 @@ export abstract class FileStorageBase implements TFileStorage {
 
       } else {
 
-        const endBytes = startBytes + data.length - 1;
+        const endBytes = startBytes + data.length;
         const _start = _.isNumber(start) && start > startBytes ? start - startBytes : 0;
-        const _end = _.isNumber(end) && end < endBytes ? end - startBytes + 1 : undefined;
+        const _end = _.isNumber(end) && end < endBytes ? end - startBytes : undefined;
 
         yield data.subarray(_start, _end);
       }
