@@ -238,7 +238,16 @@ export const registerProtoSocket = <E>(
     });
 
     socket.on('register_query', (payload) => {
-      
+      queries = _.mapValues(payload, v => {
+        const { event = '', className = '', filter } = v ?? {};
+        if (_.isBoolean(v)) return { event, className, filter: true };
+        try {
+          return { event, className, filter: QuerySelector.decode(filter) };
+        } catch (error) {
+          proto.logger.error(error);
+          return { event, className, filter: false };
+        }
+      });
     });
   });
 
