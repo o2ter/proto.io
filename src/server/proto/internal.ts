@@ -150,6 +150,7 @@ const mergeSchema = (...schemas: Record<string, TSchema>[]) => _.reduce(schemas,
       ]),
       ...(s.indexes ?? []),
     ],
+    liveQuery: acc[className]?.liveQuery || s.liveQuery,
   })),
 }), {} as Record<string, TSchema>);
 

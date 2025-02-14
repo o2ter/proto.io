@@ -32,7 +32,7 @@ import { ExtraOptions } from '../../internals/options';
 import { TQuery, TQueryOptions, TQueryRandomOptions } from '../../internals/query';
 import { TObject } from '../../internals/object';
 import { TExtended } from '../../internals/object/methods';
-import { TValue, TValueWithUndefined } from '../../internals/types';
+import { TValueWithUndefined } from '../../internals/types';
 import { TUpdateOp } from '../../internals/object/types';
 import { resolveColumn } from './dispatcher/validator';
 import { isPointer, isRelation } from '../../internals/schema';
