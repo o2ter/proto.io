@@ -44,6 +44,8 @@ import Decimal from 'decimal.js';
 import { response } from './server/routes/common';
 import { TQuerySelector } from './internals/query/types/selectors';
 import { QuerySelector } from './server/query/dispatcher/parser';
+import { serialize } from './common';
+import { _decodeValue } from './internals/object';
 
 export * from './common';
 export { TFileStorage } from './server/file/index';
@@ -218,10 +220,9 @@ export const registerProtoSocket = <E>(
             return v.filter instanceof QuerySelector ? v.filter.eval(obj) : v.filter;
           }));
         }
-        if (!_.isEmpty(ids)) socket.emit('ON_EV_LIVEQUERY', {
-          ids,
-          data: _.filter(objs, obj => !_.isEmpty(ids[obj.objectId!])),
-        });
+        if (_.isEmpty(ids)) return;
+        const payload = _decodeValue(JSON.parse(serialize(_.filter(objs, obj => !_.isEmpty(ids[obj.objectId!])))))
+        socket.emit('ON_EV_LIVEQUERY', { ids, data: payload });
       });
       return () => {
         remove_basic();
