@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import Decimal from 'decimal.js';
 import { TNumber } from '../../../../common';
-import { TObject } from '../../../../internals/object';
+import { isPrimitiveValue, TObject } from '../../../../internals/object';
 
 const isNum = (x: any): x is TNumber => _.isNumber(x) || x instanceof BigInt || x instanceof Decimal;
 
@@ -97,6 +97,18 @@ export const lessThan = (lhs: any, rhs: any): boolean => {
     return false;
   }
   return false;
+};
+
+export const getValue = (value: any, key: string) => {
+  for (const k of _.toPath(key)) {
+    if (isPrimitiveValue(value)) return null;
+    if (value instanceof TObject) {
+      value = value.get(k);
+    } else {
+      value = _.get(value, k);
+    }
+  }
+  return value;
 };
 
 export const greaterThan = (lhs: any, rhs: any) => {
