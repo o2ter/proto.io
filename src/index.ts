@@ -208,7 +208,8 @@ export const registerProtoSocket = <E>(
       const payload = await proto.connectWithSessionToken(token);
       const { remove: remove_basic } = payload.listen(data => {
         const ids = _.keys(_.pickBy(events, v => v instanceof QuerySelector ? v.eval(data) : v));
-        if (!_.isEmpty(ids)) socket.emit('ON_EV_BASIC', { ids, data });
+        const payload = JSON.parse(serialize(data));
+        if (!_.isEmpty(ids)) socket.emit('ON_EV_BASIC', { ids, data: payload });
       });
       const { remove: remove_livequery } = payload[PVK]._liveQuery(payload, (ev, objs) => {
         const ids: Record<string, string[]> = {};
