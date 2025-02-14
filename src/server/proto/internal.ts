@@ -38,7 +38,7 @@ import { proxy } from './proxy';
 import { _serviceOf, ProtoService } from '.';
 import { base64ToBuffer, isBinaryData, prototypes } from '@o2ter/utils-js';
 import { ProtoInternalType } from '../../internals/proto';
-import { _decodeValue, _encodeValue, TObject } from '../../internals/object';
+import { TObject } from '../../internals/object';
 import { TValueWithoutObject, TValue } from '../../internals/types';
 import { ExtraOptions } from '../../internals/options';
 import { TUser } from '../../internals/object/user';
@@ -492,7 +492,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     if (_.isEmpty(objects)) return;
     return this.options.pubsub.publish(
       PROTO_LIVEQUERY_MSG,
-      _encodeValue(JSON.parse(serialize({ event, objects }))),
+      JSON.parse(serialize({ event, objects })),
     );
   }
 
@@ -506,7 +506,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
       remove: this.options.pubsub.subscribe(
         PROTO_LIVEQUERY_MSG,
         payload => {
-          const { event, objects } = deserialize(JSON.stringify(_decodeValue(payload))) as { event: string; objects: TObject[]; };
+          const { event, objects } = deserialize(JSON.stringify(payload)) as { event: string; objects: TObject[]; };
           (async () => {
             try {
               const _roles = await roles;
