@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { TExpression } from '../../../../internals/query/types/expressions';
 import { TComparisonKeys, TConditionalKeys, TDistanceKeys } from '../../../../internals/query/types/keys';
-import { isValue } from '../../../../internals/object';
+import { isPrimitiveValue, isValue, TObject } from '../../../../internals/object';
 import { TValue } from '../../../../internals/types';
 import { cosine, distance, equal, greaterThan, greaterThanOrEqual, innerProduct, lessThan, lessThanOrEqual, rectilinearDistance } from './utils';
 
@@ -283,7 +283,15 @@ export class QueryKeyExpression extends QueryExpression {
   }
 
   eval(value: any) {
-    return _.get(value, this.key);
+    for (const k of _.toPath(this.key)) {
+      if (isPrimitiveValue(value)) return null;
+      if (value instanceof TObject) {
+        value = value.get(k);
+      } else {
+        value = _.get(value, k);
+      }
+    }
+    return value;
   }
 }
 

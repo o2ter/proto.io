@@ -27,7 +27,7 @@ import _ from 'lodash';
 import { QueryExpression } from './expressions';
 import { TFieldQuerySelector, TQuerySelector, allFieldQueryKeys } from '../../../../internals/query/types/selectors';
 import { TComparisonKeys, TConditionalKeys, TValueListKeys, TValueSetKeys } from '../../../../internals/query/types/keys';
-import { isValue } from '../../../../internals/object';
+import { isPrimitiveValue, isValue, TObject } from '../../../../internals/object';
 import { TValue } from '../../../../internals/types';
 import { equal, greaterThan, greaterThanOrEqual, isIntersect, isSubset, isSuperset, lessThan, lessThanOrEqual } from './utils';
 
@@ -258,7 +258,16 @@ export class QueryFieldSelector extends QuerySelector {
   }
 
   eval(value: any) {
-    return this.expr.eval(this.field === '$' ? value : _.get(value, this.field));
+    if (this.field === '$') return this.expr.eval(value);
+    for (const k of _.toPath(this.field)) {
+      if (isPrimitiveValue(value)) return null;
+      if (value instanceof TObject) {
+        value = value.get(k);
+      } else {
+        value = _.get(value, k);
+      }
+    }
+    return this.expr.eval(value);
   }
 }
 
