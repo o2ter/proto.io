@@ -25,13 +25,14 @@
 
 import _ from 'lodash';
 import { IncludePaths } from './types';
-import { TValue, TValueWithUndefined } from '../types';
+import { TValueWithUndefined } from '../types';
 import { PVK } from '../private';
 import { TObjectType } from '../object/types';
 import { TQueryBase, TQueryBaseOptions } from './base';
 import { TUpdateOp } from '../object/types';
 import { ExtraOptions } from '../options';
 import { asyncStream, Awaitable, EventIterator } from '@o2ter/utils-js';
+import { LiveQuerySubscription } from '../liveQuery';
 
 /**
  * Options for a query.
@@ -203,6 +204,8 @@ export abstract class TQuery<T extends string, Ext, M extends boolean> extends T
    * @returns A promise that resolves to the deleted records.
    */
   abstract deleteMany(options?: ExtraOptions<M>): PromiseLike<TObjectType<T, Ext>[]>;
+
+  abstract subscribe(): LiveQuerySubscription<T, Ext>;
 
   /**
    * Adds fields to include in the query.

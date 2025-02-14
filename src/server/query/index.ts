@@ -37,6 +37,7 @@ import { TUpdateOp } from '../../internals/object/types';
 import { resolveColumn } from './dispatcher/validator';
 import { isPointer, isRelation } from '../../internals/schema';
 import { proxy } from '../proto/proxy';
+import { LiveQuerySubscription } from '../../internals/liveQuery';
 
 type _QueryOptions = {
   insecure?: boolean;
@@ -240,6 +241,13 @@ export class ProtoQuery<T extends string, E, M extends boolean> extends _ProtoQu
     return clone;
   }
 
+  subscribe() {
+    return new LiveQuerySubscription<T, E>(
+      this.className,
+      this._proto,
+      this[PVK].options.filter ?? [],
+    );
+  }
 }
 
 export class ProtoRelationQuery<E, M extends boolean> extends _ProtoQuery<string, E, M> {
@@ -261,4 +269,7 @@ export class ProtoRelationQuery<E, M extends boolean> extends _ProtoQuery<string
     return clone;
   }
 
+  subscribe(): LiveQuerySubscription<string, E> {
+    throw Error('Unable to subscribe to relationship query');
+  }
 }
