@@ -203,7 +203,7 @@ class PostgresPubSub {
       try {
         client = await client;
         client.on('notification', ({ channel, payload }) => {
-          if (channel !== PROTO_EVENT || !payload) return;
+          if (_.toUpper(channel) !== PROTO_EVENT || !payload) return;
           try {
             const _payload = _decodeValue(JSON.parse(payload));
             for (const subscriber of this.subscribers) {
