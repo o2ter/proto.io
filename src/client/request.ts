@@ -148,7 +148,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
     };
 
     const register_query = () => {
-      socket.emit('register_query', _.mapValues(queries, x => x.options));
+      socket.emit('register_livequery', _.mapValues(queries, x => x.options));
     };
 
     const register = () => {
@@ -157,6 +157,12 @@ export default class Service<Ext, P extends ProtoType<any>> {
     };
 
     socket.on('event_data', ({ ids, data }: any) => {
+      for (const [id, { callback }] of _.entries(events)) {
+        if (_.includes(ids, id)) callback(data);
+      }
+    });
+
+    socket.on('livequery_data', ({ ids, data }: any) => {
       for (const [id, { callback }] of _.entries(events)) {
         if (_.includes(ids, id)) callback(data);
       }

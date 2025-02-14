@@ -237,7 +237,7 @@ export const registerProtoSocket = <E>(
       });
     });
 
-    socket.on('register_query', (payload) => {
+    socket.on('register_livequery', (payload) => {
       queries = _.mapValues(payload, v => {
         const { event = '', className = '', filter } = v ?? {};
         if (_.isBoolean(v)) return { event, className, filter: true };
