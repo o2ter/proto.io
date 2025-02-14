@@ -492,7 +492,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     if (_.isEmpty(objects)) return;
     return this.options.pubsub.publish(
       PROTO_LIVEQUERY_MSG,
-      JSON.parse(serialize({ event, objects })),
+      JSON.parse(serialize({ event, objects }, { objAttrs: TObject.defaultKeys })),
     );
   }
 
