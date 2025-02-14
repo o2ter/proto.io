@@ -44,7 +44,7 @@ import Decimal from 'decimal.js';
 import { response } from './server/routes/common';
 import { QuerySelector } from './server/query/dispatcher/parser';
 import { serialize } from './common';
-import { _decodeValue } from './internals/object';
+import { _encodeValue } from './internals/object';
 
 export * from './common';
 export { TFileStorage } from './server/file/index';
@@ -220,7 +220,7 @@ export const registerProtoSocket = <E>(
           }));
         }
         if (_.isEmpty(ids)) return;
-        const payload = _decodeValue(JSON.parse(serialize(_.filter(objs, obj => !_.isEmpty(ids[obj.objectId!])))));
+        const payload = _encodeValue(JSON.parse(serialize(_.filter(objs, obj => !_.isEmpty(ids[obj.objectId!])))));
         socket.emit('ON_EV_LIVEQUERY', { ids, data: payload });
       });
       return () => {

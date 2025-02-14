@@ -492,7 +492,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     if (_.isEmpty(objects)) return;
     return this.options.pubsub.publish(
       PROTO_LIVEQUERY_MSG,
-      _decodeValue(JSON.parse(serialize({ event, objects }))),
+      _encodeValue(JSON.parse(serialize({ event, objects }))),
     );
   }
 
@@ -506,7 +506,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
       remove: this.options.pubsub.subscribe(
         PROTO_LIVEQUERY_MSG,
         payload => {
-          const { event, objects } = deserialize(JSON.stringify(_encodeValue(payload))) as { event: string; objects: TObject[]; };
+          const { event, objects } = deserialize(JSON.stringify(_decodeValue(payload))) as { event: string; objects: TObject[]; };
           (async () => {
             try {
               const _roles = await roles;
