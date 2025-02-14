@@ -30,7 +30,7 @@ import { TObject } from '../../../../internals/object';
 
 const isNum = (x: any): x is TNumber => _.isNumber(x) || x instanceof BigInt || x instanceof Decimal;
 
-const equalNum = (lhs: TNumber, rhs: TNumber) => {
+const equalNum = (lhs: TNumber, rhs: TNumber): boolean => {
   if (lhs instanceof Decimal && rhs instanceof Decimal) {
     return lhs.equals(rhs);
   } else if (lhs instanceof Decimal) {
@@ -42,7 +42,7 @@ const equalNum = (lhs: TNumber, rhs: TNumber) => {
   }
 }
 
-const lessNum = (lhs: TNumber, rhs: TNumber) => {
+const lessNum = (lhs: TNumber, rhs: TNumber): boolean => {
   if (lhs instanceof Decimal && rhs instanceof Decimal) {
     return lhs.lessThan(rhs);
   } else if (lhs instanceof Decimal) {
@@ -54,7 +54,7 @@ const lessNum = (lhs: TNumber, rhs: TNumber) => {
   }
 }
 
-export const equal = (lhs: any, rhs: any) => {
+export const equal = (lhs: any, rhs: any): boolean => {
   if (_.isNil(lhs) && _.isNil(rhs)) return true;
   if (isNum(lhs) && isNum(rhs)) return equalNum(lhs, rhs);
   if (lhs instanceof TObject && rhs instanceof TObject) {
@@ -64,10 +64,19 @@ export const equal = (lhs: any, rhs: any) => {
   } else if (lhs instanceof TObject || rhs instanceof TObject) {
     return false;
   }
+  if (_.isArray(lhs) && _.isArray(rhs)) {
+    return lhs.length === rhs.length && _.every(_.zip(lhs, rhs), ([l, r]) => equal(l, r));
+  }
+  if (_.isPlainObject(lhs) && _.isPlainObject(rhs)) {
+    for (const key of _.uniq([..._.keys(lhs), ..._.keys(rhs)])) {
+      if (!equal(lhs[key], rhs[key])) return false;
+    }
+    return true;
+  }
   return _.isEqual(lhs, rhs);
 };
 
-export const lessThan = (lhs: any, rhs: any) => {
+export const lessThan = (lhs: any, rhs: any): boolean => {
   if (_.isNil(lhs) && !_.isNil(rhs)) return true;
   if (_.isNil(rhs)) return false;
   if (_.isString(lhs) && _.isString(rhs)) return lhs < rhs;
