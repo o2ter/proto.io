@@ -38,17 +38,17 @@ test('test live query', async () => {
 
   const sub = Proto.Query('Test').subscribe();
 
-  let result: string | undefined;
-  const { remove } = sub.on('create', (obj) => {
-    result = obj.objectId;
+  const result = new Promise<string>(res => {
+    const { remove } = sub.on('create', (obj) => {
+      res(obj.objectId!);
+      remove();
+    });
   });
+
+  await new Promise(res => setTimeout(res, 100));
 
   const obj = Proto.Object('Test');
   await obj.save();
 
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-
-  expect(result).toEqual(obj.objectId);
-
-  remove();
+  expect(await result).toEqual(obj.objectId);
 })

@@ -43,9 +43,9 @@ test('test event', async () => {
 
 test('test event 2', async () => {
 
-  const promise = new Promise<{}>(res => {
-    const { remove } = Proto.listen(data => {
-      res(data);
+  const result = new Promise<any>(res => {
+    const { remove } = Proto.listen(({ string }) => {
+      res(string);
       remove();
     });
   });
@@ -54,16 +54,14 @@ test('test event 2', async () => {
 
   await Proto.notify({ string: 'test' });
 
-  const { string } = await promise as any;
-
-  expect(string).toStrictEqual('test');
+  expect(await result).toStrictEqual('test');
 })
 
 test('test event 3', async () => {
 
-  const promise = new Promise<{}>(res => {
-    const { remove } = Proto.listen(data => {
-      res(data);
+  const result = new Promise<any>(res => {
+    const { remove } = Proto.listen(({ string }) => {
+      res(string);
       remove();
     }, {
       number: { $gt: 5 }
@@ -79,7 +77,5 @@ test('test event 3', async () => {
   await Proto.notify({ string: 'test5', number: 5 });
   await Proto.notify({ string: 'test6', number: 6 });
 
-  const { string } = await promise as any;
-
-  expect(string).toStrictEqual('test6');
+  expect(await result).toStrictEqual('test6');
 })
