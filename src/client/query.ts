@@ -32,6 +32,7 @@ import { TQuery, TQueryOptions, TQueryRandomOptions } from '../internals/query';
 import { TObject } from '../internals/object';
 import { TObjectType, TUpdateOp } from '../internals/object/types';
 import { TValue, TValueWithUndefined } from '../internals/types';
+import { LiveQuerySubscription } from '../internals/liveQuery';
 
 type _QueryOptions = {
   relatedBy?: {
@@ -230,6 +231,13 @@ export class ProtoClientQuery<T extends string, E> extends _ProtoClientQuery<T, 
     return clone;
   }
 
+  subscribe() {
+    return new LiveQuerySubscription<T, E>(
+      this.className,
+      this._proto,
+      this[PVK].options.filter ?? [],
+    );
+  }
 }
 export class ProtoClientRelationQuery<E> extends _ProtoClientQuery<string, E> {
 
@@ -250,4 +258,7 @@ export class ProtoClientRelationQuery<E> extends _ProtoClientQuery<string, E> {
     return clone;
   }
 
+  subscribe(): LiveQuerySubscription<string, E> {
+    throw Error('Unable to subscribe to relationship query');
+  }
 }

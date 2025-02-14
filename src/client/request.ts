@@ -127,14 +127,33 @@ export default class Service<Ext, P extends ProtoType<any>> {
 
     this.sockets.push(socket);
 
+    type QueryOpts = {
+      event: string;
+      className: string;
+      filter: TQuerySelector[];
+    };
+
     let events: Record<string, {
       callback: (payload: any) => void;
       selector?: TQuerySelector;
     }> = {};
+    let queries: Record<string, {
+      callback: (payload: any) => void;
+      options: QueryOpts;
+    }> = {};
     let destroyCallbacks: VoidFunction[] = [];
 
-    const register = () => {
+    const register_event = () => {
       socket.emit('register_event', _.mapValues(events, x => x.selector ?? true));
+    };
+
+    const register_query = () => {
+      socket.emit('register_query', _.mapValues(queries, x => x.options));
+    };
+
+    const register = () => {
+      register_event();
+      register_query();
     };
 
     socket.on('event_data', ({ ids, data }: any) => {
@@ -159,24 +178,21 @@ export default class Service<Ext, P extends ProtoType<any>> {
       listen: (callback: (payload: any) => void, selector?: TQuerySelector) => {
         const id = randomUUID();
         events[id] = { callback, selector };
-        register();
+        register_event();
         return () => {
           events = _.omit(events, id);
-          register();
+          register_event();
           if (_.isEmpty(events)) destroy();
         };
       },
-      liveQuery: (
-        callback: (payload: any) => void,
-        options: {
-          event: string;
-          className: string;
-          filter: TQuerySelector[];
-        }
-      ) => {
+      liveQuery: (callback: (payload: any) => void, options: QueryOpts) => {
         const id = randomUUID();
+        queries[id] = { callback, options };
+        register_query();
         return () => {
-
+          queries = _.omit(queries, id);
+          register_query();
+          if (_.isEmpty(queries)) destroy();
         };
       },
       onDestroy: (callback: VoidFunction) => {

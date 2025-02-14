@@ -195,7 +195,14 @@ export const registerProtoSocket = <E>(
 
   io.on('connection', async (socket) => {
 
+    type QueryOpts = {
+      event: string;
+      className: string;
+      filter: QuerySelector | boolean;
+    };
+
     let events: Record<string, QuerySelector | boolean> = {};
+    let queries: Record<string, QueryOpts> = {};
 
     const connect = async (token: string) => {
       const payload = await proto.connectWithSessionToken(token);
@@ -228,6 +235,10 @@ export const registerProtoSocket = <E>(
           return false;
         }
       });
+    });
+
+    socket.on('register_query', (payload) => {
+      
     });
   });
 
