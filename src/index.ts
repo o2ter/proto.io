@@ -220,7 +220,7 @@ export const registerProtoSocket = <E>(
           }));
         }
         if (_.isEmpty(ids)) return;
-        const payload = _decodeValue(JSON.parse(serialize(_.filter(objs, obj => !_.isEmpty(ids[obj.objectId!])))))
+        const payload = _decodeValue(JSON.parse(serialize(_.filter(objs, obj => !_.isEmpty(ids[obj.objectId!])))));
         socket.emit('ON_EV_LIVEQUERY', { ids, data: payload });
       });
       return () => {
