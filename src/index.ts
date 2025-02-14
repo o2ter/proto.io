@@ -208,7 +208,7 @@ export const registerProtoSocket = <E>(
       const payload = await proto.connectWithSessionToken(token);
       const { remove: remove_event } = payload.listen(data => {
         const ids = _.keys(_.pickBy(events, v => v instanceof QuerySelector ? v.eval(data) : v));
-        if (!_.isEmpty(ids)) socket.emit('event_data', { ids, data });
+        if (!_.isEmpty(ids)) socket.emit('ON_EV_BASIC', { ids, data });
       });
       const { remove: remove_livequery } = payload[PVK]._liveQuery(payload, (ev, objs) => {
         for (const obj of objs) {
@@ -216,7 +216,7 @@ export const registerProtoSocket = <E>(
             if (v.event !== ev || v.className !== obj.className) return false;
             return v.filter instanceof QuerySelector ? v.filter.eval(obj) : v.filter;
           }));
-          if (!_.isEmpty(ids)) socket.emit('livequery_data', { ids, data: obj });
+          if (!_.isEmpty(ids)) socket.emit('ON_EV_LIVEQUERY', { ids, data: obj });
         }
       });
       return () => {
@@ -237,7 +237,7 @@ export const registerProtoSocket = <E>(
       remove.then(rm => rm());
     });
 
-    socket.on('register_event', (payload) => {
+    socket.on('EV_BASIC', (payload) => {
       events = _.mapValues(payload, v => {
         if (_.isBoolean(v)) return true;
         try {
@@ -249,7 +249,7 @@ export const registerProtoSocket = <E>(
       });
     });
 
-    socket.on('register_livequery', (payload) => {
+    socket.on('EV_LIVEQUERY', (payload) => {
       queries = _.mapValues(payload, v => {
         const { event = '', className = '', filter } = v ?? {};
         if (_.isBoolean(v)) return { event, className, filter: true };

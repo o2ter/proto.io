@@ -143,26 +143,26 @@ export default class Service<Ext, P extends ProtoType<any>> {
     }> = {};
     let destroyCallbacks: VoidFunction[] = [];
 
-    const register_event = () => {
-      socket.emit('register_event', _.mapValues(events, x => x.selector ?? true));
+    const EV_BASIC = () => {
+      socket.emit('EV_BASIC', _.mapValues(events, x => x.selector ?? true));
     };
 
     const register_query = () => {
-      socket.emit('register_livequery', _.mapValues(queries, x => x.options));
+      socket.emit('EV_LIVEQUERY', _.mapValues(queries, x => x.options));
     };
 
     const register = () => {
-      register_event();
+      EV_BASIC();
       register_query();
     };
 
-    socket.on('event_data', ({ ids, data }: any) => {
+    socket.on('ON_EV_BASIC', ({ ids, data }: any) => {
       for (const [id, { callback }] of _.entries(events)) {
         if (_.includes(ids, id)) callback(data);
       }
     });
 
-    socket.on('livequery_data', ({ ids, data }: any) => {
+    socket.on('ON_EV_LIVEQUERY', ({ ids, data }: any) => {
       for (const [id, { callback }] of _.entries(events)) {
         if (_.includes(ids, id)) callback([data]);
       }
@@ -184,10 +184,10 @@ export default class Service<Ext, P extends ProtoType<any>> {
       listen: (callback: (payload: any) => void, selector?: TQuerySelector) => {
         const id = randomUUID();
         events[id] = { callback, selector };
-        register_event();
+        EV_BASIC();
         return () => {
           events = _.omit(events, id);
-          register_event();
+          EV_BASIC();
           if (_.isEmpty(events)) destroy();
         };
       },
