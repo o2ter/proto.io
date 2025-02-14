@@ -501,7 +501,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
         PROTO_LIVEQUERY_MSG,
         payload => {
           const { event, objects } = deserialize(JSON.stringify(_encodeValue(payload))) as { event: string; objects: TObject[]; };
-          for (const object of objects) {
+          for (const object of proto.rebind(objects)) {
             const acl = object.acl();
             (async () => {
               try {
