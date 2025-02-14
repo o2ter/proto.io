@@ -232,7 +232,7 @@ class PostgresPubSub {
   }
 
   isEmpty() {
-    return _.every(_.values(this.subscribers), x => _.isEmpty(x));
+    return _.isEmpty(this.subscribers);
   }
 }
 
