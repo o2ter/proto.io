@@ -28,6 +28,7 @@ import { TQuerySelector } from '../query/types/selectors';
 import { ProtoType } from '../proto';
 import { TObjectType } from '../object/types';
 import { PVK } from '../private';
+import { ProtoClientInternal } from '../../client/proto/internal';
 
 export class LiveQuerySubscription<T extends string, E> {
 
