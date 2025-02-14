@@ -76,6 +76,11 @@ export const lessThan = (lhs: any, rhs: any) => {
     }
     return lhs.length < rhs.length;
   }
+  if (lhs instanceof TObject && rhs instanceof TObject) {
+    return lhs.className === rhs.className && (lhs.objectId ?? '') < (rhs.objectId ?? '');
+  } else if (lhs instanceof TObject || rhs instanceof TObject) {
+    return false;
+  }
   return false;
 };
 
