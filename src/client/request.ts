@@ -159,8 +159,9 @@ export default class Service<Ext, P extends ProtoType<any>> {
     };
 
     socket.on('ON_EV_BASIC', ({ ids, data }: any) => {
+      const payload = deserialize(JSON.stringify(data));
       for (const [id, { callback }] of _.entries(events)) {
-        if (_.includes(ids, id)) callback(deserialize(JSON.stringify(data)));
+        if (_.includes(ids, id)) callback(payload);
       }
     });
 
