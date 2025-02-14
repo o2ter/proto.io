@@ -188,7 +188,7 @@ export class PostgresClientDriver {
   async publish(channel: string, payload: TValueWithoutObject) {
     await this.withClient(async (db) => {
       await db.query(`NOTIFY ${PROTO_EVENT}, ${quote(JSON.stringify(_encodeValue({ channel, payload })))}`);
-    })
+    });
   }
 }
 
@@ -268,7 +268,8 @@ export class PostgresDriver extends PostgresClientDriver {
 
   subscribe(channel: string, callback: (payload: TValueWithoutObject) => void) {
     this._init_pubsub();
-    const release = this.pubsub!.subscribe(({ channel: _channel, payload }: any) => { 
+    if (!this.pubsub) return () => void 0;
+    const release = this.pubsub.subscribe(({ channel: _channel, payload }: any) => {
       if (_channel === channel) callback(payload);
     });
     return () => {
