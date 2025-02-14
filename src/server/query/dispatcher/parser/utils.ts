@@ -68,6 +68,8 @@ export const equal = (lhs: any, rhs: any) => {
 };
 
 export const lessThan = (lhs: any, rhs: any) => {
+  if (_.isNil(lhs) && !_.isNil(rhs)) return true;
+  if (_.isNil(rhs)) return false;
   if (_.isString(lhs) && _.isString(rhs)) return lhs < rhs;
   if (_.isDate(lhs) && _.isDate(rhs)) return lhs < rhs;
   if (isNum(lhs) && isNum(rhs)) return lessNum(lhs, rhs);
