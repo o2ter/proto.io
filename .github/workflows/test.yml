@@ -4,11 +4,6 @@ env:
   POSTGRES_DATABASE: postgres
   POSTGRES_USERNAME: o2ter
   POSTGRES_PASSWORD: o2ter
-  MONGO_DATABASE: o2ter
-  MONGO_USERNAME: o2ter
-  MONGO_PASSWORD: o2ter
-  MONGO_AUTHSOURCE: admin
-  MONGO_REPLICA_SET: rs0
 jobs:
   test:
     name: node ${{ matrix.node_version }}
@@ -27,15 +22,6 @@ jobs:
       matrix:
         node_version: ['18', '20', '22']
     steps:
-      - name: Start MongoDB
-        uses: SusanDoggie/mongodb-action@0.0.1
-        with:
-          network: ${{ job.container.network }}
-          host: mongo
-          username: ${{ env.MONGO_USERNAME }}
-          password: ${{ env.MONGO_PASSWORD }}
-          database: ${{ env.MONGO_DATABASE }}
-          replica_set: ${{ env.MONGO_REPLICA_SET }}
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
@@ -48,4 +34,3 @@ jobs:
         run: yarn test
         env:
           POSTGRES_HOST: localhost
-          MONGO_HOST: mongo
