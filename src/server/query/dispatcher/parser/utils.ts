@@ -58,7 +58,9 @@ export const equal = (lhs: any, rhs: any) => {
   if (_.isNil(lhs) && _.isNil(rhs)) return true;
   if (isNum(lhs) && isNum(rhs)) return equalNum(lhs, rhs);
   if (lhs instanceof TObject && rhs instanceof TObject) {
-    return lhs.className === rhs.className && lhs.objectId === rhs.objectId;
+    if (lhs.className !== rhs.className) return false;
+    if (_.isNil(lhs.objectId) && _.isNil(rhs.objectId)) return lhs === rhs;
+    return lhs.objectId === rhs.objectId;
   } else if (lhs instanceof TObject || rhs instanceof TObject) {
     return false;
   }
@@ -77,7 +79,9 @@ export const lessThan = (lhs: any, rhs: any) => {
     return lhs.length < rhs.length;
   }
   if (lhs instanceof TObject && rhs instanceof TObject) {
-    return lhs.className === rhs.className && (lhs.objectId ?? '') < (rhs.objectId ?? '');
+    if (lhs.className !== rhs.className) return false;
+    if (_.isNil(lhs.objectId) && _.isNil(rhs.objectId)) return false;
+    return (lhs.objectId ?? '') < (rhs.objectId ?? '');
   } else if (lhs instanceof TObject || rhs instanceof TObject) {
     return false;
   }
