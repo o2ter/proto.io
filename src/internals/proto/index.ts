@@ -115,7 +115,10 @@ export interface ProtoInternalType<Ext, P extends ProtoType<any>> {
     className: string,
     filter: TQuerySelector[],
     callback: (object: TObject) => void,
-  ): { remove: VoidFunction; };
+  ): {
+    remove: VoidFunction;
+    socket?: Socket;
+  };
 }
 
 export abstract class ProtoType<Ext> {
