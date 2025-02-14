@@ -256,7 +256,7 @@ export class PostgresDriver extends PostgresClientDriver {
   }
 
   private _init_pubsub() {
-    if (this.pubsub) return;
+    if (this.pubsub || this.database.ending || this.database.ended) return;
     this.pubsub = new PostgresPubSub(this.database.connect());
   }
 
