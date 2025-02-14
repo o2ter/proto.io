@@ -260,7 +260,7 @@ export class QueryFieldSelector extends QuerySelector {
   eval(value: any) {
     if (this.field === '$') return this.expr.eval(value);
     for (const k of _.toPath(this.field)) {
-      if (isPrimitiveValue(value)) return null;
+      if (isPrimitiveValue(value)) return this.expr.eval(null);
       if (value instanceof TObject) {
         value = value.get(k);
       } else {
