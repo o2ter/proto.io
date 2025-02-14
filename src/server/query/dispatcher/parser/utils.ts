@@ -26,6 +26,7 @@
 import _ from 'lodash';
 import Decimal from 'decimal.js';
 import { TNumber } from '../../../../common';
+import { TObject } from '../../../../internals/object';
 
 const isNum = (x: any): x is TNumber => _.isNumber(x) || x instanceof BigInt || x instanceof Decimal;
 
@@ -56,6 +57,11 @@ const lessNum = (lhs: TNumber, rhs: TNumber) => {
 export const equal = (lhs: any, rhs: any) => {
   if (_.isNil(lhs) && _.isNil(rhs)) return true;
   if (isNum(lhs) && isNum(rhs)) return equalNum(lhs, rhs);
+  if (lhs instanceof TObject && rhs instanceof TObject) {
+    return lhs.className === rhs.className && lhs.objectId === rhs.objectId;
+  } else if (lhs instanceof TObject || rhs instanceof TObject) {
+    return false;
+  }
   return _.isEqual(lhs, rhs);
 };
 
