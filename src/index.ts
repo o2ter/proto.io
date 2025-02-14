@@ -209,7 +209,7 @@ export const registerProtoSocket = <E>(
       const { remove: remove_basic } = payload.listen(data => {
         const ids = _.keys(_.pickBy(events, v => v instanceof QuerySelector ? v.eval(data) : v));
         const payload = JSON.parse(serialize(data));
-        if (!_.isEmpty(ids)) socket.emit('ON_EV_BASIC', { ids, data: payload });
+        if (!_.isEmpty(ids)) socket.emit('ON_EV_NOTIFY', { ids, data: payload });
       });
       const { remove: remove_livequery } = payload[PVK]._liveQuery(payload, (ev, objs) => {
         const ids: Record<string, string[]> = {};
@@ -241,7 +241,7 @@ export const registerProtoSocket = <E>(
       remove.then(rm => rm());
     });
 
-    socket.on('EV_BASIC', (payload) => {
+    socket.on('EV_NOTIFY', (payload) => {
       events = _.mapValues(payload, v => {
         if (_.isBoolean(v)) return true;
         try {

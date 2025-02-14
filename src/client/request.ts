@@ -146,7 +146,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
     let destroyCallbacks: VoidFunction[] = [];
 
     const register_event = () => {
-      socket.emit('EV_BASIC', _.mapValues(events, x => x.selector ?? true));
+      socket.emit('EV_NOTIFY', _.mapValues(events, x => x.selector ?? true));
     };
 
     const register_query = () => {
@@ -158,7 +158,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
       register_query();
     };
 
-    socket.on('ON_EV_BASIC', ({ ids, data }: any) => {
+    socket.on('ON_EV_NOTIFY', ({ ids, data }: any) => {
       const payload = deserialize(JSON.stringify(data));
       for (const [id, { callback }] of _.entries(events)) {
         if (_.includes(ids, id)) callback(payload);
