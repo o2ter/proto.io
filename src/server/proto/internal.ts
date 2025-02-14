@@ -474,9 +474,8 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
           const { _rperm } = payload as EventData;
           (async () => {
             try {
-              if (isMaster || _.some(await roles, x => _.includes(_rperm, x))) {
-                callback(payload as EventData);
-              }
+              if (!isMaster && !_.some(await roles, x => _.includes(_rperm, x))) return;
+              await callback(payload as EventData);
             } catch (e) {
               proto.logger.error(e);
             }
@@ -506,9 +505,8 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
             const acl = object.acl();
             (async () => {
               try {
-                if (isMaster || _.some(await roles, x => _.includes(acl.read, x))) {
-                  callback(event, object);
-                }
+                if (!isMaster && !_.some(await roles, x => _.includes(acl.read, x))) return;
+                await callback(event, object);
               } catch (e) {
                 proto.logger.error(e);
               }

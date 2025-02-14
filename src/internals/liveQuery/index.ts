@@ -26,6 +26,8 @@
 import _ from 'lodash';
 import { TQuerySelector } from '../query/types/selectors';
 import { ProtoType } from '../proto';
+import { TObjectType } from '../object/types';
+import { PVK } from '../private';
 
 export class LiveQuerySubscription<T extends string, E> {
 
@@ -43,4 +45,17 @@ export class LiveQuerySubscription<T extends string, E> {
     return this._className;
   }
 
+  on(
+    event: 'create' | 'update' | 'delete',
+    callback: (object: TObjectType<T, E>) => void,
+  ) {
+    return this._proto[PVK].liveQuery(
+      this._proto,
+      async (ev, object) => {
+        if (ev !== event) return;
+        if (object.className !== this.className) return;
+        await callback(object as TObjectType<T, E>);
+      }
+    );
+  }
 }
