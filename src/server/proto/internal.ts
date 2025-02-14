@@ -494,7 +494,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     );
   }
 
-  liveQuery(proto: P, className: string, callback: (event: string, object: TObject) => void) {
+  liveQuery(proto: P, callback: (event: string, object: TObject) => void) {
     const isMaster = proto.isMaster;
     const roles = isMaster ? [] : this._perms(proto);
     return {
@@ -504,7 +504,6 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
           const { event, objects } = deserialize(JSON.stringify(_encodeValue(payload))) as { event: string; objects: TObject[]; };
           for (const object of objects) {
             const acl = object.acl();
-            if (object.className !== className) continue;
             (async () => {
               try {
                 if (isMaster || _.some(await roles, x => _.includes(acl.read, x))) {
