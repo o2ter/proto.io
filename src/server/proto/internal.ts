@@ -516,7 +516,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
                 const clp = proto.schema[object.className].classLevelPermissions?.get ?? ['*'];
                 return _.some(_roles, x => _.includes(clp, x) && _.includes(acl.read, x));
               }));
-              await callback(event, payload);
+              if (!_.isEmpty(payload)) await callback(event, payload);
             } catch (e) {
               proto.logger.error(e);
             }
