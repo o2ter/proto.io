@@ -38,6 +38,8 @@ import { XSRF_COOKIE_NAME, XSRF_HEADER_NAME } from '@o2ter/server-js/dist/const'
 import { io, Socket } from 'socket.io-client';
 import { TQuerySelector } from '../internals/query/types/selectors';
 import { randomUUID } from '@o2ter/crypto-js';
+import { deserialize } from '../common';
+import { _encodeValue, TObject } from '../internals/object';
 
 export default class Service<Ext, P extends ProtoType<any>> {
 
@@ -163,8 +165,10 @@ export default class Service<Ext, P extends ProtoType<any>> {
     });
 
     socket.on('ON_EV_LIVEQUERY', ({ ids, data }: any) => {
-      for (const [id, { callback }] of _.entries(events)) {
-        if (_.includes(ids, id)) callback([data]);
+      const objects = deserialize(JSON.stringify(_encodeValue(data))) as TObject[];
+      for (const [id, { callback }] of _.entries(queries)) {
+        const keys = _.keys(_.pickBy(ids, v => _.includes(v, id)));
+        callback(_.filter(objects, x => _.includes(keys, x.objectId)));
       }
     });
 

@@ -39,7 +39,7 @@ import { PVK } from '../../internals/private';
 import { FileData } from '../../internals/buffer';
 import { ExtraOptions } from '../../internals/options';
 import { UPLOAD_TOKEN_HEADER_NAME } from '../../internals/const';
-import { _decodeValue, _encodeValue, TObject } from '../../internals/object';
+import { TObject } from '../../internals/object';
 import { TQuerySelector } from '../../internals/query/types/selectors';
 
 export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements ProtoInternalType<Ext, P> {
@@ -371,8 +371,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
     }
     return {
       socket,
-      remove: liveQuery((payload) => {
-        const objects = deserialize(JSON.stringify(_encodeValue(payload))) as TObject[];
+      remove: liveQuery((objects) => {
         for (const object of proto.rebind(objects)) {
           (async () => {
             try {

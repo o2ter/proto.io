@@ -211,13 +211,17 @@ export const registerProtoSocket = <E>(
         if (!_.isEmpty(ids)) socket.emit('ON_EV_BASIC', { ids, data });
       });
       const { remove: remove_livequery } = payload[PVK]._liveQuery(payload, (ev, objs) => {
+        const ids: Record<string, string[]> = {};
         for (const obj of objs) {
-          const ids = _.keys(_.pickBy(queries, v => {
+          ids[obj.objectId!] = _.keys(_.pickBy(queries, v => {
             if (v.event !== ev || v.className !== obj.className) return false;
             return v.filter instanceof QuerySelector ? v.filter.eval(obj) : v.filter;
           }));
-          if (!_.isEmpty(ids)) socket.emit('ON_EV_LIVEQUERY', { ids, data: obj });
         }
+        if (!_.isEmpty(ids)) socket.emit('ON_EV_LIVEQUERY', {
+          ids,
+          data: _.filter(objs, obj => !_.isEmpty(ids[obj.objectId!])),
+        });
       });
       return () => {
         remove_basic();
