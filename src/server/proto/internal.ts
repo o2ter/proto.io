@@ -511,8 +511,10 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
             try {
               const _roles = await roles;
               const payload = proto.rebind(_.filter(objects, object => {
+                if (isMaster) return true;
                 const acl = object.acl();
-                return isMaster || _.some(_roles, x => _.includes(acl.read, x));
+                const clp = proto.schema[object.className].classLevelPermissions?.get ?? ['*'];
+                return _.some(_roles, x => _.includes(clp, x) && _.includes(acl.read, x));
               }));
               await callback(event, payload);
             } catch (e) {
