@@ -51,11 +51,10 @@ export class LiveQuerySubscription<T extends string, E> {
   ) {
     return this._proto[PVK].liveQuery(
       this._proto,
-      async (ev, object) => {
-        if (ev !== event) return;
-        if (object.className !== this.className) return;
-        await callback(object as TObjectType<T, E>);
-      }
+      event,
+      this.className,
+      this._filter,
+      (object) => callback(object as TObjectType<T, E>),
     );
   }
 }

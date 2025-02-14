@@ -109,7 +109,13 @@ export interface ProtoInternalType<Ext, P extends ProtoType<any>> {
   deleteFile(proto: P, object: TFile, options?: ExtraOptions<boolean>): Promise<TFile>;
   fileData(proto: P, object: TFile, options?: ExtraOptions<boolean>): FileStream;
 
-  liveQuery(proto: P, callback: (event: string, object: TObject) => void): { remove: VoidFunction; };
+  liveQuery(
+    proto: P,
+    event: string,
+    className: string,
+    filter: TQuerySelector[],
+    callback: (object: TObject) => void,
+  ): { remove: VoidFunction; };
 }
 
 export abstract class ProtoType<Ext> {

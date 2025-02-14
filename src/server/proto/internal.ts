@@ -52,6 +52,7 @@ import { PROTO_LIVEQUERY_MSG, PROTO_NOTY_MSG } from '../../internals/const';
 import { TJob } from '../../internals/object/job';
 import { deserialize, serialize } from '../../common';
 import { ProtoQuery } from '../query';
+import { TQuerySelector } from '../../internals/query/types/selectors';
 
 const validateForeignField = (schema: Record<string, TSchema>, key: string, dataType: TSchema.RelationType) => {
   if (!dataType.foreignField) return;
@@ -493,20 +494,28 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     );
   }
 
-  liveQuery(proto: P, callback: (event: string, object: TObject) => void) {
+  liveQuery(
+    proto: P,
+    event: string,
+    className: string,
+    filter: TQuerySelector[],
+    callback: (object: TObject) => void,
+  ) {
     const isMaster = proto.isMaster;
     const roles = isMaster ? [] : this._perms(proto);
     return {
       remove: this.options.pubsub.subscribe(
         PROTO_LIVEQUERY_MSG,
         payload => {
-          const { event, objects } = deserialize(JSON.stringify(_encodeValue(payload))) as { event: string; objects: TObject[]; };
+          const { event: _event, objects } = deserialize(JSON.stringify(_encodeValue(payload))) as { event: string; objects: TObject[]; };
+          if (_event !== event) return;
           for (const object of proto.rebind(objects)) {
-            const acl = object.acl();
+            if (className !== object.className) continue;
             (async () => {
               try {
+                const acl = object.acl();
                 if (!isMaster && !_.some(await roles, x => _.includes(acl.read, x))) return;
-                await callback(event, object);
+                await callback(object);
               } catch (e) {
                 proto.logger.error(e);
               }

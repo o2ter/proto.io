@@ -355,7 +355,13 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
     };
   }
 
-  liveQuery(proto: P, callback: (event: string, object: TObject) => void) {
+  liveQuery(
+    proto: P,
+    event: string,
+    className: string,
+    filter: TQuerySelector[],
+    callback: (object: TObject) => void,
+  ) {
 
     return {
       remove: () => {
