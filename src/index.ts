@@ -206,7 +206,7 @@ export const registerProtoSocket = <E>(
 
     const connect = async (token: string) => {
       const payload = await proto.connectWithSessionToken(token);
-      const { remove: remove_event } = payload.listen(data => {
+      const { remove: remove_basic } = payload.listen(data => {
         const ids = _.keys(_.pickBy(events, v => v instanceof QuerySelector ? v.eval(data) : v));
         if (!_.isEmpty(ids)) socket.emit('ON_EV_BASIC', { ids, data });
       });
@@ -220,7 +220,7 @@ export const registerProtoSocket = <E>(
         }
       });
       return () => {
-        remove_event();
+        remove_basic();
         remove_livequery();
       };
     };
