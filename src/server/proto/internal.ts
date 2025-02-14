@@ -495,6 +495,34 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     );
   }
 
+  _liveQuery(
+    proto: P,
+    callback: (event: string, objects: TObject[]) => void,
+  ) {
+    const isMaster = proto.isMaster;
+    const roles = isMaster ? [] : this._perms(proto);
+    return {
+      remove: this.options.pubsub.subscribe(
+        PROTO_LIVEQUERY_MSG,
+        payload => {
+          const { event, objects } = deserialize(JSON.stringify(_encodeValue(payload))) as { event: string; objects: TObject[]; };
+          (async () => {
+            try {
+              const _roles = await roles;
+              const payload = proto.rebind(_.filter(objects, object => {
+                const acl = object.acl();
+                return isMaster || _.some(_roles, x => _.includes(acl.read, x));
+              }));
+              await callback(event, payload);
+            } catch (e) {
+              proto.logger.error(e);
+            }
+          })();
+        }
+      ),
+    };
+  }
+
   liveQuery(
     proto: P,
     event: string,
@@ -502,30 +530,20 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     filter: TQuerySelector[],
     callback: (object: TObject) => void,
   ) {
-    const isMaster = proto.isMaster;
-    const roles = isMaster ? [] : this._perms(proto);
     const _filter = _.isEmpty(filter) ? true : QuerySelector.decode(filter);
-    return {
-      remove: this.options.pubsub.subscribe(
-        PROTO_LIVEQUERY_MSG,
-        payload => {
-          const { event: _event, objects } = deserialize(JSON.stringify(_encodeValue(payload))) as { event: string; objects: TObject[]; };
-          if (_event !== event) return;
-          for (const object of proto.rebind(objects)) {
-            if (className !== object.className) continue;
-            (async () => {
-              try {
-                const acl = object.acl();
-                if (!isMaster && !_.some(await roles, x => _.includes(acl.read, x))) return;
-                if (_filter === true || _filter.eval(object)) await callback(object);
-              } catch (e) {
-                proto.logger.error(e);
-              }
-            })();
+    return this._liveQuery(proto, (ev, objs) => {
+      if (event !== ev) return;
+      for (const object of objs) {
+        if (className !== object.className) continue;
+        (async () => {
+          try {
+            if (_filter === true || _filter.eval(object)) await callback(object);
+          } catch (e) {
+            proto.logger.error(e);
           }
-        }
-      ),
-    };
+        })();
+      }
+    });
   }
 
   validateCLPs(

@@ -206,11 +206,17 @@ export const registerProtoSocket = <E>(
 
     const connect = async (token: string) => {
       const payload = await proto.connectWithSessionToken(token);
-      const { remove } = payload.listen(data => {
+      const { remove: remove_event } = payload.listen(data => {
         const ids = _.keys(_.pickBy(events, v => v instanceof QuerySelector ? v.eval(data) : v));
         if (!_.isEmpty(ids)) socket.emit('event_data', { ids, data });
       });
-      return remove;
+      const { remove: remove_query } = payload[PVK]._liveQuery(payload, (ev, objs) => {
+        
+      });
+      return () => {
+        remove_event();
+        remove_query();
+      };
     };
 
     const { token } = socket.handshake.auth;
