@@ -53,6 +53,7 @@ import { TJob } from '../../internals/object/job';
 import { deserialize, serialize } from '../../common';
 import { ProtoQuery } from '../query';
 import { TQuerySelector } from '../../internals/query/types/selectors';
+import { QuerySelector } from '../query/dispatcher/parser';
 
 const validateForeignField = (schema: Record<string, TSchema>, key: string, dataType: TSchema.RelationType) => {
   if (!dataType.foreignField) return;
@@ -503,6 +504,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
   ) {
     const isMaster = proto.isMaster;
     const roles = isMaster ? [] : this._perms(proto);
+    const _filter = _.isEmpty(filter) ? true : QuerySelector.decode(filter);
     return {
       remove: this.options.pubsub.subscribe(
         PROTO_LIVEQUERY_MSG,
@@ -515,7 +517,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
               try {
                 const acl = object.acl();
                 if (!isMaster && !_.some(await roles, x => _.includes(acl.read, x))) return;
-                await callback(object);
+                if (_filter === true || _filter.eval(object)) await callback(object);
               } catch (e) {
                 proto.logger.error(e);
               }
