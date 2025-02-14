@@ -166,6 +166,19 @@ export default class Service<Ext, P extends ProtoType<any>> {
           if (_.isEmpty(events)) destroy();
         };
       },
+      liveQuery: (
+        callback: (payload: any) => void,
+        options: {
+          event: string;
+          className: string;
+          filter: TQuerySelector[];
+        }
+      ) => {
+        const id = randomUUID();
+        return () => {
+
+        };
+      },
       onDestroy: (callback: VoidFunction) => {
         destroyCallbacks.push(callback);
       },
