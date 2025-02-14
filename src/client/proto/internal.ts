@@ -355,6 +355,15 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
     };
   }
 
+  liveQuery(proto: P, callback: (event: string, object: TObject) => void) {
+
+    return {
+      remove: () => {
+        
+      },
+    };
+  }
+
   refs(proto: P, object: TObject, options?: RequestOptions<boolean>) {
     if (!object.objectId) throw Error('Invalid object');
     const request = async () => {
