@@ -137,6 +137,16 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
         })();
       }
     }
+    if (this._proto.schema[this.className]?.liveQuery) {
+      (async () => {
+        try {
+          await this._proto[PVK].publishLiveQuery(this._proto, 'create', _.filter(objects, x => x.__v === 0));
+          await this._proto[PVK].publishLiveQuery(this._proto, 'update', _.filter(objects, x => x.__v !== 0));
+        } catch (e) {
+          this._proto.logger.error(e);
+        }
+      })();
+    }
   }
 
   private _on_delete(objects: TObject[]) {
@@ -151,6 +161,15 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
           }
         })();
       }
+    }
+    if (this._proto.schema[this.className]?.liveQuery) {
+      (async () => {
+        try {
+          await this._proto[PVK].publishLiveQuery(this._proto, 'delete', objects);
+        } catch (e) {
+          this._proto.logger.error(e);
+        }
+      })();
     }
   }
 

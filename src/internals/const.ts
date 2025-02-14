@@ -31,3 +31,4 @@ export const UPLOAD_TOKEN_HEADER_NAME = 'X-PROTO-UPLOAD-TOKEN';
 export const AUTH_COOKIE_KEY = 'x-proto-auth';
 
 export const PROTO_NOTY_MSG = 'PROTO_NOTY_MSG';
+export const PROTO_LIVEQUERY_MSG = 'PROTO_LIVEQUERY_MSG';

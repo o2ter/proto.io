@@ -31,14 +31,14 @@ import { defaultSchema } from './defaults';
 import { ProtoServiceOptions, ProtoServiceKeyOptions } from './types';
 import { ProtoFunction, ProtoFunctionOptions, ProtoJobFunction, ProtoJobFunctionOptions, ProtoTriggerFunction } from '../../internals/proto/types';
 import { generateId } from '../crypto/random';
-import { TSchema, _typeof, defaultObjectKeyTypes, isPointer, isPrimitive, isRelation, isShape, isVector } from '../../internals/schema';
+import { TSchema, _typeof, defaultObjectKeyTypes, isPointer, isPrimitive, isRelation, isShape } from '../../internals/schema';
 import { resolveDataType, QueryValidator } from '../query/dispatcher/validator';
 import { passwordHash, varifyPassword } from '../crypto/password';
 import { proxy } from './proxy';
 import { _serviceOf, ProtoService } from '.';
 import { base64ToBuffer, isBinaryData, prototypes } from '@o2ter/utils-js';
 import { ProtoInternalType } from '../../internals/proto';
-import { TObject } from '../../internals/object';
+import { _decodeValue, _encodeValue, TObject } from '../../internals/object';
 import { TValueWithoutObject, TValue } from '../../internals/types';
 import { ExtraOptions } from '../../internals/options';
 import { TUser } from '../../internals/object/user';
@@ -48,9 +48,9 @@ import { PVK } from '../../internals/private';
 import { fetchUserPerms } from '../query/dispatcher';
 import { EventData } from '../../internals/proto';
 import { normalize } from '../utils';
-import { PROTO_NOTY_MSG } from '../../internals/const';
+import { PROTO_LIVEQUERY_MSG, PROTO_NOTY_MSG } from '../../internals/const';
 import { TJob } from '../../internals/object/job';
-import { deserialize } from '../../common';
+import { deserialize, serialize } from '../../common';
 import { ProtoQuery } from '../query';
 
 const validateForeignField = (schema: Record<string, TSchema>, key: string, dataType: TSchema.RelationType) => {
@@ -481,6 +481,40 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
               proto.logger.error(e);
             }
           })();
+        }
+      ),
+    };
+  }
+
+  async publishLiveQuery(proto: P, event: string, objects: TObject[]) {
+    if (_.isEmpty(objects)) return;
+    return this.options.pubsub.publish(
+      PROTO_LIVEQUERY_MSG,
+      _decodeValue(JSON.parse(serialize({ event, objects }))),
+    );
+  }
+
+  liveQuery(proto: P, className: string, callback: (event: string, object: TObject) => void) {
+    const isMaster = proto.isMaster;
+    const roles = isMaster ? [] : this._perms(proto);
+    return {
+      remove: this.options.pubsub.subscribe(
+        PROTO_LIVEQUERY_MSG,
+        payload => {
+          const { event, objects } = deserialize(JSON.stringify(_encodeValue(payload))) as { event: string; objects: TObject[]; };
+          for (const object of objects) {
+            const acl = object.acl();
+            if (object.className !== className) continue;
+            (async () => {
+              try {
+                if (isMaster || _.some(await roles, x => _.includes(acl.read, x))) {
+                  callback(event, object);
+                }
+              } catch (e) {
+                proto.logger.error(e);
+              }
+            })();
+          }
         }
       ),
     };

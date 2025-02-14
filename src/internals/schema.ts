@@ -282,6 +282,11 @@ export interface TSchema {
    * Indexes for the schema.
    */
   indexes?: TSchema.Indexes[];
+
+  /**
+   * Indicates if live query is enabled for the schema.
+   */
+  liveQuery?: boolean;
 }
 
 export const defaultObjectKeyTypes: Record<string, TSchema.DataType> = {
