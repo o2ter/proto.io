@@ -94,7 +94,7 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   for (const className of Proto.classes()) {
-    await Proto.Query(className).deleteMany({ master: true });
+    await Proto.Query(className).deleteMany({ master: true, silent: true });
   }
 });
 
