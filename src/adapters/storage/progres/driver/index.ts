@@ -31,6 +31,7 @@ import Decimal from 'decimal.js';
 import { _decodeValue, _encodeValue } from '../../../../internals/object';
 import { TValueWithoutObject } from '../../../../internals/types';
 import { quote } from '../dialect/basic';
+import { PROTO_EVENT } from '../../../../internals/const';
 
 const typeParser = (oid: number, format?: any) => {
   format = format ?? 'text';
@@ -186,7 +187,7 @@ export class PostgresClientDriver {
 
   async publish(channel: string, payload: TValueWithoutObject) {
     await this.withClient(async (db) => {
-      await db.query(`NOTIFY ${channel}, ${quote(JSON.stringify(_encodeValue(payload)))}`);
+      await db.query(`NOTIFY ${PROTO_EVENT}, ${quote(JSON.stringify(_encodeValue({ channel, payload })))}`);
     })
   }
 }
@@ -194,25 +195,25 @@ export class PostgresClientDriver {
 class PostgresPubSub {
 
   client: Awaitable<PoolClient>;
-  subscribers: Record<string, ((payload: TValueWithoutObject) => void)[]> = {};
-
-  channels: string[] = [];
+  subscribers: ((payload: TValueWithoutObject) => void)[] = [];
 
   constructor(client: Awaitable<PoolClient>) {
     this.client = client;
     (async () => {
       try {
-        (await client).on('notification', ({ channel, payload }) => {
-          if (!payload) return;
+        client = await client;
+        client.on('notification', ({ channel, payload }) => {
+          if (channel !== PROTO_EVENT || !payload) return;
           try {
             const _payload = _decodeValue(JSON.parse(payload));
-            for (const subscriber of this.subscribers[_.toUpper(channel)]) {
+            for (const subscriber of this.subscribers) {
               subscriber(_payload);
             }
           } catch (e) {
             console.error(`Unknown payload: ${e}`);
           }
         });
+        await client.query(`LISTEN ${PROTO_EVENT}`);
       } catch (e) {
         console.error(e);
       }
@@ -223,16 +224,10 @@ class PostgresPubSub {
     (await this.client).release();
   }
 
-  async listen(channel: string) {
-    this.channels.push(channel);
-    await (await this.client).query(`LISTEN ${channel}`);
-  }
-
-  subscribe(channel: string, callback: (payload: TValueWithoutObject) => void) {
-    if (_.isNil(this.subscribers[channel])) this.subscribers[channel] = [];
-    this.subscribers[channel].push(callback);
+  subscribe(callback: (payload: TValueWithoutObject) => void) {
+    this.subscribers.push(callback);
     return () => {
-      this.subscribers[channel] = this.subscribers[channel].filter(x => x !== callback);
+      this.subscribers = this.subscribers.filter(x => x !== callback);
     };
   }
 
@@ -262,11 +257,7 @@ export class PostgresDriver extends PostgresClientDriver {
 
   private _init_pubsub() {
     if (this.pubsub) return;
-    try {
-      this.pubsub = new PostgresPubSub(this.database.connect());
-    } catch (e) {
-      console.error(e);
-    }
+    this.pubsub = new PostgresPubSub(this.database.connect());
   }
 
   private async _release_pubsub() {
@@ -277,8 +268,9 @@ export class PostgresDriver extends PostgresClientDriver {
 
   subscribe(channel: string, callback: (payload: TValueWithoutObject) => void) {
     this._init_pubsub();
-    if (!_.includes(this.pubsub!.channels, channel)) this.pubsub!.listen(channel);
-    const release = this.pubsub!.subscribe(channel, callback);
+    const release = this.pubsub!.subscribe(({ channel: _channel, payload }: any) => { 
+      if (_channel === channel) callback(payload);
+    });
     return () => {
       release();
       if (this.pubsub?.isEmpty()) this._release_pubsub();
