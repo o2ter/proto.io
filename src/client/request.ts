@@ -145,7 +145,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
     }> = {};
     let destroyCallbacks: VoidFunction[] = [];
 
-    const EV_BASIC = () => {
+    const register_event = () => {
       socket.emit('EV_BASIC', _.mapValues(events, x => x.selector ?? true));
     };
 
@@ -154,7 +154,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
     };
 
     const register = () => {
-      EV_BASIC();
+      register_event();
       register_query();
     };
 
@@ -182,17 +182,22 @@ export default class Service<Ext, P extends ProtoType<any>> {
         callback();
       }
     };
+    const destroyIfNeed = () => {
+      if (!_.isEmpty(events)) return;
+      if (!_.isEmpty(queries)) return;
+      destroy();
+    };
 
     return {
       socket,
       listen: (callback: (payload: any) => void, selector?: TQuerySelector) => {
         const id = randomUUID();
         events[id] = { callback, selector };
-        EV_BASIC();
+        register_event();
         return () => {
           events = _.omit(events, id);
-          EV_BASIC();
-          if (_.isEmpty(events)) destroy();
+          register_event();
+          destroyIfNeed();
         };
       },
       liveQuery: (callback: (payload: any) => void, options: QueryOpts) => {
@@ -202,7 +207,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
         return () => {
           queries = _.omit(queries, id);
           register_query();
-          if (_.isEmpty(queries)) destroy();
+          destroyIfNeed();
         };
       },
       onDestroy: (callback: VoidFunction) => {
