@@ -210,7 +210,7 @@ export const registerProtoSocket = <E>(
         const ids = _.keys(_.pickBy(events, v => v instanceof QuerySelector ? v.eval(data) : v));
         if (!_.isEmpty(ids)) socket.emit('event_data', { ids, data });
       });
-      const { remove: remove_query } = payload[PVK]._liveQuery(payload, (ev, objs) => {
+      const { remove: remove_livequery } = payload[PVK]._liveQuery(payload, (ev, objs) => {
         for (const obj of objs) {
           const ids = _.keys(_.pickBy(queries, v => {
             if (v.event !== ev || v.className !== obj.className) return false;
@@ -221,7 +221,7 @@ export const registerProtoSocket = <E>(
       });
       return () => {
         remove_event();
-        remove_query();
+        remove_livequery();
       };
     };
 
