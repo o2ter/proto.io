@@ -164,7 +164,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
 
     socket.on('livequery_data', ({ ids, data }: any) => {
       for (const [id, { callback }] of _.entries(events)) {
-        if (_.includes(ids, id)) callback(data);
+        if (_.includes(ids, id)) callback([data]);
       }
     });
 
