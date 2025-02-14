@@ -42,7 +42,6 @@ import { PVK } from './internals/private';
 import { TValueWithoutObject } from './internals/types';
 import Decimal from 'decimal.js';
 import { response } from './server/routes/common';
-import { TQuerySelector } from './internals/query/types/selectors';
 import { QuerySelector } from './server/query/dispatcher/parser';
 import { serialize } from './common';
 import { _decodeValue } from './internals/object';
