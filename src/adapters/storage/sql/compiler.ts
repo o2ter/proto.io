@@ -415,7 +415,11 @@ export class QueryCompiler {
     context: QueryContext,
   ): SQL[] {
     const _includes = _.pickBy(context.includes, v => _.isString(v) || (v.type !== 'pointer' && v.type !== 'relation'));
-    return _.map(_includes, (dataType, colname) => {
+    return _.flatMap(_includes, (dataType, colname) => {
+      const groupMatches = context.groupMatches?.[colname];
+      if (!_.isEmpty(groupMatches)) {
+        return _.map(_.keys(groupMatches), k => sql`${{ identifier: className }}.${{ identifier: `${colname}.${k}` }}`);
+      }
       if (!_.isString(dataType) && isPrimitive(dataType) && !_.isNil(dataType.default)) {
         return sql`COALESCE(${{ identifier: className }}.${{ identifier: colname }}, ${{ value: dataType.default }}) AS ${{ identifier: colname }}`;
       }
