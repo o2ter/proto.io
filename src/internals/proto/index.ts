@@ -134,6 +134,14 @@ export abstract class ProtoType<Ext> {
   abstract [PVK]: ProtoInternalType<Ext, this>;
 
   /**
+   * Gets the endpoint URL.
+   * @returns The endpoint URL as a string.
+   */
+  get endpoint() {
+    return this[PVK].options.endpoint;
+  }
+
+  /**
    * Retrieves the configuration.
    * @param options - Optional settings for retrieving the configuration.
    * @returns A promise that resolves to the configuration.
