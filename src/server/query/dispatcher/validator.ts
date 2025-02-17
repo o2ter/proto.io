@@ -244,13 +244,9 @@ export class QueryValidator<E> {
 
   decodeGroupMatches(className: string, groupMatches: Record<string, Record<string, TQueryAccumulator>>): Record<string, Record<string, QueryAccumulator>> {
     const result = _.mapValues(groupMatches, m => _.mapValues(m, x => QueryAccumulator.decode(x).simplify()));
-    for (const match of _.values(result)) {
-      for (const expr of _.values(match)) {
-        for (const colname of expr.keyPaths()) {
-          const dataType = resolveDataType(this.schema, className, colname);
-          if (!dataType || !isRelation(dataType)) throw Error(`Invalid relation key: ${colname}`);
-        }
-      }
+    for (const colname of _.keys(result)) {
+      const dataType = resolveDataType(this.schema, className, colname);
+      if (!dataType || !isRelation(dataType)) throw Error(`Invalid relation key: ${colname}`);
     }
     return result;
   }
@@ -415,6 +411,7 @@ export class QueryValidator<E> {
       ...QuerySelector.decode(match.filter ?? []).keyPaths(),
       ...matchKeyPaths(match.matches ?? {}),
       ...match.countMatches ?? [],
+      ..._.keys(match.groupMatches),
       ..._.flatMap(_.values(match.groupMatches), x => QueryAccumulator.decode(x).keyPaths()),
     ].map(x => `${key}.${x}`));
 
@@ -426,6 +423,7 @@ export class QueryValidator<E> {
       ...filter.keyPaths(),
       ...matchKeyPaths(query.matches ?? {}),
       ...query.countMatches ?? [],
+      ..._.keys(groupMatches),
       ..._.flatMap(_.values(groupMatches), m => _.flatMap(_.values(m), x => x.keyPaths())),
     ]);
 
