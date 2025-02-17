@@ -285,7 +285,8 @@ export class QueryValidator<E> {
           const _subpath = isRelation(dataType) && isDigit ? _.slice(subpath, 1) : subpath;
 
           populates[colname] = populates[colname] ?? { className: dataType.target, subpaths: [], groupMatches: {} };
-          if (_.isNil(groupMatches[colname])) {
+          const s = _.first(_subpath);
+          if (!s || !groupMatches[colname]?.[s]) {
             populates[colname].subpaths.push(_.isEmpty(_subpath) ? '*' : _subpath.join('.'));
             populates[colname].groupMatches = _.mapKeys(_.pickBy(groupMatches, (x, k) => _.startsWith(k, `${colname}.`)), (x, k) => k.slice(colname.length + 1));
           }
@@ -301,10 +302,8 @@ export class QueryValidator<E> {
               if (type.type === 'relation') this.validateForeignField(type, 'read', `Invalid include: ${include}`);
 
               populates[`${colname}.${path}`] = populates[`${colname}.${path}`] ?? { className: type.target, subpaths: [], groupMatches: {} };
-              if (_.isNil(groupMatches[`${colname}.${path}`])) {
-                populates[`${colname}.${path}`].subpaths.push('*');
-                populates[`${colname}.${path}`].groupMatches = _.mapKeys(_.pickBy(groupMatches, (x, k) => _.startsWith(k, `${colname}.${path}.`)), (x, k) => k.slice(`${colname}.${path}`.length + 1));
-              }
+              populates[`${colname}.${path}`].subpaths.push('*');
+              populates[`${colname}.${path}`].groupMatches = _.mapKeys(_.pickBy(groupMatches, (x, k) => _.startsWith(k, `${colname}.${path}.`)), (x, k) => k.slice(`${colname}.${path}`.length + 1));
             }
           }
 
