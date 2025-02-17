@@ -46,7 +46,8 @@ export const encodeFieldExpression = (
 ): SQL => {
   const [colname] = _.toPath(field);
   const { element, dataType, match, relation } = fetchElement(compiler, parent, field);
-  const encodeValue = (value: TValue) => (match?.dataType || dataType) ? encodeType(colname, match?.dataType ?? dataType!, value) : _encodeJsonValue(_encodeValue(value));
+  const _dataType = match?.dataType ?? dataType;
+  const encodeValue = (value: TValue) => _dataType ? encodeType(colname, _dataType, value) : _encodeJsonValue(_encodeValue(value));
   switch (expr.type) {
     case '$eq':
       {
@@ -59,7 +60,7 @@ export const encodeFieldExpression = (
         if (relation && _.includes(parent.countMatches, relation.colname)) {
           return sql`${element} ${nullSafeEqual()} ${encodeType(colname, 'number', expr.value) }`;
         }
-        return sql`${element} ${nullSafeEqual()} ${encodeValue(expr.value)}`;
+        return sql`${match?.element ?? element} ${nullSafeEqual()} ${encodeValue(expr.value)}`;
       }
     case '$ne':
       {
@@ -72,7 +73,7 @@ export const encodeFieldExpression = (
         if (relation && _.includes(parent.countMatches, relation.colname)) {
           return sql`${element} ${nullSafeNotEqual()} ${encodeType(colname, 'number', expr.value)}`;
         }
-        return sql`${element} ${nullSafeNotEqual()} ${encodeValue(expr.value)}`;
+        return sql`${match?.element ?? element} ${nullSafeNotEqual()} ${encodeValue(expr.value)}`;
       }
     case '$gt':
     case '$gte':
@@ -86,24 +87,24 @@ export const encodeFieldExpression = (
           '$lte': '<=',
         }[expr.type];
         if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldSelectorExpression) break;
-        if (dataType && isPrimitive(dataType)) {
-          switch (_typeof(dataType)) {
+        if (_dataType && isPrimitive(_dataType)) {
+          switch (_typeof(_dataType)) {
             case 'boolean':
               if (!_.isBoolean(expr.value)) break;
-              return sql`${element} ${{ literal: op }} ${encodeValue(expr.value)}`;
+              return sql`${match?.element ?? element} ${{ literal: op }} ${encodeValue(expr.value)}`;
             case 'number':
             case 'decimal':
               if (!(expr.value instanceof Decimal) && !_.isNumber(expr.value)) break;
-              return sql`${element} ${{ literal: op }} ${encodeValue(expr.value)}`;
+              return sql`${match?.element ?? element} ${{ literal: op }} ${encodeValue(expr.value)}`;
             case 'string':
               if (!_.isString(expr.value)) break;
-              return sql`${element} ${{ literal: op }} ${encodeValue(expr.value)}`;
+              return sql`${match?.element ?? element} ${{ literal: op }} ${encodeValue(expr.value)}`;
             case 'string[]':
               if (!_.isArray(expr.value) || !_.every(expr.value, _.isString)) break;
-              return sql`${element} ${{ literal: op }} ${encodeValue(expr.value)}`;
+              return sql`${match?.element ?? element} ${{ literal: op }} ${encodeValue(expr.value)}`;
             case 'date':
               if (!_.isDate(expr.value)) break;
-              return sql`${element} ${{ literal: op }} ${encodeValue(expr.value)}`;
+              return sql`${match?.element ?? element} ${{ literal: op }} ${encodeValue(expr.value)}`;
             default: break;
           }
         } else if (!_.isString(dataType) && dataType?.type === 'pointer' && expr.value instanceof TObject && expr.value.objectId) {
