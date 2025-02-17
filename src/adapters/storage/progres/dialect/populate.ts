@@ -303,7 +303,6 @@ export const encodePopulate = (
   ]);
   const _populates = _.map(parent.populates, (populate, field) => selectPopulate(compiler, parent, populate, field, _.includes(parent.countMatches, field)));
   const _joins = _.compact(_.map(_populates, ({ join }) => join));
-  const _includes = _.pickBy(parent.includes, v => isPrimitive(v));
   const {
     joins: _joins2 = [],
     field: _foreignField = undefined,
@@ -321,7 +320,7 @@ export const encodePopulate = (
         SELECT
         ${{
         literal: [
-          ..._.map(_.keys(_includes), colname => sql`${{ identifier: parent.name }}.${{ identifier: colname }}`),
+          ...compiler._selectIncludes(parent.name, parent),
           ..._.flatMap(_populates, ({ columns: column }) => column),
           ..._foreignField ? [sql`${rows ? sql`ARRAY(${_foreignField})` : _foreignField} AS ${{ identifier: parent.colname }}`] : [],
         ], separator: ',\n'

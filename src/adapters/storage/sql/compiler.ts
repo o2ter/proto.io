@@ -410,7 +410,7 @@ export class QueryCompiler {
     }
   }
 
-  private _selectIncludes(
+  _selectIncludes(
     className: string,
     context: QueryContext,
   ): SQL[] {
