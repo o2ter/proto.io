@@ -34,6 +34,7 @@ import { TValueWithUndefined } from '../../../internals/types';
 import { PVK } from '../../../internals/private';
 import { TUpdateOp } from '../../../internals/object/types';
 import { normalize } from '../../utils';
+import { TQueryAccumulator } from '../../../internals/query/types/accumulators';
 
 export const fetchUserPerms = async <E>(proto: ProtoService<E>) => _.uniq(_.compact([..._.map(await proto.currentRoles(), x => `role:${x}`), (await proto.currentUser())?.objectId]));
 
@@ -110,6 +111,7 @@ export const dispatcher = <E>(
         includes?: string[];
         matches?: Record<string, TQueryBaseOptions>;
         countMatches?: string[];
+        groupMatches?: Record<string, TQueryAccumulator>;
       },
       values: Record<string, TValueWithUndefined>[],
     ) {

@@ -184,6 +184,7 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
         includes: this[PVK].options.includes,
         matches: this[PVK].options.matches,
         countMatches: this[PVK].options.countMatches,
+        groupMatches: this[PVK].options.groupMatches,
       }, values)
     );
     if (!options?.silent) this._on_upsert(objs);

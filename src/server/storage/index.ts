@@ -33,8 +33,7 @@ import { TObject } from '../../internals/object';
 import { TUpdateOp } from '../../internals/object/types';
 import { QueryExpression } from '../query/dispatcher/parser/expressions';
 
-type CommonFindOptions = { className: string; };
-export type FindOptions = CommonFindOptions & TQueryOptions;
+export type FindOptions = { className: string; } & TQueryOptions;
 
 export type RelationOptions = {
   relatedBy?: {

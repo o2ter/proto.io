@@ -26,9 +26,10 @@
 import _ from 'lodash';
 import { PathName, PathNameMap, PathNames } from './types';
 import { TQuerySelector } from './types/selectors';
-import { TValue, TValueWithUndefined } from '../types';
+import { TValueWithUndefined } from '../types';
 import { PVK } from '../private';
 import { TExpression } from './types/expressions';
+import { TQueryAccumulator } from './types/accumulators';
 
 /**
  * Options for a query filter.
@@ -78,6 +79,8 @@ export interface TQueryBaseOptions extends TQueryFilterBaseOptions {
    * Specifies which relations should only return the count.
    */
   countMatches?: string[];
+
+  groupMatches?: Record<string, TQueryAccumulator>;
 };
 
 const mergeOpts = (lhs: TQueryBaseOptions, rhs: TQueryBaseOptions): TQueryBaseOptions => {
@@ -441,6 +444,16 @@ export class TQueryBase extends TQueryFilterBase {
    */
   countMatches<T extends _.RecursiveArray<string>>(...relations: PathNames<T>) {
     this[PVK].options.countMatches = this[PVK].options.countMatches ? [...this[PVK].options.countMatches, ..._.flattenDeep(relations)] : _.flattenDeep(relations);
+    return this;
+  }
+
+  groupMatches<T extends string>(key: PathName<T>, accumulators: Record<string, TQueryAccumulator>) {
+    if (_.isNil(this[PVK].options.groupMatches)) {
+      this[PVK].options.groupMatches = { [key]: accumulators };
+    } else {
+      this[PVK].options.groupMatches = { ...this[PVK].options.groupMatches };
+      this[PVK].options.groupMatches[key] = accumulators;
+    }
     return this;
   }
 }
