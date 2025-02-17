@@ -300,7 +300,7 @@ export class QueryValidator<E> {
 
               populates[`${colname}.${path}`] = populates[`${colname}.${path}`] ?? { className: type.target, subpaths: [], groupMatches: {} };
               populates[`${colname}.${path}`].subpaths.push('*');
-              populates[colname].groupMatches = _.mapKeys(_.pickBy(groupMatches, (x, k) => _.startsWith(k, `${colname}.`)), (x, k) => k.slice(colname.length + 1));
+              populates[`${colname}.${path}`].groupMatches = _.mapKeys(_.pickBy(groupMatches, (x, k) => _.startsWith(k, `${colname}.${path}.`)), (x, k) => k.slice(`${colname}.${path}`.length + 1));
             }
           }
 
