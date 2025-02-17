@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { DecodedQuery, FindOptions, InsertOptions, TStorage, RelationOptions } from '../../../server/storage';
+import { DecodedQuery, FindOptions, InsertOptions, TStorage, RelationOptions, DecodedBaseQuery } from '../../../server/storage';
 import { TransactionOptions } from '../../../internals/proto';
 import { TSchema, isPointer, isRelation, isShape, shapePaths } from '../../../internals/schema';
 import { SQL, sql } from './sql';
@@ -37,6 +37,8 @@ import { PVK } from '../../../internals/private';
 import { TQueryRandomOptions } from '../../../internals/query';
 import { TUpdateOp } from '../../../internals/object/types';
 import { QuerySelector } from '../../../server/query/dispatcher/parser';
+import { QueryAccumulator } from '../../../server/query/dispatcher/parser/accumulators';
+import { accumulatorKeyTypes } from '../../../internals/query/types/accumulators';
 
 export abstract class SqlStorage implements TStorage {
 
@@ -81,23 +83,29 @@ export abstract class SqlStorage implements TStorage {
 
   abstract _explain(compiler: QueryCompiler, query: DecodedQuery<FindOptions & RelationOptions>): PromiseLike<any>
 
-  private _decodeShapedObject(dataType: TSchema.ShapeType, value: any) {
+  private _decodeMatchTypes(value: any, matchType: Record<string, any>): any {
+    if (!_.isPlainObject(value)) return;
+    return _.mapValues(value, (v, k) => this.dialect.decodeType(matchType[k], v));
+  }
+
+  private _decodeShapedObject(dataType: TSchema.ShapeType, value: any, matchesType: Record<string, any>) {
     const result = {};
     for (const { path, type } of shapePaths(dataType)) {
+      const matchType = _.get(matchesType, path) ?? {};
       if (_.isString(type)) {
         const _value = this.dialect.decodeType(type, _.get(value, path));
         if (!_.isNil(_value)) _.set(result, path, _value);
       } else if (isPointer(type)) {
         const _value = _.get(value, path);
         if (_.isPlainObject(_value)) {
-          const decoded = this._decodeObject(type.target, _value);
+          const decoded = this._decodeObject(type.target, _value, matchType);
           if (decoded.objectId) _.set(result, path, decoded);
         }
       } else if (isRelation(type)) {
         const _value = _.get(value, path);
         if (_.isString(_value) && _value.match(/^\d+$/g)) _.set(result, path, parseInt(_value));
-        else if (_.isArray(_value)) _.set(result, path, _value.map(x => this._decodeObject(type.target, x)));
-        else if (_.isPlainObject(_value)) _.set(result, path, _value);
+        else if (_.isArray(_value)) _.set(result, path, _value.map(x => this._decodeObject(type.target, x, matchType)));
+        else if (_.isPlainObject(_value)) _.set(result, path, this._decodeMatchTypes(_value, matchType));
       } else {
         const _value = this.dialect.decodeType(type.type, _.get(value, path)) ?? type.default;
         if (!_.isNil(_value)) _.set(result, path, _value);
@@ -106,7 +114,7 @@ export abstract class SqlStorage implements TStorage {
     return result;
   }
 
-  protected _decodeObject(className: string, attrs: Record<string, any>): TObject {
+  protected _decodeObject(className: string, attrs: Record<string, any>, matchesType: Record<string, any>): TObject {
     const fields = this.schema[className].fields;
     const obj = new TObject(className);
     const _attrs: Record<string, any> = {};
@@ -114,21 +122,22 @@ export abstract class SqlStorage implements TStorage {
       _.set(_attrs, key, value);
     }
     for (const [key, value] of _.toPairs(_attrs)) {
+      const matchType = matchesType[key] ?? {};
       const dataType = fields[key];
       if (!dataType) continue;
       if (_.isString(dataType)) {
         obj[PVK].attributes[key] = this.dialect.decodeType(dataType, value);
       } else if (isShape(dataType)) {
-        obj[PVK].attributes[key] = this._decodeShapedObject(dataType, value);
+        obj[PVK].attributes[key] = this._decodeShapedObject(dataType, value, matchType);
       } else if (isPointer(dataType)) {
         if (_.isPlainObject(value)) {
-          const decoded = this._decodeObject(dataType.target, value);
+          const decoded = this._decodeObject(dataType.target, value, matchType);
           if (decoded.objectId) obj[PVK].attributes[key] = decoded;
         }
       } else if (isRelation(dataType)) {
         if (_.isString(value) && value.match(/^\d+$/g)) obj[PVK].attributes[key] = parseInt(value);
-        else if (_.isArray(value)) obj[PVK].attributes[key] = value.map(x => this._decodeObject(dataType.target, x));
-        else if (_.isPlainObject(value)) obj[PVK].attributes[key] = value;
+        else if (_.isArray(value)) obj[PVK].attributes[key] = value.map(x => this._decodeObject(dataType.target, x, matchType));
+        else if (_.isPlainObject(value)) obj[PVK].attributes[key] = this._decodeMatchTypes(value, matchType);
       } else {
         obj[PVK].attributes[key] = this.dialect.decodeType(dataType.type, value) ?? dataType.default as any;
       }
@@ -163,6 +172,26 @@ export abstract class SqlStorage implements TStorage {
     return _.isFinite(count) ? count : 0;
   }
 
+  private _matchesType(options: {
+      matches: Record<string, DecodedBaseQuery>;
+      countMatches?: string[];
+      groupMatches?: Record<string, Record<string, QueryAccumulator>>;
+  }): Record<string, any> {
+    const types: Record<string, any> = {};
+    for (const [key, match] of _.entries(options.matches)) {
+      types[key] = this._matchesType(match);
+    }
+    for (const match of options.countMatches ?? []) {
+      _.set(types, match, 'number');
+    }
+    for (const [key, group] of _.entries(options.groupMatches)) {
+      for (const [field, expr] of _.entries(group)) {
+        _.set(types, `${key}.${field}`, accumulatorKeyTypes[expr.type]);
+      }
+    }
+    return types;
+  }
+
   find(query: DecodedQuery<FindOptions & RelationOptions>) {
     const self = this;
     const compiler = self._makeCompiler(false, query.extraFilter);
@@ -170,7 +199,7 @@ export abstract class SqlStorage implements TStorage {
     return (async function* () {
       const objects = self.query(_query);
       for await (const object of objects) {
-        yield self._decodeObject(query.className, object);
+        yield self._decodeObject(query.className, object, self._matchesType(query));
       }
     })();
   }
@@ -184,7 +213,7 @@ export abstract class SqlStorage implements TStorage {
     return (async function* () {
       const objects = self.query(_query);
       for await (const object of objects) {
-        yield self._decodeObject(query.className, object);
+        yield self._decodeObject(query.className, object, self._matchesType(query));
       }
     })();
   }
@@ -202,7 +231,7 @@ export abstract class SqlStorage implements TStorage {
     return (async function* () {
       const objects = self.query(query);
       for await (const { _class, ...object } of objects) {
-        yield self._decodeObject(_class, object);
+        yield self._decodeObject(_class, object, {});
       }
     })();
   }
@@ -221,7 +250,7 @@ export abstract class SqlStorage implements TStorage {
     return (async function* () {
       const objects = self.query(_query);
       for await (const object of objects) {
-        yield self._decodeObject(query.className, object);
+        yield self._decodeObject(query.className, object, self._matchesType(query));
       }
     })();
   }
@@ -229,24 +258,24 @@ export abstract class SqlStorage implements TStorage {
   async insert(options: InsertOptions, values: Record<string, TValueWithUndefined>[]) {
     const compiler = this._makeCompiler(true);
     const result = await this.query(compiler.insert(options, values));
-    return _.map(result, x => this._decodeObject(options.className, x));
+    return _.map(result, x => this._decodeObject(options.className, x, this._matchesType(options)));
   }
 
   async update(query: DecodedQuery<FindOptions>, update: Record<string, TUpdateOp>) {
     const compiler = this._makeCompiler(true, query.extraFilter);
     const updated = await this.query(compiler.update(query, update));
-    return _.map(updated, x => this._decodeObject(query.className, x));
+    return _.map(updated, x => this._decodeObject(query.className, x, this._matchesType(query)));
   }
 
   async upsert(query: DecodedQuery<FindOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValueWithUndefined>) {
     const compiler = this._makeCompiler(true, query.extraFilter);
     const upserted = await this.query(compiler.upsert(query, update, setOnInsert));
-    return _.map(upserted, x => this._decodeObject(query.className, x));
+    return _.map(upserted, x => this._decodeObject(query.className, x, this._matchesType(query)));
   }
 
   async delete(query: DecodedQuery<FindOptions>) {
     const compiler = this._makeCompiler(true, query.extraFilter);
     const deleted = await this.query(compiler.delete(query));
-    return _.map(deleted, x => this._decodeObject(query.className, x));
+    return _.map(deleted, x => this._decodeObject(query.className, x, this._matchesType(query)));
   }
 }
