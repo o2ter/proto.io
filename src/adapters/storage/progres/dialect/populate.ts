@@ -158,7 +158,7 @@ export const selectPopulate = (
               if (!value) throw Error('Invalid expression');
               columns.push(sql`
                 (
-                  SELECT AVG${{ literal: op }} (${value}) FROM (
+                  SELECT ${{ literal: op }}(${value}) FROM (
                     ${_selectRelationPopulate(compiler, parent, populate, field, false)}
                   ) ${{ identifier: populate.name }}
                 ) AS ${{ identifier: `${field}.${key}` }}
