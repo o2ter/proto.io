@@ -119,9 +119,9 @@ export const dispatcher = <E>(
       QueryValidator.recursiveCheck(values);
       const _validator = await validator();
       _validator.validateCountMatches(options.className, options.countMatches ?? []);
-      const _includes = _validator.decodeIncludes(options.className, options.includes ?? ['*']);
-      const _matches = _validator.decodeMatches(options.className, options.matches ?? {}, _includes);
       const _groupMatches = _validator.decodeGroupMatches(options.className, options.groupMatches ?? {});
+      const _includes = _validator.decodeIncludes(options.className, options.includes ?? ['*'], _groupMatches);
+      const _matches = _validator.decodeMatches(options.className, options.matches ?? {}, _includes);
       if (!_validator.validateCLPs(options.className, 'create')) throw Error('No permission');
       const _attrs = normalize(_.map(values, attr => _validator.validateFields(options.className, attr, 'create', QueryValidator.patterns.path)));
       while (true) {

@@ -254,12 +254,16 @@ export class QueryValidator<E> {
     return result;
   }
 
-  decodeIncludes(className: string, includes: string[]): string[] {
+  decodeIncludes(className: string, includes: string[], groupMatches: Record<string, Record<string, QueryAccumulator>>): string[] {
 
     const schema = this.schema[className] ?? {};
 
     const _includes: string[] = [];
-    const populates: Record<string, { className: string; subpaths: string[]; }> = {};
+    const populates: Record<string, {
+      className: string;
+      subpaths: string[];
+      groupMatches: Record<string, Record<string, QueryAccumulator>>;
+    }> = {};
 
     for (const include of includes) {
       if (include === '*') {
@@ -271,7 +275,7 @@ export class QueryValidator<E> {
         );
       } else {
         const { paths: [colname, ...subpath], dataType } = resolveColumn(this.schema, className, include);
-        if (!this.validateKeyPerm(colname, 'read', schema)) throw Error('No permission');
+        if (_.isNil(groupMatches[include]?.[colname]) && !this.validateKeyPerm(colname, 'read', schema)) throw Error('No permission');
 
         if (isPointer(dataType) || isRelation(dataType)) {
           if (!this.validateCLPs(dataType.target, 'get')) throw Error('No permission');
@@ -280,8 +284,9 @@ export class QueryValidator<E> {
           const isDigit = _.first(subpath)?.match(QueryValidator.patterns.digits);
           const _subpath = isRelation(dataType) && isDigit ? _.slice(subpath, 1) : subpath;
 
-          populates[colname] = populates[colname] ?? { className: dataType.target, subpaths: [] };
+          populates[colname] = populates[colname] ?? { className: dataType.target, subpaths: [], groupMatches: {} };
           populates[colname].subpaths.push(_.isEmpty(_subpath) ? '*' : _subpath.join('.'));
+          populates[colname].groupMatches = _.mapKeys(_.pickBy(groupMatches, (x, k) => _.startsWith(k, `${colname}.`)), (x, k) => k.slice(colname.length + 1));
 
         } else if (_.isEmpty(subpath) && isShape(dataType)) {
 
@@ -293,7 +298,7 @@ export class QueryValidator<E> {
               if (!this.validateCLPs(type.target, 'get')) throw Error('No permission');
               if (type.type === 'relation') this.validateForeignField(type, 'read', `Invalid include: ${include}`);
 
-              populates[`${colname}.${path}`] = populates[`${colname}.${path}`] ?? { className: type.target, subpaths: [] };
+              populates[`${colname}.${path}`] = populates[`${colname}.${path}`] ?? { className: type.target, subpaths: [], groupMatches: {} };
               populates[`${colname}.${path}`].subpaths.push('*');
             }
           }
@@ -307,7 +312,7 @@ export class QueryValidator<E> {
     }
 
     for (const [key, populate] of _.toPairs(populates)) {
-      const subpaths = this.decodeIncludes(populate.className, populate.subpaths);
+      const subpaths = this.decodeIncludes(populate.className, populate.subpaths, populate.groupMatches);
       _includes.push(..._.map(subpaths, x => `${key}.${x}`));
     }
 
@@ -430,7 +435,7 @@ export class QueryValidator<E> {
       ..._.flatMap(_.values(groupMatches), m => _.flatMap(_.values(m), x => x.keyPaths())),
     ]);
 
-    const includes = this.decodeIncludes(query.className, keyPaths);
+    const includes = this.decodeIncludes(query.className, keyPaths, groupMatches);
     const matches = this.decodeMatches(query.className, query.matches ?? {}, includes);
 
     return {
