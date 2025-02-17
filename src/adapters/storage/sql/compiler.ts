@@ -253,7 +253,7 @@ export class QueryCompiler {
 
     const includes = {
       literal: [
-        ...this._selectIncludes(fetchName, context.includes),
+        ...this._selectIncludes(fetchName, context),
         ..._.flatMap(populates, ({ columns }) => columns),
       ],
       separator: ',\n',
@@ -302,7 +302,7 @@ export class QueryCompiler {
 
     const _includes = {
       literal: [
-        ...this._selectIncludes(name, _context.includes),
+        ...this._selectIncludes(name, _context),
         ..._.flatMap(_populates, ({ columns }) => columns),
       ], separator: ',\n'
     };
@@ -412,9 +412,9 @@ export class QueryCompiler {
 
   private _selectIncludes(
     className: string,
-    includes: Record<string, TSchema.DataType>,
+    context: QueryContext,
   ): SQL[] {
-    const _includes = _.pickBy(includes, v => _.isString(v) || (v.type !== 'pointer' && v.type !== 'relation'));
+    const _includes = _.pickBy(context.includes, v => _.isString(v) || (v.type !== 'pointer' && v.type !== 'relation'));
     return _.map(_includes, (dataType, colname) => {
       if (!_.isString(dataType) && isPrimitive(dataType) && !_.isNil(dataType.default)) {
         return sql`COALESCE(${{ identifier: className }}.${{ identifier: colname }}, ${{ value: dataType.default }}) AS ${{ identifier: colname }}`;
@@ -478,7 +478,7 @@ export class QueryCompiler {
       )${!_.isEmpty(stages) ? sql`, ${_.map(stages, (q, n) => sql`${{ identifier: n }} AS (${q})`)}` : sql``}
       SELECT ${{
         literal: [
-          ...this._selectIncludes(name, context.includes),
+          ...this._selectIncludes(name, context),
           ..._.flatMap(_populates, ({ columns }) => columns),
         ], separator: ',\n'
       }}
@@ -559,7 +559,7 @@ export class QueryCompiler {
           )
           SELECT ${{
             literal: [
-              ...this._selectIncludes(name, context.includes ?? {}),
+              ...this._selectIncludes(name, context),
               ..._.flatMap(populates, ({ columns }) => columns),
             ], separator: ',\n'
           }}
