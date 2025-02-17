@@ -426,6 +426,7 @@ export class QueryValidator<E> {
     return {
       ...query,
       countMatches: query.countMatches ?? [],
+      groupMatches,
       filter,
       matches,
       includes,
