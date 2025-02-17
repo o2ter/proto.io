@@ -153,7 +153,7 @@ export const selectPopulate = (
               }[type];
               if (!expr) throw Error('Invalid expression');
               const exprs = encodeTypedQueryExpression(compiler, parent, expr);
-              const value = _.find(exprs, e => e.type === 'number')?.sql;
+              const { sql: value } = (_.includes(['$avg'], type) ? _.find(exprs, e => e.type === 'number') : _.first(exprs)) ?? {};
               if (!value) throw Error('Invalid expression');
               columns.push(sql`
                 (
