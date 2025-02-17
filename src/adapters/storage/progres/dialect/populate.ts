@@ -29,6 +29,7 @@ import { TSchema, isPointer, isPrimitive, isRelation, isShape, isVector } from '
 import { Populate, QueryCompiler, QueryContext } from '../../sql/compiler';
 import { _encodePopulateInclude } from './encode';
 import { resolveColumn } from '../../../../server/query/dispatcher/validator';
+import { QueryAccumulator } from '../../../../server/query/dispatcher/parser/accumulators';
 
 const resolveSubpaths = (
   compiler: QueryCompiler,
@@ -119,6 +120,7 @@ export const selectPopulate = (
   countMatches: boolean,
 ): { columns: SQL[]; join?: SQL; } => {
   if (populate.type === 'relation') {
+    const { groupMatches } = parent;
     return {
       columns: [
         countMatches ? sql`

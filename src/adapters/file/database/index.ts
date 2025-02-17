@@ -105,6 +105,7 @@ export class DatabaseFileStorage extends FileStorageBase {
       includes: ['_id'],
       matches: {},
       countMatches: [],
+      groupMatches: {},
       objectIdSize: 0
     });
   }
