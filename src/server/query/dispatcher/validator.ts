@@ -34,6 +34,8 @@ import { TObject } from '../../../internals/object';
 import { PVK } from '../../../internals/private';
 import { TQuerySelector } from '../../../internals/query/types/selectors';
 import { QueryExpression } from './parser/expressions';
+import { TQueryAccumulator } from '../../../internals/query/types/accumulators';
+import { QueryAccumulator } from './parser/accumulators';
 
 export const recursiveCheck = (x: any, stack: any[]) => {
   if (_.indexOf(stack, x) !== -1) throw Error('Recursive data detected');
@@ -240,6 +242,12 @@ export class QueryValidator<E> {
     }
   }
 
+  decodeGroupMatches(className: string, groupMatches: Record<string, TQueryAccumulator>): Record<string, QueryAccumulator> {
+    const result = _.mapValues(groupMatches, x => QueryAccumulator.decode(x));
+
+    return result;
+  }
+
   decodeIncludes(className: string, includes: string[]): string[] {
 
     const schema = this.schema[className] ?? {};
@@ -389,13 +397,16 @@ export class QueryValidator<E> {
       this._expiredAt,
     ]).simplify();
 
-    const matcheKeyPaths = (
+    const groupMatches = this.decodeGroupMatches(query.className, query.groupMatches ?? {});
+
+    const matchKeyPaths = (
       matches: Record<string, TQueryBaseOptions>
     ): string[] => _.flatMap(matches, (match, key) => [
       ..._.keys(match.sort),
       ...QuerySelector.decode(match.filter ?? []).keyPaths(),
-      ...matcheKeyPaths(match.matches ?? {}),
+      ...matchKeyPaths(match.matches ?? {}),
       ...match.countMatches ?? [],
+      ..._.flatMap(_.values(match.groupMatches), x => QueryAccumulator.decode(x).keyPaths()),
     ].map(x => `${key}.${x}`));
 
     const sort = query.sort && this.decodeSort(query.sort);
@@ -404,8 +415,9 @@ export class QueryValidator<E> {
       ...query.includes ?? ['*'],
       ..._.isArray(sort) ? _.flatMap(sort, s => s.expr.keyPaths()) : _.keys(sort),
       ...filter.keyPaths(),
-      ...matcheKeyPaths(query.matches ?? {}),
+      ...matchKeyPaths(query.matches ?? {}),
       ...query.countMatches ?? [],
+      ..._.flatMap(_.values(groupMatches), x => x.keyPaths()),
     ]);
 
     const includes = this.decodeIncludes(query.className, keyPaths);

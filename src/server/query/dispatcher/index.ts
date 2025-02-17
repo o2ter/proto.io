@@ -121,6 +121,7 @@ export const dispatcher = <E>(
       _validator.validateCountMatches(options.className, options.countMatches ?? []);
       const _includes = _validator.decodeIncludes(options.className, options.includes ?? ['*']);
       const _matches = _validator.decodeMatches(options.className, options.matches ?? {}, _includes);
+      const _groupMatches = _validator.decodeGroupMatches(options.className, options.groupMatches ?? {});
       if (!_validator.validateCLPs(options.className, 'create')) throw Error('No permission');
       const _attrs = normalize(_.map(values, attr => _validator.validateFields(options.className, attr, 'create', QueryValidator.patterns.path)));
       while (true) {
@@ -131,6 +132,7 @@ export const dispatcher = <E>(
               includes: _includes,
               matches: _matches,
               countMatches: options.countMatches ?? [],
+              groupMatches: _groupMatches,
               objectIdSize: proto[PVK].options.objectIdSize
             }, _attrs),
             { lockTable: options.className, retry: true },
