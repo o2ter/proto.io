@@ -24,17 +24,17 @@
 //
 
 import _ from 'lodash';
-import { masterUser } from '../server';
+import { masterUser } from '../../server';
 import { test, expect } from '@jest/globals';
 import Decimal from 'decimal.js';
-import { ProtoClient } from '../../../src/client/proto';
+import { ProtoClient } from '../../../../src/client/proto';
 
 const Proto = new ProtoClient({
   endpoint: 'http://localhost:8080/proto',
   masterUser,
 });
 
-test('test group matches', async () => {
+test('test group matches count', async () => {
 
   const parent = await Proto.Query('Test').insert({
     relation: [
@@ -57,7 +57,7 @@ test('test group matches', async () => {
 
 })
 
-test('test group matches 2', async () => {
+test('test group matches count 2', async () => {
 
   const parent = await Proto.Query('Test').insert({});
   for (const i of _.range(1, 6)) {
@@ -77,7 +77,7 @@ test('test group matches 2', async () => {
 
 })
 
-test('test group matches 3', async () => {
+test('test group matches count 3', async () => {
 
   const parent = await Proto.Query('Test').insert({
     shape: {
@@ -102,7 +102,7 @@ test('test group matches 3', async () => {
 
 })
 
-test('test group matches 4', async () => {
+test('test group matches count 4', async () => {
 
   const parent = await Proto.Query('Test').insert({});
   for (const i of _.range(1, 6)) {
@@ -122,7 +122,7 @@ test('test group matches 4', async () => {
 
 })
 
-test('test group matches 5', async () => {
+test('test group matches count 5', async () => {
 
   const parent = await Proto.Query('Test').insert({
     relation: [
@@ -149,7 +149,7 @@ test('test group matches 5', async () => {
 
 })
 
-test('test group matches 6', async () => {
+test('test group matches count 6', async () => {
 
   const parent = await Proto.Query('Test').insert({});
   for (const i of _.range(1, 6)) {
@@ -173,7 +173,7 @@ test('test group matches 6', async () => {
 
 })
 
-test('test group matches 7', async () => {
+test('test group matches count 7', async () => {
 
   const parent = await Proto.Query('Test').insert({
     shape: {
@@ -202,7 +202,7 @@ test('test group matches 7', async () => {
 
 })
 
-test('test group matches 8', async () => {
+test('test group matches count 8', async () => {
 
   const parent = await Proto.Query('Test').insert({});
   for (const i of _.range(1, 6)) {
@@ -226,7 +226,7 @@ test('test group matches 8', async () => {
 
 })
 
-test('test group matches 9', async () => {
+test('test group matches count 9', async () => {
 
   const parent = await Proto.Query('Test').insert({
     relation: [
