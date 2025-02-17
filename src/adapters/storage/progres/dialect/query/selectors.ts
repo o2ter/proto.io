@@ -294,6 +294,11 @@ export const encodeFieldExpression = (
         if (dataType && _isTypeof(dataType, 'string')) {
           return sql`COALESCE(length(${element}), 0) ${{ literal: expr.value ? '=' : '<>' }} 0`;
         }
+        if (relation && parent.className && parent.groupMatches?.[colname]) {
+          const tempName = `_populate_expr_$${compiler.nextIdx()}`;
+          const populate = _selectRelationPopulate(compiler, { className: parent.className, name: parent.name }, relation.populate, `$${field}`, false);
+          return sql`${{ literal: expr.value ? 'NOT EXISTS' : 'EXISTS' }}(SELECT * FROM (${populate}) AS ${{ identifier: tempName }})`;
+        }
         if (dataType && _isTypeof(dataType, ['array', 'string[]', 'vector', 'relation'])) {
           return sql`COALESCE(array_length(${element}, 1), 0) ${{ literal: expr.value ? '=' : '<>' }} 0`;
         }
