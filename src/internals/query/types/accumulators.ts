@@ -25,8 +25,11 @@
 
 import { TExpression } from './expressions';
 
-export const allAccumulatorKeys = ['$sum', '$count'];
+export const accumulatorExprKeys = ['$sum'];
+export const accumulatorNoExprKeys = ['$count'];
 
 export type TQueryAccumulator = {
-  [x in (typeof allAccumulatorKeys)[number]]?: TExpression;
+  [x in (typeof accumulatorNoExprKeys)[number]]?: true | {};
+} & {
+  [x in (typeof accumulatorExprKeys)[number]]?: TExpression;
 };

@@ -24,36 +24,44 @@
 //
 
 import _ from 'lodash';
-import { allAccumulatorKeys, TQueryAccumulator } from '../../../../internals/query/types/accumulators';
+import { accumulatorExprKeys, accumulatorNoExprKeys, TQueryAccumulator } from '../../../../internals/query/types/accumulators';
 import { QueryExpression } from './expressions';
+
+type AccumulatorKeys = typeof accumulatorExprKeys[number] | typeof accumulatorNoExprKeys[number];
 
 export class QueryAccumulator {
 
-  type: typeof allAccumulatorKeys[number];
-  expr: QueryExpression;
+  type: AccumulatorKeys;
+  expr?: QueryExpression;
 
   static decode(query: TQueryAccumulator): QueryAccumulator {
     for (const [key, expr] of _.toPairs(query)) {
-      return new QueryAccumulator(key, QueryExpression.decode(expr ?? [], false));
+      if (_.includes(accumulatorExprKeys, key)) {
+        return new QueryAccumulator(key, QueryExpression.decode(expr ?? [], false));
+      } else if (_.includes(accumulatorNoExprKeys, key)) {
+        return new QueryAccumulator(key);
+      } else {
+        throw Error('Invalid expression');
+      }
     }
     throw Error('Invalid expression');
   }
 
-  constructor(type: typeof allAccumulatorKeys[number], expr: QueryExpression) {
+  constructor(type: AccumulatorKeys, expr?: QueryExpression) {
     this.type = type;
     this.expr = expr;
   }
 
   simplify() {
-    return new QueryAccumulator(this.type, this.expr.simplify());
+    return new QueryAccumulator(this.type, this.expr?.simplify());
   }
 
   keyPaths() {
-    return this.expr.keyPaths();
+    return this.expr?.keyPaths() ?? [];
   }
 
   mapKey(callback: (key: string) => string) {
-    return new QueryAccumulator(this.type, this.expr.mapKey(callback));
+    return new QueryAccumulator(this.type, this.expr?.mapKey(callback));
   }
 
 }
