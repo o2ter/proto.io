@@ -30,6 +30,7 @@ import { Populate, QueryCompiler, QueryContext } from '../../sql/compiler';
 import { _encodePopulateInclude } from './encode';
 import { resolveColumn } from '../../../../server/query/dispatcher/validator';
 import { QueryAccumulator } from '../../../../server/query/dispatcher/parser/accumulators';
+import { encodeQueryExpression } from './query';
 
 const resolveSubpaths = (
   compiler: QueryCompiler,
@@ -125,8 +126,8 @@ export const selectPopulate = (
       sql`${{ identifier: parent.name }}.${{ identifier: field }} AS ${{ identifier: `$${field}` }}`,
     ];
     if (!_.isEmpty(groupMatches)) {
-      for (const [key, expr] of _.entries(groupMatches)) {
-        switch (expr.type) {
+      for (const [key, { type, expr }] of _.entries(groupMatches)) {
+        switch (type) {
           case '$count':
             columns.push(sql`
               (
@@ -137,9 +138,12 @@ export const selectPopulate = (
             `);
             break;
           case '$sum':
+            if (!expr) throw Error('Invalid expression');
+            const value = encodeQueryExpression(compiler, parent, expr);
+            if (!value) throw Error('Invalid expression');
             columns.push(sql`
               (
-                SELECT SUM(*) FROM (
+                SELECT SUM(${value}) FROM (
                   ${_selectRelationPopulate(compiler, parent, populate, field, false)}
                 ) ${{ identifier: populate.name }}
               ) AS ${{ identifier: `${field}.${key}` }}
