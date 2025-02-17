@@ -34,6 +34,7 @@ import { TValueWithUndefined } from '../../../internals/types';
 import { PVK } from '../../../internals/private';
 import { TUpdateOp } from '../../../internals/object/types';
 import { normalize } from '../../utils';
+import { TQueryAccumulator } from '../../../internals/query/types/accumulators';
 
 export const fetchUserPerms = async <E>(proto: ProtoService<E>) => _.uniq(_.compact([..._.map(await proto.currentRoles(), x => `role:${x}`), (await proto.currentUser())?.objectId]));
 
@@ -109,15 +110,15 @@ export const dispatcher = <E>(
         className: string;
         includes?: string[];
         matches?: Record<string, TQueryBaseOptions>;
-        countMatches?: string[];
+        groupMatches?: Record<string, Record<string, TQueryAccumulator>>;
       },
       values: Record<string, TValueWithUndefined>[],
     ) {
       if (!createFile && options.className === 'File') throw Error('File is not support insert');
       QueryValidator.recursiveCheck(values);
       const _validator = await validator();
-      _validator.validateCountMatches(options.className, options.countMatches ?? []);
-      const _includes = _validator.decodeIncludes(options.className, options.includes ?? ['*']);
+      const _groupMatches = _validator.decodeGroupMatches(options.className, options.groupMatches ?? {});
+      const _includes = _validator.decodeIncludes(options.className, options.includes ?? ['*'], _groupMatches);
       const _matches = _validator.decodeMatches(options.className, options.matches ?? {}, _includes);
       if (!_validator.validateCLPs(options.className, 'create')) throw Error('No permission');
       const _attrs = normalize(_.map(values, attr => _validator.validateFields(options.className, attr, 'create', QueryValidator.patterns.path)));
@@ -128,7 +129,7 @@ export const dispatcher = <E>(
               className: options.className,
               includes: _includes,
               matches: _matches,
-              countMatches: options.countMatches ?? [],
+              groupMatches: _groupMatches,
               objectIdSize: proto[PVK].options.objectIdSize
             }, _attrs),
             { lockTable: options.className, retry: true },

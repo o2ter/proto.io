@@ -397,7 +397,7 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
           className: 'File',
           filter: QuerySelector.decode({ _expired_at: { $lt: time } }),
           matches: {},
-          countMatches: [],
+          groupMatches: {},
           includes: ['_id', '_expired_at', 'token'],
           objectIdSize: 0
         });
@@ -411,7 +411,7 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
         filter: QuerySelector.decode({ _expired_at: { $lt: time } }),
         includes: ['_id', '_expired_at'],
         matches: {},
-        countMatches: [],
+        groupMatches: {},
         objectIdSize: 0
       });
     }

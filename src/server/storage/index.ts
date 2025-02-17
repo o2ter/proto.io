@@ -32,9 +32,9 @@ import { TValueWithoutObject, TValueWithUndefined } from '../../internals/types'
 import { TObject } from '../../internals/object';
 import { TUpdateOp } from '../../internals/object/types';
 import { QueryExpression } from '../query/dispatcher/parser/expressions';
+import { QueryAccumulator } from '../query/dispatcher/parser/accumulators';
 
-type CommonFindOptions = { className: string; };
-export type FindOptions = CommonFindOptions & TQueryOptions;
+export type FindOptions = { className: string; } & TQueryOptions;
 
 export type RelationOptions = {
   relatedBy?: {
@@ -54,14 +54,14 @@ export type DecodedSortOption = {
 export type DecodedBaseQuery = Decoded<TQueryBaseOptions, {
   filter?: QuerySelector;
   matches: Record<string, DecodedBaseQuery>;
-  countMatches?: string[];
+  groupMatches?: Record<string, Record<string, QueryAccumulator>>;
   sort?: Record<string, 1 | -1> | DecodedSortOption[];
 }>;
 
 export type DecodedQuery<T> = Decoded<T, {
   filter: QuerySelector;
   matches: Record<string, DecodedBaseQuery>;
-  countMatches: string[];
+  groupMatches: Record<string, Record<string, QueryAccumulator>>;
   includes: string[];
   objectIdSize: number;
   sort?: Record<string, 1 | -1> | DecodedSortOption[];
@@ -72,7 +72,7 @@ export type InsertOptions = {
   className: string;
   includes: string[];
   matches: Record<string, DecodedBaseQuery>;
-  countMatches: string[];
+  groupMatches: Record<string, Record<string, QueryAccumulator>>;
   objectIdSize: number;
 };
 

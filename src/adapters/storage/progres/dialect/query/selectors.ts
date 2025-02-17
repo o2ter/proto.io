@@ -56,9 +56,6 @@ export const encodeFieldExpression = (
           if (!(expr.value instanceof TObject) || dataType.target !== expr.value.className || !expr.value.objectId) break;
           return sql`${element} ${nullSafeEqual()} ${{ value: expr.value.objectId }}`;
         }
-        if (relation && _.includes(parent.countMatches, relation.colname)) {
-          return sql`${element} ${nullSafeEqual()} ${encodeType(colname, 'number', expr.value) }`;
-        }
         return sql`${element} ${nullSafeEqual()} ${encodeValue(expr.value)}`;
       }
     case '$ne':
@@ -68,9 +65,6 @@ export const encodeFieldExpression = (
         if (!_.isString(dataType) && dataType?.type === 'pointer') {
           if (!(expr.value instanceof TObject) || dataType.target !== expr.value.className || !expr.value.objectId) break;
           return sql`${element} ${nullSafeNotEqual()} ${{ value: expr.value.objectId }}`;
-        }
-        if (relation && _.includes(parent.countMatches, relation.colname)) {
-          return sql`${element} ${nullSafeNotEqual()} ${encodeType(colname, 'number', expr.value)}`;
         }
         return sql`${element} ${nullSafeNotEqual()} ${encodeValue(expr.value)}`;
       }
@@ -108,8 +102,6 @@ export const encodeFieldExpression = (
           }
         } else if (!_.isString(dataType) && dataType?.type === 'pointer' && expr.value instanceof TObject && expr.value.objectId) {
           return sql`${element} ${{ literal: op }} ${{ value: expr.value.objectId }}`;
-        } else if (relation && _.includes(parent.countMatches, relation.colname)) {
-          return sql`${element} ${{ literal: op }} ${encodeType(colname, 'number', expr.value) }`;
         } else if (!dataType) {
           if (expr.value instanceof Decimal || _.isNumber(expr.value)) {
             return sql`(
@@ -282,8 +274,10 @@ export const encodeFieldExpression = (
         if (dataType && _isTypeof(dataType, 'string')) {
           return sql`COALESCE(length(${element}), 0) = ${{ value: expr.value }}`;
         }
-        if (relation && _.includes(parent.countMatches, relation.colname)) {
-          return sql`${element} = ${{ value: expr.value }}`;
+        if (relation && parent.className && parent.groupMatches?.[colname]) {
+          const tempName = `_populate_expr_$${compiler.nextIdx()}`;
+          const populate = _selectRelationPopulate(compiler, { className: parent.className, name: parent.name }, relation.populate, `$${field}`, false);
+          return sql`(SELECT COUNT(*) FROM (${populate}) AS ${{ identifier: tempName }}) = ${{ value: expr.value }}`;
         }
         if (dataType && _isTypeof(dataType, ['array', 'string[]', 'vector', 'relation'])) {
           return sql`COALESCE(array_length(${element}, 1), 0) = ${{ value: expr.value }}`;
@@ -305,8 +299,10 @@ export const encodeFieldExpression = (
         if (dataType && _isTypeof(dataType, 'string')) {
           return sql`COALESCE(length(${element}), 0) ${{ literal: expr.value ? '=' : '<>' }} 0`;
         }
-        if (relation && _.includes(parent.countMatches, relation.colname)) {
-          return sql`${element} ${{ literal: expr.value ? '=' : '<>' }} 0`;
+        if (relation && parent.className && parent.groupMatches?.[colname]) {
+          const tempName = `_populate_expr_$${compiler.nextIdx()}`;
+          const populate = _selectRelationPopulate(compiler, { className: parent.className, name: parent.name }, relation.populate, `$${field}`, false);
+          return sql`${{ literal: expr.value ? 'NOT EXISTS' : 'EXISTS' }}(SELECT * FROM (${populate}) AS ${{ identifier: tempName }})`;
         }
         if (dataType && _isTypeof(dataType, ['array', 'string[]', 'vector', 'relation'])) {
           return sql`COALESCE(array_length(${element}, 1), 0) ${{ literal: expr.value ? '=' : '<>' }} 0`;

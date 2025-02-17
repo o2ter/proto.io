@@ -37,7 +37,7 @@ export const _encodeJsonValue = (value: any): SQL => {
   return sql`to_jsonb(${{ value }})`;
 };
 
-export const _encodePopulateInclude = (
+export const _jsonPopulateInclude = (
   className: string,
   colname: string,
   dataType: TSchema.DataType,

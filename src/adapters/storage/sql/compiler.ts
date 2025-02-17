@@ -33,7 +33,8 @@ import { SqlDialect } from './dialect';
 import { resolveColumn, resolveDataType } from '../../../server/query/dispatcher/validator';
 import { decodeUpdateOp } from '../../../internals/object';
 import { TUpdateOp } from '../../../internals/object/types';
-import { TValue, TValueWithUndefined } from '../../../internals/types';
+import { TValueWithUndefined } from '../../../internals/types';
+import { QueryAccumulator } from '../../../server/query/dispatcher/parser/accumulators';
 
 export type QueryCompilerOptions = {
   className: string;
@@ -48,7 +49,7 @@ export type QueryContext = {
   className?: string;
   includes?: Record<string, TSchema.DataType>;
   populates?: Record<string, Populate>;
-  countMatches?: string[];
+  groupMatches?: Record<string, Record<string, QueryAccumulator>>;
 }
 
 export type Populate = Required<QueryContext> & {
@@ -161,19 +162,19 @@ export class QueryCompiler {
     className: string;
     includes: string[];
     matches: Record<string, DecodedBaseQuery>;
-    countMatches: string[];
+    groupMatches: Record<string, Record<string, QueryAccumulator>>;
   }) {
 
     const names: Record<string, TSchema.DataType> = {};
     const populates: Record<string, Populate> = {};
-    const countMatches: string[] = [];
+    const groupMatches: Record<string, Record<string, QueryAccumulator>> = {};
 
     for (const include of query.includes) {
       const { paths: [colname, ...subpath], dataType } = resolveColumn(this.schema, query.className, include);
 
       names[colname] = dataType;
 
-      if (isRelation(dataType) && _.includes(query.countMatches, colname)) countMatches.push(colname);
+      if (isRelation(dataType) && !_.isNil(query.groupMatches[colname])) groupMatches[colname] = query.groupMatches[colname];
 
       if (isPointer(dataType) || isRelation(dataType)) {
         if (_.isEmpty(subpath)) throw Error(`Invalid path: ${include}`);
@@ -202,22 +203,27 @@ export class QueryCompiler {
 
     for (const [colname, populate] of _.toPairs(populates)) {
       const _matches = query.matches[colname];
-      const { includes, populates, countMatches } = this._encodeIncludes({
+      const { includes, populates, groupMatches } = this._encodeIncludes({
         className: populate.className,
         includes: populate.subpaths,
         matches: _matches.matches,
-        countMatches: [
-          ..._.filter(query.countMatches, x => _.startsWith(x, `${colname}.`)).map(x => x.slice(colname.length + 1)),
-          ..._matches.countMatches ?? [],
-        ],
+        groupMatches: {
+          ..._.mapKeys(_.pickBy(query.groupMatches, (x, k) => _.startsWith(k, `${colname}.`)) , (x, k) => k.slice(colname.length + 1)),
+          ..._matches.groupMatches ?? {},
+        },
       });
       populate.sort = _encodeSorting(includes, populates, _matches.sort);
       populate.includes = includes;
       populate.populates = populates;
-      populate.countMatches = countMatches;
+      populate.groupMatches = groupMatches;
     }
 
-    return { className: query.className, includes: names, populates, countMatches: _.uniq(countMatches) };
+    return {
+      className: query.className,
+      includes: names,
+      populates,
+      groupMatches,
+    };
   }
 
   private _baseSelectQuery(
@@ -394,12 +400,12 @@ export class QueryCompiler {
     }
   }
 
-  private _selectIncludes(
+  _selectIncludes(
     className: string,
     includes: Record<string, TSchema.DataType>,
   ): SQL[] {
     const _includes = _.pickBy(includes, v => _.isString(v) || (v.type !== 'pointer' && v.type !== 'relation'));
-    return _.map(_includes, (dataType, colname) => {
+    return _.flatMap(_includes, (dataType, colname) => {
       if (!_.isString(dataType) && isPrimitive(dataType) && !_.isNil(dataType.default)) {
         return sql`COALESCE(${{ identifier: className }}.${{ identifier: colname }}, ${{ value: dataType.default }}) AS ${{ identifier: colname }}`;
       }
@@ -431,7 +437,6 @@ export class QueryCompiler {
       context,
       populate,
       field,
-      _.includes(context.countMatches, field),
     ));
   }
 

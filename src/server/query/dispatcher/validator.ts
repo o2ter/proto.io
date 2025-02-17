@@ -34,6 +34,8 @@ import { TObject } from '../../../internals/object';
 import { PVK } from '../../../internals/private';
 import { TQuerySelector } from '../../../internals/query/types/selectors';
 import { QueryExpression } from './parser/expressions';
+import { TQueryAccumulator } from '../../../internals/query/types/accumulators';
+import { QueryAccumulator } from './parser/accumulators';
 
 export const recursiveCheck = (x: any, stack: any[]) => {
   if (_.indexOf(stack, x) !== -1) throw Error('Recursive data detected');
@@ -233,19 +235,28 @@ export class QueryValidator<E> {
     return _values;
   }
 
-  validateCountMatches(className: string, countMatches: string[]) {
-    for (const colname of countMatches) {
+  decodeGroupMatches(className: string, groupMatches: Record<string, Record<string, TQueryAccumulator>>): Record<string, Record<string, QueryAccumulator>> {
+    const result = _.mapValues(groupMatches, m => _.mapValues(m, x => QueryAccumulator.decode(x).simplify()));
+    for (const [colname, group] of _.entries(result)) {
       const dataType = resolveDataType(this.schema, className, colname);
       if (!dataType || !isRelation(dataType)) throw Error(`Invalid relation key: ${colname}`);
+      for (const key of _.keys(group)) {
+        if (!key.match(QueryValidator.patterns.fieldName)) throw Error(`Invalid field name: ${key}`);
+      }
     }
+    return result;
   }
 
-  decodeIncludes(className: string, includes: string[]): string[] {
+  decodeIncludes(className: string, includes: string[], groupMatches: Record<string, Record<string, QueryAccumulator>>): string[] {
 
     const schema = this.schema[className] ?? {};
 
     const _includes: string[] = [];
-    const populates: Record<string, { className: string; subpaths: string[]; }> = {};
+    const populates: Record<string, {
+      className: string;
+      subpaths: string[];
+      groupMatches: Record<string, Record<string, QueryAccumulator>>;
+    }> = {};
 
     for (const include of includes) {
       if (include === '*') {
@@ -266,8 +277,12 @@ export class QueryValidator<E> {
           const isDigit = _.first(subpath)?.match(QueryValidator.patterns.digits);
           const _subpath = isRelation(dataType) && isDigit ? _.slice(subpath, 1) : subpath;
 
-          populates[colname] = populates[colname] ?? { className: dataType.target, subpaths: [] };
-          populates[colname].subpaths.push(_.isEmpty(_subpath) ? '*' : _subpath.join('.'));
+          populates[colname] = populates[colname] ?? { className: dataType.target, subpaths: [], groupMatches: {} };
+          const s = _.first(_subpath);
+          if (!s || !groupMatches[colname]?.[s]) {
+            populates[colname].subpaths.push(_.isEmpty(_subpath) ? '*' : _subpath.join('.'));
+            populates[colname].groupMatches = _.mapKeys(_.pickBy(groupMatches, (x, k) => _.startsWith(k, `${colname}.`)), (x, k) => k.slice(colname.length + 1));
+          }
 
         } else if (_.isEmpty(subpath) && isShape(dataType)) {
 
@@ -279,8 +294,9 @@ export class QueryValidator<E> {
               if (!this.validateCLPs(type.target, 'get')) throw Error('No permission');
               if (type.type === 'relation') this.validateForeignField(type, 'read', `Invalid include: ${include}`);
 
-              populates[`${colname}.${path}`] = populates[`${colname}.${path}`] ?? { className: type.target, subpaths: [] };
+              populates[`${colname}.${path}`] = populates[`${colname}.${path}`] ?? { className: type.target, subpaths: [], groupMatches: {} };
               populates[`${colname}.${path}`].subpaths.push('*');
+              populates[`${colname}.${path}`].groupMatches = _.mapKeys(_.pickBy(groupMatches, (x, k) => _.startsWith(k, `${colname}.${path}.`)), (x, k) => k.slice(`${colname}.${path}`.length + 1));
             }
           }
 
@@ -293,7 +309,7 @@ export class QueryValidator<E> {
     }
 
     for (const [key, populate] of _.toPairs(populates)) {
-      const subpaths = this.decodeIncludes(populate.className, populate.subpaths);
+      const subpaths = this.decodeIncludes(populate.className, populate.subpaths, populate.groupMatches);
       _includes.push(..._.map(subpaths, x => `${key}.${x}`));
     }
 
@@ -344,9 +360,10 @@ export class QueryValidator<E> {
       } else if (isRelation(dataType)) {
         if (!this.validateCLPs(dataType.target, 'get')) throw Error('No permission');
         this.validateForeignField(dataType, 'read', `Invalid match: ${colname}`);
+        const groupMatches = this.decodeGroupMatches(dataType.target, match.groupMatches ?? {});
         _matches[_colname] = {
           ...match,
-          countMatches: match.countMatches ?? [],
+          groupMatches,
           filter: QuerySelector.decode(_.castArray<TQuerySelector>(match.filter)).simplify(),
           matches: this.decodeMatches(
             dataType.target, match.matches ?? {},
@@ -381,21 +398,22 @@ export class QueryValidator<E> {
 
     if ('relatedBy' in query && query.relatedBy) this.validateRelatedBy(query.className, query.relatedBy);
 
-    this.validateCountMatches(query.className, query.countMatches ?? []);
-
     const filter = QuerySelector.decode([
       ...action === 'read' ? this._rperm(query.className) : this._wperm(query.className),
       ..._.castArray<TQuerySelector>(query.filter),
       this._expiredAt,
     ]).simplify();
 
-    const matcheKeyPaths = (
+    const groupMatches = this.decodeGroupMatches(query.className, query.groupMatches ?? {});
+
+    const matchKeyPaths = (
       matches: Record<string, TQueryBaseOptions>
     ): string[] => _.flatMap(matches, (match, key) => [
       ..._.keys(match.sort),
       ...QuerySelector.decode(match.filter ?? []).keyPaths(),
-      ...matcheKeyPaths(match.matches ?? {}),
-      ...match.countMatches ?? [],
+      ...matchKeyPaths(match.matches ?? {}),
+      ..._.keys(match.groupMatches),
+      ..._.flatMap(_.values(match.groupMatches), x => QueryAccumulator.decode(x).keyPaths()),
     ].map(x => `${key}.${x}`));
 
     const sort = query.sort && this.decodeSort(query.sort);
@@ -404,16 +422,17 @@ export class QueryValidator<E> {
       ...query.includes ?? ['*'],
       ..._.isArray(sort) ? _.flatMap(sort, s => s.expr.keyPaths()) : _.keys(sort),
       ...filter.keyPaths(),
-      ...matcheKeyPaths(query.matches ?? {}),
-      ...query.countMatches ?? [],
+      ...matchKeyPaths(query.matches ?? {}),
+      ..._.keys(groupMatches),
+      ..._.flatMap(_.values(groupMatches), m => _.flatMap(_.values(m), x => x.keyPaths())),
     ]);
 
-    const includes = this.decodeIncludes(query.className, keyPaths);
+    const includes = this.decodeIncludes(query.className, keyPaths, groupMatches);
     const matches = this.decodeMatches(query.className, query.matches ?? {}, includes);
 
     return {
       ...query,
-      countMatches: query.countMatches ?? [],
+      groupMatches,
       filter,
       matches,
       includes,

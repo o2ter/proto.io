@@ -26,9 +26,10 @@
 import _ from 'lodash';
 import { PathName, PathNameMap, PathNames } from './types';
 import { TQuerySelector } from './types/selectors';
-import { TValue, TValueWithUndefined } from '../types';
+import { TValueWithUndefined } from '../types';
 import { PVK } from '../private';
 import { TExpression } from './types/expressions';
+import { TQueryAccumulator } from './types/accumulators';
 
 /**
  * Options for a query filter.
@@ -75,9 +76,9 @@ export interface TQueryBaseOptions extends TQueryFilterBaseOptions {
    */
   matches?: Record<string, TQueryBaseOptions>;
   /**
-   * Specifies which relations should only return the count.
+   * Groups the query results by the specified key and applies the provided accumulators.
    */
-  countMatches?: string[];
+  groupMatches?: Record<string, Record<string, TQueryAccumulator>>;
 };
 
 const mergeOpts = (lhs: TQueryBaseOptions, rhs: TQueryBaseOptions): TQueryBaseOptions => {
@@ -92,10 +93,10 @@ const mergeOpts = (lhs: TQueryBaseOptions, rhs: TQueryBaseOptions): TQueryBaseOp
       ...lhs.matches,
       ..._.mapValues(rhs.matches, (opts, key) => lhs.matches?.[key] ? mergeOpts(lhs.matches[key], opts) : opts),
     },
-    countMatches: [
-      ...lhs.countMatches ?? [],
-      ...rhs.countMatches ?? [],
-    ],
+    groupMatches: {
+      ...lhs.groupMatches ?? {},
+      ...rhs.groupMatches ?? {},
+    },
   };
 }
 
@@ -434,13 +435,18 @@ export class TQueryBase extends TQueryFilterBase {
   }
 
   /**
-   * Adds the specified relations to the count-only options for a nested query.
-   * This method is used to specify that only the count of the nested relations should be retrieved.
-   * @param relations - The keys of the nested relations to be counted.
+   * Groups the query results by the specified key and applies the provided accumulators.
+   * @param key - The key to group by.
+   * @param accumulators - The accumulators to apply.
    * @returns The current instance for chaining.
    */
-  countMatches<T extends _.RecursiveArray<string>>(...relations: PathNames<T>) {
-    this[PVK].options.countMatches = this[PVK].options.countMatches ? [...this[PVK].options.countMatches, ..._.flattenDeep(relations)] : _.flattenDeep(relations);
+  groupMatches<T extends string>(key: PathName<T>, accumulators: Record<string, TQueryAccumulator>) {
+    if (_.isNil(this[PVK].options.groupMatches)) {
+      this[PVK].options.groupMatches = { [key]: accumulators };
+    } else {
+      this[PVK].options.groupMatches = { ...this[PVK].options.groupMatches };
+      this[PVK].options.groupMatches[key] = accumulators;
+    }
     return this;
   }
 }

@@ -66,7 +66,7 @@ const mapExpression = <R>(expr: QueryExpression, callback: (x: QueryExpression) 
 const _PrimitiveValue = ['boolean', 'number', 'decimal', 'string', 'date'] as const;
 type PrimitiveValue = typeof _PrimitiveValue[number];
 
-const encodeTypedQueryExpression = (
+export const encodeTypedQueryExpression = (
   compiler: QueryCompiler,
   parent: QueryContext,
   expr: QueryExpression

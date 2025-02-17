@@ -24,17 +24,17 @@
 //
 
 import _ from 'lodash';
-import { masterUser } from '../server';
+import { masterUser } from '../../server';
 import { test, expect } from '@jest/globals';
 import Decimal from 'decimal.js';
-import { ProtoClient } from '../../../src/client/proto';
+import { ProtoClient } from '../../../../src/client/proto';
 
 const Proto = new ProtoClient({
   endpoint: 'http://localhost:8080/proto',
   masterUser,
 });
 
-test('test count matches', async () => {
+test('test group matches count', async () => {
 
   const parent = await Proto.Query('Test').insert({
     relation: [
@@ -48,14 +48,16 @@ test('test count matches', async () => {
 
   const result = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
-    .countMatches('relation')
+    .groupMatches('relation', {
+      count: { $count: true },
+    })
     .first();
 
-  expect(result?.get('relation')).toBe(5);
+  expect(result?.get('relation.count')).toBe(5);
 
 })
 
-test('test count matches 2', async () => {
+test('test group matches count 2', async () => {
 
   const parent = await Proto.Query('Test').insert({});
   for (const i of _.range(1, 6)) {
@@ -66,14 +68,16 @@ test('test count matches 2', async () => {
 
   const result = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
-    .countMatches('relation2')
+    .groupMatches('relation2', {
+      count: { $count: true },
+    })
     .first();
 
-  expect(result?.get('relation2')).toBe(5);
+  expect(result?.get('relation2.count')).toBe(5);
 
 })
 
-test('test count matches 3', async () => {
+test('test group matches count 3', async () => {
 
   const parent = await Proto.Query('Test').insert({
     shape: {
@@ -89,14 +93,16 @@ test('test count matches 3', async () => {
 
   const result = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
-    .countMatches('shape.relation')
+    .groupMatches('shape.relation', {
+      count: { $count: true },
+    })
     .first();
 
-  expect(result?.get('shape.relation')).toBe(5);
+  expect(result?.get('shape.relation.count')).toBe(5);
 
 })
 
-test('test count matches 4', async () => {
+test('test group matches count 4', async () => {
 
   const parent = await Proto.Query('Test').insert({});
   for (const i of _.range(1, 6)) {
@@ -107,14 +113,16 @@ test('test count matches 4', async () => {
 
   const result = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
-    .countMatches('shape.relation2')
+    .groupMatches('shape.relation2', {
+      count: { $count: true },
+    })
     .first();
 
-  expect(result?.get('shape.relation2')).toBe(5);
+  expect(result?.get('shape.relation2.count')).toBe(5);
 
 })
 
-test('test count matches 5', async () => {
+test('test group matches count 5', async () => {
 
   const parent = await Proto.Query('Test').insert({
     relation: [
@@ -132,14 +140,16 @@ test('test count matches 5', async () => {
 
   const result = await Proto.Query('Test')
     .equalTo('_id', parent2.objectId)
-    .countMatches('pointer.relation')
+    .groupMatches('pointer.relation', {
+      count: { $count: true },
+    })
     .first();
 
-  expect(result?.get('pointer.relation')).toBe(5);
+  expect(result?.get('pointer.relation.count')).toBe(5);
 
 })
 
-test('test count matches 6', async () => {
+test('test group matches count 6', async () => {
 
   const parent = await Proto.Query('Test').insert({});
   for (const i of _.range(1, 6)) {
@@ -154,14 +164,16 @@ test('test count matches 6', async () => {
 
   const result = await Proto.Query('Test')
     .equalTo('_id', parent2.objectId)
-    .countMatches('pointer.relation2')
+    .groupMatches('pointer.relation2', {
+      count: { $count: true },
+    })
     .first();
 
-  expect(result?.get('pointer.relation2')).toBe(6);
+  expect(result?.get('pointer.relation2.count')).toBe(6);
 
 })
 
-test('test count matches 7', async () => {
+test('test group matches count 7', async () => {
 
   const parent = await Proto.Query('Test').insert({
     shape: {
@@ -181,14 +193,16 @@ test('test count matches 7', async () => {
 
   const result = await Proto.Query('Test')
     .equalTo('_id', parent2.objectId)
-    .countMatches('pointer.shape.relation')
+    .groupMatches('pointer.shape.relation', {
+      count: { $count: true },
+    })
     .first();
 
-  expect(result?.get('pointer.shape.relation')).toBe(5);
+  expect(result?.get('pointer.shape.relation.count')).toBe(5);
 
 })
 
-test('test count matches 8', async () => {
+test('test group matches count 8', async () => {
 
   const parent = await Proto.Query('Test').insert({});
   for (const i of _.range(1, 6)) {
@@ -203,14 +217,16 @@ test('test count matches 8', async () => {
 
   const result = await Proto.Query('Test')
     .equalTo('_id', parent2.objectId)
-    .countMatches('pointer.shape.relation2')
+    .groupMatches('pointer.shape.relation2', {
+      count: { $count: true },
+    })
     .first();
 
-  expect(result?.get('pointer.shape.relation2')).toBe(6);
+  expect(result?.get('pointer.shape.relation2.count')).toBe(6);
 
 })
 
-test('test count matches 9', async () => {
+test('test group matches count 9', async () => {
 
   const parent = await Proto.Query('Test').insert({
     relation: [
@@ -225,61 +241,75 @@ test('test count matches 9', async () => {
   const result = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .some('relation', q => q.equalTo('number', 42))
-    .countMatches('relation')
+    .groupMatches('relation', {
+      count: { $count: true },
+    })
     .first();
 
-  expect(result?.get('relation')).toBe(5);
+  expect(result?.get('relation.count')).toBe(5);
 
   const result2 = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .every('relation', q => q.equalTo('number', 42))
-    .countMatches('relation')
+    .groupMatches('relation', {
+      count: { $count: true },
+    })
     .first();
 
-  expect(result2?.get('relation')).toBeUndefined();
+  expect(result2?.get('relation.count')).toBeUndefined();
 
   const result3 = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .match('relation', q => q.equalTo('number', 42))
-    .countMatches('relation')
+    .groupMatches('relation', {
+      count: { $count: true },
+    })
     .first();
 
-  expect(result3?.get('relation')).toBe(3);
+  expect(result3?.get('relation.count')).toBe(3);
 
   const result4 = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .match('relation', q => q.equalTo('number', 42))
-    .equalTo('relation', 3)
-    .countMatches('relation')
+    .equalTo('relation.count', 3)
+    .groupMatches('relation', {
+      count: { $count: true },
+    })
     .first();
 
-  expect(result4?.get('relation')).toBe(3);
+  expect(result4?.get('relation.count')).toBe(3);
 
   const result5 = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .match('relation', q => q.equalTo('number', 42))
-    .equalTo('relation', 5)
-    .countMatches('relation')
+    .equalTo('relation.count', 5)
+    .groupMatches('relation', {
+      count: { $count: true },
+    })
     .first();
 
-  expect(result5?.get('relation')).toBeUndefined();
+  expect(result5?.get('relation.count')).toBeUndefined();
 
   const result6 = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .match('relation', q => q.equalTo('number', 42))
     .notEmpty('relation')
-    .countMatches('relation')
+    .groupMatches('relation', {
+      count: { $count: true },
+    })
     .first();
 
-  expect(result6?.get('relation')).toBe(3);
+  expect(result6?.get('relation.count')).toBe(3);
 
   const result7 = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .match('relation', q => q.equalTo('number', 42))
     .empty('relation')
-    .countMatches('relation')
+    .groupMatches('relation', {
+      count: { $count: true },
+    })
     .first();
 
-  expect(result7?.get('relation')).toBeUndefined();
+  expect(result7?.get('relation.count')).toBeUndefined();
 
 })
