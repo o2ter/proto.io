@@ -44,7 +44,6 @@ export const response = async <T extends TSerializable>(
     const data = await callback();
     res.type('application/json').send(serialize(data ?? null));
   } catch (error) {
-    console.error(error)
     res.status(400).json(encodeError(error));
   }
 };
