@@ -103,8 +103,7 @@ export abstract class SqlStorage implements TStorage {
         }
       } else if (isRelation(type)) {
         const _value = _.get(value, path);
-        if (_.isString(_value) && _value.match(/^\d+$/g)) _.set(result, path, parseInt(_value));
-        else if (_.isArray(_value)) _.set(result, path, _value.map(x => this._decodeObject(type.target, x, matchType)));
+        if (_.isArray(_value)) _.set(result, path, _value.map(x => this._decodeObject(type.target, x, matchType)));
         else if (_.isPlainObject(_value)) _.set(result, path, this._decodeMatchTypes(_value, matchType));
       } else {
         const _value = this.dialect.decodeType(type.type, _.get(value, path)) ?? type.default;
@@ -135,8 +134,7 @@ export abstract class SqlStorage implements TStorage {
           if (decoded.objectId) obj[PVK].attributes[key] = decoded;
         }
       } else if (isRelation(dataType)) {
-        if (_.isString(value) && value.match(/^\d+$/g)) obj[PVK].attributes[key] = parseInt(value);
-        else if (_.isArray(value)) obj[PVK].attributes[key] = value.map(x => this._decodeObject(dataType.target, x, matchType));
+        if (_.isArray(value)) obj[PVK].attributes[key] = value.map(x => this._decodeObject(dataType.target, x, matchType));
         else if (_.isPlainObject(value)) obj[PVK].attributes[key] = this._decodeMatchTypes(value, matchType);
       } else {
         obj[PVK].attributes[key] = this.dialect.decodeType(dataType.type, value) ?? dataType.default as any;
