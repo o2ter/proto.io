@@ -253,7 +253,7 @@ export class QueryCompiler {
 
     const includes = {
       literal: [
-        ...this._selectIncludes(fetchName, context),
+        ...this._selectIncludes(fetchName, context.includes),
         ..._.flatMap(populates, ({ columns }) => columns),
       ],
       separator: ',\n',
@@ -302,7 +302,7 @@ export class QueryCompiler {
 
     const _includes = {
       literal: [
-        ...this._selectIncludes(name, _context),
+        ...this._selectIncludes(name, _context.includes),
         ..._.flatMap(_populates, ({ columns }) => columns),
       ], separator: ',\n'
     };
@@ -412,14 +412,10 @@ export class QueryCompiler {
 
   _selectIncludes(
     className: string,
-    context: QueryContext,
+    includes: Record<string, TSchema.DataType>,
   ): SQL[] {
-    const _includes = _.pickBy(context.includes, v => _.isString(v) || (v.type !== 'pointer' && v.type !== 'relation'));
+    const _includes = _.pickBy(includes, v => _.isString(v) || (v.type !== 'pointer' && v.type !== 'relation'));
     return _.flatMap(_includes, (dataType, colname) => {
-      const groupMatches = context.groupMatches?.[colname];
-      if (!_.isEmpty(groupMatches)) {
-        return _.map(_.keys(groupMatches), k => sql`${{ identifier: className }}.${{ identifier: `${colname}.${k}` }}`);
-      }
       if (!_.isString(dataType) && isPrimitive(dataType) && !_.isNil(dataType.default)) {
         return sql`COALESCE(${{ identifier: className }}.${{ identifier: colname }}, ${{ value: dataType.default }}) AS ${{ identifier: colname }}`;
       }
@@ -482,7 +478,7 @@ export class QueryCompiler {
       )${!_.isEmpty(stages) ? sql`, ${_.map(stages, (q, n) => sql`${{ identifier: n }} AS (${q})`)}` : sql``}
       SELECT ${{
         literal: [
-          ...this._selectIncludes(name, context),
+          ...this._selectIncludes(name, context.includes),
           ..._.flatMap(_populates, ({ columns }) => columns),
         ], separator: ',\n'
       }}
@@ -563,7 +559,7 @@ export class QueryCompiler {
           )
           SELECT ${{
             literal: [
-              ...this._selectIncludes(name, context),
+              ...this._selectIncludes(name, context.includes ?? {}),
               ..._.flatMap(populates, ({ columns }) => columns),
             ], separator: ',\n'
           }}

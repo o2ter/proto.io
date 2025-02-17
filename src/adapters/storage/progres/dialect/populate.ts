@@ -320,7 +320,7 @@ export const encodePopulate = (
         SELECT
         ${{
         literal: [
-          ...compiler._selectIncludes(parent.name, parent),
+          ...compiler._selectIncludes(parent.name, parent.includes),
           ..._.flatMap(_populates, ({ columns: column }) => column),
           ..._foreignField ? [sql`${rows ? sql`ARRAY(${_foreignField})` : _foreignField} AS ${{ identifier: parent.colname }}`] : [],
         ], separator: ',\n'
