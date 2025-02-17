@@ -79,7 +79,9 @@ export interface TQueryBaseOptions extends TQueryFilterBaseOptions {
    * Specifies which relations should only return the count.
    */
   countMatches?: string[];
-
+  /**
+   * Groups the query results by the specified key and applies the provided accumulators.
+   */
   groupMatches?: Record<string, TQueryAccumulator>;
 };
 
@@ -447,6 +449,12 @@ export class TQueryBase extends TQueryFilterBase {
     return this;
   }
 
+  /**
+   * Groups the query results by the specified key and applies the provided accumulators.
+   * @param key - The key to group by.
+   * @param accumulators - The accumulators to apply.
+   * @returns The current instance for chaining.
+   */
   groupMatches<T extends string>(key: PathName<T>, accumulators: Record<string, TQueryAccumulator>) {
     if (_.isNil(this[PVK].options.groupMatches)) {
       this[PVK].options.groupMatches = { [key]: accumulators };
