@@ -57,9 +57,6 @@ export const encodeFieldExpression = (
           if (!(expr.value instanceof TObject) || dataType.target !== expr.value.className || !expr.value.objectId) break;
           return sql`${element} ${nullSafeEqual()} ${{ value: expr.value.objectId }}`;
         }
-        if (relation && _.includes(parent.countMatches, relation.colname)) {
-          return sql`${element} ${nullSafeEqual()} ${encodeType(colname, 'number', expr.value) }`;
-        }
         return sql`${match?.element ?? element} ${nullSafeEqual()} ${encodeValue(expr.value)}`;
       }
     case '$ne':
@@ -69,9 +66,6 @@ export const encodeFieldExpression = (
         if (!_.isString(dataType) && dataType?.type === 'pointer') {
           if (!(expr.value instanceof TObject) || dataType.target !== expr.value.className || !expr.value.objectId) break;
           return sql`${element} ${nullSafeNotEqual()} ${{ value: expr.value.objectId }}`;
-        }
-        if (relation && _.includes(parent.countMatches, relation.colname)) {
-          return sql`${element} ${nullSafeNotEqual()} ${encodeType(colname, 'number', expr.value)}`;
         }
         return sql`${match?.element ?? element} ${nullSafeNotEqual()} ${encodeValue(expr.value)}`;
       }
@@ -109,8 +103,6 @@ export const encodeFieldExpression = (
           }
         } else if (!_.isString(dataType) && dataType?.type === 'pointer' && expr.value instanceof TObject && expr.value.objectId) {
           return sql`${element} ${{ literal: op }} ${{ value: expr.value.objectId }}`;
-        } else if (relation && _.includes(parent.countMatches, relation.colname)) {
-          return sql`${element} ${{ literal: op }} ${encodeType(colname, 'number', expr.value) }`;
         } else if (!dataType) {
           if (expr.value instanceof Decimal || _.isNumber(expr.value)) {
             return sql`(
@@ -283,9 +275,6 @@ export const encodeFieldExpression = (
         if (dataType && _isTypeof(dataType, 'string')) {
           return sql`COALESCE(length(${element}), 0) = ${{ value: expr.value }}`;
         }
-        if (relation && _.includes(parent.countMatches, relation.colname)) {
-          return sql`${element} = ${{ value: expr.value }}`;
-        }
         if (dataType && _isTypeof(dataType, ['array', 'string[]', 'vector', 'relation'])) {
           return sql`COALESCE(array_length(${element}, 1), 0) = ${{ value: expr.value }}`;
         }
@@ -305,9 +294,6 @@ export const encodeFieldExpression = (
         if (!_.isBoolean(expr.value)) break;
         if (dataType && _isTypeof(dataType, 'string')) {
           return sql`COALESCE(length(${element}), 0) ${{ literal: expr.value ? '=' : '<>' }} 0`;
-        }
-        if (relation && _.includes(parent.countMatches, relation.colname)) {
-          return sql`${element} ${{ literal: expr.value ? '=' : '<>' }} 0`;
         }
         if (dataType && _isTypeof(dataType, ['array', 'string[]', 'vector', 'relation'])) {
           return sql`COALESCE(array_length(${element}, 1), 0) ${{ literal: expr.value ? '=' : '<>' }} 0`;

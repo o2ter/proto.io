@@ -110,7 +110,6 @@ export const dispatcher = <E>(
         className: string;
         includes?: string[];
         matches?: Record<string, TQueryBaseOptions>;
-        countMatches?: string[];
         groupMatches?: Record<string, Record<string, TQueryAccumulator>>;
       },
       values: Record<string, TValueWithUndefined>[],
@@ -118,7 +117,6 @@ export const dispatcher = <E>(
       if (!createFile && options.className === 'File') throw Error('File is not support insert');
       QueryValidator.recursiveCheck(values);
       const _validator = await validator();
-      _validator.validateCountMatches(options.className, options.countMatches ?? []);
       const _groupMatches = _validator.decodeGroupMatches(options.className, options.groupMatches ?? {});
       const _includes = _validator.decodeIncludes(options.className, options.includes ?? ['*'], _groupMatches);
       const _matches = _validator.decodeMatches(options.className, options.matches ?? {}, _includes);
@@ -131,7 +129,6 @@ export const dispatcher = <E>(
               className: options.className,
               includes: _includes,
               matches: _matches,
-              countMatches: options.countMatches ?? [],
               groupMatches: _groupMatches,
               objectIdSize: proto[PVK].options.objectIdSize
             }, _attrs),

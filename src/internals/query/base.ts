@@ -76,10 +76,6 @@ export interface TQueryBaseOptions extends TQueryFilterBaseOptions {
    */
   matches?: Record<string, TQueryBaseOptions>;
   /**
-   * Specifies which relations should only return the count.
-   */
-  countMatches?: string[];
-  /**
    * Groups the query results by the specified key and applies the provided accumulators.
    */
   groupMatches?: Record<string, Record<string, TQueryAccumulator>>;
@@ -97,10 +93,10 @@ const mergeOpts = (lhs: TQueryBaseOptions, rhs: TQueryBaseOptions): TQueryBaseOp
       ...lhs.matches,
       ..._.mapValues(rhs.matches, (opts, key) => lhs.matches?.[key] ? mergeOpts(lhs.matches[key], opts) : opts),
     },
-    countMatches: [
-      ...lhs.countMatches ?? [],
-      ...rhs.countMatches ?? [],
-    ],
+    groupMatches: {
+      ...lhs.groupMatches ?? {},
+      ...rhs.groupMatches ?? {},
+    },
   };
 }
 
@@ -435,17 +431,6 @@ export class TQueryBase extends TQueryFilterBase {
       this[PVK].options.matches = { ...this[PVK].options.matches };
       this[PVK].options.matches[key] = mergeOpts(this[PVK].options.matches[key], query[PVK].options);
     }
-    return this;
-  }
-
-  /**
-   * Adds the specified relations to the count-only options for a nested query.
-   * This method is used to specify that only the count of the nested relations should be retrieved.
-   * @param relations - The keys of the nested relations to be counted.
-   * @returns The current instance for chaining.
-   */
-  countMatches<T extends _.RecursiveArray<string>>(...relations: PathNames<T>) {
-    this[PVK].options.countMatches = this[PVK].options.countMatches ? [...this[PVK].options.countMatches, ..._.flattenDeep(relations)] : _.flattenDeep(relations);
     return this;
   }
 

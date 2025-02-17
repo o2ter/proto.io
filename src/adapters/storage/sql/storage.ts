@@ -174,15 +174,11 @@ export abstract class SqlStorage implements TStorage {
 
   private _matchesType(options: {
       matches: Record<string, DecodedBaseQuery>;
-      countMatches?: string[];
       groupMatches?: Record<string, Record<string, QueryAccumulator>>;
   }): Record<string, any> {
     const types: Record<string, any> = {};
     for (const [key, match] of _.entries(options.matches)) {
       types[key] = this._matchesType(match);
-    }
-    for (const match of options.countMatches ?? []) {
-      _.set(types, match, 'number');
     }
     for (const [key, group] of _.entries(options.groupMatches)) {
       for (const [field, expr] of _.entries(group)) {

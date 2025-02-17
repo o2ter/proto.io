@@ -54,7 +54,6 @@ export type DecodedSortOption = {
 export type DecodedBaseQuery = Decoded<TQueryBaseOptions, {
   filter?: QuerySelector;
   matches: Record<string, DecodedBaseQuery>;
-  countMatches?: string[];
   groupMatches?: Record<string, Record<string, QueryAccumulator>>;
   sort?: Record<string, 1 | -1> | DecodedSortOption[];
 }>;
@@ -62,7 +61,6 @@ export type DecodedBaseQuery = Decoded<TQueryBaseOptions, {
 export type DecodedQuery<T> = Decoded<T, {
   filter: QuerySelector;
   matches: Record<string, DecodedBaseQuery>;
-  countMatches: string[];
   groupMatches: Record<string, Record<string, QueryAccumulator>>;
   includes: string[];
   objectIdSize: number;
@@ -74,7 +72,6 @@ export type InsertOptions = {
   className: string;
   includes: string[];
   matches: Record<string, DecodedBaseQuery>;
-  countMatches: string[];
   groupMatches: Record<string, Record<string, QueryAccumulator>>;
   objectIdSize: number;
 };

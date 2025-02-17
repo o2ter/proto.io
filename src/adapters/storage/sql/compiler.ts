@@ -49,7 +49,6 @@ export type QueryContext = {
   className?: string;
   includes?: Record<string, TSchema.DataType>;
   populates?: Record<string, Populate>;
-  countMatches?: string[];
   groupMatches?: Record<string, Record<string, QueryAccumulator>>;
 }
 
@@ -163,13 +162,11 @@ export class QueryCompiler {
     className: string;
     includes: string[];
     matches: Record<string, DecodedBaseQuery>;
-    countMatches: string[];
     groupMatches: Record<string, Record<string, QueryAccumulator>>;
   }) {
 
     const names: Record<string, TSchema.DataType> = {};
     const populates: Record<string, Populate> = {};
-    const countMatches: string[] = [];
     const groupMatches: Record<string, Record<string, QueryAccumulator>> = {};
 
     for (const include of query.includes) {
@@ -177,7 +174,6 @@ export class QueryCompiler {
 
       names[colname] = dataType;
 
-      if (isRelation(dataType) && _.includes(query.countMatches, colname)) countMatches.push(colname);
       if (isRelation(dataType) && !_.isNil(query.groupMatches[colname])) groupMatches[colname] = query.groupMatches[colname];
 
       if (isPointer(dataType) || isRelation(dataType)) {
@@ -207,14 +203,10 @@ export class QueryCompiler {
 
     for (const [colname, populate] of _.toPairs(populates)) {
       const _matches = query.matches[colname];
-      const { includes, populates, countMatches, groupMatches } = this._encodeIncludes({
+      const { includes, populates, groupMatches } = this._encodeIncludes({
         className: populate.className,
         includes: populate.subpaths,
         matches: _matches.matches,
-        countMatches: [
-          ..._.filter(query.countMatches, x => _.startsWith(x, `${colname}.`)).map(x => x.slice(colname.length + 1)),
-          ..._matches.countMatches ?? [],
-        ],
         groupMatches: {
           ..._.mapKeys(_.pickBy(query.groupMatches, (x, k) => _.startsWith(k, `${colname}.`)) , (x, k) => k.slice(colname.length + 1)),
           ..._matches.groupMatches ?? {},
@@ -223,7 +215,6 @@ export class QueryCompiler {
       populate.sort = _encodeSorting(includes, populates, _matches.sort);
       populate.includes = includes;
       populate.populates = populates;
-      populate.countMatches = countMatches;
       populate.groupMatches = groupMatches;
     }
 
@@ -231,7 +222,6 @@ export class QueryCompiler {
       className: query.className,
       includes: names,
       populates,
-      countMatches: _.uniq(countMatches),
       groupMatches,
     };
   }
@@ -447,7 +437,6 @@ export class QueryCompiler {
       context,
       populate,
       field,
-      _.includes(context.countMatches, field),
     ));
   }
 

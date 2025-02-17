@@ -235,13 +235,6 @@ export class QueryValidator<E> {
     return _values;
   }
 
-  validateCountMatches(className: string, countMatches: string[]) {
-    for (const colname of countMatches) {
-      const dataType = resolveDataType(this.schema, className, colname);
-      if (!dataType || !isRelation(dataType)) throw Error(`Invalid relation key: ${colname}`);
-    }
-  }
-
   decodeGroupMatches(className: string, groupMatches: Record<string, Record<string, TQueryAccumulator>>): Record<string, Record<string, QueryAccumulator>> {
     const result = _.mapValues(groupMatches, m => _.mapValues(m, x => QueryAccumulator.decode(x).simplify()));
     for (const [colname, group] of _.entries(result)) {
@@ -370,7 +363,6 @@ export class QueryValidator<E> {
         const groupMatches = this.decodeGroupMatches(dataType.target, match.groupMatches ?? {});
         _matches[_colname] = {
           ...match,
-          countMatches: match.countMatches ?? [],
           groupMatches,
           filter: QuerySelector.decode(_.castArray<TQuerySelector>(match.filter)).simplify(),
           matches: this.decodeMatches(
@@ -406,8 +398,6 @@ export class QueryValidator<E> {
 
     if ('relatedBy' in query && query.relatedBy) this.validateRelatedBy(query.className, query.relatedBy);
 
-    this.validateCountMatches(query.className, query.countMatches ?? []);
-
     const filter = QuerySelector.decode([
       ...action === 'read' ? this._rperm(query.className) : this._wperm(query.className),
       ..._.castArray<TQuerySelector>(query.filter),
@@ -422,7 +412,6 @@ export class QueryValidator<E> {
       ..._.keys(match.sort),
       ...QuerySelector.decode(match.filter ?? []).keyPaths(),
       ...matchKeyPaths(match.matches ?? {}),
-      ...match.countMatches ?? [],
       ..._.keys(match.groupMatches),
       ..._.flatMap(_.values(match.groupMatches), x => QueryAccumulator.decode(x).keyPaths()),
     ].map(x => `${key}.${x}`));
@@ -434,7 +423,6 @@ export class QueryValidator<E> {
       ..._.isArray(sort) ? _.flatMap(sort, s => s.expr.keyPaths()) : _.keys(sort),
       ...filter.keyPaths(),
       ...matchKeyPaths(query.matches ?? {}),
-      ...query.countMatches ?? [],
       ..._.keys(groupMatches),
       ..._.flatMap(_.values(groupMatches), m => _.flatMap(_.values(m), x => x.keyPaths())),
     ]);
@@ -444,7 +432,6 @@ export class QueryValidator<E> {
 
     return {
       ...query,
-      countMatches: query.countMatches ?? [],
       groupMatches,
       filter,
       matches,

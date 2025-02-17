@@ -126,7 +126,6 @@ export const selectPopulate = (
   parent: QueryContext & { className: string; },
   populate: Populate,
   field: string,
-  countMatches: boolean,
 ): { columns: SQL[]; join?: SQL; } => {
   if (populate.type === 'relation') {
     const { groupMatches } = parent;
@@ -168,14 +167,6 @@ export const selectPopulate = (
           default: break;
         }
       }
-    } else if (countMatches) {
-      columns.push(sql`
-        (
-          SELECT COUNT(*) FROM (
-            ${_selectRelationPopulate(compiler, parent, populate, field, false)}
-          ) ${{ identifier: populate.name }}
-        ) AS ${{ identifier: field }}
-      `);
     } else {
       columns.push(sql`
         ARRAY(
@@ -321,7 +312,7 @@ export const encodePopulate = (
     parent.filter && compiler._encodeFilter(parent, parent.filter),
     compiler.extraFilter && compiler._encodeFilter(parent, compiler.extraFilter(parent.className)),
   ]);
-  const _populates = _.map(parent.populates, (populate, field) => selectPopulate(compiler, parent, populate, field, _.includes(parent.countMatches, field)));
+  const _populates = _.map(parent.populates, (populate, field) => selectPopulate(compiler, parent, populate, field));
   const _joins = _.compact(_.map(_populates, ({ join }) => join));
   const {
     joins: _joins2 = [],
