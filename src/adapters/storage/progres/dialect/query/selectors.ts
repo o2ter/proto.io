@@ -274,6 +274,11 @@ export const encodeFieldExpression = (
         if (dataType && _isTypeof(dataType, 'string')) {
           return sql`COALESCE(length(${element}), 0) = ${{ value: expr.value }}`;
         }
+        if (relation && parent.className && parent.groupMatches?.[colname]) {
+          const tempName = `_populate_expr_$${compiler.nextIdx()}`;
+          const populate = _selectRelationPopulate(compiler, { className: parent.className, name: parent.name }, relation.populate, `$${field}`, false);
+          return sql`(SELECT COUNT(*) FROM (${populate}) AS ${{ identifier: tempName }}) = ${{ value: expr.value }}`;
+        }
         if (dataType && _isTypeof(dataType, ['array', 'string[]', 'vector', 'relation'])) {
           return sql`COALESCE(array_length(${element}, 1), 0) = ${{ value: expr.value }}`;
         }
