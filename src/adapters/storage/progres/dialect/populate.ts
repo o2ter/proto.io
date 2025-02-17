@@ -31,6 +31,7 @@ import { _jsonPopulateInclude } from './encode';
 import { resolveColumn } from '../../../../server/query/dispatcher/validator';
 import { QueryAccumulator } from '../../../../server/query/dispatcher/parser/accumulators';
 import { encodeQueryExpression } from './query';
+import { encodeTypedQueryExpression } from './query/expressions';
 
 const resolveSubpaths = (
   compiler: QueryCompiler,
@@ -147,7 +148,8 @@ export const selectPopulate = (
           case '$avg':
             {
               if (!expr) throw Error('Invalid expression');
-              const value = encodeQueryExpression(compiler, parent, expr);
+              const exprs = encodeTypedQueryExpression(compiler, parent, expr);
+              const value = _.find(exprs, e => e.type === 'number')?.sql;
               if (!value) throw Error('Invalid expression');
               columns.push(sql`
                 (
@@ -161,7 +163,8 @@ export const selectPopulate = (
           case '$sum':
             {
               if (!expr) throw Error('Invalid expression');
-              const value = encodeQueryExpression(compiler, parent, expr);
+              const exprs = encodeTypedQueryExpression(compiler, parent, expr);
+              const value = _.find(exprs, e => e.type === 'number')?.sql;
               if (!value) throw Error('Invalid expression');
               columns.push(sql`
                 (
