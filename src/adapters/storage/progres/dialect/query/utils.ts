@@ -28,6 +28,7 @@ import { sql } from '../../../sql';
 import { Populate, QueryCompiler, QueryContext } from '../../../sql/compiler';
 import { TSchema, _isTypeof, isPointer, isRelation, isVector } from '../../../../../internals/schema';
 import { QueryValidator, resolveColumn } from '../../../../../server/query/dispatcher/validator';
+import { accumulatorKeyTypes } from '../../../../../internals/query/types/accumulators';
 
 const _fetchElement = (
   parent: QueryContext,
@@ -50,7 +51,14 @@ const _fetchElement = (
     }
   } else if (!_.isEmpty(subpath)) {
     const _subpath = sql`${_.map(subpath, x => sql`${{ quote: x.startsWith('$') ? `$${x}` : x }}`)}`;
-    if (dataType && _isTypeof(dataType, ['array', 'string[]', 'relation'])) {
+    const match = parent.groupMatches?.[colname]?.[subpath[0]];
+    if (dataType && isRelation(dataType) && subpath.length === 1 && match) {
+      return {
+        element: sql`${{ identifier: parent.name }}.${{ identifier: `${colname}.${subpath[0]}` }}`,
+        json: false,
+        dataType: accumulatorKeyTypes[match.type],
+      };
+    } else if (dataType && _isTypeof(dataType, ['array', 'string[]', 'relation'])) {
       return {
         element: sql`jsonb_extract_path(to_jsonb(${element}), ${_subpath})`,
         json: true,
@@ -117,13 +125,13 @@ export const fetchElement = (
 ) => {
   if (parent.className) {
     const { dataType, colname, subpath } = resolvePaths(compiler, parent.className, _.toPath(field));
-    const { element, json } = _fetchElement(parent, colname, subpath, dataType);
+    const { element, json, dataType: dataType2 } = _fetchElement(parent, colname, subpath, dataType);
     if (isPointer(dataType)) return { element: sql`${{ identifier: parent.name }}.${{ identifier: `${colname}._id` }}`, dataType };
     const populate = isRelation(dataType) && _resolvePopulate(_.toPath(colname), parent.populates);
     if (!populate) return { element, dataType: json ? null : dataType };
     return {
       element,
-      dataType: json ? null : dataType,
+      dataType: json ? null : dataType2 ?? dataType,
       relation: {
         colname,
         target: dataType.target,
