@@ -121,24 +121,29 @@ export const selectPopulate = (
 ): { columns: SQL[]; join?: SQL; } => {
   if (populate.type === 'relation') {
     const { groupMatches } = parent;
-    return {
-      columns: [
-        countMatches ? sql`
-          (
-            SELECT COUNT(*) FROM (
-              ${_selectRelationPopulate(compiler, parent, populate, field, false)}
-            ) ${{ identifier: populate.name }}
-          ) AS ${{ identifier: field }}
-        ` : sql`
-          ARRAY(
-            SELECT to_jsonb(${{ identifier: populate.name }}) FROM (
-              ${_selectRelationPopulate(compiler, parent, populate, field, true)}
-            ) ${{ identifier: populate.name }}
-          ) AS ${{ identifier: field }}
-        `,
-        sql`${{ identifier: parent.name }}.${{ identifier: field }} AS ${{ identifier: `$${field}` }}`
-      ],
-    };
+    const columns = [
+      sql`${{ identifier: parent.name }}.${{ identifier: field }} AS ${{ identifier: `$${field}` }}`,
+    ];
+    if (!_.isEmpty(groupMatches)) {
+
+    } else if (countMatches) {
+      columns.push(sql`
+        (
+          SELECT COUNT(*) FROM (
+            ${_selectRelationPopulate(compiler, parent, populate, field, false)}
+          ) ${{ identifier: populate.name }}
+        ) AS ${{ identifier: field }}
+      `);
+    } else {
+      columns.push(sql`
+        ARRAY(
+          SELECT to_jsonb(${{ identifier: populate.name }}) FROM (
+            ${_selectRelationPopulate(compiler, parent, populate, field, true)}
+          ) ${{ identifier: populate.name }}
+        ) AS ${{ identifier: field }}
+      `);
+    }
+    return { columns };
   }
 
   const _local = (field: string) => sql`${{ identifier: parent.name }}.${{ identifier: field }}`;
