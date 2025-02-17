@@ -244,7 +244,12 @@ export class QueryValidator<E> {
 
   decodeGroupMatches(className: string, groupMatches: Record<string, TQueryAccumulator>): Record<string, QueryAccumulator> {
     const result = _.mapValues(groupMatches, x => QueryAccumulator.decode(x));
-
+    for (const expr of _.values(result)) {
+      for (const colname of expr.keyPaths()) {
+        const dataType = resolveDataType(this.schema, className, colname);
+        if (!dataType || !isRelation(dataType)) throw Error(`Invalid relation key: ${colname}`);
+      }
+    }
     return result;
   }
 
