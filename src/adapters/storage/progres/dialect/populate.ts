@@ -125,7 +125,29 @@ export const selectPopulate = (
       sql`${{ identifier: parent.name }}.${{ identifier: field }} AS ${{ identifier: `$${field}` }}`,
     ];
     if (!_.isEmpty(groupMatches)) {
-
+      for (const [key, expr] of _.entries(groupMatches)) {
+        switch (expr.type) {
+          case '$count':
+            columns.push(sql`
+              (
+                SELECT COUNT(*) FROM (
+                  ${_selectRelationPopulate(compiler, parent, populate, field, false)}
+                ) ${{ identifier: populate.name }}
+              ) AS ${{ identifier: `${field}.${key}` }}
+            `);
+            break;
+          case '$sum':
+            columns.push(sql`
+              (
+                SELECT COUNT(*) FROM (
+                  ${_selectRelationPopulate(compiler, parent, populate, field, false)}
+                ) ${{ identifier: populate.name }}
+              ) AS ${{ identifier: `${field}.${key}` }}
+            `);
+            break;
+          default: break;
+        }
+      }
     } else if (countMatches) {
       columns.push(sql`
         (
