@@ -144,17 +144,33 @@ export const selectPopulate = (
               ) AS ${{ identifier: `${field}.${key}` }}
             `);
             break;
+          case '$avg':
+            {
+              if (!expr) throw Error('Invalid expression');
+              const value = encodeQueryExpression(compiler, parent, expr);
+              if (!value) throw Error('Invalid expression');
+              columns.push(sql`
+                (
+                  SELECT AVG(${value}) FROM (
+                    ${_selectRelationPopulate(compiler, parent, populate, field, false)}
+                  ) ${{ identifier: populate.name }}
+                ) AS ${{ identifier: `${field}.${key}` }}
+              `);
+            }
+            break;
           case '$sum':
-            if (!expr) throw Error('Invalid expression');
-            const value = encodeQueryExpression(compiler, parent, expr);
-            if (!value) throw Error('Invalid expression');
-            columns.push(sql`
-              (
-                SELECT SUM(${value}) FROM (
-                  ${_selectRelationPopulate(compiler, parent, populate, field, false)}
-                ) ${{ identifier: populate.name }}
-              ) AS ${{ identifier: `${field}.${key}` }}
-            `);
+            {
+              if (!expr) throw Error('Invalid expression');
+              const value = encodeQueryExpression(compiler, parent, expr);
+              if (!value) throw Error('Invalid expression');
+              columns.push(sql`
+                (
+                  SELECT SUM(${value}) FROM (
+                    ${_selectRelationPopulate(compiler, parent, populate, field, false)}
+                  ) ${{ identifier: populate.name }}
+                ) AS ${{ identifier: `${field}.${key}` }}
+              `);
+            }
             break;
           default: break;
         }
