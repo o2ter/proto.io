@@ -50,7 +50,7 @@ export type QueryContext = {
   includes?: Record<string, TSchema.DataType>;
   populates?: Record<string, Populate>;
   countMatches?: string[];
-  groupMatches?: Record<string, QueryAccumulator>;
+  groupMatches?: Record<string, Record<string, QueryAccumulator>>;
 }
 
 export type Populate = Required<QueryContext> & {
@@ -164,13 +164,13 @@ export class QueryCompiler {
     includes: string[];
     matches: Record<string, DecodedBaseQuery>;
     countMatches: string[];
-    groupMatches: Record<string, QueryAccumulator>;
+    groupMatches: Record<string, Record<string, QueryAccumulator>>;
   }) {
 
     const names: Record<string, TSchema.DataType> = {};
     const populates: Record<string, Populate> = {};
     const countMatches: string[] = [];
-    const groupMatches: Record<string, QueryAccumulator> = {};
+    const groupMatches: Record<string, Record<string, QueryAccumulator>> = {};
 
     for (const include of query.includes) {
       const { paths: [colname, ...subpath], dataType } = resolveColumn(this.schema, query.className, include);

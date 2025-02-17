@@ -82,7 +82,7 @@ export interface TQueryBaseOptions extends TQueryFilterBaseOptions {
   /**
    * Groups the query results by the specified key and applies the provided accumulators.
    */
-  groupMatches?: Record<string, TQueryAccumulator>;
+  groupMatches?: Record<string, Record<string, TQueryAccumulator>>;
 };
 
 const mergeOpts = (lhs: TQueryBaseOptions, rhs: TQueryBaseOptions): TQueryBaseOptions => {

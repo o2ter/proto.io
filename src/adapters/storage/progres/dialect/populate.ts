@@ -125,8 +125,8 @@ export const selectPopulate = (
     const columns = [
       sql`${{ identifier: parent.name }}.${{ identifier: field }} AS ${{ identifier: `$${field}` }}`,
     ];
-    if (!_.isEmpty(groupMatches)) {
-      for (const [key, { type, expr }] of _.entries(groupMatches)) {
+    if (!_.isEmpty(groupMatches?.[field])) {
+      for (const [key, { type, expr }] of _.entries(groupMatches[field])) {
         switch (type) {
           case '$count':
             columns.push(sql`

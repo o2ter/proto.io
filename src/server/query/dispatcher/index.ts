@@ -111,7 +111,7 @@ export const dispatcher = <E>(
         includes?: string[];
         matches?: Record<string, TQueryBaseOptions>;
         countMatches?: string[];
-        groupMatches?: Record<string, TQueryAccumulator>;
+        groupMatches?: Record<string, Record<string, TQueryAccumulator>>;
       },
       values: Record<string, TValueWithUndefined>[],
     ) {
