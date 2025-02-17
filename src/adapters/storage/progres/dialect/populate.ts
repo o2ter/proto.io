@@ -152,7 +152,7 @@ export const selectPopulate = (
                 '$sum': 'SUM',
               }[type];
               if (!expr) throw Error('Invalid expression');
-              const exprs = encodeTypedQueryExpression(compiler, parent, expr);
+              const exprs = encodeTypedQueryExpression(compiler, populate, expr);
               const { sql: value } = (_.includes(['$avg'], type) ? _.find(exprs, e => e.type === 'number') : _.first(exprs)) ?? {};
               if (!value) throw Error('Invalid expression');
               columns.push(sql`
