@@ -27,7 +27,7 @@ import _ from 'lodash';
 import { SQL, sql } from '../../sql';
 import { TSchema, isPointer, isPrimitive, isRelation, isShape, isVector } from '../../../../internals/schema';
 import { Populate, QueryCompiler, QueryContext } from '../../sql/compiler';
-import { _encodePopulateInclude } from './encode';
+import { _jsonPopulateInclude } from './encode';
 import { resolveColumn } from '../../../../server/query/dispatcher/validator';
 import { QueryAccumulator } from '../../../../server/query/dispatcher/parser/accumulators';
 import { encodeQueryExpression } from './query';
@@ -100,11 +100,18 @@ export const _selectRelationPopulate = (
     cond = sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ANY(${_foreign(populate.colname)})`;
   }
   return sql`
-    SELECT ${_.compact(_.flatMap(subpaths, ({ path, type }) => [
-      encode && _encodePopulateInclude(populate.name, path, type),
-      !encode && sql`${{ identifier: populate.name }}.${{ identifier: path }}`,
-      !encode && isRelation(type) && sql`${{ identifier: populate.name }}.${{ identifier: `$${path}` }}`,
-    ]))}
+    SELECT ${_.compact(_.flatMap(subpaths, ({ path, type }) =>
+      encode ? [
+        _jsonPopulateInclude(populate.name, path, type)
+      ] : [
+        ...(populate.groupMatches[path] ? _.map(_.keys(populate.groupMatches[path]), k =>
+          sql`${{ identifier: populate.name }}.${{ identifier: `${path}.${k}` }}`
+        ) : [
+          sql`${{ identifier: populate.name }}.${{ identifier: path }}`
+        ]),
+        isRelation(type) && sql`${{ identifier: populate.name }}.${{ identifier: `$${path}` }}`,
+      ]
+    ))}
     FROM ${{ identifier: populate.name }} WHERE ${cond}
     ${!_.isEmpty(populate.sort) ? sql`ORDER BY ${compiler._encodeSort(populate.sort, { className: populate.className, name: populate.name })}` : sql``}
     ${populate.limit ? sql`LIMIT ${{ literal: `${populate.limit}` }}` : sql``}
@@ -178,7 +185,11 @@ export const selectPopulate = (
   const subpaths = resolveSubpaths(compiler, populate);
   return {
     columns: _.compact(_.flatMap(subpaths, ({ path, type }) => [
-      sql`${{ identifier: populate.name }}.${{ identifier: path }} AS ${{ identifier: `${field}.${path}` }}`,
+      ...populate.groupMatches[path] ? _.map(_.keys(populate.groupMatches[path]), k =>
+        sql`${{ identifier: populate.name }}.${{ identifier: `${path}.${k}` }} AS ${{ identifier: `${field}.${path}.${k}` }}`
+      ) : [
+        sql`${{ identifier: populate.name }}.${{ identifier: path }} AS ${{ identifier: `${field}.${path}` }}`
+      ],
       isRelation(type) && sql`${{ identifier: populate.name }}.${{ identifier: `$${path}` }} AS ${{ identifier: `$${field}.${path}` }}`,
     ])),
     join: sql`
