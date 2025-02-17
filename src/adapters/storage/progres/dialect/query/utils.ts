@@ -54,12 +54,9 @@ const _fetchElement = (
     const match = parent.groupMatches?.[colname]?.[subpath[0]];
     if (dataType && isRelation(dataType) && subpath.length === 1 && match) {
       return {
-        element: sql`jsonb_extract_path(to_jsonb(${element}), ${_subpath})`,
-        json: true,
-        match: {
-          element: sql`${{ identifier: parent.name }}.${{ identifier: `${colname}.${subpath[0]}` }}`,
-          dataType: accumulatorKeyTypes[match.type],
-        },
+        element: sql`${{ identifier: parent.name }}.${{ identifier: `${colname}.${subpath[0]}` }}`,
+        json: false,
+        dataType: accumulatorKeyTypes[match.type],
       };
     } else if (dataType && _isTypeof(dataType, ['array', 'string[]', 'relation'])) {
       return {
@@ -128,14 +125,13 @@ export const fetchElement = (
 ) => {
   if (parent.className) {
     const { dataType, colname, subpath } = resolvePaths(compiler, parent.className, _.toPath(field));
-    const { element, json, match } = _fetchElement(parent, colname, subpath, dataType);
+    const { element, json, dataType: _dataType } = _fetchElement(parent, colname, subpath, dataType);
     if (isPointer(dataType)) return { element: sql`${{ identifier: parent.name }}.${{ identifier: `${colname}._id` }}`, dataType };
     const populate = isRelation(dataType) && _resolvePopulate(_.toPath(colname), parent.populates);
     if (!populate) return { element, dataType: json ? null : dataType };
     return {
       element,
-      dataType: json ? null : dataType,
-      match,
+      dataType: json ? null : _dataType ?? dataType,
       relation: {
         colname,
         target: dataType.target,
