@@ -271,7 +271,7 @@ test('test group matches count 9', async () => {
   const result4 = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .match('relation', q => q.equalTo('number', 42))
-    .equalTo('relation', 3)
+    .equalTo('relation.count', 3)
     .groupMatches('relation', {
       count: { $count: true },
     })
@@ -282,7 +282,7 @@ test('test group matches count 9', async () => {
   const result5 = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .match('relation', q => q.equalTo('number', 42))
-    .equalTo('relation', 5)
+    .equalTo('relation.count', 5)
     .groupMatches('relation', {
       count: { $count: true },
     })
