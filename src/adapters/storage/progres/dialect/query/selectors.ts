@@ -144,7 +144,7 @@ export const encodeFieldExpression = (
                 if (!(value instanceof TObject) || dataType.target !== value.className || !value.objectId) break;
                 return sql`${element} ${nullSafeEqual()} ${{ value: value.objectId }}`;
               }
-              return sql`${element} ${nullSafeEqual()} ${encodeValue(value)}`;
+              return sql`${match?.element ?? element} ${nullSafeEqual()} ${encodeValue(value)}`;
             }
           default:
             const containsNil = _.some(expr.value, x => _.isNil(x));
@@ -157,9 +157,9 @@ export const encodeFieldExpression = (
               return sql`${element} IN (${_.map(values, (x: any) => sql`${{ value: x.objectId }}`)})`;
             }
             if (containsNil) {
-              return sql`${element} IS NULL OR ${element} IN (${_.map(values, x => encodeValue(x))})`;
+              return sql`${match?.element ?? element} IS NULL OR ${match?.element ?? element} IN (${_.map(values, x => encodeValue(x))})`;
             }
-            return sql`${element} IN (${_.map(values, x => encodeValue(x))})`;
+            return sql`${match?.element ?? element} IN (${_.map(values, x => encodeValue(x))})`;
         }
       }
       break;
@@ -176,7 +176,7 @@ export const encodeFieldExpression = (
                 if (!(value instanceof TObject) || dataType.target !== value.className || !value.objectId) break;
                 return sql`${element} ${nullSafeNotEqual()} ${{ value: value.objectId }}`;
               }
-              return sql`${element} ${nullSafeNotEqual()} ${encodeValue(value)}`;
+              return sql`${match?.element ?? element} ${nullSafeNotEqual()} ${encodeValue(value)}`;
             }
           default:
             const containsNil = _.some(expr.value, x => _.isNil(x));
@@ -189,9 +189,9 @@ export const encodeFieldExpression = (
               return sql`${element} NOT IN (${_.map(values, (x: any) => sql`${{ value: x.objectId }}`)})`;
             }
             if (containsNil) {
-              return sql`${element} IS NOT NULL AND ${element} NOT IN (${_.map(values, x => encodeValue(x))})`;
+              return sql`${match?.element ?? element} IS NOT NULL AND ${match?.element ?? element} NOT IN (${_.map(values, x => encodeValue(x))})`;
             }
-            return sql`${element} NOT IN (${_.map(values, x => encodeValue(x))})`;
+            return sql`${match?.element ?? element} NOT IN (${_.map(values, x => encodeValue(x))})`;
         }
       }
       break;
@@ -236,13 +236,13 @@ export const encodeFieldExpression = (
       }
     case '$pattern':
       {
-        if (dataType && _isTypeof(dataType, 'string')) {
+        if (_dataType && _isTypeof(_dataType, 'string')) {
           if (_.isString(expr.value)) {
-            return sql`${element} LIKE ${{ value: `%${expr.value.replace(/([\\_%])/g, '\\$1')}%` }}`;
+            return sql`${match?.element ?? element} LIKE ${{ value: `%${expr.value.replace(/([\\_%])/g, '\\$1')}%` }}`;
           }
           if (_.isRegExp(expr.value)) {
             if (expr.value.ignoreCase) return sql`${element} ~* ${{ value: expr.value.source }}`;
-            return sql`${element} ~ ${{ value: expr.value.source }}`;
+            return sql`${match?.element ?? element} ~ ${{ value: expr.value.source }}`;
           }
         } else if (!dataType) {
           if (_.isString(expr.value)) {
@@ -258,8 +258,8 @@ export const encodeFieldExpression = (
     case '$starts':
       {
         if (!_.isString(expr.value)) break;
-        if (dataType && _isTypeof(dataType, 'string')) {
-          return sql`${element} LIKE ${{ value: `${expr.value.replace(/([\\_%])/g, '\\$1')}%` }}`;
+        if (_dataType && _isTypeof(_dataType, 'string')) {
+          return sql`${match?.element ?? element} LIKE ${{ value: `${expr.value.replace(/([\\_%])/g, '\\$1')}%` }}`;
         }
         if (!dataType) {
           return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'string' AND (${element} #>> '{}') LIKE ${{ value: `${expr.value.replace(/([\\_%])/g, '\\$1')}%` }}`;
@@ -269,8 +269,8 @@ export const encodeFieldExpression = (
     case '$ends':
       {
         if (!_.isString(expr.value)) break;
-        if (dataType && _isTypeof(dataType, 'string')) {
-          return sql`${element} LIKE ${{ value: `%${expr.value.replace(/([\\_%])/g, '\\$1')}` }}`;
+        if (_dataType && _isTypeof(_dataType, 'string')) {
+          return sql`${match?.element ?? element} LIKE ${{ value: `%${expr.value.replace(/([\\_%])/g, '\\$1')}` }}`;
         }
         if (!dataType) {
           return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'string' AND (${element} #>> '{}') LIKE ${{ value: `%${expr.value.replace(/([\\_%])/g, '\\$1')}` }}`;
