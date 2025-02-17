@@ -352,9 +352,11 @@ export class QueryValidator<E> {
       } else if (isRelation(dataType)) {
         if (!this.validateCLPs(dataType.target, 'get')) throw Error('No permission');
         this.validateForeignField(dataType, 'read', `Invalid match: ${colname}`);
+        const groupMatches = this.decodeGroupMatches(dataType.target, match.groupMatches ?? {});
         _matches[_colname] = {
           ...match,
           countMatches: match.countMatches ?? [],
+          groupMatches,
           filter: QuerySelector.decode(_.castArray<TQuerySelector>(match.filter)).simplify(),
           matches: this.decodeMatches(
             dataType.target, match.matches ?? {},
