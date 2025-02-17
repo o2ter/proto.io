@@ -37,9 +37,9 @@ export class QueryAccumulator {
   static decode(query: TQueryAccumulator): QueryAccumulator {
     for (const [key, expr] of _.toPairs(query)) {
       if (_.includes(accumulatorExprKeys, key)) {
-        return new QueryAccumulator(key, QueryExpression.decode(expr ?? [], false));
+        return new QueryAccumulator(key as AccumulatorKeys, QueryExpression.decode(expr as any ?? [], false));
       } else if (_.includes(accumulatorNoExprKeys, key)) {
-        return new QueryAccumulator(key);
+        return new QueryAccumulator(key as AccumulatorKeys);
       } else {
         throw Error('Invalid expression');
       }
