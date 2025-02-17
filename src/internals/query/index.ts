@@ -114,14 +114,14 @@ export abstract class TQuery<T extends string, Ext, M extends boolean> extends T
    * @param options - Extra options for the query.
    * @returns A promise that resolves to the inserted record.
    */
-   async insert(
+  async insert(
     attrs: Record<string, TValueWithUndefined>,
     options?: ExtraOptions<M>
-   ) {
-     const result = _.first(await this.clone().insertMany([attrs], options));
-     if (!result) throw Error('Unable to insert document');
-     return result;
-   }
+  ) {
+    const result = _.first(await this.clone().insertMany([attrs], options));
+    if (!result) throw Error('Unable to insert document');
+    return result;
+  }
 
   /**
    * Inserts multiple new records.
