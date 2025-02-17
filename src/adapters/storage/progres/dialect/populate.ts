@@ -139,7 +139,7 @@ export const selectPopulate = (
           case '$sum':
             columns.push(sql`
               (
-                SELECT COUNT(*) FROM (
+                SELECT SUM(*) FROM (
                   ${_selectRelationPopulate(compiler, parent, populate, field, false)}
                 ) ${{ identifier: populate.name }}
               ) AS ${{ identifier: `${field}.${key}` }}
