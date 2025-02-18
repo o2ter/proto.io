@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { accumulatorExprKeys, accumulatorNoExprKeys, TQueryAccumulator } from '../../../../internals/query/types/accumulators';
 import { QueryExpression } from './expressions';
-import { TSchema } from '../../../../internals/schema';
+import { _isTypeof, TSchema } from '../../../../internals/schema';
 
 type AccumulatorKeys = typeof accumulatorExprKeys[number] | typeof accumulatorNoExprKeys[number];
 
@@ -65,16 +65,17 @@ export class QueryAccumulator {
     return new QueryAccumulator(this.type, this.expr?.mapKey(callback));
   }
 
-  evalType(schema: Record<string, TSchema>, className: string): TSchema.Primitive | undefined {
+  evalType(schema: Record<string, TSchema>, className: string): TSchema.DataType | undefined {
     const [dataType] = this.expr?.evalType(schema, className) ?? [];
+    if (_.isNil(dataType)) return;
     switch (this.type) {
       case '$count': return 'number';
-      case '$avg': return _.isString(dataType) && _.includes(['number', 'decimal'], dataType) ? dataType : undefined;
-      case '$sum': return _.isString(dataType) && _.includes(['number', 'decimal'], dataType) ? dataType : undefined;
-      case '$stdDevPop': return _.isString(dataType) && _.includes(['number', 'decimal'], dataType) ? dataType : undefined;
-      case '$stdDevSamp': return _.isString(dataType) && _.includes(['number', 'decimal'], dataType) ? dataType : undefined;
-      case '$varPop': return _.isString(dataType) && _.includes(['number', 'decimal'], dataType) ? dataType : undefined;
-      case '$varSamp': return _.isString(dataType) && _.includes(['number', 'decimal'], dataType) ? dataType : undefined;
+      case '$avg': return _isTypeof(dataType, ['number', 'decimal']) ? dataType : undefined;
+      case '$sum': return _isTypeof(dataType, ['number', 'decimal']) ? dataType : undefined;
+      case '$stdDevPop': return _isTypeof(dataType, ['number', 'decimal']) ? dataType : undefined;
+      case '$stdDevSamp': return _isTypeof(dataType, ['number', 'decimal']) ? dataType : undefined;
+      case '$varPop': return _isTypeof(dataType, ['number', 'decimal']) ? dataType : undefined;
+      case '$varSamp': return _isTypeof(dataType, ['number', 'decimal']) ? dataType : undefined;
       default: break;
     }
   }
