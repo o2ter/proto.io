@@ -29,6 +29,9 @@ import { TComparisonKeys, TConditionalKeys, TDistanceKeys } from '../../../../in
 import { isValue } from '../../../../internals/object';
 import { TValue } from '../../../../internals/types';
 import { cosine, distance, equal, getValue, greaterThan, greaterThanOrEqual, innerProduct, lessThan, lessThanOrEqual, rectilinearDistance } from './utils';
+import { TSchema } from '../../../../internals/schema';
+import { resolveColumn } from '../validator';
+import Decimal from 'decimal.js';
 
 export class QueryExpression {
 
@@ -84,6 +87,10 @@ export class QueryExpression {
   eval(value: any): any {
     return true;
   }
+
+  evalType(schema: Record<string, TSchema>, className: string): TSchema.DataType[] {
+    return [];
+  }
 }
 
 export class QueryCoditionalExpression extends QueryExpression {
@@ -128,6 +135,10 @@ export class QueryCoditionalExpression extends QueryExpression {
       case '$or': return _.some(this.exprs, expr => expr.eval(value));
     }
   }
+
+  evalType(schema: Record<string, TSchema>, className: string): TSchema.DataType[] {
+    return ['boolean'];
+  }
 }
 
 export class QueryComparisonExpression extends QueryExpression {
@@ -168,6 +179,10 @@ export class QueryComparisonExpression extends QueryExpression {
       case '$ne': return !equal(this.left.eval(value), this.right.eval(value));
     }
   }
+
+  evalType(schema: Record<string, TSchema>, className: string): TSchema.DataType[] {
+    return ['boolean'];
+  }
 }
 
 export class QueryNotExpression extends QueryExpression {
@@ -194,6 +209,10 @@ export class QueryNotExpression extends QueryExpression {
   eval(value: any) {
     return !this.expr.eval(value);
   }
+
+  evalType(schema: Record<string, TSchema>, className: string): TSchema.DataType[] {
+    return ['boolean'];
+  }
 }
 
 export class QueryArrayExpression extends QueryExpression {
@@ -219,6 +238,10 @@ export class QueryArrayExpression extends QueryExpression {
 
   eval(value: any) {
     return _.map(this.exprs, x => x.eval(value));
+  }
+
+  evalType(schema: Record<string, TSchema>, className: string): TSchema.DataType[] {
+    return ['array'];
   }
 }
 
@@ -263,6 +286,10 @@ export class QueryDistanceExpression extends QueryExpression {
       case '$rectilinearDistance': return rectilinearDistance(left, right);
     }
   }
+
+  evalType(schema: Record<string, TSchema>, className: string): TSchema.DataType[] {
+    return ['number'];
+  }
 }
 
 export class QueryKeyExpression extends QueryExpression {
@@ -285,6 +312,11 @@ export class QueryKeyExpression extends QueryExpression {
   eval(value: any) {
     return getValue(value, this.key);
   }
+
+  evalType(schema: Record<string, TSchema>, className: string) {
+    const { paths: [, ...subpath], dataType } = resolveColumn(schema, className, this.key);
+    return _.isEmpty(subpath) ? [dataType] : [];
+  }
 }
 
 export class QueryValueExpression extends QueryExpression {
@@ -298,5 +330,15 @@ export class QueryValueExpression extends QueryExpression {
 
   eval(value: any) {
     return value;
+  }
+
+  evalType(schema: Record<string, TSchema>, className: string): TSchema.DataType[] {
+    if (_.isDate(this.value)) return ['date'];
+    if (_.isBoolean(this.value)) return ['boolean'];
+    if (_.isArray(this.value)) return ['array'];
+    if (_.isString(this.value)) return ['string'];
+    if (_.isNumber(this.value)) return ['number', 'decimal'];
+    if (this.value instanceof Decimal) return ['decimal', 'number'];
+    return [];
   }
 }

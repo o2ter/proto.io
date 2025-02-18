@@ -56,7 +56,7 @@ const _fetchElement = (
       return {
         element: sql`${{ identifier: parent.name }}.${{ identifier: `${colname}.${subpath[0]}` }}`,
         json: false,
-        dataType: match.calculatedDataType,
+        dataType: match.evalType(compiler.schema, dataType.target),
       };
     } else if (dataType && _isTypeof(dataType, ['array', 'string[]', 'relation'])) {
       return {

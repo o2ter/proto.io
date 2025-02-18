@@ -26,6 +26,7 @@
 import _ from 'lodash';
 import { accumulatorExprKeys, accumulatorNoExprKeys, TQueryAccumulator } from '../../../../internals/query/types/accumulators';
 import { QueryExpression } from './expressions';
+import { TSchema } from '../../../../internals/schema';
 
 type AccumulatorKeys = typeof accumulatorExprKeys[number] | typeof accumulatorNoExprKeys[number];
 
@@ -33,8 +34,6 @@ export class QueryAccumulator {
 
   type: AccumulatorKeys;
   expr?: QueryExpression;
-
-  calculatedDataType?: any;
 
   static decode(query: TQueryAccumulator): QueryAccumulator {
     for (const [key, expr] of _.toPairs(query)) {
@@ -66,4 +65,17 @@ export class QueryAccumulator {
     return new QueryAccumulator(this.type, this.expr?.mapKey(callback));
   }
 
+  evalType(schema: Record<string, TSchema>, className: string): TSchema.Primitive | undefined {
+    const [dataType] = this.expr?.evalType(schema, className) ?? [];
+    switch (this.type) {
+      case '$count': return 'number';
+      case '$avg': return _.isString(dataType) && _.includes(['number', 'decimal'], dataType) ? dataType : undefined;
+      case '$sum': return _.isString(dataType) && _.includes(['number', 'decimal'], dataType) ? dataType : undefined;
+      case '$stdDevPop': return _.isString(dataType) && _.includes(['number', 'decimal'], dataType) ? dataType : undefined;
+      case '$stdDevSamp': return _.isString(dataType) && _.includes(['number', 'decimal'], dataType) ? dataType : undefined;
+      case '$varPop': return _.isString(dataType) && _.includes(['number', 'decimal'], dataType) ? dataType : undefined;
+      case '$varSamp': return _.isString(dataType) && _.includes(['number', 'decimal'], dataType) ? dataType : undefined;
+      default: break;
+    }
+  }
 }

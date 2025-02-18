@@ -31,7 +31,7 @@ import { SQL, sql } from './sql';
 import { SqlDialect } from './dialect';
 import { QueryCompiler } from './compiler';
 import { asyncStream } from '@o2ter/utils-js';
-import { TValue, TValueWithoutObject, TValueWithUndefined } from '../../../internals/types';
+import { TValueWithoutObject, TValueWithUndefined } from '../../../internals/types';
 import { TObject } from '../../../internals/object';
 import { PVK } from '../../../internals/private';
 import { TQueryRandomOptions } from '../../../internals/query';
@@ -170,8 +170,9 @@ export abstract class SqlStorage implements TStorage {
   }
 
   private _matchesType(compiler: QueryCompiler, options: {
-      matches: Record<string, DecodedBaseQuery>;
-      groupMatches?: Record<string, Record<string, QueryAccumulator>>;
+    className: string;
+    matches: Record<string, DecodedBaseQuery>;
+    groupMatches?: Record<string, Record<string, QueryAccumulator>>;
   }): Record<string, any> {
     const types: Record<string, any> = {};
     for (const [key, match] of _.entries(options.matches)) {
@@ -179,7 +180,7 @@ export abstract class SqlStorage implements TStorage {
     }
     for (const [key, group] of _.entries(options.groupMatches)) {
       for (const [field, expr] of _.entries(group)) {
-        _.set(types, `${key}.${field}`, expr.calculatedDataType);
+        _.set(types, `${key}.${field}`, expr.evalType(compiler.schema, options.className));
       }
     }
     return types;
@@ -208,7 +209,7 @@ export abstract class SqlStorage implements TStorage {
     return (async function* () {
       const objects = self.query(_query);
       for await (const object of objects) {
-        yield self._decodeObject(query.className, object, self._matchesType(compiler, query));
+        yield self._decodeObject(query.className, object, _matchesType);
       }
     })();
   }
