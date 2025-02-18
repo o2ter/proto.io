@@ -33,6 +33,7 @@ import { TUpdateOp } from '../object/types';
 import { ExtraOptions } from '../options';
 import { asyncStream, Awaitable, EventIterator } from '@o2ter/utils-js';
 import { LiveQuerySubscription } from '../liveQuery';
+import { TExpression } from './types/expressions';
 
 /**
  * Options for a query.
@@ -51,7 +52,7 @@ export interface TQueryRandomOptions {
   /**
    * Field to use for weighting the random selection.
    */
-  weight?: string;
+  weight?: string | TExpression;
 };
 
 /**

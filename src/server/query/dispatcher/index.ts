@@ -35,6 +35,7 @@ import { PVK } from '../../../internals/private';
 import { TUpdateOp } from '../../../internals/object/types';
 import { normalize } from '../../utils';
 import { TQueryAccumulator } from '../../../internals/query/types/accumulators';
+import { QueryExpression } from './parser/expressions';
 
 export const fetchUserPerms = async <E>(proto: ProtoService<E>) => _.uniq(_.compact([..._.map(await proto.currentRoles(), x => `role:${x}`), (await proto.currentUser())?.objectId]));
 
@@ -102,8 +103,11 @@ export const dispatcher = <E>(
       const decoded = _validator.decodeQuery(normalize(query), 'read');
       const isGet = _validator.isGetMethod(decoded.filter);
       if (!_validator.validateCLPs(query.className, isGet ? 'get' : 'find')) throw Error('No permission');
-      if (opts?.weight && !_validator.validateKey(query.className, opts.weight, 'read', QueryValidator.patterns.path)) throw Error('No permission');
-      return proto.storage.random(decoded, opts);
+      const weight = opts?.weight ? QueryExpression.decode(_.isString(opts.weight) ? { $key: opts.weight } : opts.weight, false) : undefined;
+      for (const key of weight?.keyPaths() ?? []) {
+        if (!_validator.validateKey(query.className, key, 'read', QueryValidator.patterns.path)) throw Error('No permission');
+      }
+      return proto.storage.random(decoded, { weight });
     },
     async insert(
       options: {

@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { DecodedQuery, FindOptions, InsertOptions, TStorage, RelationOptions, DecodedBaseQuery } from '../../../server/storage';
+import { DecodedQuery, FindOptions, InsertOptions, TStorage, RelationOptions, DecodedBaseQuery, QueryRandomOptions } from '../../../server/storage';
 import { TransactionOptions } from '../../../internals/proto';
 import { TSchema, isPointer, isRelation, isShape, shapePaths } from '../../../internals/schema';
 import { SQL, sql } from './sql';
@@ -34,11 +34,11 @@ import { asyncStream } from '@o2ter/utils-js';
 import { TValueWithoutObject, TValueWithUndefined } from '../../../internals/types';
 import { TObject } from '../../../internals/object';
 import { PVK } from '../../../internals/private';
-import { TQueryRandomOptions } from '../../../internals/query';
 import { TUpdateOp } from '../../../internals/object/types';
 import { QuerySelector } from '../../../server/query/dispatcher/parser';
 import { QueryAccumulator } from '../../../server/query/dispatcher/parser/accumulators';
 import { resolveDataType } from '../../../server/query/dispatcher/validator';
+import { encodeTypedQueryExpression } from '../progres/dialect/query/expressions';
 
 export abstract class SqlStorage implements TStorage {
 
@@ -204,13 +204,19 @@ export abstract class SqlStorage implements TStorage {
     })();
   }
 
-  random(query: DecodedQuery<FindOptions & RelationOptions>, opts?: TQueryRandomOptions) {
+  random(query: DecodedQuery<FindOptions & RelationOptions>, opts?: QueryRandomOptions) {
     const self = this;
     const compiler = self._makeCompiler(false, query.extraFilter);
     const _matchesType = self._matchesType(compiler, query);
-    const _query = compiler._selectQuery({ ...query, sort: {} }, {
-      sort: sql`ORDER BY ${self.dialect.random(opts ?? {})}`,
-    });
+    const _query = compiler._selectQuery({ ...query, sort: {} }, ({ fetchName }) => ({
+      sort: sql`ORDER BY ${self.dialect.random(
+        opts?.weight ? _.first(encodeTypedQueryExpression(compiler, {
+          name: fetchName,
+          className: query.className,
+          groupMatches: query.groupMatches,
+         }, opts.weight))?.sql : undefined
+      )}`,
+    }));
     return (async function* () {
       const objects = self.query(_query);
       for await (const object of objects) {

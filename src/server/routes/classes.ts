@@ -216,9 +216,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       if (!_.includes(classes, name)) return void res.sendStatus(404);
 
       const payload = proto.connect(req);
-      const { weight } = req.query;
-
-      if (_.isEmpty(weight) || !_.isString(weight)) throw Error('Invalid operation');
+      const { weight } = req.query as any;
 
       await response(res, async () => createQuery(payload, req, true).random({ weight }, { master: payload.isMaster }));
     }
@@ -232,9 +230,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       res.setHeader('Cache-Control', ['no-cache', 'no-store']);
 
       const payload = proto.connect(req);
-      const { weight } = req.query;
-
-      if (_.isEmpty(weight) || !_.isString(weight)) throw Error('Invalid operation');
+      const { weight } = req.query as any;
 
       await response(res, async () => createQuery(payload, req, true).random({ weight }, { master: payload.isMaster }));
     }

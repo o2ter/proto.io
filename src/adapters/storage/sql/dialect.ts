@@ -31,7 +31,6 @@ import { SQL } from './sql';
 import { TValue, TValueWithUndefined } from '../../../internals/types';
 import { TUpdateOp } from '../../../internals/object/types';
 import { RelationOptions } from '../../../server/storage';
-import { QueryAccumulator } from '../../../server/query/dispatcher/parser/accumulators';
 
 export interface SqlDialect {
   quote(str: string): string;
@@ -80,5 +79,5 @@ export interface SqlDialect {
     key: string
   ): SQL
 
-  random(opts: { weight?: string }): SQL
+  random(weight?: SQL): SQL
 }

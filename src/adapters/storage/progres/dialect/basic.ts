@@ -46,6 +46,6 @@ export const encodeSortKey = (
   return element;
 };
 
-export const random = (opts: { weight?: string; }): SQL => {
-  return opts.weight ? sql`-ln(random()) / ${{ identifier: opts.weight }}` : sql`random()`;
+export const random = (weight?: SQL): SQL => {
+  return weight ? sql`-ln(random()) / ${weight}` : sql`random()`;
 };

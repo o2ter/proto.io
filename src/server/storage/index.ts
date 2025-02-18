@@ -27,7 +27,7 @@ import { QuerySelector } from '../query/dispatcher/parser';
 import { TSchema } from '../../internals/schema';
 import { TQueryBaseOptions } from '../../internals/query/base';
 import { TransactionOptions } from '../../internals/proto';
-import { TQueryOptions, TQueryRandomOptions } from '../../internals/query';
+import { TQueryOptions } from '../../internals/query';
 import { TValueWithoutObject, TValueWithUndefined } from '../../internals/types';
 import { TObject } from '../../internals/object';
 import { TUpdateOp } from '../../internals/object/types';
@@ -76,6 +76,10 @@ export type InsertOptions = {
   objectIdSize: number;
 };
 
+export type QueryRandomOptions = {
+  weight?: QueryExpression;
+};
+
 export interface TStorage {
 
   selectLock(): boolean;
@@ -93,7 +97,7 @@ export interface TStorage {
 
   count(query: DecodedQuery<FindOptions & RelationOptions>): PromiseLike<number>;
   find(query: DecodedQuery<FindOptions & RelationOptions>): AsyncIterable<TObject>;
-  random(query: DecodedQuery<FindOptions & RelationOptions>, opts?: TQueryRandomOptions): AsyncIterable<TObject>;
+  random(query: DecodedQuery<FindOptions & RelationOptions>, opts?: QueryRandomOptions): AsyncIterable<TObject>;
 
   refs(object: TObject, classNames: string[], roles?: string[]): AsyncIterable<TObject>;
   nonrefs(query: DecodedQuery<FindOptions>): AsyncIterable<TObject>;
