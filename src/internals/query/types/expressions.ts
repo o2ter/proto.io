@@ -53,6 +53,7 @@ export const TUnaryExprKeys = [
   '$sinh',
   '$cosh',
   '$tanh',
+  '$size',
 ] as const;
 
 export const TBinaryExprKeys = [
@@ -99,6 +100,18 @@ export type TExpression = {
   $array?: TExpression[];
   $key?: string;
   $value?: TValue;
+  $cond: {
+    if: TExpression;
+    then: TExpression;
+    else: TExpression;
+  };
+  $switch: {
+    branches: {
+      case: TExpression;
+      then: TExpression;
+    }[];
+    default: TExpression;
+  };
 } & {
   [x in (typeof TNoParamExprKeys)[number]]?: true | {};
 } & {
