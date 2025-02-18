@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { TDistanceKeys, TExpression } from '../../../../internals/query/types/expressions';
+import { TDistanceExprKeys, TExpression } from '../../../../internals/query/types/expressions';
 import { TComparisonKeys, TConditionalKeys } from '../../../../internals/query/types/keys';
 import { isValue } from '../../../../internals/object';
 import { TValue } from '../../../../internals/types';
@@ -44,7 +44,7 @@ export class QueryExpression {
         } else if (_.includes(TComparisonKeys, key) && _.isArray(query) && query.length === 2) {
           const [left, right] = query;
           exprs.push(new QueryComparisonExpression(key as any, QueryExpression.decode(left as any, dollerSign), QueryExpression.decode(right as any, dollerSign)));
-        } else if (_.includes(TDistanceKeys, key) && _.isArray(query) && query.length === 2) {
+        } else if (_.includes(TDistanceExprKeys, key) && _.isArray(query) && query.length === 2) {
           const [left, right] = query;
           const _left = _.isArray(left) ? _.map(left, x => QueryExpression.decode(x as any, dollerSign)) : QueryExpression.decode(left as any, dollerSign);
           const _right = _.isArray(right) ? _.map(right, x => QueryExpression.decode(x as any, dollerSign)) : QueryExpression.decode(right as any, dollerSign);
@@ -247,11 +247,11 @@ export class QueryArrayExpression extends QueryExpression {
 
 export class QueryDistanceExpression extends QueryExpression {
 
-  type: typeof TDistanceKeys[number];
+  type: typeof TDistanceExprKeys[number];
   left: QueryExpression[];
   right: QueryExpression[];
 
-  constructor(type: typeof TDistanceKeys[number], left: QueryExpression[], right: QueryExpression[]) {
+  constructor(type: typeof TDistanceExprKeys[number], left: QueryExpression[], right: QueryExpression[]) {
     super();
     this.type = type;
     this.left = left;

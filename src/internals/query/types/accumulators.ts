@@ -25,7 +25,7 @@
 
 import { TExpression } from './expressions';
 
-export const TAccumulateUnaryKeys = [
+export const TUnaryAccumulatorKeys = [
   '$max',
   '$min',
   '$most',
@@ -37,7 +37,7 @@ export const TAccumulateUnaryKeys = [
   '$varSamp'
 ] as const;
 
-export const TAccumulateNoParamKeys = [
+export const TNoParamAccumulatorKeys = [
   '$count'
 ] as const;
 
@@ -48,7 +48,7 @@ export type TQueryAccumulator = {
     mode?: 'discrete' | 'continuous';
   },
 } & {
-  [x in (typeof TAccumulateNoParamKeys)[number]]?: true | {};
+  [x in (typeof TNoParamAccumulatorKeys)[number]]?: true | {};
 } & {
-  [x in (typeof TAccumulateUnaryKeys)[number]]?: TExpression;
+  [x in (typeof TUnaryAccumulatorKeys)[number]]?: TExpression;
 };

@@ -26,7 +26,7 @@
 import { TValue } from '../../types';
 import { TComparisonKeys, TConditionalKeys } from './keys';
 
-export const TDistanceKeys = [
+export const TDistanceExprKeys = [
   '$distance',
   '$innerProduct',
   '$negInnerProduct',
@@ -43,7 +43,7 @@ export type TBooleanExpression = {
   };
 
 export type TDistanceExpression = {
-  [x in (typeof TDistanceKeys)[number]]?: [
+  [x in (typeof TDistanceExprKeys)[number]]?: [
     TExpression[] | { $key: string; } | { $value: number[]; },
     TExpression[] | { $key: string; } | { $value: number[]; },
   ];

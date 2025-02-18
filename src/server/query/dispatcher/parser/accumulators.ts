@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { TAccumulateUnaryKeys, TAccumulateNoParamKeys, TQueryAccumulator } from '../../../../internals/query/types/accumulators';
+import { TUnaryAccumulatorKeys, TNoParamAccumulatorKeys, TQueryAccumulator } from '../../../../internals/query/types/accumulators';
 import { QueryExpression } from './expressions';
 import { _isTypeof, TSchema } from '../../../../internals/schema';
 
@@ -32,10 +32,10 @@ export class QueryAccumulator {
 
   static decode(query: TQueryAccumulator): QueryAccumulator {
     for (const [key, expr] of _.toPairs(query)) {
-      if (_.includes(TAccumulateUnaryKeys, key)) {
-        return new QueryUnaryAccumulator(key as typeof TAccumulateUnaryKeys[number], QueryExpression.decode(expr as any ?? [], false));
-      } else if (_.includes(TAccumulateNoParamKeys, key)) {
-        return new QueryNoParamAccumulator(key as typeof TAccumulateNoParamKeys[number]);
+      if (_.includes(TUnaryAccumulatorKeys, key)) {
+        return new QueryUnaryAccumulator(key as typeof TUnaryAccumulatorKeys[number], QueryExpression.decode(expr as any ?? [], false));
+      } else if (_.includes(TNoParamAccumulatorKeys, key)) {
+        return new QueryNoParamAccumulator(key as typeof TNoParamAccumulatorKeys[number]);
       } else if (key === '$percentile') {
         const { input, p, mode = 'discrete' } = expr as any ?? {};
         if (!_.isFinite(p) || p < 0 || p > 1) throw Error('Invalid expression');
@@ -67,9 +67,9 @@ export class QueryAccumulator {
 
 export class QueryNoParamAccumulator extends QueryAccumulator {
 
-  type: typeof TAccumulateNoParamKeys[number];
+  type: typeof TNoParamAccumulatorKeys[number];
 
-  constructor(type: typeof TAccumulateNoParamKeys[number]) {
+  constructor(type: typeof TNoParamAccumulatorKeys[number]) {
     super();
     this.type = type;
   }
@@ -96,10 +96,10 @@ export class QueryNoParamAccumulator extends QueryAccumulator {
 
 export class QueryUnaryAccumulator extends QueryAccumulator {
 
-  type: typeof TAccumulateUnaryKeys[number];
+  type: typeof TUnaryAccumulatorKeys[number];
   expr: QueryExpression;
 
-  constructor(type: typeof TAccumulateUnaryKeys[number], expr: QueryExpression) {
+  constructor(type: typeof TUnaryAccumulatorKeys[number], expr: QueryExpression) {
     super();
     this.type = type;
     this.expr = expr;
