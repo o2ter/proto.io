@@ -27,7 +27,7 @@ import { TValue } from '../../types';
 import { TComparisonKeys, TConditionalKeys } from './keys';
 
 export const TNoParamExprKeys = [
-  '$rand'
+  '$rand',
 ] as const;
 
 export const TUnaryExprKeys = [
