@@ -30,6 +30,7 @@ import { Populate, QueryCompiler, QueryContext } from '../../sql/compiler';
 import { _jsonPopulateInclude } from './encode';
 import { resolveColumn } from '../../../../server/query/dispatcher/validator';
 import { encodeTypedQueryExpression } from './query/expressions';
+import { QueryExprAccumulator, QueryNoParamAccumulator } from '../../../../server/query/dispatcher/parser/accumulators';
 
 const resolveSubpaths = (
   compiler: QueryCompiler,
@@ -100,17 +101,17 @@ export const _selectRelationPopulate = (
   }
   return sql`
     SELECT ${_.compact(_.flatMap(subpaths, ({ path, type }) =>
-      encode ? [
-        _jsonPopulateInclude(populate.name, path, type)
-      ] : [
-        ...(populate.groupMatches[path] ? _.map(_.keys(populate.groupMatches[path]), k =>
-          sql`${{ identifier: populate.name }}.${{ identifier: `${path}.${k}` }}`
-        ) : [
-          sql`${{ identifier: populate.name }}.${{ identifier: path }}`
-        ]),
-        isRelation(type) && sql`${{ identifier: populate.name }}.${{ identifier: `$${path}` }}`,
-      ]
-    ))}
+    encode ? [
+      _jsonPopulateInclude(populate.name, path, type)
+    ] : [
+      ...(populate.groupMatches[path] ? _.map(_.keys(populate.groupMatches[path]), k =>
+        sql`${{ identifier: populate.name }}.${{ identifier: `${path}.${k}` }}`
+      ) : [
+        sql`${{ identifier: populate.name }}.${{ identifier: path }}`
+      ]),
+      isRelation(type) && sql`${{ identifier: populate.name }}.${{ identifier: `$${path}` }}`,
+    ]
+  ))}
     FROM ${{ identifier: populate.name }} WHERE ${cond}
     ${!_.isEmpty(populate.sort) ? sql`ORDER BY ${compiler._encodeSort(populate.sort, populate)}` : sql``}
     ${populate.limit ? sql`LIMIT ${{ literal: `${populate.limit}` }}` : sql``}
@@ -131,46 +132,42 @@ export const selectPopulate = (
       sql`${{ identifier: parent.name }}.${{ identifier: field }} AS ${{ identifier: `$${field}` }}`,
     ];
     if (!_.isEmpty(groupMatches?.[field])) {
-      for (const [key, { type, expr }] of _.entries(groupMatches[field])) {
-        switch (type) {
-          case '$count':
-            columns.push(sql`
-              (
-                SELECT COUNT(*) FROM (
-                  ${_selectRelationPopulate(compiler, parent, populate, field, false)}
-                ) ${{ identifier: populate.name }}
-              ) AS ${{ identifier: `${field}.${key}` }}
-            `);
-            break;
-          case '$avg':
-          case '$sum':
-          case '$stdDevPop':
-          case '$stdDevSamp':
-          case '$varPop':
-          case '$varSamp':
-            {
-              const op = {
-                '$avg': 'AVG',
-                '$sum': 'SUM',
-                '$stdDevPop': 'STDDEV_POP',
-                '$stdDevSamp': 'STDDEV_SAMP',
-                '$varPop': 'VAR_POP',
-                '$varSamp': 'VAR_SAMP',
-              }[type];
-              if (!expr) throw Error('Invalid expression');
-              const exprs = encodeTypedQueryExpression(compiler, populate, expr);
-              const value = _.first(exprs)?.sql;
-              if (!value) throw Error('Invalid expression');
+      for (const [key, expr] of _.entries(groupMatches[field])) {
+        if (expr instanceof QueryNoParamAccumulator) {
+          switch (expr.type) {
+            case '$count':
               columns.push(sql`
                 (
-                  SELECT ${{ literal: op }}(${value}) FROM (
+                  SELECT COUNT(*) FROM (
                     ${_selectRelationPopulate(compiler, parent, populate, field, false)}
                   ) ${{ identifier: populate.name }}
                 ) AS ${{ identifier: `${field}.${key}` }}
               `);
-            }
-            break;
-          default: break;
+              break;
+            default: break;
+          }
+        } else if (expr instanceof QueryExprAccumulator) {
+          const op = {
+            '$max': 'MAX',
+            '$min': 'MIN',
+            '$avg': 'AVG',
+            '$sum': 'SUM',
+            '$stdDevPop': 'STDDEV_POP',
+            '$stdDevSamp': 'STDDEV_SAMP',
+            '$varPop': 'VAR_POP',
+            '$varSamp': 'VAR_SAMP',
+          }[expr.type];
+          if (!expr.expr) throw Error('Invalid expression');
+          const exprs = encodeTypedQueryExpression(compiler, populate, expr.expr);
+          const value = _.first(exprs)?.sql;
+          if (!value) throw Error('Invalid expression');
+          columns.push(sql`
+            (
+              SELECT ${{ literal: op }}(${value}) FROM (
+                ${_selectRelationPopulate(compiler, parent, populate, field, false)}
+              ) ${{ identifier: populate.name }}
+            ) AS ${{ identifier: `${field}.${key}` }}
+          `);
         }
       }
     } else {

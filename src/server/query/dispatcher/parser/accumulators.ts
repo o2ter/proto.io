@@ -28,19 +28,14 @@ import { accumulatorExprKeys, accumulatorNoParamKeys, TQueryAccumulator } from '
 import { QueryExpression } from './expressions';
 import { _isTypeof, TSchema } from '../../../../internals/schema';
 
-type AccumulatorKeys = typeof accumulatorExprKeys[number] | typeof accumulatorNoParamKeys[number];
-
 export class QueryAccumulator {
-
-  type: AccumulatorKeys;
-  expr?: QueryExpression;
 
   static decode(query: TQueryAccumulator): QueryAccumulator {
     for (const [key, expr] of _.toPairs(query)) {
       if (_.includes(accumulatorExprKeys, key)) {
-        return new QueryAccumulator(key as AccumulatorKeys, QueryExpression.decode(expr as any ?? [], false));
+        return new QueryExprAccumulator(key as typeof accumulatorExprKeys[number], QueryExpression.decode(expr as any ?? [], false));
       } else if (_.includes(accumulatorNoParamKeys, key)) {
-        return new QueryAccumulator(key as AccumulatorKeys);
+        return new QueryNoParamAccumulator(key as typeof accumulatorNoParamKeys[number]);
       } else {
         throw Error('Invalid expression');
       }
@@ -48,13 +43,65 @@ export class QueryAccumulator {
     throw Error('Invalid expression');
   }
 
-  constructor(type: AccumulatorKeys, expr?: QueryExpression) {
+  simplify(): QueryAccumulator {
+    return this;
+  }
+
+  keyPaths(): string[] {
+    return [];
+  }
+
+  mapKey(callback: (key: string) => string): QueryAccumulator {
+    return this;
+  }
+
+  evalType(schema: Record<string, TSchema>, className: string): TSchema.DataType | undefined {
+    return;
+  }
+}
+
+export class QueryNoParamAccumulator extends QueryAccumulator {
+
+  type: typeof accumulatorNoParamKeys[number];
+
+  constructor(type: typeof accumulatorNoParamKeys[number]) {
+    super();
+    this.type = type;
+  }
+
+  simplify() {
+    return this;
+  }
+
+  keyPaths() {
+    return [];
+  }
+
+  mapKey(callback: (key: string) => string) {
+    return this;
+  }
+
+  evalType(schema: Record<string, TSchema>, className: string): TSchema.DataType | undefined {
+    switch (this.type) {
+      case '$count': return 'number';
+      default: break;
+    }
+  }
+}
+
+export class QueryExprAccumulator extends QueryAccumulator {
+
+  type: typeof accumulatorExprKeys[number];
+  expr: QueryExpression;
+
+  constructor(type: typeof accumulatorExprKeys[number], expr: QueryExpression) {
+    super();
     this.type = type;
     this.expr = expr;
   }
 
   simplify() {
-    return new QueryAccumulator(this.type, this.expr?.simplify());
+    return new QueryExprAccumulator(this.type, this.expr.simplify());
   }
 
   keyPaths() {
@@ -62,19 +109,21 @@ export class QueryAccumulator {
   }
 
   mapKey(callback: (key: string) => string) {
-    return new QueryAccumulator(this.type, this.expr?.mapKey(callback));
+    return new QueryExprAccumulator(this.type, this.expr.mapKey(callback));
   }
 
   evalType(schema: Record<string, TSchema>, className: string): TSchema.DataType | undefined {
     const [dataType] = this.expr?.evalType(schema, className) ?? [];
+    if (_.isNil(dataType)) return;
     switch (this.type) {
-      case '$count': return 'number';
-      case '$avg': return !_.isNil(dataType) && _isTypeof(dataType, ['number', 'decimal']) ? dataType : undefined;
-      case '$sum': return !_.isNil(dataType) && _isTypeof(dataType, ['number', 'decimal']) ? dataType : undefined;
-      case '$stdDevPop': return !_.isNil(dataType) && _isTypeof(dataType, ['number', 'decimal']) ? dataType : undefined;
-      case '$stdDevSamp': return !_.isNil(dataType) && _isTypeof(dataType, ['number', 'decimal']) ? dataType : undefined;
-      case '$varPop': return !_.isNil(dataType) && _isTypeof(dataType, ['number', 'decimal']) ? dataType : undefined;
-      case '$varSamp': return !_.isNil(dataType) && _isTypeof(dataType, ['number', 'decimal']) ? dataType : undefined;
+      case '$max': return _isTypeof(dataType, ['number', 'decimal', 'string', 'date']) ? dataType : undefined;
+      case '$min': return _isTypeof(dataType, ['number', 'decimal', 'string', 'date']) ? dataType : undefined;
+      case '$avg': return _isTypeof(dataType, ['number', 'decimal']) ? dataType : undefined;
+      case '$sum': return _isTypeof(dataType, ['number', 'decimal']) ? dataType : undefined;
+      case '$stdDevPop': return _isTypeof(dataType, ['number', 'decimal']) ? dataType : undefined;
+      case '$stdDevSamp': return _isTypeof(dataType, ['number', 'decimal']) ? dataType : undefined;
+      case '$varPop': return _isTypeof(dataType, ['number', 'decimal']) ? dataType : undefined;
+      case '$varSamp': return _isTypeof(dataType, ['number', 'decimal']) ? dataType : undefined;
       default: break;
     }
   }
