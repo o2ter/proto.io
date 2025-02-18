@@ -24,7 +24,15 @@
 //
 
 import { TValue } from '../../types';
-import { TComparisonKeys, TConditionalKeys, TDistanceKeys } from './keys';
+import { TComparisonKeys, TConditionalKeys } from './keys';
+
+export const TDistanceKeys = [
+  '$distance',
+  '$innerProduct',
+  '$negInnerProduct',
+  '$cosineDistance',
+  '$rectilinearDistance',
+] as const;
 
 export type TBooleanExpression = {
   $not?: TBooleanExpression;

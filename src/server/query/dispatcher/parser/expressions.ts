@@ -24,8 +24,8 @@
 //
 
 import _ from 'lodash';
-import { TExpression } from '../../../../internals/query/types/expressions';
-import { TComparisonKeys, TConditionalKeys, TDistanceKeys } from '../../../../internals/query/types/keys';
+import { TDistanceKeys, TExpression } from '../../../../internals/query/types/expressions';
+import { TComparisonKeys, TConditionalKeys } from '../../../../internals/query/types/keys';
 import { isValue } from '../../../../internals/object';
 import { TValue } from '../../../../internals/types';
 import { cosine, distance, equal, getValue, greaterThan, greaterThanOrEqual, innerProduct, lessThan, lessThanOrEqual, rectilinearDistance } from './utils';
