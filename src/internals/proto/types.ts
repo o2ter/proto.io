@@ -28,8 +28,6 @@ import { ProtoService } from '../../server/proto';
 import { TSerializable } from '../../common/codec';
 import { TValueWithoutObject } from '../types';
 import { TUser } from '../object/user';
-import { TObject } from '../object';
-import { TJob } from '../object/job';
 import { TObjectType } from '../object/types';
 
 /**
