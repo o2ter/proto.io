@@ -178,7 +178,8 @@ export abstract class SqlStorage implements TStorage {
     const types: Record<string, any> = {};
     for (const [key, match] of _.entries(options.matches)) {
       const type = resolveDataType(compiler.schema, options.className, key);
-      if (type && (isPointer(type) || isRelation(type))) {
+      if (_.isNil(type)) continue;
+      if (isPointer(type) || isRelation(type)) {
         types[key] = this._matchesType(compiler, { className: type.target, ...match });
       }
     }
