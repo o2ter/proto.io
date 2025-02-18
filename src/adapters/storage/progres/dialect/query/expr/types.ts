@@ -31,23 +31,28 @@ const isValueExpression = (expr: QueryExpression): boolean => {
   if (expr instanceof QueryArrayExpression) return _.every(expr.exprs, x => isValueExpression(x));
   return expr instanceof QueryValueExpression;
 };
+
 export const isArrayExpression = (expr: QueryExpression) => {
   if (expr instanceof QueryArrayExpression) return true;
   if (expr instanceof QueryValueExpression) return _.isArray(expr.value);
   return false;
 };
+
 export const arrayLength = (expr: QueryExpression) => {
   if (expr instanceof QueryArrayExpression) return expr.exprs.length;
   if (expr instanceof QueryValueExpression) return _.isArray(expr.value) ? expr.value.length : 0;
   return 0;
 };
+
 export const mapExpression = <R>(expr: QueryExpression, callback: (x: QueryExpression) => R): R[] => {
   if (expr instanceof QueryArrayExpression) return _.map(expr.exprs, x => callback(x));
   if (expr instanceof QueryValueExpression) return _.isArray(expr.value) ? _.map(expr.value, x => callback(new QueryValueExpression(x))) : [];
   return [];
 };
+
 export const _PrimitiveValue = ['boolean', 'number', 'decimal', 'string', 'date'] as const;
 export type PrimitiveValue = (typeof _PrimitiveValue)[number];
+
 export const matchType = (
   first: { type: PrimitiveValue; sql: SQL; }[] | undefined,
   second: { type: PrimitiveValue; sql: SQL; }[] | undefined
