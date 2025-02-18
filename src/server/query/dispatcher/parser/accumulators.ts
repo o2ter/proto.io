@@ -34,6 +34,8 @@ export class QueryAccumulator {
   type: AccumulatorKeys;
   expr?: QueryExpression;
 
+  calculatedDataType?: any;
+
   static decode(query: TQueryAccumulator): QueryAccumulator {
     for (const [key, expr] of _.toPairs(query)) {
       if (_.includes(accumulatorExprKeys, key)) {

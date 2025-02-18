@@ -38,7 +38,6 @@ import { TQueryRandomOptions } from '../../../internals/query';
 import { TUpdateOp } from '../../../internals/object/types';
 import { QuerySelector } from '../../../server/query/dispatcher/parser';
 import { QueryAccumulator } from '../../../server/query/dispatcher/parser/accumulators';
-import { accumulatorKeyTypes } from '../../../internals/query/types/accumulators';
 
 export abstract class SqlStorage implements TStorage {
 
@@ -180,7 +179,7 @@ export abstract class SqlStorage implements TStorage {
     }
     for (const [key, group] of _.entries(options.groupMatches)) {
       for (const [field, expr] of _.entries(group)) {
-        _.set(types, `${key}.${field}`, accumulatorKeyTypes[expr.type]);
+        _.set(types, `${key}.${field}`, expr.calculatedDataType);
       }
     }
     return types;
@@ -189,11 +188,12 @@ export abstract class SqlStorage implements TStorage {
   find(query: DecodedQuery<FindOptions & RelationOptions>) {
     const self = this;
     const compiler = self._makeCompiler(false, query.extraFilter);
+    const _matchesType = self._matchesType(compiler, query);
     const _query = compiler._selectQuery(query);
     return (async function* () {
       const objects = self.query(_query);
       for await (const object of objects) {
-        yield self._decodeObject(query.className, object, self._matchesType(compiler, query));
+        yield self._decodeObject(query.className, object, _matchesType);
       }
     })();
   }
@@ -201,6 +201,7 @@ export abstract class SqlStorage implements TStorage {
   random(query: DecodedQuery<FindOptions & RelationOptions>, opts?: TQueryRandomOptions) {
     const self = this;
     const compiler = self._makeCompiler(false, query.extraFilter);
+    const _matchesType = self._matchesType(compiler, query);
     const _query = compiler._selectQuery({ ...query, sort: {} }, {
       sort: sql`ORDER BY ${self.dialect.random(opts ?? {})}`,
     });
@@ -233,6 +234,7 @@ export abstract class SqlStorage implements TStorage {
   nonrefs(query: DecodedQuery<FindOptions>) {
     const self = this;
     const compiler = self._makeCompiler(false, query.extraFilter);
+    const _matchesType = self._matchesType(compiler, query);
     const _query = compiler._selectQuery(query, ({ fetchName }) => ({
       extraFilter: sql`
         NOT EXISTS (${this._refs(
@@ -244,32 +246,36 @@ export abstract class SqlStorage implements TStorage {
     return (async function* () {
       const objects = self.query(_query);
       for await (const object of objects) {
-        yield self._decodeObject(query.className, object, self._matchesType(compiler, query));
+        yield self._decodeObject(query.className, object, _matchesType);
       }
     })();
   }
 
   async insert(options: InsertOptions, values: Record<string, TValueWithUndefined>[]) {
     const compiler = this._makeCompiler(true);
+    const _matchesType = this._matchesType(compiler, options);
     const result = await this.query(compiler.insert(options, values));
-    return _.map(result, x => this._decodeObject(options.className, x, this._matchesType(compiler, options)));
+    return _.map(result, x => this._decodeObject(options.className, x, _matchesType));
   }
 
   async update(query: DecodedQuery<FindOptions>, update: Record<string, TUpdateOp>) {
     const compiler = this._makeCompiler(true, query.extraFilter);
+    const _matchesType = this._matchesType(compiler, query);
     const updated = await this.query(compiler.update(query, update));
-    return _.map(updated, x => this._decodeObject(query.className, x, this._matchesType(compiler, query)));
+    return _.map(updated, x => this._decodeObject(query.className, x, _matchesType));
   }
 
   async upsert(query: DecodedQuery<FindOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValueWithUndefined>) {
     const compiler = this._makeCompiler(true, query.extraFilter);
+    const _matchesType = this._matchesType(compiler, query);
     const upserted = await this.query(compiler.upsert(query, update, setOnInsert));
-    return _.map(upserted, x => this._decodeObject(query.className, x, this._matchesType(compiler, query)));
+    return _.map(upserted, x => this._decodeObject(query.className, x, _matchesType));
   }
 
   async delete(query: DecodedQuery<FindOptions>) {
     const compiler = this._makeCompiler(true, query.extraFilter);
+    const _matchesType = this._matchesType(compiler, query);
     const deleted = await this.query(compiler.delete(query));
-    return _.map(deleted, x => this._decodeObject(query.className, x, this._matchesType(compiler, query)));
+    return _.map(deleted, x => this._decodeObject(query.className, x, _matchesType));
   }
 }

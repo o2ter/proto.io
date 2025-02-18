@@ -28,7 +28,6 @@ import { sql } from '../../../sql';
 import { Populate, QueryCompiler, QueryContext } from '../../../sql/compiler';
 import { TSchema, _isTypeof, isPointer, isRelation, isVector } from '../../../../../internals/schema';
 import { QueryValidator, resolveColumn } from '../../../../../server/query/dispatcher/validator';
-import { accumulatorKeyTypes } from '../../../../../internals/query/types/accumulators';
 
 const _fetchElement = (
   compiler: QueryCompiler,
@@ -57,7 +56,7 @@ const _fetchElement = (
       return {
         element: sql`${{ identifier: parent.name }}.${{ identifier: `${colname}.${subpath[0]}` }}`,
         json: false,
-        dataType: accumulatorKeyTypes[match.type],
+        dataType: match.calculatedDataType,
       };
     } else if (dataType && _isTypeof(dataType, ['array', 'string[]', 'relation'])) {
       return {

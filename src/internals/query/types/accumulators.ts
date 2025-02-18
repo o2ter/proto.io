@@ -33,13 +33,3 @@ export type TQueryAccumulator = {
 } & {
   [x in (typeof accumulatorExprKeys)[number]]?: TExpression;
 };
-
-export const accumulatorKeyTypes = {
-  '$count': 'number',
-  '$sum': 'number',
-  '$avg': 'number',
-  '$stdDevPop': 'number',
-  '$stdDevSamp': 'number',
-  '$varPop': 'number',
-  '$varSamp': 'number',
-} as const;
