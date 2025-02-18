@@ -27,11 +27,6 @@ import _ from 'lodash';
 import { QueryExpression, QueryArrayExpression, QueryValueExpression } from '../../../../../../server/query/dispatcher/parser/expressions';
 import { SQL } from '../../../../sql';
 
-const isValueExpression = (expr: QueryExpression): boolean => {
-  if (expr instanceof QueryArrayExpression) return _.every(expr.exprs, x => isValueExpression(x));
-  return expr instanceof QueryValueExpression;
-};
-
 export const isArrayExpression = (expr: QueryExpression) => {
   if (expr instanceof QueryArrayExpression) return true;
   if (expr instanceof QueryValueExpression) return _.isArray(expr.value);
