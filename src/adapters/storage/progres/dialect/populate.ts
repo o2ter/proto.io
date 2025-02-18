@@ -114,7 +114,7 @@ export const _selectRelationPopulate = (
       ]
     ))}
     FROM ${{ identifier: populate.name }} WHERE ${cond}
-    ${!_.isEmpty(populate.sort) ? sql`ORDER BY ${compiler._encodeSort(populate.sort, { className: populate.className, name: populate.name })}` : sql``}
+    ${!_.isEmpty(populate.sort) ? sql`ORDER BY ${compiler._encodeSort(populate.sort, populate)}` : sql``}
     ${populate.limit ? sql`LIMIT ${{ literal: `${populate.limit}` }}` : sql``}
     ${populate.skip ? sql`OFFSET ${{ literal: `${populate.skip}` }}` : sql``}
     ${compiler.selectLock ? compiler.isUpdate ? sql`FOR UPDATE NOWAIT` : sql`FOR SHARE NOWAIT` : sql``}

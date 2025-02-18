@@ -269,7 +269,11 @@ export class QueryCompiler {
         ) AS ${{ identifier: fetchName }}
         ${!_.isEmpty(filter) ? sql`WHERE ${{ literal: _.map(filter, x => sql`(${x})`), separator: ' AND ' }}` : sql``}
         ${_options?.sort ? _options?.sort : sql``}
-        ${!_.isEmpty(query.sort) ? sql`ORDER BY ${this._encodeSort(query.sort, { className: query.className, name: fetchName })}` : sql``}
+        ${!_.isEmpty(query.sort) ? sql`ORDER BY ${this._encodeSort(query.sort, {
+          name: fetchName,
+          className: query.className,
+          groupMatches: query.groupMatches,
+        })}` : sql``}
         ${query.limit ? sql`LIMIT ${{ literal: `${query.limit}` }}` : sql``}
         ${query.skip ? sql`OFFSET ${{ literal: `${query.skip}` }}` : sql``}
       `,
