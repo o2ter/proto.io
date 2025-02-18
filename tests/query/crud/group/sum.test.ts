@@ -51,6 +51,7 @@ test('test group matches sum', async () => {
     .groupMatches('relation', {
       sum: { $sum: { $key: 'number' } },
     })
+    .sort({ 'relation.sum': 1 })
     .first();
 
   expect(result?.get('relation.sum')).toBe(15);

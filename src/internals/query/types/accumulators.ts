@@ -25,7 +25,7 @@
 
 import { TExpression } from './expressions';
 
-export const accumulatorExprKeys = ['$sum', '$avg'] as const;
+export const accumulatorExprKeys = ['$sum', '$avg', '$stdDevPop', '$stdDevSamp', '$varPop', '$varSamp'] as const;
 export const accumulatorNoExprKeys = ['$count'] as const;
 
 export type TQueryAccumulator = {
@@ -38,4 +38,8 @@ export const accumulatorKeyTypes = {
   '$count': 'number',
   '$sum': 'number',
   '$avg': 'number',
+  '$stdDevPop': 'number',
+  '$stdDevSamp': 'number',
+  '$varPop': 'number',
+  '$varSamp': 'number',
 } as const;

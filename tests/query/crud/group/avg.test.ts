@@ -51,6 +51,7 @@ test('test group matches avg', async () => {
     .groupMatches('relation', {
       avg: { $avg: { $key: 'number' } },
     })
+    .sort({ 'relation.avg': 1 })
     .first();
 
   expect(result?.get('relation.avg')).toBe(3);

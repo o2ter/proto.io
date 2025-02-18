@@ -146,10 +146,18 @@ export const selectPopulate = (
             break;
           case '$avg':
           case '$sum':
+          case '$stdDevPop':
+          case '$stdDevSamp':
+          case '$varPop':
+          case '$varSamp':
             {
               const op = {
                 '$avg': 'AVG',
                 '$sum': 'SUM',
+                '$stdDevPop': 'STDDEV_POP',
+                '$stdDevSamp': 'STDDEV_SAMP',
+                '$varPop': 'VAR_POP',
+                '$varSamp': 'VAR_SAMP',
               }[type];
               if (!expr) throw Error('Invalid expression');
               const exprs = encodeTypedQueryExpression(compiler, populate, expr);

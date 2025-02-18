@@ -51,6 +51,7 @@ test('test group matches count', async () => {
     .groupMatches('relation', {
       count: { $count: true },
     })
+    .sort({ 'relation.count': 1 })
     .first();
 
   expect(result?.get('relation.count')).toBe(5);
