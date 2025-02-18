@@ -161,7 +161,7 @@ export const selectPopulate = (
               }[type];
               if (!expr) throw Error('Invalid expression');
               const exprs = encodeTypedQueryExpression(compiler, populate, expr);
-              const { sql: value } = (_.includes(['$avg'], type) ? _.find(exprs, e => e.type === 'number') : _.first(exprs)) ?? {};
+              const { sql: value } = _.first(exprs) ?? {};
               if (!value) throw Error('Invalid expression');
               columns.push(sql`
                 (
