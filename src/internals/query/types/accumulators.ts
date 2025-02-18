@@ -25,7 +25,7 @@
 
 import { TExpression } from './expressions';
 
-export const accumulatorExprKeys = [
+export const accumulatorUnaryKeys = [
   '$max',
   '$min',
   '$most',
@@ -50,5 +50,5 @@ export type TQueryAccumulator = {
 } & {
   [x in (typeof accumulatorNoParamKeys)[number]]?: true | {};
 } & {
-  [x in (typeof accumulatorExprKeys)[number]]?: TExpression;
+  [x in (typeof accumulatorUnaryKeys)[number]]?: TExpression;
 };

@@ -30,7 +30,7 @@ import { Populate, QueryCompiler, QueryContext } from '../../sql/compiler';
 import { _jsonPopulateInclude } from './encode';
 import { resolveColumn } from '../../../../server/query/dispatcher/validator';
 import { encodeTypedQueryExpression } from './query/expr';
-import { QueryExprAccumulator, QueryNoParamAccumulator, QueryPercentileAccumulator } from '../../../../server/query/dispatcher/parser/accumulators';
+import { QueryUnaryAccumulator, QueryNoParamAccumulator, QueryPercentileAccumulator } from '../../../../server/query/dispatcher/parser/accumulators';
 
 const resolveSubpaths = (
   compiler: QueryCompiler,
@@ -146,7 +146,7 @@ export const selectPopulate = (
               break;
             default: break;
           }
-        } else if (expr instanceof QueryExprAccumulator) {
+        } else if (expr instanceof QueryUnaryAccumulator) {
           if (!expr.expr) throw Error('Invalid expression');
           const exprs = encodeTypedQueryExpression(compiler, populate, expr.expr);
           const value = _.first(exprs)?.sql;

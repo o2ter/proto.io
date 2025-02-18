@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { accumulatorExprKeys, accumulatorNoParamKeys, TQueryAccumulator } from '../../../../internals/query/types/accumulators';
+import { accumulatorUnaryKeys, accumulatorNoParamKeys, TQueryAccumulator } from '../../../../internals/query/types/accumulators';
 import { QueryExpression } from './expressions';
 import { _isTypeof, TSchema } from '../../../../internals/schema';
 
@@ -32,8 +32,8 @@ export class QueryAccumulator {
 
   static decode(query: TQueryAccumulator): QueryAccumulator {
     for (const [key, expr] of _.toPairs(query)) {
-      if (_.includes(accumulatorExprKeys, key)) {
-        return new QueryExprAccumulator(key as typeof accumulatorExprKeys[number], QueryExpression.decode(expr as any ?? [], false));
+      if (_.includes(accumulatorUnaryKeys, key)) {
+        return new QueryUnaryAccumulator(key as typeof accumulatorUnaryKeys[number], QueryExpression.decode(expr as any ?? [], false));
       } else if (_.includes(accumulatorNoParamKeys, key)) {
         return new QueryNoParamAccumulator(key as typeof accumulatorNoParamKeys[number]);
       } else if (key === '$percentile') {
@@ -94,19 +94,19 @@ export class QueryNoParamAccumulator extends QueryAccumulator {
   }
 }
 
-export class QueryExprAccumulator extends QueryAccumulator {
+export class QueryUnaryAccumulator extends QueryAccumulator {
 
-  type: typeof accumulatorExprKeys[number];
+  type: typeof accumulatorUnaryKeys[number];
   expr: QueryExpression;
 
-  constructor(type: typeof accumulatorExprKeys[number], expr: QueryExpression) {
+  constructor(type: typeof accumulatorUnaryKeys[number], expr: QueryExpression) {
     super();
     this.type = type;
     this.expr = expr;
   }
 
   simplify() {
-    return new QueryExprAccumulator(this.type, this.expr.simplify());
+    return new QueryUnaryAccumulator(this.type, this.expr.simplify());
   }
 
   keyPaths() {
@@ -114,7 +114,7 @@ export class QueryExprAccumulator extends QueryAccumulator {
   }
 
   mapKey(callback: (key: string) => string) {
-    return new QueryExprAccumulator(this.type, this.expr.mapKey(callback));
+    return new QueryUnaryAccumulator(this.type, this.expr.mapKey(callback));
   }
 
   evalType(schema: Record<string, TSchema>, className: string): TSchema.DataType | undefined {
