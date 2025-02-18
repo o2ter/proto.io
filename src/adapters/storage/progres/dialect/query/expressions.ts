@@ -75,7 +75,17 @@ export const encodeTypedQueryExpression = (
   if (expr instanceof QueryKeyExpression) {
     const { element, dataType } = fetchElement(compiler, parent, expr.key);
     const _dataType = dataType ? _typeof(dataType) : null;
-    if (_dataType && _PrimitiveValue.includes(_dataType as any)) {
+    if (_dataType === 'number') {
+      return [
+        { type: _dataType as PrimitiveValue, sql: element },
+        { type: 'decimal', sql: sql`CAST(${element} AS DECIMAL)` },
+      ];
+    } else if (_dataType === 'decimal') {
+      return [
+        { type: _dataType as PrimitiveValue, sql: element },
+        { type: 'number', sql: sql`${element}` },
+      ];
+    } else if (_dataType && _PrimitiveValue.includes(_dataType as any)) {
       return [{ type: _dataType as PrimitiveValue, sql: element }];
     }
   }
