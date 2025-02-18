@@ -103,7 +103,7 @@ export const dispatcher = <E>(
       const decoded = _validator.decodeQuery(normalize(query), 'read');
       const isGet = _validator.isGetMethod(decoded.filter);
       if (!_validator.validateCLPs(query.className, isGet ? 'get' : 'find')) throw Error('No permission');
-      const weight = opts?.weight ? QueryExpression.decode(_.isString(opts.weight) ? { $key: opts.weight } : opts.weight, false) : undefined;
+      const weight = opts?.weight ? QueryExpression.decode(opts.weight, false) : undefined;
       for (const key of weight?.keyPaths() ?? []) {
         if (!_validator.validateKey(query.className, key, 'read', QueryValidator.patterns.path)) throw Error('No permission');
       }

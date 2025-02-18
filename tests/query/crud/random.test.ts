@@ -51,7 +51,7 @@ test('test random 2', async () => {
     await Proto.Query('Test').insert({ number: i, string: 'random2' });
   }
 
-  const result = await Proto.Query('Test').equalTo('string', 'random2').random({ weight: 'number' });
+  const result = await Proto.Query('Test').equalTo('string', 'random2').random({ weight: { $key: 'number' } });
 
   expect(_.map(result, x => x.get('number')).sort((a, b) => a - b)).toStrictEqual(_.range(1, 10));
 })

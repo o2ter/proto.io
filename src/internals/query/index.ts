@@ -52,7 +52,7 @@ export interface TQueryRandomOptions {
   /**
    * Field to use for weighting the random selection.
    */
-  weight?: string | TExpression;
+  weight?: TExpression;
 };
 
 /**
