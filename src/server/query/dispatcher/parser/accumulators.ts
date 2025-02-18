@@ -123,6 +123,7 @@ export class QueryExprAccumulator extends QueryAccumulator {
     switch (this.type) {
       case '$max': return _isTypeof(dataType, ['number', 'decimal', 'string', 'date']) ? dataType : undefined;
       case '$min': return _isTypeof(dataType, ['number', 'decimal', 'string', 'date']) ? dataType : undefined;
+      case '$most': return _isTypeof(dataType, ['number', 'decimal', 'string', 'date']) ? dataType : undefined;
       case '$avg': return _isTypeof(dataType, ['number', 'decimal']) ? dataType : undefined;
       case '$sum': return _isTypeof(dataType, ['number', 'decimal']) ? dataType : undefined;
       case '$stdDevPop': return _isTypeof(dataType, ['number', 'decimal']) ? dataType : undefined;

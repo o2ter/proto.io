@@ -147,27 +147,42 @@ export const selectPopulate = (
             default: break;
           }
         } else if (expr instanceof QueryExprAccumulator) {
-          const op = {
-            '$max': 'MAX',
-            '$min': 'MIN',
-            '$avg': 'AVG',
-            '$sum': 'SUM',
-            '$stdDevPop': 'STDDEV_POP',
-            '$stdDevSamp': 'STDDEV_SAMP',
-            '$varPop': 'VAR_POP',
-            '$varSamp': 'VAR_SAMP',
-          }[expr.type];
           if (!expr.expr) throw Error('Invalid expression');
           const exprs = encodeTypedQueryExpression(compiler, populate, expr.expr);
           const value = _.first(exprs)?.sql;
           if (!value) throw Error('Invalid expression');
-          columns.push(sql`
-            (
-              SELECT ${{ literal: op }}(${value}) FROM (
-                ${_selectRelationPopulate(compiler, parent, populate, field, false)}
-              ) ${{ identifier: populate.name }}
-            ) AS ${{ identifier: `${field}.${key}` }}
-          `);
+          switch (expr.type) {
+            case '$most':
+              columns.push(sql`
+                (
+                  SELECT MODE() WITHIN GROUP (ORDER BY (${value})) FROM (
+                    ${_selectRelationPopulate(compiler, parent, populate, field, false)}
+                  ) ${{ identifier: populate.name }}
+                ) AS ${{ identifier: `${field}.${key}` }}
+              `);
+              break;
+            default:
+              {
+                const op = {
+                  '$max': 'MAX',
+                  '$min': 'MIN',
+                  '$avg': 'AVG',
+                  '$sum': 'SUM',
+                  '$stdDevPop': 'STDDEV_POP',
+                  '$stdDevSamp': 'STDDEV_SAMP',
+                  '$varPop': 'VAR_POP',
+                  '$varSamp': 'VAR_SAMP',
+                }[expr.type];
+                columns.push(sql`
+                  (
+                    SELECT ${{ literal: op }}(${value}) FROM (
+                      ${_selectRelationPopulate(compiler, parent, populate, field, false)}
+                    ) ${{ identifier: populate.name }}
+                  ) AS ${{ identifier: `${field}.${key}` }}
+                `);
+              }
+              break;
+          }
         } else if (expr instanceof QueryPercentileAccumulator) {
           const op = {
             'discrete': 'PERCENTILE_DISC',

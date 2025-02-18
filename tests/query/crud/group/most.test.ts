@@ -1,5 +1,5 @@
 //
-//  accumulators.ts
+//  index.test.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2025 O2ter Limited. All rights reserved.
@@ -23,32 +23,38 @@
 //  THE SOFTWARE.
 //
 
-import { TExpression } from './expressions';
+import _ from 'lodash';
+import { masterUser } from '../../server';
+import { test, expect } from '@jest/globals';
+import Decimal from 'decimal.js';
+import { ProtoClient } from '../../../../src/client/proto';
 
-export const accumulatorExprKeys = [
-  '$max',
-  '$min',
-  '$most',
-  '$sum',
-  '$avg',
-  '$stdDevPop',
-  '$stdDevSamp',
-  '$varPop',
-  '$varSamp'
-] as const;
+const Proto = new ProtoClient({
+  endpoint: 'http://localhost:8080/proto',
+  masterUser,
+});
 
-export const accumulatorNoParamKeys = [
-  '$count'
-] as const;
+test('test group matches max', async () => {
 
-export type TQueryAccumulator = {
-  $percentile?: {
-    input: TExpression;
-    p: number;
-    mode?: 'discrete' | 'continuous';
-  },
-} & {
-  [x in (typeof accumulatorNoParamKeys)[number]]?: true | {};
-} & {
-  [x in (typeof accumulatorExprKeys)[number]]?: TExpression;
-};
+  const parent = await Proto.Query('Test').insert({
+    relation: [
+      await Proto.Query('Test').insert({ number: 1 }),
+      await Proto.Query('Test').insert({ number: 2 }),
+      await Proto.Query('Test').insert({ number: 3 }),
+      await Proto.Query('Test').insert({ number: 3 }),
+      await Proto.Query('Test').insert({ number: 4 }),
+      await Proto.Query('Test').insert({ number: 5 }),
+    ],
+  });
+
+  const result = await Proto.Query('Test')
+    .equalTo('_id', parent.objectId)
+    .groupMatches('relation', {
+      value: { $most: { $key: 'number' } },
+    })
+    .sort({ 'relation.value': 1 })
+    .first();
+
+  expect(result?.get('relation.value')).toBe(3);
+
+})
