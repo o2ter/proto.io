@@ -39,8 +39,6 @@ export const TUnaryExprKeys = [
   '$exp',
   '$ln',
   '$log10',
-  '$lower',
-  '$upper',
   '$sin',
   '$cos',
   '$tan',
@@ -54,6 +52,8 @@ export const TUnaryExprKeys = [
   '$cosh',
   '$tanh',
   '$size',
+  '$lower',
+  '$upper',
 ] as const;
 
 export const TBinaryExprKeys = [
