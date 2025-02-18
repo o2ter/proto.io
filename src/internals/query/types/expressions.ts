@@ -26,6 +26,52 @@
 import { TValue } from '../../types';
 import { TComparisonKeys, TConditionalKeys } from './keys';
 
+export const TNoParamExprKeys = [
+  '$rand'
+] as const;
+
+export const TUnaryExprKeys = [
+  '$abs',
+  '$sqrt',
+  '$ceil',
+  '$floor',
+  '$round',
+  '$exp',
+  '$ln',
+  '$log10',
+  '$lower',
+  '$upper',
+  '$sin',
+  '$cos',
+  '$tan',
+  '$asin',
+  '$acos',
+  '$atan',
+  '$asinh',
+  '$acosh',
+  '$atanh',
+  '$sinh',
+  '$cosh',
+  '$tanh',
+] as const;
+
+export const TBinaryExprKeys = [
+  '$mod',
+  '$log',
+  '$pow',
+  '$divide',
+  '$subtract',
+  '$trunc',
+  '$atan2',
+] as const;
+
+export const TListExprKeys = [
+  '$add',
+  '$multiply',
+  '$ifNull',
+  '$concat',
+] as const;
+
 export const TDistanceExprKeys = [
   '$distance',
   '$innerProduct',
@@ -53,4 +99,12 @@ export type TExpression = {
   $array?: TExpression[];
   $key?: string;
   $value?: TValue;
+} & {
+  [x in (typeof TNoParamExprKeys)[number]]?: true | {};
+} & {
+  [x in (typeof TUnaryExprKeys)[number]]?: TExpression;
+} & {
+  [x in (typeof TBinaryExprKeys)[number]]?: [TExpression, TExpression];
+} & {
+  [x in (typeof TListExprKeys)[number]]?: TExpression[];
 } & TBooleanExpression & TDistanceExpression;
