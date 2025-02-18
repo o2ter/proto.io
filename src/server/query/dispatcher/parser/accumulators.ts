@@ -36,6 +36,11 @@ export class QueryAccumulator {
         return new QueryExprAccumulator(key as typeof accumulatorExprKeys[number], QueryExpression.decode(expr as any ?? [], false));
       } else if (_.includes(accumulatorNoParamKeys, key)) {
         return new QueryNoParamAccumulator(key as typeof accumulatorNoParamKeys[number]);
+      } else if (key === '$percentile') {
+        const { input, p, mode = 'discrete' } = expr as any ?? {};
+        if (!_.isFinite(p) || p < 0 || p > 1) throw Error('Invalid expression');
+        if (!_.includes(['discrete', 'continuous'], mode)) throw Error('Invalid expression');
+        return new QueryPercentileAccumulator(QueryExpression.decode(input ?? [], false), p, mode);
       } else {
         throw Error('Invalid expression');
       }
@@ -105,7 +110,7 @@ export class QueryExprAccumulator extends QueryAccumulator {
   }
 
   keyPaths() {
-    return this.expr?.keyPaths() ?? [];
+    return this.expr.keyPaths();
   }
 
   mapKey(callback: (key: string) => string) {
@@ -113,7 +118,7 @@ export class QueryExprAccumulator extends QueryAccumulator {
   }
 
   evalType(schema: Record<string, TSchema>, className: string): TSchema.DataType | undefined {
-    const [dataType] = this.expr?.evalType(schema, className) ?? [];
+    const [dataType] = this.expr.evalType(schema, className);
     if (_.isNil(dataType)) return;
     switch (this.type) {
       case '$max': return _isTypeof(dataType, ['number', 'decimal', 'string', 'date']) ? dataType : undefined;
@@ -126,5 +131,39 @@ export class QueryExprAccumulator extends QueryAccumulator {
       case '$varSamp': return _isTypeof(dataType, ['number', 'decimal']) ? dataType : undefined;
       default: break;
     }
+  }
+}
+
+export class QueryPercentileAccumulator extends QueryAccumulator {
+
+  input: QueryExpression;
+  p: number;
+  mode: 'discrete' | 'continuous';
+
+  constructor(input: QueryExpression, p: number, mode: 'discrete' | 'continuous') {
+    super();
+    this.input = input;
+    this.p = p;
+    this.mode = mode;
+  }
+
+  simplify(): QueryAccumulator {
+    return new QueryPercentileAccumulator(this.input.simplify(), this.p, this.mode);
+  }
+
+  keyPaths(): string[] {
+    return this.input.keyPaths();
+  }
+
+  mapKey(callback: (key: string) => string): QueryAccumulator {
+    return new QueryPercentileAccumulator(this.input.mapKey(callback), this.p, this.mode);
+  }
+
+  evalType(schema: Record<string, TSchema>, className: string): TSchema.DataType | undefined {
+    const [dataType] = this.input.evalType(schema, className);
+    if (this.mode === 'continuous') {
+      return _isTypeof(dataType, ['number', 'decimal']) ? dataType : undefined;
+    }
+    return dataType;
   }
 }

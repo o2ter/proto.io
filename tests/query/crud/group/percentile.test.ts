@@ -34,7 +34,7 @@ const Proto = new ProtoClient({
   masterUser,
 });
 
-test('test group matches avg', async () => {
+test('test group matches percentile', async () => {
 
   const parent = await Proto.Query('Test').insert({
     relation: [
@@ -49,7 +49,12 @@ test('test group matches avg', async () => {
   const result = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .groupMatches('relation', {
-      value: { $avg: { $key: 'number' } },
+      value: {
+        $percentile: {
+          input: { $key: 'number' },
+          p: 0.5,
+        },
+      },
     })
     .sort({ 'relation.value': 1 })
     .first();

@@ -49,12 +49,12 @@ test('test group matches count', async () => {
   const result = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .groupMatches('relation', {
-      count: { $count: true },
+      value: { $count: true },
     })
-    .sort({ 'relation.count': 1 })
+    .sort({ 'relation.value': 1 })
     .first();
 
-  expect(result?.get('relation.count')).toBe(5);
+  expect(result?.get('relation.value')).toBe(5);
 
 })
 
@@ -70,11 +70,11 @@ test('test group matches count 2', async () => {
   const result = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .groupMatches('relation2', {
-      count: { $count: true },
+      value: { $count: true },
     })
     .first();
 
-  expect(result?.get('relation2.count')).toBe(5);
+  expect(result?.get('relation2.value')).toBe(5);
 
 })
 
@@ -95,11 +95,11 @@ test('test group matches count 3', async () => {
   const result = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .groupMatches('shape.relation', {
-      count: { $count: true },
+      value: { $count: true },
     })
     .first();
 
-  expect(result?.get('shape.relation.count')).toBe(5);
+  expect(result?.get('shape.relation.value')).toBe(5);
 
 })
 
@@ -115,11 +115,11 @@ test('test group matches count 4', async () => {
   const result = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .groupMatches('shape.relation2', {
-      count: { $count: true },
+      value: { $count: true },
     })
     .first();
 
-  expect(result?.get('shape.relation2.count')).toBe(5);
+  expect(result?.get('shape.relation2.value')).toBe(5);
 
 })
 
@@ -142,11 +142,11 @@ test('test group matches count 5', async () => {
   const result = await Proto.Query('Test')
     .equalTo('_id', parent2.objectId)
     .groupMatches('pointer.relation', {
-      count: { $count: true },
+      value: { $count: true },
     })
     .first();
 
-  expect(result?.get('pointer.relation.count')).toBe(5);
+  expect(result?.get('pointer.relation.value')).toBe(5);
 
 })
 
@@ -166,11 +166,11 @@ test('test group matches count 6', async () => {
   const result = await Proto.Query('Test')
     .equalTo('_id', parent2.objectId)
     .groupMatches('pointer.relation2', {
-      count: { $count: true },
+      value: { $count: true },
     })
     .first();
 
-  expect(result?.get('pointer.relation2.count')).toBe(6);
+  expect(result?.get('pointer.relation2.value')).toBe(6);
 
 })
 
@@ -195,11 +195,11 @@ test('test group matches count 7', async () => {
   const result = await Proto.Query('Test')
     .equalTo('_id', parent2.objectId)
     .groupMatches('pointer.shape.relation', {
-      count: { $count: true },
+      value: { $count: true },
     })
     .first();
 
-  expect(result?.get('pointer.shape.relation.count')).toBe(5);
+  expect(result?.get('pointer.shape.relation.value')).toBe(5);
 
 })
 
@@ -219,11 +219,11 @@ test('test group matches count 8', async () => {
   const result = await Proto.Query('Test')
     .equalTo('_id', parent2.objectId)
     .groupMatches('pointer.shape.relation2', {
-      count: { $count: true },
+      value: { $count: true },
     })
     .first();
 
-  expect(result?.get('pointer.shape.relation2.count')).toBe(6);
+  expect(result?.get('pointer.shape.relation2.value')).toBe(6);
 
 })
 
@@ -243,74 +243,74 @@ test('test group matches count 9', async () => {
     .equalTo('_id', parent.objectId)
     .some('relation', q => q.equalTo('number', 42))
     .groupMatches('relation', {
-      count: { $count: true },
+      value: { $count: true },
     })
     .first();
 
-  expect(result?.get('relation.count')).toBe(5);
+  expect(result?.get('relation.value')).toBe(5);
 
   const result2 = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .every('relation', q => q.equalTo('number', 42))
     .groupMatches('relation', {
-      count: { $count: true },
+      value: { $count: true },
     })
     .first();
 
-  expect(result2?.get('relation.count')).toBeUndefined();
+  expect(result2?.get('relation.value')).toBeUndefined();
 
   const result3 = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .match('relation', q => q.equalTo('number', 42))
     .groupMatches('relation', {
-      count: { $count: true },
+      value: { $count: true },
     })
     .first();
 
-  expect(result3?.get('relation.count')).toBe(3);
+  expect(result3?.get('relation.value')).toBe(3);
 
   const result4 = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .match('relation', q => q.equalTo('number', 42))
-    .equalTo('relation.count', 3)
+    .equalTo('relation.value', 3)
     .groupMatches('relation', {
-      count: { $count: true },
+      value: { $count: true },
     })
     .first();
 
-  expect(result4?.get('relation.count')).toBe(3);
+  expect(result4?.get('relation.value')).toBe(3);
 
   const result5 = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .match('relation', q => q.equalTo('number', 42))
-    .equalTo('relation.count', 5)
+    .equalTo('relation.value', 5)
     .groupMatches('relation', {
-      count: { $count: true },
+      value: { $count: true },
     })
     .first();
 
-  expect(result5?.get('relation.count')).toBeUndefined();
+  expect(result5?.get('relation.value')).toBeUndefined();
 
   const result6 = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .match('relation', q => q.equalTo('number', 42))
     .notEmpty('relation')
     .groupMatches('relation', {
-      count: { $count: true },
+      value: { $count: true },
     })
     .first();
 
-  expect(result6?.get('relation.count')).toBe(3);
+  expect(result6?.get('relation.value')).toBe(3);
 
   const result7 = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .match('relation', q => q.equalTo('number', 42))
     .empty('relation')
     .groupMatches('relation', {
-      count: { $count: true },
+      value: { $count: true },
     })
     .first();
 
-  expect(result7?.get('relation.count')).toBeUndefined();
+  expect(result7?.get('relation.value')).toBeUndefined();
 
 })

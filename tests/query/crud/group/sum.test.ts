@@ -49,12 +49,12 @@ test('test group matches sum', async () => {
   const result = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .groupMatches('relation', {
-      sum: { $sum: { $key: 'number' } },
+      value: { $sum: { $key: 'number' } },
     })
-    .sort({ 'relation.sum': 1 })
+    .sort({ 'relation.value': 1 })
     .first();
 
-  expect(result?.get('relation.sum')).toBe(15);
+  expect(result?.get('relation.value')).toBe(15);
 
 })
 
@@ -71,11 +71,11 @@ test('test group matches sum 2', async () => {
   const result = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .groupMatches('relation2', {
-      sum: { $sum: { $key: 'number' } },
+      value: { $sum: { $key: 'number' } },
     })
     .first();
 
-  expect(result?.get('relation2.sum')).toBe(15);
+  expect(result?.get('relation2.value')).toBe(15);
 
 })
 
@@ -96,11 +96,11 @@ test('test group matches sum 3', async () => {
   const result = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .groupMatches('shape.relation', {
-      sum: { $sum: { $key: 'number' } },
+      value: { $sum: { $key: 'number' } },
     })
     .first();
 
-  expect(result?.get('shape.relation.sum')).toBe(15);
+  expect(result?.get('shape.relation.value')).toBe(15);
 
 })
 
@@ -117,11 +117,11 @@ test('test group matches sum 4', async () => {
   const result = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .groupMatches('shape.relation2', {
-      sum: { $sum: { $key: 'number' } },
+      value: { $sum: { $key: 'number' } },
     })
     .first();
 
-  expect(result?.get('shape.relation2.sum')).toBe(15);
+  expect(result?.get('shape.relation2.value')).toBe(15);
 
 })
 
@@ -144,11 +144,11 @@ test('test group matches sum 5', async () => {
   const result = await Proto.Query('Test')
     .equalTo('_id', parent2.objectId)
     .groupMatches('pointer.relation', {
-      sum: { $sum: { $key: 'number' } },
+      value: { $sum: { $key: 'number' } },
     })
     .first();
 
-  expect(result?.get('pointer.relation.sum')).toBe(15);
+  expect(result?.get('pointer.relation.value')).toBe(15);
 
 })
 
@@ -169,11 +169,11 @@ test('test group matches sum 6', async () => {
   const result = await Proto.Query('Test')
     .equalTo('_id', parent2.objectId)
     .groupMatches('pointer.relation2', {
-      sum: { $sum: { $key: 'number' } },
+      value: { $sum: { $key: 'number' } },
     })
     .first();
 
-  expect(result?.get('pointer.relation2.sum')).toBe(15);
+  expect(result?.get('pointer.relation2.value')).toBe(15);
 
 })
 
@@ -198,11 +198,11 @@ test('test group matches sum 7', async () => {
   const result = await Proto.Query('Test')
     .equalTo('_id', parent2.objectId)
     .groupMatches('pointer.shape.relation', {
-      sum: { $sum: { $key: 'number' } },
+      value: { $sum: { $key: 'number' } },
     })
     .first();
 
-  expect(result?.get('pointer.shape.relation.sum')).toBe(15);
+  expect(result?.get('pointer.shape.relation.value')).toBe(15);
 
 })
 
@@ -223,11 +223,11 @@ test('test group matches sum 8', async () => {
   const result = await Proto.Query('Test')
     .equalTo('_id', parent2.objectId)
     .groupMatches('pointer.shape.relation2', {
-      sum: { $sum: { $key: 'number' } },
+      value: { $sum: { $key: 'number' } },
     })
     .first();
 
-  expect(result?.get('pointer.shape.relation2.sum')).toBe(15);
+  expect(result?.get('pointer.shape.relation2.value')).toBe(15);
 
 })
 
@@ -247,74 +247,74 @@ test('test group matches sum 9', async () => {
     .equalTo('_id', parent.objectId)
     .some('relation', q => q.equalTo('number', 42))
     .groupMatches('relation', {
-      sum: { $sum: { $key: 'decimal' } },
+      value: { $sum: { $key: 'decimal' } },
     })
     .first();
 
-  expect(result?.get('relation.sum')?.toNumber()).toBe(15);
+  expect(result?.get('relation.value')?.toNumber()).toBe(15);
 
   const result2 = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .every('relation', q => q.equalTo('number', 42))
     .groupMatches('relation', {
-      sum: { $sum: { $key: 'decimal' } },
+      value: { $sum: { $key: 'decimal' } },
     })
     .first();
 
-  expect(result2?.get('relation.sum')).toBeUndefined();
+  expect(result2?.get('relation.value')).toBeUndefined();
 
   const result3 = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .match('relation', q => q.equalTo('number', 42))
     .groupMatches('relation', {
-      sum: { $sum: { $key: 'decimal' } },
+      value: { $sum: { $key: 'decimal' } },
     })
     .first();
 
-  expect(result3?.get('relation.sum')?.toNumber()).toBe(8);
+  expect(result3?.get('relation.value')?.toNumber()).toBe(8);
 
   const result4 = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .match('relation', q => q.equalTo('number', 42))
-    .equalTo('relation.sum', 8)
+    .equalTo('relation.value', 8)
     .groupMatches('relation', {
-      sum: { $sum: { $key: 'decimal' } },
+      value: { $sum: { $key: 'decimal' } },
     })
     .first();
 
-  expect(result4?.get('relation.sum')?.toNumber()).toBe(8);
+  expect(result4?.get('relation.value')?.toNumber()).toBe(8);
 
   const result5 = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .match('relation', q => q.equalTo('number', 42))
-    .equalTo('relation.sum', 15)
+    .equalTo('relation.value', 15)
     .groupMatches('relation', {
-      sum: { $sum: { $key: 'decimal' } },
+      value: { $sum: { $key: 'decimal' } },
     })
     .first();
 
-  expect(result5?.get('relation.sum')).toBeUndefined();
+  expect(result5?.get('relation.value')).toBeUndefined();
 
   const result6 = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .match('relation', q => q.equalTo('number', 42))
     .notEmpty('relation')
     .groupMatches('relation', {
-      sum: { $sum: { $key: 'decimal' } },
+      value: { $sum: { $key: 'decimal' } },
     })
     .first();
 
-  expect(result6?.get('relation.sum')?.toNumber()).toBe(8);
+  expect(result6?.get('relation.value')?.toNumber()).toBe(8);
 
   const result7 = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .match('relation', q => q.equalTo('number', 42))
     .empty('relation')
     .groupMatches('relation', {
-      sum: { $sum: { $key: 'decimal' } },
+      value: { $sum: { $key: 'decimal' } },
     })
     .first();
 
-  expect(result7?.get('relation.sum')).toBeUndefined();
+  expect(result7?.get('relation.value')).toBeUndefined();
 
 })

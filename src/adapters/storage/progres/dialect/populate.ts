@@ -30,7 +30,7 @@ import { Populate, QueryCompiler, QueryContext } from '../../sql/compiler';
 import { _jsonPopulateInclude } from './encode';
 import { resolveColumn } from '../../../../server/query/dispatcher/validator';
 import { encodeTypedQueryExpression } from './query/expressions';
-import { QueryExprAccumulator, QueryNoParamAccumulator } from '../../../../server/query/dispatcher/parser/accumulators';
+import { QueryExprAccumulator, QueryNoParamAccumulator, QueryPercentileAccumulator } from '../../../../server/query/dispatcher/parser/accumulators';
 
 const resolveSubpaths = (
   compiler: QueryCompiler,
@@ -168,6 +168,24 @@ export const selectPopulate = (
               ) ${{ identifier: populate.name }}
             ) AS ${{ identifier: `${field}.${key}` }}
           `);
+        } else if (expr instanceof QueryPercentileAccumulator) {
+          const op = {
+            'discrete': 'PERCENTILE_DISC',
+            'continuous': 'PERCENTILE_CONT',
+          }[expr.mode];
+          if (!expr.input) throw Error('Invalid expression');
+          const exprs = encodeTypedQueryExpression(compiler, populate, expr.input);
+          const value = _.first(exprs)?.sql;
+          if (!value) throw Error('Invalid expression');
+          columns.push(sql`
+            (
+              SELECT ${{ literal: op }}(${{ value: expr.p }}) WITHIN GROUP (ORDER BY (${value})) FROM (
+                ${_selectRelationPopulate(compiler, parent, populate, field, false)}
+              ) ${{ identifier: populate.name }}
+            ) AS ${{ identifier: `${field}.${key}` }}
+          `);
+        } else {
+          throw Error('Invalid expression');
         }
       }
     } else {

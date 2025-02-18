@@ -49,11 +49,11 @@ test('test group matches varSamp', async () => {
   const result = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .groupMatches('relation', {
-      varSamp: { $varSamp: { $key: 'number' } },
+      value: { $varSamp: { $key: 'number' } },
     })
-    .sort({ 'relation.varSamp': 1 })
+    .sort({ 'relation.value': 1 })
     .first();
 
-  expect(result?.get('relation.varSamp')).toBe(2.5);
+  expect(result?.get('relation.value')).toBe(2.5);
 
 })

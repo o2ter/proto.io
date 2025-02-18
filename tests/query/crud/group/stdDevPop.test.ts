@@ -49,11 +49,11 @@ test('test group matches stdDevPop', async () => {
   const result = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .groupMatches('relation', {
-      stdDevPop: { $stdDevPop: { $key: 'number' } },
+      value: { $stdDevPop: { $key: 'number' } },
     })
-    .sort({ 'relation.stdDevPop': 1 })
+    .sort({ 'relation.value': 1 })
     .first();
 
-  expect(result?.get('relation.stdDevPop').toFixed(2)).toBe('1.41');
+  expect(result?.get('relation.value').toFixed(2)).toBe('1.41');
 
 })

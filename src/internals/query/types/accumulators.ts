@@ -41,6 +41,12 @@ export const accumulatorNoParamKeys = [
 ] as const;
 
 export type TQueryAccumulator = {
+  $percentile?: {
+    input: TExpression;
+    p: number;
+    mode?: 'discrete' | 'continuous';
+  },
+} & {
   [x in (typeof accumulatorNoParamKeys)[number]]?: true | {};
 } & {
   [x in (typeof accumulatorExprKeys)[number]]?: TExpression;

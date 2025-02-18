@@ -49,11 +49,11 @@ test('test group matches max', async () => {
   const result = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .groupMatches('relation', {
-      max: { $max: { $key: 'number' } },
+      value: { $max: { $key: 'number' } },
     })
-    .sort({ 'relation.max': 1 })
+    .sort({ 'relation.value': 1 })
     .first();
 
-  expect(result?.get('relation.max')).toBe(5);
+  expect(result?.get('relation.value')).toBe(5);
 
 })

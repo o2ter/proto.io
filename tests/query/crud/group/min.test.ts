@@ -49,11 +49,11 @@ test('test group matches min', async () => {
   const result = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
     .groupMatches('relation', {
-      min: { $min: { $key: 'number' } },
+      value: { $min: { $key: 'number' } },
     })
-    .sort({ 'relation.min': 1 })
+    .sort({ 'relation.value': 1 })
     .first();
 
-  expect(result?.get('relation.min')).toBe(1);
+  expect(result?.get('relation.value')).toBe(1);
 
 })
