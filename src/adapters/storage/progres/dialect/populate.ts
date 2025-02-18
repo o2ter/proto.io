@@ -161,7 +161,7 @@ export const selectPopulate = (
               }[type];
               if (!expr) throw Error('Invalid expression');
               const exprs = encodeTypedQueryExpression(compiler, populate, expr);
-              const { sql: value } = _.first(exprs) ?? {};
+              const value = _.first(exprs)?.sql;
               if (!value) throw Error('Invalid expression');
               columns.push(sql`
                 (
