@@ -31,6 +31,7 @@ import { QueryValidator, resolveColumn } from '../../../../../server/query/dispa
 import { accumulatorKeyTypes } from '../../../../../internals/query/types/accumulators';
 
 const _fetchElement = (
+  compiler: QueryCompiler,
   parent: QueryContext,
   colname: string,
   subpath: string[],
@@ -125,7 +126,7 @@ export const fetchElement = (
 ) => {
   if (parent.className) {
     const { dataType, colname, subpath } = resolvePaths(compiler, parent.className, _.toPath(field));
-    const { element, json, dataType: _dataType } = _fetchElement(parent, colname, subpath, dataType);
+    const { element, json, dataType: _dataType } = _fetchElement(compiler, parent, colname, subpath, dataType);
     if (isPointer(dataType)) return { element: sql`${{ identifier: parent.name }}.${{ identifier: `${colname}._id` }}`, dataType };
     const populate = isRelation(dataType) && _resolvePopulate(_.toPath(colname), parent.populates);
     if (!populate) return { element, dataType: json ? null : dataType };
@@ -155,6 +156,6 @@ export const fetchElement = (
     }
   }
   const [colname, ...subpath] = _.toPath(field);
-  const { element } = _fetchElement(parent, colname, subpath);
+  const { element } = _fetchElement(compiler, parent, colname, subpath);
   return { element, dataType: null, relation: null };
 };
