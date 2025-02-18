@@ -24,11 +24,11 @@
 //
 
 import _ from 'lodash';
-import { accumulatorExprKeys, accumulatorNoExprKeys, TQueryAccumulator } from '../../../../internals/query/types/accumulators';
+import { accumulatorExprKeys, accumulatorNoParamKeys, TQueryAccumulator } from '../../../../internals/query/types/accumulators';
 import { QueryExpression } from './expressions';
 import { _isTypeof, TSchema } from '../../../../internals/schema';
 
-type AccumulatorKeys = typeof accumulatorExprKeys[number] | typeof accumulatorNoExprKeys[number];
+type AccumulatorKeys = typeof accumulatorExprKeys[number] | typeof accumulatorNoParamKeys[number];
 
 export class QueryAccumulator {
 
@@ -39,7 +39,7 @@ export class QueryAccumulator {
     for (const [key, expr] of _.toPairs(query)) {
       if (_.includes(accumulatorExprKeys, key)) {
         return new QueryAccumulator(key as AccumulatorKeys, QueryExpression.decode(expr as any ?? [], false));
-      } else if (_.includes(accumulatorNoExprKeys, key)) {
+      } else if (_.includes(accumulatorNoParamKeys, key)) {
         return new QueryAccumulator(key as AccumulatorKeys);
       } else {
         throw Error('Invalid expression');
