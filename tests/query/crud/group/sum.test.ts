@@ -251,7 +251,7 @@ test('test group matches sum 9', async () => {
     })
     .first();
 
-  expect(result?.get('relation.sum')).toBe(15);
+  expect(result?.get('relation.sum')?.toNumber()).toBe(15);
 
   const result2 = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
@@ -271,7 +271,7 @@ test('test group matches sum 9', async () => {
     })
     .first();
 
-  expect(result3?.get('relation.sum')).toBe(8);
+  expect(result3?.get('relation.sum')?.toNumber()).toBe(8);
 
   const result4 = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
@@ -282,7 +282,7 @@ test('test group matches sum 9', async () => {
     })
     .first();
 
-  expect(result4?.get('relation.sum')).toBe(8);
+  expect(result4?.get('relation.sum')?.toNumber()).toBe(8);
 
   const result5 = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
@@ -304,7 +304,7 @@ test('test group matches sum 9', async () => {
     })
     .first();
 
-  expect(result6?.get('relation.sum')).toBe(8);
+  expect(result6?.get('relation.sum')?.toNumber()).toBe(8);
 
   const result7 = await Proto.Query('Test')
     .equalTo('_id', parent.objectId)
