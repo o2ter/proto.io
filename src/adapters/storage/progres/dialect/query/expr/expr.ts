@@ -176,7 +176,7 @@ export const encodeBooleanExpression = (
     const _right = encodeTypedQueryExpression(compiler, parent, expr.right);
     if (_left && _right) {
       const matched = matchType(_left, _right);
-      if (matched) return sql`${matched[0].sql} ${operatorMap[expr.type]} ${matched[1].sql}`;
+      if (matched) return sql`(${matched[0].sql}) ${operatorMap[expr.type]} (${matched[1].sql})`;
     }
 
     const _left2 = encodeJsonQueryExpression(compiler, parent, expr.left);
