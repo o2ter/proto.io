@@ -38,6 +38,7 @@ import { TQueryRandomOptions } from '../../../internals/query';
 import { TUpdateOp } from '../../../internals/object/types';
 import { QuerySelector } from '../../../server/query/dispatcher/parser';
 import { QueryAccumulator } from '../../../server/query/dispatcher/parser/accumulators';
+import { resolveDataType } from '../../../server/query/dispatcher/validator';
 
 export abstract class SqlStorage implements TStorage {
 
@@ -176,7 +177,10 @@ export abstract class SqlStorage implements TStorage {
   }): Record<string, any> {
     const types: Record<string, any> = {};
     for (const [key, match] of _.entries(options.matches)) {
-      types[key] = this._matchesType(compiler, match);
+      const type = resolveDataType(compiler.schema, options.className, key);
+      if (type && (isPointer(type) || isRelation(type))) {
+        types[key] = this._matchesType(compiler, { className: type.target, ...match });
+      }
     }
     for (const [key, group] of _.entries(options.groupMatches)) {
       for (const [field, expr] of _.entries(group)) {
