@@ -62,3 +62,61 @@ test('test group matches percentile', async () => {
   expect(result?.get('relation.value')).toBe(3);
 
 })
+
+test('test group matches percentile 2', async () => {
+
+  const parent = await Proto.Query('Test').insert({
+    relation: [
+      await Proto.Query('Test').insert({ number: 1 }),
+      await Proto.Query('Test').insert({ number: 2 }),
+      await Proto.Query('Test').insert({ number: 3 }),
+      await Proto.Query('Test').insert({ number: 4 }),
+      await Proto.Query('Test').insert({ number: 5 }),
+    ],
+  });
+
+  const result = await Proto.Query('Test')
+    .equalTo('_id', parent.objectId)
+    .groupMatches('relation', {
+      value: {
+        $percentile: {
+          input: { $key: 'number' },
+          p: 0.2,
+          mode: 'discrete',
+        },
+      },
+    })
+    .first();
+
+  expect(result?.get('relation.value')).toBe(1);
+
+})
+
+test('test group matches percentile 3', async () => {
+
+  const parent = await Proto.Query('Test').insert({
+    relation: [
+      await Proto.Query('Test').insert({ number: 1 }),
+      await Proto.Query('Test').insert({ number: 2 }),
+      await Proto.Query('Test').insert({ number: 3 }),
+      await Proto.Query('Test').insert({ number: 4 }),
+      await Proto.Query('Test').insert({ number: 5 }),
+    ],
+  });
+
+  const result = await Proto.Query('Test')
+    .equalTo('_id', parent.objectId)
+    .groupMatches('relation', {
+      value: {
+        $percentile: {
+          input: { $key: 'number' },
+          p: 0.2,
+          mode: 'continuous',
+        },
+      },
+    })
+    .first();
+
+  expect(result?.get('relation.value')).toBe(1.8);
+
+})
