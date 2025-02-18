@@ -29,7 +29,7 @@ import { TSchema, isPointer, isPrimitive, isRelation, isShape, isVector } from '
 import { Populate, QueryCompiler, QueryContext } from '../../sql/compiler';
 import { _jsonPopulateInclude } from './encode';
 import { resolveColumn } from '../../../../server/query/dispatcher/validator';
-import { encodeTypedQueryExpression } from './query/expressions';
+import { encodeTypedQueryExpression } from './query/expr';
 import { QueryExprAccumulator, QueryNoParamAccumulator, QueryPercentileAccumulator } from '../../../../server/query/dispatcher/parser/accumulators';
 
 const resolveSubpaths = (

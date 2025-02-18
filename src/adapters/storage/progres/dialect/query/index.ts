@@ -23,5 +23,5 @@
 //  THE SOFTWARE.
 //
 
-export { encodeQueryExpression } from './expressions';
+export { encodeQueryExpression } from './expr';
 export { encodeFieldExpression } from './selectors';

@@ -1,5 +1,5 @@
 //
-//  expressions.ts
+//  index.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2025 O2ter Limited. All rights reserved.
@@ -24,10 +24,10 @@
 //
 
 import _ from 'lodash';
-import { SQL, sql } from '../../../sql';
-import { _typeof, isPrimitive, isVector } from '../../../../../internals/schema';
-import { QueryCompiler, QueryContext } from '../../../sql/compiler';
-import { nullSafeEqual, nullSafeNotEqual } from '../basic';
+import { SQL, sql } from '../../../../sql';
+import { _typeof, isPrimitive } from '../../../../../../internals/schema';
+import { QueryCompiler, QueryContext } from '../../../../sql/compiler';
+import { nullSafeEqual, nullSafeNotEqual } from '../../basic';
 import {
   QueryArrayExpression,
   QueryCoditionalExpression,
@@ -37,34 +37,13 @@ import {
   QueryKeyExpression,
   QueryNotExpression,
   QueryValueExpression
-} from '../../../../../server/query/dispatcher/parser/expressions';
-import { fetchElement } from './utils';
-import { _encodeJsonValue } from '../encode';
+} from '../../../../../../server/query/dispatcher/parser/expressions';
+import { fetchElement } from '../utils';
+import { _encodeJsonValue } from '../../encode';
 import Decimal from 'decimal.js';
-import { _encodeValue } from '../../../../../internals/object';
-
-const isValueExpression = (expr: QueryExpression): boolean => {
-  if (expr instanceof QueryArrayExpression) return _.every(expr.exprs, x => isValueExpression(x));
-  return expr instanceof QueryValueExpression;
-}
-const isArrayExpression = (expr: QueryExpression) => {
-  if (expr instanceof QueryArrayExpression) return true;
-  if (expr instanceof QueryValueExpression) return _.isArray(expr.value);
-  return false;
-}
-const arrayLength = (expr: QueryExpression) => {
-  if (expr instanceof QueryArrayExpression) return expr.exprs.length;
-  if (expr instanceof QueryValueExpression) return _.isArray(expr.value) ? expr.value.length : 0;
-  return 0;
-}
-const mapExpression = <R>(expr: QueryExpression, callback: (x: QueryExpression) => R): R[] => {
-  if (expr instanceof QueryArrayExpression) return _.map(expr.exprs, x => callback(x));
-  if (expr instanceof QueryValueExpression) return _.isArray(expr.value) ? _.map(expr.value, x => callback(new QueryValueExpression(x))) : [];
-  return [];
-}
-
-const _PrimitiveValue = ['boolean', 'number', 'decimal', 'string', 'date'] as const;
-type PrimitiveValue = typeof _PrimitiveValue[number];
+import { _encodeValue } from '../../../../../../internals/object';
+import { encodeDistanceQueryExpression } from './vector';
+import { PrimitiveValue, _PrimitiveValue, isArrayExpression, arrayLength, mapExpression, matchType } from './types';
 
 export const encodeTypedQueryExpression = (
   compiler: QueryCompiler,
@@ -151,67 +130,6 @@ const encodeJsonQueryExpression = (
   if (!value) throw Error('Invalid expression');
   return sql`to_jsonb(${value})`;
 };
-
-const encodeVectorExpression = (
-  compiler: QueryCompiler,
-  parent: QueryContext,
-  exprs: QueryExpression[]
-) => {
-  if (exprs.length === 1) {
-    const [expr] = exprs;
-    if (expr instanceof QueryKeyExpression) {
-      const { element, dataType } = fetchElement(compiler, parent, expr.key);
-      if (!dataType || !isVector(dataType)) throw Error('Invalid expression');
-      return { sql: element, dimension: dataType.dimension };
-    }
-    if (expr instanceof QueryValueExpression) {
-      if (!_.isArray(expr.value) || !_.every(expr.value, x => _.isFinite(x))) throw Error('Invalid expression');
-      return { sql: sql`${{ value: expr.value }}::DOUBLE PRECISION[]`, dimension: expr.value.length };
-    }
-  }
-  const result = _.map(exprs, x => _.find(encodeTypedQueryExpression(compiler, parent, x), e => e.type === 'number')?.sql);
-  if (_.some(result, x => _.isNil(x))) throw Error('Invalid expression');
-  return { sql: sql`ARRAY[${_.map(result, x => sql`COALESCE(${x!}, 0)`)}]`, dimension: result.length };
-}
-
-const encodeDistanceQueryExpression = (
-  compiler: QueryCompiler,
-  parent: QueryContext,
-  expr: QueryDistanceExpression
-): SQL => {
-
-  const { sql: left, dimension: d1 } = encodeVectorExpression(compiler, parent, expr.left);
-  const { sql: right, dimension: d2 } = encodeVectorExpression(compiler, parent, expr.right);
-  if (d1 !== d2) throw Error('Invalid expression');
-
-  const operatorMap = {
-    '$distance': sql`<->`,
-    '$innerProduct': sql`<#>`,
-    '$negInnerProduct': sql`<#>`,
-    '$cosineDistance': sql`<=>`,
-    '$rectilinearDistance': sql`<+>`,
-  } as const;
-
-  const _expr = sql`
-    CAST(
-      ${left} AS VECTOR(${{ literal: `${d1}` }})
-    )
-    ${operatorMap[expr.type]} 
-    CAST(
-      ${right} AS VECTOR(${{ literal: `${d2}` }})
-    )
-  `;
-
-  return expr.type === '$innerProduct' ? sql`-1 * (${_expr})` : _expr;
-};
-
-const matchType = (
-  first: { type: PrimitiveValue; sql: SQL }[] | undefined,
-  second: { type: PrimitiveValue; sql: SQL }[] | undefined,
-): [{ type: PrimitiveValue; sql: SQL }, { type: PrimitiveValue; sql: SQL }] | undefined => {
-  const found = _.find(first, l => _.some(second, r => l.type === r.type));
-  return found ? [found, _.find(second, r => r.type === found.type)!] : undefined;
-}
 
 export const encodeBooleanExpression = (
   compiler: QueryCompiler,

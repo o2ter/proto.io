@@ -38,7 +38,7 @@ import { TUpdateOp } from '../../../internals/object/types';
 import { QuerySelector } from '../../../server/query/dispatcher/parser';
 import { QueryAccumulator } from '../../../server/query/dispatcher/parser/accumulators';
 import { resolveDataType } from '../../../server/query/dispatcher/validator';
-import { encodeTypedQueryExpression } from '../progres/dialect/query/expressions';
+import { encodeTypedQueryExpression } from '../progres/dialect/query/expr';
 
 export abstract class SqlStorage implements TStorage {
 
