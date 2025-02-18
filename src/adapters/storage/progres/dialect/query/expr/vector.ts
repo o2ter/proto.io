@@ -28,7 +28,7 @@ import { isVector } from '../../../../../../internals/schema';
 import { QueryExpression, QueryKeyExpression, QueryValueExpression, QueryDistanceExpression } from '../../../../../../server/query/dispatcher/parser/expressions';
 import { sql, SQL } from '../../../../sql';
 import { QueryCompiler, QueryContext } from '../../../../sql/compiler';
-import { encodeTypedQueryExpression } from '.';
+import { encodeTypedQueryExpression } from './expr';
 import { fetchElement } from '../utils';
 
 const encodeVectorExpression = (
