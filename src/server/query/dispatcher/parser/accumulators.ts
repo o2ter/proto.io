@@ -67,15 +67,14 @@ export class QueryAccumulator {
 
   evalType(schema: Record<string, TSchema>, className: string): TSchema.DataType | undefined {
     const [dataType] = this.expr?.evalType(schema, className) ?? [];
-    if (_.isNil(dataType)) return;
     switch (this.type) {
       case '$count': return 'number';
-      case '$avg': return _isTypeof(dataType, ['number', 'decimal']) ? dataType : undefined;
-      case '$sum': return _isTypeof(dataType, ['number', 'decimal']) ? dataType : undefined;
-      case '$stdDevPop': return _isTypeof(dataType, ['number', 'decimal']) ? dataType : undefined;
-      case '$stdDevSamp': return _isTypeof(dataType, ['number', 'decimal']) ? dataType : undefined;
-      case '$varPop': return _isTypeof(dataType, ['number', 'decimal']) ? dataType : undefined;
-      case '$varSamp': return _isTypeof(dataType, ['number', 'decimal']) ? dataType : undefined;
+      case '$avg': return !_.isNil(dataType) && _isTypeof(dataType, ['number', 'decimal']) ? dataType : undefined;
+      case '$sum': return !_.isNil(dataType) && _isTypeof(dataType, ['number', 'decimal']) ? dataType : undefined;
+      case '$stdDevPop': return !_.isNil(dataType) && _isTypeof(dataType, ['number', 'decimal']) ? dataType : undefined;
+      case '$stdDevSamp': return !_.isNil(dataType) && _isTypeof(dataType, ['number', 'decimal']) ? dataType : undefined;
+      case '$varPop': return !_.isNil(dataType) && _isTypeof(dataType, ['number', 'decimal']) ? dataType : undefined;
+      case '$varSamp': return !_.isNil(dataType) && _isTypeof(dataType, ['number', 'decimal']) ? dataType : undefined;
       default: break;
     }
   }
