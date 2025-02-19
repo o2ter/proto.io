@@ -459,7 +459,7 @@ export class QueryListExpression extends QueryExpression {
     switch (this.type) {
       case '$add': return _.intersection(..._.map(this.exprs, x => x.evalType(schema, className)), ['number', 'decimal']);
       case '$multiply': return _.intersection(..._.map(this.exprs, x => x.evalType(schema, className)), ['number', 'decimal']);
-      case '$ifNull': return _.uniq(_.flatMap(_.map(this.exprs, x => x.evalType(schema, className))));
+      case '$ifNull': return _.intersection(..._.map(this.exprs, x => x.evalType(schema, className)));
       case '$concat': return ['string'];
     }
   }
