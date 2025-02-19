@@ -100,12 +100,12 @@ export type TExpression = {
   $array?: TExpression[];
   $key?: string;
   $value?: TValue;
-  $cond: {
+  $cond?: {
     if: TExpression;
     then: TExpression;
     else: TExpression;
   };
-  $switch: {
+  $switch?: {
     branches: {
       case: TExpression;
       then: TExpression;
