@@ -30,7 +30,7 @@ import { Populate, QueryCompiler, QueryContext } from '../../sql/compiler';
 import { _jsonPopulateInclude } from './encode';
 import { resolveColumn } from '../../../../server/query/dispatcher/validator';
 import { encodeTypedQueryExpression } from './query/expr';
-import { QueryUnaryAccumulator, QueryNoParamAccumulator, QueryPercentileAccumulator } from '../../../../server/query/dispatcher/parser/accumulators';
+import { QueryUnaryAccumulator, QueryZeroParamAccumulator, QueryPercentileAccumulator } from '../../../../server/query/dispatcher/parser/accumulators';
 
 const resolveSubpaths = (
   compiler: QueryCompiler,
@@ -133,7 +133,7 @@ export const selectPopulate = (
     ];
     if (!_.isEmpty(groupMatches?.[field])) {
       for (const [key, expr] of _.entries(groupMatches[field])) {
-        if (expr instanceof QueryNoParamAccumulator) {
+        if (expr instanceof QueryZeroParamAccumulator) {
           switch (expr.type) {
             case '$count':
               columns.push(sql`

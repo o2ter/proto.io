@@ -37,7 +37,7 @@ export const TUnaryAccumulatorKeys = [
   '$varSamp'
 ] as const;
 
-export const TNoParamAccumulatorKeys = [
+export const TZeroParamAccumulatorKeys = [
   '$count'
 ] as const;
 
@@ -48,7 +48,7 @@ export type TQueryAccumulator = {
     mode?: 'discrete' | 'continuous';
   },
 } & {
-  [x in (typeof TNoParamAccumulatorKeys)[number]]?: true | {};
+  [x in (typeof TZeroParamAccumulatorKeys)[number]]?: true | {};
 } & {
   [x in (typeof TUnaryAccumulatorKeys)[number]]?: TExpression;
 };

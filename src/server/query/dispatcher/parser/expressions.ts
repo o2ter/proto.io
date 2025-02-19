@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { TBinaryExprKeys, TDistanceExprKeys, TExpression, TListExprKeys, TNoParamExprKeys, TUnaryExprKeys } from '../../../../internals/query/types/expressions';
+import { TBinaryExprKeys, TDistanceExprKeys, TExpression, TListExprKeys, TZeroParamExprKeys, TUnaryExprKeys } from '../../../../internals/query/types/expressions';
 import { TComparisonKeys, TConditionalKeys } from '../../../../internals/query/types/keys';
 import { isValue } from '../../../../internals/object';
 import { TValue } from '../../../../internals/types';
@@ -46,8 +46,8 @@ export class QueryExpression {
       for (const [key, query] of _.toPairs(selector)) {
         if (_.includes(TConditionalKeys, key) && _.isArray(query)) {
           exprs.push(new QueryCoditionalExpression(key as any, _.map(query, x => QueryExpression.decode(x as any, dollerSign))));
-        } else if (_.includes(TNoParamExprKeys, key)) {
-          exprs.push(new QueryNoParamExpression(key as any));
+        } else if (_.includes(TZeroParamExprKeys, key)) {
+          exprs.push(new QueryZeroParamExpression(key as any));
         } else if (_.includes(TUnaryExprKeys, key) && _.isArray(query) && query.length === 1) {
           exprs.push(new QueryUnaryExpression(key as any, QueryExpression.decode(query[0] as any, dollerSign)));
         } else if (_.includes(TBinaryExprKeys, key) && _.isArray(query) && query.length === 2) {
@@ -268,11 +268,11 @@ export class QueryArrayExpression extends QueryExpression {
   }
 }
 
-export class QueryNoParamExpression extends QueryExpression {
+export class QueryZeroParamExpression extends QueryExpression {
 
-  type: typeof TNoParamExprKeys[number];
+  type: typeof TZeroParamExprKeys[number];
 
-  constructor(type: typeof TNoParamExprKeys[number]) {
+  constructor(type: typeof TZeroParamExprKeys[number]) {
     super();
     this.type = type;
   }

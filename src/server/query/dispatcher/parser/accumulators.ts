@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { TUnaryAccumulatorKeys, TNoParamAccumulatorKeys, TQueryAccumulator } from '../../../../internals/query/types/accumulators';
+import { TUnaryAccumulatorKeys, TZeroParamAccumulatorKeys, TQueryAccumulator } from '../../../../internals/query/types/accumulators';
 import { QueryExpression } from './expressions';
 import { _isTypeof, TSchema } from '../../../../internals/schema';
 
@@ -34,8 +34,8 @@ export class QueryAccumulator {
     for (const [key, expr] of _.toPairs(query)) {
       if (_.includes(TUnaryAccumulatorKeys, key)) {
         return new QueryUnaryAccumulator(key as typeof TUnaryAccumulatorKeys[number], QueryExpression.decode(expr as any ?? [], false));
-      } else if (_.includes(TNoParamAccumulatorKeys, key)) {
-        return new QueryNoParamAccumulator(key as typeof TNoParamAccumulatorKeys[number]);
+      } else if (_.includes(TZeroParamAccumulatorKeys, key)) {
+        return new QueryZeroParamAccumulator(key as typeof TZeroParamAccumulatorKeys[number]);
       } else if (key === '$percentile') {
         const { input, p, mode = 'discrete' } = expr as any ?? {};
         if (!_.isFinite(p) || p < 0 || p > 1) throw Error('Invalid expression');
@@ -65,11 +65,11 @@ export class QueryAccumulator {
   }
 }
 
-export class QueryNoParamAccumulator extends QueryAccumulator {
+export class QueryZeroParamAccumulator extends QueryAccumulator {
 
-  type: typeof TNoParamAccumulatorKeys[number];
+  type: typeof TZeroParamAccumulatorKeys[number];
 
-  constructor(type: typeof TNoParamAccumulatorKeys[number]) {
+  constructor(type: typeof TZeroParamAccumulatorKeys[number]) {
     super();
     this.type = type;
   }

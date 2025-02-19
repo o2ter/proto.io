@@ -30,12 +30,18 @@ import { QueryCompiler, QueryContext } from '../../../../sql/compiler';
 import { nullSafeEqual, nullSafeNotEqual } from '../../basic';
 import {
   QueryArrayExpression,
+  QueryBinaryExpression,
   QueryCoditionalExpression,
   QueryComparisonExpression,
+  QueryCondExpression,
   QueryDistanceExpression,
   QueryExpression,
   QueryKeyExpression,
+  QueryListExpression,
+  QueryZeroParamExpression,
   QueryNotExpression,
+  QuerySwitchExpression,
+  QueryUnaryExpression,
   QueryValueExpression
 } from '../../../../../../server/query/dispatcher/parser/expressions';
 import { fetchElement } from '../utils';

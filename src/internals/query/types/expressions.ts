@@ -26,7 +26,7 @@
 import { TValue } from '../../types';
 import { TComparisonKeys, TConditionalKeys } from './keys';
 
-export const TNoParamExprKeys = [
+export const TZeroParamExprKeys = [
   '$now',
   '$rand',
 ] as const;
@@ -115,7 +115,7 @@ export type TExpression = {
     default: TExpression;
   };
 } & {
-  [x in (typeof TNoParamExprKeys)[number]]?: true | {};
+  [x in (typeof TZeroParamExprKeys)[number]]?: true | {};
 } & {
   [x in (typeof TUnaryExprKeys)[number]]?: TExpression;
 } & {
