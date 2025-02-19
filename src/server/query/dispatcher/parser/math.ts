@@ -31,37 +31,27 @@ const isNum = (x: any): x is number | Decimal => _.isNumber(x) || x instanceof D
 export const MathUtils = {
   sum: (lhs: any, rhs: any) => {
     if (!isNum(lhs) || !isNum(rhs)) throw Error('Invalid operation');
-    if (lhs instanceof Decimal && rhs instanceof Decimal) return lhs.plus(rhs);
-    if (lhs instanceof Decimal) return lhs.plus(rhs);
-    if (rhs instanceof Decimal) return rhs.plus(lhs);
+    if (lhs instanceof Decimal || rhs instanceof Decimal) return Decimal.add(lhs, rhs);
     return lhs + rhs;
   },
   subtract: (lhs: any, rhs: any) => {
     if (!isNum(lhs) || !isNum(rhs)) throw Error('Invalid operation');
-    if (lhs instanceof Decimal && rhs instanceof Decimal) return lhs.minus(rhs);
-    if (lhs instanceof Decimal) return lhs.minus(rhs);
-    if (rhs instanceof Decimal) return rhs.minus(lhs);
+    if (lhs instanceof Decimal || rhs instanceof Decimal) return Decimal.sub(lhs, rhs);
     return lhs - rhs;
   },
   multiply: (lhs: any, rhs: any) => {
     if (!isNum(lhs) || !isNum(rhs)) throw Error('Invalid operation');
-    if (lhs instanceof Decimal && rhs instanceof Decimal) return lhs.times(rhs);
-    if (lhs instanceof Decimal) return lhs.times(rhs);
-    if (rhs instanceof Decimal) return rhs.times(lhs);
+    if (lhs instanceof Decimal || rhs instanceof Decimal) return Decimal.mul(lhs, rhs);
     return lhs * rhs;
   },
   divide: (lhs: any, rhs: any) => {
     if (!isNum(lhs) || !isNum(rhs)) throw Error('Invalid operation');
-    if (lhs instanceof Decimal && rhs instanceof Decimal) return lhs.div(rhs);
-    if (lhs instanceof Decimal) return lhs.div(rhs);
-    if (rhs instanceof Decimal) return rhs.div(lhs);
+    if (lhs instanceof Decimal || rhs instanceof Decimal) return Decimal.div(lhs, rhs);
     return lhs / rhs;
   },
   mod: (lhs: any, rhs: any) => {
     if (!isNum(lhs) || !isNum(rhs)) throw Error('Invalid operation');
-    if (lhs instanceof Decimal && rhs instanceof Decimal) return lhs.mod(rhs);
-    if (lhs instanceof Decimal) return lhs.mod(rhs);
-    if (rhs instanceof Decimal) return rhs.mod(lhs);
+    if (lhs instanceof Decimal || rhs instanceof Decimal) return Decimal.mod(lhs, rhs);
     return lhs % rhs;
   },
   abs: (lhs: any) => {
