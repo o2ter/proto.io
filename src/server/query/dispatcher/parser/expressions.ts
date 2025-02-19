@@ -337,30 +337,30 @@ export class QueryUnaryExpression extends QueryExpression {
 
   evalType(schema: Record<string, TSchema>, className: string): TSchema.DataType[] {
     switch (this.type) {
-      case '$abs': return ['number', 'decimal'];
-      case '$sqrt': return ['number', 'decimal'];
-      case '$ceil': return ['number', 'decimal'];
-      case '$floor': return ['number', 'decimal'];
-      case '$round': return ['number', 'decimal'];
-      case '$exp': return ['number', 'decimal'];
-      case '$ln': return ['number', 'decimal'];
-      case '$log2': return ['number', 'decimal'];
-      case '$log10': return ['number', 'decimal'];
-      case '$sin': return ['number', 'decimal'];
-      case '$cos': return ['number', 'decimal'];
-      case '$tan': return ['number', 'decimal'];
-      case '$asin': return ['number', 'decimal'];
-      case '$acos': return ['number', 'decimal'];
-      case '$atan': return ['number', 'decimal'];
-      case '$asinh': return ['number', 'decimal'];
-      case '$acosh': return ['number', 'decimal'];
-      case '$atanh': return ['number', 'decimal'];
-      case '$sinh': return ['number', 'decimal'];
-      case '$cosh': return ['number', 'decimal'];
-      case '$tanh': return ['number', 'decimal'];
-      case '$size': return ['number'];
-      case '$lower': return ['string'];
-      case '$upper': return ['string'];
+      case '$abs': return _.intersection(['number', 'decimal'], this.expr.evalType(schema, className));
+      case '$sqrt': return _.intersection(['number', 'decimal'], this.expr.evalType(schema, className));
+      case '$ceil': return _.intersection(['number', 'decimal'], this.expr.evalType(schema, className));
+      case '$floor': return _.intersection(['number', 'decimal'], this.expr.evalType(schema, className));
+      case '$round': return _.intersection(['number', 'decimal'], this.expr.evalType(schema, className));
+      case '$exp': return _.intersection(['number', 'decimal'], this.expr.evalType(schema, className));
+      case '$ln': return _.intersection(['number', 'decimal'], this.expr.evalType(schema, className));
+      case '$log2': return _.intersection(['number', 'decimal'], this.expr.evalType(schema, className));
+      case '$log10': return _.intersection(['number', 'decimal'], this.expr.evalType(schema, className));
+      case '$sin': return _.intersection(['number', 'decimal'], this.expr.evalType(schema, className));
+      case '$cos': return _.intersection(['number', 'decimal'], this.expr.evalType(schema, className));
+      case '$tan': return _.intersection(['number', 'decimal'], this.expr.evalType(schema, className));
+      case '$asin': return _.intersection(['number', 'decimal'], this.expr.evalType(schema, className));
+      case '$acos': return _.intersection(['number', 'decimal'], this.expr.evalType(schema, className));
+      case '$atan': return _.intersection(['number', 'decimal'], this.expr.evalType(schema, className));
+      case '$asinh': return _.intersection(['number', 'decimal'], this.expr.evalType(schema, className));
+      case '$acosh': return _.intersection(['number', 'decimal'], this.expr.evalType(schema, className));
+      case '$atanh': return _.intersection(['number', 'decimal'], this.expr.evalType(schema, className));
+      case '$sinh': return _.intersection(['number', 'decimal'], this.expr.evalType(schema, className));
+      case '$cosh': return _.intersection(['number', 'decimal'], this.expr.evalType(schema, className));
+      case '$tanh': return _.intersection(['number', 'decimal'], this.expr.evalType(schema, className));
+      case '$size': return _.intersection(['number'], this.expr.evalType(schema, className));
+      case '$lower': return _.intersection(['string'], this.expr.evalType(schema, className));
+      case '$upper': return _.intersection(['string'], this.expr.evalType(schema, className));
     }
   }
 }
@@ -412,13 +412,13 @@ export class QueryBinaryExpression extends QueryExpression {
 
   evalType(schema: Record<string, TSchema>, className: string): TSchema.DataType[] {
     switch (this.type) {
-      case '$mod': return ['number', 'decimal'];
-      case '$log': return ['number', 'decimal'];
-      case '$pow': return ['number', 'decimal'];
-      case '$divide': return ['number', 'decimal'];
-      case '$subtract': return ['number', 'decimal'];
-      case '$trunc': return ['number', 'decimal'];
-      case '$atan2': return ['number', 'decimal'];
+      case '$mod': return _.intersection(['number', 'decimal'], this.left.evalType(schema, className), this.right.evalType(schema, className));
+      case '$log': return _.intersection(['number', 'decimal'], this.left.evalType(schema, className), this.right.evalType(schema, className));
+      case '$pow': return _.intersection(['number', 'decimal'], this.left.evalType(schema, className), this.right.evalType(schema, className));
+      case '$divide': return _.intersection(['number', 'decimal'], this.left.evalType(schema, className), this.right.evalType(schema, className));
+      case '$subtract': return _.intersection(['number', 'decimal'], this.left.evalType(schema, className), this.right.evalType(schema, className));
+      case '$trunc': return _.intersection(['number', 'decimal'], this.left.evalType(schema, className), this.right.evalType(schema, className));
+      case '$atan2': return _.intersection(['number', 'decimal'], this.left.evalType(schema, className), this.right.evalType(schema, className));
     }
   }
 }
@@ -457,10 +457,10 @@ export class QueryListExpression extends QueryExpression {
 
   evalType(schema: Record<string, TSchema>, className: string): TSchema.DataType[] {
     switch (this.type) {
-      case '$add': return ['number', 'decimal'];
-      case '$multiply': return ['number', 'decimal'];
+      case '$add': return _.intersection(['number', 'decimal'], ..._.map(this.exprs, x => x.evalType(schema, className)));
+      case '$multiply': return _.intersection(['number', 'decimal'], ..._.map(this.exprs, x => x.evalType(schema, className)));
       case '$ifNull': return _.uniq(_.flatMap(_.map(this.exprs, x => x.evalType(schema, className))));
-      case '$concat': return ['string'];
+      case '$concat': return _.intersection(['string'], ..._.map(this.exprs, x => x.evalType(schema, className)));
     }
   }
 }
