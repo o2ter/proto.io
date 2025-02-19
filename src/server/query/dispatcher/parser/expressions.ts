@@ -32,6 +32,7 @@ import { cosine, distance, equal, getValue, greaterThan, greaterThanOrEqual, inn
 import { isPrimitive, isVector, TSchema } from '../../../../internals/schema';
 import { resolveColumn } from '../validator';
 import Decimal from 'decimal.js';
+import { MathUtils } from './math';
 
 export class QueryExpression {
 
@@ -457,8 +458,8 @@ export class QueryListExpression extends QueryExpression {
 
   eval(value: any) {
     switch (this.type) {
-      case '$add': return _.isEmpty(this.exprs) ? undefined : _.sum(_.map(this.exprs, x => x.eval(value)));
-      case '$multiply': return _.isEmpty(this.exprs) ? undefined : _.reduce(_.map(this.exprs, x => x.eval(value)), (a, b) => a * b, 1);
+      case '$add': return _.isEmpty(this.exprs) ? undefined : _.reduce(this.exprs, (a, b) => MathUtils.sum(a, b.eval(value)), 0 as number | Decimal);
+      case '$multiply': return _.isEmpty(this.exprs) ? undefined : _.reduce(this.exprs, (a, b) => MathUtils.multiply(a, b.eval(value)), 1 as number | Decimal);
       case '$ifNull': return _.find(_.map(this.exprs, x => x.eval(value)), x => !_.isNil(x));
       case '$concat': return _.join(_.map(this.exprs, x => x.eval(value)), '');
     }
