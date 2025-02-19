@@ -55,7 +55,13 @@ export interface SqlDialect {
     expr: FieldSelectorExpression,
   ): SQL
 
-  encodeQueryExpression(
+  encodeSortExpression(
+    compiler: QueryCompiler,
+    parent: QueryContext,
+    expr: QueryExpression,
+  ): SQL | undefined
+
+  encodeBooleanExpression(
     compiler: QueryCompiler,
     parent: QueryContext,
     expr: QueryExpression,

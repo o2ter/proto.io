@@ -400,7 +400,7 @@ export class QueryCompiler {
       return this.dialect.encodeFieldExpression(this, parent, filter.field, filter.expr);
     }
     if (filter instanceof QueryExpressionSelector) {
-      return this.dialect.encodeQueryExpression(this, parent, filter.expr);
+      return this.dialect.encodeBooleanExpression(this, parent, filter.expr);
     }
   }
 
@@ -423,7 +423,7 @@ export class QueryCompiler {
   ): SQL {
     if (_.isArray(sort)) {
       return sql`${_.map(sort, ({ expr, order }) => {
-        const _expr = this.dialect.encodeQueryExpression(this, parent, expr);
+        const _expr = this.dialect.encodeSortExpression(this, parent, expr);
         if (!_expr) throw Error('Invalid expression');
         return sql`${_expr} ${{ literal: order === 1 ? 'ASC' : 'DESC' }}`;
       })}`;

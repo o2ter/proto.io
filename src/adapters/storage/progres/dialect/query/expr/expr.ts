@@ -125,8 +125,11 @@ const encodeJsonQueryExpression = (
   if (expr instanceof QueryArrayExpression) {
     return sql`jsonb_build_array(${_.map(expr.exprs, x => encodeJsonQueryExpression(compiler, parent, x))})`;
   }
+  if (expr instanceof QueryDistanceExpression) {
+    return encodeDistanceQueryExpression(compiler, parent, expr);
+  }
 
-  const value = encodeQueryExpression(compiler, parent, expr);
+  const value = encodeBooleanExpression(compiler, parent, expr);
   if (!value) throw Error('Invalid expression');
   return sql`to_jsonb(${value})`;
 };
@@ -189,16 +192,3 @@ export const encodeBooleanExpression = (
   }
   throw Error('Invalid expression');
 };
-
-export const encodeQueryExpression = (
-  compiler: QueryCompiler,
-  parent: QueryContext,
-  expr: QueryExpression
-): SQL | undefined => {
-
-  if (expr instanceof QueryDistanceExpression) {
-    return encodeDistanceQueryExpression(compiler, parent, expr);
-  }
-
-  return encodeBooleanExpression(compiler, parent, expr);
-}

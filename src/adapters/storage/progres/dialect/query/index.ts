@@ -23,5 +23,20 @@
 //  THE SOFTWARE.
 //
 
-export { encodeQueryExpression } from './expr';
+import { SQL } from '../../../sql';
+import { QueryDistanceExpression, QueryExpression } from '../../../../../server/query/dispatcher/parser/expressions';
+import { QueryCompiler, QueryContext } from '../../../sql/compiler';
+import { encodeDistanceQueryExpression } from './expr/vector';
+
+export { encodeBooleanExpression } from './expr';
 export { encodeFieldExpression } from './selectors';
+
+export const encodeSortExpression = (
+  compiler: QueryCompiler,
+  parent: QueryContext,
+  expr: QueryExpression
+): SQL | undefined => {
+  if (expr instanceof QueryDistanceExpression) {
+    return encodeDistanceQueryExpression(compiler, parent, expr);
+  }
+};

@@ -23,7 +23,6 @@
 //  THE SOFTWARE.
 //
 
-import { SqlDialect } from '../../sql';
 import {
   quote,
   identifier,
@@ -34,7 +33,8 @@ import {
 } from './basic';
 import { updateOperation } from './update';
 import {
-  encodeQueryExpression
+  encodeBooleanExpression,
+  encodeSortExpression,
 } from './query';
 import { encodeFieldExpression } from './query/selectors';
 import { selectPopulate, encodePopulate } from './populate';
@@ -54,7 +54,8 @@ export const PostgresDialect = {
   updateOperation,
   selectPopulate,
   encodeFieldExpression,
-  encodeQueryExpression,
+  encodeBooleanExpression,
+  encodeSortExpression,
   encodePopulate,
   encodeRelation,
   encodeSortKey,
