@@ -23,7 +23,7 @@
 //  THE SOFTWARE.
 //
 
-import _, { at } from 'lodash';
+import _ from 'lodash';
 import Decimal from 'decimal.js';
 
 const isNum = (x: any): x is number | Decimal => _.isNumber(x) || x instanceof Decimal;
