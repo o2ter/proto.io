@@ -109,13 +109,19 @@ const encodeJsonQueryExpression = (
   if (expr instanceof QueryArrayExpression) {
     return sql`jsonb_build_array(${_.map(expr.exprs, x => encodeJsonQueryExpression(compiler, parent, x))})`;
   }
-  if (expr instanceof QueryDistanceExpression) {
-    return encodeDistanceQueryExpression(compiler, parent, expr);
-  }
 
-  const value = encodeBooleanExpression(compiler, parent, expr);
-  if (!value) throw Error('Invalid expression');
-  return sql`to_jsonb(${value})`;
+  const typed = encodeTypedQueryExpression(compiler, parent, expr);
+  if (!typed) throw Error('Invalid expression');
+  switch (typed.type) {
+    case 'boolean': return sql`to_jsonb(${typed.sql})`;
+    case 'number': return sql`to_jsonb(${typed.sql})`;
+    case 'decimal': return sql`jsonb_build_object('$decimal', CAST(${typed.sql} AS TEXT))`;
+    case 'string': return sql`to_jsonb(${typed.sql})`;
+    case 'date': return sql`jsonb_build_object(
+      '$date', to_char(${typed.sql} AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')
+    )`;
+    default: throw Error('Invalid expression');
+  }
 };
 
 export const encodeBooleanExpression = (
