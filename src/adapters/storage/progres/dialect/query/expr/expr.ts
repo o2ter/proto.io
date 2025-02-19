@@ -84,6 +84,76 @@ export const encodeTypedQueryExpression = (
     const value = encodeDistanceQueryExpression(compiler, parent, expr);
     return { type: 'number', sql: value };
   }
+
+  if (expr instanceof QueryZeroParamExpression) {
+    switch (expr.type) {
+      case '$rand': return { type: 'number', sql: sql`RANDOM()` };
+      case '$now': return { type: 'date', sql: sql`CAST(NOW() AS TIMESTAMP(3) WITH TIME ZONE)` };
+    }
+  }
+
+  if (expr instanceof QueryUnaryExpression) {
+  }
+
+  if (expr instanceof QueryBinaryExpression) {
+    const left = encodeTypedQueryExpression(compiler, parent, expr.left);
+    const right = encodeTypedQueryExpression(compiler, parent, expr.right);
+    if (left && right) {
+      switch (expr.type) {
+        case '$mod':
+        case '$log':
+        case '$pow':
+        case '$trunc':
+        case '$atan2':
+          {
+            const op = {
+              '$mod': 'MOD',
+              '$log': 'LOG',
+              '$pow': 'POWER',
+              '$trunc': 'TRUNC',
+              '$atan2': 'ATAN2',
+            }[expr.type];
+            if (left.type === right.type) {
+              return { type: left.type, sql: sql`${{ literal: op }}((${left.sql}), (${right.sql}))` };
+            }
+            if (left.type === 'decimal' && right.type === 'number') {
+              return { type: 'decimal', sql: sql`${{ literal: op }}((${left.sql}), CAST((${right.sql}) AS DECIMAL))` };
+            }
+            if (left.type === 'number' && right.type === 'decimal') {
+              return { type: 'decimal', sql: sql`${{ literal: op }}(CAST((${left.sql}) AS DECIMAL), (${right.sql}))` };
+            }
+          }
+          break;
+        case '$divide':
+        case '$subtract':
+          {
+            const op = {
+              '$divide': '/',
+              '$subtract': '-',
+            }[expr.type];
+            if (left.type === right.type) {
+              return { type: left.type, sql: sql`(${left.sql}) ${{ literal: op }} (${right.sql})` };
+            }
+            if (left.type === 'decimal' && right.type === 'number') {
+              return { type: 'decimal', sql: sql`CAST((${left.sql}) AS DECIMAL) ${{ literal: op }} (${right.sql})` };
+            }
+            if (left.type === 'number' && right.type === 'decimal') {
+              return { type: 'decimal', sql: sql`(${left.sql}) ${{ literal: op }} CAST((${right.sql}) AS DECIMAL)` };
+            }
+          }
+          break;
+      }
+    }
+  }
+
+  if (expr instanceof QueryListExpression) {
+  }
+
+  if (expr instanceof QueryCondExpression) {
+  }
+
+  if (expr instanceof QuerySwitchExpression) {
+  }
 };
 
 const encodeJsonQueryExpression = (
