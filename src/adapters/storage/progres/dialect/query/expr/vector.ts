@@ -49,9 +49,9 @@ const encodeVectorExpression = (
       return { sql: sql`${{ value: expr.value }}::DOUBLE PRECISION[]`, dimension: expr.value.length };
     }
   }
-  const result = _.map(exprs, x => typeCastExpr(encodeTypedQueryExpression(compiler, parent, x), 'number')?.sql);
-  if (_.some(result, x => _.isNil(x))) throw Error('Invalid expression');
-  return { sql: sql`ARRAY[${_.map(result, x => sql`COALESCE(${x!}, 0)`)}]`, dimension: result.length };
+  const result = _.compact(_.map(exprs, x => typeCastExpr(encodeTypedQueryExpression(compiler, parent, x), 'number')?.sql));
+  if (result.length !== exprs.length) throw Error('Invalid expression');
+  return { sql: sql`ARRAY[${_.map(result, x => sql`COALESCE(${x}, 0)`)}]`, dimension: result.length };
 };
 
 export const encodeDistanceQueryExpression = (

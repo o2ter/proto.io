@@ -147,6 +147,32 @@ export const encodeTypedQueryExpression = (
   }
 
   if (expr instanceof QueryListExpression) {
+    const values = _.compact(_.map(expr.exprs, x => encodeTypedQueryExpression(compiler, parent, x)));
+    if (values.length === expr.exprs.length) {
+      switch (expr.type) {
+        case '$add':
+        case '$multiply':
+          {
+            const op = {
+              '$add': '+',
+              '$multiply': '*',
+            }[expr.type];
+            const type = values[0].type;
+            if (_.every(values, x => x.type === type)) {
+              return { type, sql: sql`${{ literal: _.map(values, x => x.sql), separator: op }}` };
+            }
+          }
+          break;
+        case '$ifNull':
+          {
+          }
+          break;
+        case '$concat':
+          {
+          }
+          break;
+      }
+    }
   }
 
   if (expr instanceof QueryCondExpression) {
