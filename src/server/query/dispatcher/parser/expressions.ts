@@ -35,7 +35,7 @@ import Decimal from 'decimal.js';
 import { MathUtils } from './math';
 
 const combineNumericTypes = (...list: _.RecursiveArray<TSchema.DataType>): TSchema.DataType[] => {
-  return _.some(_.flattenDeep(list), x => x === 'decimal') ? ['decimal'] : ['number', 'decimal'];
+  return _.some(_.flattenDeep(list), x => x === 'decimal') ? ['decimal'] : ['number'];
 };
 
 export class QueryExpression {
@@ -655,8 +655,8 @@ export class QueryValueExpression extends QueryExpression {
     if (_.isBoolean(this.value)) return ['boolean'];
     if (_.isArray(this.value)) return ['array'];
     if (_.isString(this.value)) return ['string'];
-    if (_.isNumber(this.value)) return ['number', 'decimal'];
-    if (this.value instanceof Decimal) return ['decimal', 'number'];
+    if (_.isNumber(this.value)) return ['number'];
+    if (this.value instanceof Decimal) return ['decimal'];
     return [];
   }
 }
