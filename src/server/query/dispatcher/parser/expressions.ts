@@ -313,27 +313,27 @@ export class QueryUnaryExpression extends QueryExpression {
 
   eval(value: any) {
     switch (this.type) {
-      case '$abs': return Math.abs(this.expr.eval(value));
-      case '$sqrt': return Math.sqrt(this.expr.eval(value));
-      case '$ceil': return Math.ceil(this.expr.eval(value));
-      case '$floor': return Math.floor(this.expr.eval(value));
-      case '$round': return Math.round(this.expr.eval(value));
-      case '$exp': return Math.exp(this.expr.eval(value));
-      case '$ln': return Math.log(this.expr.eval(value));
-      case '$log2': return Math.log2(this.expr.eval(value));
-      case '$log10': return Math.log10(this.expr.eval(value));
-      case '$sin': return Math.sin(this.expr.eval(value));
-      case '$cos': return Math.cos(this.expr.eval(value));
-      case '$tan': return Math.tan(this.expr.eval(value));
-      case '$asin': return Math.asin(this.expr.eval(value));
-      case '$acos': return Math.acos(this.expr.eval(value));
-      case '$atan': return Math.atan(this.expr.eval(value));
-      case '$asinh': return Math.asinh(this.expr.eval(value));
-      case '$acosh': return Math.acosh(this.expr.eval(value));
-      case '$atanh': return Math.atanh(this.expr.eval(value));
-      case '$sinh': return Math.sinh(this.expr.eval(value));
-      case '$cosh': return Math.cosh(this.expr.eval(value));
-      case '$tanh': return Math.tanh(this.expr.eval(value));
+      case '$abs': return MathUtils.abs(this.expr.eval(value));
+      case '$sqrt': return MathUtils.sqrt(this.expr.eval(value));
+      case '$ceil': return MathUtils.ceil(this.expr.eval(value));
+      case '$floor': return MathUtils.floor(this.expr.eval(value));
+      case '$round': return MathUtils.round(this.expr.eval(value));
+      case '$exp': return MathUtils.exp(this.expr.eval(value));
+      case '$ln': return MathUtils.ln(this.expr.eval(value));
+      case '$log2': return MathUtils.log2(this.expr.eval(value));
+      case '$log10': return MathUtils.log10(this.expr.eval(value));
+      case '$sin': return MathUtils.sin(this.expr.eval(value));
+      case '$cos': return MathUtils.cos(this.expr.eval(value));
+      case '$tan': return MathUtils.tan(this.expr.eval(value));
+      case '$asin': return MathUtils.asin(this.expr.eval(value));
+      case '$acos': return MathUtils.acos(this.expr.eval(value));
+      case '$atan': return MathUtils.atan(this.expr.eval(value));
+      case '$asinh': return MathUtils.asinh(this.expr.eval(value));
+      case '$acosh': return MathUtils.acosh(this.expr.eval(value));
+      case '$atanh': return MathUtils.atanh(this.expr.eval(value));
+      case '$sinh': return MathUtils.sinh(this.expr.eval(value));
+      case '$cosh': return MathUtils.cosh(this.expr.eval(value));
+      case '$tanh': return MathUtils.tanh(this.expr.eval(value));
       case '$size':
         {
           const v = this.expr.eval(value);
@@ -405,18 +405,13 @@ export class QueryBinaryExpression extends QueryExpression {
 
   eval(value: any) {
     switch (this.type) {
-      case '$mod': return this.left.eval(value) % this.right.eval(value);
-      case '$log': return Math.log(this.left.eval(value)) / Math.log(this.right.eval(value));
-      case '$pow': return Math.pow(this.left.eval(value), this.right.eval(value));
-      case '$divide': return this.left.eval(value) / this.right.eval(value);
-      case '$subtract': return this.left.eval(value) - this.right.eval(value);
-      case '$trunc':
-        {
-          const precision = this.right.eval(value);
-          const factor = Math.pow(10, precision);
-          return Math.trunc(this.left.eval(value) * factor) / factor;
-        }
-      case '$atan2': return Math.atan2(this.left.eval(value), this.right.eval(value));
+      case '$mod': return MathUtils.mod(this.left.eval(value), this.right.eval(value));
+      case '$log': return MathUtils.log(this.left.eval(value), this.right.eval(value));
+      case '$pow': return MathUtils.pow(this.left.eval(value), this.right.eval(value));
+      case '$divide': return MathUtils.divide(this.left.eval(value), this.right.eval(value));
+      case '$subtract': return MathUtils.subtract(this.left.eval(value), this.right.eval(value));
+      case '$trunc': return MathUtils.trunc(this.left.eval(value), this.right.eval(value));
+      case '$atan2': return MathUtils.atan2(this.left.eval(value), this.right.eval(value));
     }
   }
 
