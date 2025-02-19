@@ -43,43 +43,27 @@ import { _encodeJsonValue } from '../../encode';
 import Decimal from 'decimal.js';
 import { _encodeValue } from '../../../../../../internals/object';
 import { encodeDistanceQueryExpression } from './vector';
-import { PrimitiveValue, _PrimitiveValue, isArrayExpression, arrayLength, mapExpression, matchType } from './types';
+import { PrimitiveValue, _PrimitiveValue, isArrayExpr, arrayLength, mapExpr, TypedSQL, zipExpr } from './types';
 
 export const encodeTypedQueryExpression = (
   compiler: QueryCompiler,
   parent: QueryContext,
   expr: QueryExpression
-): { type: PrimitiveValue; sql: SQL }[] | undefined => {
+): TypedSQL | undefined => {
 
   if (expr instanceof QueryKeyExpression) {
     const { element, dataType } = fetchElement(compiler, parent, expr.key);
     const _dataType = dataType ? _typeof(dataType) : null;
-    if (_dataType === 'number') {
-      return [
-        { type: 'number', sql: element },
-        { type: 'decimal', sql: sql`CAST((${element}) AS DECIMAL)` },
-      ];
-    } else if (_dataType === 'decimal') {
-      return [
-        { type: 'decimal', sql: element },
-        { type: 'number', sql: element },
-      ];
-    } else if (_dataType && _PrimitiveValue.includes(_dataType as any)) {
-      return [{ type: _dataType as PrimitiveValue, sql: element }];
+    if (_dataType && _PrimitiveValue.includes(_dataType as any)) {
+      return { type: _dataType as PrimitiveValue, sql: element };
     }
   }
   if (expr instanceof QueryValueExpression) {
-    if (_.isBoolean(expr.value)) return [{ type: 'boolean', sql: sql`${{ value: expr.value }}` }];
-    if (_.isNumber(expr.value)) return [
-      { type: 'number', sql: sql`${{ value: expr.value }}` },
-      { type: 'decimal', sql: sql`CAST(${{ quote: (new Decimal(expr.value)).toString() }} AS DECIMAL)` },
-    ];
-    if (expr.value instanceof Decimal) return [
-      { type: 'decimal', sql: sql`CAST(${{ quote: expr.value.toString() }} AS DECIMAL)` },
-      { type: 'number', sql: sql`${{ value: expr.value.toNumber() }}` },
-    ];
-    if (_.isString(expr.value)) return [{ type: 'string', sql: sql`${{ value: expr.value }}` }];
-    if (_.isDate(expr.value)) return [{ type: 'date', sql: sql`${{ value: expr.value }}` }];
+    if (_.isBoolean(expr.value)) return { type: 'boolean', sql: sql`${{ value: expr.value }}` };
+    if (_.isNumber(expr.value)) return { type: 'number', sql: sql`${{ value: expr.value }}` };
+    if (expr.value instanceof Decimal) return { type: 'decimal', sql: sql`CAST(${{ quote: expr.value.toString() }} AS DECIMAL)` };
+    if (_.isString(expr.value)) return { type: 'string', sql: sql`${{ value: expr.value }}` };
+    if (_.isDate(expr.value)) return { type: 'date', sql: sql`${{ value: expr.value }}` };
   }
   if (
     expr instanceof QueryCoditionalExpression ||
@@ -87,12 +71,12 @@ export const encodeTypedQueryExpression = (
     expr instanceof QueryNotExpression
   ) {
     const value = encodeBooleanExpression(compiler, parent, expr);
-    if (value) return [{ type: 'boolean', sql: value }];
+    if (value) return { type: 'boolean', sql: value };
   }
 
   if (expr instanceof QueryDistanceExpression) {
     const value = encodeDistanceQueryExpression(compiler, parent, expr);
-    return [{ type: 'number', sql: value }];
+    return { type: 'number', sql: value };
   }
 };
 
@@ -162,15 +146,15 @@ export const encodeBooleanExpression = (
     };
 
     if (
-      isArrayExpression(expr.left) &&
-      isArrayExpression(expr.right) &&
+      isArrayExpr(expr.left) &&
+      isArrayExpr(expr.right) &&
       arrayLength(expr.left) === arrayLength(expr.right)
     ) {
-      const _left = mapExpression(expr.left, x => encodeTypedQueryExpression(compiler, parent, x));
-      const _right = mapExpression(expr.right, x => encodeTypedQueryExpression(compiler, parent, x));
-      const mapped = _.compact(_.map(_.zip(_left, _right), ([l, r]) => matchType(l, r)));
-      if (mapped.length === _left.length) {
-        const [l, r] = _.unzip(mapped);
+      const _left = mapExpr(expr.left, x => encodeTypedQueryExpression(compiler, parent, x));
+      const _right = mapExpr(expr.right, x => encodeTypedQueryExpression(compiler, parent, x));
+      const zipped = zipExpr(_left, _right) ?? [];
+      if (_left.length === zipped.length) {
+        const [l, r] = _.unzip(zipped);
         return sql`(${_.map(l, x => x.sql)}) ${operatorMap[expr.type]} (${_.map(r, x => x.sql)})`;
       }
     }
@@ -178,8 +162,15 @@ export const encodeBooleanExpression = (
     const _left = encodeTypedQueryExpression(compiler, parent, expr.left);
     const _right = encodeTypedQueryExpression(compiler, parent, expr.right);
     if (_left && _right) {
-      const matched = matchType(_left, _right);
-      if (matched) return sql`(${matched[0].sql}) ${operatorMap[expr.type]} (${matched[1].sql})`;
+      if (_left.type === _right.type) {
+        return sql`(${_left.sql}) ${operatorMap[expr.type]} (${_right.sql})`;
+      }
+      if (_left.type === 'decimal' && _right.type === 'number') {
+        return sql`CAST((${_left.sql}) AS DOUBLE PRECISION) ${operatorMap[expr.type]} (${_right.sql})`;
+      }
+      if (_left.type === 'number' && _right.type === 'decimal') {
+        return sql`(${_left.sql}) ${operatorMap[expr.type]} CAST((${_right.sql}) AS DOUBLE PRECISION)`;
+      }
     }
 
     const _left2 = encodeJsonQueryExpression(compiler, parent, expr.left);

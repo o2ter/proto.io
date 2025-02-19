@@ -148,8 +148,7 @@ export const selectPopulate = (
           }
         } else if (expr instanceof QueryUnaryAccumulator) {
           if (!expr.expr) throw Error('Invalid expression');
-          const exprs = encodeTypedQueryExpression(compiler, populate, expr.expr);
-          const value = _.first(exprs)?.sql;
+          const { sql: value } = encodeTypedQueryExpression(compiler, populate, expr.expr) ?? {};
           if (!value) throw Error('Invalid expression');
           switch (expr.type) {
             case '$most':
@@ -189,8 +188,7 @@ export const selectPopulate = (
             'continuous': 'PERCENTILE_CONT',
           }[expr.mode];
           if (!expr.input) throw Error('Invalid expression');
-          const exprs = encodeTypedQueryExpression(compiler, populate, expr.input);
-          const value = _.first(exprs)?.sql;
+          const { sql: value } = encodeTypedQueryExpression(compiler, populate, expr.input) ?? {};
           if (!value) throw Error('Invalid expression');
           columns.push(sql`
             (

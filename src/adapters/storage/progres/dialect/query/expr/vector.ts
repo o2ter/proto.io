@@ -30,6 +30,7 @@ import { sql, SQL } from '../../../../sql';
 import { QueryCompiler, QueryContext } from '../../../../sql/compiler';
 import { encodeTypedQueryExpression } from './expr';
 import { fetchElement } from '../utils';
+import { typeCastExpr } from './types';
 
 const encodeVectorExpression = (
   compiler: QueryCompiler,
@@ -48,7 +49,7 @@ const encodeVectorExpression = (
       return { sql: sql`${{ value: expr.value }}::DOUBLE PRECISION[]`, dimension: expr.value.length };
     }
   }
-  const result = _.map(exprs, x => _.find(encodeTypedQueryExpression(compiler, parent, x), e => e.type === 'number')?.sql);
+  const result = _.map(exprs, x => typeCastExpr(encodeTypedQueryExpression(compiler, parent, x), 'number')?.sql);
   if (_.some(result, x => _.isNil(x))) throw Error('Invalid expression');
   return { sql: sql`ARRAY[${_.map(result, x => sql`COALESCE(${x!}, 0)`)}]`, dimension: result.length };
 };

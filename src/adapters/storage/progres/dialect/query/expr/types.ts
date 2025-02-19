@@ -25,9 +25,14 @@
 
 import _ from 'lodash';
 import { QueryExpression, QueryArrayExpression, QueryValueExpression } from '../../../../../../server/query/dispatcher/parser/expressions';
-import { SQL } from '../../../../sql';
+import { sql, SQL } from '../../../../sql';
 
-export const isArrayExpression = (expr: QueryExpression) => {
+export type TypedSQL = { type: PrimitiveValue; sql: SQL };
+
+export const _PrimitiveValue = ['boolean', 'number', 'decimal', 'string', 'date'] as const;
+export type PrimitiveValue = (typeof _PrimitiveValue)[number];
+
+export const isArrayExpr = (expr: QueryExpression) => {
   if (expr instanceof QueryArrayExpression) return true;
   if (expr instanceof QueryValueExpression) return _.isArray(expr.value);
   return false;
@@ -39,19 +44,27 @@ export const arrayLength = (expr: QueryExpression) => {
   return 0;
 };
 
-export const mapExpression = <R>(expr: QueryExpression, callback: (x: QueryExpression) => R): R[] => {
+export const mapExpr = <R>(expr: QueryExpression, callback: (x: QueryExpression) => R): R[] => {
   if (expr instanceof QueryArrayExpression) return _.map(expr.exprs, x => callback(x));
   if (expr instanceof QueryValueExpression) return _.isArray(expr.value) ? _.map(expr.value, x => callback(new QueryValueExpression(x))) : [];
   return [];
 };
 
-export const _PrimitiveValue = ['boolean', 'number', 'decimal', 'string', 'date'] as const;
-export type PrimitiveValue = (typeof _PrimitiveValue)[number];
+export const zipExpr = <R>(lhs: (TypedSQL | undefined)[], rhs: (TypedSQL | undefined)[]): [TypedSQL, TypedSQL][] | undefined => {
+  const result: [TypedSQL, TypedSQL][] = [];
+  for (const [l, r] of _.zip(lhs, rhs)) {
+    if (!l || !r) return;
+    if (l.type === r.type) result.push([l, r]);
+    else if (l.type === 'number' && r.type === 'decimal') result.push([l, { type: 'decimal', sql: sql`CAST((${r.sql}) AS DECIMAL)` }]);
+    else if (l.type === 'decimal' && r.type === 'number') result.push([{ type: 'decimal', sql: sql`CAST((${l.sql}) AS DECIMAL)` }, r]);
+    else return;
+  }
+  return result;
+}
 
-export const matchType = (
-  first: { type: PrimitiveValue; sql: SQL; }[] | undefined,
-  second: { type: PrimitiveValue; sql: SQL; }[] | undefined
-): [{ type: PrimitiveValue; sql: SQL; }, { type: PrimitiveValue; sql: SQL; }] | undefined => {
-  const found = _.find(first, l => _.some(second, r => l.type === r.type));
-  return found ? [found, _.find(second, r => r.type === found.type)!] : undefined;
+export const typeCastExpr = (expr: TypedSQL | undefined, type: PrimitiveValue): TypedSQL | undefined => {
+  if (!expr) return;
+  if (expr.type === type) return expr;
+  if (expr.type === 'number' && type === 'decimal') return { type, sql: sql`CAST((${expr.sql}) AS DECIMAL)` };
+  if (expr.type === 'decimal' && type === 'number') return { type, sql: sql`CAST((${expr.sql}) AS DOUBLE PRECISION)` };
 };
