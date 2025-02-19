@@ -58,6 +58,15 @@ export class QueryExpression {
           const _left = _.isArray(left) ? _.map(left, x => QueryExpression.decode(x as any, dollerSign)) : QueryExpression.decode(left as any, dollerSign);
           const _right = _.isArray(right) ? _.map(right, x => QueryExpression.decode(x as any, dollerSign)) : QueryExpression.decode(right as any, dollerSign);
           exprs.push(new QueryDistanceExpression(key as any, _.castArray(_left), _.castArray(_right)));
+        } else if (key === '$cond' && _.isPlainObject(query)) {
+          const { if: cond, then, else: elseCase } = query as any;
+          exprs.push(new QueryCondExpression(QueryExpression.decode(cond as any, dollerSign), QueryExpression.decode(then as any, dollerSign), QueryExpression.decode(elseCase as any, dollerSign)));
+        } else if (key === '$switch' && _.isPlainObject(query)) {
+          const { branches, default: defaultCase } = query as any;
+          exprs.push(new QuerySwitchExpression(
+            _.map(branches as any, ({ case: c, then: t }) => ({ case: QueryExpression.decode(c as any, dollerSign), then: QueryExpression.decode(t as any, dollerSign) })),
+            QueryExpression.decode(defaultCase as any, dollerSign)
+          ));
         } else if (key === '$not') {
           exprs.push(new QueryNotExpression(QueryExpression.decode(query as any, dollerSign)));
         } else if (key === '$array' && _.isArray(query)) {
@@ -462,6 +471,91 @@ export class QueryListExpression extends QueryExpression {
       case '$ifNull': return _.intersection(..._.map(this.exprs, x => x.evalType(schema, className)));
       case '$concat': return ['string'];
     }
+  }
+}
+
+export class QueryCondExpression extends QueryExpression {
+
+  cond: QueryExpression;
+  then: QueryExpression;
+  else: QueryExpression;
+
+  constructor(cond: QueryExpression, then: QueryExpression, elseCase: QueryExpression) {
+    super();
+    this.cond = cond;
+    this.then = then;
+    this.else = elseCase;
+  }
+
+  simplify() {
+    return new QueryCondExpression(this.cond.simplify(), this.then.simplify(), this.else.simplify());
+  }
+
+  keyPaths(): string[] {
+    return _.uniq([
+      ...this.cond.keyPaths(),
+      ...this.then.keyPaths(),
+      ...this.else.keyPaths(),
+    ]);
+  }
+
+  mapKey(callback: (key: string) => string): QueryExpression {
+    return new QueryCondExpression(this.cond.mapKey(callback), this.then.mapKey(callback), this.else.mapKey(callback));
+  }
+
+  eval(value: any) {
+    return this.cond.eval(value) ? this.then.eval(value) : this.else.eval(value);
+  }
+
+  evalType(schema: Record<string, TSchema>, className: string): TSchema.DataType[] {
+    return _.intersection(this.then.evalType(schema, className), this.else.evalType(schema, className));
+  }
+}
+
+export class QuerySwitchExpression extends QueryExpression {
+
+  branches: { case: QueryExpression; then: QueryExpression; }[];
+  default: QueryExpression;
+
+  constructor(branches: { case: QueryExpression; then: QueryExpression; }[], defaultCase: QueryExpression) {
+    super();
+    this.branches = branches;
+    this.default = defaultCase;
+  }
+
+  simplify() {
+    return new QuerySwitchExpression(
+      _.map(this.branches, ({ case: c, then: t }) => ({ case: c.simplify(), then: t.simplify() })),
+      this.default.simplify()
+    );
+  }
+
+  keyPaths(): string[] {
+    return _.uniq([
+      ..._.flatMap(this.branches, ({ case: c, then: t }) => [...c.keyPaths(), ...t.keyPaths()]),
+      ...this.default.keyPaths(),
+    ]);
+  }
+
+  mapKey(callback: (key: string) => string): QueryExpression {
+    return new QuerySwitchExpression(
+      _.map(this.branches, ({ case: c, then: t }) => ({ case: c.mapKey(callback), then: t.mapKey(callback) })),
+      this.default.mapKey(callback)
+    );
+  }
+
+  eval(value: any) {
+    for (const { case: c, then: t } of this.branches) {
+      if (c.eval(value)) return t.eval(value);
+    }
+    return this.default.eval(value);
+  }
+
+  evalType(schema: Record<string, TSchema>, className: string): TSchema.DataType[] {
+    return _.intersection(
+      ..._.map(this.branches, ({ then: t }) => t.evalType(schema, className)),
+      this.default.evalType(schema, className)
+    );
   }
 }
 
