@@ -29,7 +29,7 @@ import { TComparisonKeys, TConditionalKeys } from '../../../../internals/query/t
 import { isValue } from '../../../../internals/object';
 import { TValue } from '../../../../internals/types';
 import { cosine, distance, equal, getValue, greaterThan, greaterThanOrEqual, innerProduct, lessThan, lessThanOrEqual, rectilinearDistance } from './utils';
-import { TSchema } from '../../../../internals/schema';
+import { isPrimitive, isVector, TSchema } from '../../../../internals/schema';
 import { resolveColumn } from '../validator';
 import Decimal from 'decimal.js';
 
@@ -629,7 +629,11 @@ export class QueryKeyExpression extends QueryExpression {
 
   evalType(schema: Record<string, TSchema>, className: string) {
     const { paths: [, ...subpath], dataType } = resolveColumn(schema, className, this.key);
-    return _.isEmpty(subpath) ? [dataType] : [];
+    if (!_.isEmpty(subpath)) return [];
+    if (_.isString(dataType)) return [dataType];
+    if (isPrimitive(dataType)) return [dataType.type];
+    if (isVector(dataType)) return [_.omit(dataType, 'default')];
+    return [dataType];
   }
 }
 
