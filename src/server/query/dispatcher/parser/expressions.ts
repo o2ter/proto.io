@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { TDistanceExprKeys, TExpression } from '../../../../internals/query/types/expressions';
+import { TBinaryExprKeys, TDistanceExprKeys, TExpression, TListExprKeys, TNoParamExprKeys, TUnaryExprKeys } from '../../../../internals/query/types/expressions';
 import { TComparisonKeys, TConditionalKeys } from '../../../../internals/query/types/keys';
 import { isValue } from '../../../../internals/object';
 import { TValue } from '../../../../internals/types';
@@ -41,6 +41,15 @@ export class QueryExpression {
       for (const [key, query] of _.toPairs(selector)) {
         if (_.includes(TConditionalKeys, key) && _.isArray(query)) {
           exprs.push(new QueryCoditionalExpression(key as any, _.map(query, x => QueryExpression.decode(x as any, dollerSign))));
+        } else if (_.includes(TNoParamExprKeys, key)) {
+          exprs.push(new QueryNoParamExpression(key as any));
+        } else if (_.includes(TUnaryExprKeys, key) && _.isArray(query) && query.length === 1) {
+          exprs.push(new QueryUnaryExpression(key as any, QueryExpression.decode(query[0] as any, dollerSign)));
+        } else if (_.includes(TBinaryExprKeys, key) && _.isArray(query) && query.length === 2) {
+          const [left, right] = query;
+          exprs.push(new QueryBinaryExpression(key as any, QueryExpression.decode(left as any, dollerSign), QueryExpression.decode(right as any, dollerSign)));
+        } else if (_.includes(TListExprKeys, key) && _.isArray(query)) {
+          exprs.push(new QueryListExpression(key as any, _.map(query, x => QueryExpression.decode(x as any, dollerSign))));
         } else if (_.includes(TComparisonKeys, key) && _.isArray(query) && query.length === 2) {
           const [left, right] = query;
           exprs.push(new QueryComparisonExpression(key as any, QueryExpression.decode(left as any, dollerSign), QueryExpression.decode(right as any, dollerSign)));
@@ -242,6 +251,217 @@ export class QueryArrayExpression extends QueryExpression {
 
   evalType(schema: Record<string, TSchema>, className: string): TSchema.DataType[] {
     return ['array'];
+  }
+}
+
+export class QueryNoParamExpression extends QueryExpression {
+
+  type: typeof TNoParamExprKeys[number];
+
+  constructor(type: typeof TNoParamExprKeys[number]) {
+    super();
+    this.type = type;
+  }
+
+  eval(value: any): any {
+    switch (this.type) {
+      case '$now': return new Date();
+      case '$rand': return Math.random();
+    }
+  }
+
+  evalType(schema: Record<string, TSchema>, className: string): TSchema.DataType[] {
+    switch (this.type) {
+      case '$now': return ['date'];
+      case '$rand': return ['number', 'decimal'];
+    }
+  }
+}
+
+export class QueryUnaryExpression extends QueryExpression {
+
+  type: typeof TUnaryExprKeys[number];
+  expr: QueryExpression;
+
+  constructor(type: typeof TUnaryExprKeys[number], expr: QueryExpression) {
+    super();
+    this.type = type;
+    this.expr = expr;
+  }
+
+  simplify() {
+    return new QueryUnaryExpression(this.type, this.expr.simplify());
+  }
+
+  keyPaths(): string[] {
+    return this.expr.keyPaths();
+  }
+
+  mapKey(callback: (key: string) => string): QueryExpression {
+    return new QueryUnaryExpression(this.type, this.expr.mapKey(callback));
+  }
+
+  eval(value: any) {
+    switch (this.type) {
+      case '$abs': return Math.abs(this.expr.eval(value));
+      case '$sqrt': return Math.sqrt(this.expr.eval(value));
+      case '$ceil': return Math.ceil(this.expr.eval(value));
+      case '$floor': return Math.floor(this.expr.eval(value));
+      case '$round': return Math.round(this.expr.eval(value));
+      case '$exp': return Math.exp(this.expr.eval(value));
+      case '$ln': return Math.log(this.expr.eval(value));
+      case '$log2': return Math.log2(this.expr.eval(value));
+      case '$log10': return Math.log10(this.expr.eval(value));
+      case '$sin': return Math.sin(this.expr.eval(value));
+      case '$cos': return Math.cos(this.expr.eval(value));
+      case '$tan': return Math.tan(this.expr.eval(value));
+      case '$asin': return Math.asin(this.expr.eval(value));
+      case '$acos': return Math.acos(this.expr.eval(value));
+      case '$atan': return Math.atan(this.expr.eval(value));
+      case '$asinh': return Math.asinh(this.expr.eval(value));
+      case '$acosh': return Math.acosh(this.expr.eval(value));
+      case '$atanh': return Math.atanh(this.expr.eval(value));
+      case '$sinh': return Math.sinh(this.expr.eval(value));
+      case '$cosh': return Math.cosh(this.expr.eval(value));
+      case '$tanh': return Math.tanh(this.expr.eval(value));
+      case '$size':
+        {
+          const v = this.expr.eval(value);
+          if (!_.isArray(v) && !_.isString(v)) throw Error('Invalid value');
+          return v.length;
+        }
+      case '$lower': return _.toLower(this.expr.eval(value));
+      case '$upper': return _.toUpper(this.expr.eval(value));
+    }
+  }
+
+  evalType(schema: Record<string, TSchema>, className: string): TSchema.DataType[] {
+    switch (this.type) {
+      case '$abs': return ['number', 'decimal'];
+      case '$sqrt': return ['number', 'decimal'];
+      case '$ceil': return ['number', 'decimal'];
+      case '$floor': return ['number', 'decimal'];
+      case '$round': return ['number', 'decimal'];
+      case '$exp': return ['number', 'decimal'];
+      case '$ln': return ['number', 'decimal'];
+      case '$log2': return ['number', 'decimal'];
+      case '$log10': return ['number', 'decimal'];
+      case '$sin': return ['number', 'decimal'];
+      case '$cos': return ['number', 'decimal'];
+      case '$tan': return ['number', 'decimal'];
+      case '$asin': return ['number', 'decimal'];
+      case '$acos': return ['number', 'decimal'];
+      case '$atan': return ['number', 'decimal'];
+      case '$asinh': return ['number', 'decimal'];
+      case '$acosh': return ['number', 'decimal'];
+      case '$atanh': return ['number', 'decimal'];
+      case '$sinh': return ['number', 'decimal'];
+      case '$cosh': return ['number', 'decimal'];
+      case '$tanh': return ['number', 'decimal'];
+      case '$size': return ['number'];
+      case '$lower': return ['string'];
+      case '$upper': return ['string'];
+    }
+  }
+}
+
+export class QueryBinaryExpression extends QueryExpression {
+
+  type: typeof TBinaryExprKeys[number];
+  left: QueryExpression;
+  right: QueryExpression;
+
+  constructor(type: typeof TBinaryExprKeys[number], left: QueryExpression, right: QueryExpression) {
+    super();
+    this.type = type;
+    this.left = left;
+    this.right = right;
+  }
+
+  simplify() {
+    return new QueryBinaryExpression(this.type, this.left.simplify(), this.right.simplify());
+  }
+
+  keyPaths(): string[] {
+    return _.uniq([
+      ...this.left.keyPaths(),
+      ...this.right.keyPaths(),
+    ]);
+  }
+
+  mapKey(callback: (key: string) => string): QueryExpression {
+    return new QueryBinaryExpression(this.type, this.left.mapKey(callback), this.right.mapKey(callback));
+  }
+
+  eval(value: any) {
+    switch (this.type) {
+      case '$mod': return this.left.eval(value) % this.right.eval(value);
+      case '$log': return Math.log(this.left.eval(value)) / Math.log(this.right.eval(value));
+      case '$pow': return Math.pow(this.left.eval(value), this.right.eval(value));
+      case '$divide': return this.left.eval(value) / this.right.eval(value);
+      case '$subtract': return this.left.eval(value) - this.right.eval(value);
+      case '$trunc':
+        {
+          const precision = this.right.eval(value);
+          const factor = Math.pow(10, precision);
+          return Math.trunc(this.left.eval(value) * factor) / factor;
+        }
+      case '$atan2': return Math.atan2(this.left.eval(value), this.right.eval(value));
+    }
+  }
+
+  evalType(schema: Record<string, TSchema>, className: string): TSchema.DataType[] {
+    switch (this.type) {
+      case '$mod': return ['number', 'decimal'];
+      case '$log': return ['number', 'decimal'];
+      case '$pow': return ['number', 'decimal'];
+      case '$divide': return ['number', 'decimal'];
+      case '$subtract': return ['number', 'decimal'];
+      case '$trunc': return ['number', 'decimal'];
+      case '$atan2': return ['number', 'decimal'];
+    }
+  }
+}
+
+export class QueryListExpression extends QueryExpression {
+
+  type: typeof TListExprKeys[number];
+  exprs: QueryExpression[];
+
+  constructor(type: typeof TListExprKeys[number], exprs: QueryExpression[]) {
+    super();
+    this.type = type;
+    this.exprs = exprs;
+  }
+
+  simplify() {
+    return new QueryListExpression(this.type, _.map(this.exprs, x => x.simplify())) as QueryExpression;
+  }
+
+  keyPaths(): string[] {
+    return _.uniq(_.flatMap(this.exprs, x => x.keyPaths()));
+  }
+
+  mapKey(callback: (key: string) => string): QueryExpression {
+    return new QueryListExpression(this.type, _.map(this.exprs, x => x.mapKey(callback)));
+  }
+
+  eval(value: any) {
+    switch (this.type) {
+      case '$add': return _.isEmpty(this.exprs) ? undefined : _.sum(_.map(this.exprs, x => x.eval(value)));
+      case '$multiply': return _.isEmpty(this.exprs) ? undefined : _.reduce(_.map(this.exprs, x => x.eval(value)), (a, b) => a * b, 1);
+      case '$ifNull': return _.find(_.map(this.exprs, x => x.eval(value)), x => !_.isNil(x));
+      case '$concat': return _.join(_.map(this.exprs, x => x.eval(value)), '');
+    }
+  }
+
+  evalType(schema: Record<string, TSchema>, className: string): TSchema.DataType[] {
+    switch (this.type) {
+      case '$add': return ['number', 'decimal'];
+      case '$multiply': return ['number', 'decimal'];
+      case '$ifNull': return _.uniq(_.flatMap(_.map(this.exprs, x => x.evalType(schema, className))));
+      case '$concat': return ['string'];
+    }
   }
 }
 

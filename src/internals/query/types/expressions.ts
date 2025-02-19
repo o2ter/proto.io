@@ -27,6 +27,7 @@ import { TValue } from '../../types';
 import { TComparisonKeys, TConditionalKeys } from './keys';
 
 export const TNoParamExprKeys = [
+  '$now',
   '$rand',
 ] as const;
 
@@ -38,6 +39,7 @@ export const TUnaryExprKeys = [
   '$round',
   '$exp',
   '$ln',
+  '$log2',
   '$log10',
   '$sin',
   '$cos',
