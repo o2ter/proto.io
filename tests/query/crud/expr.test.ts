@@ -53,3 +53,23 @@ test('test expr', async () => {
   expect(result?.objectId).toBe(object.objectId);
 
 })
+
+test('test expr 2', async () => {
+
+  const object = await Proto.Query('Test').insert({ number: 1 });
+
+  const result = await Proto.Query('Test')
+    .equalTo('_id', object.objectId)
+    .filter({
+      $expr: {
+        $eq: [
+          { $add: [{ $key: 'number' }, { $value: 1 }] },
+          { $value: 1 },
+        ]
+      }
+    })
+    .first();
+
+  expect(result?.objectId).toBeUndefined();
+
+})
