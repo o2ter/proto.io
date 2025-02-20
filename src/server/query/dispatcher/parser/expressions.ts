@@ -54,6 +54,7 @@ export class QueryExpression {
           const [left, right] = query;
           exprs.push(new QueryBinaryExpression(key as any, QueryExpression.decode(left as any, dollerSign), QueryExpression.decode(right as any, dollerSign)));
         } else if (_.includes(TListExprKeys, key) && _.isArray(query)) {
+          if (query.length === 0) throw Error('Invalid expression');
           exprs.push(new QueryListExpression(key as any, _.map(query, x => QueryExpression.decode(x as any, dollerSign))));
         } else if (_.includes(TComparisonKeys, key) && _.isArray(query) && query.length === 2) {
           const [left, right] = query;
@@ -68,6 +69,7 @@ export class QueryExpression {
           exprs.push(new QueryCondExpression(QueryExpression.decode(cond as any, dollerSign), QueryExpression.decode(then as any, dollerSign), QueryExpression.decode(elseCase as any, dollerSign)));
         } else if (key === '$switch' && _.isPlainObject(query)) {
           const { branches, default: defaultCase } = query as any;
+          if (branches.length === 0) throw Error('Invalid expression');
           exprs.push(new QuerySwitchExpression(
             _.map(branches as any, ({ case: c, then: t }) => ({ case: QueryExpression.decode(c as any, dollerSign), then: QueryExpression.decode(t as any, dollerSign) })),
             QueryExpression.decode(defaultCase as any, dollerSign)
