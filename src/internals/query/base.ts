@@ -273,7 +273,7 @@ class TQueryFilterBase {
   }
 
   /**
-   * Filters the query to exclude documents where the specified key is a superset of the specified values.
+   * Filters the query to exclude documents where the specified key contains all of the specified values.
    * @param key - The key to check for superset.
    * @param value - The array of values to check against.
    * @returns The current instance for chaining.
