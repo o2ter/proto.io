@@ -199,14 +199,10 @@ export const encodeTypedQueryExpression = (
 
     return {
       type: defaultCase.type,
-      sql: sql`
-        CASE ${{
-          literal: _.map(branches, x => sql`WHEN (${x.case.sql}) THEN (${x.then.sql})`),
-          separator: ' '
-        }}
-          ELSE (${defaultCase.sql})
-        END
-      `,
+      sql: sql`CASE ${{
+        literal: _.map(branches, x => sql`WHEN (${x.case.sql}) THEN (${x.then.sql})`),
+        separator: ' '
+      }} ELSE (${defaultCase.sql}) END`,
     };
   }
 };
