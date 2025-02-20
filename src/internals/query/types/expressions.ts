@@ -103,15 +103,10 @@ export type TExpression = {
   $key?: string;
   $value?: TValue;
   $cond?: {
-    if: TExpression;
-    then: TExpression;
-    else: TExpression;
-  };
-  $switch?: {
-    branches: {
+    branch: _.Many<{
       case: TExpression;
       then: TExpression;
-    }[];
+    }[]>;
     default: TExpression;
   };
 } & {

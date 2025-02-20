@@ -33,14 +33,13 @@ import {
   QueryBinaryExpression,
   QueryCoditionalExpression,
   QueryComparisonExpression,
-  QueryCondExpression,
   QueryDistanceExpression,
   QueryExpression,
   QueryKeyExpression,
   QueryListExpression,
   QueryZeroParamExpression,
   QueryNotExpression,
-  QuerySwitchExpression,
+  QueryCondExpression,
   QueryUnaryExpression,
   QueryValueExpression
 } from '../../../../../../server/query/dispatcher/parser/expressions';
@@ -185,9 +184,6 @@ export const encodeTypedQueryExpression = (
   }
 
   if (expr instanceof QueryCondExpression) {
-  }
-
-  if (expr instanceof QuerySwitchExpression) {
   }
 };
 
