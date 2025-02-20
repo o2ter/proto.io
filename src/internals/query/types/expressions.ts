@@ -33,6 +33,7 @@ export const TZeroParamExprKeys = [
 
 export const TUnaryExprKeys = [
   '$abs',
+  '$neg',
   '$sqrt',
   '$ceil',
   '$floor',

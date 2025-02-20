@@ -318,6 +318,7 @@ export class QueryUnaryExpression extends QueryExpression {
   eval(value: any) {
     switch (this.type) {
       case '$abs': return MathUtils.abs(this.expr.eval(value));
+      case '$neg': return MathUtils.neg(this.expr.eval(value));
       case '$sqrt': return MathUtils.sqrt(this.expr.eval(value));
       case '$ceil': return MathUtils.ceil(this.expr.eval(value));
       case '$floor': return MathUtils.floor(this.expr.eval(value));
@@ -352,6 +353,7 @@ export class QueryUnaryExpression extends QueryExpression {
   evalType(schema: Record<string, TSchema>, className: string): TSchema.DataType[] {
     switch (this.type) {
       case '$abs': return combineNumericTypes(this.expr.evalType(schema, className));
+      case '$neg': return combineNumericTypes(this.expr.evalType(schema, className));
       case '$sqrt': return combineNumericTypes(this.expr.evalType(schema, className));
       case '$ceil': return combineNumericTypes(this.expr.evalType(schema, className));
       case '$floor': return combineNumericTypes(this.expr.evalType(schema, className));

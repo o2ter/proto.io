@@ -59,6 +59,11 @@ export const MathUtils = {
     if (lhs instanceof Decimal) return lhs.abs();
     return Math.abs(lhs);
   },
+  neg: (lhs: any) => {
+    if (!isNum(lhs)) throw Error('Invalid operation');
+    if (lhs instanceof Decimal) return lhs.neg();
+    return -lhs;
+  },
   ceil: (lhs: any) => {
     if (!isNum(lhs)) throw Error('Invalid operation');
     if (lhs instanceof Decimal) return lhs.ceil();
