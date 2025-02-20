@@ -263,6 +263,26 @@ class TQueryFilterBase {
   }
 
   /**
+   * Filters the query to include only documents where the specified key contains all of the specified values.
+   * @param key - The key to check for containing values.
+   * @param value - The array of values to check against.
+   * @returns The current instance for chaining.
+   */
+  containedBy<T extends string>(key: PathName<T>, value: TValueWithUndefined[]) {
+    return this.filter({ [key]: { $superset: value } });
+  }
+
+  /**
+   * Filters the query to exclude documents where the specified key is a superset of the specified values.
+   * @param key - The key to check for superset.
+   * @param value - The array of values to check against.
+   * @returns The current instance for chaining.
+   */
+  notContainedBy<T extends string>(key: PathName<T>, value: TValueWithUndefined[]) {
+    return this.filter({ [key]: { $not: { $superset: value } } });
+  }
+
+  /**
    * Filters the query to include only documents where the specified key is a subset of the specified values.
    * @param key - The key to check for subset.
    * @param value - The array of values to check against.
