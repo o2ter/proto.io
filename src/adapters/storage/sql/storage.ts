@@ -208,15 +208,16 @@ export abstract class SqlStorage implements TStorage {
     const self = this;
     const compiler = self._makeCompiler(false, query.extraFilter);
     const _matchesType = self._matchesType(compiler, query);
-    const _query = compiler._selectQuery({ ...query, sort: {} }, ({ fetchName }) => ({
-      sort: sql`ORDER BY ${self.dialect.random(
-        opts?.weight ? _.first(encodeTypedQueryExpression(compiler, {
-          name: fetchName,
-          className: query.className,
-          groupMatches: query.groupMatches,
-         }, opts.weight))?.sql : undefined
-      )}`,
-    }));
+    const _query = compiler._selectQuery({ ...query, sort: {} }, ({ fetchName }) => {
+      if (!opts?.weight) return { sort: sql`ORDER BY ${self.dialect.random()}` };
+      const weight = encodeTypedQueryExpression(compiler, {
+        name: fetchName,
+        className: query.className,
+        groupMatches: query.groupMatches,
+      }, opts.weight);
+      if (!weight) throw Error('Invalid expression');
+      return { sort: sql`ORDER BY ${self.dialect.random(weight.sql)}` };
+    });
     return (async function* () {
       const objects = self.query(_query);
       for await (const object of objects) {
