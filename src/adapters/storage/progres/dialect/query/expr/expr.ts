@@ -175,6 +175,9 @@ export const encodeTypedQueryExpression = (
           break;
         case '$concat':
           {
+            if (_.every(values, x => x.type === 'string')) {
+              return { type: 'string', sql: sql`CONCAT(${{ literal: _.map(values, x => x.sql) }})` };
+            }
           }
           break;
       }
