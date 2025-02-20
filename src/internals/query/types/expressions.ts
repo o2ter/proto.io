@@ -60,7 +60,6 @@ export const TUnaryExprKeys = [
 ] as const;
 
 export const TBinaryExprKeys = [
-  '$mod',
   '$log',
   '$pow',
   '$divide',

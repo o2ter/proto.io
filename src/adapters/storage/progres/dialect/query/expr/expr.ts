@@ -101,13 +101,11 @@ export const encodeTypedQueryExpression = (
     if (!left || !right) return;
 
     switch (expr.type) {
-      case '$mod':
       case '$log':
       case '$pow':
       case '$atan2':
         {
           const op = {
-            '$mod': 'MOD',
             '$log': 'LOG',
             '$pow': 'POWER',
             '$atan2': 'ATAN2',

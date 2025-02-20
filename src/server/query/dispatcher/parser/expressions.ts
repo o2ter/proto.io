@@ -414,7 +414,6 @@ export class QueryBinaryExpression extends QueryExpression {
 
   eval(value: any) {
     switch (this.type) {
-      case '$mod': return MathUtils.mod(this.left.eval(value), this.right.eval(value));
       case '$log': return MathUtils.log(this.left.eval(value), this.right.eval(value));
       case '$pow': return MathUtils.pow(this.left.eval(value), this.right.eval(value));
       case '$divide': return MathUtils.divide(this.left.eval(value), this.right.eval(value));
@@ -425,7 +424,6 @@ export class QueryBinaryExpression extends QueryExpression {
 
   evalType(schema: Record<string, TSchema>, className: string): TSchema.DataType[] {
     switch (this.type) {
-      case '$mod': return combineNumericTypes(this.left.evalType(schema, className), this.right.evalType(schema, className));
       case '$log': return combineNumericTypes(this.left.evalType(schema, className), this.right.evalType(schema, className));
       case '$pow': return combineNumericTypes(this.left.evalType(schema, className), this.right.evalType(schema, className));
       case '$divide': return combineNumericTypes(this.left.evalType(schema, className), this.right.evalType(schema, className));

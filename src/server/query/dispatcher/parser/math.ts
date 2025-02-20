@@ -49,11 +49,6 @@ export const MathUtils = {
     if (lhs instanceof Decimal || rhs instanceof Decimal) return Decimal.div(lhs, rhs);
     return lhs / rhs;
   },
-  mod: (lhs: any, rhs: any) => {
-    if (!isNum(lhs) || !isNum(rhs)) throw Error('Invalid operation');
-    if (lhs instanceof Decimal || rhs instanceof Decimal) return Decimal.mod(lhs, rhs);
-    return lhs % rhs;
-  },
   abs: (lhs: any) => {
     if (!isNum(lhs)) throw Error('Invalid operation');
     if (lhs instanceof Decimal) return lhs.abs();
