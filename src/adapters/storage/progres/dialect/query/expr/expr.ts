@@ -102,11 +102,22 @@ export const encodeTypedQueryExpression = (
 
     switch (expr.type) {
       case '$log':
+        {
+          if (left.type === right.type) {
+            return { type: left.type, sql: sql`(LOG(${left.sql}) / LOG(${right.sql}))` };
+          }
+          if (left.type === 'decimal' && right.type === 'number') {
+            return { type: 'decimal', sql: sql`(LOG(${left.sql}) / LOG(CAST((${right.sql}) AS DECIMAL)))` };
+          }
+          if (left.type === 'number' && right.type === 'decimal') {
+            return { type: 'decimal', sql: sql`(LOG(CAST((${left.sql}) AS DECIMAL) / LOG(${right.sql}))` };
+          }
+        }
+        break;
       case '$pow':
       case '$atan2':
         {
           const op = {
-            '$log': 'LOG',
             '$pow': 'POWER',
             '$atan2': 'ATAN2',
           }[expr.type];
