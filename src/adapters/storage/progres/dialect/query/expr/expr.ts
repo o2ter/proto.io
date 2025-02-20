@@ -59,9 +59,8 @@ export const encodeTypedQueryExpression = (
   if (expr instanceof QueryKeyExpression) {
     const { element, dataType } = fetchElement(compiler, parent, expr.key);
     const _dataType = dataType ? _typeof(dataType) : null;
-    if (_dataType && _PrimitiveValue.includes(_dataType as any)) {
-      return { type: _dataType as PrimitiveValue, sql: element };
-    }
+    if (!_dataType || !_PrimitiveValue.includes(_dataType as any)) return;
+    return { type: _dataType as PrimitiveValue, sql: element };
   }
   if (expr instanceof QueryValueExpression) {
     if (_.isBoolean(expr.value)) return { type: 'boolean', sql: sql`${{ value: expr.value }}` };
@@ -95,95 +94,108 @@ export const encodeTypedQueryExpression = (
   }
 
   if (expr instanceof QueryBinaryExpression) {
+
     const left = encodeTypedQueryExpression(compiler, parent, expr.left);
     const right = encodeTypedQueryExpression(compiler, parent, expr.right);
-    if (left && right) {
-      switch (expr.type) {
-        case '$mod':
-        case '$log':
-        case '$pow':
-        case '$trunc':
-        case '$atan2':
-          {
-            const op = {
-              '$mod': 'MOD',
-              '$log': 'LOG',
-              '$pow': 'POWER',
-              '$trunc': 'TRUNC',
-              '$atan2': 'ATAN2',
-            }[expr.type];
-            if (left.type === right.type) {
-              return { type: left.type, sql: sql`${{ literal: op }}((${left.sql}), (${right.sql}))` };
-            }
-            if (left.type === 'decimal' && right.type === 'number') {
-              return { type: 'decimal', sql: sql`${{ literal: op }}((${left.sql}), CAST((${right.sql}) AS DECIMAL))` };
-            }
-            if (left.type === 'number' && right.type === 'decimal') {
-              return { type: 'decimal', sql: sql`${{ literal: op }}(CAST((${left.sql}) AS DECIMAL), (${right.sql}))` };
-            }
+    if (!left || !right) return;
+
+    switch (expr.type) {
+      case '$mod':
+      case '$log':
+      case '$pow':
+      case '$trunc':
+      case '$atan2':
+        {
+          const op = {
+            '$mod': 'MOD',
+            '$log': 'LOG',
+            '$pow': 'POWER',
+            '$trunc': 'TRUNC',
+            '$atan2': 'ATAN2',
+          }[expr.type];
+          if (left.type === right.type) {
+            return { type: left.type, sql: sql`${{ literal: op }}((${left.sql}), (${right.sql}))` };
           }
-          break;
-        case '$divide':
-        case '$subtract':
-          {
-            const op = {
-              '$divide': '/',
-              '$subtract': '-',
-            }[expr.type];
-            if (left.type === right.type) {
-              return { type: left.type, sql: sql`(${left.sql}) ${{ literal: op }} (${right.sql})` };
-            }
-            if (left.type === 'decimal' && right.type === 'number') {
-              return { type: 'decimal', sql: sql`CAST((${left.sql}) AS DECIMAL) ${{ literal: op }} (${right.sql})` };
-            }
-            if (left.type === 'number' && right.type === 'decimal') {
-              return { type: 'decimal', sql: sql`(${left.sql}) ${{ literal: op }} CAST((${right.sql}) AS DECIMAL)` };
-            }
+          if (left.type === 'decimal' && right.type === 'number') {
+            return { type: 'decimal', sql: sql`${{ literal: op }}((${left.sql}), CAST((${right.sql}) AS DECIMAL))` };
           }
-          break;
-      }
+          if (left.type === 'number' && right.type === 'decimal') {
+            return { type: 'decimal', sql: sql`${{ literal: op }}(CAST((${left.sql}) AS DECIMAL), (${right.sql}))` };
+          }
+        }
+        break;
+      case '$divide':
+      case '$subtract':
+        {
+          const op = {
+            '$divide': '/',
+            '$subtract': '-',
+          }[expr.type];
+          if (left.type === right.type) {
+            return { type: left.type, sql: sql`(${left.sql}) ${{ literal: op }} (${right.sql})` };
+          }
+          if (left.type === 'decimal' && right.type === 'number') {
+            return { type: 'decimal', sql: sql`CAST((${left.sql}) AS DECIMAL) ${{ literal: op }} (${right.sql})` };
+          }
+          if (left.type === 'number' && right.type === 'decimal') {
+            return { type: 'decimal', sql: sql`(${left.sql}) ${{ literal: op }} CAST((${right.sql}) AS DECIMAL)` };
+          }
+        }
+        break;
     }
   }
 
   if (expr instanceof QueryListExpression) {
+
     const values = _.compact(_.map(expr.exprs, x => encodeTypedQueryExpression(compiler, parent, x)));
-    if (values.length === expr.exprs.length) {
-      switch (expr.type) {
-        case '$add':
-        case '$multiply':
-          {
-            const op = {
-              '$add': '+',
-              '$multiply': '*',
-            }[expr.type];
-            if (_.every(values, x => x.type === 'number')) {
-              return { type: 'number', sql: sql`${{ literal: _.map(values, x => x.sql), separator: ` ${op} ` }}` };
-            }
-            if (_.every(values, x => x.type === 'number' || x.type === 'decimal')) {
-              return { type: 'decimal', sql: sql`${{ literal: _.map(values, x => x.type === 'decimal' ? x.sql : sql`CAST((${x.sql}) AS DECIMAL)`), separator: ` ${op} ` }}` };
-            }
+    if (values.length !== expr.exprs.length) return;
+
+    switch (expr.type) {
+      case '$add':
+      case '$multiply':
+        {
+          const op = {
+            '$add': '+',
+            '$multiply': '*',
+          }[expr.type];
+          if (_.every(values, x => x.type === 'number')) {
+            return { type: 'number', sql: sql`${{ literal: _.map(values, x => x.sql), separator: ` ${op} ` }}` };
           }
-          break;
-        case '$ifNull':
-          {
-            const type = values[0].type;
-            if (_.every(values, x => x.type === type)) {
-              return { type, sql: sql`COALESCE(${{ literal: _.map(values, x => x.sql) }})` };
-            }
+          if (_.every(values, x => x.type === 'number' || x.type === 'decimal')) {
+            return { type: 'decimal', sql: sql`${{ literal: _.map(values, x => x.type === 'decimal' ? x.sql : sql`CAST((${x.sql}) AS DECIMAL)`), separator: ` ${op} ` }}` };
           }
-          break;
-        case '$concat':
-          {
-            if (_.every(values, x => x.type === 'string')) {
-              return { type: 'string', sql: sql`CONCAT(${{ literal: _.map(values, x => x.sql) }})` };
-            }
+        }
+        break;
+      case '$ifNull':
+        {
+          const type = values[0].type;
+          if (_.every(values, x => x.type === type)) {
+            return { type, sql: sql`COALESCE(${{ literal: _.map(values, x => x.sql) }})` };
           }
-          break;
-      }
+        }
+        break;
+      case '$concat':
+        {
+          if (_.every(values, x => x.type === 'string')) {
+            return { type: 'string', sql: sql`CONCAT(${{ literal: _.map(values, x => x.sql) }})` };
+          }
+        }
+        break;
     }
   }
 
   if (expr instanceof QueryCondExpression) {
+
+    const branches = _.flatMap(_.map(expr.branch, x => ({
+      case: encodeTypedQueryExpression(compiler, parent, x.case),
+      then: encodeTypedQueryExpression(compiler, parent, x.then),
+    })), x => x.case && x.then ? ({ case: x.case, then: x.then }) : []);
+    if (branches.length !== expr.branch.length) return;
+
+    const defaultCase = encodeTypedQueryExpression(compiler, parent, expr.default);
+    if (!defaultCase) return;
+
+    if (!_.every(branches, x => x.case.type === 'boolean' && x.then.type === defaultCase.type)) return;
   }
 };
 
