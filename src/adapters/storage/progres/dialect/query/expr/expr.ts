@@ -196,6 +196,18 @@ export const encodeTypedQueryExpression = (
     if (!defaultCase) return;
 
     if (!_.every(branches, x => x.case.type === 'boolean' && x.then.type === defaultCase.type)) return;
+
+    return {
+      type: defaultCase.type,
+      sql: sql`
+        CASE ${{
+          literal: _.map(branches, x => sql`WHEN (${x.case.sql}) THEN (${x.then.sql})`),
+          separator: ' '
+        }}
+          ELSE (${defaultCase.sql})
+        END
+      `,
+    };
   }
 };
 
