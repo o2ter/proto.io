@@ -169,7 +169,7 @@ export const encodeTypedQueryExpression = (
           {
             const type = values[0].type;
             if (_.every(values, x => x.type === type)) {
-              return { type: 'number', sql: sql`COALESCE(${{ literal: _.map(values, x => x.sql) }})` };
+              return { type, sql: sql`COALESCE(${{ literal: _.map(values, x => x.sql) }})` };
             }
           }
           break;
