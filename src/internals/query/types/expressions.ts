@@ -65,7 +65,6 @@ export const TBinaryExprKeys = [
   '$pow',
   '$divide',
   '$subtract',
-  '$trunc',
   '$atan2',
 ] as const;
 
@@ -103,6 +102,7 @@ export type TExpression = {
   $array?: TExpression[];
   $key?: string;
   $value?: TValue;
+} & {
   $cond?: {
     branch: _.Many<{
       case: TExpression;
@@ -110,6 +110,8 @@ export type TExpression = {
     }[]>;
     default: TExpression;
   };
+} & {
+  $trunc?: [TExpression] | [TExpression, TExpression];
 } & {
   [x in (typeof TZeroParamExprKeys)[number]]?: true | {};
 } & {

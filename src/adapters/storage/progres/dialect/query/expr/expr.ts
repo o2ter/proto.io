@@ -41,7 +41,8 @@ import {
   QueryNotExpression,
   QueryCondExpression,
   QueryUnaryExpression,
-  QueryValueExpression
+  QueryValueExpression,
+  QueryTruncExpression
 } from '../../../../../../server/query/dispatcher/parser/expressions';
 import { fetchElement } from '../utils';
 import { _encodeJsonValue } from '../../encode';
@@ -103,14 +104,12 @@ export const encodeTypedQueryExpression = (
       case '$mod':
       case '$log':
       case '$pow':
-      case '$trunc':
       case '$atan2':
         {
           const op = {
             '$mod': 'MOD',
             '$log': 'LOG',
             '$pow': 'POWER',
-            '$trunc': 'TRUNC',
             '$atan2': 'ATAN2',
           }[expr.type];
           if (left.type === right.type) {
@@ -181,6 +180,28 @@ export const encodeTypedQueryExpression = (
           }
         }
         break;
+    }
+  }
+
+  if (expr instanceof QueryTruncExpression) {
+
+    const value = encodeTypedQueryExpression(compiler, parent, expr.value);
+    if (!value) return;
+
+    if (expr.place) {
+      const place = encodeTypedQueryExpression(compiler, parent, expr.place);
+      if (!place) return;
+      if (value.type === place.type) {
+        return { type: value.type, sql: sql`TRUNC((${value.sql}), (${place.sql}))` };
+      }
+      if (value.type === 'decimal' && place.type === 'number') {
+        return { type: 'decimal', sql: sql`TRUNC((${value.sql}), CAST((${place.sql}) AS DECIMAL))` };
+      }
+      if (value.type === 'number' && place.type === 'decimal') {
+        return { type: 'decimal', sql: sql`TRUNC(CAST((${value.sql}) AS DECIMAL), (${place.sql}))` };
+      }
+    } else {
+      return { type: value.type, sql: sql`TRUNC((${value.sql}))` };
     }
   }
 

@@ -72,6 +72,9 @@ export class QueryExpression {
             _.map(branch as any, ({ case: c, then: t }) => ({ case: QueryExpression.decode(c as any, dollerSign), then: QueryExpression.decode(t as any, dollerSign) })),
             QueryExpression.decode(defaultCase as any, dollerSign)
           ));
+        } else if (key === '$trunc' && _.isArray(query) && _.includes([1, 2], query.length)) {
+          const [left, right] = query;
+          exprs.push(new QueryTruncExpression(QueryExpression.decode(left as any, dollerSign), _.isNil(right) ? undefined : QueryExpression.decode(right as any, dollerSign)));
         } else if (key === '$not') {
           exprs.push(new QueryNotExpression(QueryExpression.decode(query as any, dollerSign)));
         } else if (key === '$array' && _.isArray(query)) {
@@ -416,7 +419,6 @@ export class QueryBinaryExpression extends QueryExpression {
       case '$pow': return MathUtils.pow(this.left.eval(value), this.right.eval(value));
       case '$divide': return MathUtils.divide(this.left.eval(value), this.right.eval(value));
       case '$subtract': return MathUtils.subtract(this.left.eval(value), this.right.eval(value));
-      case '$trunc': return MathUtils.trunc(this.left.eval(value), this.right.eval(value));
       case '$atan2': return MathUtils.atan2(this.left.eval(value), this.right.eval(value));
     }
   }
@@ -428,7 +430,6 @@ export class QueryBinaryExpression extends QueryExpression {
       case '$pow': return combineNumericTypes(this.left.evalType(schema, className), this.right.evalType(schema, className));
       case '$divide': return combineNumericTypes(this.left.evalType(schema, className), this.right.evalType(schema, className));
       case '$subtract': return combineNumericTypes(this.left.evalType(schema, className), this.right.evalType(schema, className));
-      case '$trunc': return combineNumericTypes(this.left.evalType(schema, className), this.right.evalType(schema, className));
       case '$atan2': return combineNumericTypes(this.left.evalType(schema, className), this.right.evalType(schema, className));
     }
   }
@@ -473,6 +474,44 @@ export class QueryListExpression extends QueryExpression {
       case '$ifNull': return _.intersection(..._.map(this.exprs, x => x.evalType(schema, className)));
       case '$concat': return ['string'];
     }
+  }
+}
+
+export class QueryTruncExpression extends QueryExpression {
+
+  value: QueryExpression;
+  place?: QueryExpression;
+
+  constructor(value: QueryExpression, place?: QueryExpression) {
+    super();
+    this.value = value;
+    this.place = place;
+  }
+
+  simplify() {
+    return new QueryTruncExpression(this.value.simplify(), this.place?.simplify());
+  }
+
+  keyPaths(): string[] {
+    return _.uniq([
+      ...this.value.keyPaths(),
+      ...this.place?.keyPaths() ?? [],
+    ]);
+  }
+
+  mapKey(callback: (key: string) => string): QueryExpression {
+    return new QueryTruncExpression(this.value.mapKey(callback), this.place?.mapKey(callback));
+  }
+
+  eval(value: any) {
+    return MathUtils.trunc(this.value.eval(value), this.place?.eval(value) ?? 0);
+  }
+
+  evalType(schema: Record<string, TSchema>, className: string): TSchema.DataType[] {
+    const value = this.value.evalType(schema, className);
+    const place = this.place?.evalType(schema, className);
+    if (!place) return value;
+    return combineNumericTypes(value, place);
   }
 }
 

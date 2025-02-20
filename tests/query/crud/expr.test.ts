@@ -133,3 +133,143 @@ test('test expr with $concat', async () => {
   expect(result?.objectId).toBe(object.objectId);
 
 })
+
+test('test expr with $mod', async () => {
+
+  const object = await Proto.Query('Test').insert({ number: 10 });
+
+  const result = await Proto.Query('Test')
+    .equalTo('_id', object.objectId)
+    .filter({
+      $expr: {
+        $eq: [
+          { $mod: [{ $key: 'number' }, { $value: 3 }] },
+          { $value: 1 },
+        ]
+      }
+    })
+    .first();
+
+  expect(result?.objectId).toBe(object.objectId);
+
+})
+
+test('test expr with $log', async () => {
+
+  const object = await Proto.Query('Test').insert({ number: 100 });
+
+  const result = await Proto.Query('Test')
+    .equalTo('_id', object.objectId)
+    .filter({
+      $expr: {
+        $eq: [
+          { $log: [{ $key: 'number' }] },
+          { $value: Math.log(100) },
+        ]
+      }
+    })
+    .first();
+
+  expect(result?.objectId).toBe(object.objectId);
+
+})
+
+test('test expr with $pow', async () => {
+
+  const object = await Proto.Query('Test').insert({ number: 2 });
+
+  const result = await Proto.Query('Test')
+    .equalTo('_id', object.objectId)
+    .filter({
+      $expr: {
+        $eq: [
+          { $pow: [{ $key: 'number' }, { $value: 3 }] },
+          { $value: 8 },
+        ]
+      }
+    })
+    .first();
+
+  expect(result?.objectId).toBe(object.objectId);
+
+})
+
+test('test expr with $divide', async () => {
+
+  const object = await Proto.Query('Test').insert({ number: 10 });
+
+  const result = await Proto.Query('Test')
+    .equalTo('_id', object.objectId)
+    .filter({
+      $expr: {
+        $eq: [
+          { $divide: [{ $key: 'number' }, { $value: 2 }] },
+          { $value: 5 },
+        ]
+      }
+    })
+    .first();
+
+  expect(result?.objectId).toBe(object.objectId);
+
+})
+
+test('test expr with $subtract', async () => {
+
+  const object = await Proto.Query('Test').insert({ number: 10 });
+
+  const result = await Proto.Query('Test')
+    .equalTo('_id', object.objectId)
+    .filter({
+      $expr: {
+        $eq: [
+          { $subtract: [{ $key: 'number' }, { $value: 3 }] },
+          { $value: 7 },
+        ]
+      }
+    })
+    .first();
+
+  expect(result?.objectId).toBe(object.objectId);
+
+})
+
+test('test expr with $trunc', async () => {
+
+  const object = await Proto.Query('Test').insert({ number: 5.67 });
+
+  const result = await Proto.Query('Test')
+    .equalTo('_id', object.objectId)
+    .filter({
+      $expr: {
+        $eq: [
+          { $trunc: [{ $key: 'number' }] },
+          { $value: 5 },
+        ]
+      }
+    })
+    .first();
+
+  expect(result?.objectId).toBe(object.objectId);
+
+})
+
+test('test expr with $atan2', async () => {
+
+  const object = await Proto.Query('Test').insert({ y: 1, x: 1 });
+
+  const result = await Proto.Query('Test')
+    .equalTo('_id', object.objectId)
+    .filter({
+      $expr: {
+        $eq: [
+          { $atan2: [{ $key: 'y' }, { $key: 'x' }] },
+          { $value: Math.atan2(1, 1) },
+        ]
+      }
+    })
+    .first();
+
+  expect(result?.objectId).toBe(object.objectId);
+
+})

@@ -92,6 +92,8 @@ const Proto = new ProtoService({
         defaultDecimal: { type: 'decimal', default: new Decimal(0) },
         boolean: 'boolean',
         number: 'number',
+        x: 'number',
+        y: 'number',
         decimal: 'decimal',
         string: 'string',
         stringArr: 'string[]',
