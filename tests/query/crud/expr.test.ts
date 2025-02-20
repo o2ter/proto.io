@@ -143,8 +143,8 @@ test('test expr with $log', async () => {
     .filter({
       $expr: {
         $eq: [
-          { $log: [{ $key: 'number' }] },
-          { $value: Math.log(100) },
+          { $log: [{ $key: 'number' }, { $value: 10 }] },
+          { $value: Math.log(100) / Math.log(10) },
         ]
       }
     })
