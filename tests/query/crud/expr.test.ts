@@ -34,7 +34,7 @@ const Proto = new ProtoClient({
   masterUser,
 });
 
-test('test expr', async () => {
+test('test expr with $add', async () => {
 
   const object = await Proto.Query('Test').insert({ number: 1 });
 
@@ -54,7 +54,7 @@ test('test expr', async () => {
 
 })
 
-test('test expr 2', async () => {
+test('test expr with $add 2', async () => {
 
   const object = await Proto.Query('Test').insert({ number: 1 });
 
@@ -71,5 +71,65 @@ test('test expr 2', async () => {
     .first();
 
   expect(result?.objectId).toBeUndefined();
+
+})
+
+test('test expr with $multiply', async () => {
+
+  const object = await Proto.Query('Test').insert({ number: 2 });
+
+  const result = await Proto.Query('Test')
+    .equalTo('_id', object.objectId)
+    .filter({
+      $expr: {
+        $eq: [
+          { $multiply: [{ $key: 'number' }, { $value: 2 }] },
+          { $value: 4 },
+        ]
+      }
+    })
+    .first();
+
+  expect(result?.objectId).toBe(object.objectId);
+
+})
+
+test('test expr with $ifNull', async () => {
+
+  const object = await Proto.Query('Test').insert({ number: null });
+
+  const result = await Proto.Query('Test')
+    .equalTo('_id', object.objectId)
+    .filter({
+      $expr: {
+        $eq: [
+          { $ifNull: [{ $key: 'number' }, { $value: 1 }] },
+          { $value: 1 },
+        ]
+      }
+    })
+    .first();
+
+  expect(result?.objectId).toBe(object.objectId);
+
+})
+
+test('test expr with $concat', async () => {
+
+  const object = await Proto.Query('Test').insert({ string: 'Hello' });
+
+  const result = await Proto.Query('Test')
+    .equalTo('_id', object.objectId)
+    .filter({
+      $expr: {
+        $eq: [
+          { $concat: [{ $key: 'string' }, { $value: ' World' }] },
+          { $value: 'Hello World' },
+        ]
+      }
+    })
+    .first();
+
+  expect(result?.objectId).toBe(object.objectId);
 
 })
