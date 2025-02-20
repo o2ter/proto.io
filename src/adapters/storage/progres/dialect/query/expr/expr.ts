@@ -157,14 +157,20 @@ export const encodeTypedQueryExpression = (
               '$add': '+',
               '$multiply': '*',
             }[expr.type];
-            const type = values[0].type;
-            if (_.every(values, x => x.type === type)) {
-              return { type, sql: sql`${{ literal: _.map(values, x => x.sql), separator: op }}` };
+            if (_.every(values, x => x.type === 'number')) {
+              return { type: 'number', sql: sql`${{ literal: _.map(values, x => x.sql), separator: ` ${op} ` }}` };
+            }
+            if (_.every(values, x => x.type === 'number' || x.type === 'decimal')) {
+              return { type: 'decimal', sql: sql`${{ literal: _.map(values, x => x.type === 'decimal' ? x.sql : sql`CAST((${x.sql}) AS DECIMAL)`), separator: ` ${op} ` }}` };
             }
           }
           break;
         case '$ifNull':
           {
+            const type = values[0].type;
+            if (_.every(values, x => x.type === type)) {
+              
+            }
           }
           break;
         case '$concat':
