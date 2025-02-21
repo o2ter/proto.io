@@ -54,6 +54,8 @@ export const TUnaryExprKeys = [
   '$sinh',
   '$cosh',
   '$tanh',
+  '$degrees',
+  '$radians',
   '$size',
   '$lower',
   '$upper',
@@ -61,6 +63,7 @@ export const TUnaryExprKeys = [
 
 export const TBinaryExprKeys = [
   '$log',
+  '$mod',
   '$pow',
   '$divide',
   '$subtract',

@@ -84,6 +84,11 @@ export const MathUtils = {
     if (lhs instanceof Decimal) return lhs.sqrt();
     return Math.sqrt(lhs);
   },
+  mod: (lhs: any, rhs: any) => {
+    if (!isNum(lhs) || !isNum(rhs)) throw Error('Invalid operation');
+    if (lhs instanceof Decimal || rhs instanceof Decimal) return Decimal.mod(lhs, rhs);
+    return lhs % rhs;
+  },
   pow: (lhs: any, rhs: any) => {
     if (!isNum(lhs) || !isNum(rhs)) throw Error('Invalid operation');
     if (lhs instanceof Decimal || rhs instanceof Decimal) return Decimal.pow(lhs, rhs);
@@ -180,5 +185,15 @@ export const MathUtils = {
     if (!isNum(lhs) || !isNum(rhs)) throw Error('Invalid operation');
     if (lhs instanceof Decimal || rhs instanceof Decimal) return Decimal.atan2(lhs, rhs);
     return Math.atan2(lhs, rhs);
+  },
+  degrees: (lhs: any) => {
+    if (!isNum(lhs)) throw Error('Invalid operation');
+    if (lhs instanceof Decimal) return Decimal.div(Decimal.mul(lhs, 180), Math.PI);
+    return (lhs * 180) / Math.PI;
+  },
+  radians: (lhs: any) => {
+    if (!isNum(lhs)) throw Error('Invalid operation');
+    if (lhs instanceof Decimal) return Decimal.div(Decimal.mul(lhs, Math.PI), 180);
+    return (lhs * Math.PI) / 180;
   },
 };
