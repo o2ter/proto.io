@@ -28,7 +28,7 @@ import { Server, Router, Request } from '@o2ter/server-js';
 import { ProtoService } from '../proto';
 import queryType from 'query-types';
 import { response } from './common';
-import { deserialize } from '../../common';
+import { deserialize } from '../../internals/codec';
 import { PVK } from '../../internals/private';
 
 const verifyRelatedBy = (relatedBy: any) => {

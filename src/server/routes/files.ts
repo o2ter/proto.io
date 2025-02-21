@@ -28,7 +28,7 @@ import { Router } from '@o2ter/server-js';
 import { Readable } from 'node:stream';
 import { ProtoService } from '../proto';
 import { decodeFormStream, response } from './common';
-import { deserialize } from '../../common';
+import { deserialize } from '../../internals/codec';
 import { PVK } from '../../internals/private';
 import { UPLOAD_TOKEN_HEADER_NAME } from '../../internals/const';
 import { BinaryData } from '@o2ter/utils-js';

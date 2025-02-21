@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import Decimal from 'decimal.js';
-import { TNumber } from '../../../../common';
+import { TNumber } from '../../../../internals/codec';
 import { isPrimitiveValue, TObject } from '../../../../internals/object';
 
 const isNum = (x: any): x is TNumber => _.isNumber(x) || x instanceof BigInt || x instanceof Decimal;

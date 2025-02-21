@@ -33,7 +33,7 @@ import { ProtoFunction, ProtoFunctionOptions, ProtoJobFunction, ProtoJobFunction
 import { sessionId, sessionIsMaster, session, signUser, Session, sessionWithToken } from './session';
 import { _logLevels, EventData, Logger, ProtoType, TransactionOptions } from '../../internals/proto';
 import { schedule } from '../schedule';
-import { serialize, TSerializable } from '../../common';
+import { serialize, TSerializable } from '../../internals/codec';
 import { PVK } from '../../internals/private';
 import { TExtensions, TObjectType } from '../../internals/object/types';
 import { TQuery } from '../../internals/query';

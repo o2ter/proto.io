@@ -27,7 +27,7 @@ import _ from 'lodash';
 import { Server, Router } from '@o2ter/server-js';
 import { ProtoService } from '../proto';
 import { response } from './common';
-import { deserialize } from '../../common';
+import { deserialize } from '../../internals/codec';
 
 export default <E>(router: Router, proto: ProtoService<E>) => {
 

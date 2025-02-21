@@ -38,7 +38,7 @@ import { isObjKey } from '../utils';
 import { applyObjectMethods } from '../object/methods';
 import { TValue, TValueWithoutObject } from '../types';
 import { TObject } from '../object';
-import { TSerializable } from '../../common/codec';
+import { TSerializable } from '../codec';
 import { TUser } from '../object/user';
 import { ProtoFunction, ProtoFunctionOptions, ProtoJobFunction, ProtoJobFunctionOptions, ProtoTriggerFunction } from './types';
 import { Socket } from 'socket.io-client';
@@ -47,7 +47,7 @@ import { asyncStream } from '@o2ter/utils-js';
 import { PathName } from '../query/types';
 import { TRole } from '../object/role';
 import { TJob } from '../object/job';
-import { isFile, isJob, isObject, isQuery, isRole, isUser } from '../../common';
+import { isFile, isJob, isObject, isQuery, isRole, isUser } from '../utils';
 import { TQuerySelector } from '../query/types/selectors';
 
 export const _logLevels = ['error', 'warn', 'info', 'debug', 'trace'] as const;

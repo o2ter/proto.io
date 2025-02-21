@@ -1,4 +1,3 @@
-import { IncludePaths } from './../query/types/index';
 //
 //  methods.ts
 //
@@ -30,8 +29,8 @@ import { PVK } from '../private';
 import { ExtraOptions } from '../options';
 import { TExtensions, TObjectType, TObjectTypes } from './types';
 import { ProtoType } from '../proto';
-import { TSerializable } from '../../common/codec';
-import { PathName } from './../query/types/index';
+import { TSerializable } from '../codec';
+import { PathName } from './../query/types';
 import { TFile } from './file';
 import { isObjKey } from '../utils';
 

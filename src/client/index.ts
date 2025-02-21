@@ -25,7 +25,8 @@
 
 import { ProtoClient } from './proto';
 
-export * from '../common';
+export * from '../internals/codec';
+export { classExtends } from '../internals/utils';
 
 export { ProtoClient };
 

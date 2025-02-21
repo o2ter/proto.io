@@ -27,7 +27,7 @@ import { ProtoClientQuery, ProtoClientRelationQuery } from '../query';
 import { RequestOptions } from '../options';
 import { ProtoClientInternal } from './internal';
 import { ProtoOptions } from './types';
-import { TSerializable } from '../../common';
+import { TSerializable } from '../../internals/codec';
 import { EventData, ProtoType } from '../../internals/proto';
 import { TQuery } from '../../internals/query';
 import { PVK } from '../../internals/private';

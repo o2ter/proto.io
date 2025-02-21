@@ -50,7 +50,7 @@ import { EventData } from '../../internals/proto';
 import { normalize } from '../utils';
 import { PROTO_LIVEQUERY_MSG, PROTO_NOTY_MSG } from '../../internals/const';
 import { TJob } from '../../internals/object/job';
-import { deserialize, serialize } from '../../common';
+import { deserialize, serialize } from '../../internals/codec';
 import { ProtoQuery } from '../query';
 import { TQuerySelector } from '../../internals/query/types/selectors';
 import { QuerySelector } from '../query/dispatcher/parser';

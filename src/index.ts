@@ -43,10 +43,11 @@ import { TValueWithoutObject } from './internals/types';
 import Decimal from 'decimal.js';
 import { response } from './server/routes/common';
 import { QuerySelector } from './server/query/dispatcher/parser';
-import { serialize } from './common';
+import { serialize } from './internals/codec';
 
-export * from './common';
-export { TFileStorage } from './server/file/index';
+export * from './internals/codec';
+export { classExtends } from './internals/utils';
+export { TFileStorage } from './server/file';
 export { ProtoService } from './server/proto';
 export { ProtoClient } from './client';
 

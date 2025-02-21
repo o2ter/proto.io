@@ -1,5 +1,5 @@
 //
-//  utils.ts
+//  index.ts
 //
 //  The MIT License
 //  Copyright (c) 2021 - 2025 O2ter Limited. All rights reserved.
@@ -23,6 +23,38 @@
 //  THE SOFTWARE.
 //
 
-import _ from 'lodash';
+import { TObject } from './object';
+import { TFile } from './object/file';
+import { TJob } from './object/job';
+import { TRole } from './object/role';
+import { TExtensions } from './object/types';
+import { TUser } from './object/user';
+import { TQuery } from './query';
 
 export const isObjKey = <T extends object>(key: PropertyKey, obj: T): key is keyof T => key in obj;
+
+export const classExtends = <E = {}>(x: TExtensions<E>) => x;
+
+export const isQuery = (x: any): x is TQuery<any, any, any> => {
+  return x instanceof TQuery;
+}
+
+export const isObject = (x: any): x is TObject => {
+  return x instanceof TObject;
+}
+
+export const isUser = (x: any): x is TUser => {
+  return x instanceof TUser;
+}
+
+export const isRole = (x: any): x is TRole => {
+  return x instanceof TRole;
+}
+
+export const isFile = (x: any): x is TFile => {
+  return x instanceof TFile;
+}
+
+export const isJob = (x: any): x is TJob => {
+  return x instanceof TJob;
+}

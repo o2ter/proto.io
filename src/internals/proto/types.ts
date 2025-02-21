@@ -25,7 +25,7 @@
 
 import { Awaitable } from '@o2ter/utils-js';
 import { ProtoService } from '../../server/proto';
-import { TSerializable } from '../../common/codec';
+import { TSerializable } from '../codec';
 import { TValueWithoutObject } from '../types';
 import { TUser } from '../object/user';
 import { TObjectType } from '../object/types';

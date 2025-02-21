@@ -23,7 +23,7 @@
 //  THE SOFTWARE.
 //
 
-import { SerializeOptions } from '../common';
+import { SerializeOptions } from '../internals/codec';
 import { ExtraOptions } from '../internals/options';
 
 export type RequestOptions<M extends boolean> = ExtraOptions<M> & {

@@ -29,7 +29,7 @@ import { RequestOptions } from '../options';
 import { ProtoOptions } from './types';
 import { TSchema } from '../../internals/schema';
 import { asyncStream, base64ToBuffer, isBinaryData, isBlob, isReadableStream, iterableToStream } from '@o2ter/utils-js';
-import { TSerializable, deserialize, serialize } from '../../common';
+import { TSerializable, deserialize, serialize } from '../../internals/codec';
 import { EventData, ProtoInternalType, ProtoType } from '../../internals/proto';
 import { TObjectType } from '../../internals/object/types';
 import { TUser } from '../../internals/object/user';

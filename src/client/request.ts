@@ -38,7 +38,7 @@ import { XSRF_COOKIE_NAME, XSRF_HEADER_NAME } from '@o2ter/server-js/dist/const'
 import { io, Socket } from 'socket.io-client';
 import { TQuerySelector } from '../internals/query/types/selectors';
 import { randomUUID } from '@o2ter/crypto-js';
-import { deserialize } from '../common';
+import { deserialize } from '../internals/codec';
 import { TObject } from '../internals/object';
 
 export default class Service<Ext, P extends ProtoType<any>> {

@@ -25,10 +25,10 @@
 
 import _ from 'lodash';
 import { Decimal } from 'decimal.js';
-import { TObject } from '../internals/object';
-import { TObjectTypes } from '../internals/object/types';
-import { isObjKey } from '../internals/utils';
-import { _TContainer, TValue } from '../internals/types';
+import { TObject } from './object';
+import { TObjectTypes } from './object/types';
+import { isObjKey } from './utils';
+import { _TContainer, TValue } from './types';
 import { prototypes } from '@o2ter/utils-js';
 
 export { Decimal };

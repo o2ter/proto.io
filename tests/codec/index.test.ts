@@ -23,7 +23,7 @@
 //  THE SOFTWARE.
 //
 
-import { Decimal, deserialize, serialize } from '../../src/common';
+import { Decimal, deserialize, serialize } from '../../src/internals/codec';
 import { expect, test } from '@jest/globals';
 import { TObject } from '../../src/internals/object';
 
