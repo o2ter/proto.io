@@ -376,7 +376,7 @@ test('test expr with $floor', async () => {
 
 test('test expr with $round', async () => {
 
-  const object = await Proto.Query('Test').insert({ number: 4.5 });
+  const object = await Proto.Query('Test').insert({ number: 3.5 });
 
   const result = await Proto.Query('Test')
     .equalTo('_id', object.objectId)
@@ -384,7 +384,7 @@ test('test expr with $round', async () => {
       $expr: {
         $eq: [
           { $round: { $key: 'number' } },
-          { $value: 5 },
+          { $value: 4 },
         ]
       }
     })
