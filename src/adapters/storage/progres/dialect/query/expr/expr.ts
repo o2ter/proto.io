@@ -92,6 +92,39 @@ export const encodeTypedQueryExpression = (
   }
 
   if (expr instanceof QueryUnaryExpression) {
+
+    const value = encodeTypedQueryExpression(compiler, parent, expr.expr);
+    if (!value) return;
+
+    switch (expr.type) {
+      case '$abs': return { type: value.type, sql: sql`ABS(${value.sql})` };
+      case '$neg': return { type: value.type, sql: sql`-(${value.sql})` };
+      case '$sqrt': return { type: value.type, sql: sql`SQRT(${value.sql})` };
+      case '$ceil': return { type: value.type, sql: sql`CEIL(${value.sql})` };
+      case '$floor': return { type: value.type, sql: sql`FLOOR(${value.sql})` };
+      case '$round': return { type: value.type, sql: sql`ROUND(${value.sql})` };
+      case '$exp': return { type: value.type, sql: sql`EXP(${value.sql})` };
+      case '$ln': return { type: value.type, sql: sql`LN(${value.sql})` };
+      case '$log2': return { type: value.type, sql: sql`(LOG(${value.sql}) / LOG(2))` };
+      case '$log10': return { type: value.type, sql: sql`LOG10(${value.sql})` };
+      case '$sin': return { type: value.type, sql: sql`SIN(${value.sql})` };
+      case '$cos': return { type: value.type, sql: sql`COS(${value.sql})` };
+      case '$tan': return { type: value.type, sql: sql`TAN(${value.sql})` };
+      case '$asin': return { type: value.type, sql: sql`ASIN(${value.sql})` };
+      case '$acos': return { type: value.type, sql: sql`ACOS(${value.sql})` };
+      case '$atan': return { type: value.type, sql: sql`ATAN(${value.sql})` };
+      case '$asinh': return { type: value.type, sql: sql`ASINH(${value.sql})` };
+      case '$acosh': return { type: value.type, sql: sql`ACOSH(${value.sql})` };
+      case '$atanh': return { type: value.type, sql: sql`ATANH(${value.sql})` };
+      case '$sinh': return { type: value.type, sql: sql`SINH(${value.sql})` };
+      case '$cosh': return { type: value.type, sql: sql`COSH(${value.sql})` };
+      case '$tanh': return { type: value.type, sql: sql`TANH(${value.sql})` };
+      case '$degrees': return { type: value.type, sql: sql`DEGREES(${value.sql})` };
+      case '$radians': return { type: value.type, sql: sql`RADIANS(${value.sql})` };
+      case '$size': return { type: 'number', sql: sql`LENGTH(${value.sql})` };
+      case '$lower': return { type: 'string', sql: sql`LOWER(${value.sql})` };
+      case '$upper': return { type: 'string', sql: sql`UPPER(${value.sql})` };
+    }
   }
 
   if (expr instanceof QueryBinaryExpression) {
