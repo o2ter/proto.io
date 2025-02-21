@@ -100,6 +100,7 @@ export const encodeTypedQueryExpression = (
       case '$abs': return { type: value.type, sql: sql`ABS(${value.sql})` };
       case '$neg': return { type: value.type, sql: sql`-(${value.sql})` };
       case '$sqrt': return { type: value.type, sql: sql`SQRT(${value.sql})` };
+      case '$cbrt': return { type: value.type, sql: sql`CBRT(${value.sql})` };
       case '$ceil': return { type: value.type, sql: sql`CEIL(${value.sql})` };
       case '$floor': return { type: value.type, sql: sql`FLOOR(${value.sql})` };
       case '$round': return { type: value.type, sql: sql`ROUND(${value.sql})` };

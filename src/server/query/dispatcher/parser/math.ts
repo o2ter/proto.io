@@ -84,6 +84,11 @@ export const MathUtils = {
     if (lhs instanceof Decimal) return lhs.sqrt();
     return Math.sqrt(lhs);
   },
+  cbrt: (lhs: any) => {
+    if (!isNum(lhs)) throw Error('Invalid operation');
+    if (lhs instanceof Decimal) return lhs.cbrt();
+    return Math.cbrt(lhs);
+  },
   mod: (lhs: any, rhs: any) => {
     if (!isNum(lhs) || !isNum(rhs)) throw Error('Invalid operation');
     if (lhs instanceof Decimal || rhs instanceof Decimal) return Decimal.mod(lhs, rhs);

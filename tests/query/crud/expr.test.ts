@@ -334,6 +334,26 @@ test('test expr with $sqrt', async () => {
 
 })
 
+test('test expr with $cbrt', async () => {
+
+  const object = await Proto.Query('Test').insert({ number: 8 });
+
+  const result = await Proto.Query('Test')
+    .equalTo('_id', object.objectId)
+    .filter({
+      $expr: {
+        $eq: [
+          { $cbrt: { $key: 'number' } },
+          { $value: 2 },
+        ]
+      }
+    })
+    .first();
+
+  expect(result?.objectId).toBe(object.objectId);
+
+})
+
 test('test expr with $ceil', async () => {
 
   const object = await Proto.Query('Test').insert({ number: 4.2 });

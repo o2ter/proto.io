@@ -35,6 +35,7 @@ export const TUnaryExprKeys = [
   '$abs',
   '$neg',
   '$sqrt',
+  '$cbrt',
   '$ceil',
   '$floor',
   '$round',
