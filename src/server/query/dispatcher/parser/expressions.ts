@@ -48,8 +48,8 @@ export class QueryExpression {
           exprs.push(new QueryCoditionalExpression(key as any, _.map(query, x => QueryExpression.decode(x as any, dollerSign))));
         } else if (_.includes(TZeroParamExprKeys, key)) {
           exprs.push(new QueryZeroParamExpression(key as any));
-        } else if (_.includes(TUnaryExprKeys, key) && _.isArray(query) && query.length === 1) {
-          exprs.push(new QueryUnaryExpression(key as any, QueryExpression.decode(query[0] as any, dollerSign)));
+        } else if (_.includes(TUnaryExprKeys, key)) {
+          exprs.push(new QueryUnaryExpression(key as any, QueryExpression.decode(query as any, dollerSign)));
         } else if (_.includes(TBinaryExprKeys, key) && _.isArray(query) && query.length === 2) {
           const [left, right] = query;
           exprs.push(new QueryBinaryExpression(key as any, QueryExpression.decode(left as any, dollerSign), QueryExpression.decode(right as any, dollerSign)));
