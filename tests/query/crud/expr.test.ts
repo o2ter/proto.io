@@ -524,7 +524,7 @@ test('test expr with $tan', async () => {
       $expr: {
         $eq: [
           { $tan: { $key: 'number' } },
-          { $value: 1 },
+          { $value: Math.tan(Math.PI / 4) },
         ]
       }
     })
