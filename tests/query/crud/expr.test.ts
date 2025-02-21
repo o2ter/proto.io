@@ -853,3 +853,31 @@ test('test expr with $upper', async () => {
   expect(result?.objectId).toBe(object.objectId);
 
 })
+
+test('test expr with $cond', async () => {
+
+  const object = await Proto.Query('Test').insert({ number: 5 });
+
+  const result = await Proto.Query('Test')
+    .equalTo('_id', object.objectId)
+    .filter({
+      $expr: {
+        $eq: [
+          {
+            $cond: {
+              branch: {
+                case: { $gt: [{ $key: 'number' }, { $value: 3 }] },
+                then: { $value: 'greater' },
+              },
+              default: { $value: 'lesser' }
+            }
+          },
+          { $value: 'greater' }
+        ]
+      }
+    })
+    .first();
+
+  expect(result?.objectId).toBe(object.objectId);
+
+})
