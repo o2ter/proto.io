@@ -57,6 +57,7 @@ export const TUnaryExprKeys = [
   '$tanh',
   '$degrees',
   '$radians',
+  '$sign',
   '$size',
   '$lower',
   '$upper',

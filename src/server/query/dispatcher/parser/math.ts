@@ -201,4 +201,9 @@ export const MathUtils = {
     if (lhs instanceof Decimal) return Decimal.div(Decimal.mul(lhs, Math.PI), 180);
     return (lhs * Math.PI) / 180;
   },
+  sign: (lhs: any) => {
+    if (!isNum(lhs)) throw Error('Invalid operation');
+    if (lhs instanceof Decimal) return Decimal.sign(lhs);
+    return Math.sign(lhs);
+  },
 };

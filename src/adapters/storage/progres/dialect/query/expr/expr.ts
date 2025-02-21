@@ -122,6 +122,7 @@ export const encodeTypedQueryExpression = (
       case '$tanh': return { type: value.type, sql: sql`TANH(${value.sql})` };
       case '$degrees': return { type: value.type, sql: sql`DEGREES(${value.sql})` };
       case '$radians': return { type: value.type, sql: sql`RADIANS(${value.sql})` };
+      case '$sign': return { type: value.type, sql: sql`SIGN(${value.sql})` };
       case '$size': return { type: 'number', sql: sql`LENGTH(${value.sql})` };
       case '$lower': return { type: 'string', sql: sql`LOWER(${value.sql})` };
       case '$upper': return { type: 'string', sql: sql`UPPER(${value.sql})` };

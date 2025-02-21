@@ -774,6 +774,26 @@ test('test expr with $radians', async () => {
 
 })
 
+test('test expr with $sign', async () => {
+
+  const object = await Proto.Query('Test').insert({ number: -5 });
+
+  const result = await Proto.Query('Test')
+    .equalTo('_id', object.objectId)
+    .filter({
+      $expr: {
+        $eq: [
+          { $sign: { $key: 'number' } },
+          { $value: -1 },
+        ]
+      }
+    })
+    .first();
+
+  expect(result?.objectId).toBe(object.objectId);
+
+})
+
 test('test expr with $size', async () => {
 
   const object = await Proto.Query('Test').insert({ string: 'Hello' });

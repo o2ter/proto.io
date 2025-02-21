@@ -345,6 +345,7 @@ export class QueryUnaryExpression extends QueryExpression {
       case '$tanh': return MathUtils.tanh(this.expr.eval(value));
       case '$degrees': return MathUtils.degrees(this.expr.eval(value));
       case '$radians': return MathUtils.radians(this.expr.eval(value));
+      case '$sign': return MathUtils.sign(this.expr.eval(value));
       case '$size':
         {
           const v = this.expr.eval(value);
@@ -383,6 +384,7 @@ export class QueryUnaryExpression extends QueryExpression {
       case '$tanh': return combineNumericTypes(this.expr.evalType(schema, className));
       case '$degrees': return combineNumericTypes(this.expr.evalType(schema, className));
       case '$radians': return combineNumericTypes(this.expr.evalType(schema, className));
+      case '$sign': return combineNumericTypes(this.expr.evalType(schema, className));
       case '$size': return ['number'];
       case '$lower': return ['string'];
       case '$upper': return ['string'];
