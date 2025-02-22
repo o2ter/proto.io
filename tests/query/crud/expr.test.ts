@@ -813,6 +813,7 @@ test('test expr with $upper', async () => {
   expect(result?.objectId).toBe(object.objectId);
 
 })
+
 test('test expr with $trim', async () => {
   const object = await Proto.Query('Test').insert({ string: '  Hello  ' });
 
@@ -859,6 +860,96 @@ test('test expr with $rtrim', async () => {
         $eq: [
           { $rtrim: [{ $key: 'string' }, { $value: ' ' }] },
           { $value: 'Hello' },
+        ]
+      }
+    })
+    .first();
+
+  expect(result?.objectId).toBe(object.objectId);
+});
+
+test('test expr with $first', async () => {
+  const object = await Proto.Query('Test').insert({ string: 'Hello' });
+
+  const result = await Proto.Query('Test')
+    .equalTo('_id', object.objectId)
+    .filter({
+      $expr: {
+        $eq: [
+          { $first: [{ $key: 'string' }, { $value: 2 }] },
+          { $value: 'He' },
+        ]
+      }
+    })
+    .first();
+
+  expect(result?.objectId).toBe(object.objectId);
+});
+
+test('test expr with $last', async () => {
+  const object = await Proto.Query('Test').insert({ string: 'Hello' });
+
+  const result = await Proto.Query('Test')
+    .equalTo('_id', object.objectId)
+    .filter({
+      $expr: {
+        $eq: [
+          { $last: [{ $key: 'string' }, { $value: 2 }] },
+          { $value: 'lo' },
+        ]
+      }
+    })
+    .first();
+
+  expect(result?.objectId).toBe(object.objectId);
+});
+
+test('test expr with $ldrop', async () => {
+  const object = await Proto.Query('Test').insert({ string: 'Hello' });
+
+  const result = await Proto.Query('Test')
+    .equalTo('_id', object.objectId)
+    .filter({
+      $expr: {
+        $eq: [
+          { $ldrop: [{ $key: 'string' }, { $value: 2 }] },
+          { $value: 'llo' },
+        ]
+      }
+    })
+    .first();
+
+  expect(result?.objectId).toBe(object.objectId);
+});
+
+test('test expr with $rdrop', async () => {
+  const object = await Proto.Query('Test').insert({ string: 'Hello' });
+
+  const result = await Proto.Query('Test')
+    .equalTo('_id', object.objectId)
+    .filter({
+      $expr: {
+        $eq: [
+          { $rdrop: [{ $key: 'string' }, { $value: 2 }] },
+          { $value: 'Hel' },
+        ]
+      }
+    })
+    .first();
+
+  expect(result?.objectId).toBe(object.objectId);
+});
+
+test('test expr with $slice', async () => {
+  const object = await Proto.Query('Test').insert({ string: 'Hello' });
+
+  const result = await Proto.Query('Test')
+    .equalTo('_id', object.objectId)
+    .filter({
+      $expr: {
+        $eq: [
+          { $slice: [{ $key: 'string' }, { $value: 1 }, { $value: 3 }] },
+          { $value: 'ell' },
         ]
       }
     })
