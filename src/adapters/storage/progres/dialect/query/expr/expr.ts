@@ -42,7 +42,8 @@ import {
   QueryCondExpression,
   QueryUnaryExpression,
   QueryValueExpression,
-  QueryTruncExpression
+  QueryTruncExpression,
+  QueryTrimExpression
 } from '../../../../../../server/query/dispatcher/parser/expressions';
 import { fetchElement } from '../utils';
 import { _encodeJsonValue } from '../../encode';
@@ -288,7 +289,30 @@ export const encodeTypedQueryExpression = (
         return { type: 'decimal', sql: sql`TRUNC(CAST((${value.sql}) AS DECIMAL), (${place.sql}))` };
       }
     } else {
-      return { type: value.type, sql: sql`TRUNC((${value.sql}))` };
+      return { type: value.type, sql: sql`TRUNC(${value.sql})` };
+    }
+  }
+
+  if (expr instanceof QueryTrimExpression) {
+
+    const input = encodeTypedQueryExpression(compiler, parent, expr.input);
+    if (input?.type !== 'string') return;
+
+    const op = {
+      '$trim': 'TRIM',
+      '$ltrim': 'LTRIM',
+      '$rtrim': 'RTRIM',
+    }[expr.type];
+
+    if (expr.chars) {
+
+      const chars = encodeTypedQueryExpression(compiler, parent, expr.chars);
+      if (chars?.type !== 'string') return;
+
+      return { type: 'string', sql: sql`${{ literal: op }}(${input.sql}, ${chars.sql})` };
+
+    } else {
+      return { type: 'string', sql: sql`${{ literal: op }}(${input.sql})` };
     }
   }
 

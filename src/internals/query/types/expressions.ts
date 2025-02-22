@@ -78,6 +78,12 @@ export const TListExprKeys = [
   '$concat',
 ] as const;
 
+export const TTrimExprKeys = [
+  '$trim',
+  '$ltrim',
+  '$rtrim',
+] as const;
+
 export const TDistanceExprKeys = [
   '$distance',
   '$innerProduct',
@@ -123,4 +129,9 @@ export type TExpression = {
   [x in (typeof TBinaryExprKeys)[number]]?: [TExpression, TExpression];
 } & {
   [x in (typeof TListExprKeys)[number]]?: TExpression[];
+} & {
+  [x in (typeof TTrimExprKeys)[number]]?: {
+    input: TExpression;
+    chars?: TExpression;
+  };
 } & TBooleanExpression & TDistanceExpression;

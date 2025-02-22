@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { TBinaryExprKeys, TDistanceExprKeys, TExpression, TListExprKeys, TZeroParamExprKeys, TUnaryExprKeys } from '../../../../internals/query/types/expressions';
+import { TBinaryExprKeys, TDistanceExprKeys, TExpression, TListExprKeys, TZeroParamExprKeys, TUnaryExprKeys, TTrimExprKeys } from '../../../../internals/query/types/expressions';
 import { TComparisonKeys, TConditionalKeys } from '../../../../internals/query/types/keys';
 import { isValue } from '../../../../internals/object';
 import { TValue } from '../../../../internals/types';
@@ -64,6 +64,13 @@ export class QueryExpression {
           const _left = _.isArray(left) ? _.map(left, x => QueryExpression.decode(x as any, dollerSign)) : QueryExpression.decode(left as any, dollerSign);
           const _right = _.isArray(right) ? _.map(right, x => QueryExpression.decode(x as any, dollerSign)) : QueryExpression.decode(right as any, dollerSign);
           exprs.push(new QueryDistanceExpression(key as any, _.castArray(_left), _.castArray(_right)));
+        } else if (_.includes(TTrimExprKeys, key) && _.isPlainObject(query)) {
+          const { input, chars } = query as any;
+          exprs.push(new QueryTrimExpression(
+            key as any,
+            QueryExpression.decode(input as any, dollerSign),
+            QueryExpression.decode(chars as any, dollerSign)
+          ));
         } else if (key === '$cond' && _.isPlainObject(query)) {
           const { branch: _branch, default: defaultCase } = query as any;
           const branch = _.castArray(_branch ?? []);
@@ -518,6 +525,51 @@ export class QueryTruncExpression extends QueryExpression {
     const place = this.place?.evalType(schema, className);
     if (!place) return value;
     return combineNumericTypes(value, place);
+  }
+}
+
+export class QueryTrimExpression extends QueryExpression {
+
+  type: typeof TTrimExprKeys[number];
+  input: QueryExpression;
+  chars?: QueryExpression;
+
+  constructor(type: typeof TTrimExprKeys[number], input: QueryExpression, chars?: QueryExpression) {
+    super();
+    this.type = type;
+    this.input = input;
+    this.chars = chars;
+  }
+
+  simplify() {
+    return new QueryTrimExpression(this.type, this.input.simplify(), this.chars?.simplify());
+  }
+
+  keyPaths(): string[] {
+    return _.uniq([
+      ...this.input.keyPaths(),
+      ...this.chars?.keyPaths() ?? [],
+    ]);
+  }
+
+  mapKey(callback: (key: string) => string): QueryExpression {
+    return new QueryTrimExpression(this.type, this.input.mapKey(callback), this.chars?.mapKey(callback));
+  }
+
+  eval(value: any) {
+    const input = this.input.eval(value);
+    const chars = this.chars?.eval(value);
+    if (!_.isString(input)) throw Error('Invalid value');
+    if (chars && !_.isString(chars)) throw Error('Invalid value');
+    switch (this.type) {
+      case '$trim': return _.trim(input, chars);
+      case '$ltrim': return _.trimStart(input, chars);
+      case '$rtrim': return _.trimEnd(input, chars);
+    }
+  }
+
+  evalType(schema: Record<string, TSchema>, className: string): TSchema.DataType[] {
+    return ['string'];
   }
 }
 
