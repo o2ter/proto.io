@@ -84,15 +84,15 @@ export class QueryExpression {
             key as any,
             _.castArray(_left), _.castArray(_right))
           );
-        } else if (_.includes(TTrimExprKeys, key) && _.isPlainObject(query)) {
-          const { input, chars } = query as any;
+        } else if (_.includes(TTrimExprKeys, key) && _.isArray(query) && _.includes([1, 2], query.length)) {
+          const [input, chars] = query
           exprs.push(new QueryTrimExpression(
             key as any,
             QueryExpression.decode(input as any, dollerSign),
             _.isNil(chars) ? undefined : QueryExpression.decode(chars as any, dollerSign)
           ));
-        } else if (_.includes(TPadExprKeys, key) && _.isPlainObject(query)) {
-          const { input, size, chars } = query as any;
+        } else if (_.includes(TPadExprKeys, key) && _.isArray(query) && _.includes([2, 3], query.length)) {
+          const [input, size, chars] = query
           exprs.push(new QueryPadExpression(
             key as any,
             QueryExpression.decode(input as any, dollerSign),

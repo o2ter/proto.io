@@ -135,14 +135,7 @@ export type TExpression = {
 } & {
   [x in (typeof TListExprKeys)[number]]?: TExpression[];
 } & {
-  [x in (typeof TTrimExprKeys)[number]]?: {
-    input: TExpression;
-    chars?: TExpression;
-  };
+  [x in (typeof TTrimExprKeys)[number]]?: [TExpression] | [TExpression, TExpression];
 } & {
-  [x in (typeof TPadExprKeys)[number]]?: {
-    input: TExpression;
-    size: TExpression;
-    chars?: TExpression;
-  };
+  [x in (typeof TPadExprKeys)[number]]?: [TExpression, TExpression] | [TExpression, TExpression, TExpression];
 } & TBooleanExpression & TDistanceExpression;

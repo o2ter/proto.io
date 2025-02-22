@@ -833,7 +833,6 @@ test('test expr with $upper', async () => {
   expect(result?.objectId).toBe(object.objectId);
 
 })
-
 test('test expr with $trim', async () => {
   const object = await Proto.Query('Test').insert({ string: '  Hello  ' });
 
@@ -842,11 +841,7 @@ test('test expr with $trim', async () => {
     .filter({
       $expr: {
         $eq: [
-          {
-            $trim: {
-              input: { $key: 'string' },
-            }
-          },
+          { $trim: [{ $key: 'string' }] },
           { $value: 'Hello' },
         ]
       }
@@ -864,11 +859,7 @@ test('test expr with $ltrim', async () => {
     .filter({
       $expr: {
         $eq: [
-          {
-            $ltrim: {
-              input: { $key: 'string' },
-            }
-          },
+          { $ltrim: [{ $key: 'string' }] },
           { $value: 'Hello' },
         ]
       }
@@ -886,11 +877,7 @@ test('test expr with $rtrim', async () => {
     .filter({
       $expr: {
         $eq: [
-          {
-            $rtrim: {
-              input: { $key: 'string' },
-            }
-          },
+          { $rtrim: [{ $key: 'string' }] },
           { $value: 'Hello' },
         ]
       }
@@ -908,13 +895,7 @@ test('test expr with $lpad', async () => {
     .filter({
       $expr: {
         $eq: [
-          {
-            $lpad: {
-              input: { $key: 'string' },
-              size: { $value: 10 },
-              chars: { $value: ' ' },
-            }
-          },
+          { $lpad: [{ $key: 'string' }, { $value: 10 }, { $value: ' ' }] },
           { $value: '     Hello' },
         ]
       }
@@ -932,13 +913,7 @@ test('test expr with $rpad', async () => {
     .filter({
       $expr: {
         $eq: [
-          {
-            $rpad: {
-              input: { $key: 'string' },
-              size: { $value: 10 },
-              chars: { $value: ' ' },
-            }
-          },
+          { $rpad: [{ $key: 'string' }, { $value: 10 }, { $value: ' ' }] },
           { $value: 'Hello     ' },
         ]
       }
