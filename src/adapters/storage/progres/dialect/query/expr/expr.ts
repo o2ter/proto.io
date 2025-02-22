@@ -43,7 +43,8 @@ import {
   QueryUnaryExpression,
   QueryValueExpression,
   QueryTruncExpression,
-  QueryTrimExpression
+  QueryTrimExpression,
+  QueryPadExpression
 } from '../../../../../../server/query/dispatcher/parser/expressions';
 import { fetchElement } from '../utils';
 import { _encodeJsonValue } from '../../encode';
@@ -313,6 +314,31 @@ export const encodeTypedQueryExpression = (
 
     } else {
       return { type: 'string', sql: sql`${{ literal: op }}(${input.sql})` };
+    }
+  }
+
+  if (expr instanceof QueryPadExpression) {
+
+    const input = encodeTypedQueryExpression(compiler, parent, expr.input);
+    if (input?.type !== 'string') return;
+
+    const size = encodeTypedQueryExpression(compiler, parent, expr.size);
+    if (!size || !_.includes(['number', 'decimal'], size.type)) return;
+
+    const op = {
+      '$lpad': 'LPAD',
+      '$rpad': 'RPAD',
+    }[expr.type];
+
+    if (expr.chars) {
+
+      const chars = encodeTypedQueryExpression(compiler, parent, expr.chars);
+      if (chars?.type !== 'string') return;
+
+      return { type: 'string', sql: sql`${{ literal: op }}(${input.sql}, ${size.sql}, ${chars.sql})` };
+
+    } else {
+      return { type: 'string', sql: sql`${{ literal: op }}(${input.sql}, ${size.sql})` };
     }
   }
 

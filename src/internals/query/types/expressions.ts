@@ -84,6 +84,11 @@ export const TTrimExprKeys = [
   '$rtrim',
 ] as const;
 
+export const TPadExprKeys = [
+  '$lpad',
+  '$rpad',
+] as const;
+
 export const TDistanceExprKeys = [
   '$distance',
   '$innerProduct',
@@ -132,6 +137,12 @@ export type TExpression = {
 } & {
   [x in (typeof TTrimExprKeys)[number]]?: {
     input: TExpression;
+    chars?: TExpression;
+  };
+} & {
+  [x in (typeof TPadExprKeys)[number]]?: {
+    input: TExpression;
+    size: TExpression;
     chars?: TExpression;
   };
 } & TBooleanExpression & TDistanceExpression;

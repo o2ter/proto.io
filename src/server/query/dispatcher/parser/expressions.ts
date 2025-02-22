@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { TBinaryExprKeys, TDistanceExprKeys, TExpression, TListExprKeys, TZeroParamExprKeys, TUnaryExprKeys, TTrimExprKeys } from '../../../../internals/query/types/expressions';
+import { TBinaryExprKeys, TDistanceExprKeys, TExpression, TListExprKeys, TZeroParamExprKeys, TUnaryExprKeys, TTrimExprKeys, TPadExprKeys } from '../../../../internals/query/types/expressions';
 import { TComparisonKeys, TConditionalKeys } from '../../../../internals/query/types/keys';
 import { isValue } from '../../../../internals/object';
 import { TValue } from '../../../../internals/types';
@@ -45,43 +45,77 @@ export class QueryExpression {
     for (const selector of _.castArray(expr)) {
       for (const [key, query] of _.toPairs(selector)) {
         if (_.includes(TConditionalKeys, key) && _.isArray(query)) {
-          exprs.push(new QueryCoditionalExpression(key as any, _.map(query, x => QueryExpression.decode(x as any, dollerSign))));
+          exprs.push(new QueryCoditionalExpression(
+            key as any,
+            _.map(query, x => QueryExpression.decode(x as any, dollerSign)))
+          );
         } else if (_.includes(TZeroParamExprKeys, key)) {
           exprs.push(new QueryZeroParamExpression(key as any));
         } else if (_.includes(TUnaryExprKeys, key)) {
-          exprs.push(new QueryUnaryExpression(key as any, QueryExpression.decode(query as any, dollerSign)));
+          exprs.push(new QueryUnaryExpression(
+            key as any,
+            QueryExpression.decode(query as any, dollerSign))
+          );
         } else if (_.includes(TBinaryExprKeys, key) && _.isArray(query) && query.length === 2) {
           const [left, right] = query;
-          exprs.push(new QueryBinaryExpression(key as any, QueryExpression.decode(left as any, dollerSign), QueryExpression.decode(right as any, dollerSign)));
+          exprs.push(new QueryBinaryExpression(
+            key as any,
+            QueryExpression.decode(left as any, dollerSign),
+            QueryExpression.decode(right as any, dollerSign))
+          );
         } else if (_.includes(TListExprKeys, key) && _.isArray(query)) {
           if (query.length === 0) throw Error('Invalid expression');
-          exprs.push(new QueryListExpression(key as any, _.map(query, x => QueryExpression.decode(x as any, dollerSign))));
+          exprs.push(new QueryListExpression(
+            key as any,
+            _.map(query, x => QueryExpression.decode(x as any, dollerSign)))
+          );
         } else if (_.includes(TComparisonKeys, key) && _.isArray(query) && query.length === 2) {
           const [left, right] = query;
-          exprs.push(new QueryComparisonExpression(key as any, QueryExpression.decode(left as any, dollerSign), QueryExpression.decode(right as any, dollerSign)));
+          exprs.push(new QueryComparisonExpression(
+            key as any,
+            QueryExpression.decode(left as any, dollerSign),
+            QueryExpression.decode(right as any, dollerSign))
+          );
         } else if (_.includes(TDistanceExprKeys, key) && _.isArray(query) && query.length === 2) {
           const [left, right] = query;
           const _left = _.isArray(left) ? _.map(left, x => QueryExpression.decode(x as any, dollerSign)) : QueryExpression.decode(left as any, dollerSign);
           const _right = _.isArray(right) ? _.map(right, x => QueryExpression.decode(x as any, dollerSign)) : QueryExpression.decode(right as any, dollerSign);
-          exprs.push(new QueryDistanceExpression(key as any, _.castArray(_left), _.castArray(_right)));
+          exprs.push(new QueryDistanceExpression(
+            key as any,
+            _.castArray(_left), _.castArray(_right))
+          );
         } else if (_.includes(TTrimExprKeys, key) && _.isPlainObject(query)) {
           const { input, chars } = query as any;
           exprs.push(new QueryTrimExpression(
             key as any,
             QueryExpression.decode(input as any, dollerSign),
-            QueryExpression.decode(chars as any, dollerSign)
+            _.isNil(chars) ? undefined : QueryExpression.decode(chars as any, dollerSign)
+          ));
+        } else if (_.includes(TPadExprKeys, key) && _.isPlainObject(query)) {
+          const { input, size, chars } = query as any;
+          exprs.push(new QueryPadExpression(
+            key as any,
+            QueryExpression.decode(input as any, dollerSign),
+            QueryExpression.decode(size as any, dollerSign),
+            _.isNil(chars) ? undefined : QueryExpression.decode(chars as any, dollerSign)
           ));
         } else if (key === '$cond' && _.isPlainObject(query)) {
           const { branch: _branch, default: defaultCase } = query as any;
           const branch = _.castArray(_branch ?? []);
           if (branch.length === 0) throw Error('Invalid expression');
           exprs.push(new QueryCondExpression(
-            _.map(branch as any, ({ case: c, then: t }) => ({ case: QueryExpression.decode(c as any, dollerSign), then: QueryExpression.decode(t as any, dollerSign) })),
+            _.map(branch as any, ({ case: c, then: t }) => ({
+              case: QueryExpression.decode(c as any, dollerSign),
+              then: QueryExpression.decode(t as any, dollerSign),
+            })),
             QueryExpression.decode(defaultCase as any, dollerSign)
           ));
         } else if (key === '$trunc' && _.isArray(query) && _.includes([1, 2], query.length)) {
           const [left, right] = query;
-          exprs.push(new QueryTruncExpression(QueryExpression.decode(left as any, dollerSign), _.isNil(right) ? undefined : QueryExpression.decode(right as any, dollerSign)));
+          exprs.push(new QueryTruncExpression(
+            QueryExpression.decode(left as any, dollerSign),
+            _.isNil(right) ? undefined : QueryExpression.decode(right as any, dollerSign))
+          );
         } else if (key === '$not') {
           exprs.push(new QueryNotExpression(QueryExpression.decode(query as any, dollerSign)));
         } else if (key === '$array' && _.isArray(query)) {
@@ -565,6 +599,55 @@ export class QueryTrimExpression extends QueryExpression {
       case '$trim': return _.trim(input, chars);
       case '$ltrim': return _.trimStart(input, chars);
       case '$rtrim': return _.trimEnd(input, chars);
+    }
+  }
+
+  evalType(schema: Record<string, TSchema>, className: string): TSchema.DataType[] {
+    return ['string'];
+  }
+}
+
+export class QueryPadExpression extends QueryExpression {
+
+  type: typeof TPadExprKeys[number];
+  input: QueryExpression;
+  size: QueryExpression;
+  chars?: QueryExpression;
+
+  constructor(type: typeof TPadExprKeys[number], input: QueryExpression, size: QueryExpression, chars?: QueryExpression) {
+    super();
+    this.type = type;
+    this.input = input;
+    this.size = size;
+    this.chars = chars;
+  }
+
+  simplify() {
+    return new QueryPadExpression(this.type, this.input.simplify(), this.size.simplify(), this.chars?.simplify());
+  }
+
+  keyPaths(): string[] {
+    return _.uniq([
+      ...this.input.keyPaths(),
+      ...this.size.keyPaths(),
+      ...this.chars?.keyPaths() ?? [],
+    ]);
+  }
+
+  mapKey(callback: (key: string) => string): QueryExpression {
+    return new QueryPadExpression(this.type, this.input.mapKey(callback), this.size.mapKey(callback), this.chars?.mapKey(callback));
+  }
+
+  eval(value: any) {
+    const input = this.input.eval(value);
+    const size = this.size.eval(value);
+    const chars = this.chars?.eval(value);
+    if (!_.isString(input)) throw Error('Invalid value');
+    if (!_.isSafeInteger(size)) throw Error('Invalid value');
+    if (chars && !_.isString(chars)) throw Error('Invalid value');
+    switch (this.type) {
+      case '$lpad': return _.padStart(input, size, chars);
+      case '$rpad': return _.padEnd(input, size, chars);
     }
   }
 
