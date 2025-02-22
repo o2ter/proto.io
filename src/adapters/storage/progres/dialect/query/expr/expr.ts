@@ -149,12 +149,10 @@ export const encodeTypedQueryExpression = (
           }
         }
         break;
-      case '$mod':
       case '$pow':
       case '$atan2':
         {
           const op = {
-            '$mod': 'MOD',
             '$pow': 'POWER',
             '$atan2': 'ATAN2',
           }[expr.type];

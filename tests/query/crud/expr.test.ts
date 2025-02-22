@@ -154,26 +154,6 @@ test('test expr with $log', async () => {
 
 })
 
-test('test expr with $mod', async () => {
-
-  const object = await Proto.Query('Test').insert({ number: 3.5 });
-
-  const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
-    .filter({
-      $expr: {
-        $eq: [
-          { $mod: [{ $key: 'number' }, { $value: 1.5 }] },
-          { $value: 0.5 },
-        ]
-      }
-    })
-    .first();
-
-  expect(result?.objectId).toBe(object.objectId);
-
-})
-
 test('test expr with $pow', async () => {
 
   const object = await Proto.Query('Test').insert({ number: 2 });
