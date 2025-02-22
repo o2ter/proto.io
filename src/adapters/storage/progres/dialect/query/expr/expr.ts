@@ -42,9 +42,7 @@ import {
   QueryCondExpression,
   QueryUnaryExpression,
   QueryValueExpression,
-  QueryTruncExpression,
-  QueryTrimExpression,
-  QueryPadExpression
+  QueryTernaryExpression
 } from '../../../../../../server/query/dispatcher/parser/expressions';
 import { fetchElement } from '../utils';
 import { _encodeJsonValue } from '../../encode';
@@ -181,6 +179,24 @@ export const encodeTypedQueryExpression = (
     if (!left || !right) return;
 
     switch (expr.type) {
+      case '$divide':
+      case '$subtract':
+        {
+          const op = {
+            '$divide': '/',
+            '$subtract': '-',
+          }[expr.type];
+          if (left.type === right.type) {
+            return { type: left.type, sql: sql`(${left.sql}) ${{ literal: op }} (${right.sql})` };
+          }
+          if (left.type === 'decimal' && right.type === 'number') {
+            return { type: 'decimal', sql: sql`CAST((${left.sql}) AS DECIMAL) ${{ literal: op }} (${right.sql})` };
+          }
+          if (left.type === 'number' && right.type === 'decimal') {
+            return { type: 'decimal', sql: sql`(${left.sql}) ${{ literal: op }} CAST((${right.sql}) AS DECIMAL)` };
+          }
+        }
+        break;
       case '$log':
         {
           if (left.type === right.type) {
@@ -212,21 +228,41 @@ export const encodeTypedQueryExpression = (
           }
         }
         break;
-      case '$divide':
-      case '$subtract':
+      case '$trim':
+      case '$ltrim':
+      case '$rtrim':
         {
           const op = {
-            '$divide': '/',
-            '$subtract': '-',
+            '$trim': 'TRIM',
+            '$ltrim': 'LTRIM',
+            '$rtrim': 'RTRIM',
           }[expr.type];
-          if (left.type === right.type) {
-            return { type: left.type, sql: sql`(${left.sql}) ${{ literal: op }} (${right.sql})` };
+          if (left?.type !== 'string' || right?.type !== 'string') return;
+          return { type: 'string', sql: sql`${{ literal: op }}(${left.sql}, ${right.sql})` };
+        }
+      case '$first':
+      case '$last':
+        {
+          if (!_.includes(['number', 'decimal'], right.type)) return;
+          if (left?.type === 'string') {
+            const op = {
+              '$first': 'LEFT',
+              '$last': 'RIGHT',
+            }[expr.type];
+            return { type: 'string', sql: sql`${{ literal: op }}(${left.sql}, ${right.sql})` };
           }
-          if (left.type === 'decimal' && right.type === 'number') {
-            return { type: 'decimal', sql: sql`CAST((${left.sql}) AS DECIMAL) ${{ literal: op }} (${right.sql})` };
-          }
-          if (left.type === 'number' && right.type === 'decimal') {
-            return { type: 'decimal', sql: sql`(${left.sql}) ${{ literal: op }} CAST((${right.sql}) AS DECIMAL)` };
+        }
+        break;
+      case '$ldrop':
+      case '$rdrop':
+        {
+          if (!_.includes(['number', 'decimal'], right.type)) return;
+          if (left?.type === 'string') {
+            const op = {
+              '$ldrop': 'RIGHT',
+              '$rdrop': 'LEFT',
+            }[expr.type];
+            return { type: 'string', sql: sql`${{ literal: op }}(${left.sql}, -(${right.sql}))` };
           }
         }
         break;
@@ -272,73 +308,34 @@ export const encodeTypedQueryExpression = (
     }
   }
 
-  if (expr instanceof QueryTruncExpression) {
+  if (expr instanceof QueryTernaryExpression) {
 
-    const value = encodeTypedQueryExpression(compiler, parent, expr.value);
-    if (!value) return;
+    const first = encodeTypedQueryExpression(compiler, parent, expr.first);
+    const second = encodeTypedQueryExpression(compiler, parent, expr.second);
+    const last = encodeTypedQueryExpression(compiler, parent, expr.last);
+    if (!first || !second || !last) return;
 
-    if (expr.place) {
-      const place = encodeTypedQueryExpression(compiler, parent, expr.place);
-      if (!place) return;
-      if (value.type === place.type) {
-        return { type: value.type, sql: sql`TRUNC((${value.sql}), (${place.sql}))` };
-      }
-      if (value.type === 'decimal' && place.type === 'number') {
-        return { type: 'decimal', sql: sql`TRUNC((${value.sql}), CAST((${place.sql}) AS DECIMAL))` };
-      }
-      if (value.type === 'number' && place.type === 'decimal') {
-        return { type: 'decimal', sql: sql`TRUNC(CAST((${value.sql}) AS DECIMAL), (${place.sql}))` };
-      }
-    } else {
-      return { type: value.type, sql: sql`TRUNC(${value.sql})` };
-    }
-  }
-
-  if (expr instanceof QueryTrimExpression) {
-
-    const input = encodeTypedQueryExpression(compiler, parent, expr.input);
-    if (input?.type !== 'string') return;
-
-    const op = {
-      '$trim': 'TRIM',
-      '$ltrim': 'LTRIM',
-      '$rtrim': 'RTRIM',
-    }[expr.type];
-
-    if (expr.chars) {
-
-      const chars = encodeTypedQueryExpression(compiler, parent, expr.chars);
-      if (chars?.type !== 'string') return;
-
-      return { type: 'string', sql: sql`${{ literal: op }}(${input.sql}, ${chars.sql})` };
-
-    } else {
-      return { type: 'string', sql: sql`${{ literal: op }}(${input.sql})` };
-    }
-  }
-
-  if (expr instanceof QueryPadExpression) {
-
-    const input = encodeTypedQueryExpression(compiler, parent, expr.input);
-    if (input?.type !== 'string') return;
-
-    const size = encodeTypedQueryExpression(compiler, parent, expr.size);
-    if (!size || !_.includes(['number', 'decimal'], size.type)) return;
-
-    const op = {
-      '$lpad': 'LPAD',
-      '$rpad': 'RPAD',
-    }[expr.type];
-
-    if (expr.chars) {
-
-      const chars = encodeTypedQueryExpression(compiler, parent, expr.chars);
-      if (chars?.type !== 'string') return;
-
-      return { type: 'string', sql: sql`${{ literal: op }}(${input.sql}, ${size.sql}, ${chars.sql})` };
-
-    } else {
-      return { type: 'string', sql: sql`${{ literal: op }}(${input.sql}, ${size.sql})` };
+    switch (expr.type) {
+      case '$slice':
+        {
+          if (!_.includes(['number', 'decimal'], second.type)) return;
+          if (!_.includes(['number', 'decimal'], last.type)) return;
+          if (first?.type === 'string') {
+            return { type: 'string', sql: sql`SUBSTR(${first.sql}, ${second.sql}, ${last.sql})` };
+          }
+        }
+        break;
+      case '$lpad':
+      case '$rpad':
+        {
+          const op = {
+            '$lpad': 'LPAD',
+            '$rpad': 'RPAD',
+          }[expr.type];
+          if (first?.type !== 'string' || last?.type !== 'string') return;
+          if (!_.includes(['number', 'decimal'], second.type)) return;
+          return { type: 'string', sql: sql`${{ literal: op }}(${first.sql}, ${second.sql}, ${last.sql})` };
+        }
     }
   }
 

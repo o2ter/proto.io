@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { TBinaryExprKeys, TDistanceExprKeys, TExpression, TListExprKeys, TZeroParamExprKeys, TUnaryExprKeys, TTrimExprKeys, TPadExprKeys } from '../../../../internals/query/types/expressions';
+import { TBinaryExprKeys, TDistanceExprKeys, TExpression, TListExprKeys, TZeroParamExprKeys, TUnaryExprKeys, TTernaryExprKeys } from '../../../../internals/query/types/expressions';
 import { TComparisonKeys, TConditionalKeys } from '../../../../internals/query/types/keys';
 import { isValue } from '../../../../internals/object';
 import { TValue } from '../../../../internals/types';
@@ -63,6 +63,14 @@ export class QueryExpression {
             QueryExpression.decode(left as any, dollerSign),
             QueryExpression.decode(right as any, dollerSign))
           );
+        } else if (_.includes(TTernaryExprKeys, key) && _.isArray(query) && query.length === 3) {
+          const [first, second, last] = query;
+          exprs.push(new QueryTernaryExpression(
+            key as any,
+            QueryExpression.decode(first as any, dollerSign),
+            QueryExpression.decode(second as any, dollerSign),
+            QueryExpression.decode(last as any, dollerSign))
+          );
         } else if (_.includes(TListExprKeys, key) && _.isArray(query)) {
           if (query.length === 0) throw Error('Invalid expression');
           exprs.push(new QueryListExpression(
@@ -84,21 +92,6 @@ export class QueryExpression {
             key as any,
             _.castArray(_left), _.castArray(_right))
           );
-        } else if (_.includes(TTrimExprKeys, key) && _.isArray(query) && _.includes([1, 2], query.length)) {
-          const [input, chars] = query
-          exprs.push(new QueryTrimExpression(
-            key as any,
-            QueryExpression.decode(input as any, dollerSign),
-            _.isNil(chars) ? undefined : QueryExpression.decode(chars as any, dollerSign)
-          ));
-        } else if (_.includes(TPadExprKeys, key) && _.isArray(query) && _.includes([2, 3], query.length)) {
-          const [input, size, chars] = query
-          exprs.push(new QueryPadExpression(
-            key as any,
-            QueryExpression.decode(input as any, dollerSign),
-            QueryExpression.decode(size as any, dollerSign),
-            _.isNil(chars) ? undefined : QueryExpression.decode(chars as any, dollerSign)
-          ));
         } else if (key === '$cond' && _.isPlainObject(query)) {
           const { branch: _branch, default: defaultCase } = query as any;
           const branch = _.castArray(_branch ?? []);
@@ -110,12 +103,6 @@ export class QueryExpression {
             })),
             QueryExpression.decode(defaultCase as any, dollerSign)
           ));
-        } else if (key === '$trunc' && _.isArray(query) && _.includes([1, 2], query.length)) {
-          const [left, right] = query;
-          exprs.push(new QueryTruncExpression(
-            QueryExpression.decode(left as any, dollerSign),
-            _.isNil(right) ? undefined : QueryExpression.decode(right as any, dollerSign))
-          );
         } else if (key === '$not') {
           exprs.push(new QueryNotExpression(QueryExpression.decode(query as any, dollerSign)));
         } else if (key === '$array' && _.isArray(query)) {
@@ -462,22 +449,119 @@ export class QueryBinaryExpression extends QueryExpression {
   }
 
   eval(value: any) {
+    const left = this.left.eval(value);
+    const right = this.right?.eval(value);
     switch (this.type) {
-      case '$log': return MathUtils.log(this.left.eval(value), this.right.eval(value));
-      case '$pow': return MathUtils.pow(this.left.eval(value), this.right.eval(value));
-      case '$divide': return MathUtils.divide(this.left.eval(value), this.right.eval(value));
-      case '$subtract': return MathUtils.subtract(this.left.eval(value), this.right.eval(value));
-      case '$atan2': return MathUtils.atan2(this.left.eval(value), this.right.eval(value));
+      case '$divide': return MathUtils.divide(left, right);
+      case '$subtract': return MathUtils.subtract(left, right);
+      case '$log': return MathUtils.log(left, right);
+      case '$pow': return MathUtils.pow(left, right);
+      case '$atan2': return MathUtils.atan2(left, right);
+      case '$trim':
+        if (!_.isString(left) || !_.isString(right)) throw Error('Invalid value');
+        return _.trim(left, right);
+      case '$ltrim':
+        if (!_.isString(left) || !_.isString(right)) throw Error('Invalid value');
+        return _.trimStart(left, right);
+      case '$rtrim':
+        if (!_.isString(left) || !_.isString(right)) throw Error('Invalid value');
+        return _.trimEnd(left, right);
+      case '$first':
+        if (!_.isArray(left) && !_.isString(left)) throw Error('Invalid value');
+        if (!_.isSafeInteger(right) || right <= 0) throw Error('Invalid value');
+        return _.isString(left) ? left.slice(0, right) : _.take(left, right);
+      case '$last':
+        if (!_.isArray(left) && !_.isString(left)) throw Error('Invalid value');
+        if (!_.isSafeInteger(right) || right <= 0) throw Error('Invalid value');
+        return _.isString(left) ? left.slice(-right) : _.takeRight(left, right);
+      case '$ldrop':
+        if (!_.isArray(left) && !_.isString(left)) throw Error('Invalid value');
+        if (!_.isSafeInteger(right) || right <= 0) throw Error('Invalid value');
+        return _.isString(left) ? left.slice(right) : _.drop(left, right);
+      case '$rdrop':
+        if (!_.isArray(left) && !_.isString(left)) throw Error('Invalid value');
+        if (!_.isSafeInteger(right) || right <= 0) throw Error('Invalid value');
+        return _.isString(left) ? left.slice(0, -right) : _.dropRight(left, right);
     }
   }
 
   evalType(schema: Record<string, TSchema>, className: string): TSchema.DataType[] {
     switch (this.type) {
-      case '$log': return combineNumericTypes(this.left.evalType(schema, className), this.right.evalType(schema, className));
-      case '$pow': return combineNumericTypes(this.left.evalType(schema, className), this.right.evalType(schema, className));
-      case '$divide': return combineNumericTypes(this.left.evalType(schema, className), this.right.evalType(schema, className));
-      case '$subtract': return combineNumericTypes(this.left.evalType(schema, className), this.right.evalType(schema, className));
-      case '$atan2': return combineNumericTypes(this.left.evalType(schema, className), this.right.evalType(schema, className));
+      case '$divide':
+      case '$subtract':
+      case '$log':
+      case '$pow':
+      case '$atan2':
+        return combineNumericTypes(this.left.evalType(schema, className), this.right.evalType(schema, className));
+      case '$trim':
+      case '$ltrim':
+      case '$rtrim':
+        return ['string'];
+      case '$first':
+      case '$last':
+      case '$ldrop':
+      case '$rdrop':
+        return _.intersection(this.left.evalType(schema, className), ['string', 'string[]', 'array']);
+    }
+  }
+}
+
+export class QueryTernaryExpression extends QueryExpression {
+
+  type: typeof TTernaryExprKeys[number];
+  first: QueryExpression;
+  second: QueryExpression;
+  last: QueryExpression;
+
+  constructor(type: typeof TTernaryExprKeys[number], first: QueryExpression, second: QueryExpression, last: QueryExpression) {
+    super();
+    this.type = type;
+    this.first = first;
+    this.second = second;
+    this.last = last;
+  }
+
+  simplify() {
+    return new QueryTernaryExpression(this.type, this.first.simplify(), this.second.simplify(), this.last.simplify());
+  }
+
+  keyPaths(): string[] {
+    return _.uniq([
+      ...this.first.keyPaths(),
+      ...this.second.keyPaths(),
+      ...this.last.keyPaths(),
+    ]);
+  }
+
+  mapKey(callback: (key: string) => string): QueryExpression {
+    return new QueryTernaryExpression(this.type, this.first.mapKey(callback), this.second.mapKey(callback), this.last.mapKey(callback));
+  }
+
+  eval(value: any) {
+    const first = this.first.eval(value);
+    const second = this.second.eval(value);
+    const last = this.last.eval(value);
+    switch (this.type) {
+      case '$slice':
+        if (!_.isArray(first) && !_.isString(first)) throw Error('Invalid value');
+        if (!_.isSafeInteger(second) || !_.isSafeInteger(last)) throw Error('Invalid value');
+        return _.isString(first) ? first.slice(second, last) : _.slice(first, second, last);
+      case '$lpad':
+        if (!_.isString(first) || !_.isSafeInteger(second) || !_.isString(last)) throw Error('Invalid value');
+        return _.padStart(first, second, last);
+      case '$rpad':
+        if (!_.isString(first) || !_.isSafeInteger(second) || !_.isString(last)) throw Error('Invalid value');
+        return _.padEnd(first, second, last);
+    }
+  }
+
+  evalType(schema: Record<string, TSchema>, className: string): TSchema.DataType[] {
+    switch (this.type) {
+      case '$slice':
+        return _.intersection(this.first.evalType(schema, className), ['string', 'string[]', 'array']);
+      case '$lpad':
+      case '$rpad':
+        return ['string'];
     }
   }
 }
@@ -521,138 +605,6 @@ export class QueryListExpression extends QueryExpression {
       case '$ifNull': return _.intersection(..._.map(this.exprs, x => x.evalType(schema, className)));
       case '$concat': return ['string'];
     }
-  }
-}
-
-export class QueryTruncExpression extends QueryExpression {
-
-  value: QueryExpression;
-  place?: QueryExpression;
-
-  constructor(value: QueryExpression, place?: QueryExpression) {
-    super();
-    this.value = value;
-    this.place = place;
-  }
-
-  simplify() {
-    return new QueryTruncExpression(this.value.simplify(), this.place?.simplify());
-  }
-
-  keyPaths(): string[] {
-    return _.uniq([
-      ...this.value.keyPaths(),
-      ...this.place?.keyPaths() ?? [],
-    ]);
-  }
-
-  mapKey(callback: (key: string) => string): QueryExpression {
-    return new QueryTruncExpression(this.value.mapKey(callback), this.place?.mapKey(callback));
-  }
-
-  eval(value: any) {
-    return MathUtils.trunc(this.value.eval(value), this.place?.eval(value) ?? 0);
-  }
-
-  evalType(schema: Record<string, TSchema>, className: string): TSchema.DataType[] {
-    const value = this.value.evalType(schema, className);
-    const place = this.place?.evalType(schema, className);
-    if (!place) return value;
-    return combineNumericTypes(value, place);
-  }
-}
-
-export class QueryTrimExpression extends QueryExpression {
-
-  type: typeof TTrimExprKeys[number];
-  input: QueryExpression;
-  chars?: QueryExpression;
-
-  constructor(type: typeof TTrimExprKeys[number], input: QueryExpression, chars?: QueryExpression) {
-    super();
-    this.type = type;
-    this.input = input;
-    this.chars = chars;
-  }
-
-  simplify() {
-    return new QueryTrimExpression(this.type, this.input.simplify(), this.chars?.simplify());
-  }
-
-  keyPaths(): string[] {
-    return _.uniq([
-      ...this.input.keyPaths(),
-      ...this.chars?.keyPaths() ?? [],
-    ]);
-  }
-
-  mapKey(callback: (key: string) => string): QueryExpression {
-    return new QueryTrimExpression(this.type, this.input.mapKey(callback), this.chars?.mapKey(callback));
-  }
-
-  eval(value: any) {
-    const input = this.input.eval(value);
-    const chars = this.chars?.eval(value);
-    if (!_.isString(input)) throw Error('Invalid value');
-    if (chars && !_.isString(chars)) throw Error('Invalid value');
-    switch (this.type) {
-      case '$trim': return _.trim(input, chars);
-      case '$ltrim': return _.trimStart(input, chars);
-      case '$rtrim': return _.trimEnd(input, chars);
-    }
-  }
-
-  evalType(schema: Record<string, TSchema>, className: string): TSchema.DataType[] {
-    return ['string'];
-  }
-}
-
-export class QueryPadExpression extends QueryExpression {
-
-  type: typeof TPadExprKeys[number];
-  input: QueryExpression;
-  size: QueryExpression;
-  chars?: QueryExpression;
-
-  constructor(type: typeof TPadExprKeys[number], input: QueryExpression, size: QueryExpression, chars?: QueryExpression) {
-    super();
-    this.type = type;
-    this.input = input;
-    this.size = size;
-    this.chars = chars;
-  }
-
-  simplify() {
-    return new QueryPadExpression(this.type, this.input.simplify(), this.size.simplify(), this.chars?.simplify());
-  }
-
-  keyPaths(): string[] {
-    return _.uniq([
-      ...this.input.keyPaths(),
-      ...this.size.keyPaths(),
-      ...this.chars?.keyPaths() ?? [],
-    ]);
-  }
-
-  mapKey(callback: (key: string) => string): QueryExpression {
-    return new QueryPadExpression(this.type, this.input.mapKey(callback), this.size.mapKey(callback), this.chars?.mapKey(callback));
-  }
-
-  eval(value: any) {
-    const input = this.input.eval(value);
-    const size = this.size.eval(value);
-    const chars = this.chars?.eval(value);
-    if (!_.isString(input)) throw Error('Invalid value');
-    if (!_.isSafeInteger(size)) throw Error('Invalid value');
-    if (chars && !_.isString(chars)) throw Error('Invalid value');
-    switch (this.type) {
-      case '$lpad': return _.padStart(input, size, chars);
-      case '$rpad': return _.padEnd(input, size, chars);
-    }
-  }
-
-  evalType(schema: Record<string, TSchema>, className: string): TSchema.DataType[] {
-    return ['string'];
   }
 }
 

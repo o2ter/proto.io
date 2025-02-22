@@ -214,26 +214,6 @@ test('test expr with $subtract', async () => {
 
 })
 
-test('test expr with $trunc', async () => {
-
-  const object = await Proto.Query('Test').insert({ number: 5.67 });
-
-  const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
-    .filter({
-      $expr: {
-        $eq: [
-          { $trunc: [{ $key: 'number' }] },
-          { $value: 5 },
-        ]
-      }
-    })
-    .first();
-
-  expect(result?.objectId).toBe(object.objectId);
-
-})
-
 test('test expr with $atan2', async () => {
 
   const object = await Proto.Query('Test').insert({ y: 1, x: 1 });
@@ -841,7 +821,7 @@ test('test expr with $trim', async () => {
     .filter({
       $expr: {
         $eq: [
-          { $trim: [{ $key: 'string' }] },
+          { $trim: [{ $key: 'string' }, { $value: ' ' }] },
           { $value: 'Hello' },
         ]
       }
@@ -859,7 +839,7 @@ test('test expr with $ltrim', async () => {
     .filter({
       $expr: {
         $eq: [
-          { $ltrim: [{ $key: 'string' }] },
+          { $ltrim: [{ $key: 'string' }, { $value: ' ' }] },
           { $value: 'Hello' },
         ]
       }
@@ -877,7 +857,7 @@ test('test expr with $rtrim', async () => {
     .filter({
       $expr: {
         $eq: [
-          { $rtrim: [{ $key: 'string' }] },
+          { $rtrim: [{ $key: 'string' }, { $value: ' ' }] },
           { $value: 'Hello' },
         ]
       }

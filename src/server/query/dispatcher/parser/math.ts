@@ -119,13 +119,6 @@ export const MathUtils = {
     if (lhs instanceof Decimal) return lhs.ln();
     return Math.log(lhs);
   },
-  trunc: (value: any, p: any) => {
-    if (!isNum(value) || !isNum(p)) throw Error('Invalid operation');
-    const precision = p instanceof Decimal ? p.toNumber() : p;
-    if (value instanceof Decimal) return value.toDP(precision, Decimal.ROUND_DOWN);
-    const factor = Math.pow(10, precision);
-    return Math.trunc(value * factor) / factor;
-  },
   sin: (lhs: any) => {
     if (!isNum(lhs)) throw Error('Invalid operation');
     if (lhs instanceof Decimal) return lhs.sin();

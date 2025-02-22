@@ -64,11 +64,24 @@ export const TUnaryExprKeys = [
 ] as const;
 
 export const TBinaryExprKeys = [
-  '$log',
-  '$pow',
   '$divide',
   '$subtract',
+  '$log',
+  '$pow',
   '$atan2',
+  '$trim',
+  '$ltrim',
+  '$rtrim',
+  '$first',
+  '$last',
+  '$ldrop',
+  '$rdrop',
+] as const;
+
+export const TTernaryExprKeys = [
+  '$slice',
+  '$lpad',
+  '$rpad',
 ] as const;
 
 export const TListExprKeys = [
@@ -76,17 +89,6 @@ export const TListExprKeys = [
   '$multiply',
   '$ifNull',
   '$concat',
-] as const;
-
-export const TTrimExprKeys = [
-  '$trim',
-  '$ltrim',
-  '$rtrim',
-] as const;
-
-export const TPadExprKeys = [
-  '$lpad',
-  '$rpad',
 ] as const;
 
 export const TDistanceExprKeys = [
@@ -125,17 +127,13 @@ export type TExpression = {
     default: TExpression;
   };
 } & {
-  $trunc?: [TExpression] | [TExpression, TExpression];
-} & {
   [x in (typeof TZeroParamExprKeys)[number]]?: true | {};
 } & {
   [x in (typeof TUnaryExprKeys)[number]]?: TExpression;
 } & {
   [x in (typeof TBinaryExprKeys)[number]]?: [TExpression, TExpression];
 } & {
+  [x in (typeof TTernaryExprKeys)[number]]?: [TExpression, TExpression, TExpression];
+} & {
   [x in (typeof TListExprKeys)[number]]?: TExpression[];
-} & {
-  [x in (typeof TTrimExprKeys)[number]]?: [TExpression] | [TExpression, TExpression];
-} & {
-  [x in (typeof TPadExprKeys)[number]]?: [TExpression, TExpression] | [TExpression, TExpression, TExpression];
 } & TBooleanExpression & TDistanceExpression;
