@@ -545,7 +545,7 @@ export class QueryTernaryExpression extends QueryExpression {
       case '$slice':
         if (!_.isArray(first) && !_.isString(first)) throw Error('Invalid value');
         if (!_.isSafeInteger(second) || !_.isSafeInteger(last)) throw Error('Invalid value');
-        return _.isString(first) ? first.slice(second, last) : _.slice(first, second, last);
+        return _.isString(first) ? first.slice(second, last - second) : _.slice(first, second, last - second);
       case '$lpad':
         if (!_.isString(first) || !_.isSafeInteger(second) || !_.isString(last)) throw Error('Invalid value');
         return _.padStart(first, second, last);
