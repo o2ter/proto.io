@@ -316,15 +316,6 @@ export const encodeTypedQueryExpression = (
     if (!first || !second || !last) return;
 
     switch (expr.type) {
-      case '$slice':
-        {
-          if (!_.includes(['number', 'decimal'], second.type)) return;
-          if (!_.includes(['number', 'decimal'], last.type)) return;
-          if (first?.type === 'string') {
-            return { type: 'string', sql: sql`SUBSTR(${first.sql}, ${second.sql}, ${last.sql})` };
-          }
-        }
-        break;
       case '$lpad':
       case '$rpad':
         {

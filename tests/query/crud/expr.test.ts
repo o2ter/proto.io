@@ -940,24 +940,6 @@ test('test expr with $rdrop', async () => {
   expect(result?.objectId).toBe(object.objectId);
 });
 
-test('test expr with $slice', async () => {
-  const object = await Proto.Query('Test').insert({ string: 'Hello' });
-
-  const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
-    .filter({
-      $expr: {
-        $eq: [
-          { $slice: [{ $key: 'string' }, { $value: 1 }, { $value: 3 }] },
-          { $value: 'ell' },
-        ]
-      }
-    })
-    .first();
-
-  expect(result?.objectId).toBe(object.objectId);
-});
-
 test('test expr with $lpad', async () => {
   const object = await Proto.Query('Test').insert({ string: 'Hello' });
 

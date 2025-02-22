@@ -79,7 +79,6 @@ export const TBinaryExprKeys = [
 ] as const;
 
 export const TTernaryExprKeys = [
-  '$slice',
   '$lpad',
   '$rpad',
 ] as const;

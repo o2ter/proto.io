@@ -542,10 +542,6 @@ export class QueryTernaryExpression extends QueryExpression {
     const second = this.second.eval(value);
     const last = this.last.eval(value);
     switch (this.type) {
-      case '$slice':
-        if (!_.isArray(first) && !_.isString(first)) throw Error('Invalid value');
-        if (!_.isSafeInteger(second) || !_.isSafeInteger(last)) throw Error('Invalid value');
-        return _.isString(first) ? first.slice(second, second + last) : _.slice(first, second, second + last);
       case '$lpad':
         if (!_.isString(first) || !_.isSafeInteger(second) || !_.isString(last)) throw Error('Invalid value');
         return _.padStart(first, second, last);
@@ -557,8 +553,6 @@ export class QueryTernaryExpression extends QueryExpression {
 
   evalType(schema: Record<string, TSchema>, className: string): TSchema.DataType[] {
     switch (this.type) {
-      case '$slice':
-        return _.intersection(this.first.evalType(schema, className), ['string', 'string[]', 'array']);
       case '$lpad':
       case '$rpad':
         return ['string'];
