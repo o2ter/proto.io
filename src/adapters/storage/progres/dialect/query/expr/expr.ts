@@ -97,35 +97,78 @@ export const encodeTypedQueryExpression = (
     if (!value) return;
 
     switch (expr.type) {
-      case '$abs': return { type: value.type, sql: sql`ABS(${value.sql})` };
-      case '$neg': return { type: value.type, sql: sql`-(${value.sql})` };
-      case '$sqrt': return { type: value.type, sql: sql`SQRT(${value.sql})` };
-      case '$cbrt': return { type: value.type, sql: sql`CBRT(${value.sql})` };
-      case '$ceil': return { type: value.type, sql: sql`CEIL(${value.sql})` };
-      case '$floor': return { type: value.type, sql: sql`FLOOR(${value.sql})` };
-      case '$round': return { type: value.type, sql: sql`ROUND(${value.sql})` };
-      case '$exp': return { type: value.type, sql: sql`EXP(${value.sql})` };
-      case '$ln': return { type: value.type, sql: sql`LN(${value.sql})` };
-      case '$log2': return { type: value.type, sql: sql`(LOG(${value.sql}) / LOG(2))` };
-      case '$log10': return { type: value.type, sql: sql`LOG10(${value.sql})` };
-      case '$sin': return { type: value.type, sql: sql`SIN(${value.sql})` };
-      case '$cos': return { type: value.type, sql: sql`COS(${value.sql})` };
-      case '$tan': return { type: value.type, sql: sql`TAN(${value.sql})` };
-      case '$asin': return { type: value.type, sql: sql`ASIN(${value.sql})` };
-      case '$acos': return { type: value.type, sql: sql`ACOS(${value.sql})` };
-      case '$atan': return { type: value.type, sql: sql`ATAN(${value.sql})` };
-      case '$asinh': return { type: value.type, sql: sql`ASINH(${value.sql})` };
-      case '$acosh': return { type: value.type, sql: sql`ACOSH(${value.sql})` };
-      case '$atanh': return { type: value.type, sql: sql`ATANH(${value.sql})` };
-      case '$sinh': return { type: value.type, sql: sql`SINH(${value.sql})` };
-      case '$cosh': return { type: value.type, sql: sql`COSH(${value.sql})` };
-      case '$tanh': return { type: value.type, sql: sql`TANH(${value.sql})` };
-      case '$degrees': return { type: value.type, sql: sql`DEGREES(${value.sql})` };
-      case '$radians': return { type: value.type, sql: sql`RADIANS(${value.sql})` };
-      case '$sign': return { type: value.type, sql: sql`SIGN(${value.sql})` };
-      case '$size': return { type: 'number', sql: sql`LENGTH(${value.sql})` };
-      case '$lower': return { type: 'string', sql: sql`LOWER(${value.sql})` };
-      case '$upper': return { type: 'string', sql: sql`UPPER(${value.sql})` };
+      case '$abs':
+      case '$neg':
+      case '$sqrt':
+      case '$cbrt':
+      case '$ceil':
+      case '$floor':
+      case '$round':
+      case '$exp':
+      case '$ln':
+      case '$log10':
+      case '$sin':
+      case '$cos':
+      case '$tan':
+      case '$asin':
+      case '$acos':
+      case '$atan':
+      case '$asinh':
+      case '$acosh':
+      case '$atanh':
+      case '$sinh':
+      case '$cosh':
+      case '$tanh':
+      case '$degrees':
+      case '$radians':
+      case '$sign':
+        {
+          const op = {
+            '$abs': 'ABS',
+            '$neg': '-',
+            '$sqrt': 'SQRT',
+            '$cbrt': 'CBRT',
+            '$ceil': 'CEIL',
+            '$floor': 'FLOOR',
+            '$round': 'ROUND',
+            '$exp': 'EXP',
+            '$ln': 'LN',
+            '$log10': 'LOG10',
+            '$sin': 'SIN',
+            '$cos': 'COS',
+            '$tan': 'TAN',
+            '$asin': 'ASIN',
+            '$acos': 'ACOS',
+            '$atan': 'ATAN',
+            '$asinh': 'ASINH',
+            '$acosh': 'ACOSH',
+            '$atanh': 'ATANH',
+            '$sinh': 'SINH',
+            '$cosh': 'COSH',
+            '$tanh': 'TANH',
+            '$degrees': 'DEGREES',
+            '$radians': 'RADIANS',
+            '$sign': 'SIGN',
+          }[expr.type];
+          if (!_.includes(['number', 'decimal'], value.type)) return;
+          return { type: 'number', sql: sql`${{ literal: op }}(${value.sql})` };
+        }
+      case '$log2':
+        if (!_.includes(['number', 'decimal'], value.type)) return;
+        return { type: value.type, sql: sql`(LOG(${value.sql}) / LOG(2))` };
+      case '$size':
+        if (!_.includes(['string', 'string[]', 'array'], value.type)) return;
+        return { type: 'number', sql: sql`LENGTH(${value.sql})` };
+      case '$lower':
+      case '$upper':
+        {
+          const op = {
+            '$lower': 'LOWER',
+            '$upper': 'UPPER',
+          }[expr.type];
+          if (value.type !== 'string') return;
+          return { type: 'string', sql: sql`${{ literal: op }}(${value.sql})` };
+        }
     }
   }
 
