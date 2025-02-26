@@ -48,7 +48,7 @@ test('test group matches max', async () => {
   });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', parent.objectId)
+    .equalTo('_id', parent.id)
     .groupMatches('relation', {
       value: { $most: { $key: 'number' } },
     })

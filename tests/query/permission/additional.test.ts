@@ -37,10 +37,10 @@ const Proto = new ProtoClient({
 test('test relation additional permission', async () => {
   const object = await Proto.Query('Test').insert({ _rperm: ['role:admin'] });
   const object2 = await Proto.Query('Test').insert({ pointer: object });
-  const result = await Proto.Query('Test').includes('pointer').get(object2.objectId!);
+  const result = await Proto.Query('Test').includes('pointer').get(object2.id!);
   expect(result?.get('pointer')).toBeUndefined();
   await Proto.run('createUserWithRole', { role: 'system' });
-  const result2 = await Proto.Query('Test').includes('pointer').get(object2.objectId!);
+  const result2 = await Proto.Query('Test').includes('pointer').get(object2.id!);
   expect(result2?.get('pointer')).toBeTruthy();
   await Proto.logout();
 })
@@ -48,10 +48,10 @@ test('test relation additional permission', async () => {
 test('test relation additional permission 2', async () => {
   const object = await Proto.Query('Test').insert({ _rperm: ['role:admin'] });
   const object2 = await Proto.Query('Test').insert({ relation: [object] });
-  const result = await Proto.Query('Test').includes('relation').get(object2.objectId!);
+  const result = await Proto.Query('Test').includes('relation').get(object2.id!);
   expect(_.first(result?.get('relation'))).toBeUndefined();
   await Proto.run('createUserWithRole', { role: 'system' });
-  const result2 = await Proto.Query('Test').includes('relation').get(object2.objectId!);
+  const result2 = await Proto.Query('Test').includes('relation').get(object2.id!);
   expect(_.first(result2?.get('relation'))).toBeTruthy();
   await Proto.logout();
 })
@@ -59,10 +59,10 @@ test('test relation additional permission 2', async () => {
 test('test relation additional permission 3', async () => {
   const object2 = await Proto.Query('Test').insert({});
   const object = await Proto.Query('Test').insert({ _rperm: ['role:admin'], pointer: object2 });
-  const result = await Proto.Query('Test').includes('relation2').get(object2.objectId!);
+  const result = await Proto.Query('Test').includes('relation2').get(object2.id!);
   expect(_.first(result?.get('relation2'))).toBeUndefined();
   await Proto.run('createUserWithRole', { role: 'system' });
-  const result2 = await Proto.Query('Test').includes('relation2').get(object2.objectId!);
+  const result2 = await Proto.Query('Test').includes('relation2').get(object2.id!);
   expect(_.first(result2?.get('relation2'))).toBeTruthy();
   await Proto.logout();
 })
@@ -70,10 +70,10 @@ test('test relation additional permission 3', async () => {
 test('test relation additional permission 4', async () => {
   const object2 = await Proto.Query('Test').insert({});
   const object = await Proto.Query('Test').insert({ _rperm: ['role:admin'], relation: [object2] });
-  const result = await Proto.Query('Test').includes('relation3').get(object2.objectId!);
+  const result = await Proto.Query('Test').includes('relation3').get(object2.id!);
   expect(_.first(result?.get('relation3'))).toBeUndefined();
   await Proto.run('createUserWithRole', { role: 'system' });
-  const result2 = await Proto.Query('Test').includes('relation3').get(object2.objectId!);
+  const result2 = await Proto.Query('Test').includes('relation3').get(object2.id!);
   expect(_.first(result2?.get('relation3'))).toBeTruthy();
   await Proto.logout();
 })
@@ -101,13 +101,13 @@ test('test relation additional permission 5', async () => {
     pointer: inserted6,
   });
 
-  const q = Proto.Query('Relation').equalTo('_id', inserted.objectId);
+  const q = Proto.Query('Relation').equalTo('_id', inserted.id);
 
-  expect(_.map((await q.clone().includes('relation7').first())?.get('relation7'), x => x.objectId).sort()).toStrictEqual([]);
+  expect(_.map((await q.clone().includes('relation7').first())?.get('relation7'), x => x.id).sort()).toStrictEqual([]);
 
   await Proto.run('createUserWithRole', { role: 'system' });
 
-  expect(_.map((await q.clone().includes('relation7').first())?.get('relation7'), x => x.objectId).sort()).toStrictEqual([inserted7.objectId].sort());
+  expect(_.map((await q.clone().includes('relation7').first())?.get('relation7'), x => x.id).sort()).toStrictEqual([inserted7.id].sort());
 
   await Proto.logout();
 
@@ -136,13 +136,13 @@ test('test relation additional permission 6', async () => {
     pointer: inserted6,
   });
 
-  const q = Proto.Query('Relation').equalTo('_id', inserted.objectId);
+  const q = Proto.Query('Relation').equalTo('_id', inserted.id);
 
-  expect(_.map((await q.clone().includes('relation7').first())?.get('relation7'), x => x.objectId).sort()).toStrictEqual([]);
+  expect(_.map((await q.clone().includes('relation7').first())?.get('relation7'), x => x.id).sort()).toStrictEqual([]);
 
   await Proto.run('createUserWithRole', { role: 'system' });
 
-  expect(_.map((await q.clone().includes('relation7').first())?.get('relation7'), x => x.objectId).sort()).toStrictEqual([inserted7.objectId].sort());
+  expect(_.map((await q.clone().includes('relation7').first())?.get('relation7'), x => x.id).sort()).toStrictEqual([inserted7.id].sort());
 
   await Proto.logout();
 

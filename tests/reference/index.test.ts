@@ -48,7 +48,7 @@ test('test refs', async () => {
   expect(check.length).toStrictEqual(1);
   expect(check2.length).toStrictEqual(1);
 
-  expect(check?.[0]?.objectId).toStrictEqual(result.objectId);
-  expect(check2?.[0]?.objectId).toStrictEqual(result.objectId);
+  expect(check?.[0]?.id).toStrictEqual(result.id);
+  expect(check2?.[0]?.id).toStrictEqual(result.id);
 
 })

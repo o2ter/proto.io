@@ -233,11 +233,11 @@ export abstract class ProtoType<Ext> {
   /**
    * Creates a new object.
    * @param className - The name of the class to create.
-   * @param objectId - The ID of the object to create.
+   * @param id - The ID of the object to create.
    * @returns The created object.
    */
-  Object<T extends string>(className: T, objectId?: string): TObjectType<T, Ext> {
-    const attrs: Record<string, TValue> = objectId ? { _id: objectId } : {};
+  Object<T extends string>(className: T, id?: string): TObjectType<T, Ext> {
+    const attrs: Record<string, TValue> = id ? { _id: id } : {};
     const obj = isObjKey(className, TObjectTypes) ? new TObjectTypes[className](attrs) : new TObject(className, attrs);
     return this.rebind(obj as TObjectType<T, Ext>);
   }

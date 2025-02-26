@@ -169,7 +169,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
       const objects = deserialize(JSON.stringify(data)) as TObject[];
       for (const [id, { callback }] of _.entries(queries)) {
         const keys = _.keys(_.pickBy(ids, v => _.includes(v, id)));
-        callback(_.filter(objects, x => _.includes(keys, x.objectId)));
+        callback(_.filter(objects, x => _.includes(keys, x.id)));
       }
     });
 

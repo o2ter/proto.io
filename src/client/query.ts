@@ -37,7 +37,7 @@ import { LiveQuerySubscription } from '../internals/liveQuery';
 type _QueryOptions = {
   relatedBy?: {
     className: string;
-    objectId: string;
+    id: string;
     key: string;
   };
 };

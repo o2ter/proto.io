@@ -43,7 +43,7 @@ test('test distance', async () => {
     },
   });
 
-  const q = Proto.Query('Vector').equalTo('_id', inserted.objectId);
+  const q = Proto.Query('Vector').equalTo('_id', inserted.id);
 
   expect((await q.clone().filter({
     $expr: {
@@ -57,7 +57,7 @@ test('test distance', async () => {
         { $value: 2.3 },
       ],
     },
-  }).first())?.objectId).toStrictEqual(inserted.objectId);
+  }).first())?.id).toStrictEqual(inserted.id);
 
   expect((await q.clone().filter({
     $expr: {
@@ -71,7 +71,7 @@ test('test distance', async () => {
         { $value: 2.2 },
       ],
     },
-  }).first())?.objectId).toBeUndefined();
+  }).first())?.id).toBeUndefined();
 
 });
 
@@ -81,7 +81,7 @@ test('test distance 2', async () => {
     vector2: [0, 1, 2],
   });
 
-  const q = Proto.Query('Vector').equalTo('_id', inserted.objectId);
+  const q = Proto.Query('Vector').equalTo('_id', inserted.id);
 
   expect((await q.clone().filter({
     $expr: {
@@ -95,7 +95,7 @@ test('test distance 2', async () => {
         { $value: 2.3 },
       ],
     },
-  }).first())?.objectId).toStrictEqual(inserted.objectId);
+  }).first())?.id).toStrictEqual(inserted.id);
 
   expect((await q.clone().filter({
     $expr: {
@@ -109,7 +109,7 @@ test('test distance 2', async () => {
         { $value: 2.2 },
       ],
     },
-  }).first())?.objectId).toBeUndefined();
+  }).first())?.id).toBeUndefined();
 
 });
 

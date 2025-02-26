@@ -113,12 +113,12 @@ const _encodeSorting = (
 }
 
 const _defaultInsertOpts = (options: InsertOptions) => {
-  const objectId = generateId(options.objectIdSize);
+  const id = generateId(options.objectIdSize);
   return {
-    _id: sql`${{ value: objectId }}`,
+    _id: sql`${{ value: id }}`,
     ...options.className === 'User' ? {
-      _rperm: sql`${{ value: [objectId] }}`,
-      _wperm: sql`${{ value: [objectId] }}`,
+      _rperm: sql`${{ value: [id] }}`,
+      _wperm: sql`${{ value: [id] }}`,
     } : {},
   };
 }

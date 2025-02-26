@@ -86,7 +86,7 @@ test('test user', async () => {
   await Proto.run('createUser');
 
   const user = await Proto.currentUser();
-  expect(user?.objectId).toBeTruthy();
+  expect(user?.id).toBeTruthy();
 
   const result = await Proto.run('echoUser', 'hello, world');
   expect(result).toStrictEqual('hello, world');
@@ -94,7 +94,7 @@ test('test user', async () => {
   await Proto.logout();
 
   const user2 = await Proto.currentUser();
-  expect(user2?.objectId).toBeUndefined();
+  expect(user2?.id).toBeUndefined();
 
   await expect(() => Proto.run('echoUser', 'hello, world')).rejects.toThrow('No permission');
 

@@ -172,7 +172,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
 
   async setPassword(user: TUser, password: string, options: RequestOptions<true>) {
 
-    if (!user.objectId) throw Error('Invalid user');
+    if (!user.id) throw Error('Invalid user');
     if (_.isEmpty(password)) throw Error('Invalid password');
 
     const { serializeOpts, ...opts } = options ?? {};
@@ -180,7 +180,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
     await this.service.request({
       method: 'post',
       baseURL: this.options.endpoint,
-      url: `user/${user.objectId}/password`,
+      url: `user/${user.id}/password`,
       data: serialize({ password }, serializeOpts),
       responseType: 'text',
       ...opts,
@@ -189,14 +189,14 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
 
   async unsetPassword(user: TUser, options: RequestOptions<true>) {
 
-    if (!user.objectId) throw Error('Invalid user');
+    if (!user.id) throw Error('Invalid user');
 
     const { serializeOpts, ...opts } = options ?? {};
 
     await this.service.request({
       method: 'post',
       baseURL: this.options.endpoint,
-      url: `user/${user.objectId}/password`,
+      url: `user/${user.id}/password`,
       responseType: 'text',
       ...opts,
     });
@@ -220,7 +220,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
   async updateFile(proto: P, object: TFile, options?: RequestOptions<boolean>) {
 
     const updated = await proto.Query(object.className)
-      .equalTo('_id', object.objectId)
+      .equalTo('_id', object.id)
       .includes(...object.keys())
       .updateOne(object[PVK].mutated, options);
 
@@ -278,13 +278,13 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
   }
 
   async saveFile(proto: P, object: TFile, options?: RequestOptions<boolean>) {
-    return object.objectId ? this.updateFile(proto, object, options) : this.createFile(proto, object, options);
+    return object.id ? this.updateFile(proto, object, options) : this.createFile(proto, object, options);
   }
 
   async deleteFile(proto: P, object: TFile, options?: ExtraOptions<boolean>) {
 
     const deleted = await proto.Query(object.className)
-      .equalTo('_id', object.objectId)
+      .equalTo('_id', object.id)
       .deleteOne(options);
 
     if (deleted) {
@@ -307,7 +307,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
       const res = await this.service.request({
         method: 'get',
         baseURL: this.options.endpoint,
-        url: `files/${object.objectId}/${encodeURIComponent(filename)}`,
+        url: `files/${object.id}/${encodeURIComponent(filename)}`,
         responseType: 'stream',
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -386,13 +386,13 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
   }
 
   refs(proto: P, object: TObject, options?: RequestOptions<boolean>) {
-    if (!object.objectId) throw Error('Invalid object');
+    if (!object.id) throw Error('Invalid object');
     const request = async () => {
       const { serializeOpts, ...opts } = options ?? {};
       const res = await this.service.request({
         method: 'get',
         baseURL: this.options.endpoint,
-        url: `classes/${encodeURIComponent(object.className)}/${object.objectId}/refs`,
+        url: `classes/${encodeURIComponent(object.className)}/${object.id}/refs`,
         serializeOpts: {
           objAttrs: TObject.defaultReadonlyKeys,
         },

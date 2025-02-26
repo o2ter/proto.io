@@ -121,12 +121,12 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
   }
 
   Relation<T extends string>(object: TObject, key: PathName<T>): TQuery<string, Ext, boolean> {
-    const objectId = object.objectId;
-    if (!objectId) throw Error('Invalid object');
+    const id = object.id;
+    if (!id) throw Error('Invalid object');
     return new ProtoRelationQuery<Ext, boolean>(this, {
       relatedBy: {
         className: object.className,
-        objectId,
+        id: id,
         key,
       },
     });
@@ -207,10 +207,10 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
       while (!_.isEmpty(queue)) {
         queue = await self.Query('Role')
           .or(_.map(_.uniq(['roles', ...roleKeys]), k => q => q.isIntersect(k, queue)))
-          .notContainedIn('_id', _.compact(_.map(roles, x => x.objectId)))
+          .notContainedIn('_id', _.compact(_.map(roles, x => x.id)))
           .includes('name')
           .find({ master: true });
-        roles = _.uniqBy([...roles, ...queue], x => x.objectId);
+        roles = _.uniqBy([...roles, ...queue], x => x.id);
       }
       return roles;
     };
@@ -226,7 +226,7 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
       jwtSignOptions?: jwt.SignOptions | undefined;
     }
   ) {
-    if (!user.objectId) throw Error('Invalid user object');
+    if (!user.id) throw Error('Invalid user object');
     if (req.res) await signUser(this, req.res, user, options);
   }
 
@@ -381,7 +381,7 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
   }
 
   refs(object: TObject, options?: ExtraOptions<boolean>) {
-    if (!object.objectId) throw Error('Invalid object');
+    if (!object.id) throw Error('Invalid object');
     const self = this;
     return asyncStream(async function* () {
       const objects = await self[PVK].refs(self, object, options);

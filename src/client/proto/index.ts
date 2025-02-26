@@ -52,12 +52,12 @@ export class ProtoClient<Ext = any> extends ProtoType<Ext> {
   }
 
   Relation<T extends string>(object: TObject, key: PathName<T>): TQuery<string, Ext, boolean> {
-    const objectId = object.objectId;
-    if (!objectId) throw Error('Invalid object');
+    const id = object.id;
+    if (!id) throw Error('Invalid object');
     return new ProtoClientRelationQuery<Ext>(this, {
       relatedBy: {
         className: object.className,
-        objectId,
+        id,
         key,
       },
     });

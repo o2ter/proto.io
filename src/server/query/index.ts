@@ -44,7 +44,7 @@ type _QueryOptions = {
   createFile?: boolean;
   relatedBy?: {
     className: string;
-    objectId: string;
+    id: string;
     key: string;
   };
 };

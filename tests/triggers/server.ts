@@ -83,21 +83,21 @@ const Proto = new ProtoService({
 
 Proto.afterCreate('Test', async ({ object }) => {
   const check = Proto.Object('Check');
-  check.set('target', object.objectId);
+  check.set('target', object.id);
   check.set('op', 'afterCreate');
   await check.save();
 });
 
 Proto.afterUpdate('Test', async ({ object }) => {
   const check = Proto.Object('Check');
-  check.set('target', object.objectId);
+  check.set('target', object.id);
   check.set('op', 'afterUpdate');
   await check.save();
 });
 
 Proto.afterDelete('Test', async ({ object }) => {
   const check = Proto.Object('Check');
-  check.set('target', object.objectId);
+  check.set('target', object.id);
   check.set('op', 'afterDelete');
   await check.save();
 });
@@ -107,7 +107,7 @@ Proto.define('testTriggers', async () => {
   await obj.save();
   await obj.save();
   await obj.destroy();
-  return obj.objectId;
+  return obj.id;
 });
 
 beforeAll(async () => {

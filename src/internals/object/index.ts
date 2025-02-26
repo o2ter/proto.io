@@ -166,7 +166,7 @@ export class TObject {
   /**
    * Gets the object ID.
    */
-  get objectId(): string | undefined {
+  get id(): string | undefined {
     return this[PVK].attributes._id as string;
   }
 

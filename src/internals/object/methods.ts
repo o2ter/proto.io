@@ -79,9 +79,9 @@ export const applyObjectMethods = <T extends TSerializable, E>(
       url: {
         get() {
           const filename = (this as TFile).filename;
-          if (_.isNil(this.objectId) || _.isNil(filename)) return;
+          if (_.isNil(this.id) || _.isNil(filename)) return;
           const endpoint = proto[PVK].options.endpoint;
-          const path = `files/${this.objectId}/${encodeURIComponent(filename)}`;
+          const path = `files/${this.id}/${encodeURIComponent(filename)}`;
           return endpoint.endsWith('/') ? `${endpoint}${path}` : `${endpoint}/${path}`;
         }
       },
@@ -110,7 +110,7 @@ export const applyObjectMethods = <T extends TSerializable, E>(
     },
     fetchWithInclude: {
       async value(keys: _.RecursiveArray<string>, options?: ExtraOptions<boolean>) {
-        const fetched = await query().equalTo('_id', this.objectId).includes(keys).first(options);
+        const fetched = await query().equalTo('_id', this.id).includes(keys).first(options);
         if (!fetched) throw Error('Unable to fetch document');
         this[PVK].attributes = fetched.attributes;
         return this;
@@ -122,12 +122,12 @@ export const applyObjectMethods = <T extends TSerializable, E>(
         if (options?.cascadeSave !== false) {
           for (const update of _.values(mutated)) {
             const [, value] = decodeUpdateOp(update);
-            if (value instanceof TObject && (_.isNil(value.objectId) || value.isDirty)) await value.save(options);
+            if (value instanceof TObject && (_.isNil(value.id) || value.isDirty)) await value.save(options);
           }
         }
-        if (this.objectId) {
+        if (this.id) {
           const updated = await query()
-            .equalTo('_id', this.objectId)
+            .equalTo('_id', this.id)
             .includes(...this.keys())
             .updateOne(this[PVK].mutated, options);
           if (!updated) throw Error('Unable to save document');
@@ -146,7 +146,7 @@ export const applyObjectMethods = <T extends TSerializable, E>(
     destroy: {
       async value(options?: ExtraOptions<boolean>) {
         const deleted = await query()
-          .equalTo('_id', this.objectId)
+          .equalTo('_id', this.id)
           .includes(...this.keys())
           .deleteOne(options);
         if (!deleted) throw Error('Unable to destroy document');

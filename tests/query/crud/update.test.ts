@@ -38,7 +38,7 @@ test('test update', async () => {
   const date = new Date;
   const inserted = await Proto.Query('Test').insert({});
   const updated = await Proto.Query('Test')
-    .equalTo('_id', inserted.objectId)
+    .equalTo('_id', inserted.id)
     .updateOne({
       boolean: { $set: true },
       number: { $set: 42.5 },
@@ -72,7 +72,7 @@ test('test update', async () => {
       'shape.array': { $set: [1, 2, 3, date, new Decimal('0.001')] },
     });
 
-  expect(updated?.objectId).toStrictEqual(inserted.objectId);
+  expect(updated?.id).toStrictEqual(inserted.id);
   expect(updated?.__v).toStrictEqual(1);
 
   expect(updated?.get('boolean')).toStrictEqual(true);

@@ -34,7 +34,7 @@ import { PVK } from '../../internals/private';
 const verifyRelatedBy = (relatedBy: any) => {
   if (!_.isPlainObject(relatedBy)) return;
   if (!_.isString(relatedBy.className) || _.isEmpty(relatedBy.className)) throw Error('Invalid option');
-  if (!_.isString(relatedBy.objectId) || _.isEmpty(relatedBy.objectId)) throw Error('Invalid option');
+  if (!_.isString(relatedBy.id) || _.isEmpty(relatedBy.id)) throw Error('Invalid option');
   if (!_.isString(relatedBy.key) || _.isEmpty(relatedBy.key)) throw Error('Invalid option');
 }
 
@@ -59,7 +59,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
 
     const payload = proto.connect(req);
     const query = relatedBy ? payload.Relation(
-      payload.Object(relatedBy.className, relatedBy.objectId),
+      payload.Object(relatedBy.className, relatedBy.id),
       relatedBy.key,
     ) : payload.Query(name!);
     query[PVK].options = options;
@@ -152,7 +152,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
     verifyRelatedBy(relatedBy);
 
     const query = relatedBy ? payload.Relation(
-      payload.Object(relatedBy.className, relatedBy.objectId),
+      payload.Object(relatedBy.className, relatedBy.id),
       relatedBy.key,
     ) : payload.Query(name!);
 

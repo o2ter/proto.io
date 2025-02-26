@@ -65,90 +65,90 @@ test('test comparable', async () => {
     },
   });
 
-  const q = Proto.Query('Test').equalTo('_id', inserted.objectId).includes('*', 'relation');
+  const q = Proto.Query('Test').equalTo('_id', inserted.id).includes('*', 'relation');
 
-  expect((await q.clone().lessThan('number', 0).first())?.objectId).toBeUndefined();
-  expect((await q.clone().lessThan('decimal', 0).first())?.objectId).toBeUndefined();
-  expect((await q.clone().greaterThan('date', new Date).first())?.objectId).toBeUndefined();
-  expect((await q.clone().lessThanOrEqualTo('number', 0).first())?.objectId).toBeUndefined();
-  expect((await q.clone().lessThanOrEqualTo('decimal', 0).first())?.objectId).toBeUndefined();
-  expect((await q.clone().greaterThanOrEqualTo('date', new Date).first())?.objectId).toBeUndefined();
+  expect((await q.clone().lessThan('number', 0).first())?.id).toBeUndefined();
+  expect((await q.clone().lessThan('decimal', 0).first())?.id).toBeUndefined();
+  expect((await q.clone().greaterThan('date', new Date).first())?.id).toBeUndefined();
+  expect((await q.clone().lessThanOrEqualTo('number', 0).first())?.id).toBeUndefined();
+  expect((await q.clone().lessThanOrEqualTo('decimal', 0).first())?.id).toBeUndefined();
+  expect((await q.clone().greaterThanOrEqualTo('date', new Date).first())?.id).toBeUndefined();
 
-  expect((await q.clone().lessThan('shape.number', 0).first())?.objectId).toBeUndefined();
-  expect((await q.clone().lessThan('shape.decimal', 0).first())?.objectId).toBeUndefined();
-  expect((await q.clone().greaterThan('shape.date', new Date).first())?.objectId).toBeUndefined();
-  expect((await q.clone().lessThanOrEqualTo('shape.number', 0).first())?.objectId).toBeUndefined();
-  expect((await q.clone().lessThanOrEqualTo('shape.decimal', 0).first())?.objectId).toBeUndefined();
-  expect((await q.clone().greaterThanOrEqualTo('shape.date', new Date).first())?.objectId).toBeUndefined();
+  expect((await q.clone().lessThan('shape.number', 0).first())?.id).toBeUndefined();
+  expect((await q.clone().lessThan('shape.decimal', 0).first())?.id).toBeUndefined();
+  expect((await q.clone().greaterThan('shape.date', new Date).first())?.id).toBeUndefined();
+  expect((await q.clone().lessThanOrEqualTo('shape.number', 0).first())?.id).toBeUndefined();
+  expect((await q.clone().lessThanOrEqualTo('shape.decimal', 0).first())?.id).toBeUndefined();
+  expect((await q.clone().greaterThanOrEqualTo('shape.date', new Date).first())?.id).toBeUndefined();
 
-  expect((await q.clone().greaterThan('number', 0).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().greaterThan('decimal', 0).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().lessThan('decimal', 1).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().lessThan('decimal', new Decimal('1')).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().lessThan('date', new Date).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().greaterThanOrEqualTo('number', 0).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().greaterThanOrEqualTo('decimal', 0).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().lessThanOrEqualTo('date', new Date).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().greaterThan('number', 0).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().greaterThan('decimal', 0).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().lessThan('decimal', 1).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().lessThan('decimal', new Decimal('1')).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().lessThan('date', new Date).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().greaterThanOrEqualTo('number', 0).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().greaterThanOrEqualTo('decimal', 0).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().lessThanOrEqualTo('date', new Date).first())?.id).toStrictEqual(inserted.id);
 
-  expect((await q.clone().greaterThan('shape.number', 0).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().greaterThan('shape.decimal', 0).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().lessThan('shape.decimal', 1).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().lessThan('shape.decimal', new Decimal('1')).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().lessThan('shape.date', new Date).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().greaterThanOrEqualTo('shape.number', 0).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().greaterThanOrEqualTo('shape.decimal', 0).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().lessThanOrEqualTo('shape.date', new Date).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().greaterThan('shape.number', 0).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().greaterThan('shape.decimal', 0).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().lessThan('shape.decimal', 1).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().lessThan('shape.decimal', new Decimal('1')).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().lessThan('shape.date', new Date).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().greaterThanOrEqualTo('shape.number', 0).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().greaterThanOrEqualTo('shape.decimal', 0).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().lessThanOrEqualTo('shape.date', new Date).first())?.id).toStrictEqual(inserted.id);
 
-  expect((await q.clone().lessThanOrEqualTo('number', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().lessThanOrEqualTo('decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().greaterThanOrEqualTo('number', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().greaterThanOrEqualTo('decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().lessThanOrEqualTo('number', 42.5).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().lessThanOrEqualTo('decimal', new Decimal('0.001')).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().greaterThanOrEqualTo('number', 42.5).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().greaterThanOrEqualTo('decimal', new Decimal('0.001')).first())?.id).toStrictEqual(inserted.id);
 
-  expect((await q.clone().lessThanOrEqualTo('shape.number', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().lessThanOrEqualTo('shape.decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().greaterThanOrEqualTo('shape.number', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().greaterThanOrEqualTo('shape.decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().lessThanOrEqualTo('shape.number', 42.5).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().lessThanOrEqualTo('shape.decimal', new Decimal('0.001')).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().greaterThanOrEqualTo('shape.number', 42.5).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().greaterThanOrEqualTo('shape.decimal', new Decimal('0.001')).first())?.id).toStrictEqual(inserted.id);
 
-  expect((await q.clone().lessThan('object.number', 0).first())?.objectId).toBeUndefined();
-  expect((await q.clone().lessThan('object.decimal', 0).first())?.objectId).toBeUndefined();
-  expect((await q.clone().greaterThan('object.date', new Date).first())?.objectId).toBeUndefined();
-  expect((await q.clone().lessThanOrEqualTo('object.number', 0).first())?.objectId).toBeUndefined();
-  expect((await q.clone().lessThanOrEqualTo('object.decimal', 0).first())?.objectId).toBeUndefined();
-  expect((await q.clone().greaterThanOrEqualTo('object.date', new Date).first())?.objectId).toBeUndefined();
+  expect((await q.clone().lessThan('object.number', 0).first())?.id).toBeUndefined();
+  expect((await q.clone().lessThan('object.decimal', 0).first())?.id).toBeUndefined();
+  expect((await q.clone().greaterThan('object.date', new Date).first())?.id).toBeUndefined();
+  expect((await q.clone().lessThanOrEqualTo('object.number', 0).first())?.id).toBeUndefined();
+  expect((await q.clone().lessThanOrEqualTo('object.decimal', 0).first())?.id).toBeUndefined();
+  expect((await q.clone().greaterThanOrEqualTo('object.date', new Date).first())?.id).toBeUndefined();
 
-  expect((await q.clone().lessThan('shape.object.number', 0).first())?.objectId).toBeUndefined();
-  expect((await q.clone().lessThan('shape.object.decimal', 0).first())?.objectId).toBeUndefined();
-  expect((await q.clone().greaterThan('shape.object.date', new Date).first())?.objectId).toBeUndefined();
-  expect((await q.clone().lessThanOrEqualTo('shape.object.number', 0).first())?.objectId).toBeUndefined();
-  expect((await q.clone().lessThanOrEqualTo('shape.object.decimal', 0).first())?.objectId).toBeUndefined();
-  expect((await q.clone().greaterThanOrEqualTo('shape.object.date', new Date).first())?.objectId).toBeUndefined();
+  expect((await q.clone().lessThan('shape.object.number', 0).first())?.id).toBeUndefined();
+  expect((await q.clone().lessThan('shape.object.decimal', 0).first())?.id).toBeUndefined();
+  expect((await q.clone().greaterThan('shape.object.date', new Date).first())?.id).toBeUndefined();
+  expect((await q.clone().lessThanOrEqualTo('shape.object.number', 0).first())?.id).toBeUndefined();
+  expect((await q.clone().lessThanOrEqualTo('shape.object.decimal', 0).first())?.id).toBeUndefined();
+  expect((await q.clone().greaterThanOrEqualTo('shape.object.date', new Date).first())?.id).toBeUndefined();
 
-  expect((await q.clone().greaterThan('object.number', 0).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().greaterThan('object.decimal', 0).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().lessThan('object.decimal', 1).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().lessThan('object.decimal', new Decimal('1')).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().lessThan('object.date', new Date).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().greaterThanOrEqualTo('object.number', 0).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().greaterThanOrEqualTo('object.decimal', 0).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().lessThanOrEqualTo('object.date', new Date).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().greaterThan('object.number', 0).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().greaterThan('object.decimal', 0).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().lessThan('object.decimal', 1).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().lessThan('object.decimal', new Decimal('1')).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().lessThan('object.date', new Date).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().greaterThanOrEqualTo('object.number', 0).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().greaterThanOrEqualTo('object.decimal', 0).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().lessThanOrEqualTo('object.date', new Date).first())?.id).toStrictEqual(inserted.id);
 
-  expect((await q.clone().greaterThan('shape.object.number', 0).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().greaterThan('shape.object.decimal', 0).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().lessThan('shape.object.decimal', 1).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().lessThan('shape.object.decimal', new Decimal('1')).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().lessThan('shape.object.date', new Date).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().greaterThanOrEqualTo('shape.object.number', 0).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().greaterThanOrEqualTo('shape.object.decimal', 0).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().lessThanOrEqualTo('shape.object.date', new Date).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().greaterThan('shape.object.number', 0).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().greaterThan('shape.object.decimal', 0).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().lessThan('shape.object.decimal', 1).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().lessThan('shape.object.decimal', new Decimal('1')).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().lessThan('shape.object.date', new Date).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().greaterThanOrEqualTo('shape.object.number', 0).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().greaterThanOrEqualTo('shape.object.decimal', 0).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().lessThanOrEqualTo('shape.object.date', new Date).first())?.id).toStrictEqual(inserted.id);
 
-  expect((await q.clone().lessThanOrEqualTo('object.number', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().lessThanOrEqualTo('object.decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().greaterThanOrEqualTo('object.number', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().greaterThanOrEqualTo('object.decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().lessThanOrEqualTo('object.number', 42.5).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().lessThanOrEqualTo('object.decimal', new Decimal('0.001')).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().greaterThanOrEqualTo('object.number', 42.5).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().greaterThanOrEqualTo('object.decimal', new Decimal('0.001')).first())?.id).toStrictEqual(inserted.id);
 
-  expect((await q.clone().lessThanOrEqualTo('shape.object.number', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().lessThanOrEqualTo('shape.object.decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().greaterThanOrEqualTo('shape.object.number', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().greaterThanOrEqualTo('shape.object.decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().lessThanOrEqualTo('shape.object.number', 42.5).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().lessThanOrEqualTo('shape.object.decimal', new Decimal('0.001')).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().greaterThanOrEqualTo('shape.object.number', 42.5).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().greaterThanOrEqualTo('shape.object.decimal', new Decimal('0.001')).first())?.id).toStrictEqual(inserted.id);
 
 })

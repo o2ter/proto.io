@@ -444,7 +444,7 @@ export class QueryValidator<E> {
 
   isGetMethod(query: QuerySelector) {
 
-    const objectIds = [];
+    const ids = [];
 
     if (query instanceof QueryCoditionalSelector && query.type === '$and') {
       for (const expr of query.exprs) {
@@ -454,7 +454,7 @@ export class QueryValidator<E> {
           expr.expr.type === '$eq'
         ) {
           if (!_.isString(expr.expr.value)) return false;
-          objectIds.push(expr.expr.value);
+          ids.push(expr.expr.value);
         }
       }
     } else if (
@@ -463,10 +463,10 @@ export class QueryValidator<E> {
       query.expr.type === '$eq'
     ) {
       if (!_.isString(query.expr.value)) return false;
-      objectIds.push(query.expr.value);
+      ids.push(query.expr.value);
     }
 
-    return _.uniq(objectIds).length === 1;
+    return _.uniq(ids).length === 1;
   }
 
 }

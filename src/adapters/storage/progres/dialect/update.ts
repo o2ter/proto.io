@@ -113,23 +113,23 @@ export const updateOperation = (paths: string[], dataType: TSchema.DataType, ope
         case '$addToSet':
         case '$push':
           {
-            if (!_.isArray(value) || !_.every(value, x => x instanceof TObject && x.objectId)) break;
-            const objectIds = _.uniq(_.map(value, (x: any) => `${x.className}$${x.objectId}`));
+            if (!_.isArray(value) || !_.every(value, x => x instanceof TObject && x.id)) break;
+            const ids = _.uniq(_.map(value, (x: any) => `${x.className}$${x.id}`));
             return sql`ARRAY(
               SELECT DISTINCT "$"
-              FROM UNNEST(${{ identifier: column }} || ARRAY[${_.map(objectIds, (x) => sql`${{ value: x }}`)}]) "$"
+              FROM UNNEST(${{ identifier: column }} || ARRAY[${_.map(ids, (x) => sql`${{ value: x }}`)}]) "$"
               RIGHT JOIN ${{ identifier: dataType.target }} ON "$" = (${{ quote: dataType.target + '$' }} || ${{ identifier: dataType.target }}._id)
             )`;
           }
         case '$removeAll':
           {
-            if (!_.isArray(value) || !_.every(value, x => x instanceof TObject && x.objectId)) break;
-            const objectIds = _.uniq(_.map(value, (x: any) => `${x.className}$${x.objectId}`));
+            if (!_.isArray(value) || !_.every(value, x => x instanceof TObject && x.id)) break;
+            const ids = _.uniq(_.map(value, (x: any) => `${x.className}$${x.id}`));
             return sql`ARRAY(
               SELECT "$"
               FROM UNNEST(${{ identifier: column }}) "$"
               RIGHT JOIN ${{ identifier: dataType.target }} ON "$" = (${{ quote: dataType.target + '$' }} || ${{ identifier: dataType.target }}._id)
-              WHERE "$" NOT IN (${_.map(objectIds, (x) => sql`${{ value: x }}`)})
+              WHERE "$" NOT IN (${_.map(ids, (x) => sql`${{ value: x }}`)})
             )`;
           }
         default: break;

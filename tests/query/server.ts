@@ -492,7 +492,7 @@ Proto.define('updateWithAtomic', async (proto) => {
 
     const updated = await proto.Query('Test')
       .equalTo('__v', doc.__v)
-      .equalTo('_id', doc.objectId)
+      .equalTo('_id', doc.id)
       .updateOne({
         number: { $inc: 1 },
       });
@@ -512,7 +512,7 @@ Proto.define('updateWithAtomic2', async (proto) => {
 
     const updated = await proto.Query('Test')
       .equalTo('__v', doc.__v)
-      .equalTo('_id', doc.objectId)
+      .equalTo('_id', doc.id)
       .updateOne({
         number: { $set: doc.get('number') + 1 },
       });

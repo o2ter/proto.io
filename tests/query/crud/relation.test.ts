@@ -44,11 +44,11 @@ test('test relation contains', async () => {
     pointer: inserted,
   });
 
-  const q = Proto.Query('Relation2').equalTo('_id', inserted2.objectId);
+  const q = Proto.Query('Relation2').equalTo('_id', inserted2.id);
 
-  expect((await q.clone().containedIn('pointer', [inserted_b]).first())?.objectId).toBeUndefined();
+  expect((await q.clone().containedIn('pointer', [inserted_b]).first())?.id).toBeUndefined();
 
-  expect((await q.clone().containedIn('pointer', [inserted]).first())?.objectId).toStrictEqual(inserted2.objectId);
+  expect((await q.clone().containedIn('pointer', [inserted]).first())?.id).toStrictEqual(inserted2.id);
 
 })
 
@@ -65,11 +65,11 @@ test('test relation contains 2', async () => {
     pointer: inserted2,
   });
 
-  const q = Proto.Query('Relation3').equalTo('_id', inserted3.objectId);
+  const q = Proto.Query('Relation3').equalTo('_id', inserted3.id);
 
-  expect((await q.clone().containedIn('pointer.pointer', [inserted_b]).first())?.objectId).toBeUndefined();
+  expect((await q.clone().containedIn('pointer.pointer', [inserted_b]).first())?.id).toBeUndefined();
 
-  expect((await q.clone().containedIn('pointer.pointer', [inserted]).first())?.objectId).toStrictEqual(inserted3.objectId);
+  expect((await q.clone().containedIn('pointer.pointer', [inserted]).first())?.id).toStrictEqual(inserted3.id);
 
 })
 
@@ -83,11 +83,11 @@ test('test relation not contains', async () => {
     pointer: inserted,
   });
 
-  const q = Proto.Query('Relation2').equalTo('_id', inserted2.objectId);
+  const q = Proto.Query('Relation2').equalTo('_id', inserted2.id);
 
-  expect((await q.clone().notContainedIn('pointer', [inserted]).first())?.objectId).toBeUndefined();
+  expect((await q.clone().notContainedIn('pointer', [inserted]).first())?.id).toBeUndefined();
 
-  expect((await q.clone().notContainedIn('pointer', [inserted_b]).first())?.objectId).toStrictEqual(inserted2.objectId);
+  expect((await q.clone().notContainedIn('pointer', [inserted_b]).first())?.id).toStrictEqual(inserted2.id);
 
 })
 
@@ -104,11 +104,11 @@ test('test relation not contains 2', async () => {
     pointer: inserted2,
   });
 
-  const q = Proto.Query('Relation3').equalTo('_id', inserted3.objectId);
+  const q = Proto.Query('Relation3').equalTo('_id', inserted3.id);
 
-  expect((await q.clone().notContainedIn('pointer.pointer', [inserted]).first())?.objectId).toBeUndefined();
+  expect((await q.clone().notContainedIn('pointer.pointer', [inserted]).first())?.id).toBeUndefined();
 
-  expect((await q.clone().notContainedIn('pointer.pointer', [inserted_b]).first())?.objectId).toStrictEqual(inserted3.objectId);
+  expect((await q.clone().notContainedIn('pointer.pointer', [inserted_b]).first())?.id).toStrictEqual(inserted3.id);
 
 })
 
@@ -122,12 +122,12 @@ test('test relation intersect', async () => {
     relation: [inserted],
   });
 
-  const q = Proto.Query('Relation2').equalTo('_id', inserted2.objectId);
+  const q = Proto.Query('Relation2').equalTo('_id', inserted2.id);
 
-  expect((await q.clone().isIntersect('relation', []).first())?.objectId).toBeUndefined();
-  expect((await q.clone().isIntersect('relation', [inserted_b]).first())?.objectId).toBeUndefined();
+  expect((await q.clone().isIntersect('relation', []).first())?.id).toBeUndefined();
+  expect((await q.clone().isIntersect('relation', [inserted_b]).first())?.id).toBeUndefined();
 
-  expect((await q.clone().isIntersect('relation', [inserted]).first())?.objectId).toStrictEqual(inserted2.objectId);
+  expect((await q.clone().isIntersect('relation', [inserted]).first())?.id).toStrictEqual(inserted2.id);
 
 })
 
@@ -144,12 +144,12 @@ test('test relation intersect 2', async () => {
     pointer: inserted2,
   });
 
-  const q = Proto.Query('Relation3').equalTo('_id', inserted3.objectId);
+  const q = Proto.Query('Relation3').equalTo('_id', inserted3.id);
 
-  expect((await q.clone().isIntersect('pointer.relation', []).first())?.objectId).toBeUndefined();
-  expect((await q.clone().isIntersect('pointer.relation', [inserted_b]).first())?.objectId).toBeUndefined();
+  expect((await q.clone().isIntersect('pointer.relation', []).first())?.id).toBeUndefined();
+  expect((await q.clone().isIntersect('pointer.relation', [inserted_b]).first())?.id).toBeUndefined();
 
-  expect((await q.clone().isIntersect('pointer.relation', [inserted]).first())?.objectId).toStrictEqual(inserted3.objectId);
+  expect((await q.clone().isIntersect('pointer.relation', [inserted]).first())?.id).toStrictEqual(inserted3.id);
 
 })
 
@@ -163,12 +163,12 @@ test('test relation superset', async () => {
     relation: [inserted],
   });
 
-  const q = Proto.Query('Relation2').equalTo('_id', inserted2.objectId);
+  const q = Proto.Query('Relation2').equalTo('_id', inserted2.id);
 
-  expect((await q.clone().isSuperset('relation', [inserted_b]).first())?.objectId).toBeUndefined();
+  expect((await q.clone().isSuperset('relation', [inserted_b]).first())?.id).toBeUndefined();
 
-  expect((await q.clone().isSuperset('relation', []).first())?.objectId).toStrictEqual(inserted2.objectId);
-  expect((await q.clone().isSuperset('relation', [inserted]).first())?.objectId).toStrictEqual(inserted2.objectId);
+  expect((await q.clone().isSuperset('relation', []).first())?.id).toStrictEqual(inserted2.id);
+  expect((await q.clone().isSuperset('relation', [inserted]).first())?.id).toStrictEqual(inserted2.id);
 
 })
 
@@ -185,12 +185,12 @@ test('test relation superset 2', async () => {
     pointer: inserted2,
   });
 
-  const q = Proto.Query('Relation3').equalTo('_id', inserted3.objectId);
+  const q = Proto.Query('Relation3').equalTo('_id', inserted3.id);
 
-  expect((await q.clone().isSuperset('pointer.relation', [inserted_b]).first())?.objectId).toBeUndefined();
+  expect((await q.clone().isSuperset('pointer.relation', [inserted_b]).first())?.id).toBeUndefined();
 
-  expect((await q.clone().isSuperset('pointer.relation', []).first())?.objectId).toStrictEqual(inserted3.objectId);
-  expect((await q.clone().isSuperset('pointer.relation', [inserted]).first())?.objectId).toStrictEqual(inserted3.objectId);
+  expect((await q.clone().isSuperset('pointer.relation', []).first())?.id).toStrictEqual(inserted3.id);
+  expect((await q.clone().isSuperset('pointer.relation', [inserted]).first())?.id).toStrictEqual(inserted3.id);
 
 })
 
@@ -204,13 +204,13 @@ test('test relation subset', async () => {
     relation: [inserted],
   });
 
-  const q = Proto.Query('Relation2').equalTo('_id', inserted2.objectId);
+  const q = Proto.Query('Relation2').equalTo('_id', inserted2.id);
 
-  expect((await q.clone().isSubset('relation', []).first())?.objectId).toBeUndefined();
-  expect((await q.clone().isSubset('relation', [inserted_b]).first())?.objectId).toBeUndefined();
+  expect((await q.clone().isSubset('relation', []).first())?.id).toBeUndefined();
+  expect((await q.clone().isSubset('relation', [inserted_b]).first())?.id).toBeUndefined();
 
-  expect((await q.clone().isSubset('relation', [inserted, inserted_b]).first())?.objectId).toStrictEqual(inserted2.objectId);
-  expect((await q.clone().isSubset('relation', [inserted]).first())?.objectId).toStrictEqual(inserted2.objectId);
+  expect((await q.clone().isSubset('relation', [inserted, inserted_b]).first())?.id).toStrictEqual(inserted2.id);
+  expect((await q.clone().isSubset('relation', [inserted]).first())?.id).toStrictEqual(inserted2.id);
 
 })
 
@@ -227,13 +227,13 @@ test('test relation subset 2', async () => {
     pointer: inserted2,
   });
 
-  const q = Proto.Query('Relation3').equalTo('_id', inserted3.objectId);
+  const q = Proto.Query('Relation3').equalTo('_id', inserted3.id);
 
-  expect((await q.clone().isSubset('pointer.relation', []).first())?.objectId).toBeUndefined();
-  expect((await q.clone().isSubset('pointer.relation', [inserted_b]).first())?.objectId).toBeUndefined();
+  expect((await q.clone().isSubset('pointer.relation', []).first())?.id).toBeUndefined();
+  expect((await q.clone().isSubset('pointer.relation', [inserted_b]).first())?.id).toBeUndefined();
 
-  expect((await q.clone().isSubset('pointer.relation', [inserted, inserted_b]).first())?.objectId).toStrictEqual(inserted3.objectId);
-  expect((await q.clone().isSubset('pointer.relation', [inserted]).first())?.objectId).toStrictEqual(inserted3.objectId);
+  expect((await q.clone().isSubset('pointer.relation', [inserted, inserted_b]).first())?.id).toStrictEqual(inserted3.id);
+  expect((await q.clone().isSubset('pointer.relation', [inserted]).first())?.id).toStrictEqual(inserted3.id);
 
 })
 
@@ -247,13 +247,13 @@ test('test relation disjoint', async () => {
     relation: [inserted],
   });
 
-  const q = Proto.Query('Relation2').equalTo('_id', inserted2.objectId);
+  const q = Proto.Query('Relation2').equalTo('_id', inserted2.id);
 
-  expect((await q.clone().isDisjoint('relation', [inserted]).first())?.objectId).toBeUndefined();
-  expect((await q.clone().isDisjoint('relation', [inserted, inserted_b]).first())?.objectId).toBeUndefined();
+  expect((await q.clone().isDisjoint('relation', [inserted]).first())?.id).toBeUndefined();
+  expect((await q.clone().isDisjoint('relation', [inserted, inserted_b]).first())?.id).toBeUndefined();
 
-  expect((await q.clone().isDisjoint('relation', []).first())?.objectId).toStrictEqual(inserted2.objectId);
-  expect((await q.clone().isDisjoint('relation', [inserted_b]).first())?.objectId).toStrictEqual(inserted2.objectId);
+  expect((await q.clone().isDisjoint('relation', []).first())?.id).toStrictEqual(inserted2.id);
+  expect((await q.clone().isDisjoint('relation', [inserted_b]).first())?.id).toStrictEqual(inserted2.id);
 
 })
 
@@ -270,13 +270,13 @@ test('test relation disjoint 2', async () => {
     pointer: inserted2,
   });
 
-  const q = Proto.Query('Relation3').equalTo('_id', inserted3.objectId);
+  const q = Proto.Query('Relation3').equalTo('_id', inserted3.id);
 
-  expect((await q.clone().isDisjoint('pointer.relation', [inserted]).first())?.objectId).toBeUndefined();
-  expect((await q.clone().isDisjoint('pointer.relation', [inserted, inserted_b]).first())?.objectId).toBeUndefined();
+  expect((await q.clone().isDisjoint('pointer.relation', [inserted]).first())?.id).toBeUndefined();
+  expect((await q.clone().isDisjoint('pointer.relation', [inserted, inserted_b]).first())?.id).toBeUndefined();
 
-  expect((await q.clone().isDisjoint('pointer.relation', []).first())?.objectId).toStrictEqual(inserted3.objectId);
-  expect((await q.clone().isDisjoint('pointer.relation', [inserted_b]).first())?.objectId).toStrictEqual(inserted3.objectId);
+  expect((await q.clone().isDisjoint('pointer.relation', []).first())?.id).toStrictEqual(inserted3.id);
+  expect((await q.clone().isDisjoint('pointer.relation', [inserted_b]).first())?.id).toStrictEqual(inserted3.id);
 
 })
 
@@ -292,9 +292,9 @@ test('test relation every', async () => {
     relation: [inserted, inserted_b],
   });
 
-  const q = Proto.Query('Relation2').equalTo('_id', inserted2.objectId);
+  const q = Proto.Query('Relation2').equalTo('_id', inserted2.id);
 
-  expect((await q.clone().every('relation', x => x.equalTo('number', 42)).first())?.objectId).toStrictEqual(inserted2.objectId);
+  expect((await q.clone().every('relation', x => x.equalTo('number', 42)).first())?.id).toStrictEqual(inserted2.id);
 
 })
 
@@ -310,9 +310,9 @@ test('test relation every 2', async () => {
     relation: [inserted, inserted_b],
   });
 
-  const q = Proto.Query('Relation2').equalTo('_id', inserted2.objectId);
+  const q = Proto.Query('Relation2').equalTo('_id', inserted2.id);
 
-  expect((await q.clone().every('relation', x => x.equalTo('number', 42)).first())?.objectId).toBeUndefined();
+  expect((await q.clone().every('relation', x => x.equalTo('number', 42)).first())?.id).toBeUndefined();
 
 })
 
@@ -331,9 +331,9 @@ test('test relation every 3', async () => {
     pointer: inserted2,
   });
 
-  const q = Proto.Query('Relation3').equalTo('_id', inserted3.objectId);
+  const q = Proto.Query('Relation3').equalTo('_id', inserted3.id);
 
-  expect((await q.clone().every('pointer.relation', x => x.equalTo('number', 42)).first())?.objectId).toStrictEqual(inserted3.objectId);
+  expect((await q.clone().every('pointer.relation', x => x.equalTo('number', 42)).first())?.id).toStrictEqual(inserted3.id);
 
 })
 
@@ -352,9 +352,9 @@ test('test relation every 4', async () => {
     pointer: inserted2,
   });
 
-  const q = Proto.Query('Relation3').equalTo('_id', inserted3.objectId);
+  const q = Proto.Query('Relation3').equalTo('_id', inserted3.id);
 
-  expect((await q.clone().every('pointer.relation', x => x.equalTo('number', 42)).first())?.objectId).toBeUndefined();
+  expect((await q.clone().every('pointer.relation', x => x.equalTo('number', 42)).first())?.id).toBeUndefined();
 
 })
 
@@ -373,9 +373,9 @@ test('test relation every 5', async () => {
     relation: [inserted2],
   });
 
-  const q = Proto.Query('Relation3').equalTo('_id', inserted3.objectId);
+  const q = Proto.Query('Relation3').equalTo('_id', inserted3.id);
 
-  expect((await q.clone().every('relation', x => x.every('relation', x => x.equalTo('number', 42))).first())?.objectId).toStrictEqual(inserted3.objectId);
+  expect((await q.clone().every('relation', x => x.every('relation', x => x.equalTo('number', 42))).first())?.id).toStrictEqual(inserted3.id);
 
 })
 
@@ -394,9 +394,9 @@ test('test relation every 6', async () => {
     relation: [inserted2],
   });
 
-  const q = Proto.Query('Relation3').equalTo('_id', inserted3.objectId);
+  const q = Proto.Query('Relation3').equalTo('_id', inserted3.id);
 
-  expect((await q.clone().every('relation', x => x.every('relation', x => x.equalTo('number', 42))).first())?.objectId).toBeUndefined();
+  expect((await q.clone().every('relation', x => x.every('relation', x => x.equalTo('number', 42))).first())?.id).toBeUndefined();
 
 })
 
@@ -412,9 +412,9 @@ test('test relation some', async () => {
     relation: [inserted, inserted_b],
   });
 
-  const q = Proto.Query('Relation2').equalTo('_id', inserted2.objectId);
+  const q = Proto.Query('Relation2').equalTo('_id', inserted2.id);
 
-  expect((await q.clone().some('relation', x => x.equalTo('number', 42)).first())?.objectId).toStrictEqual(inserted2.objectId);
+  expect((await q.clone().some('relation', x => x.equalTo('number', 42)).first())?.id).toStrictEqual(inserted2.id);
 
 })
 
@@ -430,9 +430,9 @@ test('test relation some 2', async () => {
     relation: [inserted, inserted_b],
   });
 
-  const q = Proto.Query('Relation2').equalTo('_id', inserted2.objectId);
+  const q = Proto.Query('Relation2').equalTo('_id', inserted2.id);
 
-  expect((await q.clone().some('relation', x => x.equalTo('number', 42)).first())?.objectId).toStrictEqual(inserted2.objectId);
+  expect((await q.clone().some('relation', x => x.equalTo('number', 42)).first())?.id).toStrictEqual(inserted2.id);
 
 })
 
@@ -451,9 +451,9 @@ test('test relation some 3', async () => {
     pointer: inserted2,
   });
 
-  const q = Proto.Query('Relation3').equalTo('_id', inserted3.objectId);
+  const q = Proto.Query('Relation3').equalTo('_id', inserted3.id);
 
-  expect((await q.clone().some('pointer.relation', x => x.equalTo('number', 42)).first())?.objectId).toStrictEqual(inserted3.objectId);
+  expect((await q.clone().some('pointer.relation', x => x.equalTo('number', 42)).first())?.id).toStrictEqual(inserted3.id);
 
 })
 
@@ -472,9 +472,9 @@ test('test relation some 4', async () => {
     pointer: inserted2,
   });
 
-  const q = Proto.Query('Relation3').equalTo('_id', inserted3.objectId);
+  const q = Proto.Query('Relation3').equalTo('_id', inserted3.id);
 
-  expect((await q.clone().some('pointer.relation', x => x.equalTo('number', 42)).first())?.objectId).toStrictEqual(inserted3.objectId);
+  expect((await q.clone().some('pointer.relation', x => x.equalTo('number', 42)).first())?.id).toStrictEqual(inserted3.id);
 
 })
 
@@ -493,9 +493,9 @@ test('test relation some 5', async () => {
     relation: [inserted2],
   });
 
-  const q = Proto.Query('Relation3').equalTo('_id', inserted3.objectId);
+  const q = Proto.Query('Relation3').equalTo('_id', inserted3.id);
 
-  expect((await q.clone().some('relation', x => x.some('relation', x => x.equalTo('number', 42))).first())?.objectId).toStrictEqual(inserted3.objectId);
+  expect((await q.clone().some('relation', x => x.some('relation', x => x.equalTo('number', 42))).first())?.id).toStrictEqual(inserted3.id);
 
 })
 
@@ -514,8 +514,8 @@ test('test relation some 6', async () => {
     relation: [inserted2],
   });
 
-  const q = Proto.Query('Relation3').equalTo('_id', inserted3.objectId);
+  const q = Proto.Query('Relation3').equalTo('_id', inserted3.id);
 
-  expect((await q.clone().some('relation', x => x.some('relation', x => x.equalTo('number', 42))).first())?.objectId).toStrictEqual(inserted3.objectId);
+  expect((await q.clone().some('relation', x => x.some('relation', x => x.equalTo('number', 42))).first())?.id).toStrictEqual(inserted3.id);
 
 })

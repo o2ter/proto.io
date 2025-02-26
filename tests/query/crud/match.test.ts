@@ -47,7 +47,7 @@ test('test match', async () => {
   }
 
   const matched = await Proto.Query('Test')
-    .equalTo('_id', parent.objectId)
+    .equalTo('_id', parent.id)
     .includes('relation2')
     .match('relation2', q => q
       .greaterThan('number', 1)
@@ -59,7 +59,7 @@ test('test match', async () => {
   expect(matched?.get('relation2.0.number')).toStrictEqual(2);
 
   const matched2 = await Proto.Query('Test')
-    .equalTo('_id', parent.objectId)
+    .equalTo('_id', parent.id)
     .includes('relation2')
     .match('relation2', q => q
       .sort({ _created_at: -1 })
@@ -70,7 +70,7 @@ test('test match', async () => {
   expect(matched2?.get('relation2.0.number')).toStrictEqual(5);
 
   const matched3 = await Proto.Query('Test')
-    .equalTo('_id', parent.objectId)
+    .equalTo('_id', parent.id)
     .includes('relation2')
     .match('relation2', q => q.equalTo('decimal', new Decimal(`0.002`)))
     .first();
@@ -79,7 +79,7 @@ test('test match', async () => {
   expect(matched3?.get('relation2.0.number')).toStrictEqual(2);
 
   const matched4 = await Proto.Query('Test')
-    .equalTo('_id', parent.objectId)
+    .equalTo('_id', parent.id)
     .includes('relation2')
     .match('relation2', q => q
       .sort({ decimal: -1 })
@@ -90,7 +90,7 @@ test('test match', async () => {
   expect(matched4?.get('relation2.0.number')).toStrictEqual(5);
 
   const matched5 = await Proto.Query('Test')
-    .equalTo('_id', parent.objectId)
+    .equalTo('_id', parent.id)
     .includes('relation2')
     .match('relation2', q => q
       .equalTo('pointer', parent)
@@ -102,7 +102,7 @@ test('test match', async () => {
   expect(matched5?.get('relation2.0.number')).toStrictEqual(5);
 
   const matched6 = await Proto.Query('Test')
-    .equalTo('_id', obj!.objectId)
+    .equalTo('_id', obj!.id)
     .match('pointer.relation2', q => q
       .greaterThan('number', 1)
       .sort({ _created_at: 1 })

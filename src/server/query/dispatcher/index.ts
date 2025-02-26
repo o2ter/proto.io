@@ -37,7 +37,7 @@ import { normalize } from '../../utils';
 import { TQueryAccumulator } from '../../../internals/query/types/accumulators';
 import { QueryExpression } from './parser/expressions';
 
-export const fetchUserPerms = async <E>(proto: ProtoService<E>) => _.uniq(_.compact([..._.map(await proto.currentRoles(), x => `role:${x}`), (await proto.currentUser())?.objectId]));
+export const fetchUserPerms = async <E>(proto: ProtoService<E>) => _.uniq(_.compact([..._.map(await proto.currentRoles(), x => `role:${x}`), (await proto.currentUser())?.id]));
 
 export const dispatcher = <E>(
   proto: ProtoService<E>,

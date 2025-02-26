@@ -39,7 +39,7 @@ export type FindOptions = { className: string; } & TQueryOptions;
 export type RelationOptions = {
   relatedBy?: {
     className: string;
-    objectId: string;
+    id: string;
     key: string;
   };
 };

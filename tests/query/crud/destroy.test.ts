@@ -36,7 +36,7 @@ const Proto = new ProtoClient({
 
 test('test destroy', async () => {
   const inserted = await Proto.Query('Test').insert({ string: 'destroy' });
-  expect(inserted.objectId).toBeTruthy();
+  expect(inserted.id).toBeTruthy();
   expect(inserted.get('string')).toStrictEqual('destroy');
   await inserted.destroy();
   const result = await Proto.Query('Test').equalTo('string', 'destroy').find();

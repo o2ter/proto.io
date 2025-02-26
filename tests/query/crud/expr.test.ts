@@ -39,7 +39,7 @@ test('test expr with $add', async () => {
   const object = await Proto.Query('Test').insert({ number: 1 });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -50,7 +50,7 @@ test('test expr with $add', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })
 
@@ -59,7 +59,7 @@ test('test expr with $add 2', async () => {
   const object = await Proto.Query('Test').insert({ number: 1 });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -70,7 +70,7 @@ test('test expr with $add 2', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBeUndefined();
+  expect(result?.id).toBeUndefined();
 
 })
 
@@ -79,7 +79,7 @@ test('test expr with $multiply', async () => {
   const object = await Proto.Query('Test').insert({ number: 2 });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -90,7 +90,7 @@ test('test expr with $multiply', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })
 
@@ -99,7 +99,7 @@ test('test expr with $ifNull', async () => {
   const object = await Proto.Query('Test').insert({ number: null });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -110,7 +110,7 @@ test('test expr with $ifNull', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })
 
@@ -119,7 +119,7 @@ test('test expr with $concat', async () => {
   const object = await Proto.Query('Test').insert({ string: 'Hello' });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -130,7 +130,7 @@ test('test expr with $concat', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })
 
@@ -139,7 +139,7 @@ test('test expr with $log', async () => {
   const object = await Proto.Query('Test').insert({ number: 100 });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -150,7 +150,7 @@ test('test expr with $log', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })
 
@@ -159,7 +159,7 @@ test('test expr with $pow', async () => {
   const object = await Proto.Query('Test').insert({ number: 2 });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -170,7 +170,7 @@ test('test expr with $pow', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })
 
@@ -179,7 +179,7 @@ test('test expr with $divide', async () => {
   const object = await Proto.Query('Test').insert({ number: 10 });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -190,7 +190,7 @@ test('test expr with $divide', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })
 
@@ -199,7 +199,7 @@ test('test expr with $subtract', async () => {
   const object = await Proto.Query('Test').insert({ number: 10 });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -210,7 +210,7 @@ test('test expr with $subtract', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })
 
@@ -219,7 +219,7 @@ test('test expr with $atan2', async () => {
   const object = await Proto.Query('Test').insert({ y: 1, x: 1 });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -230,7 +230,7 @@ test('test expr with $atan2', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })
 
@@ -239,7 +239,7 @@ test('test expr with $abs', async () => {
   const object = await Proto.Query('Test').insert({ number: -5 });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -250,7 +250,7 @@ test('test expr with $abs', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })
 
@@ -259,7 +259,7 @@ test('test expr with $neg', async () => {
   const object = await Proto.Query('Test').insert({ number: 5 });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -270,7 +270,7 @@ test('test expr with $neg', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })
 
@@ -279,7 +279,7 @@ test('test expr with $sqrt', async () => {
   const object = await Proto.Query('Test').insert({ number: 9 });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -290,7 +290,7 @@ test('test expr with $sqrt', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })
 
@@ -299,7 +299,7 @@ test('test expr with $cbrt', async () => {
   const object = await Proto.Query('Test').insert({ number: 8 });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -310,7 +310,7 @@ test('test expr with $cbrt', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })
 
@@ -319,7 +319,7 @@ test('test expr with $ceil', async () => {
   const object = await Proto.Query('Test').insert({ number: 4.2 });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -330,7 +330,7 @@ test('test expr with $ceil', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })
 
@@ -339,7 +339,7 @@ test('test expr with $floor', async () => {
   const object = await Proto.Query('Test').insert({ number: 4.8 });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -350,7 +350,7 @@ test('test expr with $floor', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })
 
@@ -359,7 +359,7 @@ test('test expr with $round', async () => {
   const object = await Proto.Query('Test').insert({ number: 3.5 });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -370,7 +370,7 @@ test('test expr with $round', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })
 
@@ -379,7 +379,7 @@ test('test expr with $exp', async () => {
   const object = await Proto.Query('Test').insert({ number: 1 });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -390,7 +390,7 @@ test('test expr with $exp', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })
 
@@ -399,7 +399,7 @@ test('test expr with $ln', async () => {
   const object = await Proto.Query('Test').insert({ number: Math.E });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -410,7 +410,7 @@ test('test expr with $ln', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })
 
@@ -419,7 +419,7 @@ test('test expr with $log2', async () => {
   const object = await Proto.Query('Test').insert({ number: 8 });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -430,7 +430,7 @@ test('test expr with $log2', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })
 
@@ -439,7 +439,7 @@ test('test expr with $log10', async () => {
   const object = await Proto.Query('Test').insert({ number: 100 });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -450,7 +450,7 @@ test('test expr with $log10', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })
 
@@ -459,7 +459,7 @@ test('test expr with $sin', async () => {
   const object = await Proto.Query('Test').insert({ number: Math.PI / 2 });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -470,7 +470,7 @@ test('test expr with $sin', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })
 
@@ -479,7 +479,7 @@ test('test expr with $cos', async () => {
   const object = await Proto.Query('Test').insert({ number: Math.PI });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -490,7 +490,7 @@ test('test expr with $cos', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })
 
@@ -499,7 +499,7 @@ test('test expr with $tan', async () => {
   const object = await Proto.Query('Test').insert({ number: Math.PI / 4 });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -510,7 +510,7 @@ test('test expr with $tan', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })
 
@@ -519,7 +519,7 @@ test('test expr with $asin', async () => {
   const object = await Proto.Query('Test').insert({ number: 1 });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -530,7 +530,7 @@ test('test expr with $asin', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })
 
@@ -539,7 +539,7 @@ test('test expr with $acos', async () => {
   const object = await Proto.Query('Test').insert({ number: 1 });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -550,7 +550,7 @@ test('test expr with $acos', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })
 
@@ -559,7 +559,7 @@ test('test expr with $atan', async () => {
   const object = await Proto.Query('Test').insert({ number: 1 });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -570,7 +570,7 @@ test('test expr with $atan', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })
 
@@ -579,7 +579,7 @@ test('test expr with $asinh', async () => {
   const object = await Proto.Query('Test').insert({ number: 1 });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -590,7 +590,7 @@ test('test expr with $asinh', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })
 
@@ -599,7 +599,7 @@ test('test expr with $acosh', async () => {
   const object = await Proto.Query('Test').insert({ number: 2 });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -610,7 +610,7 @@ test('test expr with $acosh', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })
 
@@ -619,7 +619,7 @@ test('test expr with $atanh', async () => {
   const object = await Proto.Query('Test').insert({ number: 0.5 });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -630,7 +630,7 @@ test('test expr with $atanh', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })
 
@@ -639,7 +639,7 @@ test('test expr with $sinh', async () => {
   const object = await Proto.Query('Test').insert({ number: 1 });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -650,7 +650,7 @@ test('test expr with $sinh', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })
 
@@ -659,7 +659,7 @@ test('test expr with $cosh', async () => {
   const object = await Proto.Query('Test').insert({ number: 1 });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -670,7 +670,7 @@ test('test expr with $cosh', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })
 
@@ -679,7 +679,7 @@ test('test expr with $tanh', async () => {
   const object = await Proto.Query('Test').insert({ number: 1 });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -690,7 +690,7 @@ test('test expr with $tanh', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })
 
@@ -699,7 +699,7 @@ test('test expr with $degrees', async () => {
   const object = await Proto.Query('Test').insert({ number: Math.PI });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -710,7 +710,7 @@ test('test expr with $degrees', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })
 
@@ -719,7 +719,7 @@ test('test expr with $radians', async () => {
   const object = await Proto.Query('Test').insert({ number: 180 });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -730,7 +730,7 @@ test('test expr with $radians', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })
 
@@ -739,7 +739,7 @@ test('test expr with $sign', async () => {
   const object = await Proto.Query('Test').insert({ number: -5 });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -750,7 +750,7 @@ test('test expr with $sign', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })
 
@@ -759,7 +759,7 @@ test('test expr with $size', async () => {
   const object = await Proto.Query('Test').insert({ string: 'Hello' });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -770,7 +770,7 @@ test('test expr with $size', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })
 
@@ -779,7 +779,7 @@ test('test expr with $lower', async () => {
   const object = await Proto.Query('Test').insert({ string: 'HELLO' });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -790,7 +790,7 @@ test('test expr with $lower', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })
 
@@ -799,7 +799,7 @@ test('test expr with $upper', async () => {
   const object = await Proto.Query('Test').insert({ string: 'hello' });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -810,7 +810,7 @@ test('test expr with $upper', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })
 
@@ -818,7 +818,7 @@ test('test expr with $trim', async () => {
   const object = await Proto.Query('Test').insert({ string: '  Hello  ' });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -829,14 +829,14 @@ test('test expr with $trim', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 });
 
 test('test expr with $ltrim', async () => {
   const object = await Proto.Query('Test').insert({ string: '  Hello' });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -847,14 +847,14 @@ test('test expr with $ltrim', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 });
 
 test('test expr with $rtrim', async () => {
   const object = await Proto.Query('Test').insert({ string: 'Hello  ' });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -865,14 +865,14 @@ test('test expr with $rtrim', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 });
 
 test('test expr with $first', async () => {
   const object = await Proto.Query('Test').insert({ string: 'Hello' });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -883,14 +883,14 @@ test('test expr with $first', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 });
 
 test('test expr with $last', async () => {
   const object = await Proto.Query('Test').insert({ string: 'Hello' });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -901,14 +901,14 @@ test('test expr with $last', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 });
 
 test('test expr with $ldrop', async () => {
   const object = await Proto.Query('Test').insert({ string: 'Hello' });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -919,14 +919,14 @@ test('test expr with $ldrop', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 });
 
 test('test expr with $rdrop', async () => {
   const object = await Proto.Query('Test').insert({ string: 'Hello' });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -937,14 +937,14 @@ test('test expr with $rdrop', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 });
 
 test('test expr with $lpad', async () => {
   const object = await Proto.Query('Test').insert({ string: 'Hello' });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -955,14 +955,14 @@ test('test expr with $lpad', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 });
 
 test('test expr with $rpad', async () => {
   const object = await Proto.Query('Test').insert({ string: 'Hello' });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -973,7 +973,7 @@ test('test expr with $rpad', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 });
 
 test('test expr with $cond', async () => {
@@ -981,7 +981,7 @@ test('test expr with $cond', async () => {
   const object = await Proto.Query('Test').insert({ number: 5 });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', object.objectId)
+    .equalTo('_id', object.id)
     .filter({
       $expr: {
         $eq: [
@@ -1000,6 +1000,6 @@ test('test expr with $cond', async () => {
     })
     .first();
 
-  expect(result?.objectId).toBe(object.objectId);
+  expect(result?.id).toBe(object.id);
 
 })

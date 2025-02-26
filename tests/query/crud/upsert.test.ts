@@ -72,7 +72,7 @@ test('test upsert', async () => {
       },
     });
 
-  expect(upserted.objectId).toBeTruthy();
+  expect(upserted.id).toBeTruthy();
   expect(upserted.__v).toStrictEqual(0);
 
   expect(upserted.get('boolean')).toStrictEqual(true);
@@ -108,7 +108,7 @@ test('test upsert 2', async () => {
   const date = new Date;
   const inserted = await Proto.Query('Test').insert({});
   const upserted = await Proto.Query('Test')
-    .equalTo('_id', inserted.objectId)
+    .equalTo('_id', inserted.id)
     .upsertOne({
       boolean: { $set: true },
       number: { $set: 42.5 },
@@ -142,7 +142,7 @@ test('test upsert 2', async () => {
       'shape.array': { $set: [1, 2, 3, date, new Decimal('0.001')] },
     }, { string: 'insert' });
 
-  expect(upserted.objectId).toStrictEqual(inserted.objectId);
+  expect(upserted.id).toStrictEqual(inserted.id);
   expect(upserted.__v).toStrictEqual(1);
 
   expect(upserted.get('boolean')).toStrictEqual(true);

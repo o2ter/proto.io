@@ -42,6 +42,6 @@ export const encodeRelation = (
     SELECT 1
     FROM ${{ identifier: relatedBy.className }} AS ${{ identifier: name }}
     ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
-    WHERE ${_foreign('_id')} = ${{ value: relatedBy.objectId }} AND ${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ANY(${field})
+    WHERE ${_foreign('_id')} = ${{ value: relatedBy.id }} AND ${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ANY(${field})
   )`;
 }

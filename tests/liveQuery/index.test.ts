@@ -40,7 +40,7 @@ test('test live query', async () => {
 
   const result = new Promise<string>(res => {
     const { remove } = sub.on('create', (obj) => {
-      res(obj.objectId!);
+      res(obj.id!);
       remove();
     });
   });
@@ -50,5 +50,5 @@ test('test live query', async () => {
   const obj = Proto.Object('Test');
   await obj.save();
 
-  expect(await result).toEqual(obj.objectId);
+  expect(await result).toEqual(obj.id);
 })

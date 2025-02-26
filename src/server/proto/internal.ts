@@ -232,9 +232,9 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
   }
 
   async varifyPassword(proto: P, user: TUser, password: string, options: ExtraOptions<true>) {
-    if (!user.objectId) throw Error('Invalid user object');
+    if (!user.id) throw Error('Invalid user object');
     const _user = await proto.InsecureQuery('User')
-      .equalTo('_id', user.objectId)
+      .equalTo('_id', user.id)
       .includes('_id', 'password')
       .first(options);
     const { alg, ...opts } = _user?.get('password') ?? {};
@@ -242,12 +242,12 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
   }
 
   async setPassword(proto: P, user: TUser, password: string, options: ExtraOptions<true>) {
-    if (!user.objectId) throw Error('Invalid user object');
+    if (!user.id) throw Error('Invalid user object');
     if (_.isEmpty(password)) throw Error('Invalid password');
     const { alg, ...opts } = this.options.passwordHashOptions;
     const hashed = await passwordHash(alg, password, opts);
     await proto.InsecureQuery('User')
-      .equalTo('_id', user.objectId)
+      .equalTo('_id', user.id)
       .includes('_id')
       .updateOne({
         password: { $set: hashed },
@@ -255,9 +255,9 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
   }
 
   async unsetPassword(proto: P, user: TUser, options: ExtraOptions<true>) {
-    if (!user.objectId) throw Error('Invalid user object');
+    if (!user.id) throw Error('Invalid user object');
     await proto.InsecureQuery('User')
-      .equalTo('_id', user.objectId)
+      .equalTo('_id', user.id)
       .includes('_id')
       .updateOne({
         password: { $set: {} },
@@ -271,7 +271,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     }
 
     const updated = await proto.Query(object.className)
-      .equalTo('_id', object.objectId)
+      .equalTo('_id', object.id)
       .includes(...object.keys())
       .updateOne(object[PVK].mutated, options);
 
@@ -376,7 +376,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
   }
 
   async saveFile(proto: P, object: TFile, options?: ExtraOptions<boolean>) {
-    if (object.objectId) {
+    if (object.id) {
       object = await this.updateFile(proto, object, options);
     } else {
       object = await this.createFile(proto, object, options);
@@ -389,7 +389,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     object = await object.fetchIfNeeded(['token'], options);
 
     const deleted = await proto.Query('File')
-      .equalTo('_id', object.objectId)
+      .equalTo('_id', object.id)
       .deleteOne(options);
 
     if (deleted) {

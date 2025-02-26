@@ -47,7 +47,7 @@ test('test group matches percentile', async () => {
   });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', parent.objectId)
+    .equalTo('_id', parent.id)
     .groupMatches('relation', {
       value: {
         $percentile: {
@@ -76,7 +76,7 @@ test('test group matches percentile 2', async () => {
   });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', parent.objectId)
+    .equalTo('_id', parent.id)
     .groupMatches('relation', {
       value: {
         $percentile: {
@@ -105,7 +105,7 @@ test('test group matches percentile 3', async () => {
   });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', parent.objectId)
+    .equalTo('_id', parent.id)
     .groupMatches('relation', {
       value: {
         $percentile: {

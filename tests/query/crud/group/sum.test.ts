@@ -47,7 +47,7 @@ test('test group matches sum', async () => {
   });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', parent.objectId)
+    .equalTo('_id', parent.id)
     .groupMatches('relation', {
       value: { $sum: { $key: 'number' } },
     })
@@ -69,7 +69,7 @@ test('test group matches sum 2', async () => {
   }
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', parent.objectId)
+    .equalTo('_id', parent.id)
     .groupMatches('relation2', {
       value: { $sum: { $key: 'number' } },
     })
@@ -94,7 +94,7 @@ test('test group matches sum 3', async () => {
   });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', parent.objectId)
+    .equalTo('_id', parent.id)
     .groupMatches('shape.relation', {
       value: { $sum: { $key: 'number' } },
     })
@@ -115,7 +115,7 @@ test('test group matches sum 4', async () => {
   }
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', parent.objectId)
+    .equalTo('_id', parent.id)
     .groupMatches('shape.relation2', {
       value: { $sum: { $key: 'number' } },
     })
@@ -142,7 +142,7 @@ test('test group matches sum 5', async () => {
   });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', parent2.objectId)
+    .equalTo('_id', parent2.id)
     .groupMatches('pointer.relation', {
       value: { $sum: { $key: 'number' } },
     })
@@ -167,7 +167,7 @@ test('test group matches sum 6', async () => {
   });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', parent2.objectId)
+    .equalTo('_id', parent2.id)
     .groupMatches('pointer.relation2', {
       value: { $sum: { $key: 'number' } },
     })
@@ -196,7 +196,7 @@ test('test group matches sum 7', async () => {
   });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', parent2.objectId)
+    .equalTo('_id', parent2.id)
     .groupMatches('pointer.shape.relation', {
       value: { $sum: { $key: 'number' } },
     })
@@ -221,7 +221,7 @@ test('test group matches sum 8', async () => {
   });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', parent2.objectId)
+    .equalTo('_id', parent2.id)
     .groupMatches('pointer.shape.relation2', {
       value: { $sum: { $key: 'number' } },
     })
@@ -244,7 +244,7 @@ test('test group matches sum 9', async () => {
   });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', parent.objectId)
+    .equalTo('_id', parent.id)
     .some('relation', q => q.equalTo('number', 42))
     .groupMatches('relation', {
       value: { $sum: { $key: 'decimal' } },
@@ -254,7 +254,7 @@ test('test group matches sum 9', async () => {
   expect(result?.get('relation.value')?.toNumber()).toBe(15);
 
   const result2 = await Proto.Query('Test')
-    .equalTo('_id', parent.objectId)
+    .equalTo('_id', parent.id)
     .every('relation', q => q.equalTo('number', 42))
     .groupMatches('relation', {
       value: { $sum: { $key: 'decimal' } },
@@ -264,7 +264,7 @@ test('test group matches sum 9', async () => {
   expect(result2?.get('relation.value')).toBeUndefined();
 
   const result3 = await Proto.Query('Test')
-    .equalTo('_id', parent.objectId)
+    .equalTo('_id', parent.id)
     .match('relation', q => q.equalTo('number', 42))
     .groupMatches('relation', {
       value: { $sum: { $key: 'decimal' } },
@@ -274,7 +274,7 @@ test('test group matches sum 9', async () => {
   expect(result3?.get('relation.value')?.toNumber()).toBe(8);
 
   const result4 = await Proto.Query('Test')
-    .equalTo('_id', parent.objectId)
+    .equalTo('_id', parent.id)
     .match('relation', q => q.equalTo('number', 42))
     .equalTo('relation.value', 8)
     .groupMatches('relation', {
@@ -285,7 +285,7 @@ test('test group matches sum 9', async () => {
   expect(result4?.get('relation.value')?.toNumber()).toBe(8);
 
   const result5 = await Proto.Query('Test')
-    .equalTo('_id', parent.objectId)
+    .equalTo('_id', parent.id)
     .match('relation', q => q.equalTo('number', 42))
     .equalTo('relation.value', 15)
     .groupMatches('relation', {
@@ -296,7 +296,7 @@ test('test group matches sum 9', async () => {
   expect(result5?.get('relation.value')).toBeUndefined();
 
   const result6 = await Proto.Query('Test')
-    .equalTo('_id', parent.objectId)
+    .equalTo('_id', parent.id)
     .match('relation', q => q.equalTo('number', 42))
     .notEmpty('relation')
     .groupMatches('relation', {
@@ -307,7 +307,7 @@ test('test group matches sum 9', async () => {
   expect(result6?.get('relation.value')?.toNumber()).toBe(8);
 
   const result7 = await Proto.Query('Test')
-    .equalTo('_id', parent.objectId)
+    .equalTo('_id', parent.id)
     .match('relation', q => q.equalTo('number', 42))
     .empty('relation')
     .groupMatches('relation', {

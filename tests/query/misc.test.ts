@@ -36,6 +36,6 @@ const Proto = new ProtoClient({
 
 test('test field name', async () => {
   const inserted = await Proto.Query('Test').insert({ '_test_field-name_01': 'hello' });
-  expect(inserted.objectId).toBeTruthy();
+  expect(inserted.id).toBeTruthy();
   expect(inserted.get('_test_field-name_01')).toStrictEqual('hello');
 })

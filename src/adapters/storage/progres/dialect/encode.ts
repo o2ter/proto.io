@@ -90,11 +90,11 @@ export const encodeType = (colname: string, dataType: TSchema.DataType, value: T
       if (!_.isArray(value)) break;
       return sql`ARRAY[${_.map(value, x => _encodeJsonValue(_encodeValue(x)))}]::JSONB[]`;
     case 'pointer':
-      if (value instanceof TObject && value.objectId) return sql`${{ value: `${value.className}$${value.objectId}` }}`;
+      if (value instanceof TObject && value.id) return sql`${{ value: `${value.className}$${value.id}` }}`;
       break;
     case 'relation':
-      if (_.isArray(value) && _.every(value, x => x instanceof TObject && x.objectId)) {
-        return sql`${{ value: _.uniq(_.map(value, (x: TObject) => `${x.className}$${x.objectId}`)) }}`;
+      if (_.isArray(value) && _.every(value, x => x instanceof TObject && x.id)) {
+        return sql`${{ value: _.uniq(_.map(value, (x: TObject) => `${x.className}$${x.id}`)) }}`;
       }
       break;
     default: break;

@@ -166,9 +166,9 @@ export const signUser = async <E>(
     sessionId: session?.sessionId ?? randomUUID(),
     createdAt: session?.createdAt?.getTime() ?? Date.now(),
     loginedAt: user ? session?.loginedAt?.getTime() ?? Date.now() : undefined,
-    user: user?.objectId,
+    user: user?.id,
     cookieOptions,
   }, options?.jwtSignOptions ?? 'login');
   res.cookie(AUTH_COOKIE_KEY, token, cookieOptions);
-  sessionInfoMap.set(res.req, user ? await fetchSessionInfo(proto, user.objectId) : {});
+  sessionInfoMap.set(res.req, user ? await fetchSessionInfo(proto, user.id) : {});
 }

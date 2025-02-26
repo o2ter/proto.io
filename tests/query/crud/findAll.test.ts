@@ -47,5 +47,5 @@ test('test findAll', async () => {
   const result = await Proto.Query('Test').equalTo('string', 'findAll').findAll({ batchSize: 2 });
 
   expect(result.length).toStrictEqual(5);
-  expect(_.uniqBy(result, x => x.objectId).length).toStrictEqual(5);
+  expect(_.uniqBy(result, x => x.id).length).toStrictEqual(5);
 })

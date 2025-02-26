@@ -99,7 +99,7 @@ export abstract class SqlStorage implements TStorage {
         const _value = _.get(value, path);
         if (_.isPlainObject(_value)) {
           const decoded = this._decodeObject(type.target, _value, matchType);
-          if (decoded.objectId) _.set(result, path, decoded);
+          if (decoded.id) _.set(result, path, decoded);
         }
       } else if (isRelation(type)) {
         const _value = _.get(value, path);
@@ -131,7 +131,7 @@ export abstract class SqlStorage implements TStorage {
       } else if (isPointer(dataType)) {
         if (_.isPlainObject(value)) {
           const decoded = this._decodeObject(dataType.target, value, matchType);
-          if (decoded.objectId) obj[PVK].attributes[key] = decoded;
+          if (decoded.id) obj[PVK].attributes[key] = decoded;
         }
       } else if (isRelation(dataType)) {
         if (_.isArray(value)) obj[PVK].attributes[key] = value.map(x => this._decodeObject(dataType.target, x, matchType));
@@ -232,7 +232,7 @@ export abstract class SqlStorage implements TStorage {
       SELECT *
       FROM (${this._refs(
       _.pick(this.schema, classNames), object.className, TObject.defaultKeys,
-      sql`${{ value: `${object.className}$${object.objectId}` }}`,
+        sql`${{ value: `${object.className}$${object.id}` }}`,
     )}) AS "$"
       ${_.isNil(roles) ? sql`` : sql`WHERE ${{ identifier: '$' }}.${{ identifier: '_rperm' }} && ${{ value: roles }}`}
     `;

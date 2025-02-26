@@ -53,8 +53,8 @@ export const encodeFieldExpression = (
         if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldSelectorExpression) break;
         if (_.isNil(expr.value)) return sql`${element} IS NULL`;
         if (!_.isString(dataType) && dataType?.type === 'pointer') {
-          if (!(expr.value instanceof TObject) || dataType.target !== expr.value.className || !expr.value.objectId) break;
-          return sql`${element} ${nullSafeEqual()} ${{ value: expr.value.objectId }}`;
+          if (!(expr.value instanceof TObject) || dataType.target !== expr.value.className || !expr.value.id) break;
+          return sql`${element} ${nullSafeEqual()} ${{ value: expr.value.id }}`;
         }
         return sql`${element} ${nullSafeEqual()} ${encodeValue(expr.value)}`;
       }
@@ -63,8 +63,8 @@ export const encodeFieldExpression = (
         if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldSelectorExpression) break;
         if (_.isNil(expr.value)) return sql`${element} IS NOT NULL`;
         if (!_.isString(dataType) && dataType?.type === 'pointer') {
-          if (!(expr.value instanceof TObject) || dataType.target !== expr.value.className || !expr.value.objectId) break;
-          return sql`${element} ${nullSafeNotEqual()} ${{ value: expr.value.objectId }}`;
+          if (!(expr.value instanceof TObject) || dataType.target !== expr.value.className || !expr.value.id) break;
+          return sql`${element} ${nullSafeNotEqual()} ${{ value: expr.value.id }}`;
         }
         return sql`${element} ${nullSafeNotEqual()} ${encodeValue(expr.value)}`;
       }
@@ -100,8 +100,8 @@ export const encodeFieldExpression = (
               return sql`${element} ${{ literal: op }} ${encodeValue(expr.value)}`;
             default: break;
           }
-        } else if (!_.isString(dataType) && dataType?.type === 'pointer' && expr.value instanceof TObject && expr.value.objectId) {
-          return sql`${element} ${{ literal: op }} ${{ value: expr.value.objectId }}`;
+        } else if (!_.isString(dataType) && dataType?.type === 'pointer' && expr.value instanceof TObject && expr.value.id) {
+          return sql`${element} ${{ literal: op }} ${{ value: expr.value.id }}`;
         } else if (!dataType) {
           if (expr.value instanceof Decimal || _.isNumber(expr.value)) {
             return sql`(
@@ -132,8 +132,8 @@ export const encodeFieldExpression = (
               const value = expr.value[0];
               if (!_.isString(dataType) && dataType?.type === 'pointer') {
                 if (_.isNil(value)) return sql`${element} IS NULL`;
-                if (!(value instanceof TObject) || dataType.target !== value.className || !value.objectId) break;
-                return sql`${element} ${nullSafeEqual()} ${{ value: value.objectId }}`;
+                if (!(value instanceof TObject) || dataType.target !== value.className || !value.id) break;
+                return sql`${element} ${nullSafeEqual()} ${{ value: value.id }}`;
               }
               return sql`${element} ${nullSafeEqual()} ${encodeValue(value)}`;
             }
@@ -141,11 +141,11 @@ export const encodeFieldExpression = (
             const containsNil = _.some(expr.value, x => _.isNil(x));
             const values = _.filter(expr.value, x => !_.isNil(x));
             if (!_.isString(dataType) && dataType?.type === 'pointer') {
-              if (!_.every(values, x => x instanceof TObject && dataType.target === x.className && x.objectId)) break;
+              if (!_.every(values, x => x instanceof TObject && dataType.target === x.className && x.id)) break;
               if (containsNil) {
-                return sql`${element} IS NULL OR ${element} IN (${_.map(values, (x: any) => sql`${{ value: x.objectId }}`)})`;
+                return sql`${element} IS NULL OR ${element} IN (${_.map(values, (x: any) => sql`${{ value: x.id }}`)})`;
               }
-              return sql`${element} IN (${_.map(values, (x: any) => sql`${{ value: x.objectId }}`)})`;
+              return sql`${element} IN (${_.map(values, (x: any) => sql`${{ value: x.id }}`)})`;
             }
             if (containsNil) {
               return sql`${element} IS NULL OR ${element} IN (${_.map(values, x => encodeValue(x))})`;
@@ -164,8 +164,8 @@ export const encodeFieldExpression = (
               const value = expr.value[0];
               if (!_.isString(dataType) && dataType?.type === 'pointer') {
                 if (_.isNil(value)) return sql`${element} IS NOT NULL`;
-                if (!(value instanceof TObject) || dataType.target !== value.className || !value.objectId) break;
-                return sql`${element} ${nullSafeNotEqual()} ${{ value: value.objectId }}`;
+                if (!(value instanceof TObject) || dataType.target !== value.className || !value.id) break;
+                return sql`${element} ${nullSafeNotEqual()} ${{ value: value.id }}`;
               }
               return sql`${element} ${nullSafeNotEqual()} ${encodeValue(value)}`;
             }
@@ -173,11 +173,11 @@ export const encodeFieldExpression = (
             const containsNil = _.some(expr.value, x => _.isNil(x));
             const values = _.filter(expr.value, x => !_.isNil(x));
             if (!_.isString(dataType) && dataType?.type === 'pointer') {
-              if (!_.every(values, x => x instanceof TObject && dataType.target === x.className && x.objectId)) break;
+              if (!_.every(values, x => x instanceof TObject && dataType.target === x.className && x.id)) break;
               if (containsNil) {
-                return sql`${element} IS NOT NULL AND ${element} NOT IN (${_.map(values, (x: any) => sql`${{ value: x.objectId }}`)})`;
+                return sql`${element} IS NOT NULL AND ${element} NOT IN (${_.map(values, (x: any) => sql`${{ value: x.id }}`)})`;
               }
-              return sql`${element} NOT IN (${_.map(values, (x: any) => sql`${{ value: x.objectId }}`)})`;
+              return sql`${element} NOT IN (${_.map(values, (x: any) => sql`${{ value: x.id }}`)})`;
             }
             if (containsNil) {
               return sql`${element} IS NOT NULL AND ${element} NOT IN (${_.map(values, x => encodeValue(x))})`;
@@ -207,13 +207,13 @@ export const encodeFieldExpression = (
           return sql`${element} ${{ literal: op }} ${{ value: _encodeValue(expr.value) }}`;
         }
         if (relation && parent.className) {
-          if (!_.every(expr.value, x => x instanceof TObject && relation.target === x.className && x.objectId)) break;
+          if (!_.every(expr.value, x => x instanceof TObject && relation.target === x.className && x.id)) break;
           const tempName = `_populate_expr_$${compiler.nextIdx()}`;
           const populate = _selectRelationPopulate(compiler, { className: parent.className, name: parent.name }, relation.populate, `$${field}`, false);
           return sql`ARRAY(
             SELECT ${{ identifier: '_id' }}
             FROM (${populate}) AS ${{ identifier: tempName }}
-          ) ${{ literal: op }} ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.objectId }}`)}]::TEXT[]`;
+          ) ${{ literal: op }} ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: x.id }}`)}]::TEXT[]`;
         }
         if (!dataType) {
           return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'array' AND ${element} ${{ literal: op }} ${_encodeJsonValue(_encodeValue(expr.value))}`;

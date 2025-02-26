@@ -52,7 +52,7 @@ test('test each batch', async () => {
   }, { batchSize: 2 });
 
   expect(result.length).toStrictEqual(5);
-  expect(_.uniqBy(result, x => x.objectId).length).toStrictEqual(5);
+  expect(_.uniqBy(result, x => x.id).length).toStrictEqual(5);
   expect(counter).toStrictEqual(3);
 })
 test('test each batch 2', async () => {
@@ -73,7 +73,7 @@ test('test each batch 2', async () => {
   }, { batchSize: 2 });
 
   expect(result.length).toStrictEqual(5);
-  expect(_.uniqBy(result, x => x.objectId).length).toStrictEqual(5);
+  expect(_.uniqBy(result, x => x.id).length).toStrictEqual(5);
   expect(_.map(result, x => x.get('number'))).toStrictEqual([1, 2, 3, 4, 5]);
   expect(counter).toStrictEqual(3);
 })
@@ -96,7 +96,7 @@ test('test each batch 3', async () => {
   }, { batchSize: 2 });
 
   expect(result.length).toStrictEqual(5);
-  expect(_.uniqBy(result, x => x.objectId).length).toStrictEqual(5);
+  expect(_.uniqBy(result, x => x.id).length).toStrictEqual(5);
   expect(_.map(result, x => x.get('number')).sort((a, b) => a - b)).toStrictEqual([1, 2, 3, 4, 5]);
   expect(counter).toStrictEqual(3);
 })

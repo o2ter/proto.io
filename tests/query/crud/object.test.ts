@@ -42,8 +42,8 @@ test('test save keys', async () => {
   obj.set('shape', { pointer: inserted });
   await obj.save();
 
-  expect(obj.get('pointer')?.objectId).toStrictEqual(inserted.objectId);
-  expect(obj.get('shape.pointer')?.objectId).toStrictEqual(inserted.objectId);
+  expect(obj.get('pointer')?.id).toStrictEqual(inserted.id);
+  expect(obj.get('shape.pointer')?.id).toStrictEqual(inserted.id);
 })
 
 test('test save keys 2', async () => {
@@ -54,8 +54,8 @@ test('test save keys 2', async () => {
   obj.set('shape', { relation: [inserted] });
   await obj.save();
 
-  expect(obj.get('relation')?.[0]?.objectId).toStrictEqual(inserted.objectId);
-  expect(obj.get('shape.relation')?.[0]?.objectId).toStrictEqual(inserted.objectId);
+  expect(obj.get('relation')?.[0]?.id).toStrictEqual(inserted.id);
+  expect(obj.get('shape.relation')?.[0]?.id).toStrictEqual(inserted.id);
 })
 
 test('test save keys 3', async () => {

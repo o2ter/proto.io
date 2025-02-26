@@ -36,7 +36,7 @@ const Proto = new ProtoClient({
 
 test('test insert', async () => {
   const inserted = await Proto.Query('Test').insert({ string: 'hello', 'shape.string': 'hello' });
-  expect(inserted.objectId).toBeTruthy();
+  expect(inserted.id).toBeTruthy();
   expect(inserted.get('string')).toStrictEqual('hello');
   expect(inserted.get('shape.string')).toStrictEqual('hello');
 })
@@ -48,7 +48,7 @@ test('test insert 2', async () => {
 
   await obj.save();
 
-  expect(obj.objectId).toBeTruthy();
+  expect(obj.id).toBeTruthy();
   expect(obj.get('string')).toStrictEqual('hello');
   expect(obj.get('shape.string')).toStrictEqual('hello');
 })

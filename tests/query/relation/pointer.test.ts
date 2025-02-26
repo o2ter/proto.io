@@ -52,7 +52,7 @@ test('test pointer', async () => {
     array: [1, 2, 3, date, new Decimal('0.001')],
   });
   const updated = await Proto.Query('Test')
-    .equalTo('_id', inserted.objectId)
+    .equalTo('_id', inserted.id)
     .includes('pointer', 'pointer2', 'shape.pointer', 'shape.pointer2')
     .updateOne({
       pointer: { $set: inserted },
@@ -85,21 +85,21 @@ test('test pointer', async () => {
   expect(updated?.get('shape.pointer2.string')).toStrictEqual('hello');
   expect(updated?.get('shape.pointer2.date')).toStrictEqual(date);
 
-  const q = Proto.Query('Test').equalTo('_id', inserted.objectId).includes('pointer');
+  const q = Proto.Query('Test').equalTo('_id', inserted.id).includes('pointer');
 
-  expect((await q.clone().equalTo('pointer', inserted).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().equalTo('pointer.boolean', true).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().equalTo('pointer.number', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().equalTo('pointer.decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().equalTo('pointer.string', 'hello').first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().equalTo('pointer.date', date).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('pointer', inserted).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().equalTo('pointer.boolean', true).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().equalTo('pointer.number', 42.5).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().equalTo('pointer.decimal', new Decimal('0.001')).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().equalTo('pointer.string', 'hello').first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().equalTo('pointer.date', date).first())?.id).toStrictEqual(inserted.id);
 
-  expect((await q.clone().equalTo('shape.pointer', inserted).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().equalTo('shape.pointer.boolean', true).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().equalTo('shape.pointer.number', 42.5).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().equalTo('shape.pointer.decimal', new Decimal('0.001')).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().equalTo('shape.pointer.string', 'hello').first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().equalTo('shape.pointer.date', date).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('shape.pointer', inserted).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().equalTo('shape.pointer.boolean', true).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().equalTo('shape.pointer.number', 42.5).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().equalTo('shape.pointer.decimal', new Decimal('0.001')).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().equalTo('shape.pointer.string', 'hello').first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().equalTo('shape.pointer.date', date).first())?.id).toStrictEqual(inserted.id);
 })
 
 test('test pointer 2', async () => {
@@ -111,9 +111,9 @@ test('test pointer 2', async () => {
     },
   });
 
-  const q = Proto.Query('Test').equalTo('_id', inserted.objectId).includes('pointer');
+  const q = Proto.Query('Test').equalTo('_id', inserted.id).includes('pointer');
 
-  expect((await q.clone().equalTo('pointer', null).first())?.objectId).toStrictEqual(inserted.objectId);
-  expect((await q.clone().equalTo('shape.pointer', null).first())?.objectId).toStrictEqual(inserted.objectId);
+  expect((await q.clone().equalTo('pointer', null).first())?.id).toStrictEqual(inserted.id);
+  expect((await q.clone().equalTo('shape.pointer', null).first())?.id).toStrictEqual(inserted.id);
 
 })

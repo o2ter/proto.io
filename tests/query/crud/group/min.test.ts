@@ -47,7 +47,7 @@ test('test group matches min', async () => {
   });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', parent.objectId)
+    .equalTo('_id', parent.id)
     .groupMatches('relation', {
       value: { $min: { $key: 'number' } },
     })

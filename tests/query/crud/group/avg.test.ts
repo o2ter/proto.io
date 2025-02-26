@@ -47,7 +47,7 @@ test('test group matches avg', async () => {
   });
 
   const result = await Proto.Query('Test')
-    .equalTo('_id', parent.objectId)
+    .equalTo('_id', parent.id)
     .groupMatches('relation', {
       value: { $avg: { $key: 'number' } },
     })

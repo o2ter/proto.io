@@ -215,13 +215,13 @@ export const registerProtoSocket = <E>(
       const { remove: remove_livequery } = payload[PVK]._liveQuery(payload, (ev, objs) => {
         const ids: Record<string, string[]> = {};
         for (const obj of objs) {
-          ids[obj.objectId!] = _.keys(_.pickBy(queries, v => {
+          ids[obj.id!] = _.keys(_.pickBy(queries, v => {
             if (v.event !== ev || v.className !== obj.className) return false;
             return v.filter instanceof QuerySelector ? v.filter.eval(obj) : v.filter;
           }));
         }
         if (_.isEmpty(ids)) return;
-        const payload = JSON.parse(serialize(_.filter(objs, obj => !_.isEmpty(ids[obj.objectId!]))));
+        const payload = JSON.parse(serialize(_.filter(objs, obj => !_.isEmpty(ids[obj.id!]))));
         socket.emit('ON_EV_LIVEQUERY', { ids, data: payload });
       });
       return () => {
