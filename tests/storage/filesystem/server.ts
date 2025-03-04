@@ -76,7 +76,7 @@ const Proto = new ProtoService({
 
 Proto.define('generateUploadToken', async (proto) => {
   return proto.generateUploadToken({
-    attributes: proto.params as any,
+    attributes: proto.params,
   });
 });
 

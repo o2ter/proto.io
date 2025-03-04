@@ -112,7 +112,7 @@ Proto.define('createUser', async (proto) => {
 });
 
 Proto.define('createUserWithRole', async (proto) => {
-  const { role } = proto.params as any;
+  const { role } = proto.params;
   const _role = await proto.Query('Role').equalTo('name', role).first({ master: true }) ?? await proto.Query('Role').insert({ name: role }, { master: true });
   const user = await proto.Query('User').insert({ name: 'test' });
   _role.addToSet('users', [user]);

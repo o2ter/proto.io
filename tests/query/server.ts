@@ -279,7 +279,7 @@ const Proto = new ProtoService({
 Proto.define('currentRoles', async ({ currentRoles }) => currentRoles());
 
 Proto.define('createUserWithRole', async (proto) => {
-  const { role } = proto.params as any;
+  const { role } = proto.params;
   const _role = await proto.Query('Role').equalTo('name', role).first({ master: true }) ?? await proto.Query('Role').insert({ name: role }, { master: true });
   const user = await proto.Query('User').insert({});
   _role.addToSet('users', [user]);
@@ -288,7 +288,7 @@ Proto.define('createUserWithRole', async (proto) => {
 });
 
 Proto.define('updateWithTransaction', async (proto) => {
-  const { className, values, error } = proto.params as any;
+  const { className, values, error } = proto.params;
   try {
 
     await proto.withTransaction(async (proto) => {
@@ -306,7 +306,7 @@ Proto.define('updateWithTransaction', async (proto) => {
 });
 
 Proto.define('updateWithNestedTransaction', async (proto) => {
-  const { className, values, values2, error } = proto.params as any;
+  const { className, values, values2, error } = proto.params;
 
   await proto.withTransaction(async (proto) => {
 
@@ -327,7 +327,7 @@ Proto.define('updateWithNestedTransaction', async (proto) => {
 });
 
 Proto.define('updateWithLongTransaction', async (proto) => {
-  const { id } = proto.params as any;
+  const { id } = proto.params;
 
   return await proto.withTransaction(async (proto) => {
 
@@ -385,7 +385,7 @@ Proto.define('updateWithLongTransaction3', async (proto) => {
 });
 
 Proto.define('updateWithTransactionSession', async (proto) => {
-  const { className, values, error } = proto.params as any;
+  const { className, values, error } = proto.params;
   try {
 
     await proto.withTransaction(async (proto) => {
@@ -403,7 +403,7 @@ Proto.define('updateWithTransactionSession', async (proto) => {
 });
 
 Proto.define('updateWithNestedTransactionSession', async (proto) => {
-  const { className, values, values2, error } = proto.params as any;
+  const { className, values, values2, error } = proto.params;
 
   await proto.withTransaction(async (proto) => {
 
@@ -424,7 +424,7 @@ Proto.define('updateWithNestedTransactionSession', async (proto) => {
 });
 
 Proto.define('updateWithLongTransactionSession', async (proto) => {
-  const { id } = proto.params as any;
+  const { id } = proto.params;
 
   return await proto.withTransaction(async (proto) => {
 
@@ -483,7 +483,7 @@ Proto.define('updateWithLongTransactionSession3', async (proto) => {
 
 Proto.define('updateWithAtomic', async (proto) => {
 
-  const { inserted } = proto.params as any;
+  const { inserted } = proto.params;
 
   while (true) {
     const doc = await inserted.clone().fetchWithInclude(['number']);
@@ -503,7 +503,7 @@ Proto.define('updateWithAtomic', async (proto) => {
 
 Proto.define('updateWithAtomic2', async (proto) => {
 
-  const { inserted } = proto.params as any;
+  const { inserted } = proto.params;
 
   while (true) {
     const doc = await inserted.clone().fetchWithInclude(['number']);
