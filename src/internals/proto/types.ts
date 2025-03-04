@@ -42,7 +42,7 @@ type Callback<T, R, E> = (request: ProtoService<E> & T) => Awaitable<R>;
  * @param request - The request object.
  * @returns An awaitable response.
  */
-export type ProtoFunction<E> = Callback<{ params: TSerializable; }, void | TSerializable, E>;
+export type ProtoFunction<E, P extends TSerializable, R extends TSerializable | void> = Callback<{ params: P; }, R, E>;
 
 /**
  * A trigger callback function type.
@@ -56,8 +56,8 @@ export type ProtoTriggerFunction<T, E> = Callback<{ object: TObjectType<T, E>; }
  * @param request - The request object.
  * @returns An awaitable response.
  */
-export type ProtoJobFunction<E> = Callback<{
-  params: TValueWithoutObject;
+export type ProtoJobFunction<E, P extends TValueWithoutObject> = Callback<{
+  params: P;
   user?: TUser;
   job: TObjectType<'_Job', E>;
 }, void, E>;
@@ -94,7 +94,7 @@ export type ProtoFunctionOptions<E> = {
   /**
    * The callback function for the proto function.
    */
-  callback: ProtoFunction<E>;
+  callback: ProtoFunction<E, any, any>;
 
   /**
    * Optional validator for the proto function.
@@ -109,7 +109,7 @@ export type ProtoJobFunctionOptions<E> = {
   /**
    * The callback function for the proto job function.
    */
-  callback: ProtoJobFunction<E>;
+  callback: ProtoJobFunction<E, any>;
 
   /**
    * Optional scopes for the proto job function.

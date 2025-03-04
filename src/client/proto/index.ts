@@ -75,16 +75,16 @@ export class ProtoClient<Ext = any> extends ProtoType<Ext> {
     await this[PVK].setConfig(values, options);
   }
 
-  run(
+  run<R extends TSerializable | void = any>(
     name: string,
     data?: TSerializable,
     options?: RequestOptions<boolean>
-  ): Promise<void | TSerializable> {
+  ) {
     return this[PVK].request(this, data, {
       method: 'post',
       url: `functions/${encodeURIComponent(name)}`,
       ...(options ?? {})
-    });
+    }) as Promise<R>;
   }
 
   scheduleJob(

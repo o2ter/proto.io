@@ -158,13 +158,13 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
 
   options: Required<ProtoServiceOptions<Ext>> & ProtoServiceKeyOptions;
 
-  functions: Record<string, ProtoFunction<Ext> | ProtoFunctionOptions<Ext>> = {};
+  functions: Record<string, ProtoFunction<Ext, any, any> | ProtoFunctionOptions<Ext>> = {};
   triggers: Record<string, {
     create: ProtoTriggerFunction<any, Ext>[];
     update: ProtoTriggerFunction<any, Ext>[];
     delete: ProtoTriggerFunction<any, Ext>[];
   }> = {};
-  jobs: Record<string, ProtoJobFunction<Ext> | ProtoJobFunctionOptions<Ext>> = {};
+  jobs: Record<string, ProtoJobFunction<Ext, any> | ProtoJobFunctionOptions<Ext>> = {};
 
   jobRunner = new JobRunner<Ext, P>();
 
@@ -640,7 +640,7 @@ class JobRunner<Ext, P extends ProtoService<Ext>> {
       .first({ master: true });
   }
 
-  private async startJob(proto: P, job: TJob, opt: ProtoJobFunction<Ext> | ProtoJobFunctionOptions<Ext>) {
+  private async startJob(proto: P, job: TJob, opt: ProtoJobFunction<Ext, any> | ProtoJobFunctionOptions<Ext>) {
     await proto.withTransaction(async (session) => {
       for (const scope of _.isFunction(opt) ? [] : opt.scopes ?? []) {
         const obj = session.Object('_JobScope');
@@ -659,7 +659,7 @@ class JobRunner<Ext, P extends ProtoService<Ext>> {
     } catch (e) { }
   }
 
-  private async executeJobFunction(proto: P, job: TJob, opt: ProtoJobFunction<Ext> | ProtoJobFunctionOptions<Ext>) {
+  private async executeJobFunction(proto: P, job: TJob, opt: ProtoJobFunction<Ext, any> | ProtoJobFunctionOptions<Ext>) {
     const payload = Object.setPrototypeOf({ params: job.data, user: job.user, job }, this);
     const func = _.isFunction(opt) ? opt : opt.callback;
     await func(proxy(payload));

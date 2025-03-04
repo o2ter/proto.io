@@ -170,7 +170,11 @@ export abstract class ProtoType<Ext> {
    * @param options - Additional options for running the function.
    * @returns A promise that resolves to the result of the function.
    */
-  abstract run(name: string, data?: TSerializable, options?: ExtraOptions<boolean>): Promise<void | TSerializable>;
+  abstract run<R extends TSerializable | void = any>(
+    name: string,
+    data?: TSerializable,
+    options?: ExtraOptions<boolean>
+  ): Promise<R>;
 
   /**
    * Schedules a job.
@@ -382,9 +386,9 @@ export interface ProtoType<Ext> {
    * @param callback - The function callback.
    * @param options - Optional function options excluding the callback.
    */
-  define(
+  define<P extends TSerializable = any, R extends TSerializable | void = any>(
     name: string,
-    callback: ProtoFunction<Ext>,
+    callback: ProtoFunction<Ext, P, R>,
     options?: Omit<ProtoFunctionOptions<Ext>, 'callback'>,
   ): void;
 
@@ -424,9 +428,9 @@ export interface ProtoType<Ext> {
    * @param callback - The job function callback.
    * @param options - Optional job function options excluding the callback.
    */
-  defineJob(
+  defineJob<P extends TValueWithoutObject = any>(
     name: string,
-    callback: ProtoJobFunction<Ext>,
+    callback: ProtoJobFunction<Ext, P>,
     options?: Omit<ProtoJobFunctionOptions<Ext>, 'callback'>,
   ): void;
 
