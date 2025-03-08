@@ -82,7 +82,10 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
         ${_.map(_values, (v, k) => _.isNil(acl)
         ? sql`(${{ value: k }}, ${_encodeJsonValue(_encodeValue(v))})`
         : sql`(${{ value: k }}, ${{ value: acl }}, ${_encodeJsonValue(_encodeValue(v))})`)}
-        ON CONFLICT (_id) DO UPDATE SET value = EXCLUDED.value;
+        ON CONFLICT (_id) 
+        DO UPDATE SET 
+        ${_.isNil(acl) ? sql`` : sql`_rperm = EXCLUDED._rperm, `}
+        value = EXCLUDED.value
       `);
     }
     if (!_.isEmpty(nilKeys)) {
