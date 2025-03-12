@@ -30,7 +30,10 @@ const resolvePlugin = resolve({
 });
 
 const rollupPlugins = [
-  typescript({ declaration: false }),
+  typescript({
+    declaration: false,
+    exclude: ['tests/**/*'],
+  }),
   babel({
     babelrc: false,
     exclude: 'node_modules/**',
