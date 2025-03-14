@@ -67,7 +67,7 @@ const _session = <E>(proto: ProtoService<E>, request: Request) => {
   const jwtToken = proto[PVK].options.jwtToken;
   if (_.isEmpty(jwtToken)) throw Error('Invalid jwt token');
 
-  const cookieKey = _.last(request.headers[AUTH_ALT_COOKIE_KEY]) || AUTH_COOKIE_KEY;
+  const cookieKey = _.last(_.castArray(request.headers[AUTH_ALT_COOKIE_KEY] || [])) || AUTH_COOKIE_KEY;
 
   let authorization = '';
   if (request.headers.authorization) {
@@ -171,7 +171,7 @@ export const signUser = async <E>(
     user: user?.id,
     cookieOptions,
   }, options?.jwtSignOptions ?? 'login');
-  const cookieKey = _.last(res.req.headers[AUTH_ALT_COOKIE_KEY]) || AUTH_COOKIE_KEY;
+  const cookieKey = _.last(_.castArray(res.req.headers[AUTH_ALT_COOKIE_KEY] || [])) || AUTH_COOKIE_KEY;
   res.cookie(cookieKey, token, cookieOptions);
   sessionInfoMap.set(res.req, user ? await fetchSessionInfo(proto, user.id) : {});
 }
