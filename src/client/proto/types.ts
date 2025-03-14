@@ -43,6 +43,11 @@ export type AxiosOptions = {
    * The limit for retry attempts.
    */
   retryLimit?: number;
+
+  /**
+   * The key for storing cookies.
+   */
+  cookieKey?: string;
 };
 
 /**

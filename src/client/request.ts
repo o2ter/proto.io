@@ -27,6 +27,7 @@ import _ from 'lodash';
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import {
   AUTH_COOKIE_KEY,
+  AUTH_ALT_COOKIE_KEY,
   MASTER_PASS_HEADER_NAME,
   MASTER_USER_HEADER_NAME,
 } from '../internals/const';
@@ -50,8 +51,9 @@ export default class Service<Ext, P extends ProtoType<any>> {
   private sockets: Socket[] = [];
 
   private retryLimit?: number;
+  private cookieKey?: string;
 
-  constructor(proto: ProtoClientInternal<Ext, P>, { retryLimit, ...options }: AxiosOptions = {}) {
+  constructor(proto: ProtoClientInternal<Ext, P>, { retryLimit, cookieKey, ...options }: AxiosOptions = {}) {
     this.proto = proto;
     this.service = axios.create({
       xsrfCookieName: XSRF_COOKIE_NAME,
@@ -61,12 +63,13 @@ export default class Service<Ext, P extends ProtoType<any>> {
       ...options,
     });
     this.retryLimit = retryLimit;
+    this.cookieKey = cookieKey || AUTH_COOKIE_KEY;
   }
 
   setSessionToken(token?: string) {
     this.token = token;
     if (typeof window === 'undefined') {
-      this.service.defaults.headers.Cookie = token ? `${AUTH_COOKIE_KEY}=${token}` : null;
+      this.service.defaults.headers.Cookie = token ? `${this.cookieKey}=${token}` : null;
     }
     for (const socket of this.sockets) {
       socket.emit('auth', token);
@@ -85,6 +88,9 @@ export default class Service<Ext, P extends ProtoType<any>> {
           [MASTER_USER_HEADER_NAME]: this.proto.options.masterUser?.user,
           [MASTER_PASS_HEADER_NAME]: this.proto.options.masterUser?.pass,
         } : {},
+        ...this.cookieKey && this.cookieKey !== AUTH_COOKIE_KEY ? {
+          [AUTH_ALT_COOKIE_KEY]: this.cookieKey,
+        } : {},
         ...headers,
       },
       ...opts,
@@ -92,7 +98,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
 
     if (res.headers['set-cookie']) {
       const cookies = res.headers['set-cookie'];
-      const pattern = `${AUTH_COOKIE_KEY}=`;
+      const pattern = `${this.cookieKey}=`;
       const token = _.findLast(_.flatMap(cookies, x => x.split(';')), x => _.startsWith(x.trim(), pattern));
       this.setSessionToken(token?.trim().slice(pattern.length));
     }

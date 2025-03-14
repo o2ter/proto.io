@@ -29,6 +29,7 @@ export const MASTER_PASS_HEADER_NAME = 'X-PROTO-MASTER-PASS';
 export const UPLOAD_TOKEN_HEADER_NAME = 'X-PROTO-UPLOAD-TOKEN';
 
 export const AUTH_COOKIE_KEY = 'x-proto-auth';
+export const AUTH_ALT_COOKIE_KEY = 'x-proto-auth-key';
 
 export const PROTO_EVENT = 'PROTO_EVENT';
 export const PROTO_NOTY_MSG = 'PROTO_NOTY_MSG';

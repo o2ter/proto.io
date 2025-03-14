@@ -27,7 +27,7 @@ import _ from 'lodash';
 import jwt from 'jsonwebtoken';
 import { CookieOptions, Request, Response } from '@o2ter/server-js';
 import { ProtoService } from './index';
-import { AUTH_COOKIE_KEY, MASTER_PASS_HEADER_NAME, MASTER_USER_HEADER_NAME } from '../../internals/const';
+import { AUTH_COOKIE_KEY, AUTH_ALT_COOKIE_KEY, MASTER_PASS_HEADER_NAME, MASTER_USER_HEADER_NAME } from '../../internals/const';
 import { randomUUID } from '@o2ter/crypto-js';
 import { PVK } from '../../internals/private';
 import { TUser } from '../../internals/object/user';
@@ -67,12 +67,14 @@ const _session = <E>(proto: ProtoService<E>, request: Request) => {
   const jwtToken = proto[PVK].options.jwtToken;
   if (_.isEmpty(jwtToken)) throw Error('Invalid jwt token');
 
+  const cookieKey = _.last(request.headers[AUTH_ALT_COOKIE_KEY]) || AUTH_COOKIE_KEY;
+
   let authorization = '';
   if (request.headers.authorization) {
     const parts = request.headers.authorization.split(' ');
     if (parts.length === 2 && parts[0] === 'Bearer') authorization = parts[1];
-  } else if (request.cookies[AUTH_COOKIE_KEY]) {
-    authorization = request.cookies[AUTH_COOKIE_KEY];
+  } else if (request.cookies[cookieKey]) {
+    authorization = request.cookies[cookieKey];
   }
 
   if (_.isEmpty(authorization)) return;
@@ -169,6 +171,7 @@ export const signUser = async <E>(
     user: user?.id,
     cookieOptions,
   }, options?.jwtSignOptions ?? 'login');
-  res.cookie(AUTH_COOKIE_KEY, token, cookieOptions);
+  const cookieKey = _.last(res.req.headers[AUTH_ALT_COOKIE_KEY]) || AUTH_COOKIE_KEY;
+  res.cookie(cookieKey, token, cookieOptions);
   sessionInfoMap.set(res.req, user ? await fetchSessionInfo(proto, user.id) : {});
 }
