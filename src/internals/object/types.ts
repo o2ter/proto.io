@@ -30,8 +30,10 @@ import { TFile } from './file';
 import { TValueWithUndefined } from '../types';
 import { ExactOneProp } from '../types';
 import { TJob } from './job';
+import { TSession } from './session';
 
 export const TObjectTypes = {
+  'Session': TSession,
   'User': TUser,
   'Role': TRole,
   'File': TFile,

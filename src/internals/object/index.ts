@@ -88,7 +88,7 @@ export interface TObject {
    * Clones the object.
    * @returns A clone of the object.
    */
-  clone(): TObject;
+  clone(): this;
 
   /**
    * Gets a relation query for the specified key.

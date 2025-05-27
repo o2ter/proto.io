@@ -24,7 +24,6 @@
 //
 
 import _ from 'lodash';
-import jwt from 'jsonwebtoken';
 import { CookieOptions, Request, Response } from '@o2ter/server-js';
 import { ProtoService } from './index';
 import { AUTH_COOKIE_KEY, AUTH_ALT_COOKIE_KEY, MASTER_PASS_HEADER_NAME, MASTER_USER_HEADER_NAME } from '../../internals/const';
@@ -32,117 +31,106 @@ import { randomUUID } from '@o2ter/crypto-js';
 import { PVK } from '../../internals/private';
 import { TUser } from '../../internals/object/user';
 import { TRole } from '../../internals/object/role';
+import { TSession } from '../../internals/object/session';
 
-export type Session = jwt.JwtPayload & {
-  sessionId: string;
-  createdAt: Date;
-  loginedAt: Date;
-};
+export type _Session = Awaited<ReturnType<typeof session>>;
 
-const sessionMap = new WeakMap<Request, Session>();
+const _sessionWithToken = async <E>(proto: ProtoService<E>, token: string) => proto.Query('Session')
+  .equalTo('token', token)
+  .includes('user')
+  .first({ master: true });
 
-const _sessionWithToken = <E>(proto: ProtoService<E>, token: string) => {
-  if (_.isEmpty(token)) return;
-  const payload = proto[PVK].jwtVarify(token, 'login');
-  if (!_.isObject(payload)) return;
-  return {
-    ...payload,
-    sessionId: payload.sessionId ?? randomUUID(),
-    createdAt: payload.createdAt && _.isSafeInteger(payload.createdAt) ? new Date(payload.createdAt) : new Date,
-    loginedAt: payload.loginedAt && _.isSafeInteger(payload.loginedAt) ? new Date(payload.loginedAt) : new Date,
-  } as Session;
-}
-
-const _session = <E>(proto: ProtoService<E>, request: Request) => {
-
-  const cached = sessionMap.get(request);
-  if (cached) return cached;
-
-  sessionMap.set(request, {
-    sessionId: randomUUID(),
-    createdAt: new Date,
-    loginedAt: new Date,
-  });
-
-  const jwtToken = proto[PVK].options.jwtToken;
-  if (_.isEmpty(jwtToken)) throw Error('Invalid jwt token');
-
-  const cookieKey = _.last(_.castArray(request.headers[AUTH_ALT_COOKIE_KEY] || [])) || AUTH_COOKIE_KEY;
-
-  let authorization = '';
-  if (request.headers.authorization) {
-    const parts = request.headers.authorization.split(' ');
-    if (parts.length === 2 && parts[0] === 'Bearer') authorization = parts[1];
-  } else if (request.cookies[cookieKey]) {
-    authorization = request.cookies[cookieKey];
-  }
-
-  if (_.isEmpty(authorization)) return;
-
-  const session = _sessionWithToken(proto, authorization);
-  if (!_.isObject(session)) return;
-
-  sessionMap.set(request, session);
-  return session;
-}
-
-export const sessionId = <E>(proto: ProtoService<E>, request: Request): string | undefined => {
-  const session = _session(proto, request);
-  return sessionMap.get(request)?.sessionId ?? session?.sessionId;
-}
-
-const userCacheMap = new WeakMap<any, {
-  [K in string]?: Promise<{ user?: TUser; _roles?: TRole[] }>;
-}>;
-
-const fetchSessionInfo = async <E>(proto: ProtoService<E>, userId: string = '') => {
+const userCacheMap = new WeakMap<any, { [K in string]?: Promise<TRole[]>; }>();
+const fetchUserRole = async <E>(proto: ProtoService<E>, user?: TUser) => {
   if (!userCacheMap.has(proto[PVK])) userCacheMap.set(proto[PVK], {});
   const cache = userCacheMap.get(proto[PVK])!;
-  if (_.isNil(cache[userId])) cache[userId] = (async () => {
-    const _user = userId ? await proto.Query('User').get(userId, { master: true }) : undefined;
-    const user = proto.req ? await proto[PVK].options.userResolver(proto, _user) : _user;
+  if (_.isNil(user)) return {};
+  if (_.isNil(cache[user.id!])) cache[user.id!] = (async () => {
     const _roles = user instanceof TUser ? _.filter(await proto.userRoles(user), x => !_.isEmpty(x.name)) : [];
-    cache[userId] = undefined;
-    return { user, _roles };
+    cache[user.id!] = undefined;
+    return _roles;
   })();
-  const { user, _roles } = await cache[userId];
+  const _roles = await cache[user.id!];
   return {
     user: user?.clone(),
     _roles: _.map(_roles, x => x.clone()),
   };
 }
 
-export const sessionWithToken = async <E>(proto: ProtoService<E>, token: string) => {
-  const session = _sessionWithToken(proto, token);
-  const info = await fetchSessionInfo(proto, session?.user);
+const sessionMap = new WeakMap<Request, TSession | undefined>();
+const _session = async <E>(proto: ProtoService<E>, request: Request) => {
+
+  const cached = sessionMap.get(request);
+  if (cached) return {
+    sessionId: cached.sessionId,
+    createdAt: cached.createdAt!,
+    updatedAt: cached.updatedAt!,
+    loginedAt: cached.loginedAt,
+    user: cached.user,
+  };
+
+  const cookieKey = _.last(_.castArray(request.headers[AUTH_ALT_COOKIE_KEY] || [])) || AUTH_COOKIE_KEY;
+
+  let sessionId = '';
+  if (request.headers.authorization) {
+    const parts = request.headers.authorization.split(' ');
+    if (parts.length === 2 && parts[0] === 'Bearer') sessionId = parts[1];
+  } else if (request.cookies[cookieKey]) {
+    sessionId = request.cookies[cookieKey];
+  }
+
+  if (_.isEmpty(sessionId)) return;
+
+  const found = await proto.Query('Session').equalTo('token', sessionId).first({ master: true });
+  if (!found) return;
+
+  const session = await _sessionWithToken(proto, sessionId);
+  if (!session) return;
+
+  sessionMap.set(request, session);
   return {
-    ...session ?? {},
-    ...info,
-    loginedAt: info?.user ? session?.loginedAt : undefined,
+    sessionId: session.sessionId,
+    createdAt: session.createdAt!,
+    updatedAt: session.updatedAt!,
+    loginedAt: session.loginedAt,
+    user: session.user,
   };
 }
 
-type SessionInfo<E> = Partial<Awaited<ReturnType<typeof fetchSessionInfo<E>>>>;
-const sessionInfoMap = new WeakMap<Request, SessionInfo<any>>();
+type UserRole<E> = Partial<Awaited<ReturnType<typeof fetchUserRole<E>>>>;
+const userRoleMap = new WeakMap<Request, UserRole<any>>();
 
 export const session = async <E>(proto: ProtoService<E>, request: Request) => {
 
-  const session = _session(proto, request);
-  const cached = sessionInfoMap.get(request) as SessionInfo<E>;
+  const session = await _session(proto, request);
+  const cached = userRoleMap.get(request) as UserRole<E>;
   if (cached) return {
     ...session ?? {},
     ...cached,
-    loginedAt: cached?.user ? session?.loginedAt : undefined,
   };
 
-  const info = await fetchSessionInfo(proto, session?.user);
-  sessionInfoMap.set(request, info);
+  const info = await fetchUserRole(proto, session?.user);
+  userRoleMap.set(request, info);
 
   return {
     ...session ?? {},
     ...info,
-    loginedAt: info?.user ? session?.loginedAt : undefined,
   };
+}
+
+export const sessionWithToken = async <E>(proto: ProtoService<E>, token: string) => {
+
+  const session = await _sessionWithToken(proto, token);
+  if (!session) return;
+
+  const info = await fetchUserRole(proto, session?.user);
+  return {
+    sessionId: session.sessionId,
+    createdAt: session.createdAt!,
+    updatedAt: session.updatedAt!,
+    loginedAt: session.loginedAt,
+    ...info,
+  } as _Session;
 }
 
 export const sessionIsMaster = <E>(proto: ProtoService<E>, request: Request) => {
@@ -158,20 +146,31 @@ export const signUser = async <E>(
   user?: TUser,
   options?: {
     cookieOptions?: CookieOptions;
-    jwtSignOptions?: jwt.SignOptions;
   }
 ) => {
   if (_.isNil(proto[PVK].options.jwtToken)) return;
-  const session = _session(proto, res.req);
-  const cookieOptions = options?.cookieOptions ?? session?.cookieOptions ?? proto[PVK].options.cookieOptions;
-  const token = proto[PVK].jwtSign({
-    sessionId: session?.sessionId ?? randomUUID(),
-    createdAt: session?.createdAt?.getTime() ?? Date.now(),
-    loginedAt: user ? session?.loginedAt?.getTime() ?? Date.now() : undefined,
-    user: user?.id,
-    cookieOptions,
-  }, options?.jwtSignOptions ?? 'login');
+  const session = await _session(proto, res.req);
+  const cookieOptions = options?.cookieOptions ?? proto[PVK].options.cookieOptions;
+  const sessionId = session?.sessionId ?? randomUUID();
+  const expiredAt = cookieOptions?.expires ?? (cookieOptions?.maxAge ? new Date(Date.now() + cookieOptions.maxAge) : undefined);
+  const loginedAt = user ? session?.loginedAt?.getTime() ?? Date.now() : undefined;
+  const updated = await proto.Query('Session')
+    .equalTo('token', sessionId)
+    .upsertOne(
+      {
+        loginedAt: { $set: loginedAt },
+        user: { $set: user },
+        _expired_at: { $set: expiredAt },
+      },
+      {
+        token: sessionId,
+        loginedAt: loginedAt,
+        user,
+        _expired_at: expiredAt,
+      },
+      { master: true }
+  );
   const cookieKey = _.last(_.castArray(res.req.headers[AUTH_ALT_COOKIE_KEY] || [])) || AUTH_COOKIE_KEY;
-  res.cookie(cookieKey, token, cookieOptions);
-  sessionInfoMap.set(res.req, user ? await fetchSessionInfo(proto, user.id) : {});
+  res.cookie(cookieKey, updated.sessionId, cookieOptions);
+  userRoleMap.set(res.req, user ? await fetchUserRole(proto, user) : {});
 }

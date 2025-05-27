@@ -30,7 +30,7 @@ import { ProtoInternal } from './internal';
 import { CookieOptions, Request } from '@o2ter/server-js';
 import { ProtoServiceOptions, ProtoServiceKeyOptions } from './types';
 import { ProtoFunction, ProtoFunctionOptions, ProtoJobFunction, ProtoJobFunctionOptions, ProtoTriggerFunction } from '../../internals/proto/types';
-import { sessionId, sessionIsMaster, session, signUser, Session, sessionWithToken } from './session';
+import { sessionIsMaster, session, signUser, sessionWithToken, _Session } from './session';
 import { _logLevels, EventData, Logger, ProtoType, TransactionOptions } from '../../internals/proto';
 import { schedule } from '../schedule';
 import { serialize, TSerializable } from '../../internals/codec';
@@ -60,12 +60,11 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
   private _schedule = schedule(this);
 
   req?: Request;
-  session?: Session;
+  session?: _Session;
 
   constructor(options: ProtoServiceOptions<Ext> & ProtoServiceKeyOptions) {
     super();
     this[PVK] = new ProtoInternal({
-      userResolver: (_req, user) => user,
       roleResolver: {},
       objectIdSize: 10,
       maxFetchLimit: 1000,
@@ -76,8 +75,6 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
       },
       classExtends: {} as TExtensions<Ext>,
       cookieOptions: { maxAge: 365 * 24 * 60 * 60 * 1000, httpOnly: true },
-      jwtSignOptions: { expiresIn: '30d' },
-      jwtVerifyOptions: {},
       jwtUploadSignOptions: { expiresIn: '1d' },
       jwtUploadVerifyOptions: {},
       passwordHashOptions: {
@@ -136,11 +133,6 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
     return new ProtoQuery<T, Ext, true>(className, this, { insecure: true });
   }
 
-  get sessionId(): string | undefined {
-    if (this.session) return this.session.sessionId;
-    return this.req ? sessionId(this, this.req) : undefined;
-  }
-
   async sessionInfo() {
     if (this.session) return this.session;
     return this.req ? session(this, this.req) : undefined;
@@ -179,8 +171,8 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
 
   async connectWithSessionToken<T extends object>(
     token: string,
-    attrs?: T | ((x: this & { session?: Session; }) => T)
-  ): Promise<this & { session?: Session; } & T> {
+    attrs?: T | ((x: this & { session?: _Session; }) => T)
+  ): Promise<this & { session?: _Session; } & T> {
     const session = _.isString(token) ? await sessionWithToken(this, token) : undefined;
     const payload = _.create(this, { session });
     return _.assign(payload, _.isFunction(attrs) ? attrs(payload) : attrs)

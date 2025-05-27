@@ -49,11 +49,6 @@ export type ProtoServiceOptions<Ext> = {
   schema: Record<string, TSchema>;
 
   /**
-   * User resolver configuration.
-   */
-  userResolver?: (proto: ProtoService<Ext>, user?: TUser) => Awaitable<TUser | undefined>;
-
-  /**
    * Role resolver configuration.
    */
   roleResolver?: {
@@ -118,16 +113,6 @@ export type ProtoServiceOptions<Ext> = {
    * Cookie options.
    */
   cookieOptions?: CookieOptions;
-
-  /**
-   * JWT sign options.
-   */
-  jwtSignOptions?: SignOptions;
-
-  /**
-   * JWT verify options.
-   */
-  jwtVerifyOptions?: VerifyOptions;
 
   /**
    * JWT upload sign options.

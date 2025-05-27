@@ -27,6 +27,30 @@ import _ from 'lodash';
 import { TSchema } from '../../internals/schema';
 
 export const defaultSchema: Record<string, TSchema> = {
+  'Session': {
+    fields: {
+      token: 'string',
+      user: { type: 'pointer', target: 'User' },
+      loginedAt: 'date',
+    },
+    classLevelPermissions: {
+      find: [],
+      count: [],
+      create: [],
+      update: [],
+      delete: [],
+    },
+    fieldLevelPermissions: {
+      token: { update: [] },
+      _expired_at: { create: [], update: [] },
+    },
+    indexes: [
+      {
+        keys: { token: 1 },
+        unique: true,
+      },
+    ],
+  },
   'User': {
     fields: {
       password: 'object',
