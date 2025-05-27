@@ -42,13 +42,13 @@ import { TSerializable } from '../codec';
 import { TUser } from '../object/user';
 import { ProtoFunction, ProtoFunctionOptions, ProtoJobFunction, ProtoJobFunctionOptions, ProtoTriggerFunction } from './types';
 import { Socket } from 'socket.io-client';
-import { Session } from '../../server/proto/session';
 import { asyncStream } from '@o2ter/utils-js';
 import { PathName } from '../query/types';
 import { TRole } from '../object/role';
 import { TJob } from '../object/job';
 import { isFile, isJob, isObject, isQuery, isRole, isUser } from '../utils';
 import { TQuerySelector } from '../query/types/selectors';
+import { _Session } from '../../server/proto/session';
 
 export const _logLevels = ['error', 'warn', 'info', 'debug', 'trace'] as const;
 type _Logger = {
@@ -308,8 +308,8 @@ export interface ProtoType<Ext> {
    */
   connectWithSessionToken<T extends object>(
     token: string,
-    attrs?: T | ((x: this & { session?: Session; }) => T)
-  ): Promise<this & { session?: Session; } & T>
+    attrs?: T | ((x: this & { session?: _Session; }) => T)
+  ): Promise<this & { session?: _Session; } & T>
 
   /**
    * Sets the session token.
