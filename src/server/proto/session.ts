@@ -153,7 +153,7 @@ export const signUser = async <E>(
   const cookieOptions = options?.cookieOptions ?? proto[PVK].options.cookieOptions;
   const sessionId = session?.sessionId ?? randomUUID();
   const expiredAt = cookieOptions?.expires ?? (cookieOptions?.maxAge ? new Date(Date.now() + cookieOptions.maxAge) : undefined);
-  const loginedAt = user ? session?.loginedAt?.getTime() ?? Date.now() : undefined;
+  const loginedAt = user ? session?.loginedAt ?? new Date() : undefined;
   const updated = await proto.Query('Session')
     .equalTo('token', sessionId)
     .upsertOne(
