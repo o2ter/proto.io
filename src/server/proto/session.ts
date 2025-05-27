@@ -44,13 +44,13 @@ const userCacheMap = new WeakMap<any, { [K in string]?: Promise<TRole[]>; }>();
 const fetchUserRole = async <E>(proto: ProtoService<E>, user?: TUser) => {
   if (!userCacheMap.has(proto[PVK])) userCacheMap.set(proto[PVK], {});
   const cache = userCacheMap.get(proto[PVK])!;
-  if (_.isNil(user)) return {};
-  if (_.isNil(cache[user.id!])) cache[user.id!] = (async () => {
+  if (_.isNil(user?.id)) return {};
+  if (_.isNil(cache[user.id])) cache[user.id] = (async () => {
     const _roles = user instanceof TUser ? _.filter(await proto.userRoles(user), x => !_.isEmpty(x.name)) : [];
     cache[user.id!] = undefined;
     return _roles;
   })();
-  const _roles = await cache[user.id!];
+  const _roles = await cache[user.id];
   return {
     user: user?.clone(),
     _roles: _.map(_roles, x => x.clone()),
