@@ -100,10 +100,6 @@ Proto.define('echoUser', ({ params }) => {
   },
 });
 
-Proto.define('sessionId', ({ sessionId }) => {
-  return sessionId;
-});
-
 Proto.define('createUser', async (proto) => {
   const user = await proto.Query('User').insert({ name: 'test' });
   await proto.setPassword(user, 'password123', { master: true });

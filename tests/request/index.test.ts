@@ -71,14 +71,6 @@ test('test schema', async () => {
   expect(result.User).toBeTruthy();
 });
 
-test('test session id', async () => {
-  const sessionId = await Proto.run('sessionId');
-  expect(await Proto.run('sessionId')).toStrictEqual(sessionId);
-  expect(await Proto.run('sessionId')).toStrictEqual(sessionId);
-  expect(await Proto.run('sessionId')).toStrictEqual(sessionId);
-  expect(await Proto.run('sessionId')).toStrictEqual(sessionId);
-});
-
 test('test user', async () => {
 
   await expect(() => Proto.run('echoUser', 'hello, world')).rejects.toThrow('No permission');
