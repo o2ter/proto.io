@@ -24,6 +24,7 @@
 //
 
 import _ from 'lodash';
+import jwt from 'jsonwebtoken';
 import { CookieOptions, Request, Response } from '@o2ter/server-js';
 import { ProtoService } from './index';
 import { AUTH_COOKIE_KEY, AUTH_ALT_COOKIE_KEY, MASTER_PASS_HEADER_NAME, MASTER_USER_HEADER_NAME } from '../../internals/const';
@@ -35,10 +36,15 @@ import { TSession } from '../../internals/object/session';
 
 export type _Session = Awaited<ReturnType<typeof session>>;
 
-const _sessionWithToken = async <E>(proto: ProtoService<E>, token: string) => proto.Query('Session')
-  .equalTo('token', token)
-  .includes('user')
-  .first({ master: true });
+const _sessionWithToken = async <E>(proto: ProtoService<E>, token: string) => {
+  if (_.isEmpty(token)) return;
+  const { payload } = proto[PVK].jwtVarify(token, 'login') ?? {};
+  if (!_.isObject(payload) || !_.isString(payload.sessionId)) return;
+  return proto.Query('Session')
+    .equalTo('token', payload.sessionId)
+    .includes('user')
+    .first({ master: true });
+}
 
 const userCacheMap = new WeakMap<any, { [K in string]?: Promise<TRole[]>; }>();
 const fetchUserRole = async <E>(proto: ProtoService<E>, user?: TUser) => {
@@ -146,11 +152,12 @@ export const signUser = async <E>(
   user?: TUser,
   options?: {
     cookieOptions?: CookieOptions;
+    jwtSignOptions?: jwt.SignOptions;
   }
 ) => {
   if (_.isNil(proto[PVK].options.jwtToken)) return;
   const session = await _session(proto, res.req);
-  const cookieOptions = options?.cookieOptions ?? proto[PVK].options.cookieOptions;
+  const cookieOptions = options?.cookieOptions ?? session?.cookieOptions ?? proto[PVK].options.cookieOptions;
   const sessionId = session?.sessionId ?? randomUUID();
   const expiredAt = cookieOptions?.expires ?? (cookieOptions?.maxAge ? new Date(Date.now() + cookieOptions.maxAge) : undefined);
   const loginedAt = user ? session?.loginedAt ?? new Date() : undefined;
@@ -170,7 +177,11 @@ export const signUser = async <E>(
       },
       { master: true }
   );
+  const token = proto[PVK].jwtSign({
+    sessionId: session?.sessionId ?? randomUUID(),
+    cookieOptions,
+  }, options?.jwtSignOptions ?? 'login');
   const cookieKey = _.last(_.castArray(res.req.headers[AUTH_ALT_COOKIE_KEY] || [])) || AUTH_COOKIE_KEY;
-  res.cookie(cookieKey, updated.sessionId, cookieOptions);
+  res.cookie(cookieKey, token, cookieOptions);
   userRoleMap.set(res.req, user ? await fetchUserRole(proto, user) : {});
 }

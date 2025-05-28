@@ -424,9 +424,10 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     })();
   }
 
-  jwtSign(payload: any, options: 'upload' | jwt.SignOptions) {
+  jwtSign(payload: any, options: 'login' | 'upload' | jwt.SignOptions) {
     const opts = (() => {
       switch (options) {
+        case 'login': return this.options.jwtSignOptions;
         case 'upload': return this.options.jwtUploadSignOptions;
         default: return options;
       }
@@ -434,10 +435,11 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     return jwt.sign(payload, this.options.jwtToken, opts);
   }
 
-  jwtVarify(token: string, options: 'upload' | jwt.VerifyOptions = {}) {
+  jwtVarify(token: string, options: 'login' | 'upload' | jwt.VerifyOptions = {}) {
     try {
       const opts = (() => {
         switch (options) {
+          case 'login': return this.options.jwtVerifyOptions;
           case 'upload': return this.options.jwtUploadVerifyOptions;
           default: return options;
         }
