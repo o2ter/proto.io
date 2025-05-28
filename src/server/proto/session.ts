@@ -40,13 +40,12 @@ const _sessionWithToken = async <E>(proto: ProtoService<E>, token: string) => {
   if (_.isEmpty(token)) return;
   const payload = proto[PVK].jwtVarify(token, 'login') ?? {} as any;
   if (!_.isString(payload.sessionId) || _.isEmpty(payload.sessionId)) return;
-  return {
-    payload,
-    session: await proto.Query('_Session')
-      .equalTo('token', payload.sessionId)
-      .includes('user')
-      .first({ master: true }),
-  };
+  const session = await proto.Query('_Session')
+    .equalTo('token', payload.sessionId)
+    .includes('user')
+    .first({ master: true });
+  if (!session) return;
+  return { payload, session };
 }
 
 const userCacheMap = new WeakMap<any, { [K in string]?: Promise<TRole[]>; }>();
