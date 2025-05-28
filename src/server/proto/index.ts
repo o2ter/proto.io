@@ -75,6 +75,8 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
       },
       classExtends: {} as TExtensions<Ext>,
       cookieOptions: { maxAge: 365 * 24 * 60 * 60 * 1000, httpOnly: true },
+      jwtSignOptions: { expiresIn: '30d' },
+      jwtVerifyOptions: {},
       jwtUploadSignOptions: { expiresIn: '1d' },
       jwtUploadVerifyOptions: {},
       passwordHashOptions: {
