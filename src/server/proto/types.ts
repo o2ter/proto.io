@@ -115,6 +115,16 @@ export type ProtoServiceOptions<Ext> = {
   cookieOptions?: CookieOptions;
 
   /**
+   * JWT sign options.
+   */
+  jwtSignOptions?: SignOptions;
+
+  /**
+   * JWT verify options.
+   */
+  jwtVerifyOptions?: VerifyOptions;
+
+  /**
    * JWT upload sign options.
    */
   jwtUploadSignOptions?: SignOptions;
