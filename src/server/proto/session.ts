@@ -42,7 +42,7 @@ const _sessionWithToken = async <E>(proto: ProtoService<E>, token: string) => {
   if (!_.isString(payload.sessionId) || _.isEmpty(payload.sessionId)) return;
   return {
     payload,
-    session: await proto.Query('Session')
+    session: await proto.Query('_Session')
       .equalTo('token', payload.sessionId)
       .includes('user')
       .first({ master: true }),
@@ -162,7 +162,7 @@ export const signUser = async <E>(
   const sessionId = session?.sessionId ?? randomUUID();
   const expiredAt = cookieOptions?.expires ?? (cookieOptions?.maxAge ? new Date(Date.now() + cookieOptions.maxAge) : undefined);
   const loginedAt = user ? session?.loginedAt ?? new Date() : undefined;
-  await proto.Query('Session')
+  await proto.Query('_Session')
     .equalTo('token', sessionId)
     .upsertOne(
       {

@@ -27,7 +27,7 @@ import _ from 'lodash';
 import { TSchema } from '../../internals/schema';
 
 export const defaultSchema: Record<string, TSchema> = {
-  'Session': {
+  '_Session': {
     fields: {
       token: 'string',
       user: { type: 'pointer', target: 'User' },

@@ -33,11 +33,11 @@ import { TJob } from './job';
 import { TSession } from './session';
 
 export const TObjectTypes = {
-  'Session': TSession,
   'User': TUser,
   'Role': TRole,
   'File': TFile,
   '_Job': TJob,
+  '_Session': TSession,
 };
 
 type _TObjectType<K> = K extends keyof typeof TObjectTypes ? InstanceType<(typeof TObjectTypes)[K]> : TObject;

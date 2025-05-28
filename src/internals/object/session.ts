@@ -32,7 +32,7 @@ export class TSession extends TObject {
   constructor(
     attributes?: Record<string, TValue> | ((self: TObject) => Record<string, TValue>),
   ) {
-    super('Session', attributes);
+    super('_Session', attributes);
   }
 
   /**
