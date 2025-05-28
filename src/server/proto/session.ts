@@ -89,8 +89,6 @@ const _session = async <E>(proto: ProtoService<E>, request: Request) => {
     sessionId = request.cookies[cookieKey];
   }
 
-  if (_.isEmpty(sessionId)) return;
-
   const { payload, session } = await _sessionWithToken(proto, sessionId) ?? {};
   if (!session) return;
 
