@@ -161,7 +161,7 @@ export const signUser = async <E>(
   const sessionId = session?.sessionId ?? randomUUID();
   const expiredAt = cookieOptions?.expires ?? (cookieOptions?.maxAge ? new Date(Date.now() + cookieOptions.maxAge) : undefined);
   const loginedAt = user ? session?.loginedAt ?? new Date() : undefined;
-  const updated = await proto.Query('Session')
+  await proto.Query('Session')
     .equalTo('token', sessionId)
     .upsertOne(
       {
@@ -178,7 +178,7 @@ export const signUser = async <E>(
       { master: true }
   );
   const token = proto[PVK].jwtSign({
-    sessionId: session?.sessionId ?? randomUUID(),
+    sessionId,
     cookieOptions,
   }, options?.jwtSignOptions ?? 'login');
   const cookieKey = _.last(_.castArray(res.req.headers[AUTH_ALT_COOKIE_KEY] || [])) || AUTH_COOKIE_KEY;
