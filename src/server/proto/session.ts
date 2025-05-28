@@ -40,10 +40,13 @@ const _sessionWithToken = async <E>(proto: ProtoService<E>, token: string) => {
   if (_.isEmpty(token)) return;
   const { payload = {} } = proto[PVK].jwtVarify(token, 'login') ?? {};
   if (!_.isString(payload.sessionId) || _.isEmpty(payload.sessionId)) return;
-  return proto.Query('Session')
-    .equalTo('token', payload.sessionId)
-    .includes('user')
-    .first({ master: true });
+  return {
+    payload,
+    session: await proto.Query('Session')
+      .equalTo('token', payload.sessionId)
+      .includes('user')
+      .first({ master: true }),
+  };
 }
 
 const userCacheMap = new WeakMap<any, { [K in string]?: Promise<TRole[]>; }>();
@@ -63,16 +66,17 @@ const fetchUserRole = async <E>(proto: ProtoService<E>, user?: TUser) => {
   };
 }
 
-const sessionMap = new WeakMap<Request, TSession | undefined>();
+const sessionMap = new WeakMap<Request, { payload: any, session: TSession } | undefined>();
 const _session = async <E>(proto: ProtoService<E>, request: Request) => {
 
   const cached = sessionMap.get(request);
   if (cached) return {
-    sessionId: cached.sessionId,
-    createdAt: cached.createdAt!,
-    updatedAt: cached.updatedAt!,
-    loginedAt: cached.loginedAt,
-    user: cached.user,
+    sessionId: cached.session.sessionId,
+    createdAt: cached.session.createdAt!,
+    updatedAt: cached.session.updatedAt!,
+    loginedAt: cached.session.loginedAt,
+    user: cached.session.user,
+    cookieOptions: cached.payload.cookieOptions,
   };
 
   const cookieKey = _.last(_.castArray(request.headers[AUTH_ALT_COOKIE_KEY] || [])) || AUTH_COOKIE_KEY;
@@ -90,16 +94,17 @@ const _session = async <E>(proto: ProtoService<E>, request: Request) => {
   const found = await proto.Query('Session').equalTo('token', sessionId).first({ master: true });
   if (!found) return;
 
-  const session = await _sessionWithToken(proto, sessionId);
+  const { payload, session } = await _sessionWithToken(proto, sessionId) ?? {};
   if (!session) return;
 
-  sessionMap.set(request, session);
+  sessionMap.set(request, { payload, session });
   return {
     sessionId: session.sessionId,
     createdAt: session.createdAt!,
     updatedAt: session.updatedAt!,
     loginedAt: session.loginedAt,
     user: session.user,
+    cookieOptions: payload.cookieOptions,
   };
 }
 
@@ -126,7 +131,7 @@ export const session = async <E>(proto: ProtoService<E>, request: Request) => {
 
 export const sessionWithToken = async <E>(proto: ProtoService<E>, token: string) => {
 
-  const session = await _sessionWithToken(proto, token);
+  const { payload, session } = await _sessionWithToken(proto, token) ?? {};
   if (!session) return;
 
   const info = await fetchUserRole(proto, session?.user);
@@ -135,6 +140,7 @@ export const sessionWithToken = async <E>(proto: ProtoService<E>, token: string)
     createdAt: session.createdAt!,
     updatedAt: session.updatedAt!,
     loginedAt: session.loginedAt,
+    cookieOptions: payload.cookieOptions,
     ...info,
   } as _Session;
 }
@@ -176,7 +182,7 @@ export const signUser = async <E>(
         _expired_at: expiredAt,
       },
       { master: true }
-  );
+    );
   const token = proto[PVK].jwtSign({
     sessionId,
     cookieOptions,
