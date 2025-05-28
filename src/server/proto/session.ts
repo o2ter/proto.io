@@ -91,9 +91,6 @@ const _session = async <E>(proto: ProtoService<E>, request: Request) => {
 
   if (_.isEmpty(sessionId)) return;
 
-  const found = await proto.Query('Session').equalTo('token', sessionId).first({ master: true });
-  if (!found) return;
-
   const { payload, session } = await _sessionWithToken(proto, sessionId) ?? {};
   if (!session) return;
 
