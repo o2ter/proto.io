@@ -231,10 +231,10 @@ export const registerProtoSocket = <E>(
 
     const { token } = socket.handshake.auth;
     const service = await proto.connectWithSessionToken(token);
-    let remove = connect(service);
+    const remove = connect(service);
 
-    socket.on('auth', async (token) => {
-      await service.connectWithSessionToken(token);
+    socket.on('auth', (token) => {
+      service.connectWithSessionToken(token);
     });
 
     socket.on('disconnect', () => {
