@@ -176,8 +176,13 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
     attrs?: T | ((x: this & { session?: _Session; }) => T)
   ): Promise<this & { session?: _Session; } & T> {
     const session = _.isString(token) ? await sessionWithToken(this, token) : undefined;
-    const payload = _.create(this, { session });
-    return _.assign(payload, _.isFunction(attrs) ? attrs(payload) : attrs)
+    if (Object.getPrototypeOf(this) instanceof ProtoService) {
+      this.session = session;
+      return _.assign(this, _.isFunction(attrs) ? attrs(this) : attrs);
+    } else {
+      const payload = _.create(this, { session });
+      return _.assign(payload, _.isFunction(attrs) ? attrs(payload) : attrs);
+    }
   }
 
   async userRoles(user: TUser) {

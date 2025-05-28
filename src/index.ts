@@ -205,14 +205,13 @@ export const registerProtoSocket = <E>(
     let events: Record<string, QuerySelector | boolean> = {};
     let queries: Record<string, QueryOpts> = {};
 
-    const connect = async (token: string) => {
-      const payload = await proto.connectWithSessionToken(token);
-      const { remove: remove_basic } = payload.listen(data => {
+    const connect = (proto: ProtoService<E>) => {
+      const { remove: remove_basic } = proto.listen(data => {
         const ids = _.keys(_.pickBy(events, v => v instanceof QuerySelector ? v.eval(data) : v));
         const payload = JSON.parse(serialize(data));
         if (!_.isEmpty(ids)) socket.emit('ON_EV_NOTIFY', { ids, data: payload });
       });
-      const { remove: remove_livequery } = payload[PVK]._liveQuery(payload, (ev, objs) => {
+      const { remove: remove_livequery } = proto[PVK]._liveQuery(proto, (ev, objs) => {
         const ids: Record<string, string[]> = {};
         for (const obj of objs) {
           ids[obj.id!] = _.keys(_.pickBy(queries, v => {
@@ -231,15 +230,15 @@ export const registerProtoSocket = <E>(
     };
 
     const { token } = socket.handshake.auth;
-    let remove = connect(token);
+    const service = await proto.connectWithSessionToken(token);
+    let remove = connect(service);
 
-    socket.on('auth', (token) => {
-      remove.then(rm => rm());
-      remove = connect(token);
+    socket.on('auth', async (token) => {
+      await service.connectWithSessionToken(token);
     });
 
     socket.on('disconnect', () => {
-      remove.then(rm => rm());
+      remove();
     });
 
     socket.on('EV_NOTIFY', (payload) => {
