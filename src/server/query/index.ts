@@ -124,7 +124,7 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
     });
   }
 
-  private _on_upsert(objects: TObject[]) {
+  private _on_upsert_traggers(objects: TObject[]) {
     const createTraggers = this._proto[PVK].triggers[this.className]?.create ?? [];
     const updateTraggers = this._proto[PVK].triggers[this.className]?.update ?? [];
     for (const obj of objects) {
@@ -138,6 +138,9 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
         })();
       }
     }
+  }
+
+  private _on_upsert(objects: TObject[]) {
     if (_.includes(['Role', '_Session'], this.className)) {
       (async () => {
         try {
@@ -159,7 +162,7 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
     }
   }
 
-  private _on_delete(objects: TObject[]) {
+  private _on_delete_traggers(objects: TObject[]) {
     const traggers = this._proto[PVK].triggers[this.className]?.delete ?? [];
     for (const obj of objects) {
       for (const tragger of traggers) {
@@ -172,6 +175,9 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
         })();
       }
     }
+  }
+
+  private _on_delete(objects: TObject[]) {
     if (_.includes(['Role', '_Session'], this.className)) {
       (async () => {
         try {
@@ -204,7 +210,8 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
         groupMatches: this[PVK].options.groupMatches,
       }, values)
     );
-    if (!options?.silent) this._on_upsert(objs);
+    this._on_upsert(objs);
+    if (!options?.silent || !options.master) this._on_upsert_traggers(objs);
     return objs;
   }
 
@@ -215,7 +222,8 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
     const objs = this._objectMethods(
       await this._dispatcher(options).update(this._queryOptions, update)
     );
-    if (!options?.silent) this._on_upsert(objs);
+    this._on_upsert(objs);
+    if (!options?.silent || !options.master) this._on_upsert_traggers(objs);
     return objs;
   }
 
@@ -227,7 +235,8 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
     const objs = this._objectMethods(
       await this._dispatcher(options).upsert(this._queryOptions, update, setOnInsert)
     );
-    if (!options?.silent) this._on_upsert(objs);
+    this._on_upsert(objs);
+    if (!options?.silent || !options.master) this._on_upsert_traggers(objs);
     return objs;
   }
 
@@ -235,7 +244,8 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
     const objs = this._objectMethods(
       await this._dispatcher(options).delete(this._queryOptions)
     );
-    if (!options?.silent) this._on_delete(objs);
+    this._on_delete(objs);
+    if (!options?.silent || !options.master) this._on_delete_traggers(objs);
     return objs;
   }
 }
