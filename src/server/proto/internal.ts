@@ -488,11 +488,11 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     };
   }
 
-  publishAuthChanges(proto: P) {
+  publishSocketAuthChanges(proto: P) {
     return this.options.pubsub.publish(PROTO_AUTH_CHANGES_MSG, null);
   }
 
-  listenAuthChanges(proto: P, callback: () => void) {
+  listenSocketAuthChanges(proto: P, callback: () => void) {
     return {
       remove: this.options.pubsub.subscribe(
         PROTO_AUTH_CHANGES_MSG,

@@ -219,7 +219,7 @@ export const registerProtoSocket = <E>(
       if (!_.isEmpty(ids)) socket.emit('ON_EV_NOTIFY', { ids, data: payload });
     });
 
-    const { remove: remove_auth_changes } = service[PVK].listenAuthChanges(service, () => {
+    const { remove: remove_auth_changes } = service[PVK].listenSocketAuthChanges(service, () => {
       service.connectWithSessionToken(token);
     });
 

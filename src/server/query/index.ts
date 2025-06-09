@@ -141,7 +141,7 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
     if (_.includes(['Role', '_Session'], this.className)) {
       (async () => {
         try {
-          await this._proto[PVK].publishAuthChanges(this._proto);
+          await this._proto[PVK].publishSocketAuthChanges(this._proto);
         } catch (e) {
           this._proto.logger.error(e);
         }
@@ -175,7 +175,7 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
     if (_.includes(['Role', '_Session'], this.className)) {
       (async () => {
         try {
-          await this._proto[PVK].publishAuthChanges(this._proto);
+          await this._proto[PVK].publishSocketAuthChanges(this._proto);
         } catch (e) {
           this._proto.logger.error(e);
         }
