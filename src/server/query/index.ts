@@ -138,7 +138,7 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
         })();
       }
     }
-    if (this._proto.schema[this.className]?.liveQuery) {
+    if (_.includes(['Role', '_Session'], this.className) || this._proto.schema[this.className]?.liveQuery) {
       (async () => {
         try {
           await this._proto[PVK].publishLiveQuery(this._proto, 'create', _.filter(objects, x => x.__v === 0));
@@ -163,7 +163,7 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
         })();
       }
     }
-    if (this._proto.schema[this.className]?.liveQuery) {
+    if (_.includes(['Role', '_Session'], this.className) || this._proto.schema[this.className]?.liveQuery) {
       (async () => {
         try {
           await this._proto[PVK].publishLiveQuery(this._proto, 'delete', objects);

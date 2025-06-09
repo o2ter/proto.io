@@ -196,6 +196,13 @@ export const registerProtoSocket = <E>(
 
   io.on('connection', async (socket) => {
 
+    const { token } = socket.handshake.auth;
+    const service = await proto.connectWithSessionToken(token);
+
+    socket.on('auth', (token) => {
+      service.connectWithSessionToken(token);
+    });
+
     type QueryOpts = {
       event: string;
       className: string;
@@ -205,40 +212,31 @@ export const registerProtoSocket = <E>(
     let events: Record<string, QuerySelector | boolean> = {};
     let queries: Record<string, QueryOpts> = {};
 
-    const connect = (proto: ProtoService<E>) => {
-      const { remove: remove_basic } = proto.listen(data => {
-        const ids = _.keys(_.pickBy(events, v => v instanceof QuerySelector ? v.eval(data) : v));
-        const payload = JSON.parse(serialize(data));
-        if (!_.isEmpty(ids)) socket.emit('ON_EV_NOTIFY', { ids, data: payload });
-      });
-      const { remove: remove_livequery } = proto[PVK]._liveQuery(proto, (ev, objs) => {
-        const ids: Record<string, string[]> = {};
-        for (const obj of objs) {
-          ids[obj.id!] = _.keys(_.pickBy(queries, v => {
-            if (v.event !== ev || v.className !== obj.className) return false;
-            return v.filter instanceof QuerySelector ? v.filter.eval(obj) : v.filter;
-          }));
-        }
-        if (_.isEmpty(ids)) return;
-        const payload = JSON.parse(serialize(_.filter(objs, obj => !_.isEmpty(ids[obj.id!]))));
-        socket.emit('ON_EV_LIVEQUERY', { ids, data: payload });
-      });
-      return () => {
-        remove_basic();
-        remove_livequery();
-      };
-    };
+    const { remove: remove_basic } = service.listen(data => {
+      const ids = _.keys(_.pickBy(events, v => v instanceof QuerySelector ? v.eval(data) : v));
+      const payload = JSON.parse(serialize(data));
+      if (!_.isEmpty(ids)) socket.emit('ON_EV_NOTIFY', { ids, data: payload });
+    });
 
-    const { token } = socket.handshake.auth;
-    const service = await proto.connectWithSessionToken(token);
-    const remove = connect(service);
-
-    socket.on('auth', (token) => {
-      service.connectWithSessionToken(token);
+    const { remove: remove_livequery } = service[PVK]._liveQuery(service, (ev, objs) => {
+      if (_.some(objs, obj => _.includes(['Role', '_Session'], obj.className))) {
+        service.connectWithSessionToken(token);
+      }
+      const ids: Record<string, string[]> = {};
+      for (const obj of objs) {
+        ids[obj.id!] = _.keys(_.pickBy(queries, v => {
+          if (v.event !== ev || v.className !== obj.className) return false;
+          return v.filter instanceof QuerySelector ? v.filter.eval(obj) : v.filter;
+        }));
+      }
+      if (_.isEmpty(ids)) return;
+      const payload = JSON.parse(serialize(_.filter(objs, obj => !_.isEmpty(ids[obj.id!]))));
+      socket.emit('ON_EV_LIVEQUERY', { ids, data: payload });
     });
 
     socket.on('disconnect', () => {
-      remove();
+      remove_basic();
+      remove_livequery();
     });
 
     socket.on('EV_NOTIFY', (payload) => {
