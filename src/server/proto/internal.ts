@@ -468,8 +468,6 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
   }
 
   listen(proto: P, callback: (data: EventData) => void) {
-    const isMaster = proto.isMaster;
-    const roles = isMaster ? [] : this._perms(proto);
     return {
       remove: this.options.pubsub.subscribe(
         PROTO_NOTY_MSG,
@@ -477,7 +475,9 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
           const { _rperm } = payload as EventData;
           (async () => {
             try {
-              if (!isMaster && !_.some(await roles, x => _.includes(_rperm, x))) return;
+              const isMaster = proto.isMaster;
+              const roles = isMaster ? [] : await this._perms(proto);
+              if (!isMaster && !_.some(roles, x => _.includes(_rperm, x))) return;
               await callback(payload as EventData);
             } catch (e) {
               proto.logger.error(e);
@@ -521,8 +521,6 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     proto: P,
     callback: (event: string, objects: TObject[]) => void,
   ) {
-    const isMaster = proto.isMaster;
-    const roles = isMaster ? [] : this._perms(proto);
     return {
       remove: this.options.pubsub.subscribe(
         PROTO_LIVEQUERY_MSG,
@@ -530,11 +528,12 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
           const { event, objects } = deserialize(JSON.stringify(payload)) as { event: string; objects: TObject[]; };
           (async () => {
             try {
-              const _roles = await roles;
+              const isMaster = proto.isMaster;
+              const roles = isMaster ? [] : await this._perms(proto);
               const payload = proto.rebind(isMaster ? objects : _.filter(objects, object => {
                 const acl = object.acl();
                 const clp = proto.schema[object.className].classLevelPermissions?.get ?? ['*'];
-                return _.some(_roles, x => _.includes(clp, x) && _.includes(acl.read, x));
+                return _.some(roles, x => _.includes(clp, x) && _.includes(acl.read, x));
               }));
               if (!_.isEmpty(payload)) await callback(event, payload);
             } catch (e) {
