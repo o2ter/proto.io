@@ -46,6 +46,8 @@ export type ExtraOptions<M extends boolean> = {
 
   /**
    * Disable the triggers.
+   * 
+   * Only effective when `master` is `true`.
    */
   silent?: boolean;
 };
