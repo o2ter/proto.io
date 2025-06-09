@@ -218,10 +218,11 @@ export const registerProtoSocket = <E>(
       if (!_.isEmpty(ids)) socket.emit('ON_EV_NOTIFY', { ids, data: payload });
     });
 
+    const { remove: remove_auth_changes } = service[PVK].listenAuthChanges(service, () => {
+      service.connectWithSessionToken(token);
+    });
+
     const { remove: remove_livequery } = service[PVK]._liveQuery(service, (ev, objs) => {
-      if (_.some(objs, obj => _.includes(['Role', '_Session'], obj.className))) {
-        service.connectWithSessionToken(token);
-      }
       const ids: Record<string, string[]> = {};
       for (const obj of objs) {
         ids[obj.id!] = _.keys(_.pickBy(queries, v => {
@@ -236,6 +237,7 @@ export const registerProtoSocket = <E>(
 
     socket.on('disconnect', () => {
       remove_basic();
+      remove_auth_changes();
       remove_livequery();
     });
 

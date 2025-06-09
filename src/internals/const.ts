@@ -33,4 +33,5 @@ export const AUTH_ALT_COOKIE_KEY = 'x-proto-auth-key';
 
 export const PROTO_EVENT = 'PROTO_EVENT';
 export const PROTO_NOTY_MSG = 'PROTO_NOTY_MSG';
+export const PROTO_AUTH_CHANGES_MSG = 'PROTO_AUTH_CHANGES_MSG';
 export const PROTO_LIVEQUERY_MSG = 'PROTO_LIVEQUERY_MSG';
