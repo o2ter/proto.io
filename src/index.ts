@@ -196,11 +196,12 @@ export const registerProtoSocket = <E>(
 
   io.on('connection', async (socket) => {
 
-    const { token } = socket.handshake.auth;
+    let { token } = socket.handshake.auth;
     const service = await proto.connectWithSessionToken(token);
 
-    socket.on('auth', (token) => {
-      service.connectWithSessionToken(token);
+    socket.on('auth', (t) => {
+      token = t;
+      service.connectWithSessionToken(t);
     });
 
     type QueryOpts = {
