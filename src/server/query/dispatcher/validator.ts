@@ -394,9 +394,7 @@ export class QueryValidator<E> {
     }
   }
 
-  decodeQuery<Q extends FindOptions & RelationOptions>(query: Q, action: keyof TSchema.ACLs): DecodedQuery<Q> {
-
-    if ('relatedBy' in query && query.relatedBy) this.validateRelatedBy(query.className, query.relatedBy);
+  _decodeQueryBaseInfo(query: TQueryBaseOptions & { className: string; }, action: keyof TSchema.ACLs) {
 
     const filter = QuerySelector.decode([
       ...action === 'read' ? this._rperm(query.className) : this._wperm(query.className),
@@ -419,12 +417,25 @@ export class QueryValidator<E> {
     const sort = query.sort && this.decodeSort(query.sort);
 
     const keyPaths = _.uniq([
-      ...query.includes ?? ['*'],
       ..._.isArray(sort) ? _.flatMap(sort, s => s.expr.keyPaths()) : _.keys(sort),
       ...filter.keyPaths(),
       ...matchKeyPaths(query.matches ?? {}),
       ..._.keys(groupMatches),
       ..._.flatMap(_.values(groupMatches), m => _.flatMap(_.values(m), x => x.keyPaths())),
+    ]);
+
+    return { groupMatches, filter, sort, keyPaths };
+  }
+
+  decodeQuery<Q extends FindOptions & RelationOptions>(query: Q, action: keyof TSchema.ACLs): DecodedQuery<Q> {
+
+    if ('relatedBy' in query && query.relatedBy) this.validateRelatedBy(query.className, query.relatedBy);
+
+    const { groupMatches, filter, sort, keyPaths: _keyPaths } = this._decodeQueryBaseInfo(query, action)
+
+    const keyPaths = _.uniq([
+      ...query.includes ?? ['*'],
+      ..._keyPaths,
     ]);
 
     const includes = this.decodeIncludes(query.className, keyPaths, groupMatches);
