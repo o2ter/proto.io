@@ -72,6 +72,10 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
     return proto.rebind(deserialize(res.data));
   }
 
+  refreshSocketSession() {
+    this.service.refreshSocketSession();
+  }
+
   setSessionToken(proto: P, token?: string) {
     this.service.setSessionToken(token);
   }

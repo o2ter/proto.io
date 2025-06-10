@@ -66,6 +66,12 @@ export default class Service<Ext, P extends ProtoType<any>> {
     this.cookieKey = cookieKey || AUTH_COOKIE_KEY;
   }
 
+  refreshSocketSession() {
+    for (const socket of this.sockets) {
+      socket.emit('auth', this.token);
+    }
+  }
+
   setSessionToken(token?: string) {
     this.token = token;
     if (typeof window === 'undefined') {

@@ -312,6 +312,16 @@ export interface ProtoType<Ext> {
   ): Promise<this & { session?: _Session; } & T>
 
   /**
+   * Refreshes the authentication/session status for the socket connection.
+   * 
+   * This method should be called when the session token or authentication state changes,
+   * ensuring that any active socket connections are updated to reflect the new session.
+   * Useful for maintaining real-time features (such as LiveQuery) after login, logout,
+   * or session renewal.
+   */
+  refreshSocketSession(): void
+
+  /**
    * Sets the session token.
    * @param token - The session token.
    */

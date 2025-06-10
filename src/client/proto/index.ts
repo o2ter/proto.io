@@ -99,6 +99,10 @@ export class ProtoClient<Ext = any> extends ProtoType<Ext> {
     }) as any;
   }
 
+  refreshSocketSession() {
+    this[PVK].refreshSocketSession();
+  }
+
   setSessionToken(token?: string) {
     this[PVK].setSessionToken(this, token);
   }
