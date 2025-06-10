@@ -103,7 +103,6 @@ export class DatabaseFileStorage extends FileStorageBase {
       className: '_FileChunk',
       filter: QuerySelector.decode({ token: { $eq: token } }),
       includes: ['_id'],
-      defaultMatches: {},
       matches: {},
       groupMatches: {},
       objectIdSize: 0

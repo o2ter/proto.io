@@ -399,7 +399,6 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
         const found = this.storage.find({
           className: 'File',
           filter: QuerySelector.decode({ _expired_at: { $lt: time } }),
-          defaultMatches: {},
           matches: {},
           groupMatches: {},
           includes: ['_id', '_expired_at', 'token'],
@@ -414,7 +413,6 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
         className,
         filter: QuerySelector.decode({ _expired_at: { $lt: time } }),
         includes: ['_id', '_expired_at'],
-        defaultMatches: {},
         matches: {},
         groupMatches: {},
         objectIdSize: 0

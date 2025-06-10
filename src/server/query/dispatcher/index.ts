@@ -123,7 +123,6 @@ export const dispatcher = <E>(
       const _validator = await validator();
       const _groupMatches = _validator.decodeGroupMatches(options.className, options.groupMatches ?? {});
       const _includes = _validator.decodeIncludes(options.className, options.includes ?? ['*'], _groupMatches);
-      const _defaultMatches = _validator.decodeDefaultMatches(options.className, _includes);
       const _matches = _validator.decodeMatches(options.className, options.matches ?? {}, _includes);
       if (!_validator.validateCLPs(options.className, 'create')) throw Error('No permission');
       const _attrs = normalize(_.map(values, attr => _validator.validateFields(options.className, attr, 'create', QueryValidator.patterns.path)));
@@ -133,7 +132,6 @@ export const dispatcher = <E>(
             (storage) => storage.insert({
               className: options.className,
               includes: _includes,
-              defaultMatches: _defaultMatches,
               matches: _matches,
               groupMatches: _groupMatches,
               objectIdSize: proto[PVK].options.objectIdSize

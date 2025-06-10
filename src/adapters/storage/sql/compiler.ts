@@ -57,12 +57,6 @@ export type Populate = Required<QueryContext> & {
   type: 'pointer' | 'relation';
   foreignField?: string;
   subpaths: string[];
-
-  defaultFilter?: QuerySelector;
-  defaultSort?: Record<string, 1 | -1> | DecodedSortOption[];
-  defaultSkip?: number;
-  defaultLimit?: number;
-
   filter?: QuerySelector;
   sort?: Record<string, 1 | -1> | DecodedSortOption[];
   skip?: number;
@@ -167,7 +161,6 @@ export class QueryCompiler {
   private _encodeIncludes(query: {
     className: string;
     includes: string[];
-    defaultMatches: Record<string, DecodedBaseQuery>;
     matches: Record<string, DecodedBaseQuery>;
     groupMatches: Record<string, Record<string, QueryAccumulator>>;
   }) {
@@ -185,15 +178,11 @@ export class QueryCompiler {
 
       if (isPointer(dataType) || isRelation(dataType)) {
         if (_.isEmpty(subpath)) throw Error(`Invalid path: ${include}`);
-        const _defaultMatches = query.defaultMatches[colname] ?? {};
         const _matches = query.matches[colname] ?? {};
         populates[colname] = populates[colname] ?? {
           name: `t${this.nextIdx()}`,
           className: dataType.target,
           subpaths: [],
-          defaultFilter: _defaultMatches.filter,
-          defaultSkip: _defaultMatches.skip,
-          defaultLimit: _defaultMatches.limit,
           filter: _matches.filter,
           skip: _matches.skip,
           limit: _matches.limit,
@@ -213,19 +202,16 @@ export class QueryCompiler {
     }
 
     for (const [colname, populate] of _.toPairs(populates)) {
-      const _defaultMatches = query.defaultMatches[colname] ?? {};
       const _matches = query.matches[colname] ?? {};
       const { includes, populates, groupMatches } = this._encodeIncludes({
         className: populate.className,
         includes: populate.subpaths,
-        defaultMatches: _defaultMatches.defaultMatches,
         matches: _matches.matches,
         groupMatches: {
           ..._.mapKeys(_.pickBy(query.groupMatches, (x, k) => _.startsWith(k, `${colname}.`)), (x, k) => k.slice(colname.length + 1)),
           ..._matches.groupMatches ?? {},
         },
       });
-      populate.defaultSort = _encodeSorting(includes, populates, _defaultMatches.sort);
       populate.sort = _encodeSorting(includes, populates, _matches.sort);
       populate.includes = includes;
       populate.populates = populates;
