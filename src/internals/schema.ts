@@ -25,6 +25,7 @@
 
 import _ from 'lodash';
 import { TValueWithoutObject } from './types';
+import { TQueryBaseOptions } from './query/base';
 
 export namespace TSchema {
   /**
@@ -35,16 +36,16 @@ export namespace TSchema {
   /**
    * Access Control Lists for read and update operations.
    */
-  export type ACLs = { 
+  export type ACLs = {
     /**
      * ACL for read operation.
      */
-    read: TSchema.ACL; 
+    read: TSchema.ACL;
 
     /**
      * ACL for update operation.
      */
-    update: TSchema.ACL; 
+    update: TSchema.ACL;
   };
 
   /**
@@ -55,86 +56,96 @@ export namespace TSchema {
   /**
    * Primitive type with an optional default value.
    */
-  export type PrimitiveType = Primitive | { 
+  export type PrimitiveType = Primitive | {
     /**
      * The type of the primitive.
      */
-    type: Primitive; 
+    type: Primitive;
 
     /**
      * Optional default value.
      */
-    default?: TValueWithoutObject; 
+    default?: TValueWithoutObject;
   };
 
   /**
    * Vector type with a specified dimension and an optional default value.
    */
-  export type VectorType = { 
+  export type VectorType = {
     /**
      * The type of the vector.
      */
-    type: 'vector'; 
+    type: 'vector';
 
     /**
      * The dimension of the vector.
      */
-    dimension: number; 
+    dimension: number;
 
     /**
      * Optional default value.
      */
-    default?: number[]; 
+    default?: number[];
   };
 
   /**
    * Shape type with a specified shape.
    */
-  export type ShapeType = { 
+  export type ShapeType = {
     /**
      * The type of the shape.
      */
-    type: 'shape'; 
+    type: 'shape';
 
     /**
      * The shape definition.
      */
-    shape: Record<string, DataType>; 
+    shape: Record<string, DataType>;
   };
 
   /**
      * Pointer type with a target.
      */
-  export type PointerType = { 
+  export type PointerType = {
     /**
      * The type of the pointer.
      */
-    type: 'pointer'; 
+    type: 'pointer';
 
     /**
      * The target class of the pointer.
      */
-    target: string; 
+    target: string;
   };
 
   /**
    * Relation type with a target and an optional foreign field.
    */
-  export type RelationType = { 
+  export type RelationType = {
     /**
      * The type of the relation.
      */
-    type: 'relation'; 
+    type: 'relation';
 
     /**
      * The target class of the relation.
      */
-    target: string; 
+    target: string;
 
     /**
      * Optional foreign field.
      */
-    foreignField?: string; 
+    foreignField?: string;
+
+    /**
+     * Optional query options for the relation.
+     * 
+     * These options define default query behaviors—such as filtering, sorting, limiting results, and other query parameters—
+     * that will be automatically applied when querying this relation via the specified `foreignField`.
+     * 
+     * Note: `queryOptions` is only applicable if `foreignField` is set. If `foreignField` is not provided, `queryOptions` will be ignored.
+     */
+    queryOptions?: TQueryBaseOptions;
   };
 
   /**
