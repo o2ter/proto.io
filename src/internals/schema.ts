@@ -29,141 +29,181 @@ import { TQueryBaseOptions } from './query/base';
 
 export namespace TSchema {
   /**
-   * Access Control List represented as an array of strings.
+   * Access Control List (ACL).
+   * 
+   * An array of strings representing users or roles that have access to a resource.
    */
   export type ACL = string[];
 
   /**
    * Access Control Lists for read and update operations.
+   * 
+   * Defines separate ACLs for reading and updating an object.
    */
   export type ACLs = {
     /**
      * ACL for read operation.
+     * Users or roles allowed to read the object.
      */
     read: TSchema.ACL;
 
     /**
      * ACL for update operation.
+     * Users or roles allowed to update the object.
      */
     update: TSchema.ACL;
   };
 
   /**
-   * Primitive data types.
+   * Supported primitive data types.
    */
-  export type Primitive = 'boolean' | 'number' | 'decimal' | 'string' | 'string[]' | 'date' | 'object' | 'array';
+  export type Primitive =
+    | 'boolean'
+    | 'number'
+    | 'decimal'
+    | 'string'
+    | 'string[]'
+    | 'date'
+    | 'object'
+    | 'array';
 
   /**
-   * Primitive type with an optional default value.
+   * Primitive type with optional default value.
+   * 
+   * Can be a string literal (e.g., 'string') or an object specifying the type and a default value.
    */
-  export type PrimitiveType = Primitive | {
-    /**
-     * The type of the primitive.
-     */
-    type: Primitive;
+  export type PrimitiveType =
+    | Primitive
+    | {
+      /**
+       * The primitive type.
+       */
+      type: Primitive;
 
-    /**
-     * Optional default value.
-     */
-    default?: TValueWithoutObject;
-  };
+      /**
+       * Optional default value for the field.
+       */
+      default?: TValueWithoutObject;
+    };
 
   /**
-   * Vector type with a specified dimension and an optional default value.
+   * Vector type with a specified dimension and optional default value.
+   * 
+   * Used for fields storing fixed-length numeric arrays (vectors).
    */
   export type VectorType = {
     /**
-     * The type of the vector.
+     * The type of the field. Always 'vector'.
      */
     type: 'vector';
 
     /**
-     * The dimension of the vector.
+     * The dimension (length) of the vector.
      */
     dimension: number;
 
     /**
-     * Optional default value.
+     * Optional default value for the vector.
      */
     default?: number[];
   };
 
   /**
-   * Shape type with a specified shape.
+   * Shape type for nested objects.
+   * 
+   * Allows defining complex, nested object structures with their own field types.
    */
   export type ShapeType = {
     /**
-     * The type of the shape.
+     * The type of the field. Always 'shape'.
      */
     type: 'shape';
 
     /**
-     * The shape definition.
+     * The shape definition, mapping field names to their data types.
      */
     shape: Record<string, DataType>;
   };
 
   /**
-     * Pointer type with a target.
-     */
+   * Pointer type for referencing another class.
+   * 
+   * Represents a one-to-one relationship to another object.
+   */
   export type PointerType = {
     /**
-     * The type of the pointer.
+     * The type of the field. Always 'pointer'.
      */
     type: 'pointer';
 
     /**
-     * The target class of the pointer.
+     * The name of the target class being referenced.
      */
     target: string;
   };
 
   /**
-   * Relation type with a target and an optional foreign field.
+   * Relation type for referencing multiple objects in another class.
+   * 
+   * Represents a one-to-many or many-to-many relationship.
+   * - `target`: The related class name.
+   * - `foreignField`: (Optional) The field in the target class that refers back to this class.
+   * - `match`: (Optional) Default match query options (filter, sort, etc.) applied when querying this relation.
+   *   Only used if `foreignField` is set.
    */
   export type RelationType = {
     /**
-     * The type of the relation.
+     * The type of the field. Always 'relation'.
      */
     type: 'relation';
 
     /**
-     * The target class of the relation.
+     * The name of the target class for this relation.
      */
     target: string;
 
     /**
-     * Optional foreign field.
+     * (Optional) The field in the target class that refers back to this class.
+     * If provided, the relation is managed via this foreign key.
      */
     foreignField?: string;
 
     /**
-     * Optional query options for the relation.
+     * (Optional) Default match query options for this relation.
      * 
      * These options define default query behaviors—such as filtering, sorting, limiting results, and other query parameters—
      * that will be automatically applied when querying this relation via the specified `foreignField`.
      * 
-     * Note: `queryOptions` is only applicable if `foreignField` is set. If `foreignField` is not provided, `queryOptions` will be ignored.
+     * Note: `match` is only applicable if `foreignField` is set. If `foreignField` is not provided, `match` will be ignored.
      */
-    queryOptions?: TQueryBaseOptions;
+    match?: TQueryBaseOptions;
   };
 
   /**
-   * Data type which can be a primitive, vector, shape, pointer, or relation type.
+   * Data type for schema fields.
+   * 
+   * Can be a primitive, vector, shape, pointer, or relation type.
    */
-  export type DataType = PrimitiveType | VectorType | ShapeType | PointerType | RelationType;
+  export type DataType =
+    | PrimitiveType
+    | VectorType
+    | ShapeType
+    | PointerType
+    | RelationType;
 
   /**
-   * Class Level Permissions.
+   * Class Level Permissions (CLPs).
+   * 
+   * Defines access control for various operations at the class level.
    */
   export type CLPs = {
     /**
-     * ACL for get operation.
+     * ACL for get (read single object) operation.
      */
     get?: TSchema.ACL;
 
     /**
-     * ACL for find operation.
+     * ACL for find (query multiple objects) operation.
      */
     find?: TSchema.ACL;
 
@@ -189,36 +229,40 @@ export namespace TSchema {
   };
 
   /**
-   * Field Level Permissions.
+   * Field Level Permissions (FLPs).
+   * 
+   * Defines access control for individual fields.
    */
   export type FLPs = {
     /**
-     * ACL for read operation.
+     * ACL for reading the field.
      */
     read?: TSchema.ACL;
 
     /**
-     * ACL for create operation.
+     * ACL for creating the field.
      */
     create?: TSchema.ACL;
 
     /**
-     * ACL for update operation.
+     * ACL for updating the field.
      */
     update?: TSchema.ACL;
   };
 
   /**
-   * Indexes for the schema.
+   * Index definitions for the schema.
+   * 
+   * Supports both basic and vector indexes.
    */
   export type Indexes = {
     /**
-     * Type of the index, default is 'basic'.
+     * Type of the index. Default is 'basic'.
      */
     type?: 'basic';
 
     /**
-     * Keys for the index.
+     * Keys for the index, mapping field names to sort order (1 for ascending, -1 for descending).
      */
     keys: Record<string, 1 | -1>;
 
@@ -228,17 +272,17 @@ export namespace TSchema {
     unique?: boolean;
   } | {
     /**
-     * Type of the index, must be 'vector'.
+     * Type of the index. Must be 'vector' for vector indexes.
      */
     type: 'vector';
 
     /**
-     * Keys for the vector index.
+     * Keys for the vector index. Can be a single field or an array of fields.
      */
     keys: string | string[];
 
     /**
-     * Method for the vector index.
+     * Method for the vector index. Supported: 'hnsw', 'ivfflat'.
      */
     method?: 'hnsw' | 'ivfflat';
   };
