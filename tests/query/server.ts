@@ -120,6 +120,7 @@ const Proto = new ProtoService({
         relation7: { type: 'relation', target: 'Test', foreignField: 'pointer.pointer.relation.relation.relation.relation' },
         relation8: { type: 'relation', target: 'Test', foreignField: 'pointer.pointer.relation2.relation' },
         relation9: { type: 'relation', target: 'Test', foreignField: 'pointer.pointer.relation2.relation.pointer.pointer' },
+        relation2b: { type: 'relation', target: 'Test', foreignField: 'pointer', match: { filter: { number: { $gt: 1 } }, sort: { _created_at: 1 }, limit: 1 } },
         '_test_field-name_01': 'string',
         shape: schema.shape({
           default: { type: 'number', default: 42 },
