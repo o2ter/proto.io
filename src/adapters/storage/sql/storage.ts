@@ -172,10 +172,18 @@ export abstract class SqlStorage implements TStorage {
 
   private _matchesType(compiler: QueryCompiler, options: {
     className: string;
+    defaultMatches: Record<string, DecodedBaseQuery>;
     matches: Record<string, DecodedBaseQuery>;
     groupMatches?: Record<string, Record<string, QueryAccumulator>>;
   }): Record<string, any> {
     const types: Record<string, any> = {};
+    for (const [key, match] of _.entries(options.defaultMatches)) {
+      const type = resolveDataType(compiler.schema, options.className, key);
+      if (_.isNil(type)) continue;
+      if (isPointer(type) || isRelation(type)) {
+        types[key] = this._matchesType(compiler, { className: type.target, ...match });
+      }
+    }
     for (const [key, match] of _.entries(options.matches)) {
       const type = resolveDataType(compiler.schema, options.className, key);
       if (_.isNil(type)) continue;

@@ -327,6 +327,11 @@ export class QueryValidator<E> {
     return sort;
   }
 
+  decodeDefaultMatches(className: string, includes: string[]): Record<string, DecodedBaseQuery> {
+
+    return {};
+  }
+
   decodeMatches(className: string, matches: Record<string, TQueryBaseOptions>, includes: string[]): Record<string, DecodedBaseQuery> {
 
     const schema = this.schema[className] ?? {};
@@ -338,6 +343,10 @@ export class QueryValidator<E> {
       if (!this.validateKeyPerm(colname, 'read', schema)) continue;
       if (isPrimitive(dataType) || isVector(dataType) || isShape(dataType)) continue;
       _matches[colname] = {
+        defaultMatches: this.decodeDefaultMatches(
+          dataType.target,
+          includes.filter(x => x.startsWith(`${colname}.`)).map(x => x.slice(colname.length + 1)),
+        ),
         matches: this.decodeMatches(
           dataType.target, {},
           includes.filter(x => x.startsWith(`${colname}.`)).map(x => x.slice(colname.length + 1)),
@@ -352,6 +361,10 @@ export class QueryValidator<E> {
 
       if (isPointer(dataType) && !_.isEmpty(subpath)) {
         _matches[_colname] = {
+          defaultMatches: this.decodeDefaultMatches(
+            dataType.target,
+            includes.filter(x => x.startsWith(`${_colname}.`)).map(x => x.slice(_colname.length + 1)),
+          ),
           matches: this.decodeMatches(
             dataType.target, { [subpath.join('.')]: match },
             includes.filter(x => x.startsWith(`${_colname}.`)).map(x => x.slice(_colname.length + 1)),
@@ -365,6 +378,10 @@ export class QueryValidator<E> {
           ...match,
           groupMatches,
           filter: QuerySelector.decode(_.castArray<TQuerySelector>(match.filter)).simplify(),
+          defaultMatches: this.decodeDefaultMatches(
+            dataType.target,
+            includes.filter(x => x.startsWith(`${_colname}.`)).map(x => x.slice(_colname.length + 1)),
+          ),
           matches: this.decodeMatches(
             dataType.target, match.matches ?? {},
             includes.filter(x => x.startsWith(`${_colname}.`)).map(x => x.slice(_colname.length + 1)),
@@ -439,12 +456,14 @@ export class QueryValidator<E> {
     ]);
 
     const includes = this.decodeIncludes(query.className, keyPaths, groupMatches);
+    const defaultMatches = this.decodeDefaultMatches(query.className, includes);
     const matches = this.decodeMatches(query.className, query.matches ?? {}, includes);
 
     return {
       ...query,
       groupMatches,
       filter,
+      defaultMatches,
       matches,
       includes,
       sort,

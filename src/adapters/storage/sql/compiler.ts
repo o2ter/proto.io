@@ -161,6 +161,7 @@ export class QueryCompiler {
   private _encodeIncludes(query: {
     className: string;
     includes: string[];
+    defaultMatches: Record<string, DecodedBaseQuery>;
     matches: Record<string, DecodedBaseQuery>;
     groupMatches: Record<string, Record<string, QueryAccumulator>>;
   }) {
@@ -206,6 +207,7 @@ export class QueryCompiler {
       const { includes, populates, groupMatches } = this._encodeIncludes({
         className: populate.className,
         includes: populate.subpaths,
+        defaultMatches: _matches.defaultMatches,
         matches: _matches.matches,
         groupMatches: {
           ..._.mapKeys(_.pickBy(query.groupMatches, (x, k) => _.startsWith(k, `${colname}.`)) , (x, k) => k.slice(colname.length + 1)),
