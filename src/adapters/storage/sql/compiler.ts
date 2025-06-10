@@ -179,6 +179,7 @@ export class QueryCompiler {
 
       if (isPointer(dataType) || isRelation(dataType)) {
         if (_.isEmpty(subpath)) throw Error(`Invalid path: ${include}`);
+        const _defaultMatches = query.defaultMatches[colname];
         const _matches = query.matches[colname];
         populates[colname] = populates[colname] ?? {
           name: `t${this.nextIdx()}`,
@@ -203,6 +204,7 @@ export class QueryCompiler {
     }
 
     for (const [colname, populate] of _.toPairs(populates)) {
+      const _defaultMatches = query.defaultMatches[colname];
       const _matches = query.matches[colname];
       const { includes, populates, groupMatches } = this._encodeIncludes({
         className: populate.className,
