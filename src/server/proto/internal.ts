@@ -48,7 +48,7 @@ import { PVK } from '../../internals/private';
 import { fetchUserPerms } from '../query/dispatcher';
 import { EventData } from '../../internals/proto';
 import { normalize } from '../utils';
-import { PROTO_AUTH_CHANGES_MSG, PROTO_LIVEQUERY_MSG, PROTO_NOTY_MSG } from '../../internals/const';
+import { PROTO_LIVEQUERY_MSG, PROTO_NOTY_MSG } from '../../internals/const';
 import { TJob } from '../../internals/object/job';
 import { deserialize, serialize } from '../../internals/codec';
 import { ProtoQuery } from '../query';
@@ -479,27 +479,6 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
               const roles = isMaster ? [] : await this._perms(proto);
               if (!isMaster && !_.some(roles, x => _.includes(_rperm, x))) return;
               await callback(payload as EventData);
-            } catch (e) {
-              proto.logger.error(e);
-            }
-          })();
-        }
-      ),
-    };
-  }
-
-  publishSocketAuthChanges(proto: P) {
-    return this.options.pubsub.publish(PROTO_AUTH_CHANGES_MSG, null);
-  }
-
-  listenSocketAuthChanges(proto: P, callback: () => void) {
-    return {
-      remove: this.options.pubsub.subscribe(
-        PROTO_AUTH_CHANGES_MSG,
-        () => {
-          (async () => {
-            try {
-              await callback();
             } catch (e) {
               proto.logger.error(e);
             }
