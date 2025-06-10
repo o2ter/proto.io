@@ -304,7 +304,7 @@ export class QueryValidator<E> {
 
               if (isRelation(type) && type.foreignField && type.match) {
                 const { groupMatches, keyPaths } = this._decodeQueryBaseInfo({ className: type.target, ...type.match }, 'read');
-                populates[colname].subpaths.push(...this.decodeIncludes(type.target, keyPaths, groupMatches));
+                populates[`${colname}.${path}`].subpaths.push(...this.decodeIncludes(type.target, keyPaths, groupMatches));
               }
             }
           }
