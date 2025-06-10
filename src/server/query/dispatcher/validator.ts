@@ -272,7 +272,7 @@ export class QueryValidator<E> {
 
         if (isPointer(dataType) || isRelation(dataType)) {
           if (!this.validateCLPs(dataType.target, 'get')) throw Error('No permission');
-          if (dataType.type === 'relation') this.validateForeignField(dataType, 'read', `Invalid include: ${include}`);
+          if (isRelation(dataType)) this.validateForeignField(dataType, 'read', `Invalid include: ${include}`);
 
           const isDigit = _.first(subpath)?.match(QueryValidator.patterns.digits);
           const _subpath = isRelation(dataType) && isDigit ? _.slice(subpath, 1) : subpath;
@@ -283,6 +283,10 @@ export class QueryValidator<E> {
             populates[colname].subpaths.push(_.isEmpty(_subpath) ? '*' : _subpath.join('.'));
             populates[colname].groupMatches = _.mapKeys(_.pickBy(groupMatches, (x, k) => _.startsWith(k, `${colname}.`)), (x, k) => k.slice(colname.length + 1));
           }
+          if (isRelation(dataType) && dataType.foreignField && dataType.match) {
+            const { groupMatches, keyPaths } = this._decodeQueryBaseInfo({ className: dataType.target, ...dataType.match }, 'read');
+            populates[colname].subpaths.push(...this.decodeIncludes(dataType.target, keyPaths, groupMatches));
+          }
 
         } else if (_.isEmpty(subpath) && isShape(dataType)) {
 
@@ -292,11 +296,16 @@ export class QueryValidator<E> {
             } else {
 
               if (!this.validateCLPs(type.target, 'get')) throw Error('No permission');
-              if (type.type === 'relation') this.validateForeignField(type, 'read', `Invalid include: ${include}`);
+              if (isRelation(type)) this.validateForeignField(type, 'read', `Invalid include: ${include}`);
 
               populates[`${colname}.${path}`] = populates[`${colname}.${path}`] ?? { className: type.target, subpaths: [], groupMatches: {} };
               populates[`${colname}.${path}`].subpaths.push('*');
               populates[`${colname}.${path}`].groupMatches = _.mapKeys(_.pickBy(groupMatches, (x, k) => _.startsWith(k, `${colname}.${path}.`)), (x, k) => k.slice(`${colname}.${path}`.length + 1));
+
+              if (isRelation(type) && type.foreignField && type.match) {
+                const { groupMatches, keyPaths } = this._decodeQueryBaseInfo({ className: type.target, ...type.match }, 'read');
+                populates[colname].subpaths.push(...this.decodeIncludes(type.target, keyPaths, groupMatches));
+              }
             }
           }
 
