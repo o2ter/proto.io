@@ -337,12 +337,28 @@ export class QueryValidator<E> {
     for (const [colname, [{ dataType }]] of _.entries(_includes)) {
       if (!this.validateKeyPerm(colname, 'read', schema)) continue;
       if (isPrimitive(dataType) || isVector(dataType) || isShape(dataType)) continue;
-      _matches[colname] = {
-        matches: this.decodeMatches(
-          dataType.target, {},
-          includes.filter(x => x.startsWith(`${colname}.`)).map(x => x.slice(colname.length + 1)),
-        ),
-      };
+      if (!this.validateCLPs(dataType.target, 'get')) throw Error('No permission');
+      if (isRelation(dataType) && dataType.foreignField && dataType.match) {
+        this.validateForeignField(dataType, 'read', `Invalid match: ${colname}`);
+        const groupMatches = this.decodeGroupMatches(dataType.target, dataType.match.groupMatches ?? {});
+        _matches[colname] = {
+          ...dataType.match,
+          groupMatches,
+          filter: QuerySelector.decode(_.castArray<TQuerySelector>(dataType.match.filter)).simplify(),
+          matches: this.decodeMatches(
+            dataType.target, dataType.match.matches ?? {},
+            includes.filter(x => x.startsWith(`${colname}.`)).map(x => x.slice(colname.length + 1)),
+          ),
+          sort: dataType.match.sort && this.decodeSort(dataType.match.sort),
+        };
+      } else {
+        _matches[colname] = {
+          matches: this.decodeMatches(
+            dataType.target, {},
+            includes.filter(x => x.startsWith(`${colname}.`)).map(x => x.slice(colname.length + 1)),
+          ),
+        };
+      }
     }
 
     for (const [colname, match] of _.toPairs(matches)) {
@@ -351,6 +367,7 @@ export class QueryValidator<E> {
       const { paths: [_colname, ...subpath], dataType } = resolveColumn(this.schema, className, colname);
 
       if (isPointer(dataType) && !_.isEmpty(subpath)) {
+        if (!this.validateCLPs(dataType.target, 'get')) throw Error('No permission');
         _matches[_colname] = {
           matches: this.decodeMatches(
             dataType.target, { [subpath.join('.')]: match },
