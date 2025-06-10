@@ -218,7 +218,7 @@ export class QueryCompiler {
       const { includes, populates, groupMatches } = this._encodeIncludes({
         className: populate.className,
         includes: populate.subpaths,
-        defaultMatches: _matches.defaultMatches,
+        defaultMatches: _defaultMatches.defaultMatches,
         matches: _matches.matches,
         groupMatches: {
           ..._.mapKeys(_.pickBy(query.groupMatches, (x, k) => _.startsWith(k, `${colname}.`)), (x, k) => k.slice(colname.length + 1)),
