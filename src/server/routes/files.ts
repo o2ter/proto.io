@@ -89,6 +89,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       }
       res.setHeader('Content-Type', file.type);
       res.setHeader('Cache-Control', 'public, max-age=0');
+      res.setHeader('Content-Disposition', `attachment; filename="${name}"`);
       res.setHeader('ETag', `"${id}"`);
 
       let stream: AsyncIterable<BinaryData>;
