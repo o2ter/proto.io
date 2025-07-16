@@ -87,7 +87,6 @@ const Proto = new ProtoService({
     },
     'Test': {
       fields: {
-        unique: 'number',
         default: { type: 'number', default: 42 },
         defaultDecimal: { type: 'decimal', default: new Decimal(0) },
         boolean: 'boolean',
@@ -156,7 +155,6 @@ const Proto = new ProtoService({
         no_permission: { read: ['role:admin'], create: ['role:admin'], update: ['role:admin'] }
       },
       indexes: [
-        { keys: { unique: 1 }, unique: true },
         { keys: { default: 1 } },
         { keys: { boolean: 1 } },
         { keys: { number: 1 } },
