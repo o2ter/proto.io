@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import jwt from 'jsonwebtoken';
-import { ProtoQuery, ProtoRelationQuery } from '../query';
+import { afterCommitTasks, ProtoQuery, ProtoRelationQuery } from '../query';
 import { ProtoInternal } from './internal';
 import { CookieOptions, Request } from '@o2ter/server-js';
 import { ProtoServiceOptions, ProtoServiceKeyOptions } from './types';
@@ -338,11 +338,20 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
     return this.storage.lockTable(className, update);
   }
 
-  withTransaction<T>(
+  async withTransaction<T>(
     callback: (connection: ProtoService<Ext>) => PromiseLike<T>,
     options?: TransactionOptions,
   ) {
-    return this.storage.withTransaction((storage) => callback(_.create(this, { _storage: storage })), options);
+    const tasks = afterCommitTasks.get(this) ?? [];
+    const result = await this.storage.withTransaction((storage) => {
+      const payload = _.create(this, { _storage: storage });
+      afterCommitTasks.set(payload, tasks);
+      return callback(payload);
+    }, options);
+    if (!afterCommitTasks.has(this)) {
+      for (const task of tasks) task();
+    }
+    return result;
   }
 
   generateUploadToken(options: {

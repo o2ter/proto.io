@@ -38,6 +38,7 @@ import { resolveColumn } from './dispatcher/validator';
 import { isPointer, isRelation } from '../../internals/schema';
 import { proxy } from '../proto/proxy';
 import { LiveQuerySubscription } from '../../internals/liveQuery';
+import { ProtoType } from '../../internals/proto';
 
 type _QueryOptions = {
   insecure?: boolean;
@@ -48,6 +49,8 @@ type _QueryOptions = {
     key: string;
   };
 };
+
+export const afterCommitTasks = new WeakMap<ProtoType<any>, (() => void)[]>();
 
 abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuery<T, E, M> {
 
@@ -180,6 +183,15 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
     }
   }
 
+  private _do_tasks(session: ProtoType<any> | undefined, task: () => void) {
+    const registers = session && afterCommitTasks.get(session);
+    if (!_.isNil(registers)) {
+      registers.push(task);
+    } else {
+      task();
+    }
+  }
+
   async insertMany(
     values: Record<string, TValueWithUndefined>[],
     options?: ExtraOptions<M>
@@ -192,8 +204,10 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
         groupMatches: this[PVK].options.groupMatches,
       }, values)
     );
-    this._on_upsert(objs);
-    if (!options?.silent || !options.master) this._on_upsert_traggers(objs);
+    this._do_tasks(options?.session, () => {
+      this._on_upsert(objs);
+      if (!options?.silent || !options.master) this._on_upsert_traggers(objs);
+    });
     return objs;
   }
 
@@ -204,8 +218,10 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
     const objs = this._objectMethods(
       await this._dispatcher(options).update(this._queryOptions, update)
     );
-    this._on_upsert(objs);
-    if (!options?.silent || !options.master) this._on_upsert_traggers(objs);
+    this._do_tasks(options?.session, () => {
+      this._on_upsert(objs);
+      if (!options?.silent || !options.master) this._on_upsert_traggers(objs);
+    });
     return objs;
   }
 
@@ -217,8 +233,10 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
     const objs = this._objectMethods(
       await this._dispatcher(options).upsert(this._queryOptions, update, setOnInsert)
     );
-    this._on_upsert(objs);
-    if (!options?.silent || !options.master) this._on_upsert_traggers(objs);
+    this._do_tasks(options?.session, () => {
+      this._on_upsert(objs);
+      if (!options?.silent || !options.master) this._on_upsert_traggers(objs);
+    });
     return objs;
   }
 
@@ -226,8 +244,10 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
     const objs = this._objectMethods(
       await this._dispatcher(options).delete(this._queryOptions)
     );
-    this._on_delete(objs);
-    if (!options?.silent || !options.master) this._on_delete_traggers(objs);
+    this._do_tasks(options?.session, () => {
+      this._on_delete(objs);
+      if (!options?.silent || !options.master) this._on_delete_traggers(objs);
+    });
     return objs;
   }
 }
