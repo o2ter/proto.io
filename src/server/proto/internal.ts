@@ -591,7 +591,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     obj.set('user', user);
     await obj.save({ master: true });
 
-    this.jobRunner.excuteJob(proto);
+    this.jobRunner.executeJob(proto);
 
     return obj;
   }
@@ -670,7 +670,7 @@ class JobRunner<Ext, P extends ProtoService<Ext>> {
     await job.save({ master: true });
   }
 
-  async excuteJob(proto: P) {
+  async executeJob(proto: P) {
     if (this._running || this._stopped) return;
     this._running = true;
 
@@ -699,7 +699,7 @@ class JobRunner<Ext, P extends ProtoService<Ext>> {
         } finally {
           clearInterval(timer);
         }
-        this.excuteJob(proto);
+        this.executeJob(proto);
       })();
     }
 

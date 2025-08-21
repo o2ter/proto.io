@@ -31,8 +31,8 @@ const scheduleOp = {
   expireDocument: async (proto: ProtoService<any>) => {
     await proto.gc();
   },
-  excuteJob: async (proto: ProtoService<any>) => {
-    proto[PVK].jobRunner.excuteJob(proto);
+  executeJob: async (proto: ProtoService<any>) => {
+    proto[PVK].jobRunner.executeJob(proto);
   },
 };
 
