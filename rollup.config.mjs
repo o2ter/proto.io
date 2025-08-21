@@ -10,7 +10,7 @@ const rollupConfig = {
   input: {
     index: 'src/index',
     client: 'src/client/index',
-    'adapters/storage/progres': 'src/adapters/storage/progres/index',
+    'adapters/storage/postgres': 'src/adapters/storage/postgres/index',
     'adapters/file/database': 'src/adapters/file/database/index',
     'adapters/file/filesystem': 'src/adapters/file/filesystem/index',
     'adapters/file/google-cloud-storage': 'src/adapters/file/google-cloud-storage/index',

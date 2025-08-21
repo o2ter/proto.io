@@ -29,7 +29,7 @@ import fs from 'fs/promises';
 import { Server } from '@o2ter/server-js';
 import { ProtoService, ProtoRoute } from '../../../src/index';
 import { beforeAll, afterAll, beforeEach } from '@jest/globals';
-import PostgresStorage from '../../../src/adapters/storage/progres';
+import PostgresStorage from '../../../src/adapters/storage/postgres';
 import { randomUUID } from '@o2ter/crypto-js';
 import FileSystemStorage from '../../../src/adapters/file/filesystem';
 

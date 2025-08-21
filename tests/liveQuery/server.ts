@@ -28,7 +28,7 @@ import { Server } from '@o2ter/server-js';
 import { ProtoService, ProtoRoute, registerProtoSocket } from '../../src/index';
 import { beforeAll, afterAll, beforeEach } from '@jest/globals';
 import DatabaseFileStorage from '../../src/adapters/file/database';
-import PostgresStorage from '../../src/adapters/storage/progres';
+import PostgresStorage from '../../src/adapters/storage/postgres';
 import { randomUUID } from '@o2ter/crypto-js';
 
 const app = new Server({
