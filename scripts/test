@@ -27,4 +27,4 @@ trap cleanup EXIT
 
 docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" postgres_test_db_${RAND}
 
-yarn test
+yarn test "$@"
