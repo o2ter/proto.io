@@ -33,7 +33,7 @@ import { ProtoFunction, ProtoFunctionOptions, ProtoJobFunction, ProtoJobFunction
 import { generateId } from '../crypto/random';
 import { TSchema, _typeof, defaultObjectKeyTypes, isPointer, isPrimitive, isRelation, isShape } from '../../internals/schema';
 import { resolveDataType, QueryValidator } from '../query/dispatcher/validator';
-import { passwordHash, varifyPassword } from '../crypto/password';
+import { passwordHash, verifyPassword } from '../crypto/password';
 import { proxy } from './proxy';
 import { _serviceOf, ProtoService } from '.';
 import { base64ToBuffer, isBinaryData, prototypes } from '@o2ter/utils-js';
@@ -231,14 +231,14 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     return callback(proxy(payload ?? proto));
   }
 
-  async varifyPassword(proto: P, user: TUser, password: string, options: ExtraOptions<true>) {
+  async verifyPassword(proto: P, user: TUser, password: string, options: ExtraOptions<true>) {
     if (!user.id) throw Error('Invalid user object');
     const _user = await proto.InsecureQuery('User')
       .equalTo('_id', user.id)
       .includes('_id', 'password')
       .first(options);
     const { alg, ...opts } = _user?.get('password') ?? {};
-    return varifyPassword(alg, password, opts);
+    return verifyPassword(alg, password, opts);
   }
 
   async setPassword(proto: P, user: TUser, password: string, options: ExtraOptions<true>) {
@@ -284,13 +284,13 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     return object;
   }
 
-  varifyUploadToken(proto: P, token?: string, isMaster?: boolean) {
+  verifyUploadToken(proto: P, token?: string, isMaster?: boolean) {
 
     const {
       nonce,
       attributes,
       maxUploadSize,
-    } = (_.isString(token) ? this.jwtVarify(token, 'upload') ?? {} : {}) as {
+    } = (_.isString(token) ? this.jwtVerify(token, 'upload') ?? {} : {}) as {
       nonce?: string;
       maxUploadSize?: number;
         attributes?: Record<string, any>;
@@ -316,7 +316,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
       nonce,
       attributes = {},
       maxUploadSize = this.options.maxUploadSize,
-    } = options?.uploadToken ? this.varifyUploadToken(proto, options.uploadToken, options.master) : {};
+    } = options?.uploadToken ? this.verifyUploadToken(proto, options.uploadToken, options.master) : {};
 
     if (nonce) {
       const found = await proto.Query('File').equalTo('nonce', nonce).first({ master: true });
@@ -435,7 +435,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     return jwt.sign(payload, this.options.jwtToken, opts);
   }
 
-  jwtVarify(token: string, options: 'login' | 'upload' | jwt.VerifyOptions = {}) {
+  jwtVerify(token: string, options: 'login' | 'upload' | jwt.VerifyOptions = {}) {
     try {
       const opts = (() => {
         switch (options) {

@@ -239,8 +239,8 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
     if (req.res) await signUser(this, req.res, undefined, options);
   }
 
-  varifyPassword(user: TUser, password: string, options: ExtraOptions<true>) {
-    return this[PVK].varifyPassword(this, user, password, options);
+  verifyPassword(user: TUser, password: string, options: ExtraOptions<true>) {
+    return this[PVK].verifyPassword(this, user, password, options);
   }
 
   setPassword(user: TUser, password: string, options: ExtraOptions<true>) {
@@ -373,8 +373,8 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
     return this[PVK].jwtSign(payload, options);
   }
 
-  jwtVarify(token: string, options: jwt.VerifyOptions = {}) {
-    return this[PVK].jwtVarify(token, options);
+  jwtVerify(token: string, options: jwt.VerifyOptions = {}) {
+    return this[PVK].jwtVerify(token, options);
   }
 
   notify(data: Record<string, TValueWithoutObject> & { _rperm?: string[]; }) {

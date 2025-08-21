@@ -371,7 +371,7 @@ export interface ProtoType<Ext> {
    * @param options - Extra options.
    * @returns A promise resolving to a boolean indicating if the password is correct.
    */
-  varifyPassword(user: TUser, password: string, options: ExtraOptions<true>): Promise<boolean>;
+  verifyPassword(user: TUser, password: string, options: ExtraOptions<true>): Promise<boolean>;
 
   /**
    * Sets a user's password.
@@ -484,5 +484,5 @@ export interface ProtoType<Ext> {
    * @param options - Options for verifying the JWT.
    * @returns The decoded JWT payload or undefined if verification fails.
    */
-  jwtVarify(token: string, options?: jwt.VerifyOptions): jwt.JwtPayload | undefined;
+  jwtVerify(token: string, options?: jwt.VerifyOptions): jwt.JwtPayload | undefined;
 };

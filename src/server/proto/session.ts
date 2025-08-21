@@ -38,7 +38,7 @@ export type _Session = Awaited<ReturnType<typeof session>>;
 
 const _sessionWithToken = async <E>(proto: ProtoService<E>, token: string) => {
   if (_.isEmpty(token)) return;
-  const payload = proto[PVK].jwtVarify(token, 'login') ?? {} as any;
+  const payload = proto[PVK].jwtVerify(token, 'login') ?? {} as any;
   if (!_.isString(payload.sessionId) || _.isEmpty(payload.sessionId)) return;
   const session = await proto.Query('_Session')
     .equalTo('token', payload.sessionId)

@@ -87,7 +87,7 @@ export const passwordHash = async <T extends keyof _PasswordHashOptions>(
   };
 }
 
-export const varifyPassword = async <T extends keyof _PasswordHashOptions>(
+export const verifyPassword = async <T extends keyof _PasswordHashOptions>(
   alg: T,
   password: string,
   options: _PasswordHashOptions[T] & { salt: string; derivedKey: string; },

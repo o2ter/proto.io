@@ -46,7 +46,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
         const payload = proto.connect(req);
         const uploadToken = req.header(UPLOAD_TOKEN_HEADER_NAME);
 
-        const { maxUploadSize } = payload[PVK].varifyUploadToken(payload, uploadToken, payload.isMaster);
+        const { maxUploadSize } = payload[PVK].verifyUploadToken(payload, uploadToken, payload.isMaster);
         const { attributes, file } = await decodeFormStream(req, (file, info) => proto.fileStorage.create(proto, file, info, maxUploadSize));
 
         try {
