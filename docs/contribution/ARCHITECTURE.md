@@ -246,7 +246,6 @@ subscription.on('create', (post) => {
 
 // Server detects changes and pushes updates
 Database Trigger → Change Detection → Filter by Query → WebSocket Push
-```
 
 ### Event System
 
