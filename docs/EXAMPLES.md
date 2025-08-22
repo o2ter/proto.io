@@ -1,6 +1,6 @@
 # Examples
 
-This directory contains practical examples demonstrating various Proto.io features and use cases.
+This document contains practical examples demonstrating various Proto.io features and use cases. The examples here are comprehensive guides showing complete implementations rather than separate directory structures.
 
 ## Quick Start Examples
 
@@ -111,15 +111,15 @@ const schema = {
 **Client Usage:**
 ```typescript
 // auth/client.ts
-// Create user (signup)
-const user = await client.Query('User').insert({
+// Create user (signup) - this would need custom server handling
+const user = await client.run('createUser', {
   username: 'john_doe',
   email: 'john@example.com',
-  password: 'secure_password'  // This would need custom server handling
+  password: 'secure_password'
 });
 
 // Login would typically be handled via cloud functions
-const session = await client.run('login', {
+const result = await client.run('loginUser', {
   username: 'john_doe', 
   password: 'secure_password'
 });
@@ -143,6 +143,7 @@ Live queries and event notifications.
 ```typescript
 // realtime/server.ts
 import { registerProtoSocket } from 'proto.io';
+import { Server } from '@o2ter/server-js';
 
 // Register WebSocket support
 const server = new Server(app);
@@ -220,8 +221,19 @@ app.post('/upload', upload.single('file'), async (req, res) => {
 **Client:**
 ```typescript
 // file-storage/client.ts
-// Upload file
+// Upload file using ProtoClient
 const fileInput = document.querySelector('input[type="file"]');
+const file = client.File(
+  fileInput.files[0].name,
+  fileInput.files[0],
+  fileInput.files[0].type
+);
+
+// Save the file (requires authentication)
+await file.save();
+
+// Or upload via custom endpoint with session info
+const sessionInfo = await client.sessionInfo();
 const formData = new FormData();
 formData.append('file', fileInput.files[0]);
 
@@ -229,11 +241,11 @@ const response = await fetch('/api/upload', {
   method: 'POST',
   body: formData,
   headers: {
-    'Authorization': `Bearer ${client.sessionToken}`
+    'Authorization': `Bearer ${sessionInfo?.token}`
   }
 });
 
-const file = await response.json();
+const uploadedFile = await response.json();
 ```
 
 ### 6. Cloud Functions (`cloud-functions/`)
@@ -378,9 +390,11 @@ const storage = new PostgresStorage({
 **Custom Storage Adapter:**
 ```typescript
 // adapters/custom.ts
-import { TStorage } from 'proto.io/server/storage';
+// Note: TStorage interface is internal to Proto.io
+// Custom storage adapters would need to match the expected interface
+// This is an advanced use case - most users should use the provided adapters
 
-class CustomStorage implements TStorage {
+class CustomStorage {
   async find(options) {
     // Implement custom find logic
   }
@@ -389,7 +403,8 @@ class CustomStorage implements TStorage {
     // Implement custom insert logic
   }
   
-  // ... other methods
+  // ... implement other required methods
+}
 }
 ```
 
@@ -513,12 +528,10 @@ describe('Blog API', () => {
         connectionString: process.env.TEST_DATABASE_URL
       })
     });
-    
-    await proto[PVK].prepare();
   });
   
   afterAll(async () => {
-    await proto.shutdown();
+    // Cleanup if needed
   });
   
   beforeEach(async () => {
@@ -719,18 +732,23 @@ app.use('/api/content', await ProtoRoute({ proto: contentService }));
 
 ## Running the Examples
 
-Each example directory contains:
-- `README.md` - Detailed explanation and setup instructions
-- `package.json` - Dependencies specific to the example
-- Source code files
-- Test files (where applicable)
+The examples provided in this document are comprehensive code samples that demonstrate Proto.io features. To use them:
 
-To run an example:
+1. **Copy the relevant code** from the examples below
+2. **Set up your environment** with the required dependencies
+3. **Adapt the code** to your specific use case
+4. **Test thoroughly** in your development environment
+
+### Basic Setup
+
+For all examples, you'll need:
 
 ```bash
-cd examples/basic-setup
-npm install
-npm start
+npm install proto.io
+# Choose your storage adapter:
+npm install pg @types/pg  # For PostgreSQL
+# Choose your file storage:
+npm install @google-cloud/storage  # For Google Cloud Storage
 ```
 
 ## Example Index

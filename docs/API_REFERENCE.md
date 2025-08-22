@@ -180,11 +180,8 @@ proto.define('sendEmail', async ({ params, user, master }) => {
   
   return { success: true };
 }, {
-  requireUser: true,
-  validateParams: (params) => {
-    if (!params.to || !params.subject) {
-      throw new Error('Missing required parameters');
-    }
+  validator: {
+    requireUser: true,
   }
 });
 ```
@@ -282,7 +279,7 @@ await proto.notify({
   type: 'new_message',
   message: 'Hello World!',
   from: user.id,
-  _rperm: [user1.id, user2.id] // Only these users will receive it - use actual user IDs
+  _rperm: [user1.id, user2.id] // Only these users will receive it - use actual user IDs from user objects
 });
 
 // Or for roles:
@@ -533,7 +530,7 @@ Sends a custom notification.
 await client.notify({
   type: 'user_notification',
   message: 'Hello World!',
-  _rperm: [userId] // Use actual user ID
+  _rperm: [user.id] // Use actual user ID from user object
 });
 
 // Or for roles:

@@ -276,25 +276,25 @@ Proto.io uses server-side cloud functions for authentication rather than built-i
 
 ```typescript
 // Server-side: Define authentication functions
-proto.define('createUser', async (proto) => {
-  const { username, email, password } = proto.params;
-  const user = await proto.Query('User').insert({ username, email });
+proto.define('createUser', async ({ params, req }) => {
+  const { username, email, password } = params;
+  const user = await proto.Query('User').insert({ username, email }, { master: true });
   await proto.setPassword(user, password, { master: true });
-  await proto.becomeUser(proto.req!, user);
+  await proto.becomeUser(req, user);
   return user;
 });
 
-proto.define('loginUser', async (proto) => {
-  const { username, password } = proto.params;
+proto.define('loginUser', async ({ params, req }) => {
+  const { username, password } = params;
   const user = await proto.Query('User')
-    .where('username', username)
+    .equalTo('username', username)
     .first({ master: true });
   
   if (!user || !await proto.verifyPassword(user, password, { master: true })) {
     throw new Error('Invalid credentials');
   }
   
-  await proto.becomeUser(proto.req!, user);
+  await proto.becomeUser(req, user);
   return user;
 });
 
@@ -406,7 +406,7 @@ remove(); // Remove this specific listener
 await proto.notify({
   type: 'new_message',
   message: 'Hello!',
-  _rperm: [userId] // Read permissions - use actual user ID
+  _rperm: [user.id] // Read permissions - use actual user ID from user object
 });
 
 // Or for roles:

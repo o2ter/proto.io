@@ -225,11 +225,10 @@ describe('ProtoService', () => {
     proto = new ProtoService({
       // Test configuration
     });
-    await proto[PVK].prepare();
   });
 
   afterEach(async () => {
-    await proto.shutdown();
+    // Cleanup if needed
   });
 
   it('should create objects', async () => {

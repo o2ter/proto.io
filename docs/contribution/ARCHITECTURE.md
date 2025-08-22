@@ -222,8 +222,8 @@ Storage Adapter (Database/FS/Cloud)
   token: "upload_token_xyz",
   _created_at: Date,
   _updated_at: Date,
-  _rperm: ["abc123def456"], // Actual generated user ID
-  _wperm: ["abc123def456"] // Actual generated user ID
+  _rperm: ["user_abc123def456"], // Actual generated user ID
+  _wperm: ["user_abc123def456"] // Actual generated user ID
 }
 ```
 
