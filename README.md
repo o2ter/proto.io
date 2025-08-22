@@ -379,7 +379,7 @@ const roles = await proto.currentRoles();
 ```typescript
 // Client-side live query
 const subscription = client.Query('Post')
-  .where('published', true)
+  .equalTo('published', true)
   .subscribe();
 
 subscription.on('create', (post) => {
