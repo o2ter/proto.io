@@ -1146,17 +1146,42 @@ Valid permission values in Proto.io:
 
 #### Indexes
 
+Proto.io supports two types of indexes:
+
+**Basic Indexes** (default):
 ```typescript
 {
   indexes: [
-    { keys: { username: 1 }, unique: true },
-    { keys: { email: 1 }, unique: true },
-    { keys: { createdAt: -1 } },
-    { keys: { location: '2dsphere' } }, // Geo index
-    { keys: { content: 'text' } }       // Text search
+    { keys: { username: 1 }, unique: true },     // Unique ascending index
+    { keys: { email: 1 }, unique: true },        // Unique ascending index
+    { keys: { createdAt: -1 } },                 // Descending index
+    { keys: { category: 1, priority: -1 } },     // Compound index
   ]
 }
 ```
+
+**Vector Indexes** (for AI/ML vector similarity):
+```typescript
+{
+  indexes: [
+    { 
+      type: 'vector', 
+      keys: 'embedding',                         // Single vector field
+      method: 'hnsw'                            // Optional: 'hnsw' or 'ivfflat'
+    },
+    { 
+      type: 'vector', 
+      keys: ['x', 'y', 'z']                     // Multiple fields as vector
+    }
+  ]
+}
+```
+
+**Index Properties**:
+- `keys`: Field names with sort order (1 = ascending, -1 = descending) for basic indexes, or field name(s) for vector indexes
+- `unique`: Boolean (basic indexes only) - ensures uniqueness
+- `type`: 'basic' (default) or 'vector'
+- `method`: 'hnsw' or 'ivfflat' (vector indexes only)
 
 ---
 
