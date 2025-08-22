@@ -83,7 +83,7 @@ const client = new ProtoClient({
 
 // Query data
 const posts = await client.Query('Post')
-  .where('published', true)
+  .equalTo('published', true)
   .includes('author')
   .find();
 
@@ -103,7 +103,7 @@ await post2.save();
 
 // Real-time subscriptions
 const subscription = client.Query('Post')
-  .where('published', true)
+  .equalTo('published', true)
   .subscribe();
 
 subscription.on('create', (post) => {
@@ -221,11 +221,11 @@ const mySchema = schema({
       find: ['*'],
       get: ['*'],
       create: ['*'],
-      update: ['owner'],
-      delete: ['owner'],
+      update: [],
+      delete: [],
     },
     fieldLevelPermissions: {
-      email: { read: ['owner'] },
+      email: { read: [] },
     },
     indexes: [
       { keys: { username: 1 }, unique: true },
@@ -319,6 +319,15 @@ await client.logout();
 
 ### Permissions
 
+#### Valid Permission Values
+
+Proto.io supports the following permission values:
+
+- **`'*'`** - Public access (anyone)
+- **`'role:roleName'`** - Users with specific role (e.g., `'role:admin'`, `'role:moderator'`)
+- **User IDs** - Specific user access (e.g., `'user123'`)
+- **`[]`** - Empty array (no access)
+
 #### Class-Level Permissions
 Control access to entire collections:
 
@@ -326,9 +335,9 @@ Control access to entire collections:
 classLevelPermissions: {
   find: ['*'],                    // Anyone can query
   get: ['*'],                     // Anyone can get by ID
-  create: ['authenticated'],      // Only authenticated users
-  update: ['owner', 'admin'],     // Owner or admin role
-  delete: ['admin']               // Only admin role
+  create: ['*'],                  // Anyone can create
+  update: ['role:admin'],         // Admin role only
+  delete: ['role:admin']          // Admin role only
 }
 ```
 
@@ -338,11 +347,13 @@ Control access to specific fields:
 ```typescript
 fieldLevelPermissions: {
   email: { 
-    read: ['owner', 'admin'],     // Only owner or admin can read
-    write: ['owner'] 
+    read: ['role:admin'],          // Only admin can read
+    create: [],                    // No one can create
+    update: []                     // No one can update
   },
   password: { 
-    write: ['owner'] 
+    create: [],                    // No one can create
+    update: []                     // No one can update
   }
 }
 ```

@@ -76,7 +76,7 @@ Creates a new query for the specified class.
 
 ```typescript
 const posts = await proto.Query('Post')
-  .where('published', true)
+  .equalTo('published', true)
   .includes('author')
   .find();
 ```
@@ -315,14 +315,17 @@ Executes operations within a database transaction.
 const result = await proto.withTransaction(async (txProto) => {
   const user = await txProto.Query('User').get(userId, { master: true });
   
-  await txProto.Query('User').update(userId, {
-    balance: user.get('balance') - amount
-  }, { master: true });
+  await txProto.Query('User')
+    .equalTo('_id', userId)
+    .updateOne({
+      balance: { $set: user.get('balance') - amount }
+    }, { master: true });
   
   const transaction = await txProto.Query('Transaction').insert({
     user: user,
     amount: -amount,
     type: 'debit'
+  }, { master: true });
   }, { master: true });
   
   return transaction;
@@ -407,7 +410,7 @@ Creates a client-side query.
 
 ```typescript
 const posts = await client.Query('Post')
-  .where('published', true)
+  .equalTo('published', true)
   .includes('author')
   .limit(10)
   .find();
@@ -581,7 +584,7 @@ const boundObject = client.rebind(rawObject);
 ```typescript
 // Subscribe to live updates
 const subscription = client.Query('Post')
-  .where('published', true)
+  .equalTo('published', true)
   .subscribe();
 
 // Listen for events
@@ -660,37 +663,41 @@ client.off('notification', specificCallback); // Remove specific listener
 
 #### Filtering
 
-##### `where(field: string, value: any): Query`
+##### `equalTo(field: string, value: any): Query`
 Basic equality filter.
 
 ```typescript
-query.where('published', true)
-query.where('author', userObject)
+query.equalTo('published', true)
+query.equalTo('author', userObject)
 ```
 
-##### `where(field: string, operator: string, value: any): Query`
-Operator-based filtering.
+##### `filter(selector: TQuerySelector): Query`
+Advanced filtering with query selectors.
 
 ```typescript
-query.where('score', '>', 100)
-query.where('createdAt', '>=', new Date('2023-01-01'))
-query.where('tags', 'in', ['typescript', 'node'])
+query.filter({ score: { $gt: 100 } })
+query.filter({ createdAt: { $gte: new Date('2023-01-01') } })
+query.filter({ tags: { $in: ['typescript', 'node'] } })
 ```
 
-##### Operators
-- `'>'`, `'>='`, `'<'`, `'<='` - Comparison
-- `'!='`, `'<>'` - Not equal
-- `'in'`, `'nin'` - Array membership
-- `'exists'`, `'!exists'` - Field existence
-- `'regex'` - Regular expression matching
+##### Common Filter Methods
+- `equalTo(field, value)` - Equality
+- `notEqualTo(field, value)` - Not equal
+- `greaterThan(field, value)` - Greater than
+- `greaterThanOrEqualTo(field, value)` - Greater than or equal
+- `lessThan(field, value)` - Less than
+- `lessThanOrEqualTo(field, value)` - Less than or equal
+- `containedIn(field, values)` - Array membership
+- `notContainedIn(field, values)` - Not in array
+- `pattern(field, regex)` - Regular expression matching
 
 ##### `or(...conditions): Query`
 OR conditions.
 
 ```typescript
 query.or(
-  q => q.where('status', 'published'),
-  q => q.where('featured', true)
+  q => q.equalTo('status', 'published'),
+  q => q.equalTo('featured', true)
 )
 ```
 
@@ -699,8 +706,8 @@ AND conditions (default behavior).
 
 ```typescript
 query.and(
-  q => q.where('published', true),
-  q => q.where('score', '>', 50)
+  q => q.equalTo('published', true),
+  q => q.filter({ score: { $gt: 50 } })
 )
 ```
 
@@ -1096,6 +1103,15 @@ One-to-many relation.
 
 ### Schema Configuration
 
+#### Permission Values
+
+Valid permission values in Proto.io:
+
+- **`'*'`** - Public access (anyone)
+- **`'role:roleName'`** - Users with specific role (e.g., `'role:admin'`, `'role:moderator'`)
+- **User IDs** - Specific user access (e.g., `'user123'`)
+- **`[]`** - Empty array (no access)
+
 #### Class-Level Permissions
 
 ```typescript
@@ -1103,9 +1119,9 @@ One-to-many relation.
   classLevelPermissions: {
     find: ['*'],                    // Public read
     get: ['*'],                     // Public get
-    create: ['authenticated'],      // Authenticated users
-    update: ['owner', 'admin'],     // Owner or admin
-    delete: ['admin']               // Admin only
+    create: ['*'],                  // Public create
+    update: ['role:admin'],         // Admin role only
+    delete: ['role:admin']          // Admin role only
   }
 }
 ```
@@ -1116,11 +1132,13 @@ One-to-many relation.
 {
   fieldLevelPermissions: {
     email: {
-      read: ['owner', 'admin'],
-      write: ['owner']
+      read: ['role:admin'],
+      create: [],
+      update: []
     },
     password: {
-      write: ['owner']
+      create: [],
+      update: []
     }
   }
 }

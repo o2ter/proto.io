@@ -60,8 +60,8 @@ const post = await client.Query('Post').insert({
 
 // Query posts
 const posts = await client.Query('Post')
-  .where('published', true)
-  .sort('-createdAt')
+  .equalTo('published', true)
+  .sort({ createdAt: -1 })
   .find();
 ```
 
@@ -86,8 +86,8 @@ const schema = {
       find: ['*'],
       get: ['*'],
       create: ['*'],
-      update: ['owner'],
-      delete: ['admin']
+      update: [],
+      delete: ['role:admin']
     }
   },
   Post: {
@@ -100,9 +100,9 @@ const schema = {
     classLevelPermissions: {
       find: ['*'],
       get: ['*'],
-      create: ['authenticated'],
-      update: ['owner'],
-      delete: ['owner', 'admin']
+      create: ['*'],
+      update: [],
+      delete: ['role:admin']
     }
   }
 };
@@ -163,7 +163,7 @@ proto.define('sendNotification', async ({ params }) => {
 // realtime/client.ts
 // Live query for real-time updates
 const subscription = client.Query('Post')
-  .where('published', true)
+  .equalTo('published', true)
   .subscribe();
 
 subscription.on('create', (post) => {
@@ -292,12 +292,12 @@ Complex query examples with relations, aggregations, and vector search.
 
 // Complex filtering with relations
 const posts = await client.Query('Post')
-  .where('published', true)
-  .where('author.verified', true)
-  .where('tags', 'in', ['typescript', 'nodejs'])
-  .where('createdAt', '>=', new Date('2023-01-01'))
+  .equalTo('published', true)
+  .equalTo('author.verified', true)
+  .containedIn('tags', ['typescript', 'nodejs'])
+  .greaterThanOrEqualTo('createdAt', new Date('2023-01-01'))
   .includes('author', 'comments.user')
-  .sort('-featured', '-createdAt')
+  .sort({ featured: -1, createdAt: -1 })
   .limit(20)
   .find();
 
@@ -347,7 +347,7 @@ const similar = await client.Query('Document')
 // Regex pattern search
 const patternResults = await client.Query('Post')
   .pattern('title', /^Hello/)
-  .where('published', true)
+  .equalTo('published', true)
   .find();
 ```
 
@@ -423,7 +423,7 @@ const blogSchema = schema({
       delete: ['owner']
     },
     fieldLevelPermissions: {
-      email: { read: ['owner', 'admin'] }
+      email: { read: ['role:admin'] }
     },
     indexes: [
       { keys: { username: 1 }, unique: true },
@@ -461,9 +461,9 @@ const blogSchema = schema({
     classLevelPermissions: {
       find: ['*'],
       get: ['*'],
-      create: ['authenticated'],
-      update: ['owner', 'editor'],
-      delete: ['owner', 'admin']
+      create: ['*'],
+      update: ['role:editor'],
+      delete: ['role:admin']
     },
     indexes: [
       { keys: { slug: 1 }, unique: true },
@@ -483,9 +483,9 @@ const blogSchema = schema({
     classLevelPermissions: {
       find: ['*'],
       get: ['*'],
-      create: ['authenticated'],
-      update: ['owner', 'moderator'],
-      delete: ['owner', 'moderator']
+      create: ['*'],
+      update: ['role:moderator'],
+      delete: ['role:moderator']
     }
   }
 });
@@ -544,7 +544,7 @@ describe('Blog API', () => {
     
     // Query posts
     const posts = await proto.Query('Post')
-      .where('published', true)
+      .equalTo('published', true)
       .includes('author')
       .find({ master: true });
     
@@ -571,9 +571,9 @@ describe('Blog API', () => {
     
     expect(post.get('title')).toBe('User Post');
     
-    // User cannot access other users' private data
+    // User cannot access other users' private data  
     await expect(
-      userProto.Query('User').select('email').find()
+      userProto.Query('User').find()
     ).rejects.toThrow();
   });
 });

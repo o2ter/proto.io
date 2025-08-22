@@ -174,10 +174,10 @@ Proto.io queries are translated to optimized SQL:
 ```typescript
 // Proto.io Query
 client.Query('Post')
-  .where('published', true)
-  .where('author.username', 'john')
+  .equalTo('published', true)
+  .equalTo('author.username', 'john')
   .includes('author')
-  .sort('-createdAt')
+  .sort({ createdAt: -1 })
   .limit(10)
 
 // Generated SQL
@@ -234,10 +234,9 @@ Storage Adapter (Database/FS/Cloud)
 Live queries provide real-time updates when data matching a query changes:
 
 ```typescript
-```typescript
 // Subscribe to real-time updates
 const subscription = client.Query('Post')
-  .where('published', true)
+  .equalTo('published', true)
   .subscribe();
 
 subscription.on('create', (post) => {
