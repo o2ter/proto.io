@@ -5,9 +5,9 @@ Welcome to the Proto.io documentation! This guide will help you find the informa
 ## Quick Links
 
 - **[Main README](../README.md)** - Project overview and quick start guide
-- **[API Reference](contribution/API_REFERENCE.md)** - Complete API documentation
+- **[API Reference](API_REFERENCE.md)** - Complete API documentation
 - **[Architecture Overview](contribution/ARCHITECTURE.md)** - Technical architecture and design
-- **[Examples](contribution/EXAMPLES.md)** - Practical examples and use cases
+- **[Examples](EXAMPLES.md)** - Practical examples and use cases
 - **[Contributing Guide](contribution/README.md)** - How to contribute to the project
 - **[Project Analysis](contribution/PROJECT_ANALYSIS.md)** - Comprehensive project analysis
 
@@ -16,8 +16,8 @@ Welcome to the Proto.io documentation! This guide will help you find the informa
 ### New to Proto.io?
 1. Start with the **[Main README](../README.md)** for an overview
 2. Follow the **Quick Start** section for basic setup
-3. Explore **[Examples](contribution/EXAMPLES.md)** for common use cases
-4. Check the **[API Reference](contribution/API_REFERENCE.md)** for detailed documentation
+3. Explore **[Examples](EXAMPLES.md)** for common use cases
+4. Check the **[API Reference](API_REFERENCE.md)** for detailed documentation
 
 ### For Developers
 - **[Architecture Overview](contribution/ARCHITECTURE.md)** - Understand the system design
@@ -35,7 +35,7 @@ Welcome to the Proto.io documentation! This guide will help you find the informa
 - Configuration options
 - Basic usage patterns
 
-#### [API_REFERENCE.md](contribution/API_REFERENCE.md)
+#### [API_REFERENCE.md](API_REFERENCE.md)
 - ProtoService API
 - ProtoClient API  
 - Query system
@@ -51,7 +51,7 @@ Welcome to the Proto.io documentation! This guide will help you find the informa
 
 ### Implementation Guides
 
-#### [EXAMPLES.md](contribution/EXAMPLES.md)
+#### [EXAMPLES.md](EXAMPLES.md)
 - Basic setup examples
 - Authentication patterns
 - Real-time features
