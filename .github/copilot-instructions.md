@@ -12,3 +12,4 @@ When running tests as an AI agent:
 - Never repeat or re-run the test command while a test task is already running
 - Only proceed with next steps after test completion confirmation
 - Never assume a task has completed successfully without confirmation
+- Never use timeouts to guess task completion
