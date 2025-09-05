@@ -9,7 +9,7 @@ When running tests as an AI agent:
 - If you cannot see the output or the task appears to be still running, the agent is required to ask the user to confirm the task has completed or stuck
 - If the task is stuck, the agent should ask the user to terminate the task and try again
 - Don't make assumptions about the task status
-- Never use timeouts to run the test command
+- Never use timeouts to run the test command, it's always failure-prone and unreliable
 - Never repeat or re-run the test command while a test task is already running
 - Only proceed with next steps after test completion confirmation
 - Never assume a task has completed successfully without confirmation
