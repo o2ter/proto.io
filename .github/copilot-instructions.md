@@ -23,6 +23,16 @@ When running any command or task as an AI agent:
 - Always ask the user to confirm task completion or termination if the status is unclear
 - **Sequential execution is mandatory:** Do not queue or pipeline tasks - complete one fully before starting the next
 
+### Test Execution
+- **Always use provided tools when available** for running tests instead of terminal commands
+- Use the `runTests` tool for unit test execution - it provides better integration and output formatting
+- The `runTests` tool supports:
+  - Running specific test files by providing absolute file paths
+  - Running specific test suites, classes, or cases by name
+  - Running all tests when no parameters are provided
+- **Prefer tool-based test execution** over manual `yarn test` or `npm test` commands
+- Only use terminal commands for test execution when the `runTests` tool is not available or insufficient
+
 ### Error Handling
 - If a command fails, read the error output completely before suggesting fixes
 - Don't retry failed commands without understanding and addressing the root cause
