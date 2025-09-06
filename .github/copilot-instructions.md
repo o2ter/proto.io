@@ -2,6 +2,13 @@
 
 ## Temporary Files for Testing
 When creating temporary files to test code, place all test scripts under `<project_root>/.temp/` to keep the workspace organized and avoid conflicts with the main codebase.
+- **Test Case Verification**: Always examine the actual content of test cases to ensure they're testing what they're supposed to test:
+  - Read test files completely to understand test logic and assertions
+  - Verify that test descriptions match what the test actually does
+  - Check that assertions are testing the correct behavior and edge cases
+  - Ensure mocks and test data are appropriate for the scenario being tested
+  - Look for missing test cases or gaps in coverage for critical functionality
+  - Validate that tests would actually fail if the implementation was broken
 
 ## **Important:** Task Execution Guidelines
 When running any command or task as an AI agent:
