@@ -22,6 +22,7 @@ When running any command or task as an AI agent:
 - **Never assume** a task has completed successfully without explicit confirmation
 - Always ask the user to confirm task completion or termination if the status is unclear
 - **Sequential execution is mandatory:** Do not queue or pipeline tasks - complete one fully before starting the next
+- **Never try to get the terminal output using a different approach or alternative method** always wait for the result using the provided tools and instructions. Do not attempt workarounds or alternate output retrieval.
 
 ### Test Execution
 - **Always use provided tools when available** for running tests instead of terminal commands
