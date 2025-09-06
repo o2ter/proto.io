@@ -9,6 +9,8 @@ When creating temporary files to test code, place all test scripts under `<proje
   - Ensure mocks and test data are appropriate for the scenario being tested
   - Look for missing test cases or gaps in coverage for critical functionality
   - Validate that tests would actually fail if the implementation was broken
+  - **NEVER use fallback methods to bypass test cases** - if tests are failing, fix the implementation or the tests, don't circumvent them
+  - **No test shortcuts or workarounds** - all tests must pass legitimately through proper implementation
 
 ## **Important:** Task Execution Guidelines
 When running any command or task as an AI agent:
