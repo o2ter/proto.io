@@ -5,6 +5,7 @@
 **CRITICAL:** Before writing any code, agents must:
 1. **Think deeply about the problem:** Analyze requirements, constraints, and possible edge cases.
 2. **Formulate hypotheses:** Predict how the code should behave, including possible failure modes and success criteria.
+3. **Check existing code to verify hypotheses:** Inspect relevant source files, tests, polyfills, and documentation to confirm assumptions before implementing. Look for related utilities, existing patterns, and any previous fixes that affect your approach.
 3. **List out proof steps:** Plan how to simulate or reason about the result in mind before implementation. This includes outlining the logic, expected outcomes, and how each part will be validated.
 4. **Write code only after planning:** Only begin coding once the above steps are clear and the approach is well-structured.
 5. **Verify by running tests or scripts:** After implementation, always validate the code using relevant tests or scripts to ensure correctness and expected behavior.
