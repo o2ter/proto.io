@@ -1,6 +1,13 @@
 # AI Coding Agent Instructions
 
 ## AI Agent Guidelines
+### Deprecated APIs
+**CRITICAL:** Never use deprecated APIs or methods.
+- Do not use deprecated functions, classes, or properties in new code.
+- Replace deprecated usages with the current, supported API when available.
+- If no replacement exists, document the reason, open an issue for a supported alternative, and add tests demonstrating the chosen approach.
+- During refactors, remove or replace deprecated usages and run the test suite to ensure behavior is preserved.
+
 ### Deep Thinking and Hypothesis Before Coding
 **CRITICAL:** Before writing any code, agents must:
 1. **Think deeply about the problem:** Analyze requirements, constraints, and possible edge cases.
