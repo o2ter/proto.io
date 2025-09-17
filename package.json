@@ -42,7 +42,7 @@
     "@o2ter/crypto-js": "^0.0.7",
     "@o2ter/utils-js": "^0.0.19",
     "ali-oss": "^6.23.0",
-    "axios": "^1.11.0",
+    "axios": "^1.12.0",
     "busboy": "^1.6.0",
     "decimal.js": "^10.6.0",
     "jsonwebtoken": "^9.0.2",
