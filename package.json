@@ -6,12 +6,12 @@
   "types": "dist/index",
   "exports": {
     ".": {
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
+      "types": "./dist/index.mjs",
+      "default": "./dist/index"
     },
     "./*": {
-      "import": "./dist/*.mjs",
-      "require": "./dist/*.js"
+      "types": "./dist/*.mjs",
+      "default": "./dist/*"
     }
   },
   "files": [
