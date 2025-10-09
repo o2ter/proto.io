@@ -97,3 +97,14 @@ When running any command or task as an AI agent:
 - Don't retry failed commands without understanding and addressing the root cause
 - Ask for user confirmation before attempting alternative approaches
 - **Never run alternative commands while a failed task is still running or in an unknown state**
+
+---
+## ⚠️ CRITICAL: File Reading After Major Changes
+
+**ALWAYS READ THE WHOLE FILE AGAIN AFTER MASSIVE CHANGES OR IF THE FILE IS BROKEN**
+
+- After making large edits, refactors, or if a file appears corrupted, always re-read the entire file to ensure context is up-to-date and to verify integrity.
+- Do not rely on partial reads or previous context after major changes—full file reading is required to avoid missing new errors or inconsistencies.
+- This applies to source code, documentation, configuration, and resource files.
+- If a file is broken or unreadable, re-read the whole file before attempting further fixes or analysis.
+- This practice helps catch parsing errors, incomplete changes, and ensures all tools and agents operate on the latest file state.
