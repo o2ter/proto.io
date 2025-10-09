@@ -108,3 +108,10 @@ When running any command or task as an AI agent:
 - This applies to source code, documentation, configuration, and resource files.
 - If a file is broken or unreadable, re-read the whole file before attempting further fixes or analysis.
 - This practice helps catch parsing errors, incomplete changes, and ensures all tools and agents operate on the latest file state.
+
+## Always Check and Understand the Project Structure
+
+**CRITICAL:** Before writing any code, agents must:
+1. **Understand the Project Structure:** Thoroughly review the project structure and understand how it works. This includes analyzing the folder hierarchy, key files, and their purposes.
+2. **Avoid Premature Questions:** Do not ask unnecessary questions before completing the job. Use the available tools and context to gather information independently.
+3. **Plan Before Work:** Always create a clear plan before starting any task. For complex tasks, consider creating a structured todo list to break down the work into manageable steps.
