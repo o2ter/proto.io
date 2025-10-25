@@ -1,6 +1,18 @@
 # AI Coding Agent Instructions
 
 ## AI Agent Guidelines
+
+### Development Best Practices
+
+#### Test Execution and Verification Responsibility
+**CRITICAL:** The agent must always write and run the tests by itself. Never ask the user to test the code or verify correctness. The agent is responsible for:
+- Writing appropriate tests for new or modified code
+- Running the tests automatically after making changes
+- Verifying that all tests pass and the code is correct before considering the task complete
+- Only reporting results to the user after self-verification
+
+**Never delegate testing or verification to the user.**
+
 ### Deprecated APIs
 **CRITICAL:** Never use deprecated APIs or methods.
 - Do not use deprecated functions, classes, or properties in new code.
