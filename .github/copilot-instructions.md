@@ -4,6 +4,14 @@
 
 ### Development Best Practices
 
+#### File Header and License Requirements
+**CRITICAL:** Always use the correct license header format for all source and test files.
+- **Every new file** (source code, tests, configuration) must include the full MIT License header
+- **License format**: Use the exact same format as existing files in the project
+- **Before creating any new file**: Check an existing file in the same directory to confirm the exact license format
+- **When updating license**: If you notice a file with an incomplete license header, update it to match the full format above
+- **Never use shortened versions**: Always use the complete MIT License text, not abbreviated versions
+
 #### Test Execution and Verification Responsibility
 **CRITICAL:** The agent must always write and run the tests by itself. Never ask the user to test the code or verify correctness. The agent is responsible for:
 - Writing appropriate tests for new or modified code
