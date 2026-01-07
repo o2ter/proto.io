@@ -26,7 +26,7 @@
 import { TFileStorage } from '../file';
 import { TStorage } from '../storage';
 import { TSchema } from '../../internals/schema';
-import { CookieOptions, Request } from '@o2ter/server-js';
+import { CookieOptions } from '@o2ter/server-js';
 import { SignOptions, VerifyOptions } from 'jsonwebtoken';
 import { PasswordHashOptions } from '../crypto/password';
 import { TExtensions } from '../../internals/object/types';
@@ -34,7 +34,6 @@ import { TPubSub } from '../pubsub';
 import { TUser } from '../../internals/object/user';
 import { TRole } from '../../internals/object/role';
 import { Awaitable } from '@o2ter/utils-js';
-import { ProtoService } from './index';
 import { Logger } from '../../internals/proto';
 
 export type ProtoServiceOptions<Ext> = {
@@ -138,6 +137,24 @@ export type ProtoServiceOptions<Ext> = {
    * Password hash options.
    */
   passwordHashOptions?: PasswordHashOptions;
+
+  /**
+   * Password policy options.
+   */
+  passwordPolicy?: {
+    /**
+     * Do not allow reusing previous passwords.
+     */
+    maxPasswordHistory?: number;
+
+    /**
+     * Custom validator callback for password strength.
+     * @param password The password to validate.
+     * @param user The user object (optional).
+     * @returns A boolean or a promise that resolves to a boolean indicating whether the password is valid.
+     */
+    validatorCallback?: (password: string, user?: TUser) => Awaitable<boolean>;
+  };
 };
 
 export type ProtoServiceKeyOptions = {
@@ -149,15 +166,15 @@ export type ProtoServiceKeyOptions = {
   /**
    * Master users configuration.
    */
-  masterUsers?: { 
+  masterUsers?: {
     /**
      * Username of the master user.
      */
-    user: string; 
+    user: string;
 
     /**
      * Password of the master user.
      */
-    pass: string; 
+    pass: string;
   }[];
 };

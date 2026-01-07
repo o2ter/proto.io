@@ -244,13 +244,37 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
   async setPassword(proto: P, user: TUser, password: string, options: ExtraOptions<true>) {
     if (!user.id) throw Error('Invalid user object');
     if (_.isEmpty(password)) throw Error('Invalid password');
+    const { 
+      maxPasswordHistory,
+      validatorCallback,
+    } = this.options.passwordPolicy || {};
+    if (validatorCallback) {
+      const isValid = await validatorCallback(password, user);
+      if (!isValid) throw Error('Password does not meet the policy requirements');
+    }
     const { alg, ...opts } = this.options.passwordHashOptions;
     const hashed = await passwordHash(alg, password, opts);
+    let history: any[] = [];
+    if (maxPasswordHistory && maxPasswordHistory > 0) {
+      const _user = await proto.InsecureQuery('User')
+        .equalTo('_id', user.id)
+        .includes('_id', 'password_history')
+        .first(options);
+      history = _user?.get('password_history') || [];
+      for (const entry of history) {
+        const { alg, ...opts } = entry;
+        if (await verifyPassword(alg, password, opts)) {
+          throw Error('Cannot reuse previous passwords');
+        }
+      }
+    }
     await proto.InsecureQuery('User')
       .equalTo('_id', user.id)
       .includes('_id')
       .updateOne({
         password: { $set: hashed },
+        password_history: { $set: [hashed, ...history].slice(0, maxPasswordHistory) },
+        password_changed_at: { $set: new Date() },
       }, options);
   }
 
@@ -261,6 +285,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
       .includes('_id')
       .updateOne({
         password: { $set: {} },
+        password_changed_at: { $set: new Date() },
       }, options);
   }
 
