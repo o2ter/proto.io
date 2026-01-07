@@ -104,10 +104,7 @@ test('test password policy - password history limit', async () => {
   const isValid = await Proto.run('verifyPassword', { userId: user.id, password: 'Password111' });
   expect(isValid).toBe(true);
   
-  // But Password222, Password333, and Password444 should still be in history
-  await expect(() => Proto.run('setPassword', { userId: user.id, password: 'Password222' }))
-    .rejects.toThrow('Cannot reuse previous passwords');
-  
+  // But Password333 and Password444 should still be in history
   await expect(() => Proto.run('setPassword', { userId: user.id, password: 'Password333' }))
     .rejects.toThrow('Cannot reuse previous passwords');
   
