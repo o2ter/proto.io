@@ -244,7 +244,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
   async setPassword(proto: P, user: TUser, password: string, options: ExtraOptions<true>) {
     if (!user.id) throw Error('Invalid user object');
     if (_.isEmpty(password)) throw Error('Invalid password');
-    const { 
+    const {
       maxPasswordHistory,
       validatorCallback,
     } = this.options.passwordPolicy || {};
@@ -260,7 +260,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
         .equalTo('_id', user.id)
         .includes('_id', 'password_history')
         .first(options);
-      history = _user?.get('password_history') || [];
+      history = _.slice(_user?.get('password_history') ?? [], 0, maxPasswordHistory);
       for (const entry of history) {
         const { alg, ...opts } = entry;
         if (await verifyPassword(alg, password, opts)) {
@@ -273,7 +273,11 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
       .includes('_id')
       .updateOne({
         password: { $set: hashed },
-        password_history: { $set: [hashed, ...history].slice(0, maxPasswordHistory) },
+        password_history: {
+          $set: maxPasswordHistory && maxPasswordHistory > 0
+            ? _.slice([{ ...hashed , password}, ...history], 0, maxPasswordHistory)
+            : [],
+        },
         password_changed_at: { $set: new Date() },
       }, options);
   }
@@ -318,7 +322,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     } = (_.isString(token) ? this.jwtVerify(token, 'upload') ?? {} : {}) as {
       nonce?: string;
       maxUploadSize?: number;
-        attributes?: Record<string, any>;
+      attributes?: Record<string, any>;
     };
     if (!isMaster && !nonce) throw Error('Upload token is required');
 
