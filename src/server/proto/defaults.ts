@@ -54,6 +54,8 @@ export const defaultSchema: Record<string, TSchema> = {
   'User': {
     fields: {
       password: 'object',
+      password_history: 'array',
+      password_changed_at: 'date',
     },
     classLevelPermissions: {
       find: [],
@@ -63,7 +65,7 @@ export const defaultSchema: Record<string, TSchema> = {
     fieldLevelPermissions: {
       _expired_at: { create: [], update: [] },
     },
-    secureFields: ['password'],
+    secureFields: ['password', 'password_history', 'password_changed_at'],
   },
   'Role': {
     fields: {
