@@ -781,6 +781,82 @@ console.log(orderWithCount?.get('items.total'));
 - `$varPop` - Population variance
 - `$varSamp` - Sample variance
 - `$percentile` - Percentile calculation with options for discrete/continuous mode
+- `$group` - Group by key and apply aggregation to each group
+
+**Grouped Aggregations:**
+
+The `$group` operator allows you to group relation data by a field and apply aggregations to each group. The result is an array of key/value pairs.
+
+```typescript
+// Group items by category and count each
+const orderWithGroupedCount = await client.Query('Order')
+  .equalTo('_id', orderId)
+  .groupMatches('items', {
+    byCategory: {
+      $group: {
+        key: { $key: 'category' },      // Field to group by
+        value: { $count: true }          // Aggregation per group
+      }
+    }
+  })
+  .first();
+
+// Result: [{ key: 'Electronics', value: 5 }, { key: 'Books', value: 3 }]
+const grouped = orderWithGroupedCount?.get('items.byCategory');
+console.log(grouped); // Array of { key, value } objects
+
+// Group by string field and sum numeric values
+const salesByRegion = await client.Query('Company')
+  .equalTo('_id', companyId)
+  .groupMatches('sales', {
+    byRegion: {
+      $group: {
+        key: { $key: 'region' },       // String field
+        value: { $sum: { $key: 'amount' } }  // Sum amounts per region
+      }
+    }
+  })
+  .first();
+
+// Multiple groupings in one query
+const orderAnalytics = await client.Query('Order')
+  .equalTo('_id', orderId)
+  .groupMatches('items', {
+    countByCategory: {
+      $group: {
+        key: { $key: 'category' },
+        value: { $count: true }
+      }
+    },
+    avgPriceByCategory: {
+      $group: {
+        key: { $key: 'category' },
+        value: { $avg: { $key: 'price' } }
+      }
+    },
+    maxPriceBySeller: {
+      $group: {
+        key: { $key: 'seller' },
+        value: { $max: { $key: 'price' } }
+      }
+    }
+  })
+  .first();
+```
+
+**$group Structure:**
+- `key` - Expression defining the grouping key (typically `{ $key: 'fieldName' }`)
+- `value` - Any aggregation operator to apply to each group
+
+**Supported Aggregations in $group:**
+- `$count` - Count items in each group
+- `$sum` - Sum values in each group
+- `$avg` - Average values in each group
+- `$max` - Maximum value in each group
+- `$min` - Minimum value in each group
+- `$most` - Most frequent value in each group
+- `$stdDevPop` / `$stdDevSamp` - Standard deviation per group
+- `$varPop` / `$varSamp` - Variance per group
 
 #### Vector Operations
 

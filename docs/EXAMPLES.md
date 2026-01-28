@@ -328,6 +328,34 @@ console.log('Total items:', orderStats?.get('items.count'));
 console.log('Total price:', orderStats?.get('items.total'));
 console.log('Average price:', orderStats?.get('items.average'));
 
+// Grouped aggregations - group by category and aggregate each group
+const orderWithGrouping = await client.Query('Order')
+  .equalTo('_id', orderId)
+  .groupMatches('items', {
+    countByCategory: {
+      $group: {
+        key: { $key: 'category' },
+        value: { $count: true }
+      }
+    },
+    totalByCategory: {
+      $group: {
+        key: { $key: 'category' },
+        value: { $sum: { $key: 'price' } }
+      }
+    }
+  })
+  .first();
+
+// Results are arrays of { key, value } objects
+const countByCategory = orderWithGrouping?.get('items.countByCategory');
+console.log('Items per category:', countByCategory);
+// Example: [{ key: 'Electronics', value: 5 }, { key: 'Books', value: 3 }]
+
+const totalByCategory = orderWithGrouping?.get('items.totalByCategory');
+console.log('Total price per category:', totalByCategory);
+// Example: [{ key: 'Electronics', value: 1500 }, { key: 'Books', value: 50 }]
+
 // Vector similarity search (for AI applications)
 const similar = await client.Query('Document')
   .filter({

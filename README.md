@@ -658,6 +658,32 @@ const orderTotal = await client.Query('Order')
 console.log(orderTotal?.get('items.total'));
 console.log(orderTotal?.get('items.average'));
 
+// Group by category and aggregate each group
+const groupedStats = await client.Query('Order')
+  .equalTo('_id', orderId)
+  .groupMatches('items', {
+    countByCategory: {
+      $group: {
+        key: { $key: 'category' },
+        value: { $count: true }
+      }
+    },
+    totalByCategory: {
+      $group: {
+        key: { $key: 'category' },
+        value: { $sum: { $key: 'price' } }
+      }
+    }
+  })
+  .first();
+
+// Results are arrays of { key, value } objects
+const countByCategory = groupedStats?.get('items.countByCategory');
+// Example: [{ key: 'Electronics', value: 5 }, { key: 'Books', value: 3 }]
+
+const totalByCategory = groupedStats?.get('items.totalByCategory');
+// Example: [{ key: 'Electronics', value: 1500 }, { key: 'Books', value: 50 }]
+
 // Advanced aggregations with percentiles
 const stats = await client.Query('Survey')
   .equalTo('_id', surveyId)
@@ -687,6 +713,7 @@ const stats = await client.Query('Survey')
 - `$varPop` - Population variance
 - `$varSamp` - Sample variance
 - `$percentile` - Percentile calculation with options for discrete/continuous mode
+- `$group` - Group by key expression and apply aggregation to each group (returns array of `{key, value}` objects)
 
 ## Configuration
 
