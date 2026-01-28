@@ -103,14 +103,15 @@ When running any command or task as an AI agent:
 - **Never try to get the terminal output using a different approach or alternative method** always wait for the result using the provided tools and instructions. Do not attempt workarounds or alternate output retrieval.
 
 ### Test Execution
-- **Always use provided tools when available** for running tests instead of terminal commands
-- Use the `runTests` tool for unit test execution - it provides better integration and output formatting
-- The `runTests` tool supports:
-  - Running specific test files by providing absolute file paths
-  - Running specific test suites, classes, or cases by name
-  - Running all tests when no parameters are provided
-- **Prefer tool-based test execution** over manual `yarn test` or `npm test` commands
-- Only use terminal commands for test execution when the `runTests` tool is not available or insufficient
+- **CRITICAL:** Tests in this project can ONLY be run using the `./scripts/test` script
+- The test script automatically sets up and runs a real PostgreSQL instance in Docker
+- **Never use** the `runTests` tool, `yarn test`, `npm test`, or any other test commands
+- The `./scripts/test` script:
+  - Starts a PostgreSQL container with the required configuration
+  - Runs the test suite against the live database
+  - Cleans up the environment after tests complete
+- Always wait for the script to complete before checking results or making changes
+- If tests fail, analyze the output carefully before making fixes
 
 ### Error Handling
 - If a command fails, read the error output completely before suggesting fixes
