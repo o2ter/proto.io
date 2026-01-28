@@ -203,6 +203,6 @@ export class QueryGroupAccumulator extends QueryAccumulator {
   }
 
   evalType(schema: Record<string, TSchema>, className: string): TSchema.DataType | undefined {
-    return this.value.evalType(schema, className);
+    return 'array';
   }
 }
