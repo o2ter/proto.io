@@ -47,6 +47,10 @@ export type TQueryAccumulator = {
     p: number;
     mode?: 'discrete' | 'continuous';
   },
+  $group?: {
+    key: TExpression;
+    value: TQueryAccumulator;
+  },
 } & {
   [x in (typeof TZeroParamAccumulatorKeys)[number]]?: true | {};
 } & {

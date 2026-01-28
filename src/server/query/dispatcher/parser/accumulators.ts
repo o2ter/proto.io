@@ -168,3 +168,34 @@ export class QueryPercentileAccumulator extends QueryAccumulator {
     return dataType;
   }
 }
+
+export class QueryGroupAccumulator extends QueryAccumulator {
+
+  key: QueryExpression;
+  value: QueryAccumulator;
+
+  constructor(key: QueryExpression, value: QueryAccumulator) {
+    super();
+    this.key = key;
+    this.value = value;
+  }
+
+  simplify(): QueryAccumulator {
+    return new QueryGroupAccumulator(this.key.simplify(), this.value.simplify());
+  }
+
+  keyPaths(): string[] {
+    return _.uniq([
+      ...this.key.keyPaths(),
+      ...this.value.keyPaths(),
+    ]);
+  }
+
+  mapKey(callback: (key: string) => string): QueryAccumulator {
+    return new QueryGroupAccumulator(this.key.mapKey(callback), this.value.mapKey(callback));
+  }
+
+  evalType(schema: Record<string, TSchema>, className: string): TSchema.DataType | undefined {
+    return this.value.evalType(schema, className);
+  }
+}
