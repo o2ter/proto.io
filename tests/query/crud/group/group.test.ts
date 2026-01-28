@@ -59,7 +59,6 @@ test('test group matches with $group accumulator - count by string', async () =>
     .first();
 
   const grouped = result?.get('relation.grouped');
-  console.log('grouped:', JSON.stringify(grouped), 'isArray:', Array.isArray(grouped));
   expect(grouped).toBeDefined();
   expect(Array.isArray(grouped)).toBe(true);
   const groupedMap = Object.fromEntries(grouped.map((item: any) => [item.key, item.value]));
