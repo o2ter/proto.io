@@ -41,6 +41,13 @@ export class QueryAccumulator {
         if (!_.isFinite(p) || p < 0 || p > 1) throw Error('Invalid expression');
         if (!_.includes(['discrete', 'continuous'], mode)) throw Error('Invalid expression');
         return new QueryPercentileAccumulator(QueryExpression.decode(input ?? [], false), p, mode);
+      } else if (key === '$group') {
+        const { key: groupKey, value } = expr as any ?? {};
+        if (!groupKey || !value) throw Error('Invalid expression');
+        return new QueryGroupAccumulator(
+          QueryExpression.decode(groupKey ?? [], false),
+          QueryAccumulator.decode(value)
+        );
       } else {
         throw Error('Invalid expression');
       }
