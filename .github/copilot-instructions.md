@@ -136,3 +136,46 @@ When running any command or task as an AI agent:
 1. **Understand the Project Structure:** Thoroughly review the project structure and understand how it works. This includes analyzing the folder hierarchy, key files, and their purposes.
 2. **Avoid Premature Questions:** Do not ask unnecessary questions before completing the job. Use the available tools and context to gather information independently.
 3. **Plan Before Work:** Always create a clear plan before starting any task. For complex tasks, consider creating a structured todo list to break down the work into manageable steps.
+
+## PostgreSQL Storage Adapter Type Mapping
+
+**CRITICAL:** When working with the PostgreSQL storage adapter, always use the correct type mappings between application data types and PostgreSQL column types.
+
+### Type Mapping Reference
+The following mappings are defined in `src/adapters/storage/postgres/client/pool.ts` in the `_pgType` method:
+
+| Application Type | PostgreSQL Type | Notes |
+|-----------------|-----------------|-------|
+| `boolean` | `BOOLEAN` | Standard boolean type |
+| `number` | `DOUBLE PRECISION` | 64-bit floating point |
+| `decimal` | `DECIMAL` | Arbitrary precision numeric |
+| `string` | `TEXT` | Variable-length text |
+| `string[]` | `TEXT[]` | Array of text values |
+| `date` | `TIMESTAMP(3) WITH TIME ZONE` | Timestamp with millisecond precision and timezone |
+| `object` | `JSONB` | Binary JSON format for efficiency |
+| `array` | `JSONB[]` | Array of JSONB objects |
+| `vector` | `DOUBLE PRECISION[]` | Numeric vector for embeddings/ML |
+| `pointer` | `TEXT` | Reference to another object (stored as ID) |
+| `relation` | `TEXT[]` | Array of object IDs for relations |
+
+### Important Notes
+- **Vector types**: Use `DOUBLE PRECISION[]` for vector storage. The pgvector extension is enabled automatically if available for optimized vector operations.
+- **JSONB over JSON**: Always use JSONB for object and array storage as it provides better query performance and indexing capabilities.
+- **Timestamp precision**: Dates use millisecond precision (3 decimal places) to match JavaScript Date precision.
+- **Timezone awareness**: All timestamps include timezone information to prevent timezone-related bugs.
+- **Relations and pointers**: Both are stored as text/text arrays containing object IDs, but have different semantic meanings in the application layer.
+- **Shape type flattening**: Shape types are automatically flattened into separate columns using dot notation. For example:
+  ```typescript
+  preferences: schema.shape({
+    theme: schema.string('light'),
+    notifications: schema.boolean(true),
+  })
+  ```
+  Creates two columns: `preferences.theme` (TEXT) and `preferences.notifications` (BOOLEAN). When querying, you can access these as: `SELECT username, "preferences.theme", "preferences.notifications" FROM "User"`. The flattening is handled by the `_fields` method in the PostgreSQL adapter.
+- **Pointer flattening when populated**: When populating pointers (includes/joins), all fields from the target class are flattened into separate columns, including any shape type fields. For example, if you include a `user` pointer where the User class has fields `username`, `email`, and a `preferences` shape type with `theme` and `notifications`, the query will select: `"user.username"`, `"user.email"`, `"user.preferences.theme"`, `"user.preferences.notifications"`, etc. This ensures complete data retrieval for all nested structures when joining related objects.
+
+### When Modifying Type Mappings
+- **Update tests**: Any changes to type mappings must include corresponding test updates
+- **Migration path**: Consider existing data when changing mappings - may require data migration
+- **Index implications**: Type changes can affect index types (GIN vs B-tree) and query performance
+- **Backward compatibility**: Ensure type changes don't break existing queries or data integrity
