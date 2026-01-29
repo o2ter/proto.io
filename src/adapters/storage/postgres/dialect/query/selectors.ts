@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { SQL, sql } from '../../../sql';
-import { _isTypeof, _typeof, isPrimitive, TSchema } from '../../../../../internals/schema';
+import { _isTypeof, _typeof, isPrimitive } from '../../../../../internals/schema';
 import { QueryCompiler, QueryContext } from '../../../sql/compiler';
 import { FieldSelectorExpression, QuerySelector } from '../../../../../server/query/dispatcher/parser';
 import { _encodeJsonValue } from '../encode';
@@ -38,193 +38,6 @@ import { _encodeValue } from '../../../../../internals/object';
 import { TValue } from '../../../../../internals/types';
 import { _selectRelationPopulate } from '../populate';
 
-// Helper: Check if value is a valid pointer with ID
-const isValidPointer = (value: any, targetClass?: string): value is TObject => {
-  return value instanceof TObject
-    && (!targetClass || targetClass === value.className)
-    && !!value.id;
-};
-
-// Helper: Handle equality/inequality comparison for pointers and regular values
-const handleComparison = (
-  element: SQL,
-  value: any,
-  dataType: any,
-  isEqual: boolean,
-  encodeValue?: (v: any) => SQL
-): SQL | null => {
-  if (_.isNil(value)) {
-    return sql`${element} IS ${isEqual ? sql`NULL` : sql`NOT NULL`}`;
-  }
-
-  if (!_.isString(dataType) && dataType?.type === 'pointer') {
-    if (!isValidPointer(value, dataType.target)) return null;
-    const op = isEqual ? nullSafeEqual() : nullSafeNotEqual();
-    return sql`${element} ${op} ${{ value: value.id }}`;
-  }
-
-  if (encodeValue) {
-    const op = isEqual ? nullSafeEqual() : nullSafeNotEqual();
-    return sql`${element} ${op} ${encodeValue(value)}`;
-  }
-
-  return null;
-};
-
-// Helper: Handle $in/$nin operators
-const handleInComparison = (
-  element: SQL,
-  values: any[],
-  dataType: any,
-  isNegated: boolean,
-  encodeValue: (v: any) => SQL
-): SQL | null => {
-  if (values.length === 0) {
-    return sql`${{ literal: isNegated ? 'true' : 'false' }}`;
-  }
-
-  if (values.length === 1) {
-    return handleComparison(element, values[0], dataType, !isNegated, encodeValue);
-  }
-
-  const containsNil = _.some(values, x => _.isNil(x));
-  const nonNilValues = _.filter(values, x => !_.isNil(x));
-
-  // Handle pointer types
-  if (!_.isString(dataType) && dataType?.type === 'pointer') {
-    if (!_.every(nonNilValues, x => isValidPointer(x, dataType.target))) return null;
-    const inList = _.map(nonNilValues, (x: any) => sql`${{ value: x.id }}`);
-    const inClause = isNegated ? sql`${element} NOT IN (${inList})` : sql`${element} IN (${inList})`;
-
-    if (containsNil) {
-      return isNegated
-        ? sql`${element} IS NOT NULL AND ${inClause}`
-        : sql`${element} IS NULL OR ${inClause}`;
-    }
-    return inClause;
-  }
-
-  // Handle non-pointer types
-  const encodedValues = _.map(nonNilValues, x => encodeValue(x));
-  const inClause = isNegated ? sql`${element} NOT IN (${encodedValues})` : sql`${element} IN (${encodedValues})`;
-
-  if (containsNil) {
-    return isNegated
-      ? sql`${element} IS NOT NULL AND ${inClause}`
-      : sql`${element} IS NULL OR ${inClause}`;
-  }
-  return inClause;
-};
-
-// Helper function to handle string pattern matching
-const encodeStringPattern = (
-  element: SQL,
-  dataType: TSchema.DataType | null,
-  pattern: string | RegExp,
-  mode: 'contains' | 'starts' | 'ends'
-): SQL | null => {
-  const isTypedString = dataType && _isTypeof(dataType, 'string');
-
-  if (_.isString(pattern)) {
-    const escaped = pattern.replace(/([\\_%])/g, '\\$1');
-    const likePattern = mode === 'contains'
-      ? `%${escaped}%`
-      : mode === 'starts'
-        ? `${escaped}%`
-        : `%${escaped}`;
-
-    if (isTypedString) {
-      return sql`${element} LIKE ${{ value: likePattern }}`;
-    }
-    if (!dataType) {
-      return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'string' AND (${element} #>> '{}') LIKE ${{ value: likePattern }}`;
-    }
-  }
-
-  if (_.isRegExp(pattern)) {
-    const regexOp = pattern.ignoreCase ? '~*' : '~';
-    if (isTypedString) {
-      return sql`${element} ${{ literal: regexOp }} ${{ value: pattern.source }}`;
-    }
-    if (!dataType) {
-      return pattern.ignoreCase
-        ? sql`${element} ~* ${{ value: pattern.source }}`
-        : sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'string' AND (${element} #>> '{}') ~ ${{ value: pattern.source }}`;
-    }
-  }
-
-  return null;
-};
-
-// Helper function to handle $every and $some operators
-const encodeArrayQuantifier = (
-  compiler: QueryCompiler,
-  parent: QueryContext,
-  field: string,
-  element: SQL,
-  dataType: TSchema.DataType | null,
-  relation: any,
-  selector: QuerySelector,
-  quantifier: 'every' | 'some'
-): SQL | null => {
-  const exists = quantifier === 'some' ? 'EXISTS' : 'NOT EXISTS';
-  const filterNegate = quantifier === 'every' ? 'NOT ' : '';
-
-  if (relation && parent.className) {
-    const tempName = `_populate_expr_$${compiler.nextIdx()}`;
-    const filter = compiler._encodeFilter({
-      name: tempName,
-      className: relation.target,
-      populates: relation.populate.populates,
-    }, selector);
-    if (!filter) throw Error('Invalid expression');
-
-    const populate = _selectRelationPopulate(compiler, { className: parent.className, name: parent.name }, relation.populate, `$${field}`, false);
-    return sql`${sql`${{ literal: exists }}`}(
-      SELECT * FROM (${populate}) AS ${{ identifier: tempName }}
-      WHERE ${sql`${{ literal: filterNegate }}`}(${filter})
-    )`;
-  }
-
-  const mapping = {
-    'vector': '_doller_num_expr_$',
-    'string[]': '_doller_str_expr_$',
-  };
-
-  for (const [key, value] of _.entries(mapping)) {
-    if (dataType && _isTypeof(dataType, key)) {
-      const tempName = `${value}${compiler.nextIdx()}`;
-      const filter = compiler._encodeFilter({ name: tempName, className: relation?.target }, selector);
-      if (!filter) throw Error('Invalid expression');
-
-      return sql`${sql`${{ literal: exists }}`}(
-        SELECT * FROM (SELECT UNNEST AS "$" FROM UNNEST(${element})) AS ${{ identifier: tempName }}
-        WHERE ${sql`${{ literal: filterNegate }}`}(${filter})
-      )`;
-    }
-  }
-
-  const tempName = `_doller_expr_$${compiler.nextIdx()}`;
-  const filter = compiler._encodeFilter({ name: tempName, className: relation?.target }, selector);
-  if (!filter) throw Error('Invalid expression');
-
-  if (dataType && _isTypeof(dataType, 'array')) {
-    return sql`${sql`${{ literal: exists }}`}(
-      SELECT * FROM (SELECT UNNEST AS "$" FROM UNNEST(${element})) AS ${{ identifier: tempName }}
-      WHERE ${sql`${{ literal: filterNegate }}`}(${filter})
-    )`;
-  }
-
-  if (!dataType) {
-    return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'array' AND ${sql`${{ literal: exists }}`}(
-      SELECT * FROM (SELECT value AS "$" FROM jsonb_array_elements(${element})) AS ${{ identifier: tempName }}
-      WHERE ${sql`${{ literal: filterNegate }}`}(${filter})
-    )`;
-  }
-
-  return null;
-};
-
 export const encodeFieldExpression = (
   compiler: QueryCompiler,
   parent: QueryContext,
@@ -234,16 +47,27 @@ export const encodeFieldExpression = (
   const [colname] = _.toPath(field);
   const { element, dataType, relation } = fetchElement(compiler, parent, field);
   const encodeValue = (value: TValue) => dataType ? encodeType(colname, dataType, value) : _encodeJsonValue(_encodeValue(value));
-
   switch (expr.type) {
     case '$eq':
+      {
+        if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldSelectorExpression) break;
+        if (_.isNil(expr.value)) return sql`${element} IS NULL`;
+        if (!_.isString(dataType) && dataType?.type === 'pointer') {
+          if (!(expr.value instanceof TObject) || dataType.target !== expr.value.className || !expr.value.id) break;
+          return sql`${element} ${nullSafeEqual()} ${{ value: expr.value.id }}`;
+        }
+        return sql`${element} ${nullSafeEqual()} ${encodeValue(expr.value)}`;
+      }
     case '$ne':
       {
         if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldSelectorExpression) break;
-        const result = handleComparison(element, expr.value, dataType, expr.type === '$eq', encodeValue);
-        if (result) return result;
+        if (_.isNil(expr.value)) return sql`${element} IS NOT NULL`;
+        if (!_.isString(dataType) && dataType?.type === 'pointer') {
+          if (!(expr.value instanceof TObject) || dataType.target !== expr.value.className || !expr.value.id) break;
+          return sql`${element} ${nullSafeNotEqual()} ${{ value: expr.value.id }}`;
+        }
+        return sql`${element} ${nullSafeNotEqual()} ${encodeValue(expr.value)}`;
       }
-      break;
     case '$gt':
     case '$gte':
     case '$lt':
@@ -299,11 +123,67 @@ export const encodeFieldExpression = (
       }
       break;
     case '$in':
+      {
+        if (!_.isArray(expr.value)) break;
+        switch (expr.value.length) {
+          case 0: return sql`false`;
+          case 1:
+            {
+              const value = expr.value[0];
+              if (!_.isString(dataType) && dataType?.type === 'pointer') {
+                if (_.isNil(value)) return sql`${element} IS NULL`;
+                if (!(value instanceof TObject) || dataType.target !== value.className || !value.id) break;
+                return sql`${element} ${nullSafeEqual()} ${{ value: value.id }}`;
+              }
+              return sql`${element} ${nullSafeEqual()} ${encodeValue(value)}`;
+            }
+          default:
+            const containsNil = _.some(expr.value, x => _.isNil(x));
+            const values = _.filter(expr.value, x => !_.isNil(x));
+            if (!_.isString(dataType) && dataType?.type === 'pointer') {
+              if (!_.every(values, x => x instanceof TObject && dataType.target === x.className && x.id)) break;
+              if (containsNil) {
+                return sql`${element} IS NULL OR ${element} IN (${_.map(values, (x: any) => sql`${{ value: x.id }}`)})`;
+              }
+              return sql`${element} IN (${_.map(values, (x: any) => sql`${{ value: x.id }}`)})`;
+            }
+            if (containsNil) {
+              return sql`${element} IS NULL OR ${element} IN (${_.map(values, x => encodeValue(x))})`;
+            }
+            return sql`${element} IN (${_.map(values, x => encodeValue(x))})`;
+        }
+      }
+      break;
     case '$nin':
       {
         if (!_.isArray(expr.value)) break;
-        const result = handleInComparison(element, expr.value, dataType, expr.type === '$nin', encodeValue);
-        if (result) return result;
+        switch (expr.value.length) {
+          case 0: return sql`true`;
+          case 1:
+            {
+              const value = expr.value[0];
+              if (!_.isString(dataType) && dataType?.type === 'pointer') {
+                if (_.isNil(value)) return sql`${element} IS NOT NULL`;
+                if (!(value instanceof TObject) || dataType.target !== value.className || !value.id) break;
+                return sql`${element} ${nullSafeNotEqual()} ${{ value: value.id }}`;
+              }
+              return sql`${element} ${nullSafeNotEqual()} ${encodeValue(value)}`;
+            }
+          default:
+            const containsNil = _.some(expr.value, x => _.isNil(x));
+            const values = _.filter(expr.value, x => !_.isNil(x));
+            if (!_.isString(dataType) && dataType?.type === 'pointer') {
+              if (!_.every(values, x => x instanceof TObject && dataType.target === x.className && x.id)) break;
+              if (containsNil) {
+                return sql`${element} IS NOT NULL AND ${element} NOT IN (${_.map(values, (x: any) => sql`${{ value: x.id }}`)})`;
+              }
+              return sql`${element} NOT IN (${_.map(values, (x: any) => sql`${{ value: x.id }}`)})`;
+            }
+            if (containsNil) {
+              return sql`${element} IS NOT NULL AND ${element} NOT IN (${_.map(values, x => encodeValue(x))})`;
+            }
+            return sql`${element} NOT IN (${_.map(values, x => encodeValue(x))})`;
+        }
       }
       break;
     case '$subset':
@@ -347,24 +227,45 @@ export const encodeFieldExpression = (
       }
     case '$pattern':
       {
-        if (_.isString(expr.value) || _.isRegExp(expr.value)) {
-          const result = encodeStringPattern(element, dataType, expr.value, 'contains');
-          if (result) return result;
+        if (dataType && _isTypeof(dataType, 'string')) {
+          if (_.isString(expr.value)) {
+            return sql`${element} LIKE ${{ value: `%${expr.value.replace(/([\\_%])/g, '\\$1')}%` }}`;
+          }
+          if (_.isRegExp(expr.value)) {
+            if (expr.value.ignoreCase) return sql`${element} ~* ${{ value: expr.value.source }}`;
+            return sql`${element} ~ ${{ value: expr.value.source }}`;
+          }
+        } else if (!dataType) {
+          if (_.isString(expr.value)) {
+            return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'string' AND (${element} #>> '{}') LIKE ${{ value: `%${expr.value.replace(/([\\_%])/g, '\\$1')}%` }}`;
+          }
+          if (_.isRegExp(expr.value)) {
+            if (expr.value.ignoreCase) return sql`${element} ~* ${{ value: expr.value.source }}`;
+            return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'string' AND (${element} #>> '{}') ~ ${{ value: expr.value.source }}`;
+          }
         }
       }
       break;
     case '$starts':
       {
         if (!_.isString(expr.value)) break;
-        const result = encodeStringPattern(element, dataType, expr.value, 'starts');
-        if (result) return result;
+        if (dataType && _isTypeof(dataType, 'string')) {
+          return sql`${element} LIKE ${{ value: `${expr.value.replace(/([\\_%])/g, '\\$1')}%` }}`;
+        }
+        if (!dataType) {
+          return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'string' AND (${element} #>> '{}') LIKE ${{ value: `${expr.value.replace(/([\\_%])/g, '\\$1')}%` }}`;
+        }
       }
       break;
     case '$ends':
       {
         if (!_.isString(expr.value)) break;
-        const result = encodeStringPattern(element, dataType, expr.value, 'ends');
-        if (result) return result;
+        if (dataType && _isTypeof(dataType, 'string')) {
+          return sql`${element} LIKE ${{ value: `%${expr.value.replace(/([\\_%])/g, '\\$1')}` }}`;
+        }
+        if (!dataType) {
+          return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'string' AND (${element} #>> '{}') LIKE ${{ value: `%${expr.value.replace(/([\\_%])/g, '\\$1')}` }}`;
+        }
       }
       break;
     case '$size':
@@ -418,14 +319,113 @@ export const encodeFieldExpression = (
       }
       break;
     case '$every':
+      {
+        if (!(expr.value instanceof QuerySelector)) break;
+
+        if (relation && parent.className) {
+          const tempName = `_populate_expr_$${compiler.nextIdx()}`;
+          const filter = compiler._encodeFilter({
+            name: tempName,
+            className: relation.target,
+            populates: relation.populate.populates,
+          }, expr.value);
+          if (!filter) throw Error('Invalid expression');
+
+          const populate = _selectRelationPopulate(compiler, { className: parent.className, name: parent.name }, relation.populate, `$${field}`, false);
+          return sql`NOT EXISTS(
+            SELECT * FROM (${populate}) AS ${{ identifier: tempName }}
+            WHERE NOT (${filter})
+          )`;
+        }
+
+        const mapping = {
+          'vector': '_doller_num_expr_$',
+          'string[]': '_doller_str_expr_$',
+        };
+        for (const [key, value] of _.entries(mapping)) {
+          if (dataType && _isTypeof(dataType, key)) {
+            const tempName = `${value}${compiler.nextIdx()}`;
+            const filter = compiler._encodeFilter({ name: tempName, className: relation?.target }, expr.value);
+            if (!filter) throw Error('Invalid expression');
+
+            return sql`NOT EXISTS(
+              SELECT * FROM (SELECT UNNEST AS "$" FROM UNNEST(${element})) AS ${{ identifier: tempName }}
+              WHERE NOT (${filter})
+            )`;
+          }
+        }
+
+        const tempName = `_doller_expr_$${compiler.nextIdx()}`;
+        const filter = compiler._encodeFilter({ name: tempName, className: relation?.target }, expr.value);
+        if (!filter) throw Error('Invalid expression');
+
+        if (dataType && _isTypeof(dataType, 'array')) {
+          return sql`NOT EXISTS(
+            SELECT * FROM (SELECT UNNEST AS "$" FROM UNNEST(${element})) AS ${{ identifier: tempName }}
+            WHERE NOT (${filter})
+          )`;
+        }
+        if (!dataType) {
+          return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'array' AND NOT EXISTS(
+            SELECT * FROM (SELECT value AS "$" FROM jsonb_array_elements(${element})) AS ${{ identifier: tempName }}
+            WHERE NOT (${filter})
+          )`;
+        }
+      }
+      break;
     case '$some':
       {
         if (!(expr.value instanceof QuerySelector)) break;
-        const result = encodeArrayQuantifier(
-          compiler, parent, field, element, dataType, relation,
-          expr.value, expr.type === '$every' ? 'every' : 'some'
-        );
-        if (result) return result;
+
+        if (relation && parent.className) {
+          const tempName = `_populate_expr_$${compiler.nextIdx()}`;
+          const filter = compiler._encodeFilter({
+            name: tempName,
+            className: relation.target,
+            populates: relation.populate.populates,
+          }, expr.value);
+          if (!filter) throw Error('Invalid expression');
+
+          const populate = _selectRelationPopulate(compiler, { className: parent.className, name: parent.name }, relation.populate, `$${field}`, false);
+          return sql`EXISTS(
+            SELECT * FROM (${populate}) AS ${{ identifier: tempName }}
+            WHERE ${filter}
+          )`;
+        }
+
+        const mapping = {
+          'vector': '_doller_num_expr_$',
+          'string[]': '_doller_str_expr_$',
+        };
+        for (const [key, value] of _.entries(mapping)) {
+          if (dataType && _isTypeof(dataType, key)) {
+            const tempName = `${value}${compiler.nextIdx()}`;
+            const filter = compiler._encodeFilter({ name: tempName, className: relation?.target }, expr.value);
+            if (!filter) throw Error('Invalid expression');
+
+            return sql`EXISTS(
+              SELECT * FROM (SELECT UNNEST AS "$" FROM UNNEST(${element})) AS ${{ identifier: tempName }}
+              WHERE ${filter}
+            )`;
+          }
+        }
+
+        const tempName = `_doller_expr_$${compiler.nextIdx()}`;
+        const filter = compiler._encodeFilter({ name: tempName, className: relation?.target }, expr.value);
+        if (!filter) throw Error('Invalid expression');
+
+        if (dataType && _isTypeof(dataType, 'array')) {
+          return sql`EXISTS(
+            SELECT * FROM (SELECT UNNEST AS "$" FROM UNNEST(${element})) AS ${{ identifier: tempName }}
+            WHERE ${filter}
+          )`;
+        }
+        if (!dataType) {
+          return sql`jsonb_typeof(${element}) ${nullSafeEqual()} 'array' AND EXISTS(
+            SELECT * FROM (SELECT value AS "$" FROM jsonb_array_elements(${element})) AS ${{ identifier: tempName }}
+            WHERE ${filter}
+          )`;
+        }
       }
       break;
     default: break;

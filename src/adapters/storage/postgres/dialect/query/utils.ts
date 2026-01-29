@@ -24,17 +24,10 @@
 //
 
 import _ from 'lodash';
-import { SQL, sql } from '../../../sql';
+import { sql } from '../../../sql';
 import { Populate, QueryCompiler, QueryContext } from '../../../sql/compiler';
 import { TSchema, _isTypeof, isPointer, isRelation, isVector } from '../../../../../internals/schema';
 import { QueryValidator, resolveColumn } from '../../../../../server/query/dispatcher/validator';
-
-const _escapeKey = (key: string) => key.startsWith('$') ? `$${key}` : key;
-
-const _jsonbExtractPath = (element: SQL, keys: string[]) => {
-  const escapedKeys = _.map(keys, k => sql`${{ quote: _escapeKey(k) }}`);
-  return sql`jsonb_extract_path(${element}, ${escapedKeys})`;
-};
 
 const _fetchElement = (
   compiler: QueryCompiler,
@@ -43,22 +36,21 @@ const _fetchElement = (
   subpath: string[],
   dataType?: TSchema.DataType,
 ) => {
-  const elementId = parent.name.startsWith('_doller_expr_$') ? '$' : colname;
-  const element = sql`${{ identifier: parent.name }}.${{ identifier: elementId }}`;
-
-  // Handle non-class context
+  const element = sql`${{ identifier: parent.name }}.${{ identifier: parent.name.startsWith('_doller_expr_$') ? '$' : colname }}`;
   if (!parent.className) {
     if (colname !== '$') {
-      return { element: _jsonbExtractPath(element, [colname, ...subpath]), json: true };
+      return {
+        element: sql`jsonb_extract_path(${element}, ${_.map([colname, ...subpath], x => sql`${{ quote: x.startsWith('$') ? `$${x}` : x }}`)})`,
+        json: true,
+      };
+    } else if (!_.isEmpty(subpath)) {
+      return {
+        element: sql`jsonb_extract_path(${element}, ${_.map(subpath, x => sql`${{ quote: x.startsWith('$') ? `$${x}` : x }}`)})`,
+        json: true,
+      };
     }
-    if (!_.isEmpty(subpath)) {
-      return { element: _jsonbExtractPath(element, subpath), json: true };
-    }
-    return { element, json: false };
-  }
-
-  // Handle subpaths in class context
-  if (!_.isEmpty(subpath)) {
+  } else if (!_.isEmpty(subpath)) {
+    const _subpath = sql`${_.map(subpath, x => sql`${{ quote: x.startsWith('$') ? `$${x}` : x }}`)}`;
     const match = parent.groupMatches?.[colname]?.[subpath[0]];
     if (dataType && isRelation(dataType) && subpath.length === 1 && match) {
       return {
@@ -66,21 +58,24 @@ const _fetchElement = (
         json: false,
         dataType: match.evalType(compiler.schema, dataType.target),
       };
+    } else if (dataType && _isTypeof(dataType, ['array', 'string[]', 'relation'])) {
+      return {
+        element: sql`jsonb_extract_path(to_jsonb(${element}), ${_subpath})`,
+        json: true,
+      };
+    } else {
+      return {
+        element: sql`jsonb_extract_path(${element}, ${_subpath})`,
+        json: true,
+      };
     }
-    if (dataType && _isTypeof(dataType, ['array', 'string[]', 'relation'])) {
-      return { element: _jsonbExtractPath(sql`to_jsonb(${element})`, subpath), json: true };
-    }
-    return { element: _jsonbExtractPath(element, subpath), json: true };
   }
-
-  // Handle special dollar expression
   if (parent.name.startsWith('_doller_expr_$') && colname !== '$') {
     return {
-      element: sql`jsonb_extract_path(${element}, ${{ quote: _escapeKey(colname) }})`,
+      element: sql`jsonb_extract_path(${element}, ${{ quote: colname.startsWith('$') ? `$${colname}` : colname }})`,
       json: true,
     };
   }
-
   return { element, json: false };
 };
 
