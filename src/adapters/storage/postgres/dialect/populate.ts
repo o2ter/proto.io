@@ -120,24 +120,15 @@ export const _selectRelationPopulate = (
   `;
 }
 
-const encodeAccumulatorSQL = (
+const encodeAccumulatorExpression = (
   compiler: QueryCompiler,
-  parent: QueryContext & { className: string; },
   populate: Populate,
-  field: string,
   expr: QueryAccumulator,
-  aliasName: string,
 ): SQL => {
   if (expr instanceof QueryZeroParamAccumulator) {
     switch (expr.type) {
       case '$count':
-        return sql`
-          (
-            SELECT COUNT(*) FROM (
-              ${_selectRelationPopulate(compiler, parent, populate, field, false)}
-            ) ${{ identifier: populate.name }}
-          ) AS ${{ identifier: aliasName }}
-        `;
+        return sql`COUNT(*)`;
       default:
         throw Error('Invalid expression');
     }
@@ -147,13 +138,7 @@ const encodeAccumulatorSQL = (
     if (!value) throw Error('Invalid expression');
     switch (expr.type) {
       case '$most':
-        return sql`
-          (
-            SELECT MODE() WITHIN GROUP (ORDER BY (${value})) FROM (
-              ${_selectRelationPopulate(compiler, parent, populate, field, false)}
-            ) ${{ identifier: populate.name }}
-          ) AS ${{ identifier: aliasName }}
-        `;
+        return sql`MODE() WITHIN GROUP (ORDER BY (${value}))`;
       default:
         {
           const op = {
@@ -166,13 +151,7 @@ const encodeAccumulatorSQL = (
             '$varPop': 'VAR_POP',
             '$varSamp': 'VAR_SAMP',
           }[expr.type];
-          return sql`
-            (
-              SELECT ${{ literal: op }}(${value}) FROM (
-                ${_selectRelationPopulate(compiler, parent, populate, field, false)}
-              ) ${{ identifier: populate.name }}
-            ) AS ${{ identifier: aliasName }}
-          `;
+          return sql`${{ literal: op }}(${value})`;
         }
     }
   } else if (expr instanceof QueryPercentileAccumulator) {
@@ -183,64 +162,26 @@ const encodeAccumulatorSQL = (
     if (!expr.input) throw Error('Invalid expression');
     const { sql: value } = encodeTypedQueryExpression(compiler, populate, expr.input) ?? {};
     if (!value) throw Error('Invalid expression');
-    return sql`
-      (
-        SELECT ${{ literal: op }}(${{ value: expr.p }}) WITHIN GROUP (ORDER BY (${value})) FROM (
-          ${_selectRelationPopulate(compiler, parent, populate, field, false)}
-        ) ${{ identifier: populate.name }}
-      ) AS ${{ identifier: aliasName }}
-    `;
-  } else if (expr instanceof QueryGroupAccumulator) {
+    return sql`${{ literal: op }}(${{ value: expr.p }}) WITHIN GROUP (ORDER BY (${value}))`;
+  } else {
+    throw Error('Invalid expression');
+  }
+};
+
+const encodeAccumulatorSQL = (
+  compiler: QueryCompiler,
+  parent: QueryContext & { className: string; },
+  populate: Populate,
+  field: string,
+  expr: QueryAccumulator,
+  aliasName: string,
+): SQL => {
+  if (expr instanceof QueryGroupAccumulator) {
     if (!expr.key) throw Error('Invalid expression');
     const { sql: keyValue } = encodeTypedQueryExpression(compiler, populate, expr.key) ?? {};
     if (!keyValue) throw Error('Invalid expression');
 
-    // Build the inner accumulator expression that will be applied per group
-    const innerAccumulator = (innerExpr: QueryAccumulator): SQL => {
-      if (innerExpr instanceof QueryZeroParamAccumulator) {
-        switch (innerExpr.type) {
-          case '$count':
-            return sql`COUNT(*)`;
-          default:
-            throw Error('Invalid expression');
-        }
-      } else if (innerExpr instanceof QueryUnaryAccumulator) {
-        if (!innerExpr.expr) throw Error('Invalid expression');
-        const { sql: value } = encodeTypedQueryExpression(compiler, populate, innerExpr.expr) ?? {};
-        if (!value) throw Error('Invalid expression');
-        switch (innerExpr.type) {
-          case '$most':
-            return sql`MODE() WITHIN GROUP (ORDER BY (${value}))`;
-          default:
-            {
-              const op = {
-                '$max': 'MAX',
-                '$min': 'MIN',
-                '$avg': 'AVG',
-                '$sum': 'SUM',
-                '$stdDevPop': 'STDDEV_POP',
-                '$stdDevSamp': 'STDDEV_SAMP',
-                '$varPop': 'VAR_POP',
-                '$varSamp': 'VAR_SAMP',
-              }[innerExpr.type];
-              return sql`${{ literal: op }}(${value})`;
-            }
-        }
-      } else if (innerExpr instanceof QueryPercentileAccumulator) {
-        const op = {
-          'discrete': 'PERCENTILE_DISC',
-          'continuous': 'PERCENTILE_CONT',
-        }[innerExpr.mode];
-        if (!innerExpr.input) throw Error('Invalid expression');
-        const { sql: value } = encodeTypedQueryExpression(compiler, populate, innerExpr.input) ?? {};
-        if (!value) throw Error('Invalid expression');
-        return sql`${{ literal: op }}(${{ value: innerExpr.p }}) WITHIN GROUP (ORDER BY (${value}))`;
-      } else {
-        throw Error('Invalid expression');
-      }
-    };
-
-    const aggSQL = innerAccumulator(expr.value);
+    const aggSQL = encodeAccumulatorExpression(compiler, populate, expr.value);
 
     return sql`
       (
@@ -258,9 +199,17 @@ const encodeAccumulatorSQL = (
         ) AS _grouped
       ) AS ${{ identifier: aliasName }}
     `;
-  } else {
-    throw Error('Invalid expression');
   }
+
+  const aggSQL = encodeAccumulatorExpression(compiler, populate, expr);
+
+  return sql`
+    (
+      SELECT ${aggSQL} FROM (
+        ${_selectRelationPopulate(compiler, parent, populate, field, false)}
+      ) ${{ identifier: populate.name }}
+    ) AS ${{ identifier: aliasName }}
+  `;
 }
 
 export const selectPopulate = (
