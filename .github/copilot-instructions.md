@@ -174,6 +174,13 @@ The following mappings are defined in `src/adapters/storage/postgres/client/pool
   Creates two columns: `preferences.theme` (TEXT) and `preferences.notifications` (BOOLEAN). When querying, you can access these as: `SELECT username, "preferences.theme", "preferences.notifications" FROM "User"`. The flattening is handled by the `_fields` method in the PostgreSQL adapter.
 - **Pointer flattening when populated**: When populating pointers (includes/joins), all fields from the target class are flattened into separate columns, including any shape type fields. For example, if you include a `user` pointer where the User class has fields `username`, `email`, and a `preferences` shape type with `theme` and `notifications`, the query will select: `"user.username"`, `"user.email"`, `"user.preferences.theme"`, `"user.preferences.notifications"`, etc. This ensures complete data retrieval for all nested structures when joining related objects.
 
+### Object Storage and Key Escaping
+When storing objects as JSONB, the system uses special prefixes to distinguish between encoded type markers and actual object keys:
+- **Type markers**: Special keys like `$date`, `$decimal` are used to encode non-primitive types (e.g., `{ $date: "2025-01-29T..." }`)
+- **Key escaping**: If an object has a key that starts with `$` (e.g., `{ $abc: "hello" }`), it gets escaped by adding an extra `$` prefix, becoming `{ $$abc: "hello" }` in storage
+- **Decoding**: When retrieving objects, the `_decodeValue` function reverses this process: it converts type markers back to their proper types and unescapes keys that start with `$$`
+- **Implementation**: This escaping/unescaping is handled by the `_encodeValue` and `_decodeValue` functions in `src/internals/object/index.ts`
+
 ### When Modifying Type Mappings
 - **Update tests**: Any changes to type mappings must include corresponding test updates
 - **Migration path**: Consider existing data when changing mappings - may require data migration
