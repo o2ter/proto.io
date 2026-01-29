@@ -236,7 +236,7 @@ const encodeAccumulatorSQL = (
         if (!value) throw Error('Invalid expression');
         return sql`${{ literal: op }}(${{ value: innerExpr.p }}) WITHIN GROUP (ORDER BY (${value}))`;
       } else {
-        throw Error('Nested group accumulators not supported');
+        throw Error('Invalid expression');
       }
     };
 
