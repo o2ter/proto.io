@@ -196,7 +196,7 @@ const encodeAccumulatorSQL = (
     if (!keyValue) throw Error('Invalid expression');
 
     // Build the inner accumulator expression that will be applied per group
-    const innerAccumulator = (innerExpr: QueryAccumulator, valueName: string): SQL => {
+    const innerAccumulator = (innerExpr: QueryAccumulator): SQL => {
       if (innerExpr instanceof QueryZeroParamAccumulator) {
         switch (innerExpr.type) {
           case '$count':
@@ -240,7 +240,7 @@ const encodeAccumulatorSQL = (
       }
     };
 
-    const aggSQL = innerAccumulator(expr.value, 'grouped_value');
+    const aggSQL = innerAccumulator(expr.value);
 
     return sql`
       (
