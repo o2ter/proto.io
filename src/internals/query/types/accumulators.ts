@@ -46,11 +46,11 @@ export type TQueryAccumulator = {
     input: TExpression;
     p: number;
     mode?: 'discrete' | 'continuous';
-  },
+  };
   $group?: {
     key: TExpression;
-    value: TQueryAccumulator;
-  },
+    value: Omit<TExpression, '$group'>;
+  };
 } & {
   [x in (typeof TZeroParamAccumulatorKeys)[number]]?: true | {};
 } & {
