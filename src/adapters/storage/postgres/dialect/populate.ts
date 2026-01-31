@@ -29,8 +29,7 @@ import { TSchema, isPointer, isPrimitive, isRelation, isShape, isVector } from '
 import { Populate, QueryCompiler, QueryContext } from '../../sql/compiler';
 import { _jsonPopulateInclude } from './encode';
 import { resolveColumn } from '../../../../server/query/dispatcher/validator';
-import { encodeTypedQueryExpression } from './query/expr';
-import { QueryUnaryAccumulator, QueryZeroParamAccumulator, QueryPercentileAccumulator, QueryGroupAccumulator, QueryAccumulator } from '../../../../server/query/dispatcher/parser/accumulators';
+import { encodeAccumulatorSQL } from './query/accumulators';
 
 const resolveSubpaths = (
   compiler: QueryCompiler,
@@ -117,98 +116,6 @@ export const _selectRelationPopulate = (
     ${populate.limit ? sql`LIMIT ${{ literal: `${populate.limit}` }}` : sql``}
     ${populate.skip ? sql`OFFSET ${{ literal: `${populate.skip}` }}` : sql``}
     ${compiler.selectLock ? compiler.isUpdate ? sql`FOR UPDATE NOWAIT` : sql`FOR SHARE NOWAIT` : sql``}
-  `;
-}
-
-const encodeAccumulatorExpression = (
-  compiler: QueryCompiler,
-  populate: Populate,
-  expr: QueryAccumulator,
-): SQL => {
-  if (expr instanceof QueryZeroParamAccumulator) {
-    switch (expr.type) {
-      case '$count':
-        return sql`COUNT(*)`;
-      default:
-        throw Error('Invalid expression');
-    }
-  } else if (expr instanceof QueryUnaryAccumulator) {
-    if (!expr.expr) throw Error('Invalid expression');
-    const { sql: value } = encodeTypedQueryExpression(compiler, populate, expr.expr) ?? {};
-    if (!value) throw Error('Invalid expression');
-    switch (expr.type) {
-      case '$most':
-        return sql`MODE() WITHIN GROUP (ORDER BY (${value}))`;
-      default:
-        {
-          const op = {
-            '$max': 'MAX',
-            '$min': 'MIN',
-            '$avg': 'AVG',
-            '$sum': 'SUM',
-            '$stdDevPop': 'STDDEV_POP',
-            '$stdDevSamp': 'STDDEV_SAMP',
-            '$varPop': 'VAR_POP',
-            '$varSamp': 'VAR_SAMP',
-          }[expr.type];
-          return sql`${{ literal: op }}(${value})`;
-        }
-    }
-  } else if (expr instanceof QueryPercentileAccumulator) {
-    const op = {
-      'discrete': 'PERCENTILE_DISC',
-      'continuous': 'PERCENTILE_CONT',
-    }[expr.mode];
-    if (!expr.input) throw Error('Invalid expression');
-    const { sql: value } = encodeTypedQueryExpression(compiler, populate, expr.input) ?? {};
-    if (!value) throw Error('Invalid expression');
-    return sql`${{ literal: op }}(${{ value: expr.p }}) WITHIN GROUP (ORDER BY (${value}))`;
-  } else {
-    throw Error('Invalid expression');
-  }
-};
-
-const encodeAccumulatorSQL = (
-  compiler: QueryCompiler,
-  parent: QueryContext & { className: string; },
-  populate: Populate,
-  field: string,
-  expr: QueryAccumulator,
-  aliasName: string,
-): SQL => {
-  if (expr instanceof QueryGroupAccumulator) {
-    if (!expr.key) throw Error('Invalid expression');
-    const { sql: keyValue } = encodeTypedQueryExpression(compiler, populate, expr.key) ?? {};
-    if (!keyValue) throw Error('Invalid expression');
-
-    const aggSQL = encodeAccumulatorExpression(compiler, populate, expr.value);
-
-    return sql`
-      (
-        SELECT COALESCE(
-          jsonb_agg(
-            jsonb_build_object('key', grouped_key, 'value', grouped_value)
-          ),
-          '[]'::jsonb
-        ) FROM (
-          SELECT ${keyValue} AS grouped_key, ${aggSQL} AS grouped_value
-          FROM (
-            ${_selectRelationPopulate(compiler, parent, populate, field, false)}
-          ) ${{ identifier: populate.name }}
-          GROUP BY grouped_key
-        ) AS _grouped
-      ) AS ${{ identifier: aliasName }}
-    `;
-  }
-
-  const aggSQL = encodeAccumulatorExpression(compiler, populate, expr);
-
-  return sql`
-    (
-      SELECT ${aggSQL} FROM (
-        ${_selectRelationPopulate(compiler, parent, populate, field, false)}
-      ) ${{ identifier: populate.name }}
-    ) AS ${{ identifier: aliasName }}
   `;
 }
 
