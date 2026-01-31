@@ -751,6 +751,216 @@ Count matching objects.
 const count = await query.count();
 ```
 
+##### `groupFind<T>(accumulators: T): Promise<{ [K in keyof T]: TAccumulatorResult<T[K]> }>`
+Performs aggregations across all matching documents and returns aggregated results directly. Unlike `groupMatches`, which aggregates relation fields within a query, `groupFind` is a terminal operation that executes the query and returns the aggregated values.
+
+**Basic Aggregations:**
+
+```typescript
+// Count all matching documents
+const result = await client.Query('Order')
+  .equalTo('status', 'completed')
+  .groupFind({
+    total: { $count: true }
+  });
+console.log(result.total); // e.g., 42
+
+// Sum values
+const salesResult = await client.Query('Order')
+  .equalTo('status', 'completed')
+  .groupFind({
+    totalRevenue: { $sum: { $key: 'amount' } }
+  });
+console.log(salesResult.totalRevenue); // e.g., 15420.50
+
+// Average values
+const avgResult = await client.Query('Product')
+  .equalTo('category', 'electronics')
+  .groupFind({
+    averagePrice: { $avg: { $key: 'price' } }
+  });
+console.log(avgResult.averagePrice); // e.g., 249.99
+
+// Min and max values
+const priceRange = await client.Query('Product')
+  .groupFind({
+    minPrice: { $min: { $key: 'price' } },
+    maxPrice: { $max: { $key: 'price' } }
+  });
+console.log(priceRange.minPrice, priceRange.maxPrice); // e.g., 9.99, 1999.99
+```
+
+**Multiple Aggregations:**
+
+```typescript
+// Combine multiple aggregations in one query
+const analytics = await client.Query('Order')
+  .equalTo('status', 'completed')
+  .groupFind({
+    orderCount: { $count: true },
+    totalRevenue: { $sum: { $key: 'amount' } },
+    avgOrderValue: { $avg: { $key: 'amount' } },
+    minOrder: { $min: { $key: 'amount' } },
+    maxOrder: { $max: { $key: 'amount' } }
+  });
+
+console.log(`
+  Total Orders: ${analytics.orderCount}
+  Revenue: $${analytics.totalRevenue}
+  Average Order: $${analytics.avgOrderValue}
+  Order Range: $${analytics.minOrder} - $${analytics.maxOrder}
+`);
+```
+
+**Statistical Aggregations:**
+
+```typescript
+// Standard deviation and variance
+const stats = await client.Query('Test')
+  .equalTo('type', 'score')
+  .groupFind({
+    stdDevPop: { $stdDevPop: { $key: 'value' } },
+    stdDevSamp: { $stdDevSamp: { $key: 'value' } },
+    varPop: { $varPop: { $key: 'value' } },
+    varSamp: { $varSamp: { $key: 'value' } }
+  });
+
+// Most frequent value (mode)
+const mostCommon = await client.Query('Survey')
+  .groupFind({
+    favoriteColor: { $most: { $key: 'color' } }
+  });
+console.log(mostCommon.favoriteColor); // e.g., 'blue'
+
+// Percentile calculation
+const percentiles = await client.Query('Test')
+  .groupFind({
+    median: { 
+      $percentile: { 
+        input: { $key: 'score' }, 
+        p: 0.5,           // 50th percentile
+        mode: 'continuous' // or 'discrete'
+      } 
+    },
+    p95: { 
+      $percentile: { 
+        input: { $key: 'score' }, 
+        p: 0.95,
+        mode: 'continuous'
+      } 
+    }
+  });
+```
+
+**Grouped Aggregations:**
+
+Use `$group` to group documents by a field and apply aggregations to each group. Returns an array of `{ key, value }` objects.
+
+```typescript
+// Group orders by region and sum amounts
+const salesByRegion = await client.Query('Order')
+  .equalTo('status', 'completed')
+  .groupFind({
+    byRegion: {
+      $group: {
+        key: { $key: 'region' },
+        value: { $sum: { $key: 'amount' } }
+      }
+    }
+  });
+
+// Result: [{ key: 'US', value: 50000 }, { key: 'EU', value: 35000 }, ...]
+salesByRegion.byRegion.forEach(({ key, value }) => {
+  console.log(`${key}: $${value}`);
+});
+
+// Group by category and count
+const productsByCategory = await client.Query('Product')
+  .groupFind({
+    byCategory: {
+      $group: {
+        key: { $key: 'category' },
+        value: { $count: true }
+      }
+    }
+  });
+
+// Multiple groupings
+const orderAnalytics = await client.Query('Order')
+  .groupFind({
+    countByStatus: {
+      $group: {
+        key: { $key: 'status' },
+        value: { $count: true }
+      }
+    },
+    revenueByRegion: {
+      $group: {
+        key: { $key: 'region' },
+        value: { $sum: { $key: 'amount' } }
+      }
+    },
+    avgByCategory: {
+      $group: {
+        key: { $key: 'category' },
+        value: { $avg: { $key: 'amount' } }
+      }
+    }
+  });
+```
+
+**Working with Decimal Values:**
+
+```typescript
+// groupFind works with Decimal.js for precise calculations
+import Decimal from 'decimal.js';
+
+const financialResult = await client.Query('Transaction')
+  .groupFind({
+    totalAmount: { $sum: { $key: 'amount' } },
+    avgAmount: { $avg: { $key: 'amount' } }
+  });
+
+// Results can be Decimal objects or numbers
+const total = new Decimal(financialResult.totalAmount);
+console.log(total.toFixed(2)); // e.g., "12345.67"
+```
+
+**With Filters:**
+
+```typescript
+// Combine with query filters
+const monthlyRevenue = await client.Query('Order')
+  .greaterThanOrEqualTo('createdAt', startOfMonth)
+  .lessThan('createdAt', endOfMonth)
+  .equalTo('status', 'completed')
+  .groupFind({
+    count: { $count: true },
+    revenue: { $sum: { $key: 'amount' } },
+    avgOrder: { $avg: { $key: 'amount' } }
+  });
+```
+
+**Available Aggregation Operators:**
+- **`$count`** - Count of documents (`{ $count: true }`)
+- **`$sum`** - Sum of values (`{ $sum: { $key: 'fieldName' } }`)
+- **`$avg`** - Average of values (`{ $avg: { $key: 'fieldName' } }`)
+- **`$max`** - Maximum value (`{ $max: { $key: 'fieldName' } }`)
+- **`$min`** - Minimum value (`{ $min: { $key: 'fieldName' } }`)
+- **`$most`** - Most frequent value (mode) (`{ $most: { $key: 'fieldName' } }`)
+- **`$stdDevPop`** - Population standard deviation (`{ $stdDevPop: { $key: 'fieldName' } }`)
+- **`$stdDevSamp`** - Sample standard deviation (`{ $stdDevSamp: { $key: 'fieldName' } }`)
+- **`$varPop`** - Population variance (`{ $varPop: { $key: 'fieldName' } }`)
+- **`$varSamp`** - Sample variance (`{ $varSamp: { $key: 'fieldName' } }`)
+- **`$percentile`** - Percentile calculation (`{ $percentile: { input: { $key: 'field' }, p: 0.5, mode: 'continuous' } }`)
+- **`$group`** - Group by key with aggregation (`{ $group: { key: { $key: 'field' }, value: { $sum: { $key: 'amount' } } } }`)
+
+**Notes:**
+- `groupFind` is a terminal operation - it executes the query and returns results
+- All query filters (`.equalTo()`, `.filter()`, etc.) are applied before aggregation
+- Use `groupMatches` if you want to aggregate relation fields within parent objects
+- Empty result sets return sensible defaults (e.g., 0 for count, null for other operations)
+
 ##### `groupMatches(key: string, accumulators: Record<string, TQueryAccumulator>): Query`
 Performs aggregations on relation fields.
 

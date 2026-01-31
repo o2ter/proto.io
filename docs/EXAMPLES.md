@@ -328,6 +328,52 @@ console.log('Total items:', orderStats?.get('items.count'));
 console.log('Total price:', orderStats?.get('items.total'));
 console.log('Average price:', orderStats?.get('items.average'));
 
+// Direct aggregation with groupFind (executes and returns aggregated values)
+const salesStats = await client.Query('Order')
+  .equalTo('status', 'completed')
+  .greaterThanOrEqualTo('createdAt', startOfMonth)
+  .groupFind({
+    totalOrders: { $count: true },
+    totalRevenue: { $sum: { $key: 'amount' } },
+    avgOrderValue: { $avg: { $key: 'amount' } },
+    minOrder: { $min: { $key: 'amount' } },
+    maxOrder: { $max: { $key: 'amount' } }
+  });
+
+console.log('Orders this month:', salesStats.totalOrders);
+console.log('Revenue:', salesStats.totalRevenue);
+console.log('Average order value:', salesStats.avgOrderValue);
+console.log('Order range:', salesStats.minOrder, '-', salesStats.maxOrder);
+
+// groupFind with $group - group by field and aggregate each group
+const salesByRegion = await client.Query('Order')
+  .equalTo('status', 'completed')
+  .groupFind({
+    countByRegion: {
+      $group: {
+        key: { $key: 'region' },
+        value: { $count: true }
+      }
+    },
+    revenueByRegion: {
+      $group: {
+        key: { $key: 'region' },
+        value: { $sum: { $key: 'amount' } }
+      }
+    }
+  });
+
+// Results are arrays of { key, value } objects
+salesByRegion.countByRegion.forEach(({ key, value }) => {
+  console.log(`${key}: ${value} orders`);
+});
+// Output: US: 120 orders, EU: 85 orders, APAC: 43 orders
+
+salesByRegion.revenueByRegion.forEach(({ key, value }) => {
+  console.log(`${key}: $${value} revenue`);
+});
+// Output: US: $45000 revenue, EU: $32000 revenue, APAC: $18000 revenue
+
 // Grouped aggregations - group by category and aggregate each group
 const orderWithGrouping = await client.Query('Order')
   .equalTo('_id', orderId)
