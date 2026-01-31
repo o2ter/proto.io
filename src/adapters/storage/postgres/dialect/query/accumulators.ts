@@ -29,8 +29,10 @@ import { SQL, sql } from '../../../sql';
 import { QueryCompiler, Populate, QueryContext } from '../../../sql/compiler';
 import { _selectRelationPopulate } from '../populate';
 import { encodeTypedQueryExpression } from './expr';
+import { QueryKeyExpression } from '../../../../../server/query/dispatcher/parser/expressions';
+import { fetchElement } from './utils';
 
-export const encodeAccumulatorColumn = (
+const encodeColumn = (
   compiler: QueryCompiler,
   context: QueryContext,
   expr: QueryAccumulator
@@ -91,7 +93,7 @@ export const encodeAccumulatorExpression = (
     const { sql: keyValue } = encodeTypedQueryExpression(compiler, populate, expr.key) ?? {};
     if (!keyValue) throw Error('Invalid expression');
 
-    const aggSQL = encodeAccumulatorColumn(compiler, populate, expr.value);
+    const aggSQL = encodeColumn(compiler, populate, expr.value);
 
     return sql`
       (
@@ -111,7 +113,7 @@ export const encodeAccumulatorExpression = (
     `;
   }
 
-  const aggSQL = encodeAccumulatorColumn(compiler, populate, expr);
+  const aggSQL = encodeColumn(compiler, populate, expr);
 
   return sql`
     (
@@ -120,4 +122,47 @@ export const encodeAccumulatorExpression = (
       ) ${{ identifier: populate.name }}
     ) AS ${{ identifier: aliasName }}
   `;
+};
+
+export const encodeAccumulatorColumn = (
+  compiler: QueryCompiler,
+  context: QueryContext,
+  expr: QueryAccumulator,
+  fetchName: string
+): SQL => {
+  if (expr instanceof QueryGroupAccumulator) {
+    if (!expr.key) throw Error('Invalid expression');
+
+    // Try to get typed expression first
+    let keyValue: SQL;
+    const typedResult = encodeTypedQueryExpression(compiler, context, expr.key);
+    if (typedResult?.sql) {
+      keyValue = typedResult.sql;
+    } else if (expr.key instanceof QueryKeyExpression) {
+      // For non-primitive types (like arrays), use raw element
+      const { element } = fetchElement(compiler, context, expr.key.key);
+      keyValue = element;
+    } else {
+      throw Error('Invalid expression');
+    }
+
+    const aggSQL = encodeColumn(compiler, context, expr.value);
+
+    return sql`
+      (
+        SELECT COALESCE(
+          jsonb_agg(
+            jsonb_build_object('key', grouped_key, 'value', grouped_value)
+          ),
+          '[]'::jsonb
+        )
+        FROM (
+          SELECT ${keyValue} AS grouped_key, ${aggSQL} AS grouped_value
+          FROM ${{ identifier: fetchName }}
+          GROUP BY grouped_key
+        ) AS _grouped
+      )
+    `;
+  }
+  return encodeColumn(compiler, context, expr);
 };

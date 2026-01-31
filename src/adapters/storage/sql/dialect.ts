@@ -89,7 +89,8 @@ export interface SqlDialect {
   encodeAccumulatorColumn(
     compiler: QueryCompiler,
     context: QueryContext,
-    expr: QueryAccumulator
+    expr: QueryAccumulator,
+    fetchName: string
   ): SQL
 
   random(weight?: SQL): SQL

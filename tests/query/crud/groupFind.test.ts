@@ -336,3 +336,59 @@ test('test groupFind - decimal operations', async () => {
   expect(new Decimal(result.min).toNumber()).toBeCloseTo(10.5, 2);
   expect(new Decimal(result.max).toNumber()).toBeCloseTo(30.75, 2);
 });
+
+test('test groupFind - with $group operator', async () => {
+  // Insert test data with different categories
+  await Proto.Query('Test').insertMany([
+    { string: 'group_test', stringArr: ['A'], number: 10 },
+    { string: 'group_test', stringArr: ['A'], number: 20 },
+    { string: 'group_test', stringArr: ['B'], number: 30 },
+    { string: 'group_test', stringArr: ['B'], number: 40 },
+    { string: 'group_test', stringArr: ['B'], number: 50 },
+    { string: 'group_test', stringArr: ['C'], number: 60 },
+  ]);
+
+  const result = await Proto.Query('Test')
+    .equalTo('string', 'group_test')
+    .groupFind({
+      grouped: {
+        $group: {
+          key: { $key: 'stringArr' },
+          value: { $sum: { $key: 'number' } },
+        },
+      },
+    });
+
+  expect(Array.isArray(result.grouped)).toBe(true);
+  const groupedMap = Object.fromEntries(result.grouped.map((item: any) => [item.key[0], item.value]));
+  expect(groupedMap.A).toBe(30);
+  expect(groupedMap.B).toBe(120);
+  expect(groupedMap.C).toBe(60);
+});
+
+test('test groupFind - $group with count', async () => {
+  // Insert test data
+  await Proto.Query('Test').insertMany([
+    { string: 'group_count', boolean: true },
+    { string: 'group_count', boolean: true },
+    { string: 'group_count', boolean: true },
+    { string: 'group_count', boolean: false },
+    { string: 'group_count', boolean: false },
+  ]);
+
+  const result = await Proto.Query('Test')
+    .equalTo('string', 'group_count')
+    .groupFind({
+      byBoolean: {
+        $group: {
+          key: { $key: 'boolean' },
+          value: { $count: true },
+        },
+      },
+    });
+
+  expect(Array.isArray(result.byBoolean)).toBe(true);
+  const groupedMap = Object.fromEntries(result.byBoolean.map((item: any) => [item.key, item.value]));
+  expect(groupedMap.true).toBe(3);
+  expect(groupedMap.false).toBe(2);
+});

@@ -237,7 +237,10 @@ export abstract class SqlStorage implements TStorage {
     const decoded: Record<string, any> = {};
     for (const [key, accumulator] of _.toPairs(accumulators)) {
       const evalType = accumulator.evalType(this.schema, query.className);
-      if (evalType && isPrimitive(evalType)) {
+      if (evalType === 'array') {
+        // For $group operators, result is already parsed JSONB array
+        decoded[key] = result[key];
+      } else if (evalType && isPrimitive(evalType)) {
         // Extract primitive type from PrimitiveType
         const primitiveType = _.isString(evalType) ? evalType : evalType.type;
         decoded[key] = this.dialect.decodeType(primitiveType, result[key]);

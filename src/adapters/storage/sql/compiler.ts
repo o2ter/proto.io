@@ -455,11 +455,12 @@ export class QueryCompiler {
           const aggSQL = this.dialect.encodeAccumulatorColumn(
             this,
             { ...context, name: fetchName, className: query.className },
-            expr
+            expr,
+            fetchName
           );
           return sql`${aggSQL} AS ${{ identifier: field }}`;
         });
-        return sql`SELECT ${columns} FROM ${{ identifier: fetchName }}`;
+        return sql`SELECT ${{ literal: columns, separator: ', ' }} FROM ${{ identifier: fetchName }}`;
       }
     );
   }
