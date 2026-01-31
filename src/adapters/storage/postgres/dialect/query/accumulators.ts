@@ -30,9 +30,9 @@ import { QueryCompiler, Populate, QueryContext } from '../../../sql/compiler';
 import { _selectRelationPopulate } from '../populate';
 import { encodeTypedQueryExpression } from './expr';
 
-const encodeAccumulatorColumn = (
+export const encodeAccumulatorColumn = (
   compiler: QueryCompiler,
-  populate: Populate,
+  context: QueryContext,
   expr: QueryAccumulator
 ): SQL => {
   if (expr instanceof QueryZeroParamAccumulator) {
@@ -44,7 +44,7 @@ const encodeAccumulatorColumn = (
     }
   } else if (expr instanceof QueryUnaryAccumulator) {
     if (!expr.expr) throw Error('Invalid expression');
-    const { sql: value } = encodeTypedQueryExpression(compiler, populate, expr.expr) ?? {};
+    const { sql: value } = encodeTypedQueryExpression(compiler, context, expr.expr) ?? {};
     if (!value) throw Error('Invalid expression');
     switch (expr.type) {
       case '$most':
@@ -70,7 +70,7 @@ const encodeAccumulatorColumn = (
       'continuous': 'PERCENTILE_CONT',
     }[expr.mode];
     if (!expr.input) throw Error('Invalid expression');
-    const { sql: value } = encodeTypedQueryExpression(compiler, populate, expr.input) ?? {};
+    const { sql: value } = encodeTypedQueryExpression(compiler, context, expr.input) ?? {};
     if (!value) throw Error('Invalid expression');
     return sql`${{ literal: op }}(${{ value: expr.p }}) WITHIN GROUP (ORDER BY (${value}))`;
   } else {

@@ -46,6 +46,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
 
     const {
       operation,
+      accumulators,
       random,
       attributes,
       update,
@@ -81,21 +82,22 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
           const maxFetchLimit = payload[PVK].options.maxFetchLimit;
           query[PVK].options.limit = query[PVK].options.limit ?? maxFetchLimit;
           if (query[PVK].options.limit > maxFetchLimit) throw Error('Query over limit');
-          return await query.find(opts);
+          return query.find(opts);
         }
+      case 'groupFind': return query.groupFind(accumulators, opts);
       case 'random':
         {
           const maxFetchLimit = payload[PVK].options.maxFetchLimit;
           query[PVK].options.limit = query[PVK].options.limit ?? maxFetchLimit;
           if (query[PVK].options.limit > maxFetchLimit) throw Error('Query over limit');
-          return await query.random(random, opts);
+          return query.random(random, opts);
         }
       case 'nonrefs':
         {
           const maxFetchLimit = payload[PVK].options.maxFetchLimit;
           query[PVK].options.limit = query[PVK].options.limit ?? maxFetchLimit;
           if (query[PVK].options.limit > maxFetchLimit) throw Error('Query over limit');
-          return await query.nonrefs(opts);
+          return query.nonrefs(opts);
         }
       case 'insert': return query.insert(attributes, opts);
       case 'insertMany': return query.insertMany(attributes, opts);

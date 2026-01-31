@@ -25,6 +25,7 @@
 
 import { FieldSelectorExpression } from '../../../server/query/dispatcher/parser';
 import { QueryExpression } from '../../../server/query/dispatcher/parser/expressions';
+import { QueryAccumulator } from '../../../server/query/dispatcher/parser/accumulators';
 import { TSchema } from '../../../internals/schema';
 import { Populate, QueryCompiler, QueryContext } from './compiler';
 import { SQL } from './sql';
@@ -83,6 +84,12 @@ export interface SqlDialect {
     compiler: QueryCompiler,
     parent: QueryContext,
     key: string
+  ): SQL
+
+  encodeAccumulatorColumn(
+    compiler: QueryCompiler,
+    context: QueryContext,
+    expr: QueryAccumulator
   ): SQL
 
   random(weight?: SQL): SQL

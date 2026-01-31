@@ -56,3 +56,8 @@ export type TQueryAccumulator = {
 } & {
   [x in (typeof TUnaryAccumulatorKeys)[number]]?: TExpression;
 };
+
+export type TAccumulatorResult<A extends TQueryAccumulator> =
+  A extends { $group: any }
+  ? { key: any; value: any; }[]
+  : A extends { $count: any } ? number : any;

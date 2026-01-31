@@ -39,6 +39,7 @@ import {
 import { encodeFieldExpression } from './query/selectors';
 import { selectPopulate, encodePopulate } from './populate';
 import { encodeRelation } from './relation';
+import { encodeAccumulatorColumn } from './query/accumulators';
 import {
   encodeType,
   decodeType
@@ -59,5 +60,6 @@ export const PostgresDialect = {
   encodePopulate,
   encodeRelation,
   encodeSortKey,
+  encodeAccumulatorColumn,
   random,
 };

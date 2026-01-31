@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { DecodedQuery, FindOptions, InsertOptions, TStorage, RelationOptions, DecodedBaseQuery, QueryRandomOptions } from '../../../server/storage';
 import { TransactionOptions } from '../../../internals/proto';
-import { TSchema, isPointer, isRelation, isShape, shapePaths } from '../../../internals/schema';
+import { TSchema, isPointer, isRelation, isShape, shapePaths, isPrimitive } from '../../../internals/schema';
 import { SQL, sql } from './sql';
 import { SqlDialect } from './dialect';
 import { QueryCompiler } from './compiler';
@@ -224,6 +224,28 @@ export abstract class SqlStorage implements TStorage {
         yield self._decodeObject(query.className, object, _matchesType);
       }
     })();
+  }
+
+  async groupFind(
+    query: DecodedQuery<FindOptions & RelationOptions>,
+    accumulators: Record<string, QueryAccumulator>
+  ) {
+    const compiler = this._makeCompiler(true, query.extraFilter);
+    const [result] = await this.query(compiler.groupFind(query, accumulators));
+    if (!result) return result;
+    // Decode accumulator results based on their types
+    const decoded: Record<string, any> = {};
+    for (const [key, accumulator] of _.toPairs(accumulators)) {
+      const evalType = accumulator.evalType(this.schema, query.className);
+      if (evalType && isPrimitive(evalType)) {
+        // Extract primitive type from PrimitiveType
+        const primitiveType = _.isString(evalType) ? evalType : evalType.type;
+        decoded[key] = this.dialect.decodeType(primitiveType, result[key]);
+      } else {
+        decoded[key] = result[key];
+      }
+    }
+    return decoded;
   }
 
   refs(object: TObject, classNames: string[], roles?: string[]) {

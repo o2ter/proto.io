@@ -444,6 +444,26 @@ export class QueryCompiler {
     ));
   }
 
+  groupFind(
+    query: DecodedQuery<FindOptions & RelationOptions>,
+    accumulators: Record<string, QueryAccumulator>
+  ) {
+    return this._modifyQuery(
+      query,
+      (fetchName, context) => {
+        const columns = _.map(accumulators, (expr, field) => {
+          const aggSQL = this.dialect.encodeAccumulatorColumn(
+            this,
+            { ...context, name: fetchName, className: query.className },
+            expr
+          );
+          return sql`${aggSQL} AS ${{ identifier: field }}`;
+        });
+        return sql`SELECT ${columns} FROM ${{ identifier: fetchName }}`;
+      }
+    );
+  }
+
   insert(options: InsertOptions, values: Record<string, TValueWithUndefined>[]) {
 
     const _values: Record<string, SQL>[] = _.map(values, attr => ({

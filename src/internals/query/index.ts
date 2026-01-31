@@ -34,6 +34,7 @@ import { ExtraOptions } from '../options';
 import { asyncStream, Awaitable, EventIterator } from '@o2ter/utils-js';
 import { LiveQuerySubscription } from '../liveQuery';
 import { TExpression } from './types/expressions';
+import { TAccumulatorResult, TQueryAccumulator } from './types/accumulators';
 
 /**
  * Options for a query.
@@ -101,6 +102,17 @@ export abstract class TQuery<T extends string, Ext, M extends boolean> extends T
     opts?: TQueryRandomOptions,
     options?: ExtraOptions<M>
   ): ReturnType<typeof asyncStream<TObjectType<T, Ext>>>;
+
+  /**
+   * Finds grouped results for the query.
+   * @param accumulators - The accumulators to use for grouping.
+   * @param options - Extra options for the query.
+   * @returns A stream of the grouped results.
+   */
+  abstract groupFind<T extends Record<string, TQueryAccumulator>>(
+    accumulators: T,
+    options?: ExtraOptions<M>
+  ): Promise<{ [K in keyof T]: TAccumulatorResult<T[K]>; }>;
 
   /**
    * Finds non-reference results for the query.
@@ -206,6 +218,10 @@ export abstract class TQuery<T extends string, Ext, M extends boolean> extends T
    */
   abstract deleteMany(options?: ExtraOptions<M>): PromiseLike<TObjectType<T, Ext>[]>;
 
+  /**
+   * Subscribes to live query updates.
+   * @returns A live query subscription.
+   */
   abstract subscribe(): LiveQuerySubscription<T, Ext>;
 
   /**

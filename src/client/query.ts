@@ -31,8 +31,9 @@ import { PVK } from '../internals/private';
 import { TQuery, TQueryOptions, TQueryRandomOptions } from '../internals/query';
 import { TObject } from '../internals/object';
 import { TObjectType, TUpdateOp } from '../internals/object/types';
-import { TValue, TValueWithUndefined } from '../internals/types';
+import { TValueWithUndefined } from '../internals/types';
 import { LiveQuerySubscription } from '../internals/liveQuery';
+import { TAccumulatorResult, TQueryAccumulator } from '../internals/query/types/accumulators';
 
 type _QueryOptions = {
   relatedBy?: {
@@ -101,6 +102,17 @@ abstract class _ProtoClientQuery<T extends string, E> extends TQuery<T, E, boole
       ...this._queryOptions(options),
     }, this._requestOpt(options)) as Promise<TObjectType<T, E>[]>;
     return asyncStream(request);
+  }
+
+  groupFind<T extends Record<string, TQueryAccumulator>>(
+    accumulators: T,
+    options?: RequestOptions<boolean>
+  ): Promise<{ [K in keyof T]: TAccumulatorResult<T[K]>; }> {
+    return this._proto[PVK].request(this._proto, {
+      operation: 'groupFind',
+      accumulators,
+      ...this._queryOptions(options),
+    }, this._requestOpt(options)) as any;
   }
 
   random(

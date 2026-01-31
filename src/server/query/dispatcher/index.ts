@@ -36,6 +36,7 @@ import { TUpdateOp } from '../../../internals/object/types';
 import { normalize } from '../../utils';
 import { TQueryAccumulator } from '../../../internals/query/types/accumulators';
 import { QueryExpression } from './parser/expressions';
+import { QueryAccumulator } from './parser/accumulators';
 
 export const fetchUserPerms = async <E>(proto: ProtoService<E>) => _.uniq(_.compact([..._.map(await proto.currentRoles(), x => `role:${x}`), (await proto.currentUser())?.id]));
 
@@ -83,6 +84,18 @@ export const dispatcher = <E>(
       const isGet = _validator.isGetMethod(decoded.filter);
       if (!_validator.validateCLPs(query.className, isGet ? 'get' : 'find')) throw Error('No permission');
       return proto.storage.find(decoded);
+    },
+    async groupFind<T extends Record<string, TQueryAccumulator>>(
+      query: FindOptions & RelationOptions,
+      accumulators: T,
+    ) {
+      QueryValidator.recursiveCheck(query);
+      const _validator = await validator();
+      const decoded = _validator.decodeQuery(normalize(query), 'read');
+      const isGet = _validator.isGetMethod(decoded.filter);
+      if (!_validator.validateCLPs(query.className, isGet ? 'get' : 'find')) throw Error('No permission');
+      const acc = _.mapValues(accumulators, x => QueryAccumulator.decode(x).simplify())
+      return proto.storage.groupFind(decoded, acc);
     },
     async nonrefs(
       query: FindOptions

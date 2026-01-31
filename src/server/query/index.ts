@@ -39,6 +39,7 @@ import { isPointer, isRelation } from '../../internals/schema';
 import { proxy } from '../proto/proxy';
 import { LiveQuerySubscription } from '../../internals/liveQuery';
 import { ProtoType } from '../../internals/proto';
+import { TAccumulatorResult, TQueryAccumulator } from '../../internals/query/types/accumulators';
 
 type _QueryOptions = {
   insecure?: boolean;
@@ -106,6 +107,13 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
       const objects = await self._dispatcher(options).find(self._queryOptions);
       for await (const object of objects) yield self._objectMethods(object);
     });
+  }
+
+  groupFind<T extends Record<string, TQueryAccumulator>>(
+    accumulators: T,
+    options?: ExtraOptions<M> | undefined
+  ): Promise<{ [K in keyof T]: TAccumulatorResult<T[K]>; }> {
+    return this._dispatcher(options).groupFind(this._queryOptions, accumulators) as any;
   }
 
   nonrefs(options?: ExtraOptions<M>) {

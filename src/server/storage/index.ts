@@ -98,6 +98,10 @@ export interface TStorage {
   count(query: DecodedQuery<FindOptions & RelationOptions>): PromiseLike<number>;
   find(query: DecodedQuery<FindOptions & RelationOptions>): AsyncIterable<TObject>;
   random(query: DecodedQuery<FindOptions & RelationOptions>, opts?: QueryRandomOptions): AsyncIterable<TObject>;
+  groupFind(
+    query: DecodedQuery<FindOptions & RelationOptions>,
+    accumulators: Record<string, QueryAccumulator>
+  ): PromiseLike<Record<string, any>>;
 
   refs(object: TObject, classNames: string[], roles?: string[]): AsyncIterable<TObject>;
   nonrefs(query: DecodedQuery<FindOptions>): AsyncIterable<TObject>;
