@@ -392,3 +392,213 @@ test('test groupFind - $group with count', async () => {
   expect(groupedMap.true).toBe(3);
   expect(groupedMap.false).toBe(2);
 });
+
+test('test groupFind - date aggregations', async () => {
+  // Insert test data with dates
+  const date1 = new Date('2024-01-01');
+  const date2 = new Date('2024-06-15');
+  const date3 = new Date('2024-12-31');
+
+  await Proto.Query('Test').insertMany([
+    { date: date1, string: 'date_test' },
+    { date: date2, string: 'date_test' },
+    { date: date3, string: 'date_test' },
+  ]);
+
+  const result = await Proto.Query('Test')
+    .equalTo('string', 'date_test')
+    .groupFind({
+      earliest: { $min: { $key: 'date' } },
+      latest: { $max: { $key: 'date' } },
+    });
+
+  expect(new Date(result.earliest).getTime()).toBe(date1.getTime());
+  expect(new Date(result.latest).getTime()).toBe(date3.getTime());
+});
+
+test('test groupFind - null value handling', async () => {
+  // Insert test data with null values
+  await Proto.Query('Test').insertMany([
+    { number: 10, string: 'null_test' },
+    { number: null, string: 'null_test' },
+    { number: 30, string: 'null_test' },
+  ]);
+
+  const result = await Proto.Query('Test')
+    .equalTo('string', 'null_test')
+    .groupFind({
+      count: { $count: true },
+      sum: { $sum: { $key: 'number' } },
+      avg: { $avg: { $key: 'number' } },
+      min: { $min: { $key: 'number' } },
+      max: { $max: { $key: 'number' } },
+    });
+
+  expect(typeof result.count).toBe('number');
+  expect(result.count).toBe(3);
+  // Null values should be excluded from aggregations
+  expect(result.sum).toBe(40);
+  expect(result.avg).toBe(20);
+  expect(result.min).toBe(10);
+  expect(result.max).toBe(30);
+});
+
+test('test groupFind - $group with avg', async () => {
+  // Insert test data
+  await Proto.Query('Test').insertMany([
+    { string: 'group_avg', stringArr: ['A'], number: 10 },
+    { string: 'group_avg', stringArr: ['A'], number: 20 },
+    { string: 'group_avg', stringArr: ['A'], number: 30 },
+    { string: 'group_avg', stringArr: ['B'], number: 100 },
+    { string: 'group_avg', stringArr: ['B'], number: 200 },
+  ]);
+
+  const result = await Proto.Query('Test')
+    .equalTo('string', 'group_avg')
+    .groupFind({
+      byCategory: {
+        $group: {
+          key: { $key: 'stringArr' },
+          value: { $avg: { $key: 'number' } },
+        },
+      },
+    });
+
+  expect(Array.isArray(result.byCategory)).toBe(true);
+  const groupedMap = Object.fromEntries(result.byCategory.map((item: any) => [item.key[0], item.value]));
+  expect(groupedMap.A).toBe(20);
+  expect(groupedMap.B).toBe(150);
+});
+
+test('test groupFind - $group with min and max', async () => {
+  // Insert test data
+  await Proto.Query('Test').insertMany([
+    { string: 'group_minmax', stringArr: ['A'], number: 5 },
+    { string: 'group_minmax', stringArr: ['A'], number: 15 },
+    { string: 'group_minmax', stringArr: ['A'], number: 25 },
+    { string: 'group_minmax', stringArr: ['B'], number: 50 },
+    { string: 'group_minmax', stringArr: ['B'], number: 100 },
+  ]);
+
+  const result = await Proto.Query('Test')
+    .equalTo('string', 'group_minmax')
+    .groupFind({
+      minByCategory: {
+        $group: {
+          key: { $key: 'stringArr' },
+          value: { $min: { $key: 'number' } },
+        },
+      },
+      maxByCategory: {
+        $group: {
+          key: { $key: 'stringArr' },
+          value: { $max: { $key: 'number' } },
+        },
+      },
+    });
+
+  expect(Array.isArray(result.minByCategory)).toBe(true);
+  expect(Array.isArray(result.maxByCategory)).toBe(true);
+
+  const minMap = Object.fromEntries(result.minByCategory.map((item: any) => [item.key[0], item.value]));
+  const maxMap = Object.fromEntries(result.maxByCategory.map((item: any) => [item.key[0], item.value]));
+  expect(maxMap.A).toBe(25);
+  expect(maxMap.B).toBe(100);
+});
+
+test('test groupFind - $group with stdDev', async () => {
+  // Insert test data with different variance per group
+  await Proto.Query('Test').insertMany([
+    { string: 'group_stddev', stringArr: ['A'], number: 10 },
+    { string: 'group_stddev', stringArr: ['A'], number: 20 },
+    { string: 'group_stddev', stringArr: ['A'], number: 30 },
+    { string: 'group_stddev', stringArr: ['B'], number: 100 },
+    { string: 'group_stddev', stringArr: ['B'], number: 100 },
+    { string: 'group_stddev', stringArr: ['B'], number: 100 },
+  ]);
+
+  const result = await Proto.Query('Test')
+    .equalTo('string', 'group_stddev')
+    .groupFind({
+      byCategory: {
+        $group: {
+          key: { $key: 'stringArr' },
+          value: { $stdDevPop: { $key: 'number' } },
+        },
+      },
+    });
+
+  expect(Array.isArray(result.byCategory)).toBe(true);
+  const groupedMap = Object.fromEntries(result.byCategory.map((item: any) => [item.key[0], item.value]));
+  // Group B should have zero stdDev (all same values)
+  expect(groupedMap.B).toBe(0);
+});
+
+test('test groupFind - $group with decimals', async () => {
+  // Insert test data
+  await Proto.Query('Test').insertMany([
+    { string: 'group_decimal', stringArr: ['A'], decimal: new Decimal('10.5') },
+    { string: 'group_decimal', stringArr: ['A'], decimal: new Decimal('20.5') },
+    { string: 'group_decimal', stringArr: ['B'], decimal: new Decimal('100.25') },
+    { string: 'group_decimal', stringArr: ['B'], decimal: new Decimal('200.75') },
+  ]);
+
+  const result = await Proto.Query('Test')
+    .equalTo('string', 'group_decimal')
+    .groupFind({
+      byCategory: {
+        $group: {
+          key: { $key: 'stringArr' },
+          value: { $sum: { $key: 'decimal' } },
+        },
+      },
+    });
+
+  expect(Array.isArray(result.byCategory)).toBe(true);
+  const groupedMap = Object.fromEntries(result.byCategory.map((item: any) => [item.key[0], item.value]));
+});
+
+test('test groupFind - single value stdDevSamp', async () => {
+  // Insert test data with single value - sample stdDev should be 0 or undefined
+  await Proto.Query('Test').insertMany([
+    { number: 42, string: 'single_stddev' },
+  ]);
+
+  const result = await Proto.Query('Test')
+    .equalTo('string', 'single_stddev')
+    .groupFind({
+      stdDevSamp: { $stdDevSamp: { $key: 'number' } },
+    });
+
+  // With only one value, sample standard deviation should be null or 0
+  expect(result.stdDevSamp === null || result.stdDevSamp === 0).toBe(true);
+});
+
+test('test groupFind - $group with most', async () => {
+  // Insert test data
+  await Proto.Query('Test').insertMany([
+    { string: 'group_most', stringArr: ['A'], number: 5 },
+    { string: 'group_most', stringArr: ['A'], number: 5 },
+    { string: 'group_most', stringArr: ['A'], number: 5 },
+    { string: 'group_most', stringArr: ['A'], number: 10 },
+    { string: 'group_most', stringArr: ['B'], number: 20 },
+    { string: 'group_most', stringArr: ['B'], number: 20 },
+    { string: 'group_most', stringArr: ['B'], number: 30 },
+  ]);
+
+  const result = await Proto.Query('Test')
+    .equalTo('string', 'group_most')
+    .groupFind({
+      byCategory: {
+        $group: {
+          key: { $key: 'stringArr' },
+          value: { $most: { $key: 'number' } },
+        },
+      },
+    });
+
+  expect(Array.isArray(result.byCategory)).toBe(true);
+  const groupedMap = Object.fromEntries(result.byCategory.map((item: any) => [item.key[0], item.value]));
+  expect(groupedMap.A).toBe(5);
+  expect(groupedMap.B).toBe(20);
+});
