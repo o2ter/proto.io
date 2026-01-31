@@ -49,7 +49,7 @@ export type TQueryAccumulator = {
   };
   $group?: {
     key: TExpression;
-    value: Omit<TExpression, '$group'>;
+    value: Omit<TQueryAccumulator, '$group'>;
   };
 } & {
   [x in (typeof TZeroParamAccumulatorKeys)[number]]?: true | {};
