@@ -631,7 +631,86 @@ await proto.withTransaction(async (txProto) => {
 
 ### Aggregations
 
-Proto.io provides aggregation functionality through the `groupMatches` method, which performs aggregations on relation fields:
+Proto.io provides two aggregation methods:
+
+1. **`groupFind`** - Direct aggregation across all matching documents (terminal operation)
+2. **`groupMatches`** - Aggregation on relation fields within a query
+
+#### Direct Aggregations with `groupFind`
+
+The `groupFind` method executes a query and returns aggregated results directly:
+
+```typescript
+// Count matching documents
+const stats = await client.Query('Order')
+  .equalTo('status', 'completed')
+  .groupFind({
+    totalOrders: { $count: true }
+  });
+console.log(stats.totalOrders); // e.g., 42
+
+// Multiple aggregations in one query
+const salesStats = await client.Query('Order')
+  .equalTo('status', 'completed')
+  .greaterThanOrEqualTo('createdAt', startOfMonth)
+  .groupFind({
+    orderCount: { $count: true },
+    totalRevenue: { $sum: { $key: 'amount' } },
+    avgOrderValue: { $avg: { $key: 'amount' } },
+    minOrder: { $min: { $key: 'amount' } },
+    maxOrder: { $max: { $key: 'amount' } }
+  });
+
+console.log(`Revenue: $${salesStats.totalRevenue}`);
+console.log(`Average: $${salesStats.avgOrderValue}`);
+
+// Group by field and aggregate each group
+const salesByRegion = await client.Query('Order')
+  .equalTo('status', 'completed')
+  .groupFind({
+    countByRegion: {
+      $group: {
+        key: { $key: 'region' },
+        value: { $count: true }
+      }
+    },
+    revenueByRegion: {
+      $group: {
+        key: { $key: 'region' },
+        value: { $sum: { $key: 'amount' } }
+      }
+    }
+  });
+
+// Results are arrays of { key, value } objects
+salesByRegion.countByRegion.forEach(({ key, value }) => {
+  console.log(`${key}: ${value} orders`);
+});
+// Output: US: 120 orders, EU: 85 orders, APAC: 43 orders
+
+salesByRegion.revenueByRegion.forEach(({ key, value }) => {
+  console.log(`${key}: $${value}`);
+});
+// Output: US: $45000, EU: $32000, APAC: $18000
+
+// Statistical aggregations
+const surveyStats = await client.Query('Survey')
+  .groupFind({
+    median: { 
+      $percentile: { 
+        input: { $key: 'score' }, 
+        p: 0.5, 
+        mode: 'continuous' 
+      } 
+    },
+    stdDev: { $stdDevPop: { $key: 'score' } },
+    mostCommon: { $most: { $key: 'category' } }
+  });
+```
+
+#### Relation Aggregations with `groupMatches`
+
+The `groupMatches` method performs aggregations on relation fields:
 
 ```typescript
 // Count items in a relation
@@ -714,6 +793,10 @@ const stats = await client.Query('Survey')
 - `$varSamp` - Sample variance
 - `$percentile` - Percentile calculation with options for discrete/continuous mode
 - `$group` - Group by key expression and apply aggregation to each group (returns array of `{key, value}` objects)
+
+**Key Differences:**
+- **`groupFind`**: Terminal operation that executes query and returns aggregated values directly
+- **`groupMatches`**: Aggregates relation fields within parent objects, used with `.first()` or `.find()`
 
 ## Configuration
 
