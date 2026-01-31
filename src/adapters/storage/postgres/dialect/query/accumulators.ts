@@ -30,7 +30,7 @@ import { QueryCompiler, Populate, QueryContext } from '../../../sql/compiler';
 import { _selectRelationPopulate } from '../populate';
 import { encodeTypedQueryExpression } from './expr';
 
-const encodeAccumulatorExpression = (
+const encodeAccumulatorColumn = (
   compiler: QueryCompiler,
   populate: Populate,
   expr: QueryAccumulator
@@ -78,7 +78,7 @@ const encodeAccumulatorExpression = (
   }
 };
 
-export const encodeAccumulatorSQL = (
+export const encodeAccumulatorExpression = (
   compiler: QueryCompiler,
   parent: QueryContext & { className: string; },
   populate: Populate,
@@ -91,7 +91,7 @@ export const encodeAccumulatorSQL = (
     const { sql: keyValue } = encodeTypedQueryExpression(compiler, populate, expr.key) ?? {};
     if (!keyValue) throw Error('Invalid expression');
 
-    const aggSQL = encodeAccumulatorExpression(compiler, populate, expr.value);
+    const aggSQL = encodeAccumulatorColumn(compiler, populate, expr.value);
 
     return sql`
       (
@@ -111,7 +111,7 @@ export const encodeAccumulatorSQL = (
     `;
   }
 
-  const aggSQL = encodeAccumulatorExpression(compiler, populate, expr);
+  const aggSQL = encodeAccumulatorColumn(compiler, populate, expr);
 
   return sql`
     (

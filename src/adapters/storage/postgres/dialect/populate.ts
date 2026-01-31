@@ -29,7 +29,7 @@ import { TSchema, isPointer, isPrimitive, isRelation, isShape, isVector } from '
 import { Populate, QueryCompiler, QueryContext } from '../../sql/compiler';
 import { _jsonPopulateInclude } from './encode';
 import { resolveColumn } from '../../../../server/query/dispatcher/validator';
-import { encodeAccumulatorSQL } from './query/accumulators';
+import { encodeAccumulatorExpression } from './query/accumulators';
 
 const resolveSubpaths = (
   compiler: QueryCompiler,
@@ -133,7 +133,7 @@ export const selectPopulate = (
     if (!_.isEmpty(groupMatches?.[field])) {
       for (const [key, expr] of _.entries(groupMatches[field])) {
         columns.push(
-          encodeAccumulatorSQL(compiler, parent, populate, field, expr, `${field}.${key}`)
+          encodeAccumulatorExpression(compiler, parent, populate, field, expr, `${field}.${key}`)
         );
       }
     } else {
