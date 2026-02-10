@@ -10,6 +10,7 @@ const rollupConfig = {
   input: {
     index: 'src/index',
     client: 'src/client/index',
+    'index.browser': 'src/client/index',
     'adapters/storage/postgres': 'src/adapters/storage/postgres/index',
     'adapters/file/database': 'src/adapters/file/database/index',
     'adapters/file/filesystem': 'src/adapters/file/filesystem/index',

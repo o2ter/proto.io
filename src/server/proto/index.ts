@@ -88,6 +88,7 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
         saltSize: 64,
       },
       logger: {},
+      passwordPolicy: {},
       ...options,
     });
   }
