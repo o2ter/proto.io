@@ -73,6 +73,14 @@ test('test uploadToken 2', async () => {
   expect(file.expiredAt).toStrictEqual(now);
 });
 
+test('test file with master', async () => {
+  const file = Proto.File('test.txt', 'hello, world', 'text/plain');
+  await file.save({ master: true });
+
+  const data = await streamToBuffer(file.fileData());
+  expect(data.toString('utf8')).toStrictEqual('hello, world');
+});
+
 test('test create file internal', async () => {
   const file = await Proto.run('createFileInternal') as any;
 

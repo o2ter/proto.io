@@ -46,21 +46,25 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
         const payload = proto.connect(req);
         const uploadToken = req.header(UPLOAD_TOKEN_HEADER_NAME);
 
-        const { maxUploadSize } = payload[PVK].verifyUploadToken(payload, uploadToken, payload.isMaster);
-        const { attributes, file } = await decodeFormStream(req, (file, info) => proto.fileStorage.create(proto, file, info, maxUploadSize));
+        let decodeed;
+
+        if (uploadToken) {
+          const { maxUploadSize } = payload[PVK].verifyUploadToken(payload, uploadToken, payload.isMaster);
+          decodeed = await decodeFormStream(req, (file, info) => proto.fileStorage.create(proto, file, info, maxUploadSize));
+        } else if (payload.isMaster) {
+          const maxUploadSize = payload[PVK].options.maxUploadSize;
+          decodeed = await decodeFormStream(req, (file, info) => proto.fileStorage.create(proto, file, info, maxUploadSize));
+        } else {
+          throw new Error('Upload token is required.');
+        }
 
         try {
-
           const obj = payload.Object('File');
-          obj[PVK].mutated = _.mapValues(deserialize(attributes) as any, v => ({ $set: v })) as any;
-          obj[PVK].extra.data = file;
-
+          obj[PVK].mutated = _.mapValues(deserialize(decodeed.attributes) as any, v => ({ $set: v })) as any;
+          obj[PVK].extra.data = decodeed.file;
           return obj.save({ master: payload.isMaster, uploadToken });
-
         } catch (e) {
-
-          if (file?._id) proto[PVK].destroyFileData(proto, file._id);
-
+          if (decodeed.file?._id) proto[PVK].destroyFileData(proto, decodeed.file._id);
           throw e;
         }
       });
