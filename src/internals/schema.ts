@@ -84,6 +84,11 @@ export namespace TSchema {
        * Optional default value for the field.
        */
       default?: TValueWithoutObject;
+
+      /**
+       * Optional description for the field.
+       */
+      description?: string;
     };
 
   /**
@@ -106,6 +111,11 @@ export namespace TSchema {
      * Optional default value for the vector.
      */
     default?: number[];
+
+    /**
+     * Optional description for the field.
+     */
+    description?: string;
   };
 
   /**
@@ -123,6 +133,11 @@ export namespace TSchema {
      * The shape definition, mapping field names to their data types.
      */
     shape: Record<string, DataType>;
+
+    /**
+     * Optional description for the field.
+     */
+    description?: string;
   };
 
   /**
@@ -140,6 +155,11 @@ export namespace TSchema {
      * The name of the target class being referenced.
      */
     target: string;
+
+    /**
+     * Optional description for the field.
+     */
+    description?: string;
   };
 
   /**
@@ -177,6 +197,11 @@ export namespace TSchema {
      * Note: `match` is only applicable if `foreignField` is set. If `foreignField` is not provided, `match` will be ignored.
      */
     match?: TQueryBaseOptions;
+
+    /**
+     * Optional description for the field.
+     */
+    description?: string;
   };
 
   /**
