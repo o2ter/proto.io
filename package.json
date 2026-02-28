@@ -59,7 +59,7 @@
     "@types/pg-query-stream": "^3.4.0",
     "babel-jest": "^30.0.5",
     "jest": "^30.0.5",
-    "rollup": "^4.46.2",
+    "rollup": "^4.59.0",
     "rollup-plugin-dts": "^6.2.1",
     "ts-jest": "^29.4.1",
     "ts-node": "^10.9.2",
