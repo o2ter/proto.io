@@ -508,8 +508,8 @@ const blogSchema = schema({
       find: ['*'],
       get: ['*'],
       create: ['*'],
-      update: ['owner'],
-      delete: ['owner']
+      update: ['*'],
+      delete: ['*'],
     },
     fieldLevelPermissions: {
       email: { read: ['role:admin'] }
