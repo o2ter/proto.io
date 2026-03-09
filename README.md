@@ -46,9 +46,9 @@ const mySchema = schema({
     classLevelPermissions: {
       find: ['*'],
       get: ['*'],
-      create: ['authenticated'],
-      update: ['authenticated'],
-      delete: ['authenticated'],
+      create: ['*'],
+      update: ['*'],
+      delete: ['*'],
     }
   }
 });
