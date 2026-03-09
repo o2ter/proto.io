@@ -262,7 +262,7 @@ export namespace TSchema {
     /**
      * Fields that are writable by users.
      */
-    writeUserFields?: string[];
+    updateUserFields?: string[];
 
     /**
      * Fields that are readable by roles.
@@ -272,7 +272,7 @@ export namespace TSchema {
     /**
      * Fields that are writable by roles.
      */
-    writeRoleFields?: string[];
+    updateRoleFields?: string[];
   };
 
   /**

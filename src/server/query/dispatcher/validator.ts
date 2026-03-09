@@ -36,6 +36,8 @@ import { TQuerySelector } from '../../../internals/query/types/selectors';
 import { QueryExpression } from './parser/expressions';
 import { TQueryAccumulator } from '../../../internals/query/types/accumulators';
 import { QueryAccumulator } from './parser/accumulators';
+import { TRole } from '../../../internals/object/role';
+import { TUser } from '../../../internals/object/user';
 
 export const recursiveCheck = (x: any, stack: any[]) => {
   if (_.indexOf(stack, x) !== -1) throw Error('Recursive data detected');
@@ -96,6 +98,8 @@ export class QueryValidator<E> {
 
   proto: ProtoService<E>
   acls: string[];
+  roles: TRole[];
+  user: TUser | undefined;
   options: QueryValidatorOption;
 
   static patterns = {
@@ -107,25 +111,97 @@ export class QueryValidator<E> {
 
   _rperm(className: string) {
     if (this.options.master) return [];
-    const check = _.intersection(this.schema[className]?.additionalObjectPermissions?.read, this.acls);
+    const {
+      fields,
+      classLevelPermissions: {
+        readUserFields = [],
+        readRoleFields = [],
+      } = {},
+      additionalObjectPermissions,
+    } = this.schema[className] ?? {};
+    const check = _.intersection(additionalObjectPermissions?.read, this.acls);
     if (!_.isEmpty(check)) return [];
-    return [{ _rperm: { $intersect: this.acls } }];
+    return [{
+      $or: [
+        { _rperm: { $intersect: this.acls } },
+        ...this.user ? _.map(readUserFields, key => {
+          const dataType = resolveDataType(this.schema, className, key);
+          if (!dataType) throw Error(`Invalid read permission field: ${key}`);
+          if (isPointer(dataType)) {
+            return { [key]: { $eq: this.user } };
+          } else if (isRelation(dataType)) {
+            return { [key]: { $intersect: [this.user] } };
+          } else {
+            throw Error(`Invalid read permission field: ${key}`);
+          }
+        }) : [],
+        ...!_.isEmpty(this.roles) ? _.map(readRoleFields, key => {
+          const dataType = resolveDataType(this.schema, className, key);
+          if (!dataType) throw Error(`Invalid read permission field: ${key}`);
+          if (isPointer(dataType)) {
+            return { [key]: { $in: this.roles } };
+          } else if (isRelation(dataType)) {
+            return { [key]: { $intersect: this.roles } };
+          } else {
+            throw Error(`Invalid read permission field: ${key}`);
+          }
+        }) : [],
+      ],
+    }];
   }
   _wperm(className: string) {
     if (this.options.master) return [];
-    const check = _.intersection(this.schema[className]?.additionalObjectPermissions?.update, this.acls);
+    const {
+      fields,
+      classLevelPermissions: {
+        updateUserFields = [],
+        updateRoleFields = [],
+      } = {},
+      additionalObjectPermissions,
+    } = this.schema[className] ?? {};
+    const check = _.intersection(additionalObjectPermissions?.update, this.acls);
     if (!_.isEmpty(check)) return [];
-    return [{ _wperm: { $intersect: this.acls } }];
+    return [{
+      $or: [
+        { _wperm: { $intersect: this.acls } },
+        ...this.user ? _.map(updateUserFields, key => {
+          const dataType = resolveDataType(this.schema, className, key);
+          if (!dataType) throw Error(`Invalid read permission field: ${key}`);
+          if (isPointer(dataType)) {
+            return { [key]: { $eq: this.user } };
+          } else if (isRelation(dataType)) {
+            return { [key]: { $intersect: [this.user] } };
+          } else {
+            throw Error(`Invalid read permission field: ${key}`);
+          }
+        }) : [],
+        ...!_.isEmpty(this.roles) ? _.map(updateRoleFields, key => {
+          const dataType = resolveDataType(this.schema, className, key);
+          if (!dataType) throw Error(`Invalid read permission field: ${key}`);
+          if (isPointer(dataType)) {
+            return { [key]: { $in: this.roles } };
+          } else if (isRelation(dataType)) {
+            return { [key]: { $intersect: this.roles } };
+          } else {
+            throw Error(`Invalid read permission field: ${key}`);
+          }
+        }) : [],
+      ],
+    }];
   }
   _expiredAt = { $or: [{ _expired_at: { $eq: null } }, { _expired_at: { $gt: new Date() } }] };
 
   constructor(
     proto: ProtoService<E>,
     acls: string[],
+    roles: TRole[],
+    user: TUser | undefined,
     options: QueryValidatorOption,
   ) {
     this.proto = proto;
     this.acls = _.uniq(['*', ...acls]);
+    this.roles = roles;
+    this.user = user;
     this.options = options;
   }
 
