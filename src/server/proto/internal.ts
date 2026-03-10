@@ -102,49 +102,13 @@ const validateSchema = (schema: Record<string, TSchema>) => {
         if (_.isNil(defaultSchema[dataType.target] ?? schema[dataType.target])) throw Error(`Invalid target: ${key}`);
         validateForeignField(schema, key, dataType);
       }
-    }
-    for (const key of _schema.classLevelPermissions?.readUserFields ?? []) {
-      const dataType = resolveDataType(schema, className, key);
-      if (!dataType) throw Error(`Invalid field permission: ${key}`);
-      if (isPointer(dataType) || isRelation(dataType)) {
-        if (dataType.target !== 'User') throw Error(`Invalid field permission: ${key}`);
-      } else {
-        throw Error(`Invalid field permission: ${key}`);
+      const fields = _.keys(_schema.fields);
+      for (const key of _.keys(_schema.fieldLevelPermissions)) {
+        if (!fields.includes(key)) throw Error(`Invalid field permission: ${key}`);
       }
-    }
-    for (const key of _schema.classLevelPermissions?.updateUserFields ?? []) {
-      const dataType = resolveDataType(schema, className, key);
-      if (!dataType) throw Error(`Invalid field permission: ${key}`);
-      if (isPointer(dataType) || isRelation(dataType)) {
-        if (dataType.target !== 'User') throw Error(`Invalid field permission: ${key}`);
-      } else {
-        throw Error(`Invalid field permission: ${key}`);
+      for (const key of _schema.secureFields ?? []) {
+        if (!fields.includes(key)) throw Error(`Invalid field permission: ${key}`);
       }
-    }
-    for (const key of _schema.classLevelPermissions?.readRoleFields ?? []) {
-      const dataType = resolveDataType(schema, className, key);
-      if (!dataType) throw Error(`Invalid field permission: ${key}`);
-      if (isPointer(dataType) || isRelation(dataType)) {
-        if (dataType.target !== 'Role') throw Error(`Invalid field permission: ${key}`);
-      } else {
-        throw Error(`Invalid field permission: ${key}`);
-      }
-    }
-    for (const key of _schema.classLevelPermissions?.updateRoleFields ?? []) {
-      const dataType = resolveDataType(schema, className, key);
-      if (!dataType) throw Error(`Invalid field permission: ${key}`);
-      if (isPointer(dataType) || isRelation(dataType)) {
-        if (dataType.target !== 'Role') throw Error(`Invalid field permission: ${key}`);
-      } else {
-        throw Error(`Invalid field permission: ${key}`);
-      }
-    }
-    const fields = _.keys(_schema.fields);
-    for (const key of _.keys(_schema.fieldLevelPermissions)) {
-      if (!fields.includes(key)) throw Error(`Invalid field permission: ${key}`);
-    }
-    for (const key of _schema.secureFields ?? []) {
-      if (!fields.includes(key)) throw Error(`Invalid field permission: ${key}`);
     }
   }
 }
