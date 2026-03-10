@@ -112,6 +112,7 @@ export class QueryValidator<E> {
   _rperm(className: string) {
     if (this.options.master) return [];
     const {
+      fields,
       classLevelPermissions: {
         readUserFields = [],
         readRoleFields = [],
@@ -151,6 +152,7 @@ export class QueryValidator<E> {
   _wperm(className: string) {
     if (this.options.master) return [];
     const {
+      fields,
       classLevelPermissions: {
         updateUserFields = [],
         updateRoleFields = [],
