@@ -42,9 +42,9 @@ const _fetchUserPerms = async <E>(proto: ProtoService<E>) => {
   const roles = await proto._currentRoles();
   const user = await proto.currentUser();
   return {
-    acls: _.uniq(_.compact([..._.map(roles, x => `role:${x.name}`), user?.id])),
     roles,
     user,
+    acls: _.uniq(_.compact([..._.map(roles, x => `role:${x.name}`), user?.id])),
   };
 };
 
@@ -58,14 +58,10 @@ export const dispatcher = <E>(
   },
 ) => {
   const validator = async () => {
-    const {
-      acls = [],
-      roles = [],
-      user,
-    } = options.master ? {} : await _fetchUserPerms(proto);
+    const { roles, user, acls } = await _fetchUserPerms(proto);
     return new QueryValidator(
       proto,
-      acls,
+      options.master ? [] : acls,
       roles,
       user,
       {
