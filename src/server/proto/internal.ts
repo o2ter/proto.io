@@ -135,6 +135,7 @@ const validateSchema = (schema: Record<string, TSchema>) => {
       if (!dataType) throw Error(`Invalid field permission: ${key}`);
       if (isPointer(dataType) || isRelation(dataType)) {
         if (dataType.target !== 'Role') throw Error(`Invalid field permission: ${key}`);
+        if ('foreignField' in dataType && !_.isNil(dataType.foreignField)) throw Error(`Invalid field permission: ${key}`);
       } else {
         throw Error(`Invalid field permission: ${key}`);
       }
