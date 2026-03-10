@@ -65,10 +65,10 @@ export const dispatcher = <E>(
     } = options.master ? {} : await _fetchUserPerms(proto);
     return new QueryValidator(
       proto,
-      acls,
-      roles,
-      user,
       {
+        acls,
+        roles,
+        user,
         master: options.master ?? false,
         disableSecurity: options.disableSecurity,
       },
