@@ -251,26 +251,6 @@ export namespace TSchema {
      * ACL for delete operation.
      */
     delete?: TSchema.ACL;
-
-    /**
-     * Fields that are readable by users.
-     */
-    readUserFields?: string[];
-
-    /**
-     * Fields that are writable by users.
-     */
-    writeUserFields?: string[];
-
-    /**
-     * Fields that are readable by roles.
-     */
-    readRoleFields?: string[];
-
-    /**
-     * Fields that are writable by roles.
-     */
-    writeRoleFields?: string[];
   };
 
   /**
