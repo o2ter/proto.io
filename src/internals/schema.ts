@@ -216,7 +216,12 @@ export namespace TSchema {
     | PointerType
     | RelationType;
 
-  export type _CLPs = {
+  /**
+   * Class Level Permissions (CLPs).
+   * 
+   * Defines access control for various operations at the class level.
+   */
+  export type CLPs = {
     /**
      * ACL for get (read single object) operation.
      */
@@ -246,14 +251,7 @@ export namespace TSchema {
      * ACL for delete operation.
      */
     delete?: TSchema.ACL;
-  };
 
-  /**
-   * Class Level Permissions (CLPs).
-   * 
-   * Defines access control for various operations at the class level.
-   */
-  export type CLPs = _CLPs & {
     /**
      * Fields that are readable by users.
      */

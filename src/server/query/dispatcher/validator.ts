@@ -156,7 +156,7 @@ export class QueryValidator<E> {
 
   validateCLPs(
     className: string,
-    ...keys: (keyof TSchema._CLPs)[]
+    ...keys: (keyof TSchema.CLPs)[]
   ) {
     if (!_.has(this.schema, className)) throw Error('No permission');
     return this.options.master || this.proto[PVK].validateCLPs(className, this.acls, keys);
