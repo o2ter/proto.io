@@ -102,13 +102,13 @@ const validateSchema = (schema: Record<string, TSchema>) => {
         if (_.isNil(defaultSchema[dataType.target] ?? schema[dataType.target])) throw Error(`Invalid target: ${key}`);
         validateForeignField(schema, key, dataType);
       }
-      const fields = _.keys(_schema.fields);
-      for (const key of _.keys(_schema.fieldLevelPermissions)) {
-        if (!fields.includes(key)) throw Error(`Invalid field permission: ${key}`);
-      }
-      for (const key of _schema.secureFields ?? []) {
-        if (!fields.includes(key)) throw Error(`Invalid field permission: ${key}`);
-      }
+    }
+    const fields = _.keys(_schema.fields);
+    for (const key of _.keys(_schema.fieldLevelPermissions)) {
+      if (!fields.includes(key)) throw Error(`Invalid field permission: ${key}`);
+    }
+    for (const key of _schema.secureFields ?? []) {
+      if (!fields.includes(key)) throw Error(`Invalid field permission: ${key}`);
     }
   }
 }
