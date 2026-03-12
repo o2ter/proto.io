@@ -38,7 +38,17 @@ import { TQueryAccumulator } from '../../../internals/query/types/accumulators';
 import { QueryExpression } from './parser/expressions';
 import { QueryAccumulator } from './parser/accumulators';
 
-export const fetchUserPerms = async <E>(proto: ProtoService<E>) => _.uniq(_.compact([..._.map(await proto.currentRoles(), x => `role:${x}`), (await proto.currentUser())?.id]));
+const _fetchUserPerms = async <E>(proto: ProtoService<E>) => {
+  const roles = await proto._currentRoles();
+  const user = await proto.currentUser();
+  return {
+    acls: _.uniq(_.compact([..._.map(roles, x => `role:${x.name}`), user?.id])),
+    roles,
+    user,
+  };
+};
+
+export const fetchUserPerms = async <E>(proto: ProtoService<E>) => (await _fetchUserPerms(proto)).acls;
 
 export const dispatcher = <E>(
   proto: ProtoService<E>,
@@ -47,12 +57,23 @@ export const dispatcher = <E>(
     createFile: boolean;
   },
 ) => {
-
-  const acls = async () => options.master ? [] : await fetchUserPerms(proto);
-  const validator = async () => new QueryValidator(proto, await acls(), {
-    master: options.master ?? false,
-    disableSecurity: options.disableSecurity,
-  });
+  const validator = async () => {
+    const {
+      acls = [],
+      roles = [],
+      user,
+    } = options.master ? {} : await _fetchUserPerms(proto);
+    return new QueryValidator(
+      proto,
+      {
+        acls,
+        roles,
+        user,
+        master: options.master ?? false,
+        disableSecurity: options.disableSecurity,
+      },
+    );
+  };
 
   const createFile = options.createFile;
 
