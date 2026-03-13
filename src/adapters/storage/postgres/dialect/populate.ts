@@ -285,8 +285,8 @@ export const encodeForeignField = (
         ], separator: ',\n'
       }}
           FROM ${encodeRemix({ className: dataType.target }, remix)} AS ${{ identifier: tempName }}
+          ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
         ) AS ${{ identifier: tempName }}
-        ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
         WHERE ${{ literal: _.map(_.compact(cond), x => sql`(${x})`), separator: ' AND ' }}
       ) AS ${{ identifier: tempName }}
     )`,
