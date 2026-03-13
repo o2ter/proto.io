@@ -39,11 +39,11 @@ export const updateOperation = (paths: string[], dataType: TSchema.DataType, ope
   const [op, value] = decodeUpdateOp(operation);
   if (isVector(dataType)) {
     if (_.isEmpty(subpath)) {
-      if (_.isNil(value) && op === '$set') return sql`${encodeType(column, dataType, value)}`;
+      if (_.isNil(value) && op === '$set') return sql`${encodeType(dataType, value)}`;
       if (!_.isArray(value) || value.length !== dataType.dimension) throw Error('Invalid update operation');
       if (!_.every(value, x => _.isFinite(x))) throw Error('Invalid update operation');
       if (op === '$set') {
-        return sql`${encodeType(column, dataType, value)}`;
+        return sql`${encodeType(dataType, value)}`;
       }
     } else if (subpath.length === 1) {
       const idx = parseInt(subpath[0]);
@@ -64,13 +64,13 @@ export const updateOperation = (paths: string[], dataType: TSchema.DataType, ope
   }
   if (_.isEmpty(subpath)) {
     switch (op) {
-      case '$set': return sql`${encodeType(column, dataType, value)}`;
-      case '$inc': return sql`${{ identifier: column }} + ${encodeType(column, dataType, value)}`;
-      case '$dec': return sql`${{ identifier: column }} - ${encodeType(column, dataType, value)}`;
-      case '$mul': return sql`${{ identifier: column }} * ${encodeType(column, dataType, value)}`;
-      case '$div': return sql`${{ identifier: column }} / ${encodeType(column, dataType, value)}`;
-      case '$max': return sql`GREATEST(${{ identifier: column }}, ${encodeType(column, dataType, value)})`;
-      case '$min': return sql`LEAST(${{ identifier: column }}, ${encodeType(column, dataType, value)})`;
+      case '$set': return sql`${encodeType(dataType, value)}`;
+      case '$inc': return sql`${{ identifier: column }} + ${encodeType(dataType, value)}`;
+      case '$dec': return sql`${{ identifier: column }} - ${encodeType(dataType, value)}`;
+      case '$mul': return sql`${{ identifier: column }} * ${encodeType(dataType, value)}`;
+      case '$div': return sql`${{ identifier: column }} / ${encodeType(dataType, value)}`;
+      case '$max': return sql`GREATEST(${{ identifier: column }}, ${encodeType(dataType, value)})`;
+      case '$min': return sql`LEAST(${{ identifier: column }}, ${encodeType(dataType, value)})`;
       default: break;
     }
     if (dataType && _isTypeof(dataType, ['array', 'string[]'])) {

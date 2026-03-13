@@ -380,11 +380,11 @@ export class QueryCompiler {
       if (isShape(dataType)) {
         for (const { path, type } of shapePaths(dataType)) {
           if (!isRelation(type) || _.isNil(type.foreignField)) {
-            result[`${column}.${path}`] = this.dialect.encodeType(`${column}.${path}`, type, _.get(value, path) ?? null);
+            result[`${column}.${path}`] = this.dialect.encodeType(type, _.get(value, path) ?? null);
           }
         }
       } else {
-        result[column] = this.dialect.encodeType(column, dataType, value);
+        result[column] = this.dialect.encodeType(dataType, value);
       }
     }
     return result;

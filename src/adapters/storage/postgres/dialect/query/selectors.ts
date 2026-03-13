@@ -46,7 +46,7 @@ export const encodeFieldExpression = (
 ): SQL => {
   const [colname] = _.toPath(field);
   const { element, dataType, relation } = fetchElement(compiler, parent, field);
-  const encodeValue = (value: TValue) => dataType ? encodeType(colname, dataType, value) : _encodeJsonValue(_encodeValue(value));
+  const encodeValue = (value: TValue) => dataType ? encodeType(dataType, value) : _encodeJsonValue(_encodeValue(value));
   switch (expr.type) {
     case '$eq':
       {

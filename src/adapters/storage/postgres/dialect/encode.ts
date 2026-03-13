@@ -56,7 +56,7 @@ export const _jsonPopulateInclude = (
   }
 };
 
-export const encodeType = (colname: string, dataType: TSchema.DataType, value: TValueWithUndefined) => {
+export const encodeType = (dataType: TSchema.DataType, value: TValueWithUndefined) => {
   if (_.isNil(value)) return sql`NULL`;
   switch (_.isString(dataType) ? dataType : dataType.type) {
     case 'boolean':
