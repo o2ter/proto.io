@@ -265,25 +265,24 @@ export const encodeForeignField = (
     readRoleFields,
     updateRoleFields,
   } = compiler.schema[parent.className]?.classLevelPermissions ?? {};
+  const includes = {
+    literal: [
+      ..._.map([
+        '_rperm', '_wperm', '_expired_at',
+        ...readUserFields || [],
+        ...updateUserFields || [],
+        ...readRoleFields || [],
+        ...updateRoleFields || [],
+      ], colname => sql`${{ identifier: tempName }}.${{ identifier: colname }} AS ${{ identifier: `_$${colname}` }}`),
+    ], separator: ',\n'
+  };
   return {
     joins: [],
     field: sql`(
       SELECT ${array ? sql`UNNEST(${field})` : field}
       FROM (
         SELECT * FROM (
-          SELECT
-            ${{ identifier: tempName }}.*,
-            ${{
-        literal: [
-          ..._.map([
-            '_rperm', '_wperm', '_expired_at',
-            ...readUserFields || [],
-            ...updateUserFields || [],
-            ...readRoleFields || [],
-            ...updateRoleFields || [],
-          ], colname => sql`${{ identifier: tempName }}.${{ identifier: colname }} AS ${{ identifier: `_$${colname}` }}`),
-        ], separator: ',\n'
-      }}
+          SELECT ${includes}, *
           FROM ${encodeRemix({ className: dataType.target }, remix)} AS ${{ identifier: tempName }}
           ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
         ) AS ${{ identifier: tempName }}
@@ -320,27 +319,27 @@ export const encodePopulate = (
     readRoleFields,
     updateRoleFields,
   } = compiler.schema[parent.className]?.classLevelPermissions ?? {};
+  const includes = {
+    literal: [
+      ..._.map([
+        '_rperm', '_wperm', '_expired_at',
+        ...readUserFields || [],
+        ...updateUserFields || [],
+        ...readRoleFields || [],
+        ...updateRoleFields || [],
+      ], colname => sql`${{ identifier: parent.name }}.${{ identifier: colname }} AS ${{ identifier: `_$${colname}` }}`),
+      ...compiler._selectIncludes(parent.name, parent.includes),
+      ..._.flatMap(_populates, ({ columns: column }) => column),
+      ..._foreignField ? [sql`${rows ? sql`ARRAY(${_foreignField})` : _foreignField} AS ${{ identifier: parent.colname }}`] : [],
+    ], separator: ',\n'
+  };
   return _.reduce(parent.populates, (acc, populate) => ({
     ...encodePopulate(compiler, populate, remix),
     ...acc,
   }), {
     [parent.name]: sql`
       SELECT * FROM (
-        SELECT
-        ${{
-        literal: [
-          ..._.map([
-            '_rperm', '_wperm', '_expired_at',
-            ...readUserFields || [],
-            ...updateUserFields || [],
-            ...readRoleFields || [],
-            ...updateRoleFields || [],
-          ], colname => sql`${{ identifier: parent.name }}.${{ identifier: colname }} AS ${{ identifier: `_$${colname}` }}`),
-          ...compiler._selectIncludes(parent.name, parent.includes),
-          ..._.flatMap(_populates, ({ columns: column }) => column),
-          ..._foreignField ? [sql`${rows ? sql`ARRAY(${_foreignField})` : _foreignField} AS ${{ identifier: parent.colname }}`] : [],
-        ], separator: ',\n'
-      }}
+        SELECT ${includes}
         FROM ${encodeRemix(parent, remix)} AS ${{ identifier: parent.name }}
         ${!_.isEmpty(_joins) || !_.isEmpty(_joins2) ? { literal: [..._joins, ..._joins2], separator: '\n' } : sql``}
       ) AS ${{ identifier: parent.name }}
