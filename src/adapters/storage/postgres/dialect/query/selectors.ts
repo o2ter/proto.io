@@ -52,6 +52,14 @@ export const encodeFieldExpression = (
       {
         if (_.isRegExp(expr.value) || expr.value instanceof QuerySelector || expr.value instanceof FieldSelectorExpression) break;
         if (_.isNil(expr.value)) return sql`${element} IS NULL`;
+        if (_.startsWith(colname, '_$')) {
+          if (!_.isString(dataType) && dataType?.type === 'pointer') {
+            if (!(expr.value instanceof TObject) || dataType.target !== expr.value.className || !expr.value.id) break;
+            return sql`${element} ${nullSafeEqual()} ${{ value: `${expr.value.className}$${expr.value.id}` }}`;
+          } else {
+            return sql`${element} ${nullSafeEqual()} ${encodeValue(expr.value)}`;
+          }
+        }
         if (!_.isString(dataType) && dataType?.type === 'pointer') {
           if (!(expr.value instanceof TObject) || dataType.target !== expr.value.className || !expr.value.id) break;
           return sql`${element} ${nullSafeEqual()} ${{ value: expr.value.id }}`;
@@ -130,6 +138,14 @@ export const encodeFieldExpression = (
           case 1:
             {
               const value = expr.value[0];
+              if (_.startsWith(colname, '_$')) {
+                if (!_.isString(dataType) && dataType?.type === 'pointer') {
+                  if (!(value instanceof TObject) || dataType.target !== value.className || !value.id) break;
+                  return sql`${element} ${nullSafeEqual()} ${{ value: `${value.className}$${value.id}` }}`;
+                } else {
+                  return sql`${element} ${nullSafeEqual()} ${encodeValue(value)}`;
+                }
+              }
               if (!_.isString(dataType) && dataType?.type === 'pointer') {
                 if (_.isNil(value)) return sql`${element} IS NULL`;
                 if (!(value instanceof TObject) || dataType.target !== value.className || !value.id) break;
@@ -140,6 +156,20 @@ export const encodeFieldExpression = (
           default:
             const containsNil = _.some(expr.value, x => _.isNil(x));
             const values = _.filter(expr.value, x => !_.isNil(x));
+            if (_.startsWith(colname, '_$')) {
+              if (!_.isString(dataType) && dataType?.type === 'pointer') {
+                if (!_.every(values, x => x instanceof TObject && dataType.target === x.className && x.id)) break;
+                if (containsNil) {
+                  return sql`${element}} IS NULL OR ${element}} IN (${_.map(values, (x: any) => sql`${{ value: `${x.className}$${x.id}` }}`)})`;
+                }
+                return sql`${element}} IN (${_.map(values, (x: any) => sql`${{ value: `${x.className}$${x.id}` }}`)})`;
+              } else {
+                if (containsNil) {
+                  return sql`${element} IS NULL OR ${element} IN (${_.map(values, x => encodeValue(x))})`;
+                }
+                return sql`${element} IN (${_.map(values, x => encodeValue(x))})`;
+              }
+            }
             if (!_.isString(dataType) && dataType?.type === 'pointer') {
               if (!_.every(values, x => x instanceof TObject && dataType.target === x.className && x.id)) break;
               if (containsNil) {
@@ -206,7 +236,11 @@ export const encodeFieldExpression = (
         if (dataType && _isTypeof(dataType, ['array', 'string[]'])) {
           return sql`${element} ${{ literal: op }} ${{ value: _encodeValue(expr.value) }}`;
         }
-        if (relation && parent.className) {
+        if (_.startsWith(colname, '_$') && relation) {
+          if (!_.every(expr.value, x => x instanceof TObject && relation.target === x.className && x.id)) break;
+          return sql`${element} ${{ literal: op }} (${_.map(expr.value, (x: any) => sql`${{ value: `${x.className}$${x.id}` }}`)})`;
+        }
+        if (relation?.populate && parent.className) {
           if (!_.every(expr.value, x => x instanceof TObject && relation.target === x.className && x.id)) break;
           const tempName = `_populate_expr_$${compiler.nextIdx()}`;
           const populate = _selectRelationPopulate(compiler, { className: parent.className, name: parent.name }, relation.populate, `$${field}`, false);
@@ -274,7 +308,7 @@ export const encodeFieldExpression = (
         if (dataType && _isTypeof(dataType, 'string')) {
           return sql`COALESCE(length(${element}), 0) = ${{ value: expr.value }}`;
         }
-        if (relation && parent.className && parent.groupMatches?.[colname]) {
+        if (relation?.populate && parent.className && parent.groupMatches?.[colname]) {
           const tempName = `_populate_expr_$${compiler.nextIdx()}`;
           const populate = _selectRelationPopulate(compiler, { className: parent.className, name: parent.name }, relation.populate, `$${field}`, false);
           return sql`(SELECT COUNT(*) FROM (${populate}) AS ${{ identifier: tempName }}) = ${{ value: expr.value }}`;
@@ -299,7 +333,7 @@ export const encodeFieldExpression = (
         if (dataType && _isTypeof(dataType, 'string')) {
           return sql`COALESCE(length(${element}), 0) ${{ literal: expr.value ? '=' : '<>' }} 0`;
         }
-        if (relation && parent.className && parent.groupMatches?.[colname]) {
+        if (relation?.populate && parent.className && parent.groupMatches?.[colname]) {
           const tempName = `_populate_expr_$${compiler.nextIdx()}`;
           const populate = _selectRelationPopulate(compiler, { className: parent.className, name: parent.name }, relation.populate, `$${field}`, false);
           return sql`${{ literal: expr.value ? 'NOT EXISTS' : 'EXISTS' }}(SELECT * FROM (${populate}) AS ${{ identifier: tempName }})`;
@@ -322,7 +356,7 @@ export const encodeFieldExpression = (
       {
         if (!(expr.value instanceof QuerySelector)) break;
 
-        if (relation && parent.className) {
+        if (relation?.populate && parent.className) {
           const tempName = `_populate_expr_$${compiler.nextIdx()}`;
           const filter = compiler._encodeFilter({
             name: tempName,
@@ -377,7 +411,7 @@ export const encodeFieldExpression = (
       {
         if (!(expr.value instanceof QuerySelector)) break;
 
-        if (relation && parent.className) {
+        if (relation?.populate && parent.className) {
           const tempName = `_populate_expr_$${compiler.nextIdx()}`;
           const filter = compiler._encodeFilter({
             name: tempName,

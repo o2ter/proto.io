@@ -124,8 +124,18 @@ export const fetchElement = (
   field: string,
 ) => {
   if (parent.className) {
-    const _path = _.startsWith(field, '_$') ? _.toPath(field.slice(2)) : _.toPath(field);
-    const { dataType, colname, subpath } = resolvePaths(compiler, parent.className, _path);
+    if (_.startsWith(field, '_$')) {
+      const { dataType, colname, subpath } = resolvePaths(compiler, parent.className, _.toPath(field.slice(2)));
+      return {
+        element: sql`${{ identifier: parent.name }}.${{ identifier: field }}`,
+        dataType,
+        relation: isRelation(dataType) ? {
+          colname,
+          target: dataType.target,
+        } : null,
+      };
+    }
+    const { dataType, colname, subpath } = resolvePaths(compiler, parent.className, _.toPath(field));
     const { element, json, dataType: _dataType } = _fetchElement(compiler, parent, colname, subpath, dataType);
     if (isPointer(dataType)) return { element: sql`${{ identifier: parent.name }}.${{ identifier: `${colname}._id` }}`, dataType };
     const populate = isRelation(dataType) && _resolvePopulate(_.toPath(colname), parent.populates);
