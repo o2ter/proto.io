@@ -251,12 +251,12 @@ export class QueryCompiler {
     const includes = {
       literal: [
         ..._.map([
-          '_$_rperm', '_$_wperm', '_$_expired_at',
-          ..._.map(readUserFields, k => `_$${k}`),
-          ..._.map(updateUserFields, k => `_$${k}`),
-          ..._.map(readRoleFields, k => `_$${k}`),
-          ..._.map(updateRoleFields, k => `_$${k}`),
-        ], colname => sql`${{ identifier: query.className }}.${{ identifier: colname }}`),
+          '_rperm', '_wperm', '_expired_at',
+          ...readUserFields || [],
+          ...updateUserFields || [],
+          ...readRoleFields || [],
+          ...updateRoleFields || [],
+        ], colname => sql`${{ identifier: query.className }}.${{ identifier: colname }} AS ${{ identifier: `_$${colname}` }}`),
         ...this._selectIncludes(fetchName, context.includes),
         ..._.flatMap(populates, ({ columns }) => columns),
       ],
