@@ -122,14 +122,14 @@ export class QueryValidator<E> {
     if (!_.isEmpty(check)) return [];
     return [{
       $or: [
-        { _rperm: { $intersect: this.options.acls } },
+        { _$_rperm: { $intersect: this.options.acls } },
         ...this.options.user ? _.map(readUserFields, key => {
           const dataType = resolveDataType(this.schema, className, key);
           if (!dataType) throw Error(`Invalid read permission field: ${key}`);
           if (isPointer(dataType)) {
-            return { [key]: { $eq: this.options.user } };
+            return { [`_$${key}`]: { $eq: this.options.user } };
           } else if (isRelation(dataType)) {
-            return { [key]: { $intersect: [this.options.user] } };
+            return { [`_$${key}`]: { $intersect: [this.options.user] } };
           } else {
             throw Error(`Invalid read permission field: ${key}`);
           }
@@ -138,9 +138,9 @@ export class QueryValidator<E> {
           const dataType = resolveDataType(this.schema, className, key);
           if (!dataType) throw Error(`Invalid read permission field: ${key}`);
           if (isPointer(dataType)) {
-            return { [key]: { $in: this.options.roles } };
+            return { [`_$${key}`]: { $in: this.options.roles } };
           } else if (isRelation(dataType)) {
-            return { [key]: { $intersect: this.options.roles } };
+            return { [`_$${key}`]: { $intersect: this.options.roles } };
           } else {
             throw Error(`Invalid read permission field: ${key}`);
           }
@@ -161,14 +161,14 @@ export class QueryValidator<E> {
     if (!_.isEmpty(check)) return [];
     return [{
       $or: [
-        { _wperm: { $intersect: this.options.acls } },
+        { _$_wperm: { $intersect: this.options.acls } },
         ...this.options.user ? _.map(updateUserFields, key => {
           const dataType = resolveDataType(this.schema, className, key);
           if (!dataType) throw Error(`Invalid read permission field: ${key}`);
           if (isPointer(dataType)) {
-            return { [key]: { $eq: this.options.user } };
+            return { [`_$${key}`]: { $eq: this.options.user } };
           } else if (isRelation(dataType)) {
-            return { [key]: { $intersect: [this.options.user] } };
+            return { [`_$${key}`]: { $intersect: [this.options.user] } };
           } else {
             throw Error(`Invalid read permission field: ${key}`);
           }
@@ -177,9 +177,9 @@ export class QueryValidator<E> {
           const dataType = resolveDataType(this.schema, className, key);
           if (!dataType) throw Error(`Invalid read permission field: ${key}`);
           if (isPointer(dataType)) {
-            return { [key]: { $in: this.options.roles } };
+            return { [`_$${key}`]: { $in: this.options.roles } };
           } else if (isRelation(dataType)) {
-            return { [key]: { $intersect: this.options.roles } };
+            return { [`_$${key}`]: { $intersect: this.options.roles } };
           } else {
             throw Error(`Invalid read permission field: ${key}`);
           }
@@ -187,7 +187,7 @@ export class QueryValidator<E> {
       ],
     }];
   }
-  _expiredAt = { $or: [{ _expired_at: { $eq: null } }, { _expired_at: { $gt: new Date() } }] };
+  _expiredAt = { $or: [{ _$_expired_at: { $eq: null } }, { _$_expired_at: { $gt: new Date() } }] };
 
   constructor(
     proto: ProtoService<E>,
@@ -515,7 +515,7 @@ export class QueryValidator<E> {
 
     const keyPaths = _.uniq([
       ..._.isArray(sort) ? _.flatMap(sort, s => s.expr.keyPaths()) : _.keys(sort),
-      ...filter.keyPaths(),
+      ...filter.keyPaths().filter(x => !_.startsWith(x, '$')),
       ...matchKeyPaths(query.matches ?? {}),
       ..._.keys(groupMatches),
       ..._.flatMap(_.values(groupMatches), m => _.flatMap(_.values(m), x => x.keyPaths())),

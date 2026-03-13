@@ -241,8 +241,22 @@ export class QueryCompiler {
     const populates = this._selectPopulateMap(context);
     const joins = _.compact(_.map(populates, ({ join }) => join));
 
+    const {
+      readUserFields,
+      updateUserFields,
+      readRoleFields,
+      updateRoleFields,
+    } = this.schema[query.className]?.classLevelPermissions ?? {};
+
     const includes = {
       literal: [
+        ..._.map([
+          '_$_rperm', '_$_wperm', '_$_expired_at',
+          ..._.map(readUserFields, k => `_$${k}`),
+          ..._.map(updateUserFields, k => `_$${k}`),
+          ..._.map(readRoleFields, k => `_$${k}`),
+          ..._.map(updateRoleFields, k => `_$${k}`),
+        ], colname => sql`${{ identifier: query.className }}.${{ identifier: colname }}`),
         ...this._selectIncludes(fetchName, context.includes),
         ..._.flatMap(populates, ({ columns }) => columns),
       ],
