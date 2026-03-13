@@ -270,9 +270,10 @@ export const encodeForeignField = (
     field: sql`(
       SELECT ${array ? sql`UNNEST(${field})` : field}
       FROM (
-        SELECT
-          ${{ identifier: tempName }}.*,
-          ${{
+        SELECT * FROM (
+          SELECT
+            ${{ identifier: tempName }}.*,
+            ${{
         literal: [
           ..._.map([
             '_rperm', '_wperm', '_expired_at',
@@ -283,7 +284,8 @@ export const encodeForeignField = (
           ], colname => sql`${{ identifier: tempName }}.${{ identifier: colname }} AS ${{ identifier: `_$${colname}` }}`),
         ], separator: ',\n'
       }}
-        FROM ${encodeRemix({ className: dataType.target }, remix)} AS ${{ identifier: tempName }}
+          FROM ${encodeRemix({ className: dataType.target }, remix)} AS ${{ identifier: tempName }}
+        ) AS ${{ identifier: tempName }}
         ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
         WHERE ${{ literal: _.map(_.compact(cond), x => sql`(${x})`), separator: ' AND ' }}
       ) AS ${{ identifier: tempName }}
