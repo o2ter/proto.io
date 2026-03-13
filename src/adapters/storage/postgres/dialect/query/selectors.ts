@@ -238,7 +238,7 @@ export const encodeFieldExpression = (
         }
         if (_.startsWith(colname, '_$') && relation) {
           if (!_.every(expr.value, x => x instanceof TObject && relation.target === x.className && x.id)) break;
-          return sql`${element} ${{ literal: op }} (${_.map(expr.value, (x: any) => sql`${{ value: `${x.className}$${x.id}` }}`)})`;
+          return sql`${element} ${{ literal: op }} ARRAY[${_.map(expr.value, (x: any) => sql`${{ value: `${x.className}$${x.id}` }}`)}]::TEXT[]`;
         }
         if (relation?.populate && parent.className) {
           if (!_.every(expr.value, x => x instanceof TObject && relation.target === x.className && x.id)) break;
