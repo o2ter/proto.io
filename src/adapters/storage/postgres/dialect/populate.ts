@@ -259,13 +259,34 @@ export const encodeForeignField = (
       sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ANY(${_foreign(dataType.foreignField)})`
     );
   }
+  const {
+    readUserFields,
+    updateUserFields,
+    readRoleFields,
+    updateRoleFields,
+  } = compiler.schema[parent.className]?.classLevelPermissions ?? {};
   return {
     joins: [],
     field: sql`(
       SELECT ${array ? sql`UNNEST(${field})` : field}
-      FROM ${encodeRemix({ className: dataType.target }, remix)} AS ${{ identifier: tempName }}
-      ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
-      WHERE ${{ literal: _.map(_.compact(cond), x => sql`(${x})`), separator: ' AND ' }}
+      FROM (
+        SELECT
+          ${{ identifier: tempName }}.*,
+          ${{
+        literal: [
+          ..._.map([
+            '_rperm', '_wperm', '_expired_at',
+            ...readUserFields || [],
+            ...updateUserFields || [],
+            ...readRoleFields || [],
+            ...updateRoleFields || [],
+          ], colname => sql`${{ identifier: tempName }}.${{ identifier: colname }} AS ${{ identifier: `_$${colname}` }}`),
+        ], separator: ',\n'
+      }}
+        FROM ${encodeRemix({ className: dataType.target }, remix)} AS ${{ identifier: tempName }}
+        ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
+        WHERE ${{ literal: _.map(_.compact(cond), x => sql`(${x})`), separator: ' AND ' }}
+      ) AS ${{ identifier: tempName }}
     )`,
     array: false,
     rows: true,
