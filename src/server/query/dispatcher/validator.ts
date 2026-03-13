@@ -515,7 +515,7 @@ export class QueryValidator<E> {
 
     const keyPaths = _.uniq([
       ..._.isArray(sort) ? _.flatMap(sort, s => s.expr.keyPaths()) : _.keys(sort),
-      ...filter.keyPaths().filter(x => !_.startsWith(x, '$')),
+      ...filter.keyPaths().filter(x => !_.startsWith(x, '_$')),
       ...matchKeyPaths(query.matches ?? {}),
       ..._.keys(groupMatches),
       ..._.flatMap(_.values(groupMatches), m => _.flatMap(_.values(m), x => x.keyPaths())),
