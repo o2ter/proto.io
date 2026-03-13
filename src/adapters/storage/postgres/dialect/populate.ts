@@ -267,13 +267,13 @@ export const encodeForeignField = (
   } = compiler.schema[parent.className]?.classLevelPermissions ?? {};
   const includes = {
     literal: [
-      ..._.map([
+      ..._.map(_.uniq([
         '_rperm', '_wperm', '_expired_at',
         ...readUserFields || [],
         ...updateUserFields || [],
         ...readRoleFields || [],
         ...updateRoleFields || [],
-      ], colname => sql`${{ identifier: tempName }}.${{ identifier: colname }} AS ${{ identifier: `_$${colname}` }}`),
+      ]), colname => sql`${{ identifier: tempName }}.${{ identifier: colname }} AS ${{ identifier: `_$${colname}` }}`),
     ],
     separator: ',\n',
   };
@@ -322,13 +322,13 @@ export const encodePopulate = (
   } = compiler.schema[parent.className]?.classLevelPermissions ?? {};
   const includes = {
     literal: [
-      ..._.map([
+      ..._.map(_.uniq([
         '_rperm', '_wperm', '_expired_at',
         ...readUserFields || [],
         ...updateUserFields || [],
         ...readRoleFields || [],
         ...updateRoleFields || [],
-      ], colname => sql`${{ identifier: parent.name }}.${{ identifier: colname }} AS ${{ identifier: `_$${colname}` }}`),
+      ]), colname => sql`${{ identifier: parent.name }}.${{ identifier: colname }} AS ${{ identifier: `_$${colname}` }}`),
       ...compiler._selectIncludes(parent.name, parent.includes),
       ..._.flatMap(_populates, ({ columns: column }) => column),
       ..._foreignField ? [sql`${rows ? sql`ARRAY(${_foreignField})` : _foreignField} AS ${{ identifier: parent.colname }}`] : [],

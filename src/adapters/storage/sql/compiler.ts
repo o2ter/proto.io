@@ -250,13 +250,13 @@ export class QueryCompiler {
 
     const includes = {
       literal: [
-        ..._.map([
+        ..._.map(_.uniq([
           '_rperm', '_wperm', '_expired_at',
           ...readUserFields || [],
           ...updateUserFields || [],
           ...readRoleFields || [],
           ...updateRoleFields || [],
-        ], colname => sql`${{ identifier: fetchName }}.${{ identifier: colname }} AS ${{ identifier: `_$${colname}` }}`),
+        ]), colname => sql`${{ identifier: fetchName }}.${{ identifier: colname }} AS ${{ identifier: `_$${colname}` }}`),
         ...this._selectIncludes(fetchName, context.includes),
         ..._.flatMap(populates, ({ columns }) => columns),
       ],
@@ -284,10 +284,10 @@ export class QueryCompiler {
         ${!_.isEmpty(filter) ? sql`WHERE ${{ literal: _.map(filter, x => sql`(${x})`), separator: ' AND ' }}` : sql``}
         ${_options?.sort ? _options?.sort : sql``}
         ${!_.isEmpty(query.sort) ? sql`ORDER BY ${this._encodeSort(query.sort, {
-          name: fetchName,
-          className: query.className,
-          groupMatches: query.groupMatches,
-        })}` : sql``}
+        name: fetchName,
+        className: query.className,
+        groupMatches: query.groupMatches,
+      })}` : sql``}
         ${query.limit ? sql`LIMIT ${{ literal: `${query.limit}` }}` : sql``}
         ${query.skip ? sql`OFFSET ${{ literal: `${query.skip}` }}` : sql``}
       `,
