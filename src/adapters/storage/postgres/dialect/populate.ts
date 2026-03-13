@@ -291,6 +291,12 @@ export const encodePopulate = (
     className: parent.className,
     name: parent.name,
   }, parent.foreignField, remix) : {};
+  const {
+    readUserFields,
+    updateUserFields,
+    readRoleFields,
+    updateRoleFields,
+  } = compiler.schema[parent.className]?.classLevelPermissions ?? {};
   return _.reduce(parent.populates, (acc, populate) => ({
     ...encodePopulate(compiler, populate, remix),
     ...acc,
@@ -300,6 +306,13 @@ export const encodePopulate = (
         SELECT
         ${{
         literal: [
+          ..._.map([
+            '_rperm', '_wperm', '_expired_at',
+            ...readUserFields || [],
+            ...updateUserFields || [],
+            ...readRoleFields || [],
+            ...updateRoleFields || [],
+          ], colname => sql`${{ identifier: parent.name }}.${{ identifier: colname }} AS ${{ identifier: `_$${colname}` }}`),
           ...compiler._selectIncludes(parent.name, parent.includes),
           ..._.flatMap(_populates, ({ columns: column }) => column),
           ..._foreignField ? [sql`${rows ? sql`ARRAY(${_foreignField})` : _foreignField} AS ${{ identifier: parent.colname }}`] : [],
