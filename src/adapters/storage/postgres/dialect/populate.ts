@@ -274,7 +274,8 @@ export const encodeForeignField = (
         ...readRoleFields || [],
         ...updateRoleFields || [],
       ], colname => sql`${{ identifier: tempName }}.${{ identifier: colname }} AS ${{ identifier: `_$${colname}` }}`),
-    ], separator: ',\n'
+    ],
+    separator: ',\n',
   };
   return {
     joins: [],
@@ -331,7 +332,8 @@ export const encodePopulate = (
       ...compiler._selectIncludes(parent.name, parent.includes),
       ..._.flatMap(_populates, ({ columns: column }) => column),
       ..._foreignField ? [sql`${rows ? sql`ARRAY(${_foreignField})` : _foreignField} AS ${{ identifier: parent.colname }}`] : [],
-    ], separator: ',\n'
+    ],
+    separator: ',\n',
   };
   return _.reduce(parent.populates, (acc, populate) => ({
     ...encodePopulate(compiler, populate, remix),
