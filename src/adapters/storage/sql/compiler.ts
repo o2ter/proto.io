@@ -256,7 +256,7 @@ export class QueryCompiler {
           ...updateUserFields || [],
           ...readRoleFields || [],
           ...updateRoleFields || [],
-        ], colname => sql`${{ identifier: query.className }}.${{ identifier: colname }} AS ${{ identifier: `_$${colname}` }}`),
+        ], colname => sql`${{ identifier: fetchName }}.${{ identifier: colname }} AS ${{ identifier: `_$${colname}` }}`),
         ...this._selectIncludes(fetchName, context.includes),
         ..._.flatMap(populates, ({ columns }) => columns),
       ],
