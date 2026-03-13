@@ -85,6 +85,20 @@ const Proto = new ProtoService({
         roles: { type: 'relation', target: 'Role' },
       },
     },
+    'PermField': {
+      fields: {
+        user: { type: 'pointer', target: 'User' },
+        role: { type: 'pointer', target: 'Role' },
+        users: { type: 'relation', target: 'User' },
+        roles: { type: 'relation', target: 'Role' },
+      },
+      classLevelPermissions: {
+        readUserFields: ['user', 'users'],
+        readRoleFields: ['role', 'roles'],
+        updateUserFields: ['user', 'users'],
+        updateRoleFields: ['role', 'roles'],
+      }
+    },
     'Test': {
       fields: {
         default: { type: 'number', default: 42 },
