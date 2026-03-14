@@ -78,7 +78,7 @@ test('test read permission field 3', async () => {
 
   await Proto.run('createUserWithRole', { role: 'admin' });
 
-  const roles = await Proto.run('currentRoles');
+  const roles = await Proto.run('_currentRoles');
 
   const object = await Proto.Query('PermField').insert({ role: _.first(roles), _rperm: [''], _wperm: [''] });
 
@@ -98,7 +98,7 @@ test('test read permission field 4', async () => {
 
   await Proto.run('createUserWithRole', { role: 'admin' });
 
-  const roles = await Proto.run('currentRoles');
+  const roles = await Proto.run('_currentRoles');
 
   const object = await Proto.Query('PermField').insert({ roles, _rperm: [''], _wperm: [''] });
 

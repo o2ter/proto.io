@@ -289,6 +289,7 @@ const Proto = new ProtoService({
   fileStorage: new DatabaseFileStorage(),
 });
 
+Proto.define('_currentRoles', async ({ _currentRoles }) => _currentRoles());
 Proto.define('currentRoles', async ({ currentRoles }) => currentRoles());
 
 Proto.define('createUserWithRole', async (proto) => {
