@@ -261,10 +261,8 @@ export const encodeForeignField = (
     return {
       joins: [sql`
         LEFT JOIN (
-          SELECT * FROM (
-            SELECT ${includes}, *
-            FROM ${encodeRemix({ className: dataType.target }, remix)} AS ${{ identifier: tempName }}
-          ) AS ${{ identifier: tempName }}
+          SELECT ${includes}, *
+          FROM ${encodeRemix({ className: dataType.target }, remix)} AS ${{ identifier: tempName }}
         ) AS ${{ identifier: tempName }}
         ON ${{ literal: _.map(_.compact(cond), x => sql`(${x})`), separator: ' AND ' }}
       `, ...joins],
