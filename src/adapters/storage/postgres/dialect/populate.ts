@@ -225,7 +225,8 @@ export const encodeForeignField = (
             ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
           ) AS ${{ identifier: tempName }}
           WHERE ${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ${array || rows ? sql`ANY(${field})` : field}
-        )`,
+        ) AS ${{ identifier: tempName }}
+      )`,
       array: false,
       rows: true,
     };
