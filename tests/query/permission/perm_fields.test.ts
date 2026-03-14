@@ -40,7 +40,7 @@ test('test read permission field', async () => {
 
   const user = await Proto.currentUser();
 
-  const object = await Proto.Query('PermField').insert({ user });
+  const object = await Proto.Query('PermField').insert({ user, _rperm: [''], _wperm: [''] });
 
   const result = await Proto.Query('PermField').findAll();
 
