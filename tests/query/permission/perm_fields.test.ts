@@ -53,3 +53,63 @@ test('test read permission field', async () => {
   expect(result2).toHaveLength(0);
 
 })
+
+test('test read permission field 2', async () => {
+
+  await Proto.run('createUserWithRole', { role: 'admin' });
+
+  const user = await Proto.currentUser();
+
+  const object = await Proto.Query('PermField').insert({ users: [user], _rperm: [''], _wperm: [''] });
+
+  const result = await Proto.Query('PermField').findAll();
+
+  expect(result).toHaveLength(1);
+  expect(result[0].id).toEqual(object.id);
+
+  await Proto.logout();
+
+  const result2 = await Proto.Query('PermField').findAll();
+  expect(result2).toHaveLength(0);
+
+})
+
+test('test read permission field 3', async () => {
+
+  await Proto.run('createUserWithRole', { role: 'admin' });
+
+  const roles = await Proto.run('currentRoles');
+
+  const object = await Proto.Query('PermField').insert({ role: _.first(roles), _rperm: [''], _wperm: [''] });
+
+  const result = await Proto.Query('PermField').findAll();
+
+  expect(result).toHaveLength(1);
+  expect(result[0].id).toEqual(object.id);
+
+  await Proto.logout();
+
+  const result2 = await Proto.Query('PermField').findAll();
+  expect(result2).toHaveLength(0);
+
+})
+
+test('test read permission field 4', async () => {
+
+  await Proto.run('createUserWithRole', { role: 'admin' });
+
+  const roles = await Proto.run('currentRoles');
+
+  const object = await Proto.Query('PermField').insert({ roles, _rperm: [''], _wperm: [''] });
+
+  const result = await Proto.Query('PermField').findAll();
+
+  expect(result).toHaveLength(1);
+  expect(result[0].id).toEqual(object.id);
+
+  await Proto.logout();
+
+  const result2 = await Proto.Query('PermField').findAll();
+  expect(result2).toHaveLength(0);
+
+})
