@@ -57,6 +57,8 @@ test('test permission field', async () => {
 
   const updated2 = await Proto.Query('PermField').equalTo('_id', object.id).updateOne({});
   expect(updated2?.id).toBeUndefined();
+
+  await expect(() => object.save()).rejects.toThrow();
 })
 
 test('test permission field 2', async () => {
@@ -83,6 +85,7 @@ test('test permission field 2', async () => {
   const updated2 = await Proto.Query('PermField').equalTo('_id', object.id).updateOne({});
   expect(updated2?.id).toBeUndefined();
 
+  await expect(() => object.save()).rejects.toThrow();
 })
 
 test('test permission field 3', async () => {
@@ -108,6 +111,8 @@ test('test permission field 3', async () => {
 
   const updated2 = await Proto.Query('PermField').equalTo('_id', object.id).updateOne({});
   expect(updated2?.id).toBeUndefined();
+
+  await expect(() => object.save()).rejects.toThrow();
 })
 
 test('test permission field 4', async () => {
@@ -133,4 +138,6 @@ test('test permission field 4', async () => {
 
   const updated2 = await Proto.Query('PermField').equalTo('_id', object.id).updateOne({});
   expect(updated2?.id).toBeUndefined();
+
+  await expect(() => object.save()).rejects.toThrow();
 })
