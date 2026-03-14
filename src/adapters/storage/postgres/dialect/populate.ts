@@ -219,13 +219,11 @@ export const encodeForeignField = (
       field: sql`(
         SELECT ${sql`(${{ quote: dataType.target + '$' }} || ${_foreign('_id')})`}
         FROM (
-          SELECT * FROM (
-            SELECT ${includes}, ${{ identifier: tempName }}.*
-            FROM ${encodeRemix({ className: dataType.target }, remix)} AS ${{ identifier: tempName }}
-            ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
-          ) AS ${{ identifier: tempName }}
-          WHERE ${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ${array || rows ? sql`ANY(${field})` : field}
+          SELECT ${includes}, ${{ identifier: tempName }}.*
+          FROM ${encodeRemix({ className: dataType.target }, remix)} AS ${{ identifier: tempName }}
         ) AS ${{ identifier: tempName }}
+        ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
+        WHERE ${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ${array || rows ? sql`ANY(${field})` : field}
       )`,
       array: false,
       rows: true,
@@ -291,13 +289,11 @@ export const encodeForeignField = (
     field: sql`(
       SELECT ${array ? sql`UNNEST(${field})` : field}
       FROM (
-        SELECT * FROM (
-          SELECT ${includes}, ${{ identifier: tempName }}.*
-          FROM ${encodeRemix({ className: dataType.target }, remix)} AS ${{ identifier: tempName }}
-          ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
-        ) AS ${{ identifier: tempName }}
-        WHERE ${{ literal: _.map(_.compact(cond), x => sql`(${x})`), separator: ' AND ' }}
+        SELECT ${includes}, ${{ identifier: tempName }}.*
+        FROM ${encodeRemix({ className: dataType.target }, remix)} AS ${{ identifier: tempName }}
       ) AS ${{ identifier: tempName }}
+      ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
+      WHERE ${{ literal: _.map(_.compact(cond), x => sql`(${x})`), separator: ' AND ' }}
     )`,
     array: false,
     rows: true,
