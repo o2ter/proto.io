@@ -220,7 +220,7 @@ export const encodeForeignField = (
         SELECT ${sql`(${{ quote: dataType.target + '$' }} || ${_foreign('_id')})`}
         FROM (
           SELECT * FROM (
-            SELECT ${includes}, *
+            SELECT ${includes}, ${{ identifier: tempName }}.*
             FROM ${encodeRemix({ className: dataType.target }, remix)} AS ${{ identifier: tempName }}
             ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
           ) AS ${{ identifier: tempName }}
@@ -262,7 +262,7 @@ export const encodeForeignField = (
     return {
       joins: [sql`
         LEFT JOIN (
-          SELECT ${includes}, *
+          SELECT ${includes}, ${{ identifier: tempName }}.*
           FROM ${encodeRemix({ className: dataType.target }, remix)} AS ${{ identifier: tempName }}
         ) AS ${{ identifier: tempName }}
         ON ${{ literal: _.map(_.compact(cond), x => sql`(${x})`), separator: ' AND ' }}
@@ -292,7 +292,7 @@ export const encodeForeignField = (
       SELECT ${array ? sql`UNNEST(${field})` : field}
       FROM (
         SELECT * FROM (
-          SELECT ${includes}, *
+          SELECT ${includes}, ${{ identifier: tempName }}.*
           FROM ${encodeRemix({ className: dataType.target }, remix)} AS ${{ identifier: tempName }}
           ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
         ) AS ${{ identifier: tempName }}
