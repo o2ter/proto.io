@@ -34,7 +34,7 @@ const Proto = new ProtoClient({
   masterUser,
 });
 
-test('test read permission field', async () => {
+test('test permission field', async () => {
 
   await Proto.run('createUserWithRole', { role: 'admin' });
 
@@ -47,14 +47,18 @@ test('test read permission field', async () => {
   expect(result).toHaveLength(1);
   expect(result[0].id).toEqual(object.id);
 
+  await Proto.Query('PermField').equalTo('_id', object.id).updateOne({});
+
   await Proto.logout();
 
   const result2 = await Proto.Query('PermField').findAll();
   expect(result2).toHaveLength(0);
 
+  await expect(() => Proto.Query('PermField').equalTo('_id', object.id).updateOne({}))
+    .rejects.toThrow();
 })
 
-test('test read permission field 2', async () => {
+test('test permission field 2', async () => {
 
   await Proto.run('createUserWithRole', { role: 'admin' });
 
@@ -67,14 +71,18 @@ test('test read permission field 2', async () => {
   expect(result).toHaveLength(1);
   expect(result[0].id).toEqual(object.id);
 
+  await Proto.Query('PermField').equalTo('_id', object.id).updateOne({});
+
   await Proto.logout();
 
   const result2 = await Proto.Query('PermField').findAll();
   expect(result2).toHaveLength(0);
 
+  await expect(() => Proto.Query('PermField').equalTo('_id', object.id).updateOne({}))
+    .rejects.toThrow();
 })
 
-test('test read permission field 3', async () => {
+test('test permission field 3', async () => {
 
   await Proto.run('createUserWithRole', { role: 'admin' });
 
@@ -87,14 +95,18 @@ test('test read permission field 3', async () => {
   expect(result).toHaveLength(1);
   expect(result[0].id).toEqual(object.id);
 
+  await Proto.Query('PermField').equalTo('_id', object.id).updateOne({});
+
   await Proto.logout();
 
   const result2 = await Proto.Query('PermField').findAll();
   expect(result2).toHaveLength(0);
 
+  await expect(() => Proto.Query('PermField').equalTo('_id', object.id).updateOne({}))
+    .rejects.toThrow();
 })
 
-test('test read permission field 4', async () => {
+test('test permission field 4', async () => {
 
   await Proto.run('createUserWithRole', { role: 'admin' });
 
@@ -107,9 +119,13 @@ test('test read permission field 4', async () => {
   expect(result).toHaveLength(1);
   expect(result[0].id).toEqual(object.id);
 
+  await Proto.Query('PermField').equalTo('_id', object.id).updateOne({});
+
   await Proto.logout();
 
   const result2 = await Proto.Query('PermField').findAll();
   expect(result2).toHaveLength(0);
 
+  await expect(() => Proto.Query('PermField').equalTo('_id', object.id).updateOne({}))
+    .rejects.toThrow();
 })
