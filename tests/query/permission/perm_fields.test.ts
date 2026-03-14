@@ -47,15 +47,16 @@ test('test permission field', async () => {
   expect(result).toHaveLength(1);
   expect(result[0].id).toEqual(object.id);
 
-  await Proto.Query('PermField').equalTo('_id', object.id).updateOne({});
+  const updated = await Proto.Query('PermField').equalTo('_id', object.id).updateOne({});
+  expect(updated?.id).toEqual(object.id);
 
   await Proto.logout();
 
   const result2 = await Proto.Query('PermField').findAll();
   expect(result2).toHaveLength(0);
 
-  await expect(() => Proto.Query('PermField').equalTo('_id', object.id).updateOne({}))
-    .rejects.toThrow();
+  const updated2 = await Proto.Query('PermField').equalTo('_id', object.id).updateOne({});
+  expect(updated2?.id).toBeUndefined();
 })
 
 test('test permission field 2', async () => {
@@ -71,15 +72,17 @@ test('test permission field 2', async () => {
   expect(result).toHaveLength(1);
   expect(result[0].id).toEqual(object.id);
 
-  await Proto.Query('PermField').equalTo('_id', object.id).updateOne({});
+  const updated = await Proto.Query('PermField').equalTo('_id', object.id).updateOne({});
+  expect(updated?.id).toEqual(object.id);
 
   await Proto.logout();
 
   const result2 = await Proto.Query('PermField').findAll();
   expect(result2).toHaveLength(0);
 
-  await expect(() => Proto.Query('PermField').equalTo('_id', object.id).updateOne({}))
-    .rejects.toThrow();
+  const updated2 = await Proto.Query('PermField').equalTo('_id', object.id).updateOne({});
+  expect(updated2?.id).toBeUndefined();
+
 })
 
 test('test permission field 3', async () => {
@@ -95,15 +98,16 @@ test('test permission field 3', async () => {
   expect(result).toHaveLength(1);
   expect(result[0].id).toEqual(object.id);
 
-  await Proto.Query('PermField').equalTo('_id', object.id).updateOne({});
+  const updated = await Proto.Query('PermField').equalTo('_id', object.id).updateOne({});
+  expect(updated?.id).toEqual(object.id);
 
   await Proto.logout();
 
   const result2 = await Proto.Query('PermField').findAll();
   expect(result2).toHaveLength(0);
 
-  await expect(() => Proto.Query('PermField').equalTo('_id', object.id).updateOne({}))
-    .rejects.toThrow();
+  const updated2 = await Proto.Query('PermField').equalTo('_id', object.id).updateOne({});
+  expect(updated2?.id).toBeUndefined();
 })
 
 test('test permission field 4', async () => {
@@ -119,13 +123,14 @@ test('test permission field 4', async () => {
   expect(result).toHaveLength(1);
   expect(result[0].id).toEqual(object.id);
 
-  await Proto.Query('PermField').equalTo('_id', object.id).updateOne({});
+  const updated = await Proto.Query('PermField').equalTo('_id', object.id).updateOne({});
+  expect(updated?.id).toEqual(object.id);
 
   await Proto.logout();
 
   const result2 = await Proto.Query('PermField').findAll();
   expect(result2).toHaveLength(0);
 
-  await expect(() => Proto.Query('PermField').equalTo('_id', object.id).updateOne({}))
-    .rejects.toThrow();
+  const updated2 = await Proto.Query('PermField').equalTo('_id', object.id).updateOne({});
+  expect(updated2?.id).toBeUndefined();
 })
