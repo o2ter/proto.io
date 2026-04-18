@@ -121,7 +121,7 @@ Proto.define('streamEcho', async (proto) => {
   return (async function* () {
     for (const item of params) {
       yield item;
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 500));
     }
   })();
 });
