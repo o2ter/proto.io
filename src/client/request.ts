@@ -75,9 +75,6 @@ export default class Service<Ext, P extends ProtoType<any>> {
 
   setSessionToken(token?: string) {
     this.token = token;
-    if (typeof window === 'undefined') {
-      this.service.defaults.headers.Cookie = token ? `${this.cookieKey}=${token}` : null;
-    }
     for (const socket of this.sockets) {
       socket.emit('auth', token);
     }
@@ -94,6 +91,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
       signal: abortSignal,
       headers: {
         'Content-Type': 'application/json; charset=utf-8',
+        Cookie: this.token ? `${this.cookieKey}=${this.token}` : undefined,
         ...master ? {
           [MASTER_USER_HEADER_NAME]: this.proto.options.masterUser?.user,
           [MASTER_PASS_HEADER_NAME]: this.proto.options.masterUser?.pass,
@@ -157,6 +155,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
         signal: abortSignal,
         headers: {
           'Content-Type': 'application/json; charset=utf-8',
+          Cookie: this.token ? `${this.cookieKey}=${this.token}` : undefined,
           ...master ? {
             [MASTER_USER_HEADER_NAME]: this.proto.options.masterUser?.user,
             [MASTER_PASS_HEADER_NAME]: this.proto.options.masterUser?.pass,
@@ -230,6 +229,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
               signal: abortSignal,
               headers: {
                 'Content-Type': 'application/json; charset=utf-8',
+                Cookie: this.token ? `${this.cookieKey}=${this.token}` : undefined,
                 ...master ? {
                   [MASTER_USER_HEADER_NAME]: this.proto.options.masterUser?.user,
                   [MASTER_PASS_HEADER_NAME]: this.proto.options.masterUser?.pass,
