@@ -143,10 +143,14 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
 
       // Handle final remainder - should be ']' or error
       if (remainder.trim() && remainder.trim() !== ']') {
-        const possibleError = deserialize(remainder);
-        if (possibleError && typeof possibleError === 'object' && 'error' in possibleError) {
-          throw possibleError;
+        let error: Error
+        try {
+          const _error = JSON.parse(remainder);
+          error = new Error(_error.message, { cause: _error });
+        } catch {
+          error = new Error(remainder);
         }
+        throw error;
       }
     })() as AsyncIterable<TSerializable> as R;
   }
