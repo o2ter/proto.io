@@ -117,7 +117,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
       const { value, done } = await iterator.next();
       if (done) break;
 
-      buffer += decoder.decode(value, { stream: !done });
+      buffer += decoder.decode(value, { stream: true });
       if (buffer.includes('\n')) {
         isStreaming = true;
       }
@@ -149,7 +149,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
         const { value, done } = await iterator.next();
         if (done) break;
 
-        remainder += decoder.decode(value, { stream: !done });
+        remainder += decoder.decode(value, { stream: true });
         const parts = remainder.split('\n');
         remainder = parts[parts.length - 1];
 
