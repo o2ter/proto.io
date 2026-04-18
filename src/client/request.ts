@@ -139,7 +139,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
     return this._request<T, D>(config);
   }
 
-  async _streamRequest<T extends unknown = any, D extends unknown = any>(
+  async _streamRequest<D extends unknown = any>(
     config: RequestOptions<boolean> & AxiosRequestConfig<D>,
     retry = 0
   ): Promise<Readable | ReadableStream<Uint8Array>> {
@@ -284,10 +284,10 @@ export default class Service<Ext, P extends ProtoType<any>> {
     }
   }
 
-  async streamRequest<T extends unknown = any, D extends unknown = any>(
+  async streamRequest<D extends unknown = any>(
     config: RequestOptions<boolean> & Omit<AxiosRequestConfig<D>, 'responseType' | 'adapter'>,
   ) {
-    return this._streamRequest<T, D>(config);
+    return this._streamRequest<D>(config);
   }
 
   socket() {
