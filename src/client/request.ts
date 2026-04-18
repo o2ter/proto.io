@@ -52,7 +52,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
   private sockets: Socket[] = [];
 
   private retryLimit?: number;
-  private cookieKey?: string;
+  private cookieKey: string;
 
   constructor(proto: ProtoClientInternal<Ext, P>, { retryLimit, cookieKey, ...options }: AxiosOptions = {}) {
     this.proto = proto;
@@ -90,7 +90,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
         [MASTER_USER_HEADER_NAME]: this.proto.options.masterUser?.user,
         [MASTER_PASS_HEADER_NAME]: this.proto.options.masterUser?.pass,
       } : {},
-      ...this.cookieKey && this.cookieKey !== AUTH_COOKIE_KEY ? {
+      ...this.cookieKey !== AUTH_COOKIE_KEY ? {
         [AUTH_ALT_COOKIE_KEY]: this.cookieKey,
       } : {},
       ...headers,
