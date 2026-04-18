@@ -54,8 +54,8 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
         res.type('application/json');
 
         if (_.isObjectLike(data) && Symbol.asyncIterator in data) {
+          let first = true;
           try {
-            let first = true;
             for await (const item of data) {
               res.write(`${first ? '[' : ','}${serialize(item ?? null)}\n`);
               res.flush();
@@ -64,8 +64,12 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
             res.write(first ? '[]' : ']');
             res.end();
           } catch (error) {
-            res.write(encodeError(error));
-            res.end();
+            if (first) {
+              res.status(400).json(encodeError(error));
+            } else {
+              res.write(encodeError(error));
+              res.end();
+            }
           }
         } else {
           res.send(serialize(data ?? null));
