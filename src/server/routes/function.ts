@@ -60,7 +60,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
               res.write(`${first ? '[' : ','}${serialize(item ?? null)}\n`);
               first = false;
             }
-            res.write(']');
+            res.write(first ? '[]' : ']');
             res.end();
           } catch (error) {
             res.write(encodeError(error));
