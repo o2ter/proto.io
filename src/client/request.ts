@@ -106,7 +106,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
     });
 
     if (res.headers['set-cookie']) {
-      const cookies = res.headers['set-cookie'];
+      const cookies = _.castArray(res.headers['set-cookie']);
       const pattern = `${this.cookieKey}=`;
       const token = _.findLast(_.flatMap(cookies, x => x.split(';')), x => _.startsWith(x.trim(), pattern));
       this.setSessionToken(token?.trim().slice(pattern.length));
@@ -171,7 +171,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
       });
 
       if (res.headers['set-cookie']) {
-        const cookies = res.headers['set-cookie'];
+        const cookies = _.castArray(res.headers['set-cookie']);
         const pattern = `${this.cookieKey}=`;
         const token = _.findLast(_.flatMap(cookies, x => x.split(';')), x => _.startsWith(x.trim(), pattern));
         this.setSessionToken(token?.trim().slice(pattern.length));
@@ -256,7 +256,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
             });
 
             if (res.headers['set-cookie']) {
-              const cookies = res.headers['set-cookie'];
+              const cookies = _.castArray(res.headers['set-cookie']);
               const pattern = `${this.cookieKey}=`;
               const token = _.findLast(_.flatMap(cookies, x => x.split(';')), x => _.startsWith(x.trim(), pattern));
               this.setSessionToken(token?.trim().slice(pattern.length));
