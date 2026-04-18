@@ -313,33 +313,6 @@ const queryCache = new LRUCache({
 3. **Memory Management**: Efficient object creation and garbage collection
 4. **CPU Optimization**: Optimized algorithms and data structures
 
-## Error Handling
-
-### Error Hierarchy
-
-```typescript
-ProtoError
-├── ValidationError
-├── AuthenticationError
-├── AuthorizationError
-├── NotFoundError
-├── ConflictError
-└── InternalError
-```
-
-### Error Response Format
-
-```typescript
-{
-  code: 101,
-  error: "Object not found",
-  details: {
-    className: "Post",
-    objectId: "post_123"
-  }
-}
-```
-
 ## Monitoring and Observability
 
 ### Logging
