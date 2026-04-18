@@ -116,8 +116,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
       for (let i = 0; i < lines.length - 1; i++) {
         const line = lines[i].trim();
         if (line && line !== '[' && line !== ']') {
-          const json = line.startsWith('[') ? line.substring(1) :
-            line.startsWith(',') ? line.substring(1) : line;
+          const json = line.startsWith('[') || line.startsWith(',') ? line.substring(1) : line;
           if (json) {
             yield proto.rebind(deserialize(json));
           }
