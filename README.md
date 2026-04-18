@@ -895,28 +895,6 @@ const proto = new ProtoService({
 });
 ```
 
-## Testing
-
-The project includes comprehensive tests covering:
-
-- CRUD operations
-- Query functionality
-- Real-time features
-- Authentication and authorization
-- File storage
-- Background jobs
-- Vector operations
-- Edge cases and error handling
-
-```bash
-# Run tests
-npm test
-
-# Run specific test suites
-npm test -- --testPathPattern=query
-npm test -- --testPathPattern=auth
-```
-
 ## API Reference
 
 ### ProtoService Methods
