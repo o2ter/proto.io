@@ -104,6 +104,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
     }
   }
 
+  // Retry on 412 Precondition Failed or 429 Too Many Requests, which may indicate a temporary issue that can be resolved by retrying the request.
   private _shouldRetry(status: number, retry: number): boolean {
     return (this.retryLimit ? retry < this.retryLimit : true) && _.includes([412, 429], status);
   }
