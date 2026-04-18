@@ -88,11 +88,11 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
     });
 
     let buffer = '';
-    let isStreaming: boolean | undefined;
+    let isStreaming = false;
     const iterator = res[Symbol.asyncIterator]();
 
     // Collect chunks until we determine if it's streaming or not
-    while (isStreaming === undefined) {
+    while (!isStreaming) {
       const { value, done } = await iterator.next();
       if (done) break;
 
