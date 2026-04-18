@@ -58,6 +58,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
             let first = true;
             for await (const item of data) {
               res.write(`${first ? '[' : ','}${serialize(item ?? null)}\n`);
+              res.flush();
               first = false;
             }
             res.write(first ? '[]' : ']');

@@ -148,3 +148,17 @@ test('test config permission', async () => {
   
   await Proto.logout();
 });
+
+test('test stream request', async () => {
+
+  const stream = await Proto.run('streamEcho', [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+
+  const result: string[] = [];
+
+  for await (const item of stream) {
+    result.push(item);
+  }
+
+  expect(result).toStrictEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+
+}, 30000);

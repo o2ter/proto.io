@@ -116,6 +116,16 @@ Proto.define('createUserWithRole', async (proto) => {
   await proto.becomeUser(proto.req!, user);
 });
 
+Proto.define('streamEcho', async (proto) => {
+  const { params } = proto;
+  return (async function* () {
+    for (const item of params) {
+      yield item;
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+  })();
+});
+
 beforeAll(async () => {
 
   app.use('/proto', await ProtoRoute({
