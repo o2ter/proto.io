@@ -255,7 +255,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     const func = this.functions[name];
 
     if (_.isNil(func)) throw Error('Function not found');
-    if (_.isFunction(func)) return func(proxy(payload ?? proto));
+    if (typeof func === 'function') return func(proxy(payload ?? proto));
 
     const { callback, validator } = func;
 
