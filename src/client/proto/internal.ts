@@ -24,6 +24,7 @@
 //
 
 import _ from 'lodash';
+import type { Readable } from 'node:stream';
 import Service from '../request';
 import { RequestOptions } from '../options';
 import { ProtoOptions } from './types';
@@ -41,6 +42,25 @@ import { ExtraOptions } from '../../internals/options';
 import { UPLOAD_TOKEN_HEADER_NAME } from '../../internals/const';
 import { TObject } from '../../internals/object';
 import { TQuerySelector } from '../../internals/query/types/selectors';
+
+const readableStreamToAsyncIterable = (stream: Readable | ReadableStream<Uint8Array>): AsyncIterable<Uint8Array> => {
+  if (typeof ReadableStream !== 'undefined' && stream instanceof ReadableStream) {
+    return (async function* () {
+      const reader = stream.getReader();
+      try {
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          yield value;
+        }
+      } finally {
+        reader.releaseLock();
+      }
+    })();
+  } else {
+    return stream;
+  }
+}
 
 export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements ProtoInternalType<Ext, P> {
 
@@ -89,7 +109,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
 
     let buffer = '';
     let isStreaming = false;
-    const iterator = res[Symbol.asyncIterator]();
+    const iterator = readableStreamToAsyncIterable(res)[Symbol.asyncIterator]();
 
     // Collect chunks until we determine if it's streaming or not
     while (!isStreaming) {
@@ -124,8 +144,11 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
       }
 
       // Continue processing remaining stream chunks
-      for await (const chunk of iterator) {
-        remainder += bufferToString(chunk);
+      while (true) {
+        const { value, done } = await iterator.next();
+        if (done) break;
+
+        remainder += bufferToString(value);
         const parts = remainder.split('\n');
         remainder = parts[parts.length - 1];
 
