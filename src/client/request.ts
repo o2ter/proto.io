@@ -263,29 +263,10 @@ export default class Service<Ext, P extends ProtoType<any>> {
             }
 
             if (res.status !== 200) {
-              let error: Error;
+              let error: Error
               try {
-                // For streams, we need to read the content first
-                let errorText = '';
-                if (isFetchSupported && res.data instanceof ReadableStream) {
-                  const reader = res.data.getReader();
-                  const decoder = new TextDecoder();
-                  let done = false;
-                  while (!done) {
-                    const { value, done: streamDone } = await reader.read();
-                    done = streamDone;
-                    if (value) {
-                      errorText += decoder.decode(value, { stream: !done });
-                    }
-                  }
-                } else {
-                  // Node.js stream.Readable
-                  const chunks: Buffer[] = [];
-                  for await (const chunk of res.data) {
-                    chunks.push(Buffer.from(chunk));
-                  }
-                  errorText = Buffer.concat(chunks).toString('utf-8');
-                }
+                const decoder = new TextDecoder();
+                const errorText = decoder.decode(res.data);
                 const _error = JSON.parse(errorText);
                 error = new Error(_error.message, { cause: _error });
               } catch {
