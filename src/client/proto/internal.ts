@@ -29,7 +29,7 @@ import Service from '../request';
 import { RequestOptions } from '../options';
 import { ProtoOptions } from './types';
 import { TSchema } from '../../internals/schema';
-import { asyncStream, base64ToBuffer, bufferToString, isBinaryData, isBlob, isReadableStream, iterableToStream } from '@o2ter/utils-js';
+import { asyncStream, base64ToBuffer, isBinaryData, isBlob, isReadableStream, iterableToStream } from '@o2ter/utils-js';
 import { TSerializable, deserialize, serialize } from '../../internals/codec';
 import { EventData, ProtoInternalType, ProtoType } from '../../internals/proto';
 import { TObjectType } from '../../internals/object/types';
@@ -110,13 +110,14 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
     let buffer = '';
     let isStreaming = false;
     const iterator = readableStreamToAsyncIterable(res)[Symbol.asyncIterator]();
+    const decoder = new TextDecoder();
 
     // Collect chunks until we determine if it's streaming or not
     while (!isStreaming) {
       const { value, done } = await iterator.next();
       if (done) break;
 
-      buffer += bufferToString(value);
+      buffer += decoder.decode(value, { stream: !done });
       if (buffer.includes('\n')) {
         isStreaming = true;
       }
@@ -148,7 +149,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
         const { value, done } = await iterator.next();
         if (done) break;
 
-        remainder += bufferToString(value);
+        remainder += decoder.decode(value, { stream: !done });
         const parts = remainder.split('\n');
         remainder = parts[parts.length - 1];
 
