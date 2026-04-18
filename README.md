@@ -427,31 +427,28 @@ client.on('new_message', (data) => {
 ### Upload Files
 
 ```typescript
-// Server-side file upload
-app.post('/upload', upload.single('file'), async (req, res) => {
-  const proto = getProtoInstance(req);
-  
-  const file = await proto.Query('File').insert({
-    name: req.file.originalname,
-    data: req.file.buffer,
-    mimeType: req.file.mimetype,
+// Server-side: Define cloud function to generate upload tokens
+proto.define('generateUploadToken', async ({ params }) => {
+  return proto.generateUploadToken({
+    maxUploadSize: 50 * 1024 * 1024, // 50MB
+    attributes: params?.attributes, // Optional: pre-set file attributes
   });
-  
-  res.json(file);
 });
 
-// Client-side
+// Client-side: Upload file using ProtoClient
 const fileInput = document.querySelector('input[type="file"]');
-const formData = new FormData();
-formData.append('file', fileInput.files[0]);
+const file = client.File(
+  fileInput.files[0].name,
+  fileInput.files[0],
+  fileInput.files[0].type
+);
 
-const response = await fetch('/api/upload', {
-  method: 'POST',
-  body: formData,
-  headers: {
-    'Authorization': `Bearer ${sessionToken}`
-  }
+// Get upload token and save the file
+await file.save({ 
+  uploadToken: await client.run('generateUploadToken') as string 
 });
+
+console.log('File uploaded:', file.url);
 ```
 
 ### File Storage Adapters

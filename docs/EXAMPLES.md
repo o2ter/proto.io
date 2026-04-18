@@ -194,9 +194,6 @@ File upload and management with different storage backends.
 // file-storage/server.ts
 import { DatabaseFileStorage } from 'proto.io/adapters/file/database';
 import { FileSystemStorage } from 'proto.io/adapters/file/filesystem';
-import multer from 'multer';
-
-const upload = multer();
 
 // Setup file storage
 const proto = new ProtoService({
@@ -204,17 +201,15 @@ const proto = new ProtoService({
   fileStorage: new FileSystemStorage('/uploads'),
 });
 
-// File upload endpoint
-app.post('/upload', upload.single('file'), async (req, res) => {
-  const proto = req.proto; // Assume middleware sets this
+// Define cloud function to generate upload tokens
+proto.define('generateUploadToken', async ({ params, user }) => {
+  // Optionally require authentication
+  if (!user) throw new Error('Authentication required');
   
-  const file = await proto.Query('File').insert({
-    name: req.file.originalname,
-    data: req.file.buffer,
-    mimeType: req.file.mimetype,
+  return proto.generateUploadToken({
+    maxUploadSize: 50 * 1024 * 1024, // 50MB
+    attributes: params?.attributes, // Optional: pre-set file attributes
   });
-  
-  res.json(file);
 });
 ```
 
@@ -229,23 +224,25 @@ const file = client.File(
   fileInput.files[0].type
 );
 
-// Save the file (requires authentication)
-await file.save();
+// Optional: Set additional file attributes
+file.set('description', 'My uploaded file');
+file.set('tags', ['document', 'important']);
 
-// Or upload via custom endpoint with session info
-const sessionInfo = await client.sessionInfo();
-const formData = new FormData();
-formData.append('file', fileInput.files[0]);
-
-const response = await fetch('/api/upload', {
-  method: 'POST',
-  body: formData,
-  headers: {
-    'Authorization': `Bearer ${sessionInfo?.token}`
-  }
+// Get upload token from server and save the file
+await file.save({ 
+  uploadToken: await client.run('generateUploadToken') as string 
 });
 
-const uploadedFile = await response.json();
+console.log('File uploaded:', file.url);
+console.log('File ID:', file.id);
+console.log('File size:', file.get('size'));
+
+// Download/access the file
+const fileData = file.fileData();
+for await (const chunk of fileData) {
+  // Process file chunks
+  console.log('Chunk:', chunk);
+}
 ```
 
 ### 6. Cloud Functions (`cloud-functions/`)
