@@ -116,14 +116,12 @@ Proto.define('createUserWithRole', async (proto) => {
   await proto.becomeUser(proto.req!, user);
 });
 
-Proto.define('streamEcho', async (proto) => {
+Proto.define('streamEcho', async function* (proto) {
   const { params } = proto;
-  return (async function* () {
-    for (const item of params) {
-      yield item;
-      await new Promise(resolve => setTimeout(resolve, 500));
-    }
-  })();
+  for (const item of params) {
+    yield item;
+    await new Promise(resolve => setTimeout(resolve, 500));
+  }
 });
 
 beforeAll(async () => {
@@ -143,7 +141,7 @@ beforeEach(async () => {
   }
 });
 
-afterAll(async () => { 
+afterAll(async () => {
   await Proto.shutdown();
   await database.shutdown();
   await app.close();
