@@ -42,7 +42,7 @@ type Callback<T, R, E> = (request: ProtoService<E> & T) => Awaitable<R>;
  * @param request - The request object.
  * @returns An awaitable response.
  */
-export type ProtoFunction<E, P extends TSerializable, R extends TSerializable | void> = Callback<{ params: P; }, R, E>;
+export type ProtoFunction<E, P extends TSerializable, R extends TSerializable | AsyncIterable<TSerializable> | void> = Callback<{ params: P; }, R, E>;
 
 /**
  * A trigger callback function type.

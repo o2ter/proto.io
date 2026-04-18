@@ -24,6 +24,7 @@
 //
 
 import _ from 'lodash';
+import type { Readable } from 'node:stream';
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import {
   AUTH_COOKIE_KEY,
@@ -82,7 +83,10 @@ export default class Service<Ext, P extends ProtoType<any>> {
     }
   }
 
-  async _request<T extends unknown = any, D extends unknown = any>(config: RequestOptions<boolean> & AxiosRequestConfig<D>, retry = 0): Promise<AxiosResponse<T, D>> {
+  async _request<T extends unknown = any, D extends unknown = any>(
+    config: RequestOptions<boolean> & AxiosRequestConfig<D>,
+    retry = 0
+  ): Promise<AxiosResponse<T, D>> {
 
     const { master, abortSignal, serializeOpts, headers, ...opts } = config ?? {};
 
@@ -99,6 +103,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
         } : {},
         ...headers,
       },
+      responseType: 'text',
       ...opts,
     });
 
@@ -130,8 +135,138 @@ export default class Service<Ext, P extends ProtoType<any>> {
     return res;
   }
 
-  async request<T extends unknown = any, D extends unknown = any>(config: RequestOptions<boolean> & AxiosRequestConfig<D>) {
+  async request<T extends unknown = any, D extends unknown = any>(
+    config: RequestOptions<boolean> & Omit<AxiosRequestConfig<D>, 'responseType' | 'adapter'>
+  ) {
     return this._request<T, D>(config);
+  }
+
+  async _streamRequest<T extends unknown = any, D extends unknown = any>(
+    config: RequestOptions<boolean> & AxiosRequestConfig<D>,
+    retry = 0
+  ): Promise<Readable | ReadableStream<Uint8Array>> {
+
+    const { master, abortSignal, serializeOpts, headers, ...opts } = config ?? {};
+
+    const isNodeJs = typeof process !== 'undefined' && process.versions && process.versions.node;
+    const isFetchSupported = typeof fetch === 'function';
+
+    if (isNodeJs || isFetchSupported) {
+
+      const res = await this.service.request({
+        signal: abortSignal,
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          ...master ? {
+            [MASTER_USER_HEADER_NAME]: this.proto.options.masterUser?.user,
+            [MASTER_PASS_HEADER_NAME]: this.proto.options.masterUser?.pass,
+          } : {},
+          ...this.cookieKey && this.cookieKey !== AUTH_COOKIE_KEY ? {
+            [AUTH_ALT_COOKIE_KEY]: this.cookieKey,
+          } : {},
+          ...headers,
+        },
+        responseType: 'stream',
+        adapter: isFetchSupported ? 'fetch' : undefined,
+        ...opts,
+      });
+
+      if (res.headers['set-cookie']) {
+        const cookies = res.headers['set-cookie'];
+        const pattern = `${this.cookieKey}=`;
+        const token = _.findLast(_.flatMap(cookies, x => x.split(';')), x => _.startsWith(x.trim(), pattern));
+        this.setSessionToken(token?.trim().slice(pattern.length));
+      }
+
+      if (
+        (this.retryLimit ? retry < this.retryLimit : true) &&
+        _.includes([412, 429], res.status)
+      ) {
+        return this._streamRequest(config, retry + 1);
+      }
+
+      if (res.status !== 200) {
+        let error: Error;
+        try {
+          // For streams, we need to read the content first
+          let errorText = '';
+          if (isFetchSupported && res.data instanceof ReadableStream) {
+            const reader = res.data.getReader();
+            const decoder = new TextDecoder();
+            let done = false;
+            while (!done) {
+              const { value, done: streamDone } = await reader.read();
+              done = streamDone;
+              if (value) {
+                errorText += decoder.decode(value, { stream: !done });
+              }
+            }
+          } else {
+            // Node.js stream.Readable
+            const chunks: Buffer[] = [];
+            for await (const chunk of res.data) {
+              chunks.push(Buffer.from(chunk));
+            }
+            errorText = Buffer.concat(chunks).toString('utf-8');
+          }
+          const _error = JSON.parse(errorText);
+          error = new Error(_error.message, { cause: _error });
+        } catch {
+          error = new Error('Request failed');
+        }
+        throw error;
+      }
+
+      return res.data;
+
+    } else {
+      // Fallback for environments without stream support (old browsers)
+      // Use onDownloadProgress to receive data chunks
+      return new ReadableStream({
+        start: async (controller) => {
+          let lastByteLength = 0;
+          try {
+            await this.service.request({
+              signal: abortSignal,
+              headers: {
+                'Content-Type': 'application/json; charset=utf-8',
+                ...master ? {
+                  [MASTER_USER_HEADER_NAME]: this.proto.options.masterUser?.user,
+                  [MASTER_PASS_HEADER_NAME]: this.proto.options.masterUser?.pass,
+                } : {},
+                ...this.cookieKey && this.cookieKey !== AUTH_COOKIE_KEY ? {
+                  [AUTH_ALT_COOKIE_KEY]: this.cookieKey,
+                } : {},
+                ...headers,
+              },
+              responseType: 'arraybuffer',
+              onDownloadProgress: (progressEvent: any) => {
+                // progressEvent.event.target.response contains the accumulated ArrayBuffer
+                if (progressEvent.event && progressEvent.event.target) {
+                  const response = progressEvent.event.target.response as ArrayBuffer;
+                  if (response && response.byteLength > lastByteLength) {
+                    // Only enqueue new bytes since last progress event
+                    const newBytes = response.slice(lastByteLength);
+                    controller.enqueue(new Uint8Array(newBytes));
+                    lastByteLength = response.byteLength;
+                  }
+                }
+              },
+              ...opts,
+            });
+            controller.close();
+          } catch (error) {
+            controller.error(error);
+          }
+        },
+      });
+    }
+  }
+
+  async streamRequest<T extends unknown = any, D extends unknown = any>(
+    config: RequestOptions<boolean> & Omit<AxiosRequestConfig<D>, 'responseType' | 'adapter'>,
+  ) {
+    return this._streamRequest<T, D>(config);
   }
 
   socket() {

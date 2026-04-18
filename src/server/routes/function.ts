@@ -26,8 +26,8 @@
 import _ from 'lodash';
 import { Server, Router } from '@o2ter/server-js';
 import { ProtoService } from '../proto';
-import { response } from './common';
-import { deserialize } from '../../internals/codec';
+import { encodeError } from './common';
+import { deserialize, serialize } from '../../internals/codec';
 import { PVK } from '../../internals/private';
 import { TObject } from '../../internals/object';
 
@@ -43,14 +43,35 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       const { name } = req.params;
       if (_.isNil(proto[PVK].functions[name])) return void res.sendStatus(404);
 
-      await response(res, () => {
+      try {
 
         const payload = proto.connect(req, x => ({
           params: x.rebind(deserialize(req.body, { objAttrs: TObject.defaultReadonlyKeys })),
         }));
 
-        return payload[PVK].run(payload, name, payload, { master: payload.isMaster });
-      });
+        const data = await payload[PVK].run(payload, name, payload, { master: payload.isMaster });
+
+        res.type('application/json');
+
+        if (_.isObjectLike(data) && Symbol.asyncIterator in data) {
+          try {
+            let first = true;
+            for await (const item of data) {
+              res.write(`${first ? '[' : ','}${serialize(item ?? null)}\n`);
+              first = false;
+            }
+            res.write(']');
+            res.end();
+          } catch (error) {
+            res.write(encodeError(error));
+            res.end();
+          }
+        } else {
+          res.send(serialize(data ?? null));
+        }
+      } catch (error) {
+        res.status(400).json(encodeError(error));
+      }
     }
   );
 

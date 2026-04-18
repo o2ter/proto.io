@@ -276,7 +276,7 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
     await this[PVK].setConfig(values, options.acl);
   }
 
-  run<R extends TSerializable | void = any>(
+  run<R extends TSerializable | AsyncIterable<TSerializable> | void = any>(
     name: string,
     params?: TSerializable,
     options?: ExtraOptions<boolean>
@@ -285,7 +285,7 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
     return this[PVK].run(this, name, payload, options) as Promise<R>;
   }
 
-  define<P extends TSerializable = any, R extends TSerializable | void = any>(
+  define<P extends TSerializable = any, R extends TSerializable | AsyncIterable<TSerializable> | void = any>(
     name: string,
     callback: ProtoFunction<Ext, P, R>,
     options?: Omit<ProtoFunctionOptions<Ext>, 'callback'>,

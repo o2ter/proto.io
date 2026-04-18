@@ -28,7 +28,7 @@ import Service from '../request';
 import { RequestOptions } from '../options';
 import { ProtoOptions } from './types';
 import { TSchema } from '../../internals/schema';
-import { asyncStream, base64ToBuffer, isBinaryData, isBlob, isReadableStream, iterableToStream } from '@o2ter/utils-js';
+import { asyncStream, base64ToBuffer, bufferToString, isBinaryData, isBlob, isReadableStream, iterableToStream } from '@o2ter/utils-js';
 import { TSerializable, deserialize, serialize } from '../../internals/codec';
 import { EventData, ProtoInternalType, ProtoType } from '../../internals/proto';
 import { TObjectType } from '../../internals/object/types';
@@ -53,7 +53,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
     this.options = options;
     this.service = new Service(this, options.axiosOptions);
   }
-
+  
   async request(
     proto: P,
     data?: TSerializable,
@@ -65,11 +65,90 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
     const res = await this.service.request({
       baseURL: this.options.endpoint,
       data: serialize(data, serializeOpts),
-      responseType: 'text',
       ...opts,
     });
 
     return proto.rebind(deserialize(res.data));
+  }
+
+  async run<R extends TSerializable | AsyncIterable<TSerializable> | void = any>(
+    proto: P,
+    name: string,
+    data?: TSerializable,
+    options?: RequestOptions<boolean>
+  ) {
+    const { serializeOpts, ...opts } = options ?? {};
+
+    const res = await this.service.streamRequest({
+      method: 'post',
+      baseURL: this.options.endpoint,
+      url: `functions/${encodeURIComponent(name)}`,
+      data: serialize(data, serializeOpts),
+      ...opts,
+    });
+
+    let buffer = '';
+    let isStreaming: boolean | undefined;
+    const iterator = res[Symbol.asyncIterator]();
+
+    // Collect chunks until we determine if it's streaming or not
+    while (isStreaming === undefined) {
+      const { value, done } = await iterator.next();
+      if (done) break;
+
+      buffer += bufferToString(value);
+      if (buffer.includes('\n')) {
+        isStreaming = true;
+      }
+    }
+
+    if (!isStreaming) {
+      // No newline found - single value response
+      return proto.rebind(deserialize(buffer)) as R;
+    }
+
+    // Streaming response - return async generator
+    return (async function* () {
+      // Process buffered data first
+      let lines = buffer.split('\n');
+      let remainder = lines[lines.length - 1];
+
+      for (let i = 0; i < lines.length - 1; i++) {
+        const line = lines[i].trim();
+        if (line && line !== '[' && line !== ']') {
+          const json = line.startsWith('[') ? line.substring(1) :
+            line.startsWith(',') ? line.substring(1) : line;
+          if (json) {
+            yield proto.rebind(deserialize(json));
+          }
+        }
+      }
+
+      // Continue processing remaining stream chunks
+      for await (const chunk of iterator) {
+        remainder += bufferToString(chunk);
+        const parts = remainder.split('\n');
+        remainder = parts[parts.length - 1];
+
+        for (let i = 0; i < parts.length - 1; i++) {
+          const line = parts[i].trim();
+          if (line && line !== ']') {
+            const json = line.startsWith(',') ? line.substring(1) : line;
+            if (json) {
+              yield proto.rebind(deserialize(json));
+            }
+          }
+        }
+      }
+
+      // Handle final remainder - should be ']' or error
+      if (remainder.trim() && remainder.trim() !== ']') {
+        const possibleError = deserialize(remainder);
+        if (possibleError && typeof possibleError === 'object' && 'error' in possibleError) {
+          throw possibleError;
+        }
+      }
+    })() as AsyncIterable<TSerializable> as R;
   }
 
   refreshSocketSession() {
@@ -91,7 +170,6 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
       method: 'get',
       baseURL: this.options.endpoint,
       url: 'sessionInfo',
-      responseType: 'text',
       ...opts,
     });
 
@@ -109,7 +187,6 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
       method: 'get',
       baseURL: this.options.endpoint,
       url: 'user/me',
-      responseType: 'text',
       ...opts,
     });
 
@@ -127,7 +204,6 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
       method: 'get',
       baseURL: this.options.endpoint,
       url: 'config',
-      responseType: 'text',
       ...opts,
     });
 
@@ -141,7 +217,6 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
       method: 'get',
       baseURL: this.options.endpoint,
       url: 'configAcl',
-      responseType: 'text',
       ...opts,
     });
 
@@ -156,7 +231,6 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
       baseURL: this.options.endpoint,
       url: 'config',
       data: serialize({ values, acl }, serializeOpts),
-      responseType: 'text',
       ...opts,
     });
   }
@@ -169,7 +243,6 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
       method: 'post',
       baseURL: this.options.endpoint,
       url: 'user/logout',
-      responseType: 'text',
       ...opts,
     });
   }
@@ -186,7 +259,6 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
       baseURL: this.options.endpoint,
       url: `user/${user.id}/password`,
       data: serialize({ password }, serializeOpts),
-      responseType: 'text',
       ...opts,
     });
   }
@@ -201,7 +273,6 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
       method: 'post',
       baseURL: this.options.endpoint,
       url: `user/${user.id}/password`,
-      responseType: 'text',
       ...opts,
     });
   }
@@ -214,7 +285,6 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
       method: 'get',
       baseURL: this.options.endpoint,
       url: 'schema',
-      responseType: 'text',
       ...opts,
     });
 
@@ -257,7 +327,6 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
       method: 'post',
       baseURL: this.options.endpoint,
       url: 'files',
-      responseType: 'text',
       data: {
         attributes: serialize(_.fromPairs([...object._set_entries()]), serializeOpts),
         file: buffer,
@@ -307,24 +376,15 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
     const filename = object.filename;
     if (_.isNil(filename)) throw Error('Invalid filename');
 
-    return iterableToStream(async () => {
-      const res = await this.service.request({
-        method: 'get',
-        baseURL: this.options.endpoint,
-        url: `files/${object.id}/${encodeURIComponent(filename)}`,
-        responseType: 'stream',
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        ...opts,
-      });
-
-      if (Symbol.asyncIterator in res.data) {
-        return res.data;
-      } else {
-        throw Error('Unknown stream type');
-      }
-    });
+    return iterableToStream(async () => this.service.streamRequest({
+      method: 'get',
+      baseURL: this.options.endpoint,
+      url: `files/${object.id}/${encodeURIComponent(filename)}`,
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      ...opts,
+    }));
   }
 
   async notify(
@@ -340,7 +400,6 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
       baseURL: this.options.endpoint,
       url: 'notify',
       data: serialize(data, serializeOpts),
-      responseType: 'text',
       ...opts,
     });
   }
@@ -400,7 +459,6 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
         serializeOpts: {
           objAttrs: TObject.defaultReadonlyKeys,
         },
-        responseType: 'text',
         ...opts,
       });
       return proto.rebind(deserialize(res.data)) as TObjectType<string, Ext>[];
