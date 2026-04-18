@@ -80,6 +80,34 @@ export default class Service<Ext, P extends ProtoType<any>> {
     }
   }
 
+  private _buildHeaders(master?: boolean, headers?: any) {
+    return {
+      'Content-Type': 'application/json; charset=utf-8',
+      Cookie: this.token ? `${this.cookieKey}=${this.token}` : undefined,
+      ...master ? {
+        [MASTER_USER_HEADER_NAME]: this.proto.options.masterUser?.user,
+        [MASTER_PASS_HEADER_NAME]: this.proto.options.masterUser?.pass,
+      } : {},
+      ...this.cookieKey && this.cookieKey !== AUTH_COOKIE_KEY ? {
+        [AUTH_ALT_COOKIE_KEY]: this.cookieKey,
+      } : {},
+      ...headers,
+    };
+  }
+
+  private _extractAndSetToken(responseHeaders: any) {
+    if (responseHeaders['set-cookie']) {
+      const cookies = _.castArray(responseHeaders['set-cookie']);
+      const pattern = `${this.cookieKey}=`;
+      const token = _.findLast(_.flatMap(cookies, x => x.split(';')), x => _.startsWith(x.trim(), pattern));
+      this.setSessionToken(token?.trim().slice(pattern.length));
+    }
+  }
+
+  private _shouldRetry(status: number, retry: number): boolean {
+    return (this.retryLimit ? retry < this.retryLimit : true) && _.includes([412, 429], status);
+  }
+
   async _request<T extends unknown = any, D extends unknown = any>(
     config: RequestOptions<boolean> & AxiosRequestConfig<D>,
     retry = 0
@@ -89,33 +117,14 @@ export default class Service<Ext, P extends ProtoType<any>> {
 
     const res = await this.service.request({
       signal: abortSignal,
-      headers: {
-        'Content-Type': 'application/json; charset=utf-8',
-        Cookie: this.token ? `${this.cookieKey}=${this.token}` : undefined,
-        ...master ? {
-          [MASTER_USER_HEADER_NAME]: this.proto.options.masterUser?.user,
-          [MASTER_PASS_HEADER_NAME]: this.proto.options.masterUser?.pass,
-        } : {},
-        ...this.cookieKey && this.cookieKey !== AUTH_COOKIE_KEY ? {
-          [AUTH_ALT_COOKIE_KEY]: this.cookieKey,
-        } : {},
-        ...headers,
-      },
+      headers: this._buildHeaders(master, headers),
       responseType: 'text',
       ...opts,
     });
 
-    if (res.headers['set-cookie']) {
-      const cookies = _.castArray(res.headers['set-cookie']);
-      const pattern = `${this.cookieKey}=`;
-      const token = _.findLast(_.flatMap(cookies, x => x.split(';')), x => _.startsWith(x.trim(), pattern));
-      this.setSessionToken(token?.trim().slice(pattern.length));
-    }
+    this._extractAndSetToken(res.headers);
 
-    if (
-      (this.retryLimit ? retry < this.retryLimit : true) &&
-      _.includes([412, 429], res.status)
-    ) {
+    if (this._shouldRetry(res.status, retry)) {
       return this._request(config, retry + 1);
     }
 
@@ -139,6 +148,30 @@ export default class Service<Ext, P extends ProtoType<any>> {
     return this._request<T, D>(config);
   }
 
+  private async _readStreamError(stream: ReadableStream | Readable, isFetchSupported: boolean): Promise<string> {
+    if (isFetchSupported && stream instanceof ReadableStream) {
+      const reader = stream.getReader();
+      const decoder = new TextDecoder();
+      let errorText = '';
+      let done = false;
+      while (!done) {
+        const { value, done: streamDone } = await reader.read();
+        done = streamDone;
+        if (value) {
+          errorText += decoder.decode(value, { stream: !done });
+        }
+      }
+      return errorText;
+    } else {
+      // Node.js stream.Readable
+      const chunks: Buffer[] = [];
+      for await (const chunk of stream as Readable) {
+        chunks.push(Buffer.from(chunk));
+      }
+      return Buffer.concat(chunks).toString('utf-8');
+    }
+  }
+
   async _streamRequest<D extends unknown = any>(
     config: RequestOptions<boolean> & AxiosRequestConfig<D>,
     retry = 0
@@ -153,61 +186,22 @@ export default class Service<Ext, P extends ProtoType<any>> {
 
       const res = await this.service.request({
         signal: abortSignal,
-        headers: {
-          'Content-Type': 'application/json; charset=utf-8',
-          Cookie: this.token ? `${this.cookieKey}=${this.token}` : undefined,
-          ...master ? {
-            [MASTER_USER_HEADER_NAME]: this.proto.options.masterUser?.user,
-            [MASTER_PASS_HEADER_NAME]: this.proto.options.masterUser?.pass,
-          } : {},
-          ...this.cookieKey && this.cookieKey !== AUTH_COOKIE_KEY ? {
-            [AUTH_ALT_COOKIE_KEY]: this.cookieKey,
-          } : {},
-          ...headers,
-        },
+        headers: this._buildHeaders(master, headers),
         responseType: 'stream',
         adapter: isFetchSupported ? 'fetch' : undefined,
         ...opts,
       });
 
-      if (res.headers['set-cookie']) {
-        const cookies = _.castArray(res.headers['set-cookie']);
-        const pattern = `${this.cookieKey}=`;
-        const token = _.findLast(_.flatMap(cookies, x => x.split(';')), x => _.startsWith(x.trim(), pattern));
-        this.setSessionToken(token?.trim().slice(pattern.length));
-      }
+      this._extractAndSetToken(res.headers);
 
-      if (
-        (this.retryLimit ? retry < this.retryLimit : true) &&
-        _.includes([412, 429], res.status)
-      ) {
+      if (this._shouldRetry(res.status, retry)) {
         return this._streamRequest(config, retry + 1);
       }
 
       if (res.status !== 200) {
         let error: Error;
         try {
-          // For streams, we need to read the content first
-          let errorText = '';
-          if (isFetchSupported && res.data instanceof ReadableStream) {
-            const reader = res.data.getReader();
-            const decoder = new TextDecoder();
-            let done = false;
-            while (!done) {
-              const { value, done: streamDone } = await reader.read();
-              done = streamDone;
-              if (value) {
-                errorText += decoder.decode(value, { stream: !done });
-              }
-            }
-          } else {
-            // Node.js stream.Readable
-            const chunks: Buffer[] = [];
-            for await (const chunk of res.data) {
-              chunks.push(Buffer.from(chunk));
-            }
-            errorText = Buffer.concat(chunks).toString('utf-8');
-          }
+          const errorText = await this._readStreamError(res.data, isFetchSupported);
           const _error = JSON.parse(errorText);
           error = new Error(_error.message, { cause: _error });
         } catch {
@@ -227,18 +221,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
           try {
             const res = await this.service.request({
               signal: abortSignal,
-              headers: {
-                'Content-Type': 'application/json; charset=utf-8',
-                Cookie: this.token ? `${this.cookieKey}=${this.token}` : undefined,
-                ...master ? {
-                  [MASTER_USER_HEADER_NAME]: this.proto.options.masterUser?.user,
-                  [MASTER_PASS_HEADER_NAME]: this.proto.options.masterUser?.pass,
-                } : {},
-                ...this.cookieKey && this.cookieKey !== AUTH_COOKIE_KEY ? {
-                  [AUTH_ALT_COOKIE_KEY]: this.cookieKey,
-                } : {},
-                ...headers,
-              },
+              headers: this._buildHeaders(master, headers),
               responseType: 'arraybuffer',
               onDownloadProgress: (progressEvent: any) => {
                 // progressEvent.event.target.response contains the accumulated ArrayBuffer
@@ -255,12 +238,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
               ...opts,
             });
 
-            if (res.headers['set-cookie']) {
-              const cookies = _.castArray(res.headers['set-cookie']);
-              const pattern = `${this.cookieKey}=`;
-              const token = _.findLast(_.flatMap(cookies, x => x.split(';')), x => _.startsWith(x.trim(), pattern));
-              this.setSessionToken(token?.trim().slice(pattern.length));
-            }
+            this._extractAndSetToken(res.headers);
 
             if (res.status !== 200) {
               let error: Error
