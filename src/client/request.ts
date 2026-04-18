@@ -226,7 +226,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
         start: async (controller) => {
           let lastByteLength = 0;
           try {
-            await this.service.request({
+            const res = await this.service.request({
               signal: abortSignal,
               headers: {
                 'Content-Type': 'application/json; charset=utf-8',
@@ -254,6 +254,46 @@ export default class Service<Ext, P extends ProtoType<any>> {
               },
               ...opts,
             });
+
+            if (res.headers['set-cookie']) {
+              const cookies = res.headers['set-cookie'];
+              const pattern = `${this.cookieKey}=`;
+              const token = _.findLast(_.flatMap(cookies, x => x.split(';')), x => _.startsWith(x.trim(), pattern));
+              this.setSessionToken(token?.trim().slice(pattern.length));
+            }
+
+            if (res.status !== 200) {
+              let error: Error;
+              try {
+                // For streams, we need to read the content first
+                let errorText = '';
+                if (isFetchSupported && res.data instanceof ReadableStream) {
+                  const reader = res.data.getReader();
+                  const decoder = new TextDecoder();
+                  let done = false;
+                  while (!done) {
+                    const { value, done: streamDone } = await reader.read();
+                    done = streamDone;
+                    if (value) {
+                      errorText += decoder.decode(value, { stream: !done });
+                    }
+                  }
+                } else {
+                  // Node.js stream.Readable
+                  const chunks: Buffer[] = [];
+                  for await (const chunk of res.data) {
+                    chunks.push(Buffer.from(chunk));
+                  }
+                  errorText = Buffer.concat(chunks).toString('utf-8');
+                }
+                const _error = JSON.parse(errorText);
+                error = new Error(_error.message, { cause: _error });
+              } catch {
+                error = new Error('Request failed');
+              }
+              throw error;
+            }
+
             controller.close();
           } catch (error) {
             controller.error(error);
