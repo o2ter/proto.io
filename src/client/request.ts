@@ -83,7 +83,9 @@ export default class Service<Ext, P extends ProtoType<any>> {
   private _buildHeaders(master?: boolean, headers?: any) {
     return {
       'Content-Type': 'application/json; charset=utf-8',
-      Cookie: this.token ? `${this.cookieKey}=${this.token}` : undefined,
+      ...this.token ? {
+        Cookie: `${this.cookieKey}=${this.token}`,
+      } : {},
       ...master ? {
         [MASTER_USER_HEADER_NAME]: this.proto.options.masterUser?.user,
         [MASTER_PASS_HEADER_NAME]: this.proto.options.masterUser?.pass,
