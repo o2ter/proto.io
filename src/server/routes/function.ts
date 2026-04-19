@@ -67,7 +67,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
             if (first) {
               res.status(400).json(encodeError(error));
             } else {
-              res.write(encodeError(error));
+              res.write(JSON.stringify(encodeError(error)));
               res.end();
             }
           }
