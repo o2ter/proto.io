@@ -45,11 +45,15 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
 
       try {
 
+        const abortController = new AbortController();
+        req.on('close', () => abortController.abort());
+
         const payload = proto.connect(req, x => ({
           params: x.rebind(deserialize(req.body, { objAttrs: TObject.defaultReadonlyKeys })),
+          abortSignal: abortController.signal,
         }));
 
-        const data = await payload[PVK].run(payload, name, payload, { master: payload.isMaster });
+        const data = await payload[PVK].run(payload, name, { master: payload.isMaster });
 
         res.type('application/json');
 

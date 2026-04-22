@@ -281,8 +281,8 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
     params?: TSerializable,
     options?: ExtraOptions<boolean>
   ) {
-    const payload = Object.setPrototypeOf({ params }, this);
-    return this[PVK].run(this, name, payload, options) as Promise<R>;
+    const payload = Object.setPrototypeOf({ params, abortSignal: options?.abortSignal }, this);
+    return this[PVK].run(payload, name, options) as Promise<R>;
   }
 
   define<P extends TSerializable = any, R extends TSerializable | AsyncIterable<TSerializable> | void = any>(

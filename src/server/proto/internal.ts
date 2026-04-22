@@ -250,12 +250,12 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     return this.options.storage.setConfig(normalize(values), normalize(acl));
   }
 
-  async run(proto: P, name: string, payload: any, options?: ExtraOptions<boolean>) {
+  async run(proto: P, name: string, options?: ExtraOptions<boolean>) {
 
     const func = this.functions[name];
 
     if (_.isNil(func)) throw Error('Function not found');
-    if (typeof func === 'function') return func(proxy(payload ?? proto));
+    if (typeof func === 'function') return func(proxy(proto as any));
 
     const { callback, validator } = func;
 
@@ -268,7 +268,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
       if (_.isArray(validator?.requireAllUserRoles) && _.some(validator?.requireAllUserRoles, x => !_.includes(roles, x))) throw Error('No permission');
     }
 
-    return callback(proxy(payload ?? proto));
+    return callback(proxy(proto as any));
   }
 
   async verifyPassword(proto: P, user: TUser, password: string, options: ExtraOptions<true>) {
