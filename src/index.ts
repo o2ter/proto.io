@@ -24,6 +24,7 @@
 //
 
 import _ from 'lodash';
+import cluster from 'cluster';
 import { Router } from 'express';
 import { Server } from '@o2ter/server-js';
 import { ProtoService } from './server/proto';
@@ -152,7 +153,10 @@ export const ProtoRoute = async <E>(options: {
 }): Promise<Router> => {
 
   const proto = options.proto instanceof ProtoService ? options.proto : new ProtoService(options.proto);
-  await proto[PVK].prepare();
+
+  if (cluster.isPrimary || cluster.worker?.id === 1) {
+    await proto[PVK].prepare();
+  }
 
   const router = Server.Router().use(
     authHandler(proto),
