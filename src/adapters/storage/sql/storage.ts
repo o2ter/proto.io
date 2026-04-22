@@ -44,7 +44,7 @@ export abstract class SqlStorage implements TStorage {
 
   schema: Record<string, TSchema> = {};
 
-  async prepare(schema: Record<string, TSchema>) {
+  async prepare(schema: Record<string, TSchema>, migrate: boolean) {
     this.schema = schema;
   }
 

@@ -224,8 +224,8 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     };
   }
 
-  async prepare() {
-    await this.options.storage.prepare(this.options.schema);
+  async prepare(migrate: boolean) {
+    await this.options.storage.prepare(this.options.schema, migrate);
   }
 
   shutdown() {

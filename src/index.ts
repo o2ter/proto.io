@@ -153,10 +153,7 @@ export const ProtoRoute = async <E>(options: {
 }): Promise<Router> => {
 
   const proto = options.proto instanceof ProtoService ? options.proto : new ProtoService(options.proto);
-
-  if (cluster.isPrimary || cluster.worker?.id === 1) {
-    await proto[PVK].prepare();
-  }
+  await proto[PVK].prepare(cluster.isPrimary || cluster.worker?.id === 1);
 
   const router = Server.Router().use(
     authHandler(proto),

@@ -58,15 +58,17 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
     await this._driver.shutdown();
   }
 
-  async prepare(schema: Record<string, TSchema>) {
-    await super.prepare(schema);
-    await this._enableExtensions();
-    await this._createSystemTable();
-    for (const [className, _schema] of _.toPairs(schema)) {
-      await this._createTable(className, _schema);
-      await this._dropIndices(className, _schema);
-      await this._rebuildColumns(className, _schema);
-      await this._createIndices(className, _schema);
+  async prepare(schema: Record<string, TSchema>, migrate: boolean) {
+    await super.prepare(schema, migrate);
+    if (migrate) {
+      await this._enableExtensions();
+      await this._createSystemTable();
+      for (const [className, _schema] of _.toPairs(schema)) {
+        await this._createTable(className, _schema);
+        await this._dropIndices(className, _schema);
+        await this._rebuildColumns(className, _schema);
+        await this._createIndices(className, _schema);
+      }
     }
   }
 

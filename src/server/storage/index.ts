@@ -84,7 +84,7 @@ export interface TStorage {
 
   selectLock(): boolean;
 
-  prepare(schema: Record<string, TSchema>): PromiseLike<void>;
+  prepare(schema: Record<string, TSchema>, migrate: boolean): PromiseLike<void>;
   shutdown(): PromiseLike<void>;
 
   classes(): string[];
