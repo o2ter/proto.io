@@ -25,6 +25,7 @@
 
 import _ from 'lodash';
 import jwt from 'jsonwebtoken';
+import cluster from 'cluster';
 import { afterCommitTasks, ProtoQuery, ProtoRelationQuery } from '../query';
 import { ProtoInternal } from './internal';
 import { CookieOptions, Request } from '@o2ter/server-js';
@@ -57,7 +58,7 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
   /** @internal */
   [PVK]: ProtoInternal<Ext, this>;
   private _storage?: ProtoServiceOptions<Ext>['storage'];
-  private _schedule = schedule(this);
+  private _schedule?: ReturnType<typeof schedule>;
 
   req?: Request;
   session?: _Session;
@@ -66,6 +67,8 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
     super();
     this[PVK] = new ProtoInternal({
       roleResolver: {},
+      shouldMigrate: cluster.isPrimary || cluster.worker?.id === 1,
+      shouldRunSchedules: true,
       objectIdSize: 10,
       maxFetchLimit: 1000,
       maxUploadSize: 20 * 1024 * 1024,
@@ -91,10 +94,13 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
       passwordPolicy: {},
       ...options,
     });
+    if (this[PVK].options.shouldRunSchedules) {
+      this._schedule = schedule(this);
+    }
   }
 
   async shutdown() {
-    this._schedule.destroy();
+    this._schedule?.destroy();
     this[PVK].shutdown();
   }
 

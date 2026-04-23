@@ -79,6 +79,16 @@ export type ProtoServiceOptions<Ext> = {
   storage: TStorage;
 
   /**
+   * Whether to automatically migrate the database schema on startup.
+   */
+  shouldMigrate?: boolean;
+
+  /**
+   * Whether to run scheduled tasks.
+   */
+  shouldRunSchedules?: boolean;
+
+  /**
    * File storage configuration.
    */
   fileStorage: TFileStorage;
