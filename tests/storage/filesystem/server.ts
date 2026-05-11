@@ -85,6 +85,12 @@ Proto.define('createFileInternal', async (proto) => {
   return file.save();
 });
 
+Proto.define('generateFilePublicToken', async (proto) => {
+  const { fileId, ...jwtSignOptions } = proto.params as any;
+  const file = proto.Object('File', fileId);
+  return proto.generateFilePublicToken(file as any, jwtSignOptions);
+});
+
 beforeAll(async () => {
 
   app.use('/proto', await ProtoRoute({

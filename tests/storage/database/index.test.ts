@@ -25,6 +25,7 @@
 
 import _ from 'lodash';
 import fs from 'fs';
+import axios from 'axios';
 import { masterUser } from './server';
 import { test, expect } from '@jest/globals';
 import { ProtoClient } from '../../../src/client/proto';
@@ -86,4 +87,56 @@ test('test create file internal', async () => {
 
   const data = await streamToBuffer(file.fileData());
   expect(data.toString('utf8')).toStrictEqual('hello, world');
+});
+
+test('test file public token', async () => {
+  const file = Proto.File('test.txt', 'hello, world', 'text/plain');
+  await file.save({ master: true });
+
+  const token = await Proto.run('generateFilePublicToken', {
+    fileId: file.id,
+    expiresIn: '1h',
+  }) as string;
+
+  expect(typeof token).toBe('string');
+
+  const res = await axios.get(
+    `http://localhost:8080/proto/files/${file.id}/${encodeURIComponent(file.filename!)}`,
+    { params: { token }, responseType: 'arraybuffer' },
+  );
+  expect(res.status).toBe(200);
+  expect(Buffer.from(res.data).toString('utf8')).toStrictEqual('hello, world');
+});
+
+test('test file public token - wrong file id rejected', async () => {
+  const file1 = Proto.File('file1.txt', 'content 1', 'text/plain');
+  const file2 = Proto.File('file2.txt', 'content 2', 'text/plain');
+  await Promise.all([file1.save({ master: true }), file2.save({ master: true })]);
+
+  const token = await Proto.run('generateFilePublicToken', {
+    fileId: file2.id,
+    expiresIn: '1h',
+  }) as string;
+
+  const res = await axios.get(
+    `http://localhost:8080/proto/files/${file1.id}/${encodeURIComponent(file1.filename!)}`,
+    { params: { token }, validateStatus: () => true },
+  );
+  expect(res.status).toBe(404);
+});
+
+test('test file public token - expired token rejected', async () => {
+  const file = Proto.File('test.txt', 'hello, world', 'text/plain');
+  await file.save({ master: true });
+
+  const token = await Proto.run('generateFilePublicToken', {
+    fileId: file.id,
+    expiresIn: -1,
+  }) as string;
+
+  const res = await axios.get(
+    `http://localhost:8080/proto/files/${file.id}/${encodeURIComponent(file.filename!)}`,
+    { params: { token }, validateStatus: () => true },
+  );
+  expect(res.status).toBe(404);
 });
