@@ -27,6 +27,7 @@ import _ from 'lodash';
 import { Router } from '@o2ter/server-js';
 import { Readable } from 'node:stream';
 import { ProtoService } from '../proto';
+import queryType from 'query-types';
 import { decodeFormStream, response } from './common';
 import { deserialize } from '../../internals/codec';
 import { PVK } from '../../internals/private';
@@ -73,14 +74,23 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
 
   router.get(
     '/files/:id/:name',
+    queryType.middleware(),
     async (req, res, next) => {
 
       const { id, name } = req.params;
+      const { token } = req.query;
 
       const payload = proto.connect(req);
       const query = payload.Query('File').equalTo('_id', id);
 
-      const file = await query.first({ master: payload.isMaster });
+      let isMaster = payload.isMaster;
+      if (_.isString(token)) {
+        const { fileId } = payload[PVK].jwtVerify(token, {}) || {};
+        if (fileId !== id) return void res.sendStatus(404);
+        isMaster = true;
+      }
+
+      const file = await query.first({ master: isMaster });
       if (!file || file.filename !== name) return void res.sendStatus(404);
       if (_.isNil(file.token) || _.isNil(file.size) || _.isNil(file.type)) return void res.sendStatus(404);
 

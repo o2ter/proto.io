@@ -470,6 +470,11 @@ export interface ProtoType<Ext> {
     options?: { maxUploadSize?: number; }
   ): string;
 
+  generateFilePublicToken(
+    file: TFile,
+    jwtSignOptions: jwt.SignOptions
+  ): string;
+
   /**
    * Signs a JWT.
    * @param payload - The payload to sign.

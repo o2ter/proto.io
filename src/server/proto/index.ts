@@ -50,6 +50,7 @@ import { QuerySelector } from '../query/dispatcher/parser';
 import { _typeof, isRelation } from '../../internals/schema';
 import { resolveDataType } from '../query/dispatcher/validator';
 import { TQuerySelector } from '../../internals/query/types/selectors';
+import { TFile } from '../../internals/object/file';
 
 export const _serviceOf = (options?: ExtraOptions<any>) => options?.session instanceof ProtoService ? options?.session : undefined;
 
@@ -374,6 +375,16 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
         { objAttrs: ['_id'] },
       )),
     }, options?.jwtSignOptions ?? 'upload');
+  }
+
+  generateFilePublicToken(
+    file: TFile,
+    jwtSignOptions: jwt.SignOptions
+  ) {
+    return this[PVK].jwtSign({
+      nonce: randomUUID(),
+      fileId: file.id,
+    }, jwtSignOptions);
   }
 
   jwtSign(payload: any, options: jwt.SignOptions) {
