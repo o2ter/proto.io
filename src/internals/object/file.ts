@@ -24,6 +24,7 @@
 //
 
 import _ from 'lodash';
+import type jwt from 'jsonwebtoken';
 import { TObject } from './index';
 import { ExtraOptions } from '../options';
 import { FileStream } from '../buffer';
@@ -37,6 +38,13 @@ export interface TFile {
    * URL of the file.
    */
   url: string | undefined;
+
+  /**
+   * Generates a public URL for the file.
+   * @param options - Optional extra options including jwtSignOptions.
+   * @returns The generated public URL for the file.
+   */
+  generatePublicUrl(options?: { jwtSignOptions: jwt.SignOptions }): string;
 
   /**
    * Retrieves the file data.

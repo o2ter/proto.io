@@ -470,6 +470,12 @@ export interface ProtoType<Ext> {
     options?: { maxUploadSize?: number; }
   ): string;
 
+  /**
+   * Generates a public token for a file.
+   * @param file - The file for which to generate the public token.
+   * @param jwtSignOptions - Options for signing the JWT.
+   * @returns The generated public token for the file.
+   */
   generateFilePublicToken(
     file: TFile,
     jwtSignOptions: jwt.SignOptions

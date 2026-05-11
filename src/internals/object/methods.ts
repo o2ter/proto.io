@@ -24,6 +24,7 @@
 //
 
 import _ from 'lodash';
+import type jwt from 'jsonwebtoken';
 import { TObject, decodeUpdateOp } from './index';
 import { PVK } from '../private';
 import { ExtraOptions } from '../options';
@@ -82,8 +83,18 @@ export const applyObjectMethods = <T extends TSerializable, E>(
           if (_.isNil(this.id) || _.isNil(filename)) return;
           const endpoint = proto[PVK].options.endpoint;
           const path = `files/${this.id}/${encodeURIComponent(filename)}`;
-          return endpoint.endsWith('/') ? `${endpoint}${path}` : `${endpoint}/${path}`;
+          return `${_.trimEnd(endpoint, '/')}${path}`;
         }
+      },
+      generatePublicUrl: {
+        value(options?: { jwtSignOptions: jwt.SignOptions }) {
+          const filename = (this as TFile).filename;
+          if (_.isNil(this.id) || _.isNil(filename)) throw new Error('Cannot generate public URL for unsaved file.');
+          const token = proto.generateFilePublicToken(this as TFile, options?.jwtSignOptions ?? {});
+          const endpoint = proto[PVK].options.endpoint;
+          const path = `files/${this.id}/${encodeURIComponent(filename)}`;
+          return `${_.trimEnd(endpoint, '/')}${path}?token=${token}`;
+        },
       },
       fileData: {
         value(options?: ExtraOptions<boolean>) {
