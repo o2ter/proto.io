@@ -57,3 +57,142 @@ test('test create required 2', async () => {
     'shape.required': undefined,
   })).rejects.toThrow('Field "shape.required" is required');
 });
+
+test('test update required', async () => {
+
+  const inserted = await Proto.Query('Test').insert({
+    required: 'required',
+  });
+  
+  const updated = await Proto.Query('Test').equalTo('_id', inserted.id!).updateOne({
+    required: {
+      $set: 'required2',
+    }
+  });
+  expect(updated?.get('required')).toBe('required2');
+
+  await expect(() => Proto.Query('Test').equalTo('_id', inserted.id!).updateOne({
+    required: {
+      $set: undefined,
+    }
+  })).rejects.toThrow('Field "required" is required');
+});
+
+test('test update required 2', async () => {
+
+  const inserted = await Proto.Query('Test').insert({
+    'shape.required': 'required',
+  });
+  
+  const updated = await Proto.Query('Test').equalTo('_id', inserted.id!).updateOne({
+    'shape.required': {
+      $set: 'required2',
+    }
+  });
+  expect(updated?.get('shape.required')).toBe('required2');
+
+  await expect(() => Proto.Query('Test').equalTo('_id', inserted.id!).updateOne({
+    'shape.required': {
+      $set: undefined,
+    }
+  })).rejects.toThrow('Field "shape.required" is required');
+});
+
+test('test upsert required', async () => {
+
+  const inserted = await Proto.Query('Test').equalTo('_id', 'not_valid_id').upsertOne(
+    {
+      required: {
+        $set: 'not_valid',
+      }
+    },
+    {
+      required: 'required',
+    }
+  );
+  expect(inserted.get('required')).toBe('required');
+
+  const upserted = await Proto.Query('Test').equalTo('_id', inserted.id!).upsertOne(
+    {
+      required: {
+        $set: 'required2',
+      }
+    },
+    {
+      required: 'not_valid',
+    }
+  );
+  expect(upserted?.get('required')).toBe('required2');
+
+  await expect(() => Proto.Query('Test').equalTo('_id', 'not_valid_id').upsertOne(
+    {
+      required: {
+        $set: 'not_valid',
+      }
+    },
+    {
+      required: undefined,
+    }
+  )).rejects.toThrow('Field "required" is required');
+
+  await expect(() => Proto.Query('Test').equalTo('_id', inserted.id!).upsertOne(
+    {
+      required: {
+        $set: undefined,
+      }
+    },
+    {
+      required: 'not_valid',
+    }
+  )).rejects.toThrow('Field "required" is required');
+});
+
+test('test upsert required 2', async () => {
+
+  const inserted = await Proto.Query('Test').equalTo('_id', 'not_valid_id').upsertOne(
+    {
+      'shape.required': {
+        $set: 'not_valid',
+      }
+    },
+    {
+      'shape.required': 'required',
+    }
+  );
+  expect(inserted.get('shape.required')).toBe('required');
+
+  const upserted = await Proto.Query('Test').equalTo('_id', inserted.id!).upsertOne(
+    {
+      'shape.required': {
+        $set: 'required2',
+      }
+    },
+    {
+      'shape.required': 'not_valid',
+    }
+  );
+  expect(upserted?.get('shape.required')).toBe('required2');
+
+  await expect(() => Proto.Query('Test').equalTo('_id', 'not_valid_id').upsertOne(
+    {
+      'shape.required': {
+        $set: 'not_valid',
+      }
+    },
+    {
+      'shape.required': undefined,
+    }
+  )).rejects.toThrow('Field "shape.required" is required');
+
+  await expect(() => Proto.Query('Test').equalTo('_id', inserted.id!).upsertOne(
+    {
+      'shape.required': {
+        $set: undefined,
+      }
+    },
+    {
+      'shape.required': 'not_valid',
+    }
+  )).rejects.toThrow('Field "shape.required" is required');
+
+});
