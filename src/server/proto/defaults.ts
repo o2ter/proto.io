@@ -29,7 +29,10 @@ import { TSchema } from '../../internals/schema';
 export const defaultSchema: Record<string, TSchema> = {
   '_Session': {
     fields: {
-      token: 'string',
+      token: {
+        type: 'string',
+        required: true,
+      },
       user: { type: 'pointer', target: 'User' },
       loginedAt: 'date',
     },
@@ -69,7 +72,10 @@ export const defaultSchema: Record<string, TSchema> = {
   },
   'Role': {
     fields: {
-      name: 'string',
+      name: {
+        type: 'string',
+        required: true,
+      },
       users: { type: 'relation', target: 'User' },
       roles: { type: 'relation', target: 'Role' },
     },
@@ -90,7 +96,10 @@ export const defaultSchema: Record<string, TSchema> = {
   },
   'File': {
     fields: {
-      filename: 'string',
+      filename: {
+        type: 'string',
+        required: true,
+      },
       size: 'number',
       type: 'string',
       token: 'string',
@@ -122,7 +131,10 @@ export const defaultSchema: Record<string, TSchema> = {
   },
   '_Job': {
     fields: {
-      name: 'string',
+      name: {
+        type: 'string',
+        required: true,
+      },
       data: 'object',
       error: 'object',
       user: { type: 'pointer', target: 'User' },
@@ -152,8 +164,15 @@ export const defaultSchema: Record<string, TSchema> = {
   },
   '_JobScope': {
     fields: {
-      scope: 'string',
-      job: { type: 'pointer', target: '_Job' },
+      scope: {
+        type: 'string',
+        required: true,
+      },
+      job: {
+        type: 'pointer',
+        target: '_Job',
+        required: true,
+      },
     },
     classLevelPermissions: {
       get: [],
