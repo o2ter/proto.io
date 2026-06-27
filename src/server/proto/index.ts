@@ -423,7 +423,7 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
     const time = new Date();
     for (const className of _.castArray(classNames ?? this.classes())) {
       if (className === 'File') {
-        const found = this.storage.find({
+        const found = this.storage.find(this.schema, {
           className: 'File',
           filter: QuerySelector.decode({ _expired_at: { $lt: time } }),
           matches: {},
@@ -436,7 +436,7 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
           if (!_.isEmpty(token)) await this.fileStorage.destroy(this, token);
         }
       }
-      await this.storage.delete({
+      await this.storage.delete(this.schema, {
         className,
         filter: QuerySelector.decode({ _expired_at: { $lt: time } }),
         includes: ['_id', '_expired_at'],

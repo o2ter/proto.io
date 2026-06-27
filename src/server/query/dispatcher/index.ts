@@ -86,7 +86,7 @@ export const dispatcher = <E>(
       const decoded = _validator.decodeQuery(normalize(query), 'read');
       const isGet = _validator.isGetMethod(decoded.filter);
       if (!_validator.validateCLPs(query.className, isGet ? 'get' : 'find')) throw Error('No permission');
-      return proto.storage.explain(decoded);
+      return proto.storage.explain(proto.schema, decoded);
     },
     async count(
       query: FindOptions & RelationOptions
@@ -94,7 +94,7 @@ export const dispatcher = <E>(
       QueryValidator.recursiveCheck(query);
       const _validator = await validator();
       if (!_validator.validateCLPs(query.className, 'count')) throw Error('No permission');
-      return proto.storage.count(_validator.decodeQuery(normalize(query), 'read'));
+      return proto.storage.count(proto.schema, _validator.decodeQuery(normalize(query), 'read'));
     },
     async find(
       query: FindOptions & RelationOptions
@@ -104,7 +104,7 @@ export const dispatcher = <E>(
       const decoded = _validator.decodeQuery(normalize(query), 'read');
       const isGet = _validator.isGetMethod(decoded.filter);
       if (!_validator.validateCLPs(query.className, isGet ? 'get' : 'find')) throw Error('No permission');
-      return proto.storage.find(decoded);
+      return proto.storage.find(proto.schema, decoded);
     },
     async groupFind<T extends Record<string, TQueryAccumulator>>(
       query: FindOptions & RelationOptions,
@@ -116,7 +116,7 @@ export const dispatcher = <E>(
       const isGet = _validator.isGetMethod(decoded.filter);
       if (!_validator.validateCLPs(query.className, isGet ? 'get' : 'find')) throw Error('No permission');
       const acc = _.mapValues(accumulators, x => QueryAccumulator.decode(x).simplify())
-      return proto.storage.groupFind(decoded, acc);
+      return proto.storage.groupFind(proto.schema, decoded, acc);
     },
     async nonrefs(
       query: FindOptions
@@ -126,7 +126,7 @@ export const dispatcher = <E>(
       const decoded = _validator.decodeQuery(normalize(query), 'read');
       const isGet = _validator.isGetMethod(decoded.filter);
       if (!_validator.validateCLPs(query.className, isGet ? 'get' : 'find')) throw Error('No permission');
-      return proto.storage.nonrefs(decoded);
+      return proto.storage.nonrefs(proto.schema, decoded);
     },
     async random(
       query: FindOptions & RelationOptions,
@@ -141,7 +141,7 @@ export const dispatcher = <E>(
       for (const key of weight?.keyPaths() ?? []) {
         if (!_validator.validateKey(query.className, key, 'read', QueryValidator.patterns.path)) throw Error('No permission');
       }
-      return proto.storage.random(decoded, { weight });
+      return proto.storage.random(proto.schema, decoded, { weight });
     },
     async insert(
       options: {
@@ -167,7 +167,7 @@ export const dispatcher = <E>(
       while (true) {
         try {
           return await proto.storage.atomic(
-            (storage) => storage.insert({
+            (storage) => storage.insert(proto.schema, {
               className: options.className,
               includes: _includes,
               matches: _matches,
@@ -199,6 +199,7 @@ export const dispatcher = <E>(
         }
       }));
       return proto.storage.atomic((storage) => storage.update(
+        proto.schema,
         _validator.decodeQuery(normalize(query), 'update'),
         _update,
       ));
@@ -229,7 +230,7 @@ export const dispatcher = <E>(
       while (true) {
         try {
           return await proto.storage.atomic(
-            (storage) => storage.upsert(_query, _update, _setOnInsert),
+            (storage) => storage.upsert(proto.schema, _query, _update, _setOnInsert),
             { lockTable: query.className, retry: true },
           );
         } catch (e) {
@@ -244,7 +245,7 @@ export const dispatcher = <E>(
       QueryValidator.recursiveCheck(query);
       const _validator = await validator();
       if (!_validator.validateCLPs(query.className, 'delete')) throw Error('No permission');
-      return proto.storage.atomic((storage) => storage.delete(_validator.decodeQuery(normalize(query), 'update')));
+      return proto.storage.atomic((storage) => storage.delete(proto.schema, _validator.decodeQuery(normalize(query), 'update')));
     },
   };
 };

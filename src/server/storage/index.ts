@@ -87,29 +87,28 @@ export interface TStorage {
   prepare(schema: Record<string, TSchema>, migrate: boolean): PromiseLike<void>;
   shutdown(): PromiseLike<void>;
 
-  classes(): string[];
-
   config(acl?: string[]): PromiseLike<Record<string, TValueWithoutObject>>;
   configAcl(): PromiseLike<Record<string, string[]>>;
   setConfig(values: Record<string, TValueWithoutObject>, acl?: string[]): PromiseLike<void>;
 
-  explain(query: DecodedQuery<FindOptions & RelationOptions>): PromiseLike<any>;
+  explain(schema: Record<string, TSchema>, query: DecodedQuery<FindOptions & RelationOptions>): PromiseLike<any>;
 
-  count(query: DecodedQuery<FindOptions & RelationOptions>): PromiseLike<number>;
-  find(query: DecodedQuery<FindOptions & RelationOptions>): AsyncIterable<TObject>;
-  random(query: DecodedQuery<FindOptions & RelationOptions>, opts?: QueryRandomOptions): AsyncIterable<TObject>;
+  count(schema: Record<string, TSchema>, query: DecodedQuery<FindOptions & RelationOptions>): PromiseLike<number>;
+  find(schema: Record<string, TSchema>, query: DecodedQuery<FindOptions & RelationOptions>): AsyncIterable<TObject>;
+  random(schema: Record<string, TSchema>, query: DecodedQuery<FindOptions & RelationOptions>, opts?: QueryRandomOptions): AsyncIterable<TObject>;
   groupFind(
+    schema: Record<string, TSchema>,
     query: DecodedQuery<FindOptions & RelationOptions>,
     accumulators: Record<string, QueryAccumulator>
   ): PromiseLike<Record<string, any>>;
 
-  refs(object: TObject, classNames: string[], roles?: string[]): AsyncIterable<TObject>;
-  nonrefs(query: DecodedQuery<FindOptions>): AsyncIterable<TObject>;
+  refs(schema: Record<string, TSchema>, object: TObject, classNames: string[], roles?: string[]): AsyncIterable<TObject>;
+  nonrefs(schema: Record<string, TSchema>, query: DecodedQuery<FindOptions>): AsyncIterable<TObject>;
 
-  insert(options: InsertOptions, values: Record<string, TValueWithUndefined>[]): PromiseLike<TObject[]>;
-  update(query: DecodedQuery<FindOptions>, update: Record<string, TUpdateOp>): PromiseLike<TObject[]>;
-  upsert(query: DecodedQuery<FindOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValueWithUndefined>): PromiseLike<TObject[]>;
-  delete(query: DecodedQuery<FindOptions>): PromiseLike<TObject[]>;
+  insert(schema: Record<string, TSchema>, options: InsertOptions, values: Record<string, TValueWithUndefined>[]): PromiseLike<TObject[]>;
+  update(schema: Record<string, TSchema>, query: DecodedQuery<FindOptions>, update: Record<string, TUpdateOp>): PromiseLike<TObject[]>;
+  upsert(schema: Record<string, TSchema>, query: DecodedQuery<FindOptions>, update: Record<string, TUpdateOp>, setOnInsert: Record<string, TValueWithUndefined>): PromiseLike<TObject[]>;
+  delete(schema: Record<string, TSchema>, query: DecodedQuery<FindOptions>): PromiseLike<TObject[]>;
 
   lockTable(className: string | string[], update: boolean): Promise<void>;
 

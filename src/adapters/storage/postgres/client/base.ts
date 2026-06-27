@@ -105,10 +105,6 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
     return explain['QUERY PLAN'];
   }
 
-  classes() {
-    return Object.keys(this.schema);
-  }
-
   async version() {
     return this._driver.version();
   }
@@ -186,7 +182,6 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
       return await this.withConnection(async (connection) => {
 
         const transaction = new PostgresStorageTransaction(connection._driver, 0, options?.mode === 'repeatable');
-        transaction.schema = this.schema;
 
         try {
 
@@ -284,7 +279,6 @@ class PostgresStorageTransaction extends PostgresStorageClient<PostgresClientDri
   ) {
 
     const transaction = new PostgresStorageTransaction(this._driver, this.counter + 1, this._selectLock);
-    transaction.schema = this.schema;
 
     try {
 

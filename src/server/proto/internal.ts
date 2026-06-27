@@ -637,7 +637,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     const roles = options?.master ? [] : await this._perms(proto);
     const classNames = options?.master ? _.keys(this.options.schema) : _.filter(_.keys(this.options.schema), x => this.validateCLPs(x, roles, ['find']));
     const storage = _serviceOf(options)?.storage ?? this.options.storage;
-    return storage.refs(object, classNames, options?.master ? undefined : roles);
+    return storage.refs(proto.schema, object, classNames, options?.master ? undefined : roles);
   }
 
   async scheduleJob(proto: P, name: string, params: any, options?: ExtraOptions<boolean>) {
