@@ -92,7 +92,7 @@ export const resolveDataType = (
   schema: Record<string, TSchema>,
   classname: string,
   path: string
-) => _resolveDataType(schema, schema[classname].fields, path);
+) => _resolveDataType(schema, schema[classname]?.fields ?? {}, path);
 
 export const resolveColumn = (
   schema: Record<string, TSchema>,
