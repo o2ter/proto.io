@@ -29,7 +29,6 @@ import { QueryCoditionalSelector, QueryFieldSelector, QuerySelector } from './pa
 import { TSchema, _typeof, isPointer, isPrimitive, isRelation, isShape, isVector, shapePaths } from '../../../internals/schema';
 import { ProtoService } from '../../proto';
 import { TQueryBaseOptions, TSortOption } from '../../../internals/query/base';
-import { isPrimitiveValue } from '../../../internals/object';
 import { TObject } from '../../../internals/object';
 import { PVK } from '../../../internals/private';
 import { TQuerySelector } from '../../../internals/query/types/selectors';
@@ -38,56 +37,7 @@ import { TQueryAccumulator } from '../../../internals/query/types/accumulators';
 import { QueryAccumulator } from './parser/accumulators';
 import { TRole } from '../../../internals/object/role';
 import { TUser } from '../../../internals/object/user';
-
-export const recursiveCheck = (x: any, stack: any[]) => {
-  if (_.indexOf(stack, x) !== -1) throw Error('Recursive data detected');
-  if (_.isRegExp(x) || isPrimitiveValue(x) || x instanceof TObject) return;
-  const children = _.isArray(x) ? x : _.values(x);
-  children.forEach(v => recursiveCheck(v, [...stack, x]));
-}
-
-export const resolveDataType = (
-  schema: Record<string, TSchema>,
-  classname: string,
-  path: string,
-) => {
-  let fields = schema[classname].fields;
-  let last;
-  for (const key of _.toPath(path)) {
-    const dataType = fields[key];
-    if (_.isNil(dataType)) throw Error(`Invalid path: ${path}`);
-    if (isPrimitive(dataType) || isVector(dataType)) return dataType;
-    if (isShape(dataType)) {
-      fields = dataType.shape;
-      continue;
-    }
-    if (_.isNil(schema[dataType.target])) throw Error(`Invalid path: ${path}`);
-    fields = schema[dataType.target].fields;
-    last = dataType;
-  }
-  return last;
-}
-
-export const resolveColumn = (
-  schema: Record<string, TSchema>,
-  className: string,
-  path: string,
-) => {
-  const _schema = schema[className] ?? {};
-  let [colname, ...subpath] = path.split('.');
-  let dataType = _schema.fields[colname];
-  while (dataType && !_.isEmpty(subpath) && isShape(dataType)) {
-    const [key, ...remain] = subpath;
-    if (!dataType.shape[key]) break;
-    dataType = dataType.shape[key];
-    colname = `${colname}.${key}`;
-    subpath = remain;
-  }
-  return {
-    paths: [colname, ...subpath],
-    dataType,
-  };
-}
+import { resolveDataType, recursiveCheck, resolveColumn } from '../../utils';
 
 type QueryValidatorOption = {
   acls: string[];

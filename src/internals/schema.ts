@@ -81,6 +81,11 @@ export namespace TSchema {
       type: Primitive;
 
       /**
+       * Optional flag indicating if the field is required.
+       */
+      required?: boolean;
+
+      /**
        * Optional default value for the field.
        */
       default?: TValueWithoutObject;
@@ -106,6 +111,11 @@ export namespace TSchema {
      * The dimension (length) of the vector.
      */
     dimension: number;
+
+    /**
+     * Optional flag indicating if the field is required.
+     */
+    required?: boolean;
 
     /**
      * Optional default value for the vector.
@@ -155,6 +165,11 @@ export namespace TSchema {
      * The name of the target class being referenced.
      */
     target: string;
+
+    /**
+     * Optional flag indicating if the field is required.
+     */
+    required?: boolean;
 
     /**
      * Optional description for the field.

@@ -48,7 +48,7 @@ import { TRole } from '../../internals/object/role';
 import { PathName } from '../../internals/query/types';
 import { QuerySelector } from '../query/dispatcher/parser';
 import { _typeof, isRelation } from '../../internals/schema';
-import { resolveDataType } from '../query/dispatcher/validator';
+import { resolveDataType } from '../utils';
 import { TQuerySelector } from '../../internals/query/types/selectors';
 import { TFile } from '../../internals/object/file';
 

@@ -28,7 +28,7 @@ import { SQL, sql } from '../../sql';
 import { TSchema, isPointer, isPrimitive, isRelation, isShape, isVector } from '../../../../internals/schema';
 import { Populate, QueryCompiler, QueryContext } from '../../sql/compiler';
 import { _jsonPopulateInclude } from './encode';
-import { resolveColumn } from '../../../../server/query/dispatcher/validator';
+import { resolveColumn } from '../../../../server/utils';
 import { encodeAccumulatorExpression } from './query/accumulators';
 
 const resolveSubpaths = (

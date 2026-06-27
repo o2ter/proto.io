@@ -34,7 +34,7 @@ import { TObject } from '../../internals/object';
 import { TExtended } from '../../internals/object/methods';
 import { TValueWithUndefined } from '../../internals/types';
 import { TUpdateOp } from '../../internals/object/types';
-import { resolveColumn } from './dispatcher/validator';
+import { resolveColumn } from '../utils';
 import { isPointer, isRelation } from '../../internals/schema';
 import { proxy } from '../proto/proxy';
 import { LiveQuerySubscription } from '../../internals/liveQuery';

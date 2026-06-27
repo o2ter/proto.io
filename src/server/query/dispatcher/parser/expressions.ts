@@ -30,7 +30,7 @@ import { isValue } from '../../../../internals/object';
 import { TValue } from '../../../../internals/types';
 import { cosine, distance, equal, getValue, greaterThan, greaterThanOrEqual, innerProduct, lessThan, lessThanOrEqual, rectilinearDistance } from './utils';
 import { isPrimitive, isVector, TSchema } from '../../../../internals/schema';
-import { resolveColumn } from '../validator';
+import { resolveColumn } from '../../../utils';
 import Decimal from 'decimal.js';
 import { MathUtils } from './math';
 

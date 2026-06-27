@@ -37,7 +37,7 @@ import { PVK } from '../../../internals/private';
 import { TUpdateOp } from '../../../internals/object/types';
 import { QuerySelector } from '../../../server/query/dispatcher/parser';
 import { QueryAccumulator } from '../../../server/query/dispatcher/parser/accumulators';
-import { resolveDataType } from '../../../server/query/dispatcher/validator';
+import { resolveDataType } from '../../../server/utils';
 import { encodeTypedQueryExpression } from '../postgres/dialect/query/expr';
 
 export abstract class SqlStorage implements TStorage {

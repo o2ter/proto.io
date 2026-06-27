@@ -30,7 +30,7 @@ import { DecodedBaseQuery, DecodedQuery, FindOptions, InsertOptions, DecodedSort
 import { SQL, sql } from './sql';
 import { generateId } from '../../../server/crypto/random';
 import { SqlDialect } from './dialect';
-import { resolveColumn, resolveDataType } from '../../../server/query/dispatcher/validator';
+import { resolveColumn, resolveDataType } from '../../../server/utils';
 import { decodeUpdateOp } from '../../../internals/object';
 import { TUpdateOp } from '../../../internals/object/types';
 import { TValueWithUndefined } from '../../../internals/types';

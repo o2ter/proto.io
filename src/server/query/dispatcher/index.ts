@@ -33,7 +33,7 @@ import { TQueryRandomOptions } from '../../../internals/query';
 import { TValueWithUndefined } from '../../../internals/types';
 import { PVK } from '../../../internals/private';
 import { TUpdateOp } from '../../../internals/object/types';
-import { normalize } from '../../utils';
+import { normalize, requiredFieldGuard } from '../../utils';
 import { TQueryAccumulator } from '../../../internals/query/types/accumulators';
 import { QueryExpression } from './parser/expressions';
 import { QueryAccumulator } from './parser/accumulators';
@@ -155,11 +155,15 @@ export const dispatcher = <E>(
       if (!createFile && options.className === 'File') throw Error('File is not support insert');
       QueryValidator.recursiveCheck(values);
       const _validator = await validator();
+      const schema = _validator.schema[options.className]?.fields ?? {};
       const _groupMatches = _validator.decodeGroupMatches(options.className, options.groupMatches ?? {});
       const _includes = _validator.decodeIncludes(options.className, options.includes ?? ['*'], _groupMatches);
       const _matches = _validator.decodeMatches(options.className, options.matches ?? {}, _includes);
       if (!_validator.validateCLPs(options.className, 'create')) throw Error('No permission');
-      const _attrs = normalize(_.map(values, attr => _validator.validateFields(options.className, attr, 'create', QueryValidator.patterns.path)));
+      const _attrs = _.map(values, attr => normalize(requiredFieldGuard(
+        schema,
+        _validator.validateFields(options.className, attr, 'create', QueryValidator.patterns.path),
+      )));
       while (true) {
         try {
           return await proto.storage.atomic(
@@ -184,10 +188,19 @@ export const dispatcher = <E>(
     ) {
       QueryValidator.recursiveCheck(query, update);
       const _validator = await validator();
+      const schema = _validator.schema[query.className]?.fields ?? {};
       if (!_validator.validateCLPs(query.className, 'update')) throw Error('No permission');
+      const _update = normalize(_.mapValues(_validator.validateFields(query.className, update, 'update', QueryValidator.patterns.path), (op, key) => {
+        if (op.$set !== undefined) {
+          const { [key]: value } = requiredFieldGuard(schema, { [key]: op.$set });
+          return { $set: value };
+        } else {
+          return op;
+        }
+      }));
       return proto.storage.atomic((storage) => storage.update(
         _validator.decodeQuery(normalize(query), 'update'),
-        normalize(_validator.validateFields(query.className, update, 'update', QueryValidator.patterns.path)),
+        _update,
       ));
     },
     async upsert(
@@ -198,10 +211,21 @@ export const dispatcher = <E>(
       if (query.className === 'File') throw Error('File is not support upsert');
       QueryValidator.recursiveCheck(query, update, setOnInsert);
       const _validator = await validator();
+      const schema = _validator.schema[query.className]?.fields ?? {};
       if (!_validator.validateCLPs(query.className, 'create', 'update')) throw Error('No permission');
       const _query = _validator.decodeQuery(normalize(query), 'update');
-      const _update = normalize(_validator.validateFields(query.className, update, 'update', QueryValidator.patterns.path));
-      const _setOnInsert = normalize(_validator.validateFields(query.className, setOnInsert, 'create', QueryValidator.patterns.path));
+      const _update = normalize(_.mapValues(_validator.validateFields(query.className, update, 'update', QueryValidator.patterns.path), (op, key) => {
+        if (op.$set !== undefined) {
+          const { [key]: value } = requiredFieldGuard(schema, { [key]: op.$set });
+          return { $set: value };
+        } else {
+          return op;
+        }
+      }));
+      const _setOnInsert = normalize(requiredFieldGuard(
+        schema,
+        _validator.validateFields(query.className, setOnInsert, 'create', QueryValidator.patterns.path),
+      ));
       while (true) {
         try {
           return await proto.storage.atomic(
