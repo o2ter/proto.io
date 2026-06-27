@@ -103,6 +103,7 @@ const Proto = new ProtoService({
       fields: {
         default: { type: 'number', default: 42 },
         defaultDecimal: { type: 'decimal', default: new Decimal(0) },
+        required: { type: 'string', required: true },
         boolean: 'boolean',
         number: 'number',
         x: 'number',
@@ -137,6 +138,7 @@ const Proto = new ProtoService({
         '_test_field-name_01': 'string',
         shape: schema.shape({
           default: { type: 'number', default: 42 },
+          required: { type: 'string', required: true },
           boolean: 'boolean',
           number: 'number',
           decimal: 'decimal',
