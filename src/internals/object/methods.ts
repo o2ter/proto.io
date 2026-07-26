@@ -82,7 +82,7 @@ export const applyObjectMethods = <T extends TSerializable, E>(
           const filename = (this as TFile).filename;
           if (_.isNil(this.id) || _.isNil(filename)) return;
           const endpoint = proto[PVK].options.endpoint;
-          const path = `files/${this.id}/${encodeURIComponent(filename)}`;
+          const path = `/files/${this.id}/${encodeURIComponent(filename)}`;
           return `${_.trimEnd(endpoint, '/')}${path}`;
         }
       },
@@ -92,7 +92,7 @@ export const applyObjectMethods = <T extends TSerializable, E>(
           if (_.isNil(this.id) || _.isNil(filename)) throw new Error('Cannot generate public URL for unsaved file.');
           const token = proto.generateFilePublicToken(this as TFile, options?.jwtSignOptions ?? {});
           const endpoint = proto[PVK].options.endpoint;
-          const path = `files/${this.id}/${encodeURIComponent(filename)}`;
+          const path = `/files/${this.id}/${encodeURIComponent(filename)}`;
           return `${_.trimEnd(endpoint, '/')}${path}?token=${token}`;
         },
       },
