@@ -44,6 +44,8 @@ import Decimal from 'decimal.js';
 import { response } from './server/routes/common';
 import { QuerySelector } from './server/query/dispatcher/parser';
 import { serialize } from './internals/codec';
+import { AUTH_ALT_COOKIE_KEY, AUTH_COOKIE_KEY } from './internals/const';
+import { parse as parseCookie } from 'cookie';
 
 export * from './internals/codec';
 export { classExtends } from './internals/utils';
@@ -197,6 +199,13 @@ export const registerProtoSocket = <E>(
   io.on('connection', async (socket) => {
 
     let { token } = socket.handshake.auth;
+
+    const cookieStr = socket.handshake.headers.cookie;
+    const cookieKey = _.last(_.castArray(socket.handshake.headers[AUTH_ALT_COOKIE_KEY] || [])) || AUTH_COOKIE_KEY;
+    const cookies: any = parseCookie(cookieStr || '');
+
+    if (!token && cookies[cookieKey]) token = cookies[cookieKey];
+
     const service = await proto.connectWithSessionToken(token);
 
     socket.on('auth', (t) => {
