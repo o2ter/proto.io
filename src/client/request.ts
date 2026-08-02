@@ -273,7 +273,11 @@ export default class Service<Ext, P extends ProtoType<any>> {
 
   socket() {
     const endpoint = this.proto.options.socketEndpoint;
-    const options = { auth: { token: this.token } };
+    const options = _.merge({}, this.proto.options.socketOptions, {
+      auth: {
+        token: this.token,
+      },
+    });
     const socket = endpoint ? io(endpoint, options) : io(options);
 
     this.sockets.push(socket);

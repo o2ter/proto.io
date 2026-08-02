@@ -23,6 +23,7 @@
 //  THE SOFTWARE.
 //
 
+import { ManagerOptions, SocketOptions } from 'socket.io-client';
 import { TExtensions } from '../../internals/object/types';
 
 /**
@@ -63,6 +64,11 @@ export type ProtoOptions<Ext> = {
    * The socket endpoint URL for the Proto client.
    */
   socketEndpoint?: string;
+
+  /**
+   * The socket options for configuring the socket connection.
+   */
+  socketOptions?: Partial<ManagerOptions & SocketOptions>;
 
   /**
    * The master user credentials.
