@@ -309,10 +309,6 @@ export default class Service<Ext, P extends ProtoType<any>> {
     const register = () => {
       register_event();
       register_query();
-      setTimeout(() => {
-        register_event();
-        register_query();
-      }, 200);
     };
 
     socket.on('ON_EV_NOTIFY', ({ ids, data }: any) => {
@@ -330,6 +326,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
       }
     });
 
+    socket.on('ON_EV_READY', register);
     socket.on('connect', register);
     socket.on('reconnect', register);
 

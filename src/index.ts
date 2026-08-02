@@ -270,6 +270,8 @@ export const registerProtoSocket = <E>(
         }
       });
     });
+
+    socket.emit('ON_EV_READY', {});
   });
 
   return io;
