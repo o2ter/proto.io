@@ -31,6 +31,7 @@ import { isPrimitiveValue, TObject } from '../../../../internals/object';
 const isNum = (x: any): x is TNumber => _.isNumber(x) || x instanceof BigInt || x instanceof Decimal;
 
 const equalNum = (lhs: TNumber, rhs: TNumber): boolean => {
+  if (lhs === rhs) return true;
   if (lhs instanceof Decimal && rhs instanceof Decimal) {
     return lhs.equals(rhs);
   } else if (lhs instanceof Decimal) {
@@ -55,6 +56,7 @@ const lessNum = (lhs: TNumber, rhs: TNumber): boolean => {
 }
 
 export const equal = (lhs: any, rhs: any): boolean => {
+  if (lhs === rhs) return true;
   if (_.isNil(lhs) && _.isNil(rhs)) return true;
   if (isNum(lhs) && isNum(rhs)) return equalNum(lhs, rhs);
   if (lhs instanceof TObject && rhs instanceof TObject) {
