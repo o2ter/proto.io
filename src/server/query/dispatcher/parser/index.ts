@@ -195,8 +195,8 @@ export class FieldSelectorExpression {
       }
     } else if (_.includes(TValueListKeys, this.type) || _.includes(TValueSetKeys, this.type)) {
       switch (this.type) {
-        case '$in': return _.isArray(this.value) && _.some(value, x => equal(x, this.value));
-        case '$nin': return _.isArray(this.value) && !_.some(value, x => equal(x, this.value));
+        case '$in': return _.isArray(this.value) && _.some(this.value, x => equal(x, value));
+        case '$nin': return _.isArray(this.value) && !_.some(this.value, x => equal(x, value));
         case '$subset': return _.isArray(value) && _.isArray(this.value) && isSubset(value, this.value);
         case '$superset': return _.isArray(value) && _.isArray(this.value) && isSuperset(value, this.value);
         case '$intersect': return _.isArray(value) && _.isArray(this.value) && isIntersect(value, this.value);
