@@ -46,7 +46,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       try {
 
         const abortController = new AbortController();
-        req.on('close', () => abortController.abort());
+        res.on('close', () => abortController.abort());
 
         const payload = proto.connect(req, x => ({
           params: x.rebind(deserialize(req.body, { objAttrs: TObject.defaultReadonlyKeys })),
