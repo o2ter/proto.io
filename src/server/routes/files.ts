@@ -106,6 +106,12 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       res.setHeader('Content-Disposition', 'attachment');
       res.setHeader('ETag', `"${id}"`);
 
+      if (file.size === 0) {
+        res.setHeader('Content-Length', 0);
+        res.status(200).end();
+        return;
+      }
+
       let stream: AsyncIterable<BinaryData>;
 
       if (_.isArray(ranges) && ranges.type === 'bytes') {

@@ -480,7 +480,8 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     const self = this;
     return Readable.from({
       [Symbol.asyncIterator]: async function* () {
-        object = await object.fetchIfNeeded(['token'], options);
+        object = await object.fetchIfNeeded(['size', 'token'], options);
+        if (object.size === 0) return;
         const chunks = self.options.fileStorage.fileData(proto, object.attributes.token as string);
         yield* chunks;
       }
