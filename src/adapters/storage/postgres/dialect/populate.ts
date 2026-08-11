@@ -214,6 +214,7 @@ export const encodeForeignField = (
       dataType.foreignField,
       remix,
     );
+    const fieldArray = rows ? sql`ARRAY(${field})` : field;
     return {
       joins: [],
       field: sql`(
@@ -223,7 +224,7 @@ export const encodeForeignField = (
           FROM ${encodeRemix({ className: dataType.target }, remix)} AS ${{ identifier: tempName }}
         ) AS ${{ identifier: tempName }}
         ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
-        WHERE ${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ${array || rows ? sql`ANY(${field})` : field}
+        WHERE ${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ${array || rows ? sql`ANY(${fieldArray})` : field}
       )`,
       array: false,
       rows: true,
@@ -284,10 +285,11 @@ export const encodeForeignField = (
       sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ANY(${_foreign(dataType.foreignField)})`
     );
   }
+  const fieldArray = rows ? sql`ARRAY(${field})` : field;
   return {
     joins: [],
     field: sql`(
-      SELECT ${array ? sql`UNNEST(${field})` : field}
+      SELECT ${array || rows ? sql`UNNEST(${fieldArray})` : field}
       FROM (
         SELECT ${includes}, ${{ identifier: tempName }}.*
         FROM ${encodeRemix({ className: dataType.target }, remix)} AS ${{ identifier: tempName }}
