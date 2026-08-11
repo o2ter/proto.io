@@ -292,7 +292,7 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
     return this[PVK].run(payload, name, options) as Promise<R>;
   }
 
-  define<P extends TSerializable = any, R extends TSerializable | AsyncIterable<TSerializable> | void = any>(
+  define<P extends TSerializable = any, R extends TSerializable | void = any>(
     name: string,
     callback: ProtoFunction<Ext, P, R>,
     options?: Omit<ProtoFunctionOptions<Ext>, 'callback'>,
