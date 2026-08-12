@@ -37,11 +37,14 @@ export const encodeRelation = (
   const name = `_relation_$${relatedBy.className.toLowerCase()}`;
   const _local = (field: string) => sql`${{ identifier: parent.name }}.${{ identifier: field }}`;
   const _foreign = (field: string) => sql`${{ identifier: name }}.${{ identifier: field }}`;
-  const { joins, field } = encodeForeignField(compiler, { className: relatedBy.className, name }, relatedBy.key);
+  const { joins, query } = encodeForeignField(compiler, { className: relatedBy.className, name }, relatedBy.key);
   return sql`EXISTS (
     SELECT 1
     FROM ${{ identifier: relatedBy.className }} AS ${{ identifier: name }}
     ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
-    WHERE ${_foreign('_id')} = ${{ value: relatedBy.id }} AND ${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ANY(${field})
+    WHERE ${_foreign('_id')} = ${{ value: relatedBy.id }} AND ${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ANY(ARRAY(
+      SELECT ${{ identifier: '$' }}
+      FROM (${query}) AS ${{ identifier: '_foreign_field_$' }}
+    ))
   )`;
 }

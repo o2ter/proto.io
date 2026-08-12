@@ -93,8 +93,6 @@ export const _selectRelationPopulate = (
   let cond: SQL;
   if (_.isNil(populate.foreignField)) {
     cond = sql`${sql`(${{ quote: populate.className + '$' }} || ${_foreign('_id')})`} = ANY(${_local(field)})`;
-  } else if (_isPointer(compiler.schema, populate.className, populate.foreignField)) {
-    cond = sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ${_foreign(populate.colname)}`;
   } else {
     cond = sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ANY(${_foreign(populate.colname)})`;
   }
@@ -175,12 +173,17 @@ const encodeRemix = (
   (SELECT * FROM ${{ identifier: remix.name }} UNION SELECT * FROM ${{ identifier: parent.className }})
 ` : { identifier: parent.className }}`;
 
+const _foreignFieldArray = (query: SQL) => sql`ARRAY(
+  SELECT ${{ identifier: '$' }}
+  FROM (${query}) AS ${{ identifier: '_foreign_field_$' }}
+)`;
+
 export const encodeForeignField = (
   compiler: QueryCompiler,
   parent: QueryContext & { className: string; },
   foreignField: string,
   remix?: QueryContext & { className: string; }
-): { joins: SQL[]; field: SQL; rows: boolean; array: boolean; } => {
+): { joins: SQL[]; query: SQL; } => {
 
   const { paths: [colname, ...subpath], dataType } = resolveColumn(compiler.schema, parent.className, foreignField);
 
@@ -208,41 +211,47 @@ export const encodeForeignField = (
   };
 
   if (_.isEmpty(subpath) && isRelation(dataType) && dataType.foreignField) {
-    const { joins, field, rows, array } = encodeForeignField(
+    const { joins, query } = encodeForeignField(
       compiler,
       { className: dataType.target, name: tempName },
       dataType.foreignField,
       remix,
     );
-    const fieldArray = rows ? sql`ARRAY(${field})` : field;
     return {
       joins: [],
-      field: sql`(
-        SELECT ${sql`(${{ quote: dataType.target + '$' }} || ${_foreign('_id')})`}
+      query: sql`
+        SELECT ${sql`(${{ quote: dataType.target + '$' }} || ${_foreign('_id')})`} AS ${{ identifier: '$' }}
         FROM (
           SELECT ${includes}, ${{ identifier: tempName }}.*
           FROM ${encodeRemix({ className: dataType.target }, remix)} AS ${{ identifier: tempName }}
         ) AS ${{ identifier: tempName }}
         ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
-        WHERE ${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ${array || rows ? sql`ANY(${fieldArray})` : field}
-      )`,
-      array: false,
-      rows: true,
+        WHERE ${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ANY(${_foreignFieldArray(query)})
+      `,
     };
   }
 
   if (_.isEmpty(subpath)) {
+    if (isRelation(dataType)) {
+      return {
+        joins: [],
+        query: sql`
+          SELECT UNNEST(${{ identifier: parent.name }}.${{ identifier: foreignField }}) AS ${{ identifier: '$' }}
+        `,
+      };
+    }
     return {
       joins: [],
-      field: sql`${{ identifier: parent.name }}.${{ identifier: foreignField }}`,
-      array: isRelation(dataType),
-      rows: false,
+      query: sql`
+        SELECT ${{ identifier: parent.name }}.${{ identifier: foreignField }} AS ${{ identifier: '$' }}
+        WHERE ${{ identifier: parent.name }}.${{ identifier: foreignField }} IS NOT NULL
+      `,
     };
   }
 
   if (!isPointer(dataType) && !isRelation(dataType)) throw Error(`Invalid path: ${foreignField}`);
 
-  const { joins, field, rows, array } = encodeForeignField(
+  const { joins, query } = encodeForeignField(
     compiler,
     { className: dataType.target, name: tempName },
     subpath.join('.'),
@@ -266,9 +275,7 @@ export const encodeForeignField = (
         ) AS ${{ identifier: tempName }}
         ON ${{ literal: _.map(_.compact(cond), x => sql`(${x})`), separator: ' AND ' }}
       `, ...joins],
-      field,
-      array,
-      rows,
+      query,
     };
   }
 
@@ -285,20 +292,18 @@ export const encodeForeignField = (
       sql`${sql`(${{ quote: parent.className + '$' }} || ${_local('_id')})`} = ANY(${_foreign(dataType.foreignField)})`
     );
   }
-  const fieldArray = rows ? sql`ARRAY(${field})` : field;
   return {
     joins: [],
-    field: sql`(
-      SELECT ${array || rows ? sql`UNNEST(${fieldArray})` : field}
+    query: sql`
+      SELECT ${{ identifier: '_foreign_field_$' }}.${{ identifier: '$' }}
       FROM (
         SELECT ${includes}, ${{ identifier: tempName }}.*
         FROM ${encodeRemix({ className: dataType.target }, remix)} AS ${{ identifier: tempName }}
       ) AS ${{ identifier: tempName }}
       ${!_.isEmpty(joins) ? { literal: joins, separator: '\n' } : sql``}
+      CROSS JOIN LATERAL (${query}) AS ${{ identifier: '_foreign_field_$' }}(${{ identifier: '$' }})
       WHERE ${{ literal: _.map(_.compact(cond), x => sql`(${x})`), separator: ' AND ' }}
-    )`,
-    array: false,
-    rows: true,
+    `,
   };
 }
 
@@ -315,8 +320,7 @@ export const encodePopulate = (
   const _joins = _.compact(_.map(_populates, ({ join }) => join));
   const {
     joins: _joins2 = [],
-    field: _foreignField = undefined,
-    rows = false,
+    query: _foreignField = undefined,
   } = parent.foreignField ? encodeForeignField(compiler, {
     className: parent.className,
     name: parent.name,
@@ -338,7 +342,7 @@ export const encodePopulate = (
       ]), colname => sql`${{ identifier: parent.name }}.${{ identifier: colname }} AS ${{ identifier: `_$${colname}` }}`),
       ...compiler._selectIncludes(parent.name, parent.includes),
       ..._.flatMap(_populates, ({ columns: column }) => column),
-      ..._foreignField ? [sql`${rows ? sql`ARRAY(${_foreignField})` : _foreignField} AS ${{ identifier: parent.colname }}`] : [],
+      ..._foreignField ? [sql`${_foreignFieldArray(_foreignField)} AS ${{ identifier: parent.colname }}`] : [],
     ],
     separator: ',\n',
   };
