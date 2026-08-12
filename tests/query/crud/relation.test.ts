@@ -153,6 +153,61 @@ test('test relation intersect 2', async () => {
 
 })
 
+test('test relation intersect file reverse relations', async () => {
+
+  const chatroom = await Proto.Query('MiniChatroom').insert({
+    type: 'group',
+    name: 'chatroom',
+  });
+  const attached = await Proto.Query('MiniFile').insert({
+    usage: 'chat',
+  });
+  const unmatched = await Proto.Query('MiniFile').insert({
+    usage: 'chat',
+  });
+  const message = await Proto.Query('MiniChatMsg').insert({
+    chatroom,
+    content: 'hello',
+    contentType: 'markdown',
+    attachments: [attached],
+  });
+  const chunk = await Proto.Query('MiniAgentMsgChunk').insert({
+    message,
+    content: 'chunk-1',
+    attachments: [attached],
+  });
+  await Proto.Query('MiniAgentMsgChunk').insert({
+    message,
+    content: 'chunk-2',
+    attachments: [attached],
+  });
+  await Proto.Query('MiniAgentMsgToolCall').insert({
+    chunk,
+    toolCallId: 'tool-1',
+    toolName: 'search',
+    attachments: [attached],
+  });
+  await Proto.Query('MiniAgentMsgToolCall').insert({
+    chunk,
+    toolCallId: 'tool-2',
+    toolName: 'search',
+    attachments: [attached],
+  });
+
+  const result = await Proto.Query('MiniFile')
+    .equalTo('usage', 'chat')
+    .or(
+      q => q.isIntersect('messages', [chatroom]),
+      q => q.isIntersect('messageChunks', [chatroom]),
+      q => q.isIntersect('messageToolCalls', [chatroom]),
+    )
+    .find();
+
+  expect(_.map(result, x => x.id).sort()).toStrictEqual([attached.id].sort());
+  expect(_.map(result, x => x.id)).not.toContain(unmatched.id);
+
+})
+
 test('test relation superset', async () => {
 
   const inserted = await Proto.Query('Relation').insert({

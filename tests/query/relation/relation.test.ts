@@ -610,6 +610,40 @@ test('test relation 15', async () => {
 
 }, 60000)
 
+test('test relation 15b', async () => {
+  const inserted = await Proto.Query('Relation').insert({
+  });
+  const inserted2 = await Proto.Query('Relation2').insert({
+    relation: [inserted],
+  });
+  const inserted3 = await Proto.Query('Relation3').insert({
+    relation: [inserted2],
+  });
+  const inserted4 = await Proto.Query('Relation4').insert({
+    relation: [inserted3],
+  });
+  const inserted5 = await Proto.Query('Relation5').insert({
+    relation: [inserted4],
+  });
+  const inserted6 = await Proto.Query('Relation6').insert({
+    pointer: inserted5,
+  });
+  const inserted6b = await Proto.Query('Relation6').insert({
+    pointer: inserted5,
+  });
+  const inserted7 = await Proto.Query('Relation7').insert({
+    pointer: inserted6,
+  });
+  const inserted7b = await Proto.Query('Relation7').insert({
+    pointer: inserted6b,
+  });
+
+  const q = Proto.Query('Relation').equalTo('_id', inserted.id);
+
+  expect(_.map((await q.clone().includes('relation7').first())?.get('relation7'), x => x.id).sort()).toStrictEqual([inserted7.id, inserted7b.id].sort());
+
+}, 60000)
+
 test('test relation 16', async () => {
   const inserted = await Proto.Query('Relation').insert({
   });

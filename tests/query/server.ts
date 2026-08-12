@@ -286,6 +286,48 @@ const Proto = new ProtoService({
         update: ['role:system'],
       },
     },
+    'MiniFile': {
+      fields: {
+        usage: 'string',
+        messages: { type: 'relation', target: 'MiniChatroom', foreignField: 'messages.attachments' },
+        messageChunks: { type: 'relation', target: 'MiniChatroom', foreignField: 'messages.agent.chunks.attachments' },
+        messageToolCalls: { type: 'relation', target: 'MiniChatroom', foreignField: 'messages.agent.chunks.toolCalls.attachments' },
+      },
+    },
+    'MiniChatroom': {
+      fields: {
+        type: { type: 'string', required: true },
+        name: { type: 'string', required: true },
+        messages: { type: 'relation', target: 'MiniChatMsg', foreignField: 'chatroom' },
+      },
+    },
+    'MiniChatMsg': {
+      fields: {
+        chatroom: { type: 'pointer', target: 'MiniChatroom', required: true },
+        content: { type: 'string', required: true },
+        contentType: { type: 'string', required: true },
+        agent: schema.shape({
+          chunks: { type: 'relation', target: 'MiniAgentMsgChunk', foreignField: 'message' },
+        }),
+        attachments: { type: 'relation', target: 'MiniFile' },
+      },
+    },
+    'MiniAgentMsgChunk': {
+      fields: {
+        message: { type: 'pointer', target: 'MiniChatMsg', required: true },
+        content: { type: 'string', required: true },
+        attachments: { type: 'relation', target: 'MiniFile' },
+        toolCalls: { type: 'relation', target: 'MiniAgentMsgToolCall', foreignField: 'chunk' },
+      },
+    },
+    'MiniAgentMsgToolCall': {
+      fields: {
+        chunk: { type: 'pointer', target: 'MiniAgentMsgChunk', required: true },
+        toolCallId: { type: 'string', required: true },
+        toolName: { type: 'string', required: true },
+        attachments: { type: 'relation', target: 'MiniFile' },
+      },
+    },
   },
   storage: database,
   fileStorage: new DatabaseFileStorage(),
