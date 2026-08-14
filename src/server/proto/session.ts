@@ -182,6 +182,7 @@ export const signUser = async <E>(
     cookieOptions,
   }, options?.jwtSignOptions ?? 'login');
   const cookieKey = _.last(_.castArray(res.req.headers[AUTH_ALT_COOKIE_KEY] || [])) || AUTH_COOKIE_KEY;
+  res.clearCookie(cookieKey, cookieOptions);
   res.cookie(cookieKey, token, cookieOptions);
   userRoleMap.set(res.req, user ? await fetchUserRole(proto, user) : {});
 }
