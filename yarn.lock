@@ -1370,6 +1370,13 @@
   dependencies:
     lodash ">=4.17.21"
 
+"@o2ter/utils-js@^0.0.20":
+  version "0.0.20"
+  resolved "https://registry.yarnpkg.com/@o2ter/utils-js/-/utils-js-0.0.20.tgz#b071165eb159179613a4b214ee64227d07913f8e"
+  integrity sha512-b77xkdc45fsUQ8atC8lASWR85uS8maMJwtN3ZZSbYzZlL8ejrCS9MKJm4zGr2UCECl9sd+jnGX18mT1b7MrwDw==
+  dependencies:
+    lodash ">=4.18.1"
+
 "@pkgjs/parseargs@^0.11.0":
   version "0.11.0"
   resolved "https://registry.yarnpkg.com/@pkgjs/parseargs/-/parseargs-0.11.0.tgz#a77ea742fab25775145434eb1d2328cf5013ac33"
