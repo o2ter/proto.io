@@ -47,6 +47,10 @@ export class ProtoClient<Ext = any> extends ProtoType<Ext> {
     this[PVK] = new ProtoClientInternal({ ...options });
   }
 
+  get interceptors() {
+    return this[PVK].service.interceptors;
+  }
+
   Query<T extends string>(className: T): TQuery<T, Ext, boolean> {
     return new ProtoClientQuery<T, Ext>(className, this, {});
   }

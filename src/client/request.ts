@@ -69,6 +69,10 @@ export default class Service<Ext, P extends ProtoType<any>> {
     this.cookieKey = cookieKey || AUTH_COOKIE_KEY;
   }
 
+  get interceptors() {
+    return this.service.interceptors;
+  }
+
   refreshSocketSession() {
     for (const socket of this.sockets) {
       socket.emit('auth', this.token);
