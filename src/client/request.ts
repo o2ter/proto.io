@@ -41,6 +41,7 @@ import { io, Socket } from 'socket.io-client';
 import { TQuerySelector } from '../internals/query/types/selectors';
 import { deserialize } from '../internals/codec';
 import { TObject } from '../internals/object';
+import { EventIterator } from '@o2ter/utils-js';
 
 const randomId = () => `${Date.now()}-${Math.random()}`;
 
@@ -179,14 +180,15 @@ export default class Service<Ext, P extends ProtoType<any>> {
   async _streamRequest<D extends unknown = any>(
     config: RequestOptions<boolean> & AxiosRequestConfig<D>,
     retry = 0
-  ): Promise<Readable | ReadableStream<Uint8Array>> {
+  ): Promise<Readable | AsyncIterable<Uint8Array>> {
 
     const { master, abortSignal, serializeOpts, headers, ...opts } = config ?? {};
 
+    const isReactNative = typeof navigator !== 'undefined' && navigator.product === 'ReactNative';
     const isNodeJs = typeof process !== 'undefined' && process.versions && process.versions.node;
     const isFetchSupported = typeof fetch === 'function';
 
-    if (isNodeJs || isFetchSupported) {
+    if (!isReactNative && (isNodeJs || isFetchSupported)) {
 
       const res = await this.service.request({
         signal: abortSignal,
@@ -219,30 +221,37 @@ export default class Service<Ext, P extends ProtoType<any>> {
     } else {
       // Fallback for environments without stream support (old browsers)
       // Use onDownloadProgress to receive data chunks
-      return new ReadableStream({
-        start: async (controller) => {
+      const self = this;
+      return (async function* () {
+        yield* EventIterator<Uint8Array>(async (push, stop) => {
           let lastByteLength = 0;
           try {
-            const res = await this.service.request({
+            const res = await self.service.request({
               signal: abortSignal,
-              headers: this._buildHeaders(master, headers),
+              headers: self._buildHeaders(master, headers),
               responseType: 'arraybuffer',
               onDownloadProgress: (progressEvent: any) => {
                 // progressEvent.event.target.response contains the accumulated ArrayBuffer
-                if (progressEvent.event && progressEvent.event.target) {
-                  const response = progressEvent.event.target.response as ArrayBuffer;
-                  if (response && response.byteLength > lastByteLength) {
-                    // Only enqueue new bytes since last progress event
-                    const newBytes = response.slice(lastByteLength);
-                    controller.enqueue(new Uint8Array(newBytes));
-                    lastByteLength = response.byteLength;
-                  }
+                const response = progressEvent?.event?.target?.response as ArrayBuffer;
+                if (response && response.byteLength > lastByteLength) {
+                  // Only enqueue new bytes since last progress event
+                  const newBytes = response.slice(lastByteLength);
+                  push(new Uint8Array(newBytes));
+                  lastByteLength = response.byteLength;
                 }
               },
               ...opts,
             });
 
-            this._extractAndSetToken(res.headers);
+            self._extractAndSetToken(res.headers);
+
+            const response = res?.data as ArrayBuffer;
+            if (response && response.byteLength > lastByteLength) {
+              // Only enqueue new bytes since last progress event
+              const newBytes = response.slice(lastByteLength);
+              push(new Uint8Array(newBytes));
+              lastByteLength = response.byteLength;
+            }
 
             if (res.status !== 200) {
               let error: Error
@@ -257,12 +266,11 @@ export default class Service<Ext, P extends ProtoType<any>> {
               throw error;
             }
 
-            controller.close();
-          } catch (error) {
-            controller.error(error);
+          } finally {
+            stop();
           }
-        },
-      });
+        });
+      })();
     }
   }
 
