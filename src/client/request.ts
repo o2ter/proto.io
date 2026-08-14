@@ -39,9 +39,10 @@ import { AxiosOptions } from './proto/types';
 import { XSRF_COOKIE_NAME, XSRF_HEADER_NAME } from '@o2ter/server-js/dist/const';
 import { io, Socket } from 'socket.io-client';
 import { TQuerySelector } from '../internals/query/types/selectors';
-import { randomUUID } from '@o2ter/crypto-js';
 import { deserialize } from '../internals/codec';
 import { TObject } from '../internals/object';
+
+const randomId = () => `${Date.now()}-${Math.random()}`;
 
 export default class Service<Ext, P extends ProtoType<any>> {
 
@@ -346,7 +347,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
     return {
       socket,
       listen: (callback: (payload: any) => void, selector?: TQuerySelector) => {
-        const id = randomUUID();
+        const id = `event-${randomId()}`;
         events[id] = { callback, selector };
         register_event();
         return () => {
@@ -356,7 +357,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
         };
       },
       liveQuery: (callback: (payload: any) => void, options: QueryOpts) => {
-        const id = randomUUID();
+        const id = `query-${randomId()}`;
         queries[id] = { callback, options };
         register_query();
         return () => {
