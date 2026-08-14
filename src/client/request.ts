@@ -180,7 +180,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
   async _streamRequest<D extends unknown = any>(
     config: RequestOptions<boolean> & AxiosRequestConfig<D>,
     retry = 0
-  ): Promise<Readable | AsyncIterable<Uint8Array>> {
+  ): Promise<Readable | ReadableStream<Uint8Array> | AsyncIterable<Uint8Array>> {
 
     const { master, abortSignal, serializeOpts, headers, ...opts } = config ?? {};
 

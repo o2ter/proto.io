@@ -43,6 +43,25 @@ import { UPLOAD_TOKEN_HEADER_NAME } from '../../internals/const';
 import { TObject } from '../../internals/object';
 import { TQuerySelector } from '../../internals/query/types/selectors';
 
+const readableStreamToAsyncIterable = (stream: Readable | ReadableStream<Uint8Array> | AsyncIterable<Uint8Array>): AsyncIterable<Uint8Array> => {
+  if (typeof ReadableStream !== 'undefined' && stream instanceof ReadableStream) {
+    return (async function* () {
+      const reader = stream.getReader();
+      try {
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          yield value;
+        }
+      } finally {
+        reader.releaseLock();
+      }
+    })();
+  } else {
+    return stream;
+  }
+}
+
 export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements ProtoInternalType<Ext, P> {
 
   options: ProtoOptions<Ext>;
@@ -90,7 +109,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
 
     let buffer = '';
     let isStreaming = false;
-    const iterator = res[Symbol.asyncIterator]();
+    const iterator = readableStreamToAsyncIterable(res)[Symbol.asyncIterator]();
     const decoder = new TextDecoder();
 
     // Collect chunks until we determine if it's streaming or not
