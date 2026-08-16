@@ -192,7 +192,58 @@ export default class Service<Ext, P extends ProtoType<any>> {
     const isNodeJs = typeof process !== 'undefined' && process.versions && process.versions.node;
     const isFetchSupported = typeof fetch === 'function';
 
-    if (!isReactNative && (isNodeJs || isFetchSupported)) {
+    if (isReactNative) {
+
+      const self = this;
+      return (async function* () {
+        yield* EventIterator<Uint8Array>(async (push, stop) => {
+          let lastByteLength = 0;
+          try {
+            const res = await self.service.request({
+              signal: abortSignal,
+              headers: self._buildHeaders(master, headers),
+              responseType: 'text',
+              onDownloadProgress: (progressEvent: any) => {
+                // progressEvent.event.target.response contains the accumulated ArrayBuffer
+                const response = progressEvent?.event?.target?.responseText as string;
+                if (response && response.length > lastByteLength) {
+                  // Only enqueue new bytes since last progress event
+                  const newBytes = response.slice(lastByteLength);
+                  push(new TextEncoder().encode(newBytes));
+                  lastByteLength = response.length;
+                }
+              },
+              ...opts,
+            });
+
+            self._extractAndSetToken(res.headers);
+
+            const response = res?.data as string;
+            if (response && response.length > lastByteLength) {
+              // Only enqueue new bytes since last progress event
+              const newBytes = response.slice(lastByteLength);
+              push(new TextEncoder().encode(newBytes));
+            }
+
+            if (res.status !== 200) {
+              let error: Error
+              try {
+                const decoder = new TextDecoder();
+                const errorText = decoder.decode(res.data);
+                const _error = JSON.parse(errorText);
+                error = new Error(_error.message, { cause: _error });
+              } catch {
+                error = new Error('Request failed');
+              }
+              throw error;
+            }
+
+          } finally {
+            stop();
+          }
+        });
+      })();
+    } else if (isNodeJs || isFetchSupported) {
 
       const res = await this.service.request({
         signal: abortSignal,
@@ -254,7 +305,6 @@ export default class Service<Ext, P extends ProtoType<any>> {
               // Only enqueue new bytes since last progress event
               const newBytes = response.slice(lastByteLength);
               push(new Uint8Array(newBytes));
-              lastByteLength = response.byteLength;
             }
 
             if (res.status !== 200) {
