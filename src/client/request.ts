@@ -45,6 +45,10 @@ import { EventIterator } from '@o2ter/utils-js';
 
 const randomId = () => `${Date.now()}-${Math.random()}`;
 
+const isReactNative = typeof navigator !== 'undefined' && navigator.product === 'ReactNative';
+const isNodeJs = typeof process !== 'undefined' && process.versions && process.versions.node;
+const isFetchSupported = typeof fetch === 'function';
+
 export default class Service<Ext, P extends ProtoType<any>> {
 
   proto: ProtoClientInternal<Ext, P>;
@@ -89,6 +93,9 @@ export default class Service<Ext, P extends ProtoType<any>> {
   private _buildHeaders(master?: boolean, headers?: any) {
     return {
       'Content-Type': 'application/json; charset=utf-8',
+      ...isNodeJs && this.token ? {
+        Cookie: `${this.cookieKey}=${this.token}`,
+      } : {},
       ...master ? {
         [MASTER_USER_HEADER_NAME]: this.proto.options.masterUser?.user,
         [MASTER_PASS_HEADER_NAME]: this.proto.options.masterUser?.pass,
@@ -184,10 +191,6 @@ export default class Service<Ext, P extends ProtoType<any>> {
   ): Promise<Readable | ReadableStream<Uint8Array> | AsyncIterable<Uint8Array>> {
 
     const { master, abortSignal, serializeOpts, headers, ...opts } = config ?? {};
-
-    const isReactNative = typeof navigator !== 'undefined' && navigator.product === 'ReactNative';
-    const isNodeJs = typeof process !== 'undefined' && process.versions && process.versions.node;
-    const isFetchSupported = typeof fetch === 'function';
 
     if (isReactNative) {
 
