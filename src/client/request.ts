@@ -89,9 +89,6 @@ export default class Service<Ext, P extends ProtoType<any>> {
   private _buildHeaders(master?: boolean, headers?: any) {
     return {
       'Content-Type': 'application/json; charset=utf-8',
-      ...this.token ? {
-        Cookie: `${this.cookieKey}=${this.token}`,
-      } : {},
       ...master ? {
         [MASTER_USER_HEADER_NAME]: this.proto.options.masterUser?.user,
         [MASTER_PASS_HEADER_NAME]: this.proto.options.masterUser?.pass,
@@ -107,7 +104,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
     if (responseHeaders['set-cookie']) {
       const cookies = _.castArray(responseHeaders['set-cookie']);
       const pattern = `${this.cookieKey}=`;
-      const token = _.findLast(_.flatMap(cookies, x => x.split(';')), x => _.startsWith(x.trim(), pattern));
+      const token = _.findLast(_.flatMap(cookies, x => x.split(/[,;]/)), x => _.startsWith(x.trim(), pattern));
       this.setSessionToken(token?.trim().slice(pattern.length));
     }
   }
