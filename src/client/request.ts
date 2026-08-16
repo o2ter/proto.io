@@ -276,36 +276,30 @@ export default class Service<Ext, P extends ProtoType<any>> {
     } else {
       // Fallback for environments without stream support (old browsers)
       // Use onDownloadProgress to receive data chunks
-      const self = this;
-      return (async function* () {
-        yield* EventIterator<Uint8Array>(async (push, stop) => {
+      return new ReadableStream({
+        start: async (controller) => {
           let lastByteLength = 0;
           try {
-            const res = await self.service.request({
+            const res = await this.service.request({
               signal: abortSignal,
-              headers: self._buildHeaders(master, headers),
+              headers: this._buildHeaders(master, headers),
               responseType: 'arraybuffer',
               onDownloadProgress: (progressEvent: any) => {
                 // progressEvent.event.target.response contains the accumulated ArrayBuffer
-                const response = progressEvent?.event?.target?.response as ArrayBuffer;
-                if (response && response.byteLength > lastByteLength) {
-                  // Only enqueue new bytes since last progress event
-                  const newBytes = response.slice(lastByteLength);
-                  push(new Uint8Array(newBytes));
-                  lastByteLength = response.byteLength;
+                if (progressEvent.event && progressEvent.event.target) {
+                  const response = progressEvent.event.target.response as ArrayBuffer;
+                  if (response && response.byteLength > lastByteLength) {
+                    // Only enqueue new bytes since last progress event
+                    const newBytes = response.slice(lastByteLength);
+                    controller.enqueue(new Uint8Array(newBytes));
+                    lastByteLength = response.byteLength;
+                  }
                 }
               },
               ...opts,
             });
 
-            self._extractAndSetToken(res.headers);
-
-            const response = res?.data as ArrayBuffer;
-            if (response && response.byteLength > lastByteLength) {
-              // Only enqueue new bytes since last progress event
-              const newBytes = response.slice(lastByteLength);
-              push(new Uint8Array(newBytes));
-            }
+            this._extractAndSetToken(res.headers);
 
             if (res.status !== 200) {
               let error: Error
@@ -320,11 +314,12 @@ export default class Service<Ext, P extends ProtoType<any>> {
               throw error;
             }
 
-          } finally {
-            stop();
+            controller.close();
+          } catch (error) {
+            controller.error(error);
           }
-        });
-      })();
+        },
+      });
     }
   }
 
