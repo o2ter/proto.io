@@ -301,6 +301,13 @@ export default class Service<Ext, P extends ProtoType<any>> {
 
             this._extractAndSetToken(res.headers);
 
+            const response = res?.data as ArrayBuffer;
+            if (response && response.byteLength > lastByteLength) {
+              // Only enqueue new bytes since last progress event
+              const newBytes = response.slice(lastByteLength);
+              controller.enqueue(new Uint8Array(newBytes));
+            }
+
             if (res.status !== 200) {
               let error: Error
               try {
