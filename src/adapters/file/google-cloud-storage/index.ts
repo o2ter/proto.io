@@ -58,13 +58,9 @@ export class GoogleCloudStorage extends FileChunkStorageBase<File> {
       const [response, nextPage] = await this.bucket.getFiles(query);
       if (_.isEmpty(response)) break;
       for (const item of response) {
-        console.log(`listChunks 1: ${item.name} (${item.metadata.size} bytes)`);
         const name = _.last(_.split(item.name, '/'));
         if (!name?.match(/^\d+\.chunk$/)) continue;
         const pos = parseInt(name.slice(0, -6));
-        if (start && pos < start) continue;
-        if (end && pos >= end) continue;
-        console.log(`listChunks 2: ${item.name} (${pos})`);
         yield { start: pos, file: item };
       }
       query = nextPage;

@@ -106,8 +106,6 @@ export abstract class FileStorageBase implements TFileStorage {
 
     for await (const { start: startBytes, data } of _stream) {
 
-      console.log(`fileData: ${id} (${startBytes}-${startBytes + data.length})`);
-
       if (!_.isNumber(start) && !_.isNumber(end)) {
 
         yield data;
@@ -117,8 +115,6 @@ export abstract class FileStorageBase implements TFileStorage {
         const endBytes = startBytes + data.length;
         const _start = _.isNumber(start) && start > startBytes ? start - startBytes : 0;
         const _end = _.isNumber(end) && end < endBytes ? end - startBytes : undefined;
-
-        console.log(`fileData: ${id} (${startBytes}-${endBytes}) [${_start}-${_end}]`);
 
         yield data.subarray(_start, _end);
       }

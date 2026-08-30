@@ -113,21 +113,16 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       }
 
       let stream: AsyncIterable<BinaryData>;
-      let expectedLength = file.size;
-      let sentLength = 0;
 
       if (_.isArray(ranges) && ranges.type === 'bytes') {
 
         const startBytes = _.minBy(ranges, r => r.start)?.start ?? 0;
         const endBytes = _.maxBy(ranges, r => r.end)?.end ?? (file.size - 1);
 
-        expectedLength = endBytes - startBytes + 1;
-
         res.setHeader('Content-Length', endBytes - startBytes + 1);
         res.setHeader('Content-Range', `bytes ${startBytes}-${endBytes}/${file.size}`);
         res.status(206);
 
-        console.log(`File download range: ${file.filename} (${startBytes}-${endBytes})`);
         stream = payload.fileStorage.fileData(payload, file.token, startBytes, endBytes + 1);
 
       } else {
@@ -150,7 +145,6 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
           if (err && !res.headersSent) {
             next(err);
           }
-          console.log(`File download: ${file.filename} (${sentLength}/${expectedLength})`);
         }
       );
     }
