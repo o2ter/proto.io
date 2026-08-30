@@ -138,7 +138,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       }
 
       pipeline(
-        Readable.from((async function* {
+        Readable.from((async function*() {
           for await (const chunk of stream) {
             yield chunk;
             sentLength += chunk.byteLength;
