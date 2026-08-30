@@ -41,9 +41,11 @@ export abstract class FileChunkStorageBase<File> extends FileStorageBase {
     const streams = await asyncIterableToArray(this.listChunks(proto, token, start, end));
     const files = _.orderBy(streams, x => x.start);
     for (const [chunk, endBytes] of _.zip(files, _.slice(_.map(files, x => x.start), 1))) {
+      console.log(`readChunks 1: ${token} (${chunk?.start}-${endBytes})`);
       if (_.isNumber(start) && _.isNumber(endBytes) && start >= endBytes) continue;
       if (_.isNumber(end) && end <= chunk!.start) continue;
       if (!chunk) continue;
+      console.log(`readChunks 2: ${token} (${chunk.start}-${endBytes})`);
       yield {
         start: chunk.start,
         data: (async () => this.readChunk(proto, chunk.file))(),
