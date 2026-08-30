@@ -52,8 +52,6 @@ export class FileSystemStorage extends FileChunkStorageBase<string> {
     const files = _.filter(await fs.readdir(directory), x => !!x.match(/^\d+\.chunk$/));
     for (const file of files) {
       const pos = parseInt(file.slice(0, -6));
-      if (start && pos < start) continue;
-      if (end && pos >= end) continue;
       yield { start: pos, file: path.resolve(directory, file) };
     }
   }
