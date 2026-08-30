@@ -150,10 +150,9 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
           if (err && !res.headersSent) {
             next(err);
           }
+          console.log(`File download: ${file.filename} (${sentLength}/${expectedLength})`);
         }
       );
-
-      console.log(`File download: ${file.filename} (${sentLength}/${expectedLength})`);
     }
   );
 
