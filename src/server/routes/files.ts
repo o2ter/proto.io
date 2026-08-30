@@ -134,12 +134,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       }
 
       pipeline(
-        Readable.from((async function*() {
-          for await (const chunk of stream) {
-            yield chunk;
-            sentLength += chunk.byteLength;
-          }
-        })()),
+        Readable.from(stream),
         res,
         (err) => {
           if (err && !res.headersSent) {
