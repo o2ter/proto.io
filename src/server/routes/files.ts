@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import { Router } from '@o2ter/server-js';
-import { Readable } from 'node:stream';
+import { pipeline, Readable } from 'node:stream';
 import { ProtoService } from '../proto';
 import queryType from 'query-types';
 import { decodeFormStream, response } from './common';
@@ -113,11 +113,15 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       }
 
       let stream: AsyncIterable<BinaryData>;
+      let expectedLength = file.size;
+      let sentLength = 0;
 
       if (_.isArray(ranges) && ranges.type === 'bytes') {
 
         const startBytes = _.minBy(ranges, r => r.start)?.start ?? 0;
         const endBytes = _.maxBy(ranges, r => r.end)?.end ?? (file.size - 1);
+
+        expectedLength = endBytes - startBytes + 1;
 
         res.setHeader('Content-Length', endBytes - startBytes + 1);
         res.setHeader('Content-Range', `bytes ${startBytes}-${endBytes}/${file.size}`);
@@ -133,7 +137,22 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
         stream = payload.fileStorage.fileData(payload, file.token);
       }
 
-      Readable.from(stream).pipe(res).on('error', err => next(err));
+      pipeline(
+        Readable.from((async function* {
+          for await (const chunk of stream) {
+            yield chunk;
+            sentLength += chunk.byteLength;
+          }
+        })()),
+        res,
+        (err) => {
+          if (err && !res.headersSent) {
+            next(err);
+          }
+        }
+      );
+
+      console.log(`File download: ${file.filename} (${sentLength}/${expectedLength})`);
     }
   );
 
