@@ -346,6 +346,8 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
       buffer = data;
     } else if ('base64' in data) {
       buffer = base64ToBuffer(data.base64);
+    } else if ('uri' in data) {
+      buffer = data;
     } else {
       throw Error('Invalid file object');
     }

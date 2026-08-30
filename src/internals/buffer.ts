@@ -37,4 +37,4 @@ export type FileStream = ReadableStream | Readable;
  * Represents the data of a file.
  * It can be a string, Blob, BinaryData, FileStream, or an object containing a base64 string.
  */
-export type FileData = string | Blob | BinaryData | FileStream | { base64: string; };
+export type FileData = string | Blob | BinaryData | FileStream | { base64: string; } | { uri: string; };
