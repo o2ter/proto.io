@@ -407,9 +407,6 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
       method: 'get',
       baseURL: this.options.endpoint,
       url: `files/${object.id}/${encodeURIComponent(filename)}`,
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
       ...opts,
     }));
   }
