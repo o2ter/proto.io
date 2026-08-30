@@ -54,8 +54,6 @@ export class AliyunObjectStorage extends FileChunkStorageBase<OSS.ObjectMeta> {
         const name = _.last(_.split(item.name, '/'));
         if (!name?.match(/^\d+\.chunk$/)) continue;
         const pos = parseInt(name.slice(0, -6));
-        if (start && pos < start) continue;
-        if (end && pos >= end) continue;
         yield { start: pos, file: item };
       }
       next = nextContinuationToken;
