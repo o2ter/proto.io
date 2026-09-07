@@ -33,8 +33,10 @@ import { TExtensions } from '../../internals/object/types';
 import { TPubSub } from '../pubsub';
 import { TUser } from '../../internals/object/user';
 import { TRole } from '../../internals/object/role';
+import { TFile } from '../../internals/object/file';
 import { Awaitable } from '@o2ter/utils-js';
 import { Logger } from '../../internals/proto';
+import type { ProtoService } from './index';
 
 export type ProtoServiceOptions<Ext> = {
   /**
@@ -67,6 +69,13 @@ export type ProtoServiceOptions<Ext> = {
       defaultResolver: () => Promise<TRole[]>,
     ) => Awaitable<TRole[]>;
   };
+
+  /**
+   * Custom file access validation function.
+   * @param proto The proto service instance.
+   * @returns A promise that resolves to a file, a boolean indicating access, or null/undefined if access is not determined.
+   */
+  validateFileAccess?: (proto: ProtoService<Ext>) => Awaitable<TFile | boolean | null | undefined>;
 
   /**
    * Logger configuration.

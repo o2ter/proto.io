@@ -33,6 +33,7 @@ import { deserialize } from '../../internals/codec';
 import { PVK } from '../../internals/private';
 import { UPLOAD_TOKEN_HEADER_NAME } from '../../internals/const';
 import { BinaryData } from '@o2ter/utils-js';
+import { isFile } from '../../internals/utils';
 
 export default <E>(router: Router, proto: ProtoService<E>) => {
 
@@ -90,7 +91,19 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
         isMaster = true;
       }
 
-      const file = await query.first({ master: isMaster });
+      const validateFileAccess = await payload[PVK].options.validateFileAccess(payload);
+
+      let file;
+      if (_.isNil(validateFileAccess)) {
+        file = await query.first({ master: isMaster });
+      } else if (validateFileAccess === true) {
+        file = await query.first({ master: true });
+      } else if (isFile(validateFileAccess)) {
+        file = validateFileAccess;
+      } else {
+        return void res.sendStatus(404);
+      }
+
       if (!file || file.filename !== name) return void res.sendStatus(404);
       if (_.isNil(file.token) || _.isNil(file.size) || _.isNil(file.type)) return void res.sendStatus(404);
 
