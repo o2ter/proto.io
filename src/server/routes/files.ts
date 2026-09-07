@@ -91,7 +91,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
         isMaster = true;
       }
 
-      const validateFileAccess = await payload[PVK].options.validateFileAccess(payload);
+      const validateFileAccess = await payload[PVK].options.validateFileAccess(id, payload);
 
       let file;
       if (_.isNil(validateFileAccess)) {

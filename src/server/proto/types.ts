@@ -75,7 +75,10 @@ export type ProtoServiceOptions<Ext> = {
    * @param proto The proto service instance.
    * @returns A promise that resolves to a file, a boolean indicating access, or null/undefined if access is not determined.
    */
-  validateFileAccess?: (proto: ProtoService<Ext>) => Awaitable<TFile | boolean | null | undefined>;
+  validateFileAccess?: (
+    fileId: string,
+    proto: ProtoService<Ext>
+  ) => Awaitable<TFile | boolean | null | undefined>;
 
   /**
    * Logger configuration.
