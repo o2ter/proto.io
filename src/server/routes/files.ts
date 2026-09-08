@@ -84,18 +84,18 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       const payload = proto.connect(req);
       const query = payload.Query('File').equalTo('_id', id);
 
-      let isMaster = payload.isMaster;
+      let allowed = payload.isMaster;
       if (_.isString(token)) {
         const { fileId } = payload[PVK].jwtVerify(token, {}) || {};
         if (fileId !== id) return void res.sendStatus(404);
-        isMaster = true;
+        allowed = true;
       }
 
       const validateFileAccess = await payload[PVK].options.validateFileAccess(id, payload);
 
       let file;
-      if (isMaster || _.isNil(validateFileAccess)) {
-        file = await query.first({ master: isMaster });
+      if (allowed || _.isNil(validateFileAccess)) {
+        file = await query.first({ master: allowed });
       } else if (validateFileAccess === true) {
         file = await query.first({ master: true });
       } else if (isFile(validateFileAccess)) {
