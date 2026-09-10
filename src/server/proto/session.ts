@@ -33,6 +33,7 @@ import { PVK } from '../../internals/private';
 import { TUser } from '../../internals/object/user';
 import { TRole } from '../../internals/object/role';
 import { TSession } from '../../internals/object/session';
+import { createCacheDebounce } from '../../internals/debounce';
 
 export type _Session = Awaited<ReturnType<typeof session>>;
 
@@ -48,19 +49,19 @@ const _sessionWithToken = async <E>(proto: ProtoService<E>, token: string) => {
   return { payload, session };
 }
 
-const userCacheMap = new WeakMap<any, { [K in string]?: Promise<TRole[]>; }>();
+const userCacheMap = new WeakMap<any, ReturnType<typeof createCacheDebounce<TRole[]>>>();
 const fetchUserRole = async <E>(proto: ProtoService<E>, user?: TUser) => {
-  if (!userCacheMap.has(proto[PVK])) userCacheMap.set(proto[PVK], {});
-  const cache = userCacheMap.get(proto[PVK])!;
+  if (!userCacheMap.has(proto[PVK])) userCacheMap.set(proto[PVK], createCacheDebounce());
+  const debounce = userCacheMap.get(proto[PVK])!;
   if (_.isNil(user?.id)) return {};
-  if (_.isNil(cache[user.id])) cache[user.id] = (async () => {
-    const _roles = user instanceof TUser ? _.filter(await proto.userRoles(user), x => !_.isEmpty(x.name)) : [];
-    cache[user.id!] = undefined;
-    return _roles;
-  })();
-  const _roles = await cache[user.id];
+  const _roles = await debounce(
+    user.id,
+    async () => user instanceof TUser
+      ? _.filter(await proto.userRoles(user), x => !_.isEmpty(x.name))
+      : []
+  );
   return {
-    user: user?.clone(),
+    user: user.clone(),
     _roles: _.map(_roles, x => x.clone()),
   };
 }
