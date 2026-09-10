@@ -48,7 +48,7 @@ export class GoogleCloudStorage extends FileChunkStorageBase<File> {
     await this.bucket.file(`${token}/${start}.chunk`).save(compressed);
   }
 
-  async* listChunks<E>(proto: ProtoService<E>, token: string, start?: number, end?: number) {
+  async* listChunks<E>(proto: ProtoService<E>, token: string) {
     let query: any = {
       autoPaginate: false,
       prefix: `${token}/`,

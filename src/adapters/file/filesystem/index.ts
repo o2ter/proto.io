@@ -47,7 +47,7 @@ export class FileSystemStorage extends FileChunkStorageBase<string> {
     await fs.writeFile(path.join(directory, `${start}.chunk`), compressed);
   }
 
-  async* listChunks<E>(proto: ProtoService<E>, token: string, start?: number, end?: number) {
+  async* listChunks<E>(proto: ProtoService<E>, token: string) {
     const directory = path.resolve(this.volumn, token);
     const files = _.filter(await fs.readdir(directory), x => !!x.match(/^\d+\.chunk$/));
     for (const file of files) {

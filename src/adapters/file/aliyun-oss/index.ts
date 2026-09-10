@@ -41,7 +41,7 @@ export class AliyunObjectStorage extends FileChunkStorageBase<OSS.ObjectMeta> {
     await this._storage.put(`${token}/${start}.chunk`, compressed);
   }
 
-  async* listChunks<E>(proto: ProtoService<E>, token: string, start?: number, end?: number) {
+  async* listChunks<E>(proto: ProtoService<E>, token: string) {
     let next: string | undefined;
     do {
       const { objects, nextContinuationToken } = await (this._storage as any).listV2({

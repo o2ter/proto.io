@@ -27,18 +27,23 @@ import _ from 'lodash';
 import { FileStorageBase } from './base';
 import { ProtoService } from '../../../server/proto';
 import { asyncIterableToArray } from '@o2ter/utils-js';
+import { createCacheDebounce } from '../../../internals/debounce';
+
+type ChunkData<File> = {
+  start: number;
+  file: File;
+};
 
 export abstract class FileChunkStorageBase<File> extends FileStorageBase {
 
-  abstract listChunks<E>(proto: ProtoService<E>, token: string, start?: number, end?: number): AsyncGenerator<{
-    start: number;
-    file: File;
-  }>;
+  debounce = createCacheDebounce<ChunkData<File>[]>();
+
+  abstract listChunks<E>(proto: ProtoService<E>, token: string): AsyncGenerator<ChunkData<File>>;
 
   abstract readChunk<E>(proto: ProtoService<E>, file: File): PromiseLike<Buffer>;
 
   async* readChunks<E>(proto: ProtoService<E>, token: string, start?: number, end?: number) {
-    const streams = await asyncIterableToArray(this.listChunks(proto, token, start, end));
+    const streams = await this.debounce(token, () => asyncIterableToArray(this.listChunks(proto, token)));
     const files = _.orderBy(streams, x => x.start);
     for (const [chunk, endBytes] of _.zip(files, _.slice(_.map(files, x => x.start), 1))) {
       if (_.isNumber(start) && _.isNumber(endBytes) && start >= endBytes) continue;
