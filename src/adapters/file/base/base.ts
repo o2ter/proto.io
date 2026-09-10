@@ -39,19 +39,22 @@ const unzip = promisify(_unzip);
 export type FileStorageOptions = {
   chunkSize?: number;
   parallel?: number;
+  cacheTimeout?: number;
 };
 
 export abstract class FileStorageBase implements TFileStorage {
 
   options: Required<FileStorageOptions>;
-  unzipDebounce = createCacheDebounce<Buffer>();
+  unzipDebounce: ReturnType<typeof createCacheDebounce<Buffer>>;
 
   constructor(options: FileStorageOptions) {
     this.options = {
       chunkSize: 16 * 1024,
       parallel: 8,
+      cacheTimeout: 15 * 1000, // 15 seconds
       ..._.pickBy(options, v => !_.isNil(v)),
     };
+    this.unzipDebounce = createCacheDebounce(this.options.cacheTimeout);
   }
 
   get schema(): Record<string, TSchema> {

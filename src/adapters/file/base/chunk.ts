@@ -36,8 +36,8 @@ type ChunkData<File> = {
 
 export abstract class FileChunkStorageBase<File> extends FileStorageBase {
 
-  listChunkDebounce = createCacheDebounce<ChunkData<File>[]>();
-  readChunkDebounce = createCacheDebounce<Buffer>();
+  listChunkDebounce = createCacheDebounce<ChunkData<File>[]>(this.options.cacheTimeout);
+  readChunkDebounce = createCacheDebounce<Buffer>(this.options.cacheTimeout);
 
   abstract listChunks<E>(proto: ProtoService<E>, token: string): AsyncGenerator<ChunkData<File>>;
 
