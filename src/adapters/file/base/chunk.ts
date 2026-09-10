@@ -36,14 +36,15 @@ type ChunkData<File> = {
 
 export abstract class FileChunkStorageBase<File> extends FileStorageBase {
 
-  debounce = createCacheDebounce<ChunkData<File>[]>();
+  listChunkDebounce = createCacheDebounce<ChunkData<File>[]>();
+  readChunkDebounce = createCacheDebounce<Buffer>();
 
   abstract listChunks<E>(proto: ProtoService<E>, token: string): AsyncGenerator<ChunkData<File>>;
 
   abstract readChunk<E>(proto: ProtoService<E>, file: File): PromiseLike<Buffer>;
 
   async* readChunks<E>(proto: ProtoService<E>, token: string, start?: number, end?: number) {
-    const streams = await this.debounce(token, () => asyncIterableToArray(this.listChunks(proto, token)));
+    const streams = await this.listChunkDebounce(token, () => asyncIterableToArray(this.listChunks(proto, token)));
     const files = _.orderBy(streams, x => x.start);
     for (const [chunk, endBytes] of _.zip(files, _.slice(_.map(files, x => x.start), 1))) {
       if (_.isNumber(start) && _.isNumber(endBytes) && start >= endBytes) continue;
@@ -51,7 +52,10 @@ export abstract class FileChunkStorageBase<File> extends FileStorageBase {
       if (!chunk) continue;
       yield {
         start: chunk.start,
-        data: (async () => this.readChunk(proto, chunk.file))(),
+        data: (() => this.readChunkDebounce(
+          `${token}-${chunk.start}`,
+          async () => await this.readChunk(proto, chunk.file)
+        ))(),
       };
     }
   }
