@@ -31,6 +31,7 @@ import { ProtoService } from '../../../server/proto';
 import { TSchema } from '../../../internals/schema';
 import { BinaryData, binaryStreamChunk, parallelEach, parallelMap } from '@o2ter/utils-js';
 import { PVK } from '../../../internals/private';
+import { createCacheDebounce } from '../../../internals/debounce';
 
 const deflate = promisify(_deflate);
 const unzip = promisify(_unzip);
@@ -43,6 +44,7 @@ export type FileStorageOptions = {
 export abstract class FileStorageBase implements TFileStorage {
 
   options: Required<FileStorageOptions>;
+  unzipDebounce = createCacheDebounce<Buffer>();
 
   constructor(options: FileStorageOptions) {
     this.options = {
@@ -100,7 +102,7 @@ export abstract class FileStorageBase implements TFileStorage {
       this.options.parallel,
       async chunk => ({
         start: chunk.start,
-        data: await unzip(await chunk.data),
+        data: await this.unzipDebounce(`${id}-${chunk.start}`, async () => unzip(await chunk.data)),
       })
     );
 
