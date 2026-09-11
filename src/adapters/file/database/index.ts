@@ -93,7 +93,7 @@ export class DatabaseFileStorage extends FileStorageBase {
       if (!_.isNumber(startBytes) || !_.isString(base64)) throw Error('Corrupted data');
       yield {
         start: startBytes,
-        data: base64ToBuffer(base64),
+        data: () => base64ToBuffer(base64),
       };
     }
   }

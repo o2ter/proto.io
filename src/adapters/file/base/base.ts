@@ -51,7 +51,7 @@ export abstract class FileStorageBase implements TFileStorage {
     this.options = {
       chunkSize: 16 * 1024,
       parallel: 8,
-      cacheTimeout: 15 * 1000, // 15 seconds
+      cacheTimeout: 0,
       ..._.pickBy(options, v => !_.isNil(v)),
     };
     this.unzipDebounce = createCacheDebounce(this.options.cacheTimeout);
@@ -64,7 +64,7 @@ export abstract class FileStorageBase implements TFileStorage {
   abstract createChunk<E>(proto: ProtoService<E>, token: string, start: number, end: number, compressed: Buffer): PromiseLike<void>;
   abstract readChunks<E>(proto: ProtoService<E>, token: string, start?: number, end?: number): AsyncGenerator<{
     start: number;
-    data: Buffer | Uint8Array | PromiseLike<Buffer | Uint8Array>;
+    data: () => Buffer | Uint8Array | PromiseLike<Buffer | Uint8Array>;
   }, void>;
   abstract destroy<E>(proto: ProtoService<E>, id: string): PromiseLike<void>;
 
@@ -105,7 +105,7 @@ export abstract class FileStorageBase implements TFileStorage {
       this.options.parallel,
       async chunk => ({
         start: chunk.start,
-        data: await this.unzipDebounce(`${id}-${chunk.start}`, async () => unzip(await chunk.data)),
+        data: await this.unzipDebounce(`${id}-${chunk.start}`, async () => unzip(await chunk.data())),
       })
     );
 

@@ -52,10 +52,10 @@ export abstract class FileChunkStorageBase<File> extends FileStorageBase {
       if (!chunk) continue;
       yield {
         start: chunk.start,
-        data: (() => this.readChunkDebounce(
+        data: () => this.readChunkDebounce(
           `${token}-${chunk.start}`,
           async () => await this.readChunk(proto, chunk.file)
-        ))(),
+        ),
       };
     }
   }
