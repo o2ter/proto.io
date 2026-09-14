@@ -276,6 +276,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
   }
 
   async verifyPassword(proto: P, user: TUser, password: string, options: ExtraOptions<true>) {
+    if (!options?.master) throw Error('Master key required');
     if (!user.id) throw Error('Invalid user object');
     const _user = await proto.InsecureQuery('User')
       .equalTo('_id', user.id)
@@ -286,6 +287,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
   }
 
   async setPassword(proto: P, user: TUser, password: string, options: ExtraOptions<true>) {
+    if (!options?.master) throw Error('Master key required');
     if (!user.id) throw Error('Invalid user object');
     if (_.isEmpty(password)) throw Error('Invalid password');
     const {
@@ -327,6 +329,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
   }
 
   async unsetPassword(proto: P, user: TUser, options: ExtraOptions<true>) {
+    if (!options?.master) throw Error('Master key required');
     if (!user.id) throw Error('Invalid user object');
     await proto.InsecureQuery('User')
       .equalTo('_id', user.id)
@@ -529,8 +532,9 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
   async notify(
     proto: P,
     data: Record<string, TValueWithoutObject> & { _rperm?: string[]; },
-    options?: ExtraOptions<boolean>
+    options: ExtraOptions<true>
   ) {
+    if (!options?.master) throw Error('Master key required');
     if (data._rperm && (!_.isArray(data._rperm) || !_.every(data._rperm, _.isString))) {
       throw Error('Invalid data type');
     }

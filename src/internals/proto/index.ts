@@ -262,16 +262,6 @@ export abstract class ProtoType<Ext> {
   }
 
   /**
-   * Notifies an event.
-   * @param data - The data to notify.
-   * @param options - Additional options for notifying the event.
-   */
-  abstract notify(
-    data: Record<string, TValueWithoutObject> & { _rperm?: string[]; },
-    options?: ExtraOptions<boolean>
-  ): Promise<void>
-
-  /**
    * Listens for events.
    * @param callback - The callback to call when an event occurs.
    * @param options - Additional options for notifying the event.
@@ -498,4 +488,15 @@ export interface ProtoType<Ext> {
    * @returns The decoded JWT payload or undefined if verification fails.
    */
   jwtVerify(token: string, options?: jwt.VerifyOptions): jwt.JwtPayload | undefined;
+
+  /**
+   * Notifies an event.
+   * @param data - The data to notify.
+   * @param options - Extra options.
+   */
+  notify(
+    data: Record<string, TValueWithoutObject> & { _rperm?: string[]; },
+    options: ExtraOptions<true>
+  ): Promise<void>
+
 };

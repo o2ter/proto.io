@@ -396,8 +396,11 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
     return this[PVK].jwtVerify(token, options);
   }
 
-  notify(data: Record<string, TValueWithoutObject> & { _rperm?: string[]; }) {
-    return this[PVK].notify(this, data);
+  notify(
+    data: Record<string, TValueWithoutObject> & { _rperm?: string[]; },
+    options: ExtraOptions<true>
+  ) {
+    return this[PVK].notify(this, data, options);
   }
 
   listen(

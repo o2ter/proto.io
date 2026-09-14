@@ -34,7 +34,6 @@ import functionRoute from './server/routes/function';
 import jobRoute from './server/routes/job';
 import filesRoute from './server/routes/files';
 import userRoute from './server/routes/user';
-import notifyRoute from './server/routes/notify';
 import schemaRoute from './server/routes/schema';
 import configRoute from './server/routes/config';
 import { TSchema } from './internals/schema';
@@ -175,7 +174,6 @@ export const ProtoRoute = async <E>(options: {
   jobRoute(router, proto);
   filesRoute(router, proto);
   userRoute(router, proto);
-  notifyRoute(router, proto);
   schemaRoute(router, proto);
   configRoute(router, proto);
 

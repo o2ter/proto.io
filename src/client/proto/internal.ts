@@ -413,23 +413,6 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
     }));
   }
 
-  async notify(
-    proto: P,
-    data: Record<string, TValueWithoutObject> & { _rperm?: string[]; },
-    options?: RequestOptions<boolean>
-  ) {
-
-    const { serializeOpts, ...opts } = options ?? {};
-
-    await this.service.request({
-      method: 'post',
-      baseURL: this.options.endpoint,
-      url: 'notify',
-      data: serialize(data, serializeOpts),
-      ...opts,
-    });
-  }
-
   listen(
     proto: P,
     callback: (data: EventData) => void, selector?: TQuerySelector,
