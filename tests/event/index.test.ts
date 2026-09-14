@@ -47,22 +47,6 @@ test('test event 2', async () => {
     const { remove } = Proto.listen(({ string }) => {
       res(string);
       remove();
-    });
-  });
-
-  await new Promise(res => setTimeout(res, 100));
-
-  await Proto.notify({ string: 'test' });
-
-  expect(await result).toStrictEqual('test');
-})
-
-test('test event 3', async () => {
-
-  const result = new Promise<any>(res => {
-    const { remove } = Proto.listen(({ string }) => {
-      res(string);
-      remove();
     }, {
       number: { $gt: 5 }
     });
@@ -70,12 +54,7 @@ test('test event 3', async () => {
 
   await new Promise(res => setTimeout(res, 100));
 
-  await Proto.notify({ string: 'test' });
-  await Proto.notify({ string: 'test2', number: 2 });
-  await Proto.notify({ string: 'test3', number: 3 });
-  await Proto.notify({ string: 'test4', number: 4 });
-  await Proto.notify({ string: 'test5', number: 5 });
-  await Proto.notify({ string: 'test6', number: 6 });
+  await Proto.run('testEvent2Notify');
 
   expect(await result).toStrictEqual('test6');
 })

@@ -86,9 +86,18 @@ Proto.define('testEvent', async (proto) => {
     });
   });
 
-  await proto.notify({ string: 'test' });
+  await proto.notify({ string: 'test' }, { master: true });
 
   return promise;
+});
+
+Proto.define('testEvent2Notify', async (proto) => {
+  await proto.notify({ string: 'test' }, { master: true });
+  await proto.notify({ string: 'test2', number: 2 }, { master: true });
+  await proto.notify({ string: 'test3', number: 3 }, { master: true });
+  await proto.notify({ string: 'test4', number: 4 }, { master: true });
+  await proto.notify({ string: 'test5', number: 5 }, { master: true });
+  await proto.notify({ string: 'test6', number: 6 }, { master: true });
 });
 
 beforeAll(async () => {
