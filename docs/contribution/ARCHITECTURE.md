@@ -251,12 +251,12 @@ Database Trigger → Change Detection → Filter by Query → WebSocket Push
 
 ```typescript
 // Custom events
-proto.notify({
+await proto.notify({
   type: 'user_mentioned',
   userId: userId, // Use actual user ID variable
   postId: 'post_456',
   _rperm: [userId] // Use actual user ID for permissions
-});
+}, { master: true });
 
 // Client receives notification
 client.on('user_mentioned', (data) => {

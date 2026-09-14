@@ -360,14 +360,17 @@ await proto.notify({
   type: 'new_message',
   message: 'Hello!',
   _rperm: [user.id] // Read permissions - use actual user ID from user object
-});
+}, { master: true });
 
 // Or for roles:
 await proto.notify({
   type: 'new_message',
   message: 'Hello!',
   _rperm: ['role:admin'] // Role permissions - use "role:" prefix
-});
+}, { master: true });
+
+// notify is server-side only. Clients should call a cloud function (client.run)
+// that performs proto.notify(..., { master: true }) on the server.
 
 // Client-side: Listen for events
 client.on('new_message', (data) => {
@@ -874,7 +877,7 @@ const proto = new ProtoService({
 - `setConfig(values)` - Set configuration values
 
 #### Real-time
-- `notify(data)` - Send notification
+- `notify(data, { master: true })` - Send notification (server-side only)
 - `listen(callback)` - Listen for notifications
 
 #### Utilities
@@ -914,7 +917,7 @@ const proto = new ProtoService({
 
 #### Real-time Events
 - `listen(callback, selector?)` - Listen for custom events
-- `notify(data, options?)` - Send custom notifications
+- `notify` is server-side only. Use `run(name, params)` to call a cloud function that emits notifications.
 
 #### Utilities
 - `refs(object, options?)` - Get all references to an object

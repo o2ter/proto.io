@@ -271,8 +271,8 @@ await proto.setConfig({
 
 #### Real-time Features
 
-##### `notify(data: Record<string, any> & { _rperm?: string[] }): Promise<void>`
-Sends a real-time notification.
+##### `notify(data: Record<string, any> & { _rperm?: string[] }, options: { master: true }): Promise<void>`
+Sends a real-time notification. This method is server-side only and requires `master: true`.
 
 ```typescript
 await proto.notify({
@@ -280,14 +280,14 @@ await proto.notify({
   message: 'Hello World!',
   from: user.id,
   _rperm: [user1.id, user2.id] // Only these users will receive it - use actual user IDs from user objects
-});
+}, { master: true });
 
 // Or for roles:
 await proto.notify({
   type: 'new_message',
   message: 'Hello World!',
   _rperm: ['role:admin', 'role:moderator'] // Role permissions - use "role:" prefix
-});
+}, { master: true });
 ```
 
 ##### `listen(callback: (data: EventData) => void, selector?): { remove: () => void }`
@@ -523,21 +523,24 @@ Schedules a background job.
 await client.scheduleJob('processData', { userId: '123' });
 ```
 
-##### `notify(data: Record<string, any> & { _rperm?: string[]; }, options?: RequestOptions): Promise<void>`
-Sends a custom notification.
+Custom notifications are emitted on the server only.
+
+Use a cloud function and call it from the client:
 
 ```typescript
-await client.notify({
-  type: 'user_notification',
-  message: 'Hello World!',
-  _rperm: [user.id] // Use actual user ID from user object
+// Server-side
+proto.define('sendNotification', async ({ params }) => {
+  await proto.notify({
+    type: 'user_notification',
+    message: params.message,
+    _rperm: [params.userId],
+  }, { master: true });
 });
 
-// Or for roles:
-await client.notify({
-  type: 'user_notification',
+// Client-side
+await client.run('sendNotification', {
   message: 'Hello World!',
-  _rperm: ['role:admin'] // Role permissions - use "role:" prefix
+  userId: user.id,
 });
 ```
 

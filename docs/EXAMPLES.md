@@ -155,7 +155,7 @@ proto.define('sendNotification', async ({ params }) => {
     type: 'user_notification',
     message: params.message,
     _rperm: [params.userId] // Use actual user ID passed as parameter
-  });
+  }, { master: true });
 });
 ```
 
