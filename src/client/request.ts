@@ -356,6 +356,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
     let events: Record<string, {
       callback: (payload: any) => void;
       selector?: TQuerySelector;
+      options?: { master?: boolean };
     }> = {};
     let queries: Record<string, {
       callback: (payload: any) => void;
@@ -364,7 +365,10 @@ export default class Service<Ext, P extends ProtoType<any>> {
     let destroyCallbacks: VoidFunction[] = [];
 
     const register_event = () => {
-      socket.emit('EV_NOTIFY', _.mapValues(events, x => x.selector ?? true));
+      socket.emit('EV_NOTIFY', _.mapValues(events, x => ({
+        selector: x.selector ?? true,
+        options: x.options ?? {},
+      })));
     };
 
     const register_query = () => {
@@ -410,9 +414,13 @@ export default class Service<Ext, P extends ProtoType<any>> {
 
     return {
       socket,
-      listen: (callback: (payload: any) => void, selector?: TQuerySelector) => {
+      listen: (
+        callback: (payload: any) => void,
+        selector?: TQuerySelector,
+        options?: { master?: boolean }
+      ) => {
         const id = `event-${randomId()}`;
-        events[id] = { callback, selector };
+        events[id] = { callback, selector, options };
         register_event();
         return () => {
           events = _.omit(events, id);

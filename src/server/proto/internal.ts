@@ -526,7 +526,11 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     }
   }
 
-  async notify(proto: P, data: Record<string, TValueWithoutObject> & { _rperm?: string[]; }) {
+  async notify(
+    proto: P,
+    data: Record<string, TValueWithoutObject> & { _rperm?: string[]; },
+    options?: ExtraOptions<boolean>
+  ) {
     if (data._rperm && (!_.isArray(data._rperm) || !_.every(data._rperm, _.isString))) {
       throw Error('Invalid data type');
     }
@@ -541,7 +545,11 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     );
   }
 
-  listen(proto: P, callback: (data: EventData) => void) {
+  listen(
+    proto: P,
+    callback: (data: EventData) => void,
+    options?: { master?: boolean }
+  ) {
     return {
       remove: this.options.pubsub.subscribe(
         PROTO_NOTY_MSG,
@@ -549,7 +557,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
           const { _rperm } = payload as EventData;
           (async () => {
             try {
-              const isMaster = proto.isMaster;
+              const isMaster = !!options?.master;
               const roles = isMaster ? [] : await this._perms(proto);
               if (!isMaster && !_.some(roles, x => _.includes(_rperm, x))) return;
               await callback(payload as EventData);

@@ -430,7 +430,11 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
     });
   }
 
-  listen(proto: P, callback: (data: EventData) => void, selector?: TQuerySelector) {
+  listen(
+    proto: P,
+    callback: (data: EventData) => void, selector?: TQuerySelector,
+    options?: { master?: boolean }
+  ) {
     const _socket = this.socket ?? this.service.socket();
     const { socket, listen, onDestroy } = _socket;
     if (_.isNil(this.socket)) {
@@ -441,7 +445,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
       socket,
       remove: listen((payload) => {
         callback(payload);
-      }, selector),
+      }, selector, options),
     };
   }
 

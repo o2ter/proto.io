@@ -274,11 +274,13 @@ export abstract class ProtoType<Ext> {
   /**
    * Listens for events.
    * @param callback - The callback to call when an event occurs.
+   * @param options - Additional options for notifying the event.
    * @returns An object with a remove function to stop listening.
    */
   abstract listen(
     callback: (data: EventData) => void,
-    selector?: TQuerySelector
+    selector?: TQuerySelector,
+    options?: { master?: boolean }
   ): {
     remove: VoidFunction;
     socket?: Socket;

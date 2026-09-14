@@ -402,13 +402,14 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
 
   listen(
     callback: (data: EventData) => void,
-    selector?: TQuerySelector
+    selector?: TQuerySelector,
+    options?: { master?: boolean }
   ) {
     const _selector = !_.isNil(selector) ? QuerySelector.decode(selector) : undefined;
     return this[PVK].listen(this, async data => {
       if (_selector && !_selector.eval(data)) return;
       await callback(data);
-    });
+    }, options);
   }
 
   refs(object: TObject, options?: ExtraOptions<boolean>) {

@@ -219,14 +219,22 @@ export const registerProtoSocket = <E>(
       filter: QuerySelector | boolean;
     };
 
-    let events: Record<string, QuerySelector | boolean> = {};
+    let events: Record<string, {
+      selector: QuerySelector | boolean,
+      options?: { master?: boolean };
+    }> = {};
     let queries: Record<string, QueryOpts> = {};
 
-    const { remove: remove_basic } = service.listen(data => {
-      const ids = _.keys(_.pickBy(events, v => v instanceof QuerySelector ? v.eval(data) : v));
+    const { remove: remove_event } = service.listen(data => {
+      const ids = _.keys(_.pickBy(events, v => !v.options?.master && (v.selector instanceof QuerySelector ? v.selector.eval(data) : v.selector)));
       const payload = JSON.parse(serialize(data));
       if (!_.isEmpty(ids)) socket.emit('ON_EV_NOTIFY', { ids, data: payload });
     });
+    const { remove: remove_master_event } = service.isMaster ? service.listen(data => {
+      const ids = _.keys(_.pickBy(events, v => !!v.options?.master && (v.selector instanceof QuerySelector ? v.selector.eval(data) : v.selector)));
+      const payload = JSON.parse(serialize(data));
+      if (!_.isEmpty(ids)) socket.emit('ON_EV_NOTIFY', { ids, data: payload });
+    }) : { remove: () => {} };
 
     const { remove: remove_livequery } = service[PVK]._liveQuery(service, (ev, objs) => {
       const ids: Record<string, string[]> = {};
@@ -242,18 +250,20 @@ export const registerProtoSocket = <E>(
     });
 
     socket.on('disconnect', () => {
-      remove_basic();
+      remove_event();
+      remove_master_event();
       remove_livequery();
     });
 
     socket.on('EV_NOTIFY', (payload) => {
       events = _.mapValues(payload, v => {
-        if (_.isBoolean(v)) return true;
+        const { selector = true, options } = v ?? {};
+        if (_.isBoolean(selector)) return { selector: true, options };
         try {
-          return QuerySelector.decode(v);
+          return { selector: QuerySelector.decode(selector), options };
         } catch (error) {
           proto.logger.error(error);
-          return false;
+          return { selector: true, options };
         }
       });
     });

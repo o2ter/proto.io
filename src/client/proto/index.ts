@@ -131,15 +131,19 @@ export class ProtoClient<Ext = any> extends ProtoType<Ext> {
     return this[PVK].schema(options);
   }
 
-  notify(data: Record<string, TValueWithoutObject> & { _rperm?: string[]; }, options?: RequestOptions<boolean>) {
+  notify(
+    data: Record<string, TValueWithoutObject> & { _rperm?: string[]; },
+    options?: RequestOptions<boolean>
+  ) {
     return this[PVK].notify(this, data, options);
   }
 
   listen(
     callback: (data: EventData) => void,
-    selector?: TQuerySelector
+    selector?: TQuerySelector,
+    options?: { master?: boolean }
   ) {
-    return this[PVK].listen(this, callback, selector);
+    return this[PVK].listen(this, callback, selector, options);
   }
 
   refs(object: TObject, options?: RequestOptions<boolean>) {
