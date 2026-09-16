@@ -232,7 +232,7 @@ export const registerProtoSocket = <E>(
       const ids = _.keys(_.pickBy(events, v => !!v.options?.master && (v.selector instanceof QuerySelector ? v.selector.eval(data) : v.selector)));
       const payload = JSON.parse(serialize(data));
       if (!_.isEmpty(ids)) socket.emit('ON_EV_NOTIFY', { ids, data: payload });
-    }) : { remove: () => {} };
+    }, undefined, { master: true }) : { remove: () => { } };
 
     const { remove: remove_livequery } = service[PVK]._liveQuery(service, (ev, objs) => {
       const ids: Record<string, string[]> = {};
