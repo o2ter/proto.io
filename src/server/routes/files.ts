@@ -24,6 +24,7 @@
 //
 
 import _ from 'lodash';
+import { Request, Response, NextFunction } from 'express';
 import { Router } from '@o2ter/server-js';
 import { pipeline, Readable } from 'node:stream';
 import { ProtoService } from '../proto';
@@ -36,6 +37,109 @@ import { BinaryData } from '@o2ter/utils-js';
 import { isFile } from '../../internals/utils';
 
 export default <E>(router: Router, proto: ProtoService<E>) => {
+
+  const fileFetchHandler = (method: 'HEAD' | 'GET') => async (req: Request, res: Response, next: NextFunction) => {
+
+    const { id, name } = req.params;
+    const { token } = req.query;
+
+    const payload = proto.connect(req);
+    const query = payload.Query('File').equalTo('_id', id);
+
+    let allowed = payload.isMaster;
+    if (_.isString(token)) {
+      const { fileId } = payload[PVK].jwtVerify(token, {}) || {};
+      if (fileId !== id) return void res.sendStatus(404);
+      allowed = true;
+    }
+
+    const validateFileAccess = await payload[PVK].options.validateFileAccess(id, payload);
+
+    let file;
+    if (allowed || _.isNil(validateFileAccess)) {
+      file = await query.first({ master: allowed });
+    } else if (validateFileAccess === true) {
+      file = await query.first({ master: true });
+    } else if (isFile(validateFileAccess)) {
+      file = validateFileAccess;
+    } else {
+      return void res.sendStatus(404);
+    }
+
+    if (!file || file.filename !== name) return void res.sendStatus(404);
+    if (_.isNil(file.token) || _.isNil(file.size) || _.isNil(file.type)) return void res.sendStatus(404);
+
+    const ranges = req.range(file.size);
+
+    const match = req.headers['if-none-match'];
+    if (match === `"${id}"`) {
+      res.status(304).end();
+      return;
+    }
+    res.setHeader('Content-Type', file.type);
+    res.setHeader('Cache-Control', 'public, max-age=0');
+    res.setHeader('Content-Disposition', 'attachment');
+    res.setHeader('ETag', `"${id}"`);
+
+    if (file.size === 0) {
+      res.setHeader('Content-Length', 0);
+      res.status(200).end();
+      return;
+    }
+
+    let stream: AsyncIterable<BinaryData>;
+
+    if (_.isArray(ranges) && ranges.type === 'bytes') {
+
+      const startBytes = _.minBy(ranges, r => r.start)?.start ?? 0;
+      const endBytes = _.maxBy(ranges, r => r.end)?.end ?? (file.size - 1);
+
+      res.setHeader('Content-Length', endBytes - startBytes + 1);
+      res.setHeader('Content-Range', `bytes ${startBytes}-${endBytes}/${file.size}`);
+      res.status(206);
+
+      if (method === 'HEAD') {
+        res.end();
+        return;
+      }
+
+      stream = payload.fileStorage.fileData(payload, file.token, startBytes, endBytes + 1);
+
+    } else {
+
+      res.setHeader('Content-Length', file.size);
+      res.status(200);
+
+      if (method === 'HEAD') {
+        res.end();
+        return;
+      }
+
+      stream = payload.fileStorage.fileData(payload, file.token);
+    }
+
+    pipeline(
+      Readable.from(stream),
+      res,
+      (err) => {
+        if (err && !res.headersSent) {
+          next(err);
+        }
+      }
+    );
+  };
+
+  router.head(
+    '/files/:id/:name',
+    queryType.middleware(),
+    fileFetchHandler('HEAD'),
+  );
+
+  router.get(
+    '/files/:id/:name',
+    queryType.middleware(),
+    fileFetchHandler('GET'),
+  );
 
   router.post(
     '/files',
@@ -70,91 +174,6 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
           throw e;
         }
       });
-    }
-  );
-
-  router.get(
-    '/files/:id/:name',
-    queryType.middleware(),
-    async (req, res, next) => {
-
-      const { id, name } = req.params;
-      const { token } = req.query;
-
-      const payload = proto.connect(req);
-      const query = payload.Query('File').equalTo('_id', id);
-
-      let allowed = payload.isMaster;
-      if (_.isString(token)) {
-        const { fileId } = payload[PVK].jwtVerify(token, {}) || {};
-        if (fileId !== id) return void res.sendStatus(404);
-        allowed = true;
-      }
-
-      const validateFileAccess = await payload[PVK].options.validateFileAccess(id, payload);
-
-      let file;
-      if (allowed || _.isNil(validateFileAccess)) {
-        file = await query.first({ master: allowed });
-      } else if (validateFileAccess === true) {
-        file = await query.first({ master: true });
-      } else if (isFile(validateFileAccess)) {
-        file = validateFileAccess;
-      } else {
-        return void res.sendStatus(404);
-      }
-
-      if (!file || file.filename !== name) return void res.sendStatus(404);
-      if (_.isNil(file.token) || _.isNil(file.size) || _.isNil(file.type)) return void res.sendStatus(404);
-
-      const ranges = req.range(file.size);
-
-      const match = req.headers['if-none-match'];
-      if (match === `"${id}"`) {
-        res.status(304).end();
-        return;
-      }
-      res.setHeader('Content-Type', file.type);
-      res.setHeader('Cache-Control', 'public, max-age=0');
-      res.setHeader('Content-Disposition', 'attachment');
-      res.setHeader('ETag', `"${id}"`);
-
-      if (file.size === 0) {
-        res.setHeader('Content-Length', 0);
-        res.status(200).end();
-        return;
-      }
-
-      let stream: AsyncIterable<BinaryData>;
-
-      if (_.isArray(ranges) && ranges.type === 'bytes') {
-
-        const startBytes = _.minBy(ranges, r => r.start)?.start ?? 0;
-        const endBytes = _.maxBy(ranges, r => r.end)?.end ?? (file.size - 1);
-
-        res.setHeader('Content-Length', endBytes - startBytes + 1);
-        res.setHeader('Content-Range', `bytes ${startBytes}-${endBytes}/${file.size}`);
-        res.status(206);
-
-        stream = payload.fileStorage.fileData(payload, file.token, startBytes, endBytes + 1);
-
-      } else {
-
-        res.setHeader('Content-Length', file.size);
-        res.status(200);
-
-        stream = payload.fileStorage.fileData(payload, file.token);
-      }
-
-      pipeline(
-        Readable.from(stream),
-        res,
-        (err) => {
-          if (err && !res.headersSent) {
-            next(err);
-          }
-        }
-      );
     }
   );
 

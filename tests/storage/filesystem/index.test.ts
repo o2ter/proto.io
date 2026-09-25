@@ -108,6 +108,25 @@ test('test file public token', async () => {
   expect(Buffer.from(res.data).toString('utf8')).toStrictEqual('hello, world');
 });
 
+test('test file public token head skips body', async () => {
+  const file = Proto.File('test.txt', 'hello, world', 'text/plain');
+  await file.save({ master: true });
+
+  const token = await Proto.run('generateFilePublicToken', {
+    fileId: file.id,
+    expiresIn: '1h',
+  }) as string;
+
+  const res = await axios.head(
+    `http://localhost:8080/proto/files/${file.id}/${encodeURIComponent(file.filename!)}`,
+    { params: { token } },
+  );
+
+  expect(res.status).toBe(200);
+  expect(res.headers['content-length']).toBe(String(Buffer.byteLength('hello, world')));
+  expect(res.data).toBe('');
+});
+
 test('test file public token - wrong file id rejected', async () => {
   const file1 = Proto.File('file1.txt', 'content 1', 'text/plain');
   const file2 = Proto.File('file2.txt', 'content 2', 'text/plain');
