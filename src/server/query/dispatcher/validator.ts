@@ -451,14 +451,25 @@ export class QueryValidator<E> {
 
     const groupMatches = this.decodeGroupMatches(query.className, query.groupMatches ?? {});
 
+    const groupMatchKeyPaths = (
+      groupMatches: Record<string, Record<string, TQueryAccumulator | QueryAccumulator>>,
+    ): string[] => _.flatMap(groupMatches, (group, key) => [
+      key,
+      ..._.flatMap(_.values(group), accumulator => {
+        const expr = accumulator instanceof QueryAccumulator
+          ? accumulator
+          : QueryAccumulator.decode(accumulator).simplify();
+        return _.map(expr.keyPaths(), path => `${key}.${path}`);
+      }),
+    ]);
+
     const matchKeyPaths = (
       matches: Record<string, TQueryBaseOptions>
     ): string[] => _.flatMap(matches, (match, key) => [
       ..._.keys(match.sort),
       ...QuerySelector.decode(match.filter ?? []).keyPaths(),
       ...matchKeyPaths(match.matches ?? {}),
-      ..._.keys(match.groupMatches),
-      ..._.flatMap(_.values(match.groupMatches), x => QueryAccumulator.decode(x).keyPaths()),
+      ...groupMatchKeyPaths(match.groupMatches ?? {}),
     ].map(x => `${key}.${x}`));
 
     const sort = query.sort && this.decodeSort(query.sort);
@@ -467,8 +478,7 @@ export class QueryValidator<E> {
       ..._.isArray(sort) ? _.flatMap(sort, s => s.expr.keyPaths()) : _.keys(sort),
       ...filter.keyPaths().filter(x => !_.startsWith(x, '_$')),
       ...matchKeyPaths(query.matches ?? {}),
-      ..._.keys(groupMatches),
-      ..._.flatMap(_.values(groupMatches), m => _.flatMap(_.values(m), x => x.keyPaths())),
+      ...groupMatchKeyPaths(groupMatches),
     ]);
 
     return { groupMatches, filter, sort, keyPaths };
