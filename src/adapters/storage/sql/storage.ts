@@ -176,8 +176,10 @@ export abstract class SqlStorage implements TStorage {
       }
     }
     for (const [key, group] of _.entries(options.groupMatches)) {
+      const relationType = resolveDataType(compiler.schema, options.className, key);
+      if (_.isNil(relationType) || !isRelation(relationType)) continue;
       for (const [field, expr] of _.entries(group)) {
-        _.set(types, `${key}.${field}`, expr.evalType(compiler.schema, options.className));
+        _.set(types, `${key}.${field}`, expr.evalType(compiler.schema, relationType.target));
       }
     }
     return types;

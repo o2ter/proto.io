@@ -318,3 +318,25 @@ test('test group matches sum 9', async () => {
   expect(result7?.get('relation.value')).toBeUndefined();
 
 })
+
+test('test group matches sum with relation target-only field', async () => {
+
+  const child1 = await Proto.Query('Relation').insert({ number: 1 });
+  const child2 = await Proto.Query('Relation').insert({ number: 2 });
+  const child3 = await Proto.Query('Relation').insert({ number: 3 });
+
+  const parent = await Proto.Query('Relation2').insert({
+    relation: [child1, child2, child3],
+  });
+
+  const result = await Proto.Query('Relation2')
+    .equalTo('_id', parent.id)
+    .groupMatches('relation', {
+      total: { $sum: { $key: 'number' } },
+    })
+    .equalTo('relation.total', 6)
+    .first();
+
+  expect(result?.get('relation.total')).toBe(6);
+
+})
