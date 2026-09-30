@@ -794,9 +794,17 @@ class JobRunner<Ext, P extends ProtoService<Ext>> {
   }
 
   private async executeJobFunction(proto: P, job: TJob, opt: ProtoJobFunction<Ext, any> | ProtoJobFunctionOptions<Ext>) {
-    const payload = Object.setPrototypeOf({ params: job.data, user: job.user, job }, this);
-    const func = _.isFunction(opt) ? opt : opt.callback;
-    await func(proxy(payload));
+    try {
+      const payload = Object.setPrototypeOf({ params: job.data, user: job.user, job }, this);
+      const isCallback = _.isFunction(opt);
+      const func = isCallback ? opt : opt.callback;
+      proto.logger.trace('Job execute', { name: job.name, mode: isCallback ? 'callback' : 'options' });
+      await func(proxy(payload));
+      proto.logger.trace('Job complete', { name: job.name, mode: isCallback ? 'callback' : 'options' });
+    } catch (e) {
+      proto.logger.debug(e);
+      throw e;
+    }
   }
 
   private async finalizeJob(job: TJob, error: any = null) {
