@@ -796,8 +796,7 @@ class JobRunner<Ext, P extends ProtoService<Ext>> {
   private async executeJobFunction(proto: P, job: TJob, opt: ProtoJobFunction<Ext, any> | ProtoJobFunctionOptions<Ext>) {
     try {
       const payload = Object.setPrototypeOf({ params: job.data, user: job.user, job }, this);
-      const isCallback = _.isFunction(opt);
-      const func = isCallback ? opt : opt.callback;
+      const func = _.isFunction(opt) ? opt : opt.callback;
       proto.logger.trace('Job execute', { name: job.name });
       await func(proxy(payload));
       proto.logger.trace('Job complete', { name: job.name });
