@@ -142,7 +142,17 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
       for (const tragger of obj.__v === 0 ? createTraggers : updateTraggers) {
         (async () => {
           try {
+            this._proto.logger.trace('Trigger execute', {
+              className: this.className,
+              event: obj.__v === 0 ? 'create' : 'update',
+              objectId: obj.id,
+            });
             await tragger(proxy(Object.setPrototypeOf({ object: obj }, this._proto)));
+            this._proto.logger.trace('Trigger complete', {
+              className: this.className,
+              event: obj.__v === 0 ? 'create' : 'update',
+              objectId: obj.id,
+            });
           } catch (e) {
             this._proto.logger.error(e);
           }
@@ -170,7 +180,17 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
       for (const tragger of traggers) {
         (async () => {
           try {
+            this._proto.logger.trace('Trigger execute', {
+              className: this.className,
+              event: 'delete',
+              objectId: obj.id,
+            });
             await tragger(proxy(Object.setPrototypeOf({ object: obj }, this._proto)));
+            this._proto.logger.trace('Trigger complete', {
+              className: this.className,
+              event: 'delete',
+              objectId: obj.id,
+            });
           } catch (e) {
             this._proto.logger.error(e);
           }

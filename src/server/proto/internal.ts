@@ -255,24 +255,37 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
   }
 
   async run(proto: P, name: string, options?: ExtraOptions<boolean>) {
+    try {
 
-    const func = this.functions[name];
+      const func = this.functions[name];
 
-    if (_.isNil(func)) throw Error('Function not found');
-    if (typeof func === 'function') return func(proxy(proto as any));
+      if (_.isNil(func)) throw Error('Function not found');
+      if (typeof func === 'function') {
+        proto.logger.trace('Function execute', { name, isMaster: !!options?.master, mode: 'callback' });
+        const result = await func(proxy(proto as any));
+        proto.logger.trace('Function complete', { name, isMaster: !!options?.master, mode: 'callback' });
+        return result;
+      }
 
-    const { callback, validator } = func;
+      const { callback, validator } = func;
 
-    const roles = await proto.currentRoles();
+      const roles = await proto.currentRoles();
 
-    if (!options?.master) {
-      if (!!validator?.requireUser && !(await proto.currentUser())) throw Error('No permission');
-      if (!!validator?.requireMaster) throw Error('No permission');
-      if (_.isArray(validator?.requireAnyUserRoles) && !_.some(validator?.requireAnyUserRoles, x => _.includes(roles, x))) throw Error('No permission');
-      if (_.isArray(validator?.requireAllUserRoles) && _.some(validator?.requireAllUserRoles, x => !_.includes(roles, x))) throw Error('No permission');
+      if (!options?.master) {
+        if (!!validator?.requireUser && !(await proto.currentUser())) throw Error('No permission');
+        if (!!validator?.requireMaster) throw Error('No permission');
+        if (_.isArray(validator?.requireAnyUserRoles) && !_.some(validator?.requireAnyUserRoles, x => _.includes(roles, x))) throw Error('No permission');
+        if (_.isArray(validator?.requireAllUserRoles) && _.some(validator?.requireAllUserRoles, x => !_.includes(roles, x))) throw Error('No permission');
+      }
+
+      proto.logger.trace('Function execute', { name, isMaster: !!options?.master, mode: 'options' });
+      const result = await callback(proxy(proto as any));
+      proto.logger.trace('Function complete', { name, isMaster: !!options?.master, mode: 'options' });
+      return result;
+    } catch (e) {
+      proto.logger.error(e);
+      throw e;
     }
-
-    return callback(proxy(proto as any));
   }
 
   async verifyPassword(proto: P, user: TUser, password: string, options: ExtraOptions<true>) {
@@ -321,7 +334,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
         password: { $set: hashed },
         password_history: {
           $set: maxPasswordHistory && maxPasswordHistory > 0
-            ? _.slice([{ ...hashed , password}, ...history], 0, maxPasswordHistory)
+            ? _.slice([{ ...hashed, password }, ...history], 0, maxPasswordHistory)
             : [],
         },
         password_changed_at: { $set: new Date() },
@@ -538,6 +551,11 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     if (data._rperm && (!_.isArray(data._rperm) || !_.every(data._rperm, _.isString))) {
       throw Error('Invalid data type');
     }
+    proto.logger.trace('Event notify publish', {
+      channel: PROTO_NOTY_MSG,
+      hasReadPerms: !!data._rperm,
+      readPermCount: data._rperm?.length ?? 0,
+    });
     return this.options.pubsub.publish(
       PROTO_NOTY_MSG,
       {
@@ -563,7 +581,16 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
             try {
               const isMaster = !!options?.master;
               const roles = isMaster ? [] : await this._perms(proto);
+              proto.logger.trace('Event notify received', {
+                channel: PROTO_NOTY_MSG,
+                isMaster,
+                roleCount: roles.length,
+              });
               if (!isMaster && !_.some(roles, x => _.includes(_rperm, x))) return;
+              proto.logger.trace('Event notify dispatch', {
+                channel: PROTO_NOTY_MSG,
+                isMaster,
+              });
               await callback(payload as EventData);
             } catch (e) {
               proto.logger.error(e);
@@ -576,6 +603,11 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
 
   async publishLiveQuery(proto: P, event: string, objects: TObject[]) {
     if (_.isEmpty(objects)) return;
+    proto.logger.trace('Event liveQuery publish', {
+      channel: PROTO_LIVEQUERY_MSG,
+      event,
+      count: objects.length,
+    });
     return this.options.pubsub.publish(
       PROTO_LIVEQUERY_MSG,
       JSON.parse(serialize({ event, objects }, { objAttrs: TObject.defaultKeys })),
@@ -595,11 +627,23 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
             try {
               const isMaster = proto.isMaster;
               const roles = isMaster ? [] : await this._perms(proto);
+              proto.logger.trace('Event liveQuery received', {
+                channel: PROTO_LIVEQUERY_MSG,
+                event,
+                payloadCount: objects.length,
+                isMaster,
+              });
               const payload = proto.rebind(isMaster ? objects : _.filter(objects, object => {
                 const acl = object.acl();
                 const clp = proto.schema[object.className].classLevelPermissions?.get ?? ['*'];
                 return _.some(roles, x => _.includes(clp, x) && _.includes(acl.read, x));
               }));
+              proto.logger.trace('Event liveQuery dispatch', {
+                channel: PROTO_LIVEQUERY_MSG,
+                event,
+                count: payload.length,
+                isMaster,
+              });
               if (!_.isEmpty(payload)) await callback(event, payload);
             } catch (e) {
               proto.logger.error(e);
@@ -620,6 +664,11 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
     const _filter = _.isEmpty(filter) ? true : QuerySelector.decode(filter);
     return this._liveQuery(proto, (ev, objs) => {
       if (event !== ev) return;
+      proto.logger.trace('Event liveQuery match', {
+        event,
+        className,
+        payloadCount: objs.length,
+      });
       for (const object of objs) {
         if (className !== object.className) continue;
         (async () => {
