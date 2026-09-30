@@ -261,9 +261,9 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
 
       if (_.isNil(func)) throw Error('Function not found');
       if (typeof func === 'function') {
-        proto.logger.trace('Function execute', { name, isMaster: !!options?.master, mode: 'callback' });
+        proto.logger.trace('Function execute', { name, isMaster: !!options?.master });
         const result = await func(proxy(proto as any));
-        proto.logger.trace('Function complete', { name, isMaster: !!options?.master, mode: 'callback' });
+        proto.logger.trace('Function complete', { name, isMaster: !!options?.master });
         return result;
       }
 
@@ -278,9 +278,9 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
         if (_.isArray(validator?.requireAllUserRoles) && _.some(validator?.requireAllUserRoles, x => !_.includes(roles, x))) throw Error('No permission');
       }
 
-      proto.logger.trace('Function execute', { name, isMaster: !!options?.master, mode: 'options' });
+      proto.logger.trace('Function execute', { name, isMaster: !!options?.master });
       const result = await callback(proxy(proto as any));
-      proto.logger.trace('Function complete', { name, isMaster: !!options?.master, mode: 'options' });
+      proto.logger.trace('Function complete', { name, isMaster: !!options?.master });
       return result;
     } catch (e) {
       proto.logger.debug(e);
