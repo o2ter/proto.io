@@ -552,7 +552,6 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
       throw Error('Invalid data type');
     }
     proto.logger.trace('Event notify publish', {
-      channel: PROTO_NOTY_MSG,
       hasReadPerms: !!data._rperm,
       readPermCount: data._rperm?.length ?? 0,
     });
@@ -582,13 +581,11 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
               const isMaster = !!options?.master;
               const roles = isMaster ? [] : await this._perms(proto);
               proto.logger.trace('Event notify received', {
-                channel: PROTO_NOTY_MSG,
                 isMaster,
                 roleCount: roles.length,
               });
               if (!isMaster && !_.some(roles, x => _.includes(_rperm, x))) return;
               proto.logger.trace('Event notify dispatch', {
-                channel: PROTO_NOTY_MSG,
                 isMaster,
               });
               await callback(payload as EventData);
@@ -604,7 +601,6 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
   async publishLiveQuery(proto: P, event: string, objects: TObject[]) {
     if (_.isEmpty(objects)) return;
     proto.logger.trace('Event liveQuery publish', {
-      channel: PROTO_LIVEQUERY_MSG,
       event,
       count: objects.length,
     });
@@ -628,7 +624,6 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
               const isMaster = proto.isMaster;
               const roles = isMaster ? [] : await this._perms(proto);
               proto.logger.trace('Event liveQuery received', {
-                channel: PROTO_LIVEQUERY_MSG,
                 event,
                 payloadCount: objects.length,
                 isMaster,
@@ -639,7 +634,6 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
                 return _.some(roles, x => _.includes(clp, x) && _.includes(acl.read, x));
               }));
               proto.logger.trace('Event liveQuery dispatch', {
-                channel: PROTO_LIVEQUERY_MSG,
                 event,
                 count: payload.length,
                 isMaster,
