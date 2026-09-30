@@ -283,7 +283,7 @@ export class ProtoInternal<Ext, P extends ProtoService<Ext>> implements ProtoInt
       proto.logger.trace('Function complete', { name, isMaster: !!options?.master, mode: 'options' });
       return result;
     } catch (e) {
-      proto.logger.error(e);
+      proto.logger.debug(e);
       throw e;
     }
   }
