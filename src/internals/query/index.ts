@@ -284,9 +284,14 @@ export abstract class TQuery<T extends string, Ext, M extends boolean> extends T
     callback: (batch: TObjectType<T, Ext>[]) => Awaitable<void>,
     options?: ExtraOptions<M> & { batchSize?: number; },
   ) {
-    const sorting = this[PVK].options.sort as Record<string, 1 | -1> ?? {};
+    let sorting = this[PVK].options.sort as Record<string, 1 | -1> ?? {};
     const batchSize = options?.batchSize ?? 100;
     if (!_.isPlainObject(sorting)) throw Error('Unsupported sort method');
+    const sortKeys = _.keys(sorting);
+    const idKeyIndex = _.indexOf(sortKeys, '_id');
+    if (idKeyIndex >= 0) {
+      sorting = _.pick(sorting, sortKeys.slice(0, idKeyIndex + 1)) as Record<string, 1 | -1>;
+    }
     const is_asc = _.every(sorting, v => v === 1);
     const is_desc = _.every(sorting, v => v === -1);
     if (!is_asc && !is_desc) throw Error('Unsupported sort method');
