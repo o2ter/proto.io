@@ -15,6 +15,7 @@ Proto.io is a comprehensive backend framework that provides a Parse-like API for
 - **Schema Management**: Type-safe schema definitions with validation
 - **Job Scheduling**: Background job processing with cron-like scheduling
 - **Cloud Functions**: Server-side function execution
+- **Function Challenges**: Optional challenge verification for protected cloud functions
 - **Vector Support**: Vector database operations for ML/AI applications
 
 ## Installation
@@ -468,6 +469,93 @@ const result = await client.run('sendEmail', {
 });
 ```
 
+### Function Challenges
+
+Cloud functions can opt in to client-side challenge verification, such as reCAPTCHA,
+Turnstile, App Attest, or another application-defined challenge. Challenges are
+disabled by default and are enabled per function through `validator.challenge`.
+
+The client resolver runs only when a protected function requires a challenge. After
+the first `challenge_required` response, the client caches that function name and
+pre-resolves the challenge for future calls to avoid the extra round trip.
+
+```typescript
+// Server-side: configure a challenge provider
+const proto = new ProtoService({
+  endpoint: 'http://localhost:1337/api',
+  schema: mySchema,
+  storage,
+  fileStorage,
+  jwtToken: 'your-jwt-secret',
+  masterUsers: [{ user: 'master', pass: 'your-master-key' }],
+
+  challengeProvider: {
+    verify: async ({ functionName, clientType, challenge, req }) => {
+      const expectedAction = `protected_${functionName.replace(/\W+/g, '_')}`;
+
+      // Example only: verify the token with your challenge provider here.
+      // Throw or return false when verification fails.
+      await verifyChallengeToken({
+        token: challenge?.token,
+        action: expectedAction,
+        clientType,
+        userAgent: req?.headers['user-agent'],
+      });
+    },
+  },
+});
+
+// Server-side: protect selected cloud functions
+proto.define('sendEmail', async ({ params }) => {
+  await emailService.send(params);
+  return { success: true };
+}, {
+  validator: {
+    requireUser: true,
+    challenge: true,
+  },
+});
+```
+
+```typescript
+// Client-side: configure the client type and challenge resolver
+const client = new ProtoClient({
+  endpoint: 'http://localhost:1337/api',
+  challenge: {
+    clientType: 'web',
+    resolver: async ({ functionName }) => {
+      const action = `protected_${functionName.replace(/\W+/g, '_')}`;
+      return {
+        token: await executeChallenge(action),
+      };
+    },
+  },
+});
+
+// App code stays the same. The client handles challenge retry automatically.
+await client.run('sendEmail', {
+  to: 'user@example.com',
+  subject: 'Welcome!',
+  body: 'Welcome to our app!',
+});
+```
+
+You can restrict a protected function to known client challenge types:
+
+```typescript
+proto.define('sendEmail', sendEmailHandler, {
+  validator: {
+    requireUser: true,
+    challenge: {
+      enabled: true,
+      clientTypes: ['web', 'ios', 'android'],
+    },
+  },
+});
+```
+
+Master requests always bypass challenge verification.
+
 ## Background Jobs
 
 ```typescript
@@ -829,6 +917,14 @@ const proto = new ProtoService({
       return defaultResolver();
     }
   },
+
+  // Optional cloud function challenge verification
+  challengeProvider: {
+    verify: async ({ functionName, clientType, challenge, req }) => {
+      // Verify challenge response for functions with validator.challenge enabled.
+      // Throw or return false to reject the function call.
+    },
+  },
   
   // Class extensions
   classExtends: {
@@ -868,9 +964,36 @@ const proto = new ProtoService({
 
 #### Functions & Jobs
 - `run(name, params)` - Execute cloud function
-- `define(name, callback)` - Define cloud function
+- `define(name, callback, options?)` - Define cloud function
 - `scheduleJob(name, params)` - Schedule background job
 - `defineJob(name, callback)` - Define job handler
+
+Cloud function options can include a `validator`:
+
+```typescript
+proto.define('protectedFunction', handler, {
+  validator: {
+    requireUser: true,
+    requireAnyUserRoles: ['admin'],
+    challenge: true,
+  },
+});
+```
+
+`validator.challenge` defaults to `false`. When enabled, the function route
+requires a client challenge response unless the request is authenticated as a
+master request. The configured `challengeProvider.verify` callback receives:
+
+```typescript
+{
+  proto,        // connected ProtoService payload
+  functionName,
+  params,
+  clientType,  // from the client challenge configuration
+  challenge,   // resolver output from the client
+  req,
+}
+```
 
 #### Configuration
 - `config()` - Get app configuration
@@ -899,6 +1022,21 @@ const proto = new ProtoService({
 #### Functions & Jobs
 - `run(name, params)` - Execute cloud function
 - `scheduleJob(name, params)` - Schedule background job
+
+When the client is constructed with `challenge.clientType` and
+`challenge.resolver`, protected function calls are handled automatically:
+
+```typescript
+const client = new ProtoClient({
+  endpoint: 'http://localhost:1337/api',
+  challenge: {
+    clientType: 'web',
+    resolver: async ({ functionName, params, clientType, abortSignal }) => {
+      return await resolveChallenge({ functionName, params, clientType, abortSignal });
+    },
+  },
+});
+```
 
 #### Authentication & Session
 - `currentUser()` - Get current authenticated user
