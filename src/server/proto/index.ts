@@ -69,6 +69,9 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
     this[PVK] = new ProtoInternal({
       roleResolver: {},
       validateFileAccess: () => null,
+      challengeProvider: {
+        verify: () => false,
+      },
       shouldMigrate: cluster.isPrimary || cluster.worker?.id === 1,
       shouldRunSchedules: true,
       objectIdSize: 10,

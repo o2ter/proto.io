@@ -49,6 +49,18 @@ const isReactNative = typeof navigator !== 'undefined' && navigator.product === 
 const isNodeJs = typeof process !== 'undefined' && process.versions && process.versions.node;
 const isFetchSupported = typeof fetch === 'function';
 
+const createRequestError = (status: number, data: any, fallbackMessage = 'Request failed') => {
+  let error: Error;
+  try {
+    const _error = _.isString(data) ? JSON.parse(data) : data;
+    error = new Error(_error.message || fallbackMessage, { cause: _error });
+  } catch {
+    error = new Error(_.isString(data) ? data : fallbackMessage);
+  }
+  (error as Error & { status?: number }).status = status;
+  return error;
+};
+
 export default class Service<Ext, P extends ProtoType<any>> {
 
   proto: ProtoClientInternal<Ext, P>;
@@ -142,14 +154,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
     }
 
     if (res.status !== 200) {
-      let error: Error
-      try {
-        const _error = JSON.parse(res.data);
-        error = new Error(_error.message, { cause: _error });
-      } catch {
-        error = new Error(res.data);
-      }
-      throw error;
+      throw createRequestError(res.status, res.data, _.isString(res.data) ? res.data : 'Request failed');
     }
 
     return res;
@@ -226,16 +231,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
             }
 
             if (res.status !== 200) {
-              let error: Error
-              try {
-                const decoder = new TextDecoder();
-                const errorText = decoder.decode(res.data);
-                const _error = JSON.parse(errorText);
-                error = new Error(_error.message, { cause: _error });
-              } catch {
-                error = new Error('Request failed');
-              }
-              throw error;
+              throw createRequestError(res.status, res.data);
             }
 
           } finally {
@@ -260,15 +256,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
       }
 
       if (res.status !== 200) {
-        let error: Error;
-        try {
-          const errorText = await this._readStreamError(res.data, isFetchSupported);
-          const _error = JSON.parse(errorText);
-          error = new Error(_error.message, { cause: _error });
-        } catch {
-          error = new Error('Request failed');
-        }
-        throw error;
+        throw createRequestError(res.status, await this._readStreamError(res.data, isFetchSupported));
       }
 
       return res.data;
@@ -309,16 +297,7 @@ export default class Service<Ext, P extends ProtoType<any>> {
             }
 
             if (res.status !== 200) {
-              let error: Error
-              try {
-                const decoder = new TextDecoder();
-                const errorText = decoder.decode(res.data);
-                const _error = JSON.parse(errorText);
-                error = new Error(_error.message, { cause: _error });
-              } catch {
-                error = new Error('Request failed');
-              }
-              throw error;
+              throw createRequestError(res.status, new TextDecoder().decode(res.data));
             }
 
             controller.close();

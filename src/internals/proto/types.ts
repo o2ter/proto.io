@@ -88,6 +88,23 @@ type Validator = {
    * Indicates if all user roles are required.
    */
   requireAllUserRoles?: string[];
+
+  /**
+   * Indicates if a client challenge is required.
+   *
+   * Defaults to false.
+   */
+  challenge?: boolean | {
+    /**
+     * Indicates if a client challenge is required.
+     */
+    enabled?: boolean;
+
+    /**
+     * Allowed client challenge types.
+     */
+    clientTypes?: string[];
+  };
 };
 
 /**

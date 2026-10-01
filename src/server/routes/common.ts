@@ -32,7 +32,10 @@ import { TSerializable, serialize } from '../../internals/codec';
 
 export const encodeError = (error: any) => {
   if (error instanceof String) return { message: error };
-  if (error instanceof Error) return { message: error.message };
+  if (error instanceof Error) return {
+    message: error.message,
+    ...(_.isPlainObject(error.cause) ? error.cause as Record<string, any> : {}),
+  };
   return error;
 }
 

@@ -24,6 +24,8 @@
 //
 
 import { ManagerOptions, SocketOptions } from 'socket.io-client';
+import { Awaitable } from '@o2ter/utils-js';
+import { TSerializable } from '../../internals/codec';
 import { TExtensions } from '../../internals/object/types';
 
 /**
@@ -50,6 +52,32 @@ export type AxiosOptions = {
    */
   cookieKey?: string;
 };
+
+export type ProtoChallengeResolverContext = {
+  /**
+   * The function name being called.
+   */
+  functionName: string;
+
+  /**
+   * The function parameters.
+   */
+  params?: TSerializable;
+
+  /**
+   * The configured client challenge type.
+   */
+  clientType?: string;
+
+  /**
+   * An AbortSignal object that can be used to abort the operation.
+   */
+  abortSignal?: AbortSignal;
+};
+
+export type ProtoChallengeResolver = (
+  context: ProtoChallengeResolverContext
+) => Awaitable<TSerializable | undefined>;
 
 /**
  * Options for configuring the Proto client.
@@ -84,4 +112,19 @@ export type ProtoOptions<Ext> = {
    * The Axios configuration options.
    */
   axiosOptions?: AxiosOptions;
+
+  /**
+   * Client challenge configuration.
+   */
+  challenge?: {
+    /**
+     * Client challenge type sent to the server.
+     */
+    clientType?: string;
+
+    /**
+     * Resolves a challenge response for protected functions.
+     */
+    resolver?: ProtoChallengeResolver;
+  };
 };

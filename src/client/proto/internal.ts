@@ -39,7 +39,11 @@ import { TFile } from '../../internals/object/file';
 import { PVK } from '../../internals/private';
 import { FileData } from '../../internals/buffer';
 import { ExtraOptions } from '../../internals/options';
-import { UPLOAD_TOKEN_HEADER_NAME } from '../../internals/const';
+import {
+  CHALLENGE_CLIENT_TYPE_HEADER_NAME,
+  CHALLENGE_RESPONSE_HEADER_NAME,
+  UPLOAD_TOKEN_HEADER_NAME,
+} from '../../internals/const';
 import { TObject } from '../../internals/object';
 import { TQuerySelector } from '../../internals/query/types/selectors';
 
@@ -68,6 +72,7 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
   service: Service<Ext, P>;
 
   socket?: ReturnType<Service<Ext, P>['socket']>;
+  private challengeRequiredFunctions = new Set<string>();
 
   constructor(options: ProtoOptions<Ext>) {
     this.options = options;
@@ -91,19 +96,53 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
     return proto.rebind(deserialize(res.data));
   }
 
-  async run<R extends TSerializable | AsyncIterable<TSerializable> | void = any>(
+  private _isChallengeRequiredError(error: any) {
+    return error?.status === 428 && error?.cause?.code === 'challenge_required';
+  }
+
+  private async _resolveChallenge(
+    name: string,
+    data?: TSerializable,
+    options?: RequestOptions<boolean>,
+  ) {
+    const resolver = this.options.challenge?.resolver;
+    if (!resolver) return undefined;
+    return resolver({
+      functionName: name,
+      params: data,
+      clientType: this.options.challenge?.clientType,
+      abortSignal: options?.abortSignal,
+    });
+  }
+
+  private _challengeHeaders(challenge: TSerializable | undefined) {
+    if (_.isNil(challenge)) return {};
+    return {
+      ...this.options.challenge?.clientType ? {
+        [CHALLENGE_CLIENT_TYPE_HEADER_NAME]: this.options.challenge.clientType,
+      } : {},
+      [CHALLENGE_RESPONSE_HEADER_NAME]: encodeURIComponent(serialize(challenge)),
+    };
+  }
+
+  private async _run<R extends TSerializable | AsyncIterable<TSerializable> | void = any>(
     proto: P,
     name: string,
     data?: TSerializable,
-    options?: RequestOptions<boolean>
+    options?: RequestOptions<boolean>,
+    challenge?: TSerializable,
   ) {
-    const { serializeOpts, ...opts } = options ?? {};
+    const { serializeOpts, headers, ...opts } = (options as RequestOptions<boolean> & { headers?: any } | undefined) ?? {};
 
     const res = await this.service.streamRequest({
       method: 'post',
       baseURL: this.options.endpoint,
       url: `functions/${encodeURIComponent(name)}`,
       data: serialize(data, serializeOpts),
+      headers: {
+        ...headers,
+        ...this._challengeHeaders(challenge),
+      },
       ...opts,
     });
 
@@ -176,6 +215,31 @@ export class ProtoClientInternal<Ext, P extends ProtoType<any>> implements Proto
         throw error;
       }
     })() as AsyncIterable<TSerializable> as R;
+  }
+
+  async run<R extends TSerializable | AsyncIterable<TSerializable> | void = any>(
+    proto: P,
+    name: string,
+    data?: TSerializable,
+    options?: RequestOptions<boolean>
+  ) {
+    const runWithResolvedChallenge = async () => {
+      const challenge = await this._resolveChallenge(name, data, options);
+      if (_.isNil(challenge)) throw new Error('Challenge resolver did not return a challenge response');
+      return this._run<R>(proto, name, data, options, challenge);
+    };
+
+    if (this.challengeRequiredFunctions.has(name) && this.options.challenge?.resolver) {
+      return runWithResolvedChallenge();
+    }
+
+    try {
+      return await this._run<R>(proto, name, data, options);
+    } catch (error) {
+      if (!this._isChallengeRequiredError(error)) throw error;
+      this.challengeRequiredFunctions.add(name);
+      return runWithResolvedChallenge();
+    }
   }
 
   refreshSocketSession() {

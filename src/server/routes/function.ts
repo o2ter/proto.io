@@ -30,6 +30,23 @@ import { encodeError } from './common';
 import { deserialize, serialize } from '../../internals/codec';
 import { PVK } from '../../internals/private';
 import { TObject } from '../../internals/object';
+import {
+  CHALLENGE_CLIENT_TYPE_HEADER_NAME,
+  CHALLENGE_RESPONSE_HEADER_NAME,
+} from '../../internals/const';
+
+const challengeEnabled = (challenge: any) => (
+  challenge === true || (_.isPlainObject(challenge) && challenge.enabled !== false)
+);
+
+const challengeClientTypes = (challenge: any) => (
+  _.isPlainObject(challenge) && _.isArray(challenge.clientTypes) ? challenge.clientTypes : undefined
+);
+
+const parseChallenge = (value?: string) => {
+  if (!value) return undefined;
+  return deserialize(decodeURIComponent(value));
+};
 
 export default <E>(router: Router, proto: ProtoService<E>) => {
 
@@ -41,17 +58,56 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       res.setHeader('Cache-Control', ['no-cache', 'no-store']);
 
       const { name } = req.params;
-      if (_.isNil(proto[PVK].functions[name])) return void res.sendStatus(404);
+      const func = proto[PVK].functions[name];
+      if (_.isNil(func)) return void res.sendStatus(404);
 
       try {
 
         const abortController = new AbortController();
         res.on('close', () => abortController.abort());
 
+        const params = deserialize(req.body, { objAttrs: TObject.defaultReadonlyKeys });
         const payload = proto.connect(req, x => ({
-          params: x.rebind(deserialize(req.body, { objAttrs: TObject.defaultReadonlyKeys })),
+          params: x.rebind(params),
           abortSignal: abortController.signal,
         }));
+        const validator = _.isFunction(func) ? undefined : func.validator;
+        const challenge = validator?.challenge;
+
+        if (
+          challengeEnabled(challenge)
+          && !payload.isMaster
+        ) {
+          const challengeProvider = proto[PVK].options.challengeProvider;
+          if (!challengeProvider) throw new Error('Challenge provider is not configured');
+
+          const clientType = _.trim(req.header(CHALLENGE_CLIENT_TYPE_HEADER_NAME) || '') || undefined;
+          const clientTypes = challengeClientTypes(challenge);
+          if (
+            clientTypes
+            && !_.includes(clientTypes, clientType)
+          ) {
+            throw new Error('Invalid challenge client type');
+          }
+
+          const challengeValue = parseChallenge(req.header(CHALLENGE_RESPONSE_HEADER_NAME));
+          if (_.isNil(challengeValue)) {
+            return void res.status(428).json({
+              message: 'Challenge required',
+              code: 'challenge_required',
+            });
+          }
+
+          const verified = await challengeProvider.verify({
+            proto: payload,
+            functionName: name,
+            params: payload.params,
+            clientType,
+            challenge: challengeValue,
+            req,
+          });
+          if (verified === false) throw new Error('Challenge verification failed');
+        }
 
         const data = await payload[PVK].run(payload, name, { master: payload.isMaster });
 

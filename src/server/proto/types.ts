@@ -26,7 +26,7 @@
 import { TFileStorage } from '../file';
 import { TStorage } from '../storage';
 import { TSchema } from '../../internals/schema';
-import { CookieOptions } from '@o2ter/server-js';
+import { CookieOptions, Request } from '@o2ter/server-js';
 import { SignOptions, VerifyOptions } from 'jsonwebtoken';
 import { PasswordHashOptions } from '../crypto/password';
 import { TExtensions } from '../../internals/object/types';
@@ -36,7 +36,49 @@ import { TRole } from '../../internals/object/role';
 import { TFile } from '../../internals/object/file';
 import { Awaitable } from '@o2ter/utils-js';
 import { Logger } from '../../internals/proto';
+import { TSerializable } from '../../internals/codec';
 import type { ProtoService } from './index';
+
+export type ProtoChallengeVerifyContext<Ext> = {
+  /**
+   * The connected Proto service payload.
+   */
+  proto: ProtoService<Ext>;
+
+  /**
+   * The function name being called.
+   */
+  functionName: string;
+
+  /**
+   * The function parameters.
+   */
+  params: TSerializable;
+
+  /**
+   * Client challenge type sent by the client.
+   */
+  clientType?: string;
+
+  /**
+   * Challenge response sent by the client.
+   */
+  challenge?: TSerializable;
+
+  /**
+   * The HTTP request.
+   */
+  req?: Request;
+};
+
+export type ProtoChallengeProvider<Ext> = {
+  /**
+   * Verifies a client challenge response.
+   */
+  verify: (
+    context: ProtoChallengeVerifyContext<Ext>
+  ) => Awaitable<boolean | void>;
+};
 
 export type ProtoServiceOptions<Ext> = {
   /**
@@ -79,6 +121,11 @@ export type ProtoServiceOptions<Ext> = {
     fileId: string,
     proto: ProtoService<Ext>
   ) => Awaitable<TFile | boolean | null | undefined>;
+
+  /**
+   * Challenge provider used by protected proto functions.
+   */
+  challengeProvider?: ProtoChallengeProvider<Ext>;
 
   /**
    * Logger configuration.
