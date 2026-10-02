@@ -71,6 +71,27 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
           params: x.rebind(params),
           abortSignal: abortController.signal,
         }));
+        const startedAt = Date.now();
+        const recordUserActivity = (status: 'success' | 'error', error?: unknown) => {
+          const callback = proto[PVK].options.userActivityCallback;
+          if (!callback) return;
+          try {
+            void Promise.resolve(callback({
+              proto: payload,
+              functionName: name,
+              params: payload.params,
+              isMaster: payload.isMaster,
+              status,
+              durationMs: Date.now() - startedAt,
+              error,
+              req,
+            })).catch(activityError => {
+              payload.logger.error(activityError);
+            });
+          } catch (activityError) {
+            payload.logger.error(activityError);
+          }
+        };
         const validator = _.isFunction(func) ? undefined : func.validator;
         const challenge = validator?.challenge;
 
@@ -109,7 +130,14 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
           if (verified === false) throw new Error('Challenge verification failed');
         }
 
-        const data = await payload[PVK].run(payload, name, { master: payload.isMaster });
+        const data = await (async () => {
+          try {
+            return await payload[PVK].run(payload, name, { master: payload.isMaster });
+          } catch (error) {
+            recordUserActivity('error', error);
+            throw error;
+          }
+        })();
 
         res.type('application/json');
 
@@ -121,9 +149,11 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
               if (_.isFunction(res.flush)) res.flush();
               first = false;
             }
+            recordUserActivity('success');
             res.write(first ? '[]' : ']');
             res.end();
           } catch (error) {
+            recordUserActivity('error', error);
             if (first) {
               res.status(400).json(encodeError(error));
             } else {
@@ -132,6 +162,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
             }
           }
         } else {
+          recordUserActivity('success');
           res.send(serialize(data ?? null));
         }
       } catch (error) {

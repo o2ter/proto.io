@@ -80,6 +80,48 @@ export type ProtoChallengeProvider<Ext> = {
   ) => Awaitable<boolean | void>;
 };
 
+export type ProtoUserActivityContext<Ext> = {
+  /**
+   * The connected Proto service payload.
+   */
+  proto: ProtoService<Ext>;
+
+  /**
+   * The function name being called.
+   */
+  functionName: string;
+
+  /**
+   * The function parameters.
+   */
+  params: TSerializable;
+
+  /**
+   * Whether the function was called with master privileges.
+   */
+  isMaster: boolean;
+
+  /**
+   * The function execution status.
+   */
+  status: 'success' | 'error';
+
+  /**
+   * Function execution duration in milliseconds.
+   */
+  durationMs: number;
+
+  /**
+   * The error thrown by the function, if any.
+   */
+  error?: unknown;
+
+  /**
+   * The HTTP request.
+   */
+  req?: Request;
+};
+
 export type ProtoServiceOptions<Ext> = {
   /**
    * The endpoint for the service.
@@ -126,6 +168,13 @@ export type ProtoServiceOptions<Ext> = {
    * Challenge provider used by protected proto functions.
    */
   challengeProvider?: ProtoChallengeProvider<Ext>;
+
+  /**
+   * Callback invoked after a proto function succeeds or fails.
+   */
+  userActivityCallback?: (
+    context: ProtoUserActivityContext<Ext>
+  ) => Awaitable<void>;
 
   /**
    * Logger configuration.

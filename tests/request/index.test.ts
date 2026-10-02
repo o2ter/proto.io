@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import { masterUser } from './server';
+import { masterUser, userActivities } from './server';
 import { test, expect } from '@jest/globals';
 import Decimal from 'decimal.js';
 import { ProtoClient } from '../../src/client/proto';
@@ -51,6 +51,32 @@ test('echoMaster', async () => {
   await expect(() => Proto.run('echoMaster', 'hello, world')).rejects.toThrow('No permission');
   const result = await Proto.run('echoMaster', 'hello, world', { master: true });
   expect(result).toStrictEqual('hello, world');
+});
+
+test('user activity callback', async () => {
+  const params = { hello: 'world' };
+
+  await expect(Proto.run('echo', params)).resolves.toStrictEqual(params);
+  await expect(() => Proto.run('echoMaster', 'hello, world')).rejects.toThrow('No permission');
+
+  expect(userActivities).toHaveLength(2);
+  expect(userActivities[0]).toMatchObject({
+    functionName: 'echo',
+    params,
+    isMaster: false,
+    status: 'success',
+    hasRequest: true,
+  });
+  expect(userActivities[0].durationMs).toBeGreaterThanOrEqual(0);
+  expect(userActivities[1]).toMatchObject({
+    functionName: 'echoMaster',
+    params: 'hello, world',
+    isMaster: false,
+    status: 'error',
+    errorMessage: 'No permission',
+    hasRequest: true,
+  });
+  expect(userActivities[1].durationMs).toBeGreaterThanOrEqual(0);
 });
 
 test('test codec', async () => {

@@ -26,6 +26,7 @@
 import _ from 'lodash';
 import { Server } from '@o2ter/server-js';
 import { ProtoService, ProtoRoute } from '../../src/index';
+import type { ProtoUserActivityContext } from '../../src/server/proto/types';
 import { beforeAll, afterAll, beforeEach } from '@jest/globals';
 import DatabaseFileStorage from '../../src/adapters/file/database';
 import PostgresStorage from '../../src/adapters/storage/postgres';
@@ -61,6 +62,13 @@ export const masterUser = {
   pass: randomUUID(),
 };
 
+type UserActivity = Pick<ProtoUserActivityContext<any>, 'functionName' | 'params' | 'isMaster' | 'status' | 'durationMs'> & {
+  errorMessage?: string;
+  hasRequest: boolean;
+};
+
+export const userActivities: UserActivity[] = [];
+
 const Proto = new ProtoService({
   endpoint: 'http://localhost:8080/proto',
   masterUsers: [masterUser],
@@ -74,6 +82,25 @@ const Proto = new ProtoService({
   },
   storage: database,
   fileStorage: new DatabaseFileStorage(),
+  userActivityCallback: ({
+    functionName,
+    params,
+    isMaster,
+    status,
+    durationMs,
+    error,
+    req,
+  }) => {
+    userActivities.push({
+      functionName,
+      params,
+      isMaster,
+      status,
+      durationMs,
+      errorMessage: error instanceof Error ? error.message : undefined,
+      hasRequest: !!req,
+    });
+  },
 });
 
 Proto.define('checkHealth', (proto) => {
@@ -136,6 +163,7 @@ beforeAll(async () => {
 });
 
 beforeEach(async () => {
+  userActivities.length = 0;
   for (const className of Proto.classes()) {
     await Proto.Query(className).deleteMany({ master: true, silent: true });
   }
