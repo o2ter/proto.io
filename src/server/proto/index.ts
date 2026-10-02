@@ -72,6 +72,7 @@ export class ProtoService<Ext = any> extends ProtoType<Ext> {
       challengeProvider: {
         verify: () => false,
       },
+      userActivityCallback: () => void 0,
       shouldMigrate: cluster.isPrimary || cluster.worker?.id === 1,
       shouldRunSchedules: true,
       objectIdSize: 10,
