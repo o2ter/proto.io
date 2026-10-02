@@ -32,6 +32,7 @@ import { TValue, TValueWithUndefined } from '../../../../internals/types';
 import { TObject } from '../../../../internals/object';
 
 export const _encodeJsonValue = (value: any): SQL => {
+  if (_.isNil(value)) return sql`'null'::JSONB`;
   if (_.isArray(value)) return sql`jsonb_build_array(${_.map(value, x => _encodeJsonValue(x))})`;
   if (_.isPlainObject(value)) return sql`jsonb_build_object(${_.map(value, (v, k) => sql`${{ value: k }}, ${_encodeJsonValue(v)}`)})`;
   return sql`to_jsonb(${{ value }})`;
@@ -152,4 +153,3 @@ export const decodeType = (type: TSchema.Primitive | 'vector', value: any): TVal
   }
   return null;
 };
-

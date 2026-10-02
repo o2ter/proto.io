@@ -233,6 +233,54 @@ test('test types', async () => {
 
 })
 
+test('test array with nested nulls', async () => {
+  const inserted = await Proto.Query('Test').insert({
+    array: [{
+      phase: 'generation',
+      endpoint: null,
+      error: {
+        message: 'could not determine polymorphic type because input has type unknown',
+        detail: null,
+        hint: null,
+        position: null,
+      },
+    }],
+    shape: {
+      array: [{
+        phase: 'generation',
+        endpoint: null,
+        error: {
+          message: 'could not determine polymorphic type because input has type unknown',
+          detail: null,
+          hint: null,
+          position: null,
+        },
+      }],
+    },
+  });
+
+  expect(inserted.get('array')).toStrictEqual([{
+    phase: 'generation',
+    endpoint: null,
+    error: {
+      message: 'could not determine polymorphic type because input has type unknown',
+      detail: null,
+      hint: null,
+      position: null,
+    },
+  }]);
+  expect(inserted.get('shape.array')).toStrictEqual([{
+    phase: 'generation',
+    endpoint: null,
+    error: {
+      message: 'could not determine polymorphic type because input has type unknown',
+      detail: null,
+      hint: null,
+      position: null,
+    },
+  }]);
+})
+
 test('test types 2', async () => {
   const date = new Date;
   const inserted = await Proto.Query('Test').insert({
