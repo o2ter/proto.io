@@ -35,6 +35,7 @@ import { _decodeValue, _encodeValue } from '../../../../internals/object';
 import { TValueWithoutObject } from '../../../../internals/types';
 import { TPubSub } from '../../../../server/pubsub';
 import { TSchema, isPointer, isRelation } from '../../../../internals/schema';
+import { PGVectorSettings } from './pgvector';
 
 export class PostgresStorageClient<Driver extends PostgresClientDriver> extends SqlStorage implements TPubSub {
 
@@ -103,6 +104,10 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
   async _explain(compiler: QueryCompiler, query: DecodedQuery<FindOptions>) {
     const [explain] = await this.query(sql`EXPLAIN (ANALYZE, VERBOSE, BUFFERS, FORMAT JSON) ${compiler._selectQuery(query)}`);
     return explain['QUERY PLAN'];
+  }
+
+  pgvector() {
+    return new PGVectorSettings(this);
   }
 
   async version() {

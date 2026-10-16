@@ -332,7 +332,7 @@ export namespace TSchema {
      * Whether the index is unique.
      */
     unique?: boolean;
-  } | {
+  } | ({
     /**
      * Type of the index. Must be 'vector' for vector indexes.
      */
@@ -346,8 +346,48 @@ export namespace TSchema {
     /**
      * Method for the vector index. Supported: 'hnsw', 'ivfflat'.
      */
-    method?: 'hnsw' | 'ivfflat';
-  };
+    method?: 'hnsw';
+
+    /**
+     * HNSW index options.
+     */
+    options?: {
+      /**
+       * Max number of connections per layer.
+       */
+      m?: number;
+
+      /**
+       * Size of the dynamic candidate list for construction.
+       */
+      efConstruction?: number;
+    };
+  } | {
+    /**
+     * Type of the index. Must be 'vector' for vector indexes.
+     */
+    type: 'vector';
+
+    /**
+     * Keys for the vector index. Can be a single field or an array of fields.
+     */
+    keys: string | string[];
+
+    /**
+     * IVFFlat vector index method.
+     */
+    method: 'ivfflat';
+
+    /**
+     * IVFFlat index options.
+     */
+    options?: {
+      /**
+       * Number of inverted lists.
+       */
+      lists?: number;
+    };
+  });
 }
 
 export const _isTypeof = (x: TSchema.DataType, types: string | string[]) => {

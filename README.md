@@ -614,7 +614,10 @@ const schema = {
     fields: {
       content: schema.string(),
       embedding: schema.vector(1536), // OpenAI embedding dimension
-    }
+    },
+    indexes: [
+      { type: 'vector', keys: 'embedding', method: 'hnsw', options: { m: 16, efConstruction: 64 } },
+    ]
   }
 };
 

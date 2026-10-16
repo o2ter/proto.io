@@ -1453,11 +1453,14 @@ Proto.io supports two types of indexes:
     { 
       type: 'vector', 
       keys: 'embedding',                         // Single vector field
-      method: 'hnsw'                            // Optional: 'hnsw' or 'ivfflat'
+      method: 'hnsw',                           // Optional: 'hnsw' or 'ivfflat'
+      options: { m: 16, efConstruction: 64 }    // Optional HNSW index options
     },
     { 
       type: 'vector', 
-      keys: ['x', 'y', 'z']                     // Multiple fields as vector
+      keys: ['x', 'y', 'z'],                    // Multiple fields as vector
+      method: 'ivfflat',
+      options: { lists: 100 }                   // Optional IVFFlat index options
     }
   ]
 }
@@ -1468,6 +1471,7 @@ Proto.io supports two types of indexes:
 - `unique`: Boolean (basic indexes only) - ensures uniqueness
 - `type`: 'basic' (default) or 'vector'
 - `method`: 'hnsw' or 'ivfflat' (vector indexes only)
+- `options`: pgvector index options (vector indexes only): HNSW supports `m` and `efConstruction`; IVFFlat supports `lists`
 
 ---
 

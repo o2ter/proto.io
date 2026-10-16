@@ -77,8 +77,8 @@ const Proto = new ProtoService({
         vector2: schema.vector(3),
       },
       indexes: [
-        { type: 'vector', keys: ['vector.x', 'vector.y', 'vector.z'] },
-        { type: 'vector', keys: 'vector2' },
+        { type: 'vector', keys: ['vector.x', 'vector.y', 'vector.z'], options: { m: 16, efConstruction: 64 } },
+        { type: 'vector', keys: 'vector2', method: 'ivfflat', options: { lists: 10 } },
       ],
     }
   },

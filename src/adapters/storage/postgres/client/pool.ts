@@ -30,6 +30,7 @@ import { PostgresDriver, PostgresClientDriver } from '../driver';
 import { sql } from '../../sql';
 import { PostgresStorageClient } from './base';
 import { TObject } from '../../../../internals/object';
+import { assertPGVectorHnswIndexOptions, assertPGVectorIvfflatIndexOptions } from './pgvector';
 
 const resolveDataType = (
   schema: TSchema,
@@ -179,6 +180,23 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
     };
   }
 
+  private _indexVectorWith(index: Extract<TSchema.Indexes, { type: 'vector' }>) {
+    if (index.method === 'ivfflat') {
+      const options = index.options ?? {};
+      assertPGVectorIvfflatIndexOptions(options);
+      return _.isNil(options.lists) ? sql`` : sql`
+        WITH (lists = ${{ literal: `${options.lists}` }})
+      `;
+    }
+    const options = index.options ?? {};
+    assertPGVectorHnswIndexOptions(options);
+    const entries = _.compact([
+      _.isNil(options.m) ? undefined : sql`m = ${{ literal: `${options.m}` }}`,
+      _.isNil(options.efConstruction) ? undefined : sql`ef_construction = ${{ literal: `${options.efConstruction}` }}`,
+    ]);
+    return _.isEmpty(entries) ? sql`` : sql`WITH (${entries})`;
+  }
+
   private async _dropIndices(className: string, schema: TSchema) {
     const { indexes } = this._indicesOf(schema);
     const names: string[] = [];
@@ -242,6 +260,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
             const name = this._indexVectorName(className, _.castArray(index.keys));
             const ops = _.keys(name) as (keyof typeof name)[];
             const method = index.method ?? 'hnsw';
+            const withOptions = this._indexVectorWith(index);
             if (_.isArray(index.keys)) {
               for (const op of ops) {
                 await this.query(sql`
@@ -254,6 +273,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
                       AS VECTOR(${{ literal: `${index.keys.length}` }})
                     ) ${{ literal: op }}
                   )
+                  ${withOptions}
                 `);
               }
             } else {
@@ -270,6 +290,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
                       ${{ identifier: column }} AS VECTOR(${{ literal: `${dataType.dimension}` }})
                     ) ${{ literal: op }}
                   )
+                  ${withOptions}
                 `);
               }
             }
