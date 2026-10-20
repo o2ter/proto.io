@@ -128,6 +128,8 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
             req,
           });
           if (verified === false) throw new Error('Challenge verification failed');
+
+          _.assign(payload, { challenge: { clientType, result: challengeValue } });
         }
 
         const data = await (async () => {

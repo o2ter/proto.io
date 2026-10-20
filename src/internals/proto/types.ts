@@ -44,6 +44,10 @@ type Callback<T, R, E> = (request: ProtoService<E> & T) => Awaitable<R>;
  */
 export type ProtoFunction<E, P extends TSerializable, R extends TSerializable | void> = Callback<{
   params: P;
+  challenge?: {
+    clientType?: string;
+    result?: any;
+  };
   abortSignal?: AbortSignal;
 }, R | AsyncIterable<R>, E>;
 
