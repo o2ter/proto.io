@@ -85,6 +85,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
               durationMs: Date.now() - startedAt,
               error,
               req,
+              challenge: (payload as { challenge?: { clientType?: string; result?: any } }).challenge,
             })).catch(activityError => {
               payload.logger.error(activityError);
             });

@@ -120,6 +120,14 @@ export type ProtoUserActivityContext<Ext> = {
    * The HTTP request.
    */
   req?: Request;
+
+  /**
+   * The result of the client challenge, if any.
+   */
+  challenge?: {
+    clientType?: string;
+    result?: any;
+  };
 };
 
 export type ProtoServiceOptions<Ext> = {
