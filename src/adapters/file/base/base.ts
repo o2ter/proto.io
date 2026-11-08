@@ -45,7 +45,7 @@ export type FileStorageOptions = {
 export abstract class FileStorageBase implements TFileStorage {
 
   options: Required<FileStorageOptions>;
-  unzipDebounce: ReturnType<typeof createCacheDebounce<Buffer>>;
+  unzipDebounce: ReturnType<typeof createCacheDebounce>;
 
   constructor(options: FileStorageOptions) {
     this.options = {

@@ -25,9 +25,9 @@
 
 import _ from 'lodash';
 
-export const createCacheDebounce = <T>(timeout?: number) => {
-  const cacheMap: { [K in string]?: Promise<T>; } = {};
-  return (
+export const createCacheDebounce = (timeout?: number) => {
+  const cacheMap: { [K in string]?: Promise<any>; } = {};
+  return <T>(
     key: string,
     callback: (key: string) => Promise<T>,
   ): Promise<T> => {

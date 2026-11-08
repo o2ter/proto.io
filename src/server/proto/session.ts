@@ -49,7 +49,7 @@ const _sessionWithToken = async <E>(proto: ProtoService<E>, token: string) => {
   return { payload, session };
 }
 
-const userCacheMap = new WeakMap<any, ReturnType<typeof createCacheDebounce<TRole[]>>>();
+const userCacheMap = new WeakMap<any, ReturnType<typeof createCacheDebounce>>();
 const fetchUserRole = async <E>(proto: ProtoService<E>, user?: TUser) => {
   if (!userCacheMap.has(proto[PVK])) userCacheMap.set(proto[PVK], createCacheDebounce());
   const debounce = userCacheMap.get(proto[PVK])!;
