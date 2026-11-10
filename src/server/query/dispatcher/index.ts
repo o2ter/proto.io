@@ -123,7 +123,8 @@ export const dispatcher = <E>(
       }), 'read');
       const isGet = _validator.isGetMethod(decoded.filter);
       if (!_validator.validateCLPs(query.className, isGet ? 'get' : 'find')) throw Error('No permission');
-      return proto.storage.groupFind(proto.schema, decoded, acc);
+      const result = await proto.storage.groupFind(proto.schema, decoded, acc);
+      return result || {};
     },
     async nonrefs(
       query: FindOptions
