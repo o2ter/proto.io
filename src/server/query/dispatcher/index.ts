@@ -110,12 +110,19 @@ export const dispatcher = <E>(
       query: FindOptions & RelationOptions,
       accumulators: T,
     ) {
-      QueryValidator.recursiveCheck(query);
+      QueryValidator.recursiveCheck(query, accumulators);
       const _validator = await validator();
-      const decoded = _validator.decodeQuery(normalize(query), 'read');
+      const acc = _.mapValues(accumulators, x => QueryAccumulator.decode(x).simplify());
+      const keyPaths = _.uniq(_.flatMap(_.values(acc), x => x.keyPaths()));
+      for (const key of keyPaths) {
+        if (!_validator.validateKey(query.className, key, 'read', QueryValidator.patterns.path)) throw Error('No permission');
+      }
+      const decoded = _validator.decodeQuery(normalize({
+        ...query,
+        includes: [...query.includes ?? ['*'], ...keyPaths],
+      }), 'read');
       const isGet = _validator.isGetMethod(decoded.filter);
       if (!_validator.validateCLPs(query.className, isGet ? 'get' : 'find')) throw Error('No permission');
-      const acc = _.mapValues(accumulators, x => QueryAccumulator.decode(x).simplify())
       return proto.storage.groupFind(proto.schema, decoded, acc);
     },
     async nonrefs(
@@ -249,4 +256,3 @@ export const dispatcher = <E>(
     },
   };
 };
-

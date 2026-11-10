@@ -602,3 +602,48 @@ test('test groupFind - $group with most', async () => {
   expect(groupedMap.A).toBe(5);
   expect(groupedMap.B).toBe(20);
 });
+
+test('test groupFind - $group key by pointer', async () => {
+  // Insert test data
+  const obj1 = await Proto.Query('Test').insert({ number: 2 });
+  const obj2 = await Proto.Query('Test').insert({ number: 3 });
+  await Proto.Query('Test').insertMany([
+    { string: 'group_pointer', pointer: obj1, decimal: new Decimal('10.5') },
+    { string: 'group_pointer', pointer: obj1, decimal: new Decimal('20.5') },
+    { string: 'group_pointer', pointer: obj2, decimal: new Decimal('100.25') },
+    { string: 'group_pointer', pointer: obj2, decimal: new Decimal('200.75') },
+    { string: 'group_pointer', pointer: null, decimal: new Decimal('4') },
+  ]);
+
+  const result = await Proto.Query('Test')
+    .equalTo('string', 'group_pointer')
+    .includes('string')
+    .groupFind({
+      byCategory: {
+        $group: {
+          key: { $key: 'pointer._id' },
+          value: { $sum: { $key: 'decimal' } },
+        },
+      },
+      pointerSum: { $sum: { $key: 'pointer.number' } },
+      pointerMedian: { $percentile: { input: { $key: 'pointer.number' }, p: 0.5 } },
+    });
+
+  expect(result.byCategory).toHaveLength(3);
+  expect(result.byCategory).toEqual(expect.arrayContaining([
+    { key: obj1.id, value: 31 },
+    { key: obj2.id, value: 301 },
+    { key: null, value: 4 },
+  ]));
+  expect(result.pointerSum).toBe(10);
+  expect(result.pointerMedian).toBe(2);
+});
+
+test('test groupFind - accumulator fields respect read permissions', async () => {
+  await expect(Proto.Query('Test').includes('string').groupFind({
+    count: { $group: { key: { $key: 'no_permission' }, value: { $count: true } } },
+  })).rejects.toThrow('No permission');
+  await expect(Proto.Query('Test').includes('string').groupFind({
+    count: { $group: { key: { $key: 'string' }, value: { $max: { $key: 'pointer.no_permission' } } } },
+  })).rejects.toThrow('No permission');
+});
