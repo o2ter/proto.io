@@ -1473,6 +1473,10 @@ Proto.io supports two types of indexes:
 - `method`: 'hnsw' or 'ivfflat' (vector indexes only)
 - `options`: pgvector index options (vector indexes only): HNSW supports `m` and `efConstruction`; IVFFlat supports `lists`
 
+HNSW creates indexes for L1, L2, inner product, and cosine distance. IVFFlat
+creates indexes for L2, inner product, and cosine distance; pgvector does not
+support L1 indexes with IVFFlat.
+
 ---
 
 This API reference covers the core functionality of Proto.io. For more advanced usage and examples, see the full documentation and examples in the repository.

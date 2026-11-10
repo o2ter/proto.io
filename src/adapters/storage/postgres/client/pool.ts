@@ -171,13 +171,14 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
     return `${className}$b$${_.map(keys, (v, k) => `${k}:${v}`).join('$')}`;
   }
 
-  private _indexVectorName(className: string, keys: string[]) {
-    return {
-      'vector_l1_ops': `${className}$v1$${keys.join('$')}`,
+  private _indexVectorName(className: string, keys: string[], method: 'hnsw' | 'ivfflat'): Record<string, string> {
+    const names: Record<string, string> = {
       'vector_l2_ops': `${className}$v2$${keys.join('$')}`,
       'vector_ip_ops': `${className}$vi$${keys.join('$')}`,
       'vector_cosine_ops': `${className}$vc$${keys.join('$')}`,
     };
+    if (method === 'hnsw') names.vector_l1_ops = `${className}$v1$${keys.join('$')}`;
+    return names;
   }
 
   private _indexVectorWith(index: Extract<TSchema.Indexes, { type: 'vector' }>) {
@@ -204,7 +205,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
       if (_.isEmpty(index.keys)) continue;
       switch (index.type) {
         case 'vector':
-          names.push(..._.values(this._indexVectorName(className, _.castArray(index.keys))));
+          names.push(..._.values(this._indexVectorName(className, _.castArray(index.keys), index.method ?? 'hnsw')));
           break;
         default:
           names.push(this._indexBasicName(className, index.keys, !!index.unique));
@@ -257,7 +258,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
       switch (index.type) {
         case 'vector':
           {
-            const name = this._indexVectorName(className, _.castArray(index.keys));
+            const name = this._indexVectorName(className, _.castArray(index.keys), index.method ?? 'hnsw');
             const ops = _.keys(name) as (keyof typeof name)[];
             const method = index.method ?? 'hnsw';
             const withOptions = this._indexVectorWith(index);
