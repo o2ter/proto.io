@@ -57,6 +57,34 @@ test('partial unique indexes only constrain matching rows', async () => {
   await expect(Proto.Query('PartialTest').equalTo('active', false).updateMany({ active: { $set: true } })).rejects.toThrow();
 });
 
+test('partial index names preserve readable prefixes and full hashes', async () => {
+  const className = 'P';
+  const schema: TSchema = {
+    fields: {
+      value: 'string',
+      active: 'boolean',
+      e: { type: 'vector', dimension: 2 },
+    },
+    indexes: [
+      { keys: { value: -1 }, filter: { active: { $eq: true } } },
+      { keys: { value: 1 }, unique: true, filter: { active: { $eq: true } } },
+      { type: 'vector', keys: 'e', filter: { active: { $eq: true } } },
+    ],
+  };
+  await database.prepare({ [className]: schema }, true);
+  const indexes = await database.query(sql`
+    SELECT indexname FROM pg_indexes WHERE tablename = ${{ value: className }}
+  `);
+  expect(indexes.map(({ indexname }) => indexname)).toEqual(expect.arrayContaining([
+    expect.stringMatching(/^P\$pb\$value:-1\$[0-9a-f]{48}$/),
+    expect.stringMatching(/^P\$pu\$value:1\$[0-9a-f]{48}$/),
+    expect.stringMatching(/^P\$pv1\$e\$[0-9a-f]{48}$/),
+    expect.stringMatching(/^P\$pv2\$e\$[0-9a-f]{48}$/),
+    expect.stringMatching(/^P\$pvi\$e\$[0-9a-f]{48}$/),
+    expect.stringMatching(/^P\$pvc\$e\$[0-9a-f]{48}$/),
+  ]));
+});
+
 test('partial indexes coexist and migrate when predicates change or are removed', async () => {
   const className = 'PartialIndexMigration';
   const makeSchema = (filter: TSchema.IndexPredicate): TSchema => ({
@@ -80,6 +108,9 @@ test('partial indexes coexist and migrate when predicates change or are removed'
   await database.prepare({ [className]: makeSchema(active) }, true);
   const first = await indexes();
   expect(first.filter(row => row.indexdef.includes(' WHERE '))).toHaveLength(7);
+  expect(first.filter(row => row.indexdef.includes(' WHERE ')).every(row =>
+    Buffer.byteLength(row.indexname) <= 63 && /[0-9a-f]{48}$/.test(row.indexname)
+  )).toBe(true);
   await database.prepare({ [className]: makeSchema(active) }, true);
   expect((await indexes()).map(row => row.indexname).sort()).toEqual(first.map(row => row.indexname).sort());
 

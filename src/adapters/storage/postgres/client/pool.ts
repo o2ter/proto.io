@@ -222,10 +222,28 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
     return compile(filter);
   }
 
-  private _partialIndexName(name: string, index: TSchema.Indexes, filter: SQL) {
+  private _partialIndexName(className: string, name: string, index: TSchema.Indexes, filter: SQL) {
     const predicate = filter.compile(this.dialect).query;
     const hash = createHash('sha256').update(JSON.stringify([name, index.type, index.type === 'vector' ? index.method ?? 'hnsw' : null, predicate])).digest('hex');
-    return `proto$p$${hash.slice(0, 48)}`;
+    const suffix = name.slice(className.length);
+    const marker = /^\$(b|u|v[12ic])\$/.exec(suffix)?.[1];
+    if (!marker) throw Error('Invalid index name');
+    const partialMarker = `$p${marker}$`;
+    const hashSuffix = `$${hash.slice(0, 48)}`;
+    // Keep the full hash within PostgreSQL's 63-byte identifier limit.
+    const maxReadableBytes = 63 - Buffer.byteLength(hashSuffix);
+    const truncate = (value: string, maxBytes: number) => {
+      let result = '';
+      for (const character of value) {
+        if (Buffer.byteLength(result + character) > maxBytes) break;
+        result += character;
+      }
+      return result;
+    };
+    const readableClassName = truncate(className, Math.max(0, maxReadableBytes - Buffer.byteLength(partialMarker)));
+    const keyBudget = maxReadableBytes - Buffer.byteLength(readableClassName) - Buffer.byteLength(partialMarker);
+    const readableKeys = truncate(suffix.slice(marker.length + 2), keyBudget);
+    return `${readableClassName}${partialMarker}${readableKeys}${hashSuffix}`;
   }
 
   private _indexBasicName(className: string, keys: Record<string, 1 | -1>, unique: boolean) {
@@ -269,12 +287,12 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
       switch (index.type) {
         case 'vector':
           names.push(..._.values(this._indexVectorName(className, _.castArray(index.keys), index.method ?? 'hnsw')).map(name =>
-            filter ? this._partialIndexName(name, index, filter) : name));
+            filter ? this._partialIndexName(className, name, index, filter) : name));
           break;
         default:
           {
             const name = this._indexBasicName(className, index.keys, !!index.unique);
-            names.push(filter ? this._partialIndexName(name, index, filter) : name);
+            names.push(filter ? this._partialIndexName(className, name, index, filter) : name);
           }
           break;
       }
@@ -291,7 +309,14 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
       JOIN pg_class i ON i.oid = ix.indexrelid
       WHERE t.oid = to_regclass(format('%I', ${{ value: className }}))
         AND ix.indexprs IS NOT NULL
-        AND i.relname LIKE 'proto$p$%'
+        AND ix.indpred IS NOT NULL
+        AND (
+          i.relname LIKE 'proto$p$%'
+          OR position('$pv1$' in i.relname) > 0
+          OR position('$pv2$' in i.relname) > 0
+          OR position('$pvi$' in i.relname) > 0
+          OR position('$pvc$' in i.relname) > 0
+        )
     `);
     for (const { name } of expressionIndexes) {
       if (!names.includes(name)) await this.query(sql`DROP INDEX CONCURRENTLY IF EXISTS ${{ identifier: name }}`);
@@ -341,7 +366,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
           {
             const name = this._indexVectorName(className, _.castArray(index.keys), index.method ?? 'hnsw');
             if (filter) {
-              for (const op of _.keys(name)) name[op] = this._partialIndexName(name[op], index, filter);
+              for (const op of _.keys(name)) name[op] = this._partialIndexName(className, name[op], index, filter);
             }
             const ops = _.keys(name) as (keyof typeof name)[];
             const method = index.method ?? 'hnsw';
@@ -386,7 +411,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
         default:
           {
             const baseName = this._indexBasicName(className, index.keys, !!index.unique);
-            const name = filter ? this._partialIndexName(baseName, index, filter) : baseName;
+            const name = filter ? this._partialIndexName(className, baseName, index, filter) : baseName;
             const useGin = _.some(_.keys(index.keys), column => {
               const dataType = resolveDataType(schema, column);
               if (!dataType || isShape(dataType)) throw Error('Invalid index type');
