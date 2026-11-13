@@ -1475,7 +1475,9 @@ Proto.io supports two types of indexes:
   number, decimal, string, and date fields; `$eq` and `$ne` also support null
   for stored fields. Only rows matching the predicate are indexed. Predicate
   fields must be stored columns (including flattened shape fields), not
-  populated relations or nested JSON paths.
+  populated relations or nested JSON paths. Equality and inequality use the
+  same null-safe semantics as query filters. A predicate and its logical
+  operand lists must not be empty.
 - `type`: 'basic' (default) or 'vector'
 - `method`: 'hnsw' or 'ivfflat' (vector indexes only)
 - `options`: pgvector index options (vector indexes only): HNSW supports `m` and `efConstruction`; IVFFlat supports `lists`

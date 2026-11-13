@@ -289,7 +289,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
       FROM pg_index ix
       JOIN pg_class t ON t.oid = ix.indrelid
       JOIN pg_class i ON i.oid = ix.indexrelid
-      WHERE t.relname = ${{ value: className }}
+      WHERE t.oid = to_regclass(format('%I', ${{ value: className }}))
         AND ix.indexprs IS NOT NULL
         AND i.relname LIKE 'proto$p$%'
     `);

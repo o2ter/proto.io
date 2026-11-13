@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import Decimal from 'decimal.js';
+import type Decimal from 'decimal.js';
 import { TValueWithoutObject } from './types';
 import { TQueryBaseOptions } from './query/base';
 
@@ -314,9 +314,7 @@ export namespace TSchema {
   };
 
   /**
-   * Index definitions for the schema.
-   * 
-   * Supports both basic and vector indexes.
+   * Predicate used to restrict a partial index to matching rows.
    */
   export type IndexPredicate = Record<string, {
     $eq?: boolean | number | Decimal | string | Date | null;
@@ -327,6 +325,9 @@ export namespace TSchema {
     $lte?: boolean | number | Decimal | string | Date;
   }> | { $and: IndexPredicate[] } | { $or: IndexPredicate[] } | { $nor: IndexPredicate[] };
 
+  /**
+   * Index definitions for the schema, including basic and vector indexes.
+   */
   export type Indexes = ({
     /**
      * Type of the index. Default is 'basic'.

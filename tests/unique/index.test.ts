@@ -80,6 +80,8 @@ test('partial indexes coexist and migrate when predicates change or are removed'
   await database.prepare({ [className]: makeSchema(active) }, true);
   const first = await indexes();
   expect(first.filter(row => row.indexdef.includes(' WHERE '))).toHaveLength(7);
+  await database.prepare({ [className]: makeSchema(active) }, true);
+  expect((await indexes()).map(row => row.indexname).sort()).toEqual(first.map(row => row.indexname).sort());
 
   await database.query(sql`INSERT INTO ${{ identifier: className }} (_id, value, active) VALUES ('1', 'x', true), ('2', 'x', false)`);
   await database.query(sql`CREATE INDEX "custom_expression_index" ON ${{ identifier: className }} (lower(value))`);
@@ -121,6 +123,10 @@ test('partial index predicates support logical operations and quoted values', as
 
   const invalid: TSchema = { ...schema, indexes: [{ keys: { value: 1 }, filter: { missing: { $eq: true } } }] };
   await expect(database.prepare({ [className]: invalid }, true)).rejects.toThrow('Invalid index filter field: missing');
+  invalid.indexes = [{ keys: { value: 1 }, filter: JSON.parse('{"score":{"$in":[1,2]}}') }];
+  await expect(database.prepare({ [className]: invalid }, true)).rejects.toThrow('Invalid index filter operator: $in');
+  invalid.indexes = [{ keys: { value: 1 }, filter: { $or: [] } }];
+  await expect(database.prepare({ [className]: invalid }, true)).rejects.toThrow('Invalid index filter');
   await expect(database.query(sql`INSERT INTO ${{ identifier: className }} (_id, value, active, score) VALUES ('5', ${{ value: "O'Reilly" }}, true, 2)`)).rejects.toThrow();
 });
 
