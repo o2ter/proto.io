@@ -29,6 +29,7 @@ import { test, expect } from '@jest/globals';
 import { ProtoClient } from '../../src/client/proto';
 import { sql } from '../../src/adapters/storage/sql';
 import { TSchema } from '../../src/internals/schema';
+import Decimal from 'decimal.js';
 
 const Proto = new ProtoClient({
   endpoint: 'http://localhost:8080/proto',
@@ -68,6 +69,7 @@ test('partial indexes coexist and migrate when predicates change or are removed'
     indexes: [
       { keys: { value: 1 }, unique: true, filter },
       { keys: { value: 1 }, filter: { 'details.score': { $gte: 2.5 } } },
+      { keys: { value: 1 }, filter: { active: { $eq: null } } },
       { type: 'vector', keys: 'embedding', filter },
     ],
   });
@@ -77,16 +79,18 @@ test('partial indexes coexist and migrate when predicates change or are removed'
   const active = { active: { $eq: true } };
   await database.prepare({ [className]: makeSchema(active) }, true);
   const first = await indexes();
-  expect(first.filter(row => row.indexdef.includes(' WHERE '))).toHaveLength(6);
+  expect(first.filter(row => row.indexdef.includes(' WHERE '))).toHaveLength(7);
 
   await database.query(sql`INSERT INTO ${{ identifier: className }} (_id, value, active) VALUES ('1', 'x', true), ('2', 'x', false)`);
+  await database.query(sql`CREATE INDEX "custom_expression_index" ON ${{ identifier: className }} (lower(value))`);
   const inactive = { active: { $eq: false } };
   await database.prepare({ [className]: makeSchema(inactive) }, true);
   const second = await indexes();
   const oldNames = first.filter(row => row.indexdef.includes(' WHERE ')).map(row => row.indexname);
   const newNames = second.filter(row => row.indexdef.includes(' WHERE ')).map(row => row.indexname);
-  expect(newNames).toHaveLength(6);
-  expect(newNames.filter(name => oldNames.includes(name))).toHaveLength(1);
+  expect(newNames).toHaveLength(7);
+  expect(newNames.filter(name => oldNames.includes(name))).toHaveLength(2);
+  expect(second.some(row => row.indexname === 'custom_expression_index')).toBe(true);
   await database.query(sql`INSERT INTO ${{ identifier: className }} (_id, value, active) VALUES ('3', 'x', true)`);
   await expect(database.query(sql`INSERT INTO ${{ identifier: className }} (_id, value, active) VALUES ('4', 'x', false)`)).rejects.toThrow();
 
@@ -117,4 +121,35 @@ test('partial index predicates support logical operations and quoted values', as
 
   const invalid: TSchema = { ...schema, indexes: [{ keys: { value: 1 }, filter: { missing: { $eq: true } } }] };
   await expect(database.prepare({ [className]: invalid }, true)).rejects.toThrow('Invalid index filter field: missing');
+  await expect(database.query(sql`INSERT INTO ${{ identifier: className }} (_id, value, active, score) VALUES ('5', ${{ value: "O'Reilly" }}, true, 2)`)).rejects.toThrow();
+});
+
+test('partial indexes support date, decimal, and non-null predicates', async () => {
+  const className = 'PartialIndexScalars';
+  const schema: TSchema = {
+    fields: { value: 'string', amount: 'decimal', created: 'date', tags: 'string[]' },
+    indexes: [
+      { keys: { value: 1 }, unique: true, filter: { $and: [
+        { amount: { $gte: new Decimal('1.25') } },
+        { created: { $lt: new Date('2025-01-01T00:00:00.000Z') } },
+        { tags: { $ne: null } },
+      ] } },
+      { keys: { tags: 1 }, filter: { amount: { $gt: 0 } } },
+    ],
+  };
+  await database.prepare({ [className]: schema }, true);
+  await database.query(sql`
+    INSERT INTO ${{ identifier: className }} (_id, value, amount, created, tags)
+    VALUES ('1', 'x', 1.25, '2024-01-01T00:00:00Z', ARRAY['tag'])
+  `);
+  await expect(database.query(sql`
+    INSERT INTO ${{ identifier: className }} (_id, value, amount, created, tags)
+    VALUES ('2', 'x', 2, '2024-01-01T00:00:00Z', ARRAY['tag'])
+  `)).rejects.toThrow();
+  await database.query(sql`
+    INSERT INTO ${{ identifier: className }} (_id, value, amount, created, tags)
+    VALUES ('3', 'x', 1, '2024-01-01T00:00:00Z', ARRAY['tag']),
+           ('4', 'x', 2, '2025-01-01T00:00:00Z', ARRAY['tag']),
+           ('5', 'x', 2, '2024-01-01T00:00:00Z', NULL)
+  `);
 });

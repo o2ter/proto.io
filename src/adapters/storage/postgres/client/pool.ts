@@ -281,9 +281,20 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
     }
     for (const [name, { is_primary }] of _.toPairs(await this.indices(className))) {
       if (is_primary || names.includes(name)) continue;
-      if (name === `${className}$_id`) continue;
       if (name.endsWith('__i_key')) continue;
       await this.query(sql`DROP INDEX CONCURRENTLY IF EXISTS ${{ identifier: name }}`);
+    }
+    const expressionIndexes = await this.query(sql`
+      SELECT i.relname AS name
+      FROM pg_index ix
+      JOIN pg_class t ON t.oid = ix.indrelid
+      JOIN pg_class i ON i.oid = ix.indexrelid
+      WHERE t.relname = ${{ value: className }}
+        AND ix.indexprs IS NOT NULL
+        AND i.relname LIKE 'proto$p$%'
+    `);
+    for (const { name } of expressionIndexes) {
+      if (!names.includes(name)) await this.query(sql`DROP INDEX CONCURRENTLY IF EXISTS ${{ identifier: name }}`);
     }
   }
 
