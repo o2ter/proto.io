@@ -24,6 +24,7 @@
 //
 
 import _ from 'lodash';
+import Decimal from 'decimal.js';
 import { TValueWithoutObject } from './types';
 import { TQueryBaseOptions } from './query/base';
 
@@ -317,7 +318,16 @@ export namespace TSchema {
    * 
    * Supports both basic and vector indexes.
    */
-  export type Indexes = {
+  export type IndexPredicate = Record<string, {
+    $eq?: boolean | number | Decimal | string | Date | null;
+    $ne?: boolean | number | Decimal | string | Date | null;
+    $gt?: boolean | number | Decimal | string | Date;
+    $gte?: boolean | number | Decimal | string | Date;
+    $lt?: boolean | number | Decimal | string | Date;
+    $lte?: boolean | number | Decimal | string | Date;
+  }> | { $and: IndexPredicate[] } | { $or: IndexPredicate[] } | { $nor: IndexPredicate[] };
+
+  export type Indexes = ({
     /**
      * Type of the index. Default is 'basic'.
      */
@@ -332,7 +342,7 @@ export namespace TSchema {
      * Whether the index is unique.
      */
     unique?: boolean;
-  } | ({
+  } | {
     /**
      * Type of the index. Must be 'vector' for vector indexes.
      */
@@ -387,7 +397,13 @@ export namespace TSchema {
        */
       lists?: number;
     };
-  });
+  }) & {
+    /**
+     * Restricts the index to rows matching this predicate.
+     * Predicates support scalar comparisons and $and, $or, and $nor.
+     */
+    filter?: IndexPredicate;
+  };
 }
 
 export const _isTypeof = (x: TSchema.DataType, types: string | string[]) => {

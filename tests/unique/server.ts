@@ -54,7 +54,7 @@ const uri = _.compact([
   db_ssl && `?ssl=true&sslmode=${db_ssl}`
 ]).join('');
 
-const database = new PostgresStorage(uri);
+export const database = new PostgresStorage(uri);
 
 export const masterUser = {
   user: 'admin',
@@ -72,6 +72,15 @@ const Proto = new ProtoService({
       },
       indexes: [
         { keys: { unique: 1 }, unique: true },
+      ],
+    },
+    'PartialTest': {
+      fields: {
+        value: 'string',
+        active: 'boolean',
+      },
+      indexes: [
+        { keys: { value: 1 }, unique: true, filter: { active: { $eq: true } } },
       ],
     },
   },

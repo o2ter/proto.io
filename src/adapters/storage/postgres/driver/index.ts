@@ -148,19 +148,14 @@ export class PostgresClientDriver {
           a.attname AS column_name,
           k.indseq AS seq
       FROM
-          pg_namespace n,
-          pg_class t,
-          pg_class i,
-          pg_index ix,
-          UNNEST(ix.indkey) WITH ORDINALITY k(attnum, indseq),
-          pg_attribute a
+          pg_namespace n
+          JOIN pg_class t ON n.oid = t.relnamespace
+          JOIN pg_index ix ON t.oid = ix.indrelid
+          JOIN pg_class i ON i.oid = ix.indexrelid
+          CROSS JOIN LATERAL UNNEST(ix.indkey) WITH ORDINALITY k(attnum, indseq)
+          LEFT JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = k.attnum
       WHERE
-          t.oid = ix.indrelid
-          AND n.oid = t.relnamespace
-          AND i.oid = ix.indexrelid
-          AND a.attrelid = t.oid
-          AND a.attnum = k.attnum
-          AND t.relkind = 'r'
+          t.relkind = 'r'
           AND t.relname = '${table}'
           ${namespace ? `AND n.nspname = '${namespace}'` : ''}
     `);

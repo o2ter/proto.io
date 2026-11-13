@@ -24,10 +24,12 @@
 //
 
 import _ from 'lodash';
+import { createHash } from 'node:crypto';
+import Decimal from 'decimal.js';
 import { PoolConfig } from 'pg';
-import { TSchema, _isTypeof, isPointer, isPrimitive, isRelation, isShape, isVector, shapePaths } from '../../../../internals/schema';
+import { TSchema, _isTypeof, defaultObjectKeyTypes, isPointer, isPrimitive, isRelation, isShape, isVector, shapePaths } from '../../../../internals/schema';
 import { PostgresDriver, PostgresClientDriver } from '../driver';
-import { sql } from '../../sql';
+import { SQL, sql } from '../../sql';
 import { PostgresStorageClient } from './base';
 import { TObject } from '../../../../internals/object';
 import { assertPGVectorHnswIndexOptions, assertPGVectorIvfflatIndexOptions } from './pgvector';
@@ -166,6 +168,66 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
     };
   }
 
+  private _indexFilter(schema: TSchema, filter: TSchema.IndexPredicate): SQL {
+    const fields = { ...defaultObjectKeyTypes, ...this._fields(schema) };
+    const compile = (predicate: TSchema.IndexPredicate): SQL => {
+      if (!_.isPlainObject(predicate) || _.isEmpty(predicate)) throw Error('Invalid index filter');
+      const parts: SQL[] = [];
+      for (const [field, condition] of Object.entries(predicate)) {
+        if (field.startsWith('$')) {
+          if (!['$and', '$or', '$nor'].includes(field) || !Array.isArray(condition) || condition.length === 0) {
+            throw Error('Invalid index filter');
+          }
+          const children = condition.map(compile);
+          const expressions = field === '$nor' ? children.map(child => sql`NOT (${child})`) : children;
+          parts.push(sql`(${{ literal: expressions, separator: field === '$or' ? ' OR ' : ' AND ' }})`);
+          continue;
+        }
+        const dataType = Object.hasOwn(fields, field) ? fields[field] : undefined;
+        if (!dataType || (isRelation(dataType) && !_.isNil(dataType.foreignField))) {
+          throw Error(`Invalid index filter field: ${field}`);
+        }
+        if (!_.isPlainObject(condition) || _.isEmpty(condition)) throw Error('Invalid index filter');
+        for (const [operator, value] of Object.entries(condition)) {
+          const ops: Record<string, string> = {
+            $eq: 'IS NOT DISTINCT FROM', $ne: 'IS DISTINCT FROM',
+            $gt: '>', $gte: '>=', $lt: '<', $lte: '<=',
+          };
+          if (!Object.hasOwn(ops, operator)) throw Error(`Invalid index filter operator: ${operator}`);
+          const column = sql`${{ identifier: field }}`;
+          if (value === null) {
+            if (operator !== '$eq' && operator !== '$ne') throw Error('Invalid index filter value');
+            parts.push(operator === '$eq' ? sql`${column} IS NULL` : sql`${column} IS NOT NULL`);
+            continue;
+          }
+          let literal: SQL;
+          if (_isTypeof(dataType, 'boolean') && typeof value === 'boolean') {
+            literal = sql`${{ literal: value ? 'true' : 'false' }}`;
+          } else if (_isTypeof(dataType, ['number', 'decimal']) && (typeof value === 'number' || value instanceof Decimal)) {
+            const number = new Decimal(value);
+            if (!number.isFinite()) throw Error('Invalid index filter value');
+            literal = sql`CAST(${{ quote: number.toString() }} AS ${{ literal: _isTypeof(dataType, 'number') ? 'DOUBLE PRECISION' : 'DECIMAL' }})`;
+          } else if (_isTypeof(dataType, 'string') && typeof value === 'string') {
+            literal = sql`${{ quote: value }}`;
+          } else if (_isTypeof(dataType, 'date') && value instanceof Date && Number.isFinite(value.getTime())) {
+            literal = sql`CAST(${{ quote: value.toISOString() }} AS TIMESTAMP WITH TIME ZONE)`;
+          } else {
+            throw Error(`Invalid index filter value for ${field}`);
+          }
+          parts.push(sql`(${column} ${{ literal: ops[operator] }} ${literal})`);
+        }
+      }
+      return sql`(${{ literal: parts, separator: ' AND ' }})`;
+    };
+    return compile(filter);
+  }
+
+  private _partialIndexName(name: string, index: TSchema.Indexes, filter: SQL) {
+    const predicate = filter.compile(this.dialect).query;
+    const hash = createHash('sha256').update(JSON.stringify([name, index.type, index.type === 'vector' ? index.method ?? 'hnsw' : null, predicate])).digest('hex');
+    return `proto$p$${hash.slice(0, 48)}`;
+  }
+
   private _indexBasicName(className: string, keys: Record<string, 1 | -1>, unique: boolean) {
     if (unique) return `${className}$u$${_.map(keys, (v, k) => `${k}:${v}`).join('$')}`;
     return `${className}$b$${_.map(keys, (v, k) => `${k}:${v}`).join('$')}`;
@@ -203,17 +265,23 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
     const names: string[] = [];
     for (const index of indexes) {
       if (_.isEmpty(index.keys)) continue;
+      const filter = index.filter === undefined ? undefined : this._indexFilter(schema, index.filter);
       switch (index.type) {
         case 'vector':
-          names.push(..._.values(this._indexVectorName(className, _.castArray(index.keys), index.method ?? 'hnsw')));
+          names.push(..._.values(this._indexVectorName(className, _.castArray(index.keys), index.method ?? 'hnsw')).map(name =>
+            filter ? this._partialIndexName(name, index, filter) : name));
           break;
         default:
-          names.push(this._indexBasicName(className, index.keys, !!index.unique));
+          {
+            const name = this._indexBasicName(className, index.keys, !!index.unique);
+            names.push(filter ? this._partialIndexName(name, index, filter) : name);
+          }
           break;
       }
     }
     for (const [name, { is_primary }] of _.toPairs(await this.indices(className))) {
       if (is_primary || names.includes(name)) continue;
+      if (name === `${className}$_id`) continue;
       if (name.endsWith('__i_key')) continue;
       await this.query(sql`DROP INDEX CONCURRENTLY IF EXISTS ${{ identifier: name }}`);
     }
@@ -255,10 +323,15 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
     const { relations, indexes } = this._indicesOf(schema);
     for (const index of indexes) {
       if (_.isEmpty(index.keys)) continue;
+      const filter = index.filter === undefined ? undefined : this._indexFilter(schema, index.filter);
+      const where = filter ? sql`WHERE ${filter}` : sql``;
       switch (index.type) {
         case 'vector':
           {
             const name = this._indexVectorName(className, _.castArray(index.keys), index.method ?? 'hnsw');
+            if (filter) {
+              for (const op of _.keys(name)) name[op] = this._partialIndexName(name[op], index, filter);
+            }
             const ops = _.keys(name) as (keyof typeof name)[];
             const method = index.method ?? 'hnsw';
             const withOptions = this._indexVectorWith(index);
@@ -275,6 +348,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
                     ) ${{ literal: op }}
                   )
                   ${withOptions}
+                  ${where}
                 `);
               }
             } else {
@@ -292,6 +366,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
                     ) ${{ literal: op }}
                   )
                   ${withOptions}
+                  ${where}
                 `);
               }
             }
@@ -299,7 +374,8 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
           break;
         default:
           {
-            const name = this._indexBasicName(className, index.keys, !!index.unique);
+            const baseName = this._indexBasicName(className, index.keys, !!index.unique);
+            const name = filter ? this._partialIndexName(baseName, index, filter) : baseName;
             const useGin = _.some(_.keys(index.keys), column => {
               const dataType = resolveDataType(schema, column);
               if (!dataType || isShape(dataType)) throw Error('Invalid index type');
@@ -313,6 +389,7 @@ export class PostgresStorage extends PostgresStorageClient<PostgresDriver> {
               (${_.map(index.keys, (v, k) => sql`
                 ${{ identifier: k }} ${{ literal: useGin ? '' : v === 1 ? 'ASC' : 'DESC' }}
               `)})
+              ${where}
             `);
           }
           break;
