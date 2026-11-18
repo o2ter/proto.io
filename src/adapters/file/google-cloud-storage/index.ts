@@ -49,7 +49,7 @@ export class GoogleCloudStorage extends FileChunkStorageBase<File> {
   }
 
   async* listChunks<E>(proto: ProtoService<E>, token: string) {
-    let query: any = {
+    let query: GetFilesOptions = {
       autoPaginate: false,
       prefix: `${token}/`,
       delimiter: '/',
