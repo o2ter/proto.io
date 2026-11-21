@@ -118,6 +118,65 @@ test('separates cached listings for different ranges', async () => {
   }
 });
 
+test('streams bounded listings incrementally without repeating boundary chunks', async () => {
+  const content = Buffer.from(Array.from({ length: 200 }, (_, i) => i));
+  const { storage, token } = fixture([0, 7, 42, 53, 96, 120, 180], content);
+  storage.options.chunkSize = 10;
+  storage.options.listChunkBatchSize = 2;
+  const list = jest.spyOn(storage, 'listChunks');
+  const iterator = storage.readChunks(proto, token, 3, 125);
+  const first = await iterator.next();
+  expect(first.value?.start).toBe(0);
+  expect(list.mock.calls.map(call => call.slice(2))).toEqual([[3, 23]]);
+  const offsets = [first.value!.start];
+  for await (const chunk of iterator) offsets.push(chunk.start);
+  expect(offsets).toEqual([0, 7, 42, 53, 96, 120]);
+  expect(list.mock.calls.map(call => call.slice(2))).toEqual([
+    [3, 23], [23, 43], [43, 63], [63, 83], [83, 103], [103, 123], [123, 125],
+  ]);
+  expect(await read(storage, token, 3, 125)).toEqual(content.subarray(3, 125));
+});
+
+test('finds later chunks and EOF without reading open-ended chunk data', async () => {
+  const content = randomBytes(137);
+  const { storage, token } = fixture([0, 7, 90, 110], content);
+  storage.options.chunkSize = 10;
+  storage.options.listChunkBatchSize = 2;
+  const list = jest.spyOn(storage, 'listChunks');
+  const download = jest.spyOn(storage, 'readChunk');
+  const offsets = [];
+  for await (const chunk of storage.readChunks(proto, token, 10)) offsets.push(chunk.start);
+  expect(offsets).toEqual([7, 90, 110]);
+  expect(download).not.toHaveBeenCalled();
+  expect(list.mock.calls.map(call => call.slice(2))).toEqual([
+    [10, 30], [30, 50], [50, Number.MAX_SAFE_INTEGER],
+    [90, 110], [110, 130], [130, 150], [150, Number.MAX_SAFE_INTEGER],
+  ]);
+  list.mockClear();
+  expect(await read(storage, token, 10)).toEqual(content.subarray(10));
+  list.mockClear();
+  expect(await read(storage, token, 137)).toEqual(Buffer.alloc(0));
+  expect(list.mock.calls.map(call => call.slice(2))).toEqual([
+    [137, 157], [157, 177], [177, Number.MAX_SAFE_INTEGER],
+  ]);
+});
+
+test('finds the next open-ended chunk after an initially empty subrange', async () => {
+  const content = randomBytes(50);
+  const { storage, token } = fixture([30, 40], content);
+  storage.options.chunkSize = 10;
+  storage.options.listChunkBatchSize = 1;
+  const chunks = [];
+  for await (const chunk of storage.readChunks(proto, token, 0)) chunks.push(chunk.start);
+  expect(chunks).toEqual([30, 40]);
+});
+
+test('rejects invalid listing batch sizes', async () => {
+  const { storage, token } = fixture([0], Buffer.from('content'));
+  storage.options.listChunkBatchSize = 0;
+  await expect(read(storage, token)).rejects.toThrow('Invalid chunk listing batch size');
+});
+
 test('avoids listing unrelated chunks for a narrow range', async () => {
   const content = Buffer.alloc(10000, 1);
   const offsets = Array.from({ length: 1000 }, (_, i) => i * 10);

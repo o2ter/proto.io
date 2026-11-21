@@ -40,6 +40,7 @@ export type FileStorageOptions = {
   chunkSize?: number;
   parallel?: number;
   cacheTimeout?: number;
+  listChunkBatchSize?: number;
 };
 
 export abstract class FileStorageBase implements TFileStorage {
@@ -52,6 +53,7 @@ export abstract class FileStorageBase implements TFileStorage {
       chunkSize: 16 * 1024,
       parallel: 8,
       cacheTimeout: 0,
+      listChunkBatchSize: 64,
       ..._.pickBy(options, v => !_.isNil(v)),
     };
     this.unzipDebounce = createCacheDebounce(this.options.cacheTimeout);
@@ -125,4 +127,5 @@ export abstract class FileStorageBase implements TFileStorage {
       }
     }
   }
+
 };

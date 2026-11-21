@@ -46,6 +46,7 @@ export abstract class FileChunkStorageBase<File> extends FileStorageBase {
   listChunkDebounce = createCacheDebounce(this.options.cacheTimeout);
   readChunkDebounce = createCacheDebounce(this.options.cacheTimeout);
 
+  // For a bounded range, list at most one preceding chunk followed by chunks in ascending order.
   abstract listChunks<E>(proto: ProtoService<E>, token: string, start?: number, end?: number): AsyncGenerator<ChunkData<File>>;
 
   abstract readChunk<E>(proto: ProtoService<E>, file: File): PromiseLike<Buffer>;
@@ -103,19 +104,54 @@ export abstract class FileChunkStorageBase<File> extends FileStorageBase {
   }
 
   async* readChunks<E>(proto: ProtoService<E>, token: string, start?: number, end?: number) {
-    const streams = await this.listChunkDebounce(JSON.stringify([token, start, end]), () => asyncIterableToArray(this.listChunks(proto, token, start, end)));
-    const files = _.orderBy(streams, x => x.start);
-    for (const [chunk, endBytes] of _.zip(files, _.slice(_.map(files, x => x.start), 1))) {
-      if (_.isNumber(start) && _.isNumber(endBytes) && start >= endBytes) continue;
-      if (_.isNumber(end) && end <= chunk!.start) continue;
-      if (!chunk) continue;
-      yield {
-        start: chunk.start,
-        data: () => this.readChunkDebounce(
-          `${token}-${chunk.start}`,
-          async () => await this.readChunk(proto, chunk.file)
-        ),
-      };
+    const batchSize = this.options.chunkSize * this.options.listChunkBatchSize;
+    if (!Number.isSafeInteger(batchSize) || batchSize <= 0 ||
+      !Number.isSafeInteger(this.options.listChunkBatchSize) || this.options.listChunkBatchSize <= 0) {
+      throw Error('Invalid chunk listing batch size');
+    }
+
+    const bounded = (start === undefined || Number.isSafeInteger(start) && start >= 0) &&
+      (end === undefined || Number.isSafeInteger(end) && end > (start ?? 0));
+    let position = start ?? 0;
+    let lastStart: number | undefined;
+    while (true) {
+      const batchEnd = bounded ? Math.min(end ?? Number.MAX_SAFE_INTEGER, position + batchSize) : end;
+      const batchStart = bounded ? position : start;
+      const streams = await this.listChunkDebounce(JSON.stringify([token, batchStart, batchEnd]), () => asyncIterableToArray(this.listChunks(proto, token, batchStart, batchEnd)));
+      const files = _.orderBy(streams, x => x.start);
+      const newFiles = files.filter(chunk =>
+        (lastStart === undefined || chunk.start > lastStart) &&
+        !(end !== undefined && end <= chunk.start) &&
+        !(bounded && batchEnd !== undefined && chunk.start >= batchEnd)
+      );
+      for (const [index, chunk] of newFiles.entries()) {
+        const next = newFiles[index + 1];
+        if (start !== undefined && next && start >= next.start) continue;
+        yield {
+          start: chunk.start,
+          data: () => this.readChunkDebounce(
+            `${token}-${chunk.start}`,
+            async () => await this.readChunk(proto, chunk.file)
+          ),
+        };
+      }
+
+      if (!bounded || end !== undefined && batchEnd === end) return;
+      if (newFiles.length) lastStart = newFiles[newFiles.length - 1].start;
+      position = batchEnd!;
+      if (!Number.isSafeInteger(position) || position >= Number.MAX_SAFE_INTEGER) {
+        throw Error('Chunk listing range exceeds safe integer limit');
+      }
+      if (end === undefined && !newFiles.length) {
+        let nextStart: number | undefined;
+        for await (const chunk of this.listChunks(proto, token, position, Number.MAX_SAFE_INTEGER)) {
+          if (chunk.start < position) continue;
+          nextStart = chunk.start;
+          break;
+        }
+        if (nextStart === undefined) return;
+        position = nextStart;
+      }
     }
   }
 }

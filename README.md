@@ -410,6 +410,11 @@ console.log('File uploaded:', file.url);
 
 ### File Storage Adapters
 
+Chunk-based filesystem and object storage adapters list files incrementally.
+`listChunkBatchSize` controls the listing range as a multiple of `chunkSize`
+(default: 64). Open-ended reads may perform additional listings to locate the
+next chunk or determine the end of the file.
+
 #### Database Storage
 ```typescript
 import { DatabaseFileStorage } from 'proto.io/adapters/file/database';
@@ -425,7 +430,8 @@ const fileStorage = new DatabaseFileStorage({
 import { FileSystemStorage } from 'proto.io/adapters/file/filesystem';
 
 const fileStorage = new FileSystemStorage('/var/uploads', {
-  chunkSize: 64 * 1024
+  chunkSize: 64 * 1024,
+  listChunkBatchSize: 64
 });
 ```
 
