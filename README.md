@@ -414,6 +414,9 @@ Chunk-based filesystem and object storage adapters list files incrementally.
 `listChunkBatchSize` controls the listing range as a multiple of `chunkSize`
 (default: 64). Open-ended reads may perform additional listings to locate the
 next chunk or determine the end of the file.
+`cacheTimeout` retains resolved chunk metadata per token for that many
+milliseconds after its most recent use (default: 0, no retention). Overlapping
+reads reuse covered ranges and list any missing ranges.
 
 #### Database Storage
 ```typescript

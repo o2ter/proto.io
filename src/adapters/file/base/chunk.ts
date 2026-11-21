@@ -34,6 +34,24 @@ type ChunkData<File> = {
   file: File;
 };
 
+type ChunkListingCache<File> = {
+  chunks: Map<number, ChunkData<File>[]>;
+  ranges: { start: number; end: number }[];
+  pending: { start: number; end: number; result: Promise<void> }[];
+  timer?: ReturnType<typeof setTimeout>;
+  users: { start: number; end: number }[];
+};
+
+function mergeRanges(ranges: { start: number; end: number }[]) {
+  const merged: { start: number; end: number }[] = [];
+  for (const range of _.sortBy(ranges, range => range.start)) {
+    const last = merged[merged.length - 1];
+    if (last && last.end >= range.start) last.end = Math.max(last.end, range.end);
+    else merged.push({ ...range });
+  }
+  return merged;
+}
+
 export type ChunkRange = {
   low: number;
   high: number;
@@ -43,13 +61,108 @@ export type ChunkRange = {
 
 export abstract class FileChunkStorageBase<File> extends FileStorageBase {
 
-  listChunkDebounce = createCacheDebounce(this.options.cacheTimeout);
+  private chunkListingCaches = new Map<string, ChunkListingCache<File>>();
   readChunkDebounce = createCacheDebounce(this.options.cacheTimeout);
 
   // For a bounded range, list at most one preceding chunk followed by chunks in ascending order.
   abstract listChunks<E>(proto: ProtoService<E>, token: string, start?: number, end?: number): AsyncGenerator<ChunkData<File>>;
 
   abstract readChunk<E>(proto: ProtoService<E>, file: File): PromiseLike<Buffer>;
+
+  private async cachedChunks<E>(proto: ProtoService<E>, token: string, start?: number, end?: number): Promise<ChunkData<File>[]> {
+    if (start === undefined || end === undefined || !Number.isSafeInteger(start) ||
+      !Number.isSafeInteger(end) || start < 0 || end <= start) {
+      return asyncIterableToArray(this.listChunks(proto, token, start, end));
+    }
+
+    let cache = this.chunkListingCaches.get(token);
+    if (!cache) {
+      cache = { chunks: new Map(), ranges: [], pending: [], users: [] };
+      this.chunkListingCaches.set(token, cache);
+    }
+    const entry = cache;
+    const user = { start, end };
+    const refresh = () => {
+      if (!(this.options.cacheTimeout > 0) || !entry.ranges.length ||
+        this.chunkListingCaches.get(token) !== entry) return;
+      if (entry.timer !== undefined) clearTimeout(entry.timer);
+      entry.timer = setTimeout(() => {
+        if (this.chunkListingCaches.get(token) === entry) this.chunkListingCaches.delete(token);
+      }, this.options.cacheTimeout);
+    };
+
+    refresh();
+    entry.users.push(user);
+    try {
+      let cursor = start;
+      while (cursor < end) {
+        const covered = entry.ranges.find(range => range.start <= cursor && range.end > cursor);
+        if (covered) {
+          cursor = Math.min(end, covered.end);
+          continue;
+        }
+        const pending = entry.pending.find(range => range.start <= cursor && range.end > cursor);
+        if (pending) {
+          await pending.result;
+          continue;
+        }
+        let boundary = end;
+        for (const range of [...entry.ranges, ...entry.pending]) {
+          if (range.start > cursor) boundary = Math.min(boundary, range.start);
+        }
+        const from = cursor;
+        const request = {
+          start: from,
+          end: boundary,
+          result: Promise.resolve(),
+        };
+        request.result = (async () => {
+          try {
+            const chunks = await asyncIterableToArray(this.listChunks(proto, token, from, boundary));
+            const byStart = _.groupBy(chunks, chunk => chunk.start);
+            for (const group of Object.values(byStart)) entry.chunks.set(group[0].start, group);
+            entry.ranges = mergeRanges([...entry.ranges, { start: from, end: boundary }]);
+            refresh();
+          } finally {
+            entry.pending.splice(entry.pending.indexOf(request), 1);
+          }
+        })();
+        entry.pending.push(request);
+        await request.result;
+      }
+
+      const groups = _.sortBy([...entry.chunks.values()], group => group[0].start);
+      const preceding = _.findLast(groups, group => group[0].start < start);
+      return [
+        ...preceding ?? [],
+        ...groups.filter(group => group[0].start >= start && group[0].start < end).flat(),
+      ];
+    } finally {
+      entry.users.splice(entry.users.indexOf(user), 1);
+      if (!entry.users.length && (!entry.ranges.length || !(this.options.cacheTimeout > 0))) {
+        if (this.chunkListingCaches.get(token) === entry) this.chunkListingCaches.delete(token);
+      } else if (!(this.options.cacheTimeout > 0)) {
+        // Keep only completed coverage still needed by concurrent readers.
+        entry.ranges = mergeRanges(entry.ranges.flatMap(range => entry.users.flatMap(user => {
+          const start = Math.max(range.start, user.start);
+          const end = Math.min(range.end, user.end);
+          return start < end ? [{ start, end }] : [];
+        })));
+        const groups = _.sortBy([...entry.chunks.values()], group => group[0].start);
+        const retained = new Set<number>();
+        for (const range of entry.ranges) {
+          const preceding = _.findLast(groups, group => group[0].start < range.start);
+          if (preceding) retained.add(preceding[0].start);
+          for (const group of groups) {
+            if (group[0].start >= range.start && group[0].start < range.end) retained.add(group[0].start);
+          }
+        }
+        for (const offset of entry.chunks.keys()) {
+          if (!retained.has(offset)) entry.chunks.delete(offset);
+        }
+      }
+    }
+  }
 
   // Each bounded listing must return matching offsets in ascending order.
   protected async* listChunkRange(
@@ -113,7 +226,7 @@ export abstract class FileChunkStorageBase<File> extends FileStorageBase {
     const bounded = (start === undefined || Number.isSafeInteger(start) && start >= 0) &&
       (end === undefined || Number.isSafeInteger(end) && end > (start ?? 0));
     const list = (from: number | undefined, to: number | undefined) =>
-      this.listChunkDebounce(JSON.stringify([token, from, to]), () => asyncIterableToArray(this.listChunks(proto, token, from, to)));
+      this.cachedChunks(proto, token, from, to);
     const batchEndFor = (from: number) => Math.min(end ?? Number.MAX_SAFE_INTEGER, from + batchSize);
     type Listing = { files: ChunkData<File>[]; error?: never } | { error: unknown; files?: never };
     const prefetch = (from: number, to: number): Promise<Listing> =>

@@ -105,17 +105,158 @@ test('reads ranges across variable chunk sizes and decimal digit boundaries', as
   expect(queries.some(query => query.matchGlob?.startsWith('file\\[1\\]/'))).toBe(true);
 });
 
-test('separates cached listings for different ranges', async () => {
+test('reuses covered token metadata and lists only missing ranges', async () => {
   jest.useFakeTimers();
   try {
     const content = Buffer.from(Array.from({ length: 400 }, (_, i) => i % 251));
     const { storage, token } = fixture([0, 100, 200, 300], content, 1000);
-    expect(await read(storage, token, 10, 50)).toEqual(content.subarray(10, 50));
-    expect(await read(storage, token, 210, 250)).toEqual(content.subarray(210, 250));
+    const list = jest.spyOn(storage, 'listChunks');
+    expect(await read(storage, token, 110, 250)).toEqual(content.subarray(110, 250));
+    expect(await read(storage, token, 120, 220)).toEqual(content.subarray(120, 220));
+    expect(await read(storage, token, 50, 320)).toEqual(content.subarray(50, 320));
+    expect(await read(storage, token, 75, 310)).toEqual(content.subarray(75, 310));
+    expect(list.mock.calls.map(call => call.slice(2))).toEqual([[110, 250], [50, 110], [250, 320]]);
+
+    expect(await read(storage, 'other', 120, 220)).toEqual(Buffer.alloc(0));
+    expect(list.mock.calls.map(call => call[1])).toEqual([token, token, token, 'other']);
+    jest.advanceTimersByTime(1000);
+    expect(await read(storage, token, 120, 220)).toEqual(content.subarray(120, 220));
+    expect(list.mock.calls.slice(-1)[0].slice(2)).toEqual([120, 220]);
   } finally {
     jest.clearAllTimers();
     jest.useRealTimers();
   }
+});
+
+test('expires token metadata after its last use', async () => {
+  jest.useFakeTimers();
+  try {
+    const content = Buffer.from('abcdefghij');
+    const { storage, token } = fixture([0], content, 1000);
+    const list = jest.spyOn(storage, 'listChunks');
+    expect(await read(storage, token, 1, 9)).toEqual(content.subarray(1, 9));
+    jest.advanceTimersByTime(800);
+    expect(await read(storage, token, 2, 8)).toEqual(content.subarray(2, 8));
+    jest.advanceTimersByTime(200);
+    expect(await read(storage, token, 3, 7)).toEqual(content.subarray(3, 7));
+    expect(list).toHaveBeenCalledTimes(1);
+    jest.advanceTimersByTime(1000);
+    expect(await read(storage, token, 3, 7)).toEqual(content.subarray(3, 7));
+    expect(list).toHaveBeenCalledTimes(2);
+  } finally {
+    jest.clearAllTimers();
+    jest.useRealTimers();
+  }
+});
+
+test.each([0, 1000])('shares overlapping in-flight listings with cacheTimeout %i', async cacheTimeout => {
+  jest.useFakeTimers();
+  try {
+    const content = Buffer.from(Array.from({ length: 300 }, (_, i) => i % 251));
+    const { storage, token } = fixture([0, 100, 200], content, cacheTimeout);
+    let release!: () => void;
+    let started!: () => void;
+    const gate = new Promise<void>(resolve => { release = resolve; });
+    const listingStarted = new Promise<void>(resolve => { started = resolve; });
+    const original = storage.listChunks.bind(storage);
+    const list = jest.spyOn(storage, 'listChunks').mockImplementation(async function* (proto, token, start, end) {
+      if (start === 10) {
+        started();
+        await gate;
+      }
+      yield* original(proto, token, start, end);
+    });
+    const first = read(storage, token, 10, 150);
+    await listingStarted;
+    const second = read(storage, token, 50, 250);
+    try {
+      expect(list.mock.calls.map(call => call.slice(2))).toEqual([[10, 150]]);
+      jest.advanceTimersByTime(1001);
+    } finally {
+      release();
+    }
+    expect(await first).toEqual(content.subarray(10, 150));
+    expect(await second).toEqual(content.subarray(50, 250));
+    expect(list.mock.calls.map(call => call.slice(2))).toEqual([[10, 150], [150, 250]]);
+    if (cacheTimeout) {
+      expect(await read(storage, token, 60, 90)).toEqual(content.subarray(60, 90));
+      expect(list).toHaveBeenCalledTimes(2);
+    }
+  } finally {
+    jest.clearAllTimers();
+    jest.useRealTimers();
+  }
+});
+
+test('does not cache failed or partially completed listings', async () => {
+  jest.useFakeTimers();
+  try {
+    const content = Buffer.from(Array.from({ length: 300 }, (_, i) => i % 251));
+    const { storage, token } = fixture([0, 100, 200], content, 1000);
+    const original = storage.listChunks.bind(storage);
+    let fail = true;
+    const list = jest.spyOn(storage, 'listChunks').mockImplementation(async function* (proto, token, start, end) {
+      for await (const chunk of original(proto, token, start, end)) {
+        yield chunk;
+        if (fail) {
+          fail = false;
+          throw Error('Listing failed');
+        }
+      }
+    });
+    await expect(read(storage, token, 10, 150)).rejects.toThrow('Listing failed');
+    expect(await read(storage, token, 10, 150)).toEqual(content.subarray(10, 150));
+    expect(list.mock.calls.map(call => call.slice(2))).toEqual([[10, 150], [10, 150]]);
+  } finally {
+    jest.clearAllTimers();
+    jest.useRealTimers();
+  }
+});
+
+test('does not add an expired in-flight listing to a replacement cache', async () => {
+  jest.useFakeTimers();
+  try {
+    const content = Buffer.from(Array.from({ length: 300 }, (_, i) => i % 251));
+    const { storage, token } = fixture([0, 100, 200], content, 1000);
+    let release!: () => void;
+    let started!: () => void;
+    const gate = new Promise<void>(resolve => { release = resolve; });
+    const listingStarted = new Promise<void>(resolve => { started = resolve; });
+    const original = storage.listChunks.bind(storage);
+    const list = jest.spyOn(storage, 'listChunks').mockImplementation(async function* (proto, token, start, end) {
+      if (start === 200) {
+        started();
+        await gate;
+      }
+      yield* original(proto, token, start, end);
+    });
+    expect(await read(storage, token, 0, 50)).toEqual(content.subarray(0, 50));
+    const old = read(storage, token, 200, 250);
+    await listingStarted;
+    try {
+      jest.advanceTimersByTime(1000);
+      expect(await read(storage, token, 0, 50)).toEqual(content.subarray(0, 50));
+    } finally {
+      release();
+    }
+    expect(await old).toEqual(content.subarray(200, 250));
+    expect(await read(storage, token, 210, 240)).toEqual(content.subarray(210, 240));
+    expect(list.mock.calls.map(call => call.slice(2))).toEqual([
+      [0, 50], [200, 250], [0, 50], [210, 240],
+    ]);
+  } finally {
+    jest.clearAllTimers();
+    jest.useRealTimers();
+  }
+});
+
+test('does not retain completed metadata when cacheTimeout is zero', async () => {
+  const content = Buffer.from('abcdefghij');
+  const { storage, token } = fixture([0], content);
+  const list = jest.spyOn(storage, 'listChunks');
+  expect(await read(storage, token, 1, 5)).toEqual(content.subarray(1, 5));
+  expect(await read(storage, token, 2, 4)).toEqual(content.subarray(2, 4));
+  expect(list.mock.calls.map(call => call.slice(2))).toEqual([[1, 5], [2, 4]]);
 });
 
 test('streams bounded listings incrementally without repeating boundary chunks', async () => {
@@ -161,9 +302,9 @@ test('finds later chunks and EOF without reading open-ended chunk data', async (
   ]);
 });
 
-test('streams completed data while adjacent listings are still in flight', async () => {
+test.each([0, 1000])('streams while adjacent listings are in flight with cacheTimeout %i', async cacheTimeout => {
   const content = Buffer.from('abcdefghijABCDEFGHIJ');
-  const { storage, token } = fixture([0, 10], content);
+  const { storage, token } = fixture([0, 10], content, cacheTimeout);
   storage.options.chunkSize = 10;
   storage.options.listChunkBatchSize = 1;
   let releaseFirst!: () => void;
@@ -355,6 +496,7 @@ test('selects filesystem chunks from a single directory listing', async () => {
       const noncanonical = [];
       for await (const chunk of storage.listChunks(proto, 'file', 100, 250)) noncanonical.push(chunk.start);
       expect(noncanonical).toEqual([0, 9, 80, 80, 150, 240, 300, 999, 1000]);
+      expect(await read(storage, 'file', 100, 250)).toEqual(content.subarray(100, 250));
     } finally {
       readdir.mockRestore();
     }

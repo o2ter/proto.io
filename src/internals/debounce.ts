@@ -23,25 +23,38 @@
 //  THE SOFTWARE.
 //
 
-import _ from 'lodash';
-
 export const createCacheDebounce = (timeout?: number) => {
-  const cacheMap: { [K in string]?: Promise<any>; } = {};
+  const cacheMap = new Map<string, {
+    promise: Promise<unknown>;
+    settled: boolean;
+    timer?: ReturnType<typeof setTimeout>;
+  }>();
   return <T>(
     key: string,
     callback: (key: string) => Promise<T>,
   ): Promise<T> => {
-    if (_.isNil(cacheMap[key])) {
-      cacheMap[key] = (async () => {
-        const result = await callback(key);
-        if (timeout) {
-          setTimeout(() => { cacheMap[key] = undefined; }, timeout);
-        } else {
-          cacheMap[key] = undefined;
-        }
-        return result;
-      })();
+    let entry = cacheMap.get(key);
+    const refresh = (item: NonNullable<typeof entry>) => {
+      if (item.timer !== undefined) clearTimeout(item.timer);
+      item.timer = setTimeout(() => {
+        if (cacheMap.get(key) === item) cacheMap.delete(key);
+      }, timeout);
+    };
+    if (!entry) {
+      const promise = (async () => callback(key))();
+      const item = { promise, settled: false };
+      entry = item;
+      cacheMap.set(key, item);
+      void promise.then(() => {
+        item.settled = true;
+        if (timeout) refresh(item);
+        else cacheMap.delete(key);
+      }, () => {
+        cacheMap.delete(key);
+      });
+    } else if (entry.settled && timeout) {
+      refresh(entry);
     }
-    return cacheMap[key];
+    return entry.promise as Promise<T>;
   };
 }
