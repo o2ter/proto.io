@@ -39,12 +39,12 @@ export abstract class FileChunkStorageBase<File> extends FileStorageBase {
   listChunkDebounce = createCacheDebounce(this.options.cacheTimeout);
   readChunkDebounce = createCacheDebounce(this.options.cacheTimeout);
 
-  abstract listChunks<E>(proto: ProtoService<E>, token: string): AsyncGenerator<ChunkData<File>>;
+  abstract listChunks<E>(proto: ProtoService<E>, token: string, start?: number, end?: number): AsyncGenerator<ChunkData<File>>;
 
   abstract readChunk<E>(proto: ProtoService<E>, file: File): PromiseLike<Buffer>;
 
   async* readChunks<E>(proto: ProtoService<E>, token: string, start?: number, end?: number) {
-    const streams = await this.listChunkDebounce(token, () => asyncIterableToArray(this.listChunks(proto, token)));
+    const streams = await this.listChunkDebounce(token, () => asyncIterableToArray(this.listChunks(proto, token, start, end)));
     const files = _.orderBy(streams, x => x.start);
     for (const [chunk, endBytes] of _.zip(files, _.slice(_.map(files, x => x.start), 1))) {
       if (_.isNumber(start) && _.isNumber(endBytes) && start >= endBytes) continue;
