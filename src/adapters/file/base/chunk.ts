@@ -112,12 +112,26 @@ export abstract class FileChunkStorageBase<File> extends FileStorageBase {
 
     const bounded = (start === undefined || Number.isSafeInteger(start) && start >= 0) &&
       (end === undefined || Number.isSafeInteger(end) && end > (start ?? 0));
+    const list = (from: number | undefined, to: number | undefined) =>
+      this.listChunkDebounce(JSON.stringify([token, from, to]), () => asyncIterableToArray(this.listChunks(proto, token, from, to)));
+    const batchEndFor = (from: number) => Math.min(end ?? Number.MAX_SAFE_INTEGER, from + batchSize);
+    type Listing = { files: ChunkData<File>[]; error?: never } | { error: unknown; files?: never };
+    const prefetch = (from: number, to: number): Promise<Listing> =>
+      list(from, to).then(files => ({ files }), error => ({ error }));
     let position = start ?? 0;
     let lastStart: number | undefined;
+    let pending: Promise<Listing> | undefined;
     while (true) {
-      const batchEnd = bounded ? Math.min(end ?? Number.MAX_SAFE_INTEGER, position + batchSize) : end;
+      const batchEnd = bounded ? batchEndFor(position) : end;
       const batchStart = bounded ? position : start;
-      const streams = await this.listChunkDebounce(JSON.stringify([token, batchStart, batchEnd]), () => asyncIterableToArray(this.listChunks(proto, token, batchStart, batchEnd)));
+      const current = pending ?? list(batchStart, batchEnd).then(files => ({ files }), error => ({ error }));
+      pending = undefined;
+      if (bounded && batchEnd !== undefined && batchEnd < (end ?? Number.MAX_SAFE_INTEGER)) {
+        pending = prefetch(batchEnd, batchEndFor(batchEnd));
+      }
+      const result = await current;
+      if ('error' in result) throw result.error;
+      const streams = result.files;
       const files = _.orderBy(streams, x => x.start);
       const newFiles = files.filter(chunk =>
         (lastStart === undefined || chunk.start > lastStart) &&
@@ -143,6 +157,7 @@ export abstract class FileChunkStorageBase<File> extends FileStorageBase {
         throw Error('Chunk listing range exceeds safe integer limit');
       }
       if (end === undefined && !newFiles.length) {
+        pending = undefined;
         let nextStart: number | undefined;
         for await (const chunk of this.listChunks(proto, token, position, Number.MAX_SAFE_INTEGER)) {
           if (chunk.start < position) continue;

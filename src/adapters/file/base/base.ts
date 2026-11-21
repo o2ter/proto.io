@@ -29,7 +29,7 @@ import { deflate as _deflate, unzip as _unzip } from 'zlib';
 import { TFileInfo, TFileStorage } from '../../../server/file';
 import { ProtoService } from '../../../server/proto';
 import { TSchema } from '../../../internals/schema';
-import { BinaryData, binaryStreamChunk, parallelEach, parallelMap } from '@o2ter/utils-js';
+import { BinaryData, binaryStreamChunk, parallelEach } from '@o2ter/utils-js';
 import { PVK } from '../../../internals/private';
 import { createCacheDebounce } from '../../../internals/debounce';
 
@@ -101,30 +101,49 @@ export abstract class FileStorageBase implements TFileStorage {
   }
 
   async* fileData<E>(proto: ProtoService<E>, id: string, start?: number, end?: number) {
-
-    const _stream = parallelMap(
-      this.readChunks(proto, id, start, end),
-      this.options.parallel,
-      async chunk => ({
-        start: chunk.start,
-        data: await this.unzipDebounce(`${id}-${chunk.start}`, async () => unzip(await chunk.data())),
-      })
-    );
-
-    for await (const { start: startBytes, data } of _stream) {
-
-      if (!_.isNumber(start) && !_.isNumber(end)) {
-
-        yield data;
-
-      } else {
-
-        const endBytes = startBytes + data.length;
-        const _start = _.isNumber(start) && start > startBytes ? start - startBytes : 0;
-        const _end = _.isNumber(end) && end < endBytes ? end - startBytes : undefined;
-
-        yield data.subarray(_start, _end);
+    if (!Number.isSafeInteger(this.options.parallel) || this.options.parallel < 1) {
+      throw Error('Invalid file storage parallelism');
+    }
+    const iterator = this.readChunks(proto, id, start, end);
+    type Result<T> = { value: T; error?: never } | { error: unknown; value?: never };
+    const settle = <T>(promise: PromiseLike<T>): Promise<Result<T>> =>
+      Promise.resolve(promise).then(value => ({ value }), error => ({ error }));
+    const queue: Promise<Result<{ start: number; data: Buffer }>>[] = [];
+    let next: Promise<Result<Awaited<ReturnType<typeof iterator.next>>>> | undefined;
+    let done = false;
+    try {
+      while (!done || next || queue.length) {
+        if (!done && !next && queue.length < this.options.parallel) next = settle(iterator.next());
+        const head = queue[0];
+        const ready = await Promise.race([
+          ...next ? [next.then(result => ({ kind: 'next' as const, result }))] : [],
+          ...head ? [head.then(result => ({ kind: 'data' as const, result }))] : [],
+        ]);
+        if ('error' in ready.result) throw ready.result.error;
+        if (ready.kind === 'next') {
+          next = undefined;
+          if (ready.result.value.done) {
+            done = true;
+          } else {
+            const chunk = ready.result.value.value;
+            queue.push(settle((async () => ({
+              start: chunk.start,
+              data: await this.unzipDebounce(`${id}-${chunk.start}`, async () => unzip(await chunk.data())),
+            }))()));
+          }
+        } else {
+          queue.shift();
+          const { start: startBytes, data } = ready.result.value;
+          const endBytes = startBytes + data.length;
+          const _start = _.isNumber(start) && start > startBytes ? start - startBytes : 0;
+          const _end = _.isNumber(end) && end < endBytes ? end - startBytes : undefined;
+          yield data.subarray(_start, _end);
+        }
       }
+    } finally {
+      // An outstanding next() must finish before the iterator can be closed.
+      if (next) await next;
+      if (!done) await iterator.return();
     }
   }
 

@@ -127,7 +127,7 @@ test('streams bounded listings incrementally without repeating boundary chunks',
   const iterator = storage.readChunks(proto, token, 3, 125);
   const first = await iterator.next();
   expect(first.value?.start).toBe(0);
-  expect(list.mock.calls.map(call => call.slice(2))).toEqual([[3, 23]]);
+  expect(list.mock.calls.slice(0, 2).map(call => call.slice(2))).toEqual([[3, 23], [23, 43]]);
   const offsets = [first.value!.start];
   for await (const chunk of iterator) offsets.push(chunk.start);
   expect(offsets).toEqual([0, 7, 42, 53, 96, 120]);
@@ -149,16 +149,91 @@ test('finds later chunks and EOF without reading open-ended chunk data', async (
   expect(offsets).toEqual([7, 90, 110]);
   expect(download).not.toHaveBeenCalled();
   expect(list.mock.calls.map(call => call.slice(2))).toEqual([
-    [10, 30], [30, 50], [50, Number.MAX_SAFE_INTEGER],
-    [90, 110], [110, 130], [130, 150], [150, Number.MAX_SAFE_INTEGER],
+    [10, 30], [30, 50], [50, 70], [50, Number.MAX_SAFE_INTEGER],
+    [90, 110], [110, 130], [130, 150], [150, 170], [150, Number.MAX_SAFE_INTEGER],
   ]);
   list.mockClear();
   expect(await read(storage, token, 10)).toEqual(content.subarray(10));
   list.mockClear();
   expect(await read(storage, token, 137)).toEqual(Buffer.alloc(0));
   expect(list.mock.calls.map(call => call.slice(2))).toEqual([
-    [137, 157], [157, 177], [177, Number.MAX_SAFE_INTEGER],
+    [137, 157], [157, 177], [177, 197], [177, Number.MAX_SAFE_INTEGER],
   ]);
+});
+
+test('streams completed data while adjacent listings are still in flight', async () => {
+  const content = Buffer.from('abcdefghijABCDEFGHIJ');
+  const { storage, token } = fixture([0, 10], content);
+  storage.options.chunkSize = 10;
+  storage.options.listChunkBatchSize = 1;
+  let releaseFirst!: () => void;
+  let releaseSecond!: () => void;
+  let bothStarted!: () => void;
+  const firstGate = new Promise<void>(resolve => { releaseFirst = resolve; });
+  const secondGate = new Promise<void>(resolve => { releaseSecond = resolve; });
+  const started = new Promise<void>(resolve => { bothStarted = resolve; });
+  const active = new Set<number>();
+  const original = storage.listChunks.bind(storage);
+  jest.spyOn(storage, 'listChunks').mockImplementation(async function* (proto, token, start, end) {
+    if (start === 0 || start === 10) {
+      active.add(start);
+      if (active.size === 2) bothStarted();
+      await (start === 0 ? firstGate : secondGate);
+    }
+    yield* original(proto, token, start, end);
+  });
+  const iterator = storage.fileData(proto, token, 0, 20);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const within = <T>(promise: Promise<T>) => Promise.race([
+    promise,
+    new Promise<never>((_, reject) => { timer = setTimeout(() => reject(Error('Streaming stalled')), 3000); }),
+  ]).finally(() => clearTimeout(timer));
+  try {
+    const first = iterator.next();
+    await within(started);
+    releaseFirst();
+    expect((await within(first)).value).toEqual(content.subarray(0, 10));
+    releaseSecond();
+    expect((await within(iterator.next())).value).toEqual(content.subarray(10));
+    expect((await within(iterator.next())).done).toBe(true);
+  } finally {
+    releaseFirst();
+    releaseSecond();
+    await iterator.return();
+  }
+});
+
+test('downloads chunks concurrently while preserving output order', async () => {
+  const content = Buffer.from('abcdefghijABCDEFGHIJ');
+  const { storage, token } = fixture([0, 10], content);
+  storage.options.parallel = 2;
+  let releaseFirst!: () => void;
+  let secondStarted!: () => void;
+  const firstGate = new Promise<void>(resolve => { releaseFirst = resolve; });
+  const started = new Promise<void>(resolve => { secondStarted = resolve; });
+  const original = storage.readChunk.bind(storage);
+  jest.spyOn(storage, 'readChunk').mockImplementation(async (proto, file) => {
+    if (file.name.endsWith('/0.chunk')) await firstGate;
+    else secondStarted();
+    return original(proto, file);
+  });
+  const iterator = storage.fileData(proto, token, 0, 20);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    const first = iterator.next();
+    await Promise.race([
+      started,
+      new Promise<never>((_, reject) => { timer = setTimeout(() => reject(Error('Downloads did not overlap')), 3000); }),
+    ]);
+    releaseFirst();
+    expect((await first).value).toEqual(content.subarray(0, 10));
+    expect((await iterator.next()).value).toEqual(content.subarray(10));
+    expect((await iterator.next()).done).toBe(true);
+  } finally {
+    clearTimeout(timer);
+    releaseFirst();
+    await iterator.return();
+  }
 });
 
 test('finds the next open-ended chunk after an initially empty subrange', async () => {
