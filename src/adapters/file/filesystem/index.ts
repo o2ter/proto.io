@@ -28,7 +28,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import { ProtoService } from '../../../server/proto';
 import { FileStorageOptions } from '../base';
-import { FileChunkStorageBase } from '../base/chunk';
+import { ChunkRange, FileChunkStorageBase } from '../base/chunk';
 
 export class FileSystemStorage extends FileChunkStorageBase<string> {
 
@@ -50,10 +50,30 @@ export class FileSystemStorage extends FileChunkStorageBase<string> {
   async* listChunks<E>(proto: ProtoService<E>, token: string, start?: number, end?: number) {
     const directory = path.resolve(this.volumn, token);
     const files = _.filter(await fs.readdir(directory), x => !!x.match(/^\d+\.chunk$/));
-    for (const file of files) {
-      const pos = parseInt(file.slice(0, -6));
-      yield { start: pos, file: path.resolve(directory, file) };
-    }
+    const chunks = files.map(file => ({
+      start: parseInt(file.slice(0, -6)),
+      file: path.resolve(directory, file),
+      name: file,
+    })).sort((a, b) => a.start - b.start);
+    const canonical = chunks.every(chunk => chunk.name === `${chunk.start}.chunk`);
+    const list = async function* (range?: ChunkRange) {
+      let low = 0;
+      let high = chunks.length;
+      if (range) {
+        while (low < high) {
+          const middle = Math.floor((low + high) / 2);
+          if (chunks[middle].start < range.low) low = middle + 1;
+          else high = middle;
+        }
+      }
+      for (let i = low; i < chunks.length; i++) {
+        const chunk = chunks[i];
+        if (range && chunk.start > range.high) break;
+        yield { start: chunk.start, file: chunk.file };
+      }
+    };
+    if (canonical) yield* this.listChunkRange(list, start, end);
+    else yield* list();
   }
 
   async readChunk<E>(proto: ProtoService<E>, file: string) {

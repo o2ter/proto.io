@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import { ProtoService } from '../../../server/proto';
 import OSS from 'ali-oss';
-import { FileChunkStorageBase, FileStorageOptions } from '../base';
+import { ChunkRange, FileChunkStorageBase, FileStorageOptions } from '../base';
 
 export class AliyunObjectStorage extends FileChunkStorageBase<OSS.ObjectMeta> {
 
@@ -42,22 +42,45 @@ export class AliyunObjectStorage extends FileChunkStorageBase<OSS.ObjectMeta> {
   }
 
   async* listChunks<E>(proto: ProtoService<E>, token: string, start?: number, end?: number) {
-    let next: string | undefined;
-    do {
-      const { objects, nextContinuationToken } = await (this._storage as any).listV2({
-        prefix: `${token}/`,
-        delimiter: '/',
-        continuationToken: next,
-      }, {});
-      if (_.isEmpty(objects)) break;
-      for (const item of objects) {
-        const name = _.last(_.split(item.name, '/'));
-        if (!name?.match(/^\d+\.chunk$/)) continue;
-        const pos = parseInt(name.slice(0, -6));
-        yield { start: pos, file: item };
-      }
-      next = nextContinuationToken;
-    } while (next);
+    const prefix = `${token}/`;
+    const storage = this._storage;
+    const list = async function* (range?: ChunkRange) {
+      let next: string | undefined;
+      // OSS start-after is exclusive, so stop just before the first chunk name.
+      let after = range ? `${prefix}${range.low}.chun` : undefined;
+      do {
+        const result: OSS.ListObjectResult & { nextContinuationToken?: string | null } = await storage.listV2({
+          prefix,
+          delimiter: '/',
+          'start-after': after,
+          ...range?.firstOnly && { 'max-keys': '1' },
+          'continuation-token': next,
+        }, {});
+        let skip: string | undefined;
+        for (const item of result.objects ?? []) {
+          if (range && item.name >= `${prefix}${range.high}.chunk~`) return;
+          const name = item.name.slice(prefix.length);
+          if (!/^\d+\.chunk$/.test(name)) continue;
+          if (range && name.length > range.digits + 6) {
+            // Longer offsets sharing these digits sort after the matching chunk.
+            skip = `${prefix}${name.slice(0, range.digits)}~`;
+            break;
+          }
+          const pos = parseInt(name.slice(0, -6));
+          if (range && (name.length !== range.digits + 6 || pos < range.low || pos > range.high)) continue;
+          yield { start: pos, file: item };
+        }
+        if (skip) {
+          after = skip;
+          next = undefined;
+          continue;
+        }
+        if (result.isTruncated && !result.nextContinuationToken) throw Error('Missing OSS continuation token');
+        next = result.nextContinuationToken ?? undefined;
+        if (!next) break;
+      } while (true);
+    };
+    yield* this.listChunkRange(list, start, end);
   }
 
   async readChunk<E>(proto: ProtoService<E>, file: OSS.ObjectMeta) {

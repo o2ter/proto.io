@@ -34,6 +34,13 @@ type ChunkData<File> = {
   file: File;
 };
 
+export type ChunkRange = {
+  low: number;
+  high: number;
+  digits: number;
+  firstOnly?: boolean;
+};
+
 export abstract class FileChunkStorageBase<File> extends FileStorageBase {
 
   listChunkDebounce = createCacheDebounce(this.options.cacheTimeout);
@@ -43,8 +50,60 @@ export abstract class FileChunkStorageBase<File> extends FileStorageBase {
 
   abstract readChunk<E>(proto: ProtoService<E>, file: File): PromiseLike<Buffer>;
 
+  // Each bounded listing must return matching offsets in ascending order.
+  protected async* listChunkRange(
+    list: (range?: ChunkRange) => AsyncGenerator<ChunkData<File>>,
+    start?: number,
+    end?: number,
+  ): AsyncGenerator<ChunkData<File>> {
+    if (end === undefined || !Number.isSafeInteger(end) || end <= 0 ||
+      (start !== undefined && (!Number.isSafeInteger(start) || start < 0 || start >= end))) {
+      yield* list();
+      return;
+    }
+
+    const first = start ?? 0;
+    // Find the preceding chunk without assuming the upload's chunk size.
+    if (first > 0) {
+      const last = first - 1;
+      for (let digits = String(last).length; digits >= 1; digits--) {
+        let low = digits === 1 ? 0 : 10 ** (digits - 1);
+        let high = Math.min(last, 10 ** digits - 1);
+        let previous: ChunkData<File> | undefined;
+        for await (const chunk of list({ low, high, digits, firstOnly: true })) {
+          previous = chunk;
+          break;
+        }
+        if (!previous) continue;
+        low = previous.start;
+        while (low < high) {
+          const middle = low + Math.ceil((high - low) / 2);
+          let found: ChunkData<File> | undefined;
+          for await (const chunk of list({ low: middle, high, digits, firstOnly: true })) {
+            found = chunk;
+            break;
+          }
+          if (found) {
+            previous = found;
+            low = found.start;
+          } else {
+            high = middle - 1;
+          }
+        }
+        yield previous;
+        break;
+      }
+    }
+
+    for (let digits = String(first).length; digits <= String(end - 1).length; digits++) {
+      const low = Math.max(first, digits === 1 ? 0 : 10 ** (digits - 1));
+      const high = Math.min(end - 1, 10 ** digits - 1);
+      if (low <= high) yield* list({ low, high, digits });
+    }
+  }
+
   async* readChunks<E>(proto: ProtoService<E>, token: string, start?: number, end?: number) {
-    const streams = await this.listChunkDebounce(token, () => asyncIterableToArray(this.listChunks(proto, token, start, end)));
+    const streams = await this.listChunkDebounce(JSON.stringify([token, start, end]), () => asyncIterableToArray(this.listChunks(proto, token, start, end)));
     const files = _.orderBy(streams, x => x.start);
     for (const [chunk, endBytes] of _.zip(files, _.slice(_.map(files, x => x.start), 1))) {
       if (_.isNumber(start) && _.isNumber(endBytes) && start >= endBytes) continue;

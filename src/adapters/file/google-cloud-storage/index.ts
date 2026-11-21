@@ -23,11 +23,10 @@
 //  THE SOFTWARE.
 //
 
-import _ from 'lodash';
 import { ProtoService } from '../../../server/proto';
 import { Storage, File, GetFilesOptions } from '@google-cloud/storage';
 import { FileStorageOptions } from '../base';
-import { FileChunkStorageBase } from '../base/chunk';
+import { ChunkRange, FileChunkStorageBase } from '../base/chunk';
 
 export class GoogleCloudStorage extends FileChunkStorageBase<File> {
 
@@ -49,22 +48,33 @@ export class GoogleCloudStorage extends FileChunkStorageBase<File> {
   }
 
   async* listChunks<E>(proto: ProtoService<E>, token: string, start?: number, end?: number) {
-    let query: GetFilesOptions = {
-      autoPaginate: false,
-      prefix: `${token}/`,
-      delimiter: '/',
+    const prefix = `${token}/`;
+    const bucket = this.bucket;
+    const escapedPrefix = prefix.replace(/[\\*?[\]{}]/g, '\\$&');
+    const list = async function* (range?: ChunkRange) {
+      let query: GetFilesOptions | null = {
+        autoPaginate: false,
+        prefix,
+        delimiter: '/',
+        ...range && {
+          startOffset: `${prefix}${range.low}.chunk`,
+          endOffset: `${prefix}${range.high}.chunk~`,
+          matchGlob: `${escapedPrefix}${'[0-9]'.repeat(range.digits)}.chunk`,
+          ...range.firstOnly && { maxResults: 1 },
+        },
+      };
+      do {
+        const [response, nextPage]: [File[], GetFilesOptions | null, unknown] = await bucket.getFiles(query);
+        for (const file of response) {
+          const name = file.name.slice(prefix.length);
+          if (!/^\d+\.chunk$/.test(name)) continue;
+          yield { start: parseInt(name.slice(0, -6)), file };
+        }
+        query = nextPage;
+      } while (query);
     };
-    do {
-      const [response, nextPage] = await this.bucket.getFiles(query);
-      if (_.isEmpty(response)) break;
-      for (const item of response) {
-        const name = _.last(_.split(item.name, '/'));
-        if (!name?.match(/^\d+\.chunk$/)) continue;
-        const pos = parseInt(name.slice(0, -6));
-        yield { start: pos, file: item };
-      }
-      query = nextPage;
-    } while (query);
+
+    yield* this.listChunkRange(list, start, end);
   }
 
   async readChunk<E>(proto: ProtoService<E>, file: File) {
