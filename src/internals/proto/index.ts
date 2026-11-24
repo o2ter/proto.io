@@ -451,7 +451,7 @@ export interface ProtoType<Ext> {
   withTransaction<T>(
     callback: (connection: ProtoType<Ext>) => PromiseLike<T>,
     options?: TransactionOptions,
-  ): void;
+  ): Promise<T>;
 
   /**
    * Generates an upload token.
