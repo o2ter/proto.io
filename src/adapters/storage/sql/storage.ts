@@ -65,7 +65,13 @@ export abstract class SqlStorage implements TStorage {
   abstract get dialect(): SqlDialect;
   protected abstract _query(text: string, values: any[]): ReturnType<typeof asyncStream<any>>;
 
-  abstract _refs(schema: Record<string, TSchema>, className: string, keys: string[], item: SQL): SQL;
+  abstract _refs(
+    schema: Record<string, TSchema>,
+    className: string,
+    keys: string[],
+    item: SQL,
+    skip?: Record<string, string[]>
+  ): SQL;
 
   query(sql: SQL) {
     const { query, values } = sql.compile(this.dialect);
@@ -264,7 +270,11 @@ export abstract class SqlStorage implements TStorage {
     })();
   }
 
-  nonrefs(schema: Record<string, TSchema>, query: DecodedQuery<FindOptions>) {
+  nonrefs(
+    schema: Record<string, TSchema>,
+    query: DecodedQuery<FindOptions>,
+    skip?: Record<string, string[]>
+  ) {
     const self = this;
     const compiler = self._makeCompiler(schema, false, query.extraFilter);
     const _matchesType = self._matchesType(compiler, query);
@@ -273,6 +283,7 @@ export abstract class SqlStorage implements TStorage {
         NOT EXISTS (${this._refs(
         schema, query.className, ['_id'],
         sql`(${{ quote: query.className + '$' }} || ${{ identifier: fetchName }}.${{ identifier: '_id' }})`,
+        skip,
       )})
       `
     }));

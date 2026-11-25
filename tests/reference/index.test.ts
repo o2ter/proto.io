@@ -51,4 +51,19 @@ test('test refs', async () => {
   expect(check?.[0]?.id).toStrictEqual(result.id);
   expect(check2?.[0]?.id).toStrictEqual(result.id);
 
+  const other = Proto.Object('Refs');
+  await other.save();
+
+  const otherResult = Proto.Object('Refs2');
+  otherResult.set('pointer', other);
+  await otherResult.save();
+
+  const skipped = await Proto.Query('Refs').nonrefs({
+    skip: {
+      Refs: ['pointer'],
+      Refs2: ['pointer'],
+    },
+  });
+  expect(skipped).toHaveLength(3);
+
 })

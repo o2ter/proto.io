@@ -103,7 +103,11 @@ export interface TStorage {
   ): PromiseLike<Record<string, any>>;
 
   refs(schema: Record<string, TSchema>, object: TObject, classNames: string[], roles?: string[]): AsyncIterable<TObject>;
-  nonrefs(schema: Record<string, TSchema>, query: DecodedQuery<FindOptions>): AsyncIterable<TObject>;
+  nonrefs(
+    schema: Record<string, TSchema>,
+    query: DecodedQuery<FindOptions>,
+    skip?: Record<string, string[]>
+  ): AsyncIterable<TObject>;
 
   insert(schema: Record<string, TSchema>, options: InsertOptions, values: Record<string, TValueWithUndefined>[]): PromiseLike<TObject[]>;
   update(schema: Record<string, TSchema>, query: DecodedQuery<FindOptions>, update: Record<string, TUpdateOp>): PromiseLike<TObject[]>;

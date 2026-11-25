@@ -70,8 +70,11 @@ abstract class _ProtoClientQuery<T extends string, E> extends TQuery<T, E, boole
 
   private _requestOpt({
     silent,
+    skip,
     ...opts
-  }: RequestOptions<boolean> = {}) {
+  }: RequestOptions<boolean> & {
+    skip?: Record<string, string[]>;
+  } = {}) {
     return {
       method: 'post',
       url: this.url,
@@ -127,9 +130,12 @@ abstract class _ProtoClientQuery<T extends string, E> extends TQuery<T, E, boole
     return asyncStream(request);
   }
 
-  nonrefs(options?: RequestOptions<boolean>) {
+  nonrefs(options?: RequestOptions<boolean> & {
+    skip?: Record<string, string[]>;
+  }) {
     const request = () => this._proto[PVK].request(this._proto, {
       operation: 'nonrefs',
+      skipFields: options?.skip,
       ...this._queryOptions(options),
     }, this._requestOpt(options)) as Promise<TObjectType<T, E>[]>;
     return asyncStream(request);

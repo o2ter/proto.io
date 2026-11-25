@@ -230,10 +230,13 @@ export class PostgresStorageClient<Driver extends PostgresClientDriver> extends 
     className: string,
     keys: string[],
     item: SQL,
+    skip?: Record<string, string[]>,
   ) {
-    const _schema = _.pickBy(_.mapValues(schema, s => _.pickBy(
+    const _schema = _.pickBy(_.mapValues(schema, (s, schemaName) => _.pickBy(
       s.fields,
-      f => (isPointer(f) || (isRelation(f) && _.isNil(f.foreignField))) && f.target === className
+      (f, key) => !_.includes(skip?.[schemaName], key)
+        && (isPointer(f) || (isRelation(f) && _.isNil(f.foreignField)))
+        && f.target === className
     )) as Record<string, Record<string, TSchema.PointerType | TSchema.RelationType>>, s => !_.isEmpty(s));
     return sql`${{
       literal: _.map(_schema, (fields, className) => sql`

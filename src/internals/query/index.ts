@@ -119,7 +119,9 @@ export abstract class TQuery<T extends string, Ext, M extends boolean> extends T
    * @param options - Extra options for the query.
    * @returns A stream of the non-reference results.
    */
-  abstract nonrefs(options?: ExtraOptions<M>): ReturnType<typeof asyncStream<TObjectType<T, Ext>>>;
+  abstract nonrefs(options?: ExtraOptions<M> & {
+    skip?: Record<string, string[]>;
+  }): ReturnType<typeof asyncStream<TObjectType<T, Ext>>>;
 
   /**
    * Inserts a new record.

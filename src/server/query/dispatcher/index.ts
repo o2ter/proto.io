@@ -127,14 +127,15 @@ export const dispatcher = <E>(
       return result || {};
     },
     async nonrefs(
-      query: FindOptions
+      query: FindOptions,
+      skip?: Record<string, string[]>
     ) {
       QueryValidator.recursiveCheck(query);
       const _validator = await validator();
       const decoded = _validator.decodeQuery(normalize(query), 'read');
       const isGet = _validator.isGetMethod(decoded.filter);
       if (!_validator.validateCLPs(query.className, isGet ? 'get' : 'find')) throw Error('No permission');
-      return proto.storage.nonrefs(proto.schema, decoded);
+      return proto.storage.nonrefs(proto.schema, decoded, skip);
     },
     async random(
       query: FindOptions & RelationOptions,

@@ -116,10 +116,12 @@ abstract class _ProtoQuery<T extends string, E, M extends boolean> extends TQuer
     return this._dispatcher(options).groupFind(this._queryOptions, accumulators) as any;
   }
 
-  nonrefs(options?: ExtraOptions<M>) {
+  nonrefs(options?: ExtraOptions<M> & {
+    skip?: Record<string, string[]>;
+  }) {
     const self = this;
     return asyncStream(async function* () {
-      const objects = await self._dispatcher(options).nonrefs(self._queryOptions);
+      const objects = await self._dispatcher(options).nonrefs(self._queryOptions, options?.skip);
       for await (const object of objects) yield self._objectMethods(object);
     });
   }

@@ -48,6 +48,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
       operation,
       accumulators,
       random,
+      skipFields,
       attributes,
       update,
       setOnInsert,
@@ -97,7 +98,7 @@ export default <E>(router: Router, proto: ProtoService<E>) => {
           const maxFetchLimit = payload[PVK].options.maxFetchLimit;
           query[PVK].options.limit = query[PVK].options.limit ?? maxFetchLimit;
           if (query[PVK].options.limit > maxFetchLimit) throw Error('Query over limit');
-          return query.nonrefs(opts);
+          return query.nonrefs({ ...opts, skip: skipFields });
         }
       case 'insert': return query.insert(attributes, opts);
       case 'insertMany': return query.insertMany(attributes, opts);
