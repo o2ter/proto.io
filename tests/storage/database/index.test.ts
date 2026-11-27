@@ -85,6 +85,11 @@ test('reads variable-sized database chunks with a different configured chunk siz
     for await (const chunk of storage.fileData(service, 'variable-chunks', start, end)) chunks.push(chunk);
     expect(Buffer.concat(chunks)).toEqual(content.subarray(start, end));
   }
+  for (const start of [1110, offsets[14] + 1, largeStart + chunkSize + 1, length - 1, length, length + 1]) {
+    const chunks: Buffer[] = [];
+    for await (const chunk of storage.fileData(service, 'variable-chunks', start)) chunks.push(chunk);
+    expect(Buffer.concat(chunks)).toEqual(content.subarray(start));
+  }
 });
 
 test('test uploadToken', async () => {

@@ -568,6 +568,10 @@ test.each(['google', 'aliyun', 'filesystem'] as const)('reads irregular chunk si
     for (const [start, end] of [[195, 220], [215, 220], [380, 405], [995, 1005], [1301, 1350], [0, 1400]]) {
       expect(await read(storage, token, start, end)).toEqual(content.subarray(start, end));
     }
+    storage.options.listChunkBatchSize = 1;
+    for (const start of [0, 8, 205, 380, 999, 1301, 1400, 1450]) {
+      expect(await read(storage, token, start)).toEqual(content.subarray(start));
+    }
   } finally {
     if (directory) await fs.rm(directory, { recursive: true, force: true });
   }
@@ -626,6 +630,12 @@ test.each(['google', 'aliyun', 'filesystem'] as const)('reads randomized chunk s
       for await (const chunk of storage.listChunks(proto, token, start, end)) actual.push(chunk.start);
       expect({ start, end, actual }).toEqual({ start, end, actual: expected });
       expect(await read(storage, token, start, end)).toEqual(content.subarray(start, end));
+    }
+    for (const start of [1110, largeStart + chunkSize + 1, length + 1]) {
+      const actual = await read(storage, token, start);
+      const expected = content.subarray(start);
+      expect({ start, length: actual.length, matches: actual.equals(expected) })
+        .toEqual({ start, length: expected.length, matches: true });
     }
   } finally {
     if (directory) await fs.rm(directory, { recursive: true, force: true });
