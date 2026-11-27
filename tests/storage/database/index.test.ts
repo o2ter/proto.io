@@ -26,9 +26,11 @@
 import _ from 'lodash';
 import fs from 'fs';
 import axios from 'axios';
-import { masterUser } from './server';
+import { deflateSync } from 'zlib';
+import { masterUser, Proto as service } from './server';
 import { test, expect } from '@jest/globals';
 import { ProtoClient } from '../../../src/client/proto';
+import DatabaseFileStorage from '../../../src/adapters/file/database';
 import { generateString, streamToBuffer } from '../utils';
 
 const Proto = new ProtoClient({
@@ -57,6 +59,32 @@ test('test files 3', async () => {
 
   const data = await streamToBuffer(file.fileData());
   expect(data.toString('utf8')).toStrictEqual(content);
+});
+
+test('reads variable-sized database chunks with a different configured chunk size', async () => {
+  const chunkSize = 16 * 1204;
+  const sizes = [1111, 568, 324, ...Array<number>(12).fill(1), chunkSize * 2 + 37, 568, 1111];
+  const length = sizes.reduce((sum, size) => sum + size, 0);
+  const content = Buffer.from(Array.from({ length }, (_, i) => i * 43 % 251));
+  const storage = new DatabaseFileStorage({ chunkSize });
+  const offsets: number[] = [];
+  let position = 0;
+  for (const size of sizes) {
+    offsets.push(position);
+    await storage.createChunk(service, 'variable-chunks', position, position + size,
+      deflateSync(content.subarray(position, position + size)));
+    position += size;
+  }
+  const largeStart = offsets[15];
+  for (const [start, end] of [
+    [0, 1], [1110, 1112], [offsets[14] + 1, offsets[14] + 30],
+    [largeStart + sizes[15] - 1, largeStart + sizes[15] + 1],
+    [length - 1, length], [0, length],
+  ]) {
+    const chunks: Buffer[] = [];
+    for await (const chunk of storage.fileData(service, 'variable-chunks', start, end)) chunks.push(chunk);
+    expect(Buffer.concat(chunks)).toEqual(content.subarray(start, end));
+  }
 });
 
 test('test uploadToken', async () => {

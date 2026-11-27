@@ -61,7 +61,7 @@ export const masterUser = {
   pass: randomUUID(),
 };
 
-const Proto = new ProtoService({
+export const Proto = new ProtoService({
   endpoint: 'http://localhost:8080/proto',
   masterUsers: [masterUser],
   jwtToken: randomUUID(),

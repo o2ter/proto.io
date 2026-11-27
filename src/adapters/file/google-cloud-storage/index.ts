@@ -74,7 +74,7 @@ export class GoogleCloudStorage extends FileChunkStorageBase<File> {
       } while (query);
     };
 
-    yield* this.listChunkRange(list, start, end);
+    yield* this.listChunkRange(list, start, end, this.options.chunkSize);
   }
 
   async readChunk<E>(proto: ProtoService<E>, file: File) {

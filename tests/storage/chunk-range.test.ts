@@ -402,6 +402,26 @@ test('avoids listing unrelated chunks for a narrow range', async () => {
   expect(queries.every(query => query.matchGlob)).toBe(true);
 });
 
+test('finds a nearby preceding Google Cloud chunk without a binary search', async () => {
+  const chunkSize = 16 * 1024;
+  const offsets = [0, 9 * chunkSize, 10 * chunkSize, 11 * chunkSize];
+  const content = Buffer.alloc(12 * chunkSize, 1);
+  const { storage, token, queries } = fixture(offsets, content);
+  const start = 10 * chunkSize + 1;
+
+  expect(await read(storage, token, start, start + 100)).toEqual(content.subarray(start, start + 100));
+  expect(queries).toHaveLength(2);
+});
+
+test('falls back to finding a distant preceding Google Cloud chunk', async () => {
+  const chunkSize = 16 * 1024;
+  const content = randomBytes(6 * chunkSize);
+  const { storage, token } = fixture([0, 5 * chunkSize], content);
+  const start = 4 * chunkSize;
+
+  expect(await read(storage, token, start, start + 100)).toEqual(content.subarray(start, start + 100));
+});
+
 function ossFixture(offsets: number[], content: Buffer) {
   const token = 'file';
   const files = offsets.map((start, index) => ({
@@ -448,6 +468,17 @@ test('reads OSS ranges with paginated listings and exclusive start markers', asy
   expect(queries.some(query => query['continuation-token'])).toBe(true);
 });
 
+test('finds a nearby preceding OSS chunk without a binary search', async () => {
+  const chunkSize = 16 * 1024;
+  const offsets = [0, 9 * chunkSize, 10 * chunkSize, 11 * chunkSize];
+  const content = Buffer.alloc(12 * chunkSize, 1);
+  const { storage, token, queries } = ossFixture(offsets, content);
+  const start = 10 * chunkSize + 1;
+
+  expect(await read(storage, token, start, start + 100)).toEqual(content.subarray(start, start + 100));
+  expect(queries).toHaveLength(2);
+});
+
 test('avoids listing unrelated OSS chunks for a narrow range', async () => {
   const content = Buffer.alloc(10000, 1);
   const offsets = Array.from({ length: 1000 }, (_, i) => i * 10);
@@ -489,6 +520,12 @@ test('selects filesystem chunks from a single directory listing', async () => {
       const selected = [];
       for await (const chunk of storage.listChunks(proto, 'file', 100, 250)) selected.push(chunk.start);
       expect(selected).toEqual([80, 150, 240]);
+      const exact = [];
+      for await (const chunk of storage.listChunks(proto, 'file', 150, 240)) exact.push(chunk.start);
+      expect(exact).toEqual([80, 150]);
+      const invalid = [];
+      for await (const chunk of storage.listChunks(proto, 'file', 250, 100)) invalid.push(chunk.start);
+      expect(invalid).toEqual(offsets);
       expect(await read(storage, 'file', 950, 1010)).toEqual(content.subarray(950, 1010));
       expect(await read(storage, 'file', 1200, 1250)).toEqual(content.subarray(1200, 1250));
       expect(await read(storage, 'file', 100)).toEqual(content.subarray(100));
@@ -502,6 +539,96 @@ test('selects filesystem chunks from a single directory listing', async () => {
     }
   } finally {
     await fs.rm(directory, { recursive: true, force: true });
+  }
+});
+
+test.each(['google', 'aliyun', 'filesystem'] as const)('reads irregular chunk sizes with %s storage', async adapter => {
+  const content = Buffer.from(Array.from({ length: 1400 }, (_, i) => i * 43 % 251));
+  const offsets = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 90,
+    ...Array.from({ length: 11 }, (_, i) => 200 + i), 400, 900, 999, 1000, 1200];
+  let directory: string | undefined;
+  try {
+    let storage: FileStorageBase;
+    let token: string;
+    if (adapter === 'filesystem') {
+      await fs.mkdir('.temp', { recursive: true });
+      directory = await fs.mkdtemp(path.resolve('.temp/chunk-range-irregular-'));
+      const filesystem = new FileSystemStorage(directory);
+      for (const [index, start] of offsets.entries()) {
+        const data = content.subarray(start, offsets[index + 1]);
+        await filesystem.createChunk(proto, 'file', start, start + data.length, deflateSync(data));
+      }
+      storage = filesystem;
+      token = 'file';
+    } else {
+      ({ storage, token } = adapter === 'google' ? fixture(offsets, content) : ossFixture(offsets, content));
+    }
+    storage.options.chunkSize = 100;
+
+    for (const [start, end] of [[195, 220], [215, 220], [380, 405], [995, 1005], [1301, 1350], [0, 1400]]) {
+      expect(await read(storage, token, start, end)).toEqual(content.subarray(start, end));
+    }
+  } finally {
+    if (directory) await fs.rm(directory, { recursive: true, force: true });
+  }
+});
+
+test.each(['google', 'aliyun', 'filesystem'] as const)('reads randomized chunk sizes with %s storage', async adapter => {
+  const chunkSize = 16 * 1204;
+  let seed = 123456789;
+  const random = () => {
+    seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+    return seed;
+  };
+  const sizes = [1111, 568, 324, ...Array<number>(12).fill(1), chunkSize * 2 + 37,
+    ...Array.from({ length: 120 }, () => random() % (chunkSize * 2) + 1)];
+  const offsets: number[] = [];
+  let length = 0;
+  for (const size of sizes) {
+    offsets.push(length);
+    length += size;
+  }
+  const content = Buffer.from(Array.from({ length }, (_, i) => i * 43 % 251));
+  let directory: string | undefined;
+  try {
+    let storage: GoogleCloudStorage | AliyunObjectStorage | FileSystemStorage;
+    let token: string;
+    if (adapter === 'filesystem') {
+      await fs.mkdir('.temp', { recursive: true });
+      directory = await fs.mkdtemp(path.resolve('.temp/chunk-range-random-'));
+      const filesystem = new FileSystemStorage(directory);
+      for (const [index, start] of offsets.entries()) {
+        const data = content.subarray(start, offsets[index + 1]);
+        await filesystem.createChunk(proto, 'file', start, start + data.length, deflateSync(data));
+      }
+      storage = filesystem;
+      token = 'file';
+    } else {
+      ({ storage, token } = adapter === 'google' ? fixture(offsets, content) : ossFixture(offsets, content));
+    }
+    storage.options.chunkSize = chunkSize;
+
+    const largeStart = offsets[15];
+    const ranges = [
+      [0, 1], [1110, 1112], [offsets[14] + 1, offsets[14] + 30],
+      [largeStart + sizes[15] - 1, largeStart + sizes[15] + 1],
+      [offsets[50], offsets[50] + 1], [length - 1, length],
+    ];
+    for (let i = 0; i < 20; i++) {
+      const start = random() % length;
+      ranges.push([start, Math.min(length, start + random() % (chunkSize * 3) + 1)]);
+    }
+    for (const [start, end] of ranges) {
+      const previous = offsets.filter(offset => offset < start).pop();
+      const expected = [...previous === undefined ? [] : [previous],
+        ...offsets.filter(offset => offset >= start && offset < end)];
+      const actual = [];
+      for await (const chunk of storage.listChunks(proto, token, start, end)) actual.push(chunk.start);
+      expect({ start, end, actual }).toEqual({ start, end, actual: expected });
+      expect(await read(storage, token, start, end)).toEqual(content.subarray(start, end));
+    }
+  } finally {
+    if (directory) await fs.rm(directory, { recursive: true, force: true });
   }
 });
 

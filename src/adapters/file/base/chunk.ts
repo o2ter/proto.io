@@ -169,6 +169,7 @@ export abstract class FileChunkStorageBase<File> extends FileStorageBase {
     list: (range?: ChunkRange) => AsyncGenerator<ChunkData<File>>,
     start?: number,
     end?: number,
+    lookbehind?: number,
   ): AsyncGenerator<ChunkData<File>> {
     if (end === undefined || !Number.isSafeInteger(end) || end <= 0 ||
       (start !== undefined && (!Number.isSafeInteger(start) || start < 0 || start >= end))) {
@@ -180,7 +181,27 @@ export abstract class FileChunkStorageBase<File> extends FileStorageBase {
     // Find the preceding chunk without assuming the upload's chunk size.
     if (first > 0) {
       const last = first - 1;
-      for (let digits = String(last).length; digits >= 1; digits--) {
+      let preceding: ChunkData<File> | undefined;
+      if (lookbehind !== undefined && Number.isSafeInteger(lookbehind) && lookbehind > 0) {
+        const windowStart = Math.max(0, first - lookbehind);
+        for (let digits = String(last).length; digits >= String(windowStart).length; digits--) {
+          const low = Math.max(windowStart, digits === 1 ? 0 : 10 ** (digits - 1));
+          const high = Math.min(last, 10 ** digits - 1);
+          let count = 0;
+          let candidate: ChunkData<File> | undefined;
+          for await (const chunk of list({ low, high, digits })) {
+            // Fall back to the bounded search if the window contains many chunks.
+            if (++count > 8) break;
+            candidate = chunk;
+          }
+          if (count > 8) break;
+          if (candidate) {
+            preceding = candidate;
+            break;
+          }
+        }
+      }
+      for (let digits = String(last).length; !preceding && digits >= 1; digits--) {
         let low = digits === 1 ? 0 : 10 ** (digits - 1);
         let high = Math.min(last, 10 ** digits - 1);
         let previous: ChunkData<File> | undefined;
@@ -204,9 +225,10 @@ export abstract class FileChunkStorageBase<File> extends FileStorageBase {
             high = middle - 1;
           }
         }
-        yield previous;
+        preceding = previous;
         break;
       }
+      if (preceding) yield preceding;
     }
 
     for (let digits = String(first).length; digits <= String(end - 1).length; digits++) {

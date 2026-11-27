@@ -80,7 +80,7 @@ export class AliyunObjectStorage extends FileChunkStorageBase<OSS.ObjectMeta> {
         if (!next) break;
       } while (true);
     };
-    yield* this.listChunkRange(list, start, end);
+    yield* this.listChunkRange(list, start, end, this.options.chunkSize);
   }
 
   async readChunk<E>(proto: ProtoService<E>, file: OSS.ObjectMeta) {
